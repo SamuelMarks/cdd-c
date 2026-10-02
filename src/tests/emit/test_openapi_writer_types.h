@@ -15,7 +15,7 @@ extern "C" {
 /* clang-format on */
 
 TEST test_writer_schema_items_type_union(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;
@@ -66,7 +66,7 @@ TEST test_writer_schema_items_type_union(void) {
 }
 
 TEST test_writer_schema_boolean(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;
@@ -108,7 +108,7 @@ TEST test_writer_schema_boolean(void) {
 }
 
 TEST test_writer_schema_numeric_enum(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;
@@ -159,7 +159,7 @@ TEST test_writer_schema_numeric_enum(void) {
 }
 
 TEST test_writer_schema_items_examples(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;
@@ -213,7 +213,7 @@ TEST test_writer_schema_items_examples(void) {
 }
 
 TEST test_writer_schema_items_boolean(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;
@@ -258,7 +258,7 @@ TEST test_writer_schema_items_boolean(void) {
 }
 
 TEST test_writer_schema_example_and_numeric_constraints(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;
@@ -307,7 +307,7 @@ TEST test_writer_schema_example_and_numeric_constraints(void) {
 }
 
 TEST test_writer_schema_array_constraints_and_items_example(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;
@@ -368,7 +368,7 @@ TEST test_writer_schema_array_constraints_and_items_example(void) {
 }
 
 TEST test_writer_inline_schema_items_const_default_and_extras(void) {
-  int rc;
+  int rc = 0;
   const char *json =
       "{\"paths\":{\"/"
       "q\":{\"get\":{\"parameters\":[{\"name\":\"tags\",\"in\":\"query\","
@@ -436,7 +436,7 @@ TEST test_writer_input_validation(void) {
 }
 
 TEST test_writer_extensions_non_schema(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   struct OpenAPI_Callback cb;

@@ -48,7 +48,7 @@ TEST test_patcher_oom(void) {
       int j;
       for (j = 1; j < 50; j++) {
         char *tmp = strdup("b");
-        int rc;
+        int rc = 0;
         g_cdd_alloc_fail = j;
         rc = patch_list_add(&list, 0, 1, tmp);
         g_cdd_alloc_fail = 0;
@@ -105,7 +105,7 @@ TEST test_patcher_oom(void) {
           {
             int j;
             for (j = 1; j < 180; j++) {
-              int rc;
+              int rc = 0;
               int my_alloc = j;
               if (j == 4)
                 my_alloc = 3000;
@@ -142,7 +142,7 @@ TEST test_patcher_oom(void) {
             {
               int j;
               for (j = 1; j < 180; j++) {
-                int rc;
+                int rc = 0;
                 int my_alloc = j;
                 if (j == 4) {
                   my_alloc = 3000;

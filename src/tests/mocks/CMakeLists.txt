@@ -1,3 +1,6 @@
+
+include_directories(SYSTEM "$ENV{HOME}/repos/c-orm/include")
+include_directories(SYSTEM "$ENV{HOME}/repos/c-rest-framework/include")
 set(LIBRARY_NAME "simple_mocks")
 
 set(Header_Files "emit/simple.h" "emit/simple_json.h" "c_cdd_stdbool.h")

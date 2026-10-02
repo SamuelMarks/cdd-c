@@ -383,7 +383,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
   cdd_cst_builder_t b;
   cdd_cst_node_t *node = NULL;
   cdd_cst_node_t *new_node = NULL;
-  int rc;
+  int rc = 0;
 
   cdd_cst_parse(az_span_create_from_str((char *)(size_t) "int x;"), &tree);
   node = tree->root;

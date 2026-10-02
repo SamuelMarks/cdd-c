@@ -80,7 +80,7 @@ static cdd_c_error_t gen_sig(const struct OpenAPI_Operation *op,
     long sz;
     char *content = NULL;
 
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     if (!tmp) {
       *_out_val = NULL;

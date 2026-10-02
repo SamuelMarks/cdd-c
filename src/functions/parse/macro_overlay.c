@@ -18,6 +18,7 @@
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_cdd_macro_overlay_fail_realloc = 0;
 C_CDD_EXPORT int g_cdd_macro_overlay_fail_calloc = 0;
+C_CDD_EXPORT int g_cdd_macro_overlay_fail_inner_realloc = 0;
 #endif
 
 /**
@@ -107,6 +108,7 @@ cdd_c_error_t cst_build_macro_overlay(const struct CstNodeList *cst,
                                       const struct TokenList *tokens,
                                       struct MacroOverlayList *overlays) {
   size_t i;
+  cdd_c_error_t rc;
   if (!cst || !tokens || !overlays)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -114,39 +116,82 @@ cdd_c_error_t cst_build_macro_overlay(const struct CstNodeList *cst,
   for (i = 0; i < cst->size; ++i) {
     const struct CstNode *n = &cst->nodes[i];
     if (n->kind == CST_NODE_MACRO) {
-      /* Create a dummy expanded list for now, since actual preprocessor
-         evaluation is a complex step that requires building a full env. */
-      struct CstNodeList *dummy_expanded;
+      struct CstNodeList *expanded;
 #ifdef CDD_BUILD_TESTS
       {
         extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_calloc;
         if (g_cdd_macro_overlay_fail_calloc) {
-          dummy_expanded = NULL;
+          expanded = NULL;
           g_cdd_macro_overlay_fail_calloc = 0;
         } else {
-          dummy_expanded =
+          expanded =
               (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
         }
       }
 #else
-      dummy_expanded =
-          (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
+      expanded = (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
 #endif
-      if (!dummy_expanded) {
-        C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+      if (!expanded) {
         return CDD_C_ERROR_MEMORY;
       }
-      /* cst_list_init is not available, we can just zero it and let it be empty
-       */
-      dummy_expanded->nodes = NULL;
-      dummy_expanded->size = 0;
-      dummy_expanded->capacity = 0;
 
-      /* Just store it to satisfy dual representation architecture */
-      if (list_add(overlays, n, dummy_expanded) != 0) {
-        free_cst_node_list(dummy_expanded);
-        free(dummy_expanded);
-        return CDD_C_ERROR_MEMORY;
+      /* Initialize the expanded list */
+      expanded->nodes = NULL;
+      expanded->size = 0;
+      expanded->capacity = 0;
+
+      /* The legacy CST_NODE doesn't have a value union. We use tokens bounds to
+       * expand. */
+      if (n->start_token < n->end_token && n->end_token <= tokens->size) {
+        size_t j;
+        for (j = n->start_token; j < n->end_token; j++) {
+          struct CstNode expanded_node;
+          memset(&expanded_node, 0, sizeof(struct CstNode));
+          expanded_node.kind = CST_NODE_OTHER;
+          expanded_node.start = tokens->tokens[j].start;
+          expanded_node.length = tokens->tokens[j].length;
+          expanded_node.start_token = j;
+          expanded_node.end_token = j + 1;
+
+          if (expanded->size >= expanded->capacity) {
+            size_t new_cap =
+                expanded->capacity == 0 ? 4 : expanded->capacity * 2;
+
+#ifdef CDD_BUILD_TESTS
+            struct CstNode *new_arr = NULL;
+            extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_inner_realloc;
+            printf("inner realloc: %d\n",
+                   g_cdd_macro_overlay_fail_inner_realloc);
+            if (g_cdd_macro_overlay_fail_inner_realloc == 1) {
+              g_cdd_macro_overlay_fail_inner_realloc = 0;
+            } else {
+              if (g_cdd_macro_overlay_fail_inner_realloc > 1)
+                g_cdd_macro_overlay_fail_inner_realloc--;
+              new_arr = (struct CstNode *)realloc(
+                  expanded->nodes, new_cap * sizeof(struct CstNode));
+            }
+#else
+            struct CstNode *new_arr = (struct CstNode *)realloc(
+                expanded->nodes, new_cap * sizeof(struct CstNode));
+#endif
+            if (!new_arr) {
+              free_cst_node_list(expanded);
+              free(expanded);
+              return CDD_C_ERROR_MEMORY;
+            }
+            expanded->nodes = new_arr;
+            expanded->capacity = new_cap;
+          }
+          expanded->nodes[expanded->size++] = expanded_node;
+        }
+      }
+
+      rc = list_add(overlays, n, expanded);
+      printf("list_add returned %d\n", rc);
+      if (rc != CDD_C_SUCCESS) {
+        free_cst_node_list(expanded);
+        free(expanded);
+        return rc;
       }
     }
   }

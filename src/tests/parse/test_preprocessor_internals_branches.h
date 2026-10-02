@@ -47,7 +47,7 @@ TEST test_pp_scan_includes_directives(void) {
   const char *test_file = "test_pp_scan_cond.c";
   const char *inc_file = "test_inc_target.h";
   int count = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   write_to_file(inc_file, "/* header */\n");
 
@@ -114,7 +114,7 @@ TEST test_pp_scan_includes_directives(void) {
 TEST test_pp_scan_defines_edge_cases(void) {
   struct PreprocessorContext ctx;
   const char *test_file = "test_pp_scan_defs_edge.h";
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* NULL argument checks */
   rc = pp_scan_defines(NULL, test_file);
@@ -149,7 +149,7 @@ TEST test_pp_embed_params_error_cases(void) {
   struct PreprocessorContext ctx;
   struct TokenList *tl = NULL;
   struct EmbedParams params;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   pp_context_init(&ctx);
   memset(&params, 0, sizeof(params));
@@ -186,7 +186,7 @@ TEST test_pp_scan_includes_nested_and_syntax_errors(void) {
   const char *test_file = "test_pp_nested.c";
   const char *inc_file = "test_inc_target.h";
   int count = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   write_to_file(inc_file, "/* header */\n");
 
@@ -232,7 +232,7 @@ TEST test_pp_eval_all_syntax_error_branches(void) {
   struct PreprocessorContext ctx;
   struct TokenList *tl = NULL;
   long val = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   const char *err_exprs[] = {"+ )",
                              "- )",
                              "! )",
@@ -282,7 +282,7 @@ TEST test_pp_eval_all_syntax_error_branches(void) {
 TEST test_pp_scan_defines_whitespace_trimming(void) {
   struct PreprocessorContext ctx;
   const char *test_file = "test_pp_trim.h";
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   write_to_file(test_file, "#define CR_VAL 123\r\n"
                            "#define SPACES_VAL    \n");
@@ -302,7 +302,7 @@ TEST test_pp_scan_includes_eof_and_else_active(void) {
   const char *test_file = "test_pp_eof.c";
   const char *inc_file = "test_inc_target.h";
   int count = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   write_to_file(inc_file, "/* header */\n");
 
@@ -330,7 +330,7 @@ TEST test_pp_arithmetic_all_operators(void) {
   struct PreprocessorContext ctx;
   struct TokenList *tl = NULL;
   long val = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   pp_context_init(&ctx);
 
@@ -367,7 +367,7 @@ TEST test_pp_realloc_and_null_internals(void) {
   struct PreprocessorContext ctx;
   struct MacroDef def;
   char *resolved = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   pp_free_macro_def(NULL);
   rc = pp_add_macro_internal(NULL, NULL);
@@ -422,7 +422,7 @@ TEST test_pp_realloc_and_null_internals(void) {
 TEST test_pp_scan_defines_oom_and_trimming(void) {
   struct PreprocessorContext ctx;
   const char *test_file = "test_pp_scan_oom.h";
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   pp_context_init(&ctx);
 
@@ -456,7 +456,7 @@ TEST test_pp_eval_oom_and_peek_eof(void) {
   struct PreprocessorContext ctx;
   struct TokenList *tl = NULL;
   long val = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   pp_context_init(&ctx);
   pp_add_search_path(&ctx, ".");
@@ -574,7 +574,7 @@ TEST test_pp_parse_embed_params_keywords_and_oom_paths(void) {
   struct PreprocessorContext ctx;
   struct TokenList *tl = NULL;
   struct EmbedParams params;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   pp_context_init(&ctx);
   memset(&params, 0, sizeof(params));
@@ -643,7 +643,7 @@ TEST test_pp_scan_includes_elif_active_and_oom_paths(void) {
   const char *test_file = "test_pp_elif_active.c";
   const char *inc_file = "test_inc_target.h";
   int count = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   write_to_file(inc_file, "/* header */\n");
 
@@ -686,7 +686,7 @@ TEST test_pp_final_edge_coverage(void) {
   const char *test_inc = "test_final_inc.c";
   int count = 0;
   int k = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   pp_context_init(&ctx);
 
@@ -732,7 +732,7 @@ TEST test_pp_branch_coverage_maximizer(void) {
   const char *test_file = "test_branch_cov.c";
   int count = 0;
   long val = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. pp_free_macro_def with various combinations */
   memset(&def, 0, sizeof(def));

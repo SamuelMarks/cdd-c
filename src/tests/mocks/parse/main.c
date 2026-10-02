@@ -26,7 +26,7 @@ extern SIMPLE_MOCKS_EXPORT int g_simple_json_fail_alloc;
  * @return EXIT_SUCCESS on success, error code otherwise.
  */
 int main(int argc, char **argv) {
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   if (argc > 1 && strcmp(argv[1], "--fail-alloc") == 0) {
     g_simple_json_fail_alloc = 1;

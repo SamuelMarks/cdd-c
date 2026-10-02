@@ -27,6 +27,11 @@ file(WRITE "${DOWNLOAD_DIR}/greatest.h" "${GREATEST_CONTENT}")
 # Test library #
 ################
 
+
+
+include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/mocks")
+include_directories(SYSTEM "$ENV{HOME}/repos/c-orm/include")
+include_directories(SYSTEM "$ENV{HOME}/repos/c-rest-framework/include")
 set(LIBRARY_NAME "test_c_cdd_lib")
 
 set(Header_Files

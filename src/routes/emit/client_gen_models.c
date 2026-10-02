@@ -121,7 +121,7 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
     }
   }
 
-  /* TODO: Phase 3 Model definitions loop here */
+  /* Phase 3 Model definitions loop implemented */
   if (spec->defined_schemas) {
     struct CodegenStructConfig struct_cfg = {0};
     struct CodegenJsonConfig json_cfg = {0};

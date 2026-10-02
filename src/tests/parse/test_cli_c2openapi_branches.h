@@ -829,7 +829,7 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_gui_views(
     const struct TokenList *tokens, struct OpenAPI_Spec *spec);
 TEST test_c2openapi_infer_routes_and_views(void) {
   struct OpenAPI_Spec spec;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. Invalid args for process_file */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, process_file(NULL, NULL));
@@ -1273,7 +1273,7 @@ TEST test_cli_c2openapi_unit_internals(void) {
   struct TokenList *tokens = NULL;
   struct CstNode func_node;
   char *route = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   memset(&func_node, 0, sizeof(func_node));
 
   /* Create a valid dummy TokenList */
@@ -1411,7 +1411,7 @@ extern C_CDD_EXPORT int g_cdd_aggregator_fail_ops_realloc;
 TEST test_cli_c2openapi_aggregator_errors(void) {
   struct OpenAPI_Spec spec;
   struct TokenList *tokens = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. Server router route addition error */
   {

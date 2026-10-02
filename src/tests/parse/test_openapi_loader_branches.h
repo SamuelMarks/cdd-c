@@ -19,7 +19,7 @@ TEST test_openapi_loader_uri_and_schema_ref_branches(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_SchemaRef sref;
   struct StructFields *sf_out = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. resolve_uri_reference branches */
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_resolve_uri_reference(NULL, NULL, &res));
@@ -165,7 +165,7 @@ TEST test_openapi_loader_media_type_and_response_examples(void) {
   JSON_Value *jv_content = NULL;
   JSON_Object *jo_content = NULL;
   JSON_Value *jv = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. find_component_media_type */
   memset(&spec, 0, sizeof(spec));
@@ -284,7 +284,7 @@ TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
   struct OpenAPI_SchemaRef sref;
   JSON_Value *jv = NULL;
   JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. cdd_test_parse_schema_ref edge cases */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,

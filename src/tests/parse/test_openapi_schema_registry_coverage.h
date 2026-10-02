@@ -24,7 +24,7 @@ TEST test_openapi_registry_apply_schema_ref(void) {
   struct OpenAPI_Parameter p;
   struct OpenAPI_Header h;
   struct OpenAPI_SchemaRef sr;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&p, 0, sizeof(p));
   memset(&h, 0, sizeof(h));
@@ -215,7 +215,7 @@ TEST test_openapi_registry_names_and_sanitize(void) {
   char *def_names[2];
   char *raw_names[2];
   char *out_name = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&spec, 0, sizeof(spec));
 
@@ -371,7 +371,7 @@ TEST test_openapi_registry_object_like(void) {
   JSON_Value *jv = NULL;
   JSON_Object *jo = NULL;
   JSON_Array *ja = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. schema_type_array_includes NULL checks */
   rc = cdd_test_schema_type_array_includes(NULL, NULL);
@@ -454,7 +454,7 @@ TEST test_openapi_registry_raw_and_defined_schemas(void) {
   struct StructFields sf2;
   JSON_Value *jv = NULL;
   char *name = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&spec, 0, sizeof(spec));
   rc = struct_fields_init(&sf1);
@@ -631,7 +631,7 @@ TEST test_openapi_registry_register_inline(void) {
   JSON_Value *jv = NULL;
   JSON_Object *jo = NULL;
   char *out_name = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&spec, 0, sizeof(spec));
   memset(&sr, 0, sizeof(sr));
@@ -789,7 +789,7 @@ TEST test_openapi_registry_register_inline(void) {
  */
 TEST test_openapi_registry_build_inline_names(void) {
   char *name = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. build_inline_request_name NULL check */
   rc = cdd_test_build_inline_request_name("op", 0, NULL);

@@ -10,7 +10,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "parse/test_c2openapi_op_helpers.h"
+/* clang-format on */
 
 TEST test_reset_op_coverage(void) {
   struct OpenAPI_Operation op;

@@ -104,20 +104,120 @@ cdd_c_error_t cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
         fprintf(c_f, "    }\n");
       }
 
-      /* Basic argument fetching (simplified stub) */
+      /* Argument extraction */
       for (j = 0; j < (unsigned long)node->fields_count; j++) {
-        fprintf(c_f, "    /* TODO: Fetch objv[%lu] into local %s */\n",
-                (unsigned long)(j + 1), node->fields[j].name);
+        const char *arg_name = node->fields[j].name;
+        if (node->fields[j].type.pointer_depth > 0 &&
+            (node->fields[j].type.kind == CDD_FFI_KIND_INT8 ||
+             node->fields[j].type.kind == CDD_FFI_KIND_UINT8)) {
+          fprintf(c_f, "    int _len_%s = 0;\n", arg_name);
+          fprintf(
+              c_f,
+              "    char *_c_%s = Tcl_GetStringFromObj(objv[%lu], &_len_%s);\n",
+              arg_name, (unsigned long)(j + 1), arg_name);
+        } else if (node->fields[j].type.pointer_depth > 0 ||
+                   node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF) {
+          fprintf(c_f,
+                  "    void *_c_%s = NULL; /* Stub: Pointer passing "
+                  "unsupported in basic Tcl generator */\n",
+                  arg_name);
+        } else if (node->fields[j].type.kind == CDD_FFI_KIND_FLOAT32 ||
+                   node->fields[j].type.kind == CDD_FFI_KIND_FLOAT64) {
+          fprintf(c_f, "    double _c_%s = 0.0;\n", arg_name);
+          fprintf(c_f,
+                  "    if (Tcl_GetDoubleFromObj(interp, objv[%lu], &_c_%s) != "
+                  "TCL_OK) return TCL_ERROR;\n",
+                  (unsigned long)(j + 1), arg_name);
+        } else if (node->fields[j].type.kind == CDD_FFI_KIND_BOOL) {
+          fprintf(c_f, "    int _c_%s = 0;\n", arg_name);
+          fprintf(c_f,
+                  "    if (Tcl_GetBooleanFromObj(interp, objv[%lu], &_c_%s) != "
+                  "TCL_OK) return TCL_ERROR;\n",
+                  (unsigned long)(j + 1), arg_name);
+        } else {
+          fprintf(c_f, "    int _c_%s = 0;\n", arg_name);
+          fprintf(c_f,
+                  "    if (Tcl_GetIntFromObj(interp, objv[%lu], &_c_%s) != "
+                  "TCL_OK) return TCL_ERROR;\n",
+                  (unsigned long)(j + 1), arg_name);
+        }
       }
 
-      fprintf(c_f, "    /* TODO: Call %s(...) */\n", node->name);
+      /* Call the function */
+      fprintf(c_f, "    ");
+      if (node->return_or_base_type.kind != CDD_FFI_KIND_VOID ||
+          node->return_or_base_type.pointer_depth > 0) {
+        if (node->return_or_base_type.pointer_depth > 0 &&
+            (node->return_or_base_type.kind == CDD_FFI_KIND_INT8 ||
+             node->return_or_base_type.kind == CDD_FFI_KIND_UINT8)) {
+          fprintf(c_f, "const char* _c_ret = ");
+        } else if (node->return_or_base_type.pointer_depth > 0 ||
+                   node->return_or_base_type.kind == CDD_FFI_KIND_STRUCT_REF) {
+          fprintf(c_f, "void* _c_ret = ");
+        } else if (node->return_or_base_type.kind == CDD_FFI_KIND_FLOAT32) {
+          fprintf(c_f, "float _c_ret = ");
+        } else if (node->return_or_base_type.kind == CDD_FFI_KIND_FLOAT64) {
+          fprintf(c_f, "double _c_ret = ");
+        } else if (node->return_or_base_type.kind == CDD_FFI_KIND_BOOL) {
+          fprintf(c_f, "int _c_ret = ");
+        } else {
+          fprintf(c_f, "int _c_ret = ");
+        }
+      }
+      fprintf(c_f, "%s(", node->name);
+      for (j = 0; j < node->fields_count; j++) {
+        if (j > 0)
+          fprintf(c_f, ", ");
+        if (node->fields[j].type.kind == CDD_FFI_KIND_FLOAT32 &&
+            node->fields[j].type.pointer_depth == 0) {
+          fprintf(c_f, "(float)_c_%s", node->fields[j].name);
+        } else if ((node->fields[j].type.kind == CDD_FFI_KIND_INT8 ||
+                    node->fields[j].type.kind == CDD_FFI_KIND_UINT8 ||
+                    node->fields[j].type.kind == CDD_FFI_KIND_INT16 ||
+                    node->fields[j].type.kind == CDD_FFI_KIND_UINT16) &&
+                   node->fields[j].type.pointer_depth == 0) {
+          fprintf(c_f, "(%s)_c_%s",
+                  node->fields[j].type.kind == CDD_FFI_KIND_INT8
+                      ? "int8_t"
+                      : (node->fields[j].type.kind == CDD_FFI_KIND_UINT8
+                             ? "uint8_t"
+                             : (node->fields[j].type.kind == CDD_FFI_KIND_INT16
+                                    ? "int16_t"
+                                    : "uint16_t")),
+                  node->fields[j].name);
+        } else {
+          fprintf(c_f, "_c_%s", node->fields[j].name);
+        }
+      }
+      fprintf(c_f, ");\n");
 
+      /* Convert Return value */
       if (node->return_or_base_type.kind == CDD_FFI_KIND_VOID &&
           node->return_or_base_type.pointer_depth == 0) {
         fprintf(c_f, "    return TCL_OK;\n");
       } else {
-        fprintf(c_f, "    /* TODO: Convert result to Tcl_Obj* and "
-                     "Tcl_SetObjResult */\n");
+        if (node->return_or_base_type.pointer_depth > 0 &&
+            (node->return_or_base_type.kind == CDD_FFI_KIND_INT8 ||
+             node->return_or_base_type.kind == CDD_FFI_KIND_UINT8)) {
+          fprintf(c_f, "    if (_c_ret) Tcl_SetObjResult(interp, "
+                       "Tcl_NewStringObj(_c_ret, -1));\n");
+        } else if (node->return_or_base_type.pointer_depth > 0 ||
+                   node->return_or_base_type.kind == CDD_FFI_KIND_STRUCT_REF) {
+          fprintf(
+              c_f,
+              "    /* Tcl returning raw pointer not natively supported */\n");
+        } else if (node->return_or_base_type.kind == CDD_FFI_KIND_FLOAT32 ||
+                   node->return_or_base_type.kind == CDD_FFI_KIND_FLOAT64) {
+          fprintf(c_f, "    Tcl_SetObjResult(interp, "
+                       "Tcl_NewDoubleObj((double)_c_ret));\n");
+        } else if (node->return_or_base_type.kind == CDD_FFI_KIND_BOOL) {
+          fprintf(c_f,
+                  "    Tcl_SetObjResult(interp, Tcl_NewBooleanObj(_c_ret));\n");
+        } else {
+          fprintf(
+              c_f,
+              "    Tcl_SetObjResult(interp, Tcl_NewIntObj((int)_c_ret));\n");
+        }
         fprintf(c_f, "    return TCL_OK;\n");
       }
       fprintf(c_f, "}\n\n");

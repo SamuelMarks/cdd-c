@@ -645,8 +645,24 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
               fp,
               "      if (rc != CDD_C_SUCCESS) goto cleanup;\n    }\n  }\n"));
         } else {
-          CHECK_IO(fprintf(fp, "  /* Array style not yet supported for %s */\n",
+          CHECK_IO(fprintf(fp, "  {\n"));
+          CHECK_IO(fprintf(fp, "    size_t _arr_i;\n"));
+          CHECK_IO(
+              fprintf(fp, "    for (_arr_i = 0; _arr_i < %s_len; _arr_i++) {\n",
+                      p->name));
+          CHECK_IO(fprintf(fp, "      char *_enc = NULL;\n"));
+          CHECK_IO(fprintf(fp, "      rc = url_encode(%s[_arr_i], &_enc);\n",
                            p->name));
+          CHECK_IO(
+              fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
+          CHECK_IO(fprintf(
+              fp, "      rc = url_query_add_kv(query, \"%s\", _enc, 1);\n",
+              p->name));
+          CHECK_IO(fprintf(fp, "      free(_enc);\n"));
+          CHECK_IO(
+              fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
+          CHECK_IO(fprintf(fp, "    }\n"));
+          CHECK_IO(fprintf(fp, "  }\n"));
         }
       } else {
         /* === Scalar === */

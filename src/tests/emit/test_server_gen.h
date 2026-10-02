@@ -30,7 +30,7 @@ extern C_CDD_EXPORT int g_io_calls;
 TEST test_server_gen_basic(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
-  int rc;
+  int rc = 0;
   FILE *f;
 
   memset(&spec, 0, sizeof(spec));
@@ -178,7 +178,7 @@ TEST test_server_gen_basic(void) {
 TEST test_server_gen_fail_open(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
-  int rc;
+  int rc = 0;
 
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
@@ -236,7 +236,7 @@ TEST test_server_gen_null_args(void) {
 TEST test_server_gen_test_fopen_fail(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
-  int rc;
+  int rc = 0;
 
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
@@ -268,7 +268,7 @@ TEST test_server_gen_branches(void) {
   extern C_CDD_EXPORT int g_cdd_fail_server_apply;
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
-  int rc;
+  int rc = 0;
 
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));

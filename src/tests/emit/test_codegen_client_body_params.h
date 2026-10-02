@@ -44,7 +44,7 @@ TEST test_client_body_direct_part_headers_and_form_edge_cases(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
   struct OpenAPI_Parameter param;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&enc, 0, sizeof(enc));
   memset(hdrs, 0, sizeof(hdrs));
@@ -208,7 +208,7 @@ TEST test_client_body_inline_req_body_json_types(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
   struct OpenAPI_Response resp;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   const char *types[5];
   size_t t_idx;
 
@@ -274,7 +274,7 @@ TEST test_client_body_querystring_and_security_query(void) {
   struct OpenAPI_Parameter param;
   struct OpenAPI_Response resp;
   struct OpenAPI_SecurityScheme sch;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   memset(&op, 0, sizeof(op));
@@ -394,7 +394,7 @@ TEST test_client_body_systematic_io_failures(void) {
 
   /* Run I/O failure loop until success */
   for (io_fail = 0; io_fail < 300; ++io_fail) {
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = io_fail;
@@ -408,7 +408,7 @@ TEST test_client_body_systematic_io_failures(void) {
   /* Now repeat with form urlencoded body to trip form CHECK_IO branches */
   op.req_body.content_type = C_CDD_STR_LIT("application/x-www-form-urlencoded");
   for (io_fail = 0; io_fail < 300; ++io_fail) {
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = io_fail;
@@ -422,7 +422,7 @@ TEST test_client_body_systematic_io_failures(void) {
   /* Now repeat with multipart body to trip multipart CHECK_IO branches */
   op.req_body.content_type = C_CDD_STR_LIT("multipart/form-data");
   for (io_fail = 0; io_fail < 300; ++io_fail) {
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = io_fail;
@@ -440,7 +440,7 @@ TEST test_client_body_systematic_io_failures(void) {
   responses[0].schema.ref_name = NULL;
   responses[0].schema.inline_type = NULL;
   for (io_fail = 0; io_fail < 300; ++io_fail) {
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = io_fail;
@@ -455,7 +455,7 @@ TEST test_client_body_systematic_io_failures(void) {
   responses[0].content_type = C_CDD_STR_LIT("text/plain");
   responses[0].schema.inline_type = C_CDD_STR_LIT("string");
   for (io_fail = 0; io_fail < 300; ++io_fail) {
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = io_fail;
@@ -475,7 +475,7 @@ TEST test_client_body_systematic_io_failures(void) {
   responses[3].content_type = C_CDD_STR_LIT("text/plain");
   responses[3].schema.inline_type = C_CDD_STR_LIT("string");
   for (io_fail = 0; io_fail < 300; ++io_fail) {
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = io_fail;

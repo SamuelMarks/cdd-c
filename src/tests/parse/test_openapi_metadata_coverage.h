@@ -112,7 +112,7 @@ TEST test_openapi_metadata_parse_info_branches(void) {
   struct OpenAPI_Spec spec;
   JSON_Value *jv = NULL;
   JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* NULL root_obj and NULL out branches */
   memset(&spec, 0, sizeof(spec));
@@ -256,7 +256,7 @@ TEST test_openapi_metadata_parse_external_docs_branches(void) {
   struct OpenAPI_ExternalDocs docs;
   JSON_Value *jv = NULL;
   JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* NULL obj or NULL out */
   memset(&docs, 0, sizeof(docs));
@@ -325,7 +325,7 @@ TEST test_openapi_metadata_parse_discriminator_branches(void) {
   struct OpenAPI_Discriminator disc;
   JSON_Value *jv = NULL;
   JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* NULL obj or NULL out */
   memset(&disc, 0, sizeof(disc));
@@ -400,7 +400,7 @@ TEST test_openapi_metadata_parse_xml_branches(void) {
   struct OpenAPI_Xml xml;
   JSON_Value *jv = NULL;
   JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* NULL obj or NULL out */
   memset(&xml, 0, sizeof(xml));
@@ -477,7 +477,7 @@ TEST test_openapi_metadata_parse_tags_branches(void) {
   struct OpenAPI_Spec spec;
   JSON_Value *jv = NULL;
   JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* NULL root_obj or NULL out */
   memset(&spec, 0, sizeof(spec));
@@ -634,7 +634,7 @@ TEST test_openapi_metadata_server_branches(void) {
   size_t srv_count = 0;
   JSON_Value *jv = NULL;
   JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* NULL checks */
   memset(&srv, 0, sizeof(srv));
@@ -884,7 +884,7 @@ TEST test_openapi_metadata_extra_branches(void) {
   JSON_Value *jv = NULL;
   JSON_Object *jo = NULL;
   size_t tag_idx = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. tag_index_by_name branches */
   memset(&spec, 0, sizeof(spec));
@@ -1125,7 +1125,7 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
   size_t srv_count = 0;
   JSON_Value *jv = NULL;
   JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Line 81: contact without url */
   jv = json_parse_string("{\"info\": {\"title\": \"T\", \"version\": \"1.0\", "
@@ -1327,7 +1327,7 @@ TEST test_openapi_metadata_final_branches(void) {
   struct OpenAPI_Server srv;
   JSON_Value *jv = NULL;
   JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Line 81: contact with url but without name */
   jv = json_parse_string("{\"info\": {\"title\": \"T\", \"version\": \"1.0\", "

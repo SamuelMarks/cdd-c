@@ -28,7 +28,7 @@ extern "C" {
 static cdd_c_error_t setup_patch_tokens(const char *code,
                                         struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
-  int rc;
+  int rc = 0;
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = tokenize(az_span_create_from_str((char *)(size_t)(size_t)code), &tl);
@@ -44,7 +44,7 @@ TEST test_patch_init_free(void) {
   char *_ast_strdup_0 = NULL;
   struct PatchList pl;
   struct TokenList *tl_dummy = NULL;
-  int rc;
+  int rc = 0;
 
   /* Exercise setup_patch_tokens error branches */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, setup_patch_tokens("code", NULL));
@@ -82,7 +82,7 @@ TEST test_patch_basic_replacement(void) {
                           _ast_setup_patch_tokens_0);
   struct PatchList pl;
   char *result = NULL;
-  int rc;
+  int rc = 0;
 
   ASSERT(tl);
   patch_list_init(&pl);
@@ -119,7 +119,7 @@ TEST test_patch_insertion(void) {
                           _ast_setup_patch_tokens_1);
   struct PatchList pl;
   char *result = NULL;
-  int rc;
+  int rc = 0;
 
   ASSERT(tl);
   patch_list_init(&pl);
@@ -157,7 +157,7 @@ TEST test_patch_deletion(void) {
                           _ast_setup_patch_tokens_2);
   struct PatchList pl;
   char *result = NULL;
-  int rc;
+  int rc = 0;
 
   ASSERT(tl);
   patch_list_init(&pl);
@@ -188,7 +188,7 @@ TEST test_patch_multiple_disjoint(void) {
                           _ast_setup_patch_tokens_3);
   struct PatchList pl;
   char *result = NULL;
-  int rc;
+  int rc = 0;
 
   ASSERT(tl);
   patch_list_init(&pl);
@@ -224,7 +224,7 @@ TEST test_patch_overlap_behavior(void) {
                           _ast_setup_patch_tokens_4);
   struct PatchList pl;
   char *result = NULL;
-  int rc;
+  int rc = 0;
 
   /* Assert undefined behavior matches implementation (sorted, first wins) */
   ASSERT(tl);
@@ -267,7 +267,7 @@ TEST test_patch_append_end(void) {
                           _ast_setup_patch_tokens_5);
   struct PatchList pl;
   char *result = NULL;
-  int rc;
+  int rc = 0;
   char huge_str[3000];
 
   ASSERT(tl);
@@ -352,7 +352,7 @@ TEST test_patcher_invalid(void) {
   struct PatchList pl3;
   struct TokenList tl_empty;
   int i;
-  int rc;
+  int rc = 0;
   /*  (moved to global) */
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,

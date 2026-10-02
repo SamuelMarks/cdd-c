@@ -15,7 +15,7 @@ extern "C" {
 /* clang-format on */
 
 TEST test_writer_component_path_items(void) {
-  int rc;
+  int rc = 0;
   char *path_item_names[1];
   char *json;
   struct OpenAPI_Spec spec = {0};
@@ -70,7 +70,7 @@ TEST test_writer_component_path_items(void) {
 }
 
 TEST test_writer_response_links(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_LinkParam params[2];
   char *json;
   struct OpenAPI_Spec spec = {0};
@@ -159,7 +159,7 @@ TEST test_writer_response_links(void) {
 }
 
 TEST test_writer_callbacks(void) {
-  int rc;
+  int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
@@ -232,7 +232,7 @@ TEST test_writer_callbacks(void) {
 }
 
 TEST test_writer_parameter_and_header_schema_ref(void) {
-  int rc;
+  int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
@@ -326,7 +326,7 @@ TEST test_writer_parameter_and_header_schema_ref(void) {
 }
 
 TEST test_writer_parameter_schema_format_and_content(void) {
-  int rc;
+  int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
@@ -394,7 +394,7 @@ TEST test_writer_parameter_schema_format_and_content(void) {
 }
 
 TEST test_writer_request_body_ref_with_description(void) {
-  int rc;
+  int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
@@ -447,7 +447,7 @@ TEST test_writer_request_body_ref_with_description(void) {
 }
 
 TEST test_writer_security_scheme_deprecated(void) {
-  int rc;
+  int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_SecurityScheme scheme = {0};
@@ -485,7 +485,7 @@ TEST test_writer_security_scheme_deprecated(void) {
 }
 
 TEST test_writer_schema_enum_default_nullable(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;
@@ -547,7 +547,7 @@ TEST test_writer_schema_enum_default_nullable(void) {
 }
 
 TEST test_writer_schema_type_union(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;
@@ -598,7 +598,7 @@ TEST test_writer_schema_type_union(void) {
 }
 
 TEST test_writer_schema_array_items_enum_nullable(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;

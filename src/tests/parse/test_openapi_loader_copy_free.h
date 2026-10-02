@@ -30,7 +30,7 @@ TEST test_openapi_loader_copy_and_free_helpers(void) {
   struct OpenAPI_Path path_item;
   struct OpenAPI_Callback cb;
   char **str_arr;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. Parameter copy & free */
   memset(&p_src, 0, sizeof(p_src));
@@ -667,7 +667,7 @@ TEST test_openapi_loader_copy_and_free_advanced(void) {
   struct OpenAPI_Server *srv_src, *srv_dst;
   struct OpenAPI_Link lnk_src, lnk_dst;
   struct OpenAPI_Spec spec;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. SchemaRef comprehensive copy & free */
   memset(&sr_src, 0, sizeof(sr_src));

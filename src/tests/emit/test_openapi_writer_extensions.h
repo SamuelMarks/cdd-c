@@ -15,7 +15,7 @@ extern "C" {
 /* clang-format on */
 
 TEST test_writer_paths_webhooks_components_extensions(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   char *json;
   struct OpenAPI_Path path = {0};
@@ -70,7 +70,7 @@ TEST test_writer_paths_webhooks_components_extensions(void) {
 }
 
 TEST test_writer_methods_and_styles(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;
@@ -129,7 +129,7 @@ TEST test_writer_methods_and_styles(void) {
 }
 
 TEST test_writer_xml_and_oauth(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   char *json;
   json = NULL;
@@ -170,7 +170,7 @@ TEST test_writer_xml_and_oauth(void) {
 }
 
 TEST test_writer_xml_types(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   char *json;
   struct OpenAPI_Path path = {0};
@@ -332,7 +332,7 @@ TEST test_writer_extended_coverage(void) {
   struct OpenAPI_MediaType mt;
   struct OpenAPI_Encoding enc;
   char *json = NULL;
-  int rc;
+  int rc = 0;
 
   memset(&spec, 0, sizeof(spec));
   memset(&hdr, 0, sizeof(hdr));

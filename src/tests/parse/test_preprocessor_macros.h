@@ -31,9 +31,9 @@ extern "C" {
 TEST test_macro_evaluator_basic(void) {
   struct PreprocessorContext ctx;
   cdd_macro_eval_result_t res;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   pp_context_init(&ctx);
 
   /* Test 1: Simple addition */
@@ -88,9 +88,9 @@ TEST test_macro_evaluator_basic(void) {
 TEST test_macro_evaluator_all_ops(void) {
   struct PreprocessorContext ctx;
   cdd_macro_eval_result_t res;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   pp_context_init(&ctx);
 
   /* Bitwise NOT, XOR, AND, Modulo, Integer Subtract, Integer Divide, Unary
@@ -157,9 +157,9 @@ TEST test_macro_evaluator_all_ops(void) {
 TEST test_macro_evaluator_errors(void) {
   struct PreprocessorContext ctx;
   cdd_macro_eval_result_t res;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   pp_context_init(&ctx);
 
   rc = cdd_macro_evaluate(NULL, "1", &res);
@@ -262,10 +262,10 @@ TEST test_macro_evaluator_errors(void) {
  */
 TEST test_pp_define_object_like(void) {
   const char *fname = (char *)(size_t)(size_t) "test_defs.h";
-  int rc;
+  int rc = 0;
   struct PreprocessorContext ctx;
 
-  (void)rc;
+  rc += 0;
   write_to_file(fname, "#define MAX_SIZE 100\n#define PI 3.14\n");
 
   pp_context_init(&ctx);
@@ -292,10 +292,10 @@ TEST test_pp_define_object_like(void) {
  */
 TEST test_pp_define_function_like(void) {
   const char *fname = (char *)(size_t)(size_t) "test_func_macros.h";
-  int rc;
+  int rc = 0;
   struct PreprocessorContext ctx;
 
-  (void)rc;
+  rc += 0;
   write_to_file(fname, "#define MIN(a, b) ((a)<(b)?(a):(b))\n");
 
   pp_context_init(&ctx);
@@ -322,11 +322,11 @@ TEST test_pp_define_function_like(void) {
  */
 TEST test_pp_define_variadic_standard(void) {
   const char *fname = (char *)(size_t)(size_t) "test_variadic.h";
-  int rc;
+  int rc = 0;
   struct PreprocessorContext ctx;
 
   /* Standard C99: trailing ellipsis */
-  (void)rc;
+  rc += 0;
   write_to_file(fname, "#define LOG(level, ...) printf(level, __VA_ARGS__)\n");
 
   pp_context_init(&ctx);
@@ -355,11 +355,11 @@ TEST test_pp_define_variadic_standard(void) {
  */
 TEST test_pp_define_variadic_empty(void) {
   const char *fname = (char *)(size_t)(size_t) "test_var_empty.h";
-  int rc;
+  int rc = 0;
   struct PreprocessorContext ctx;
 
   /* #define TRACE(...) */
-  (void)rc;
+  rc += 0;
   write_to_file(fname, "#define TRACE(...) trace_impl(__VA_ARGS__)\n");
 
   pp_context_init(&ctx);
@@ -384,12 +384,12 @@ TEST test_pp_define_variadic_empty(void) {
  */
 TEST test_pp_define_variadic_gcc(void) {
   const char *fname = (char *)(size_t)(size_t) "test_var_gcc.h";
-  int rc;
+  int rc = 0;
   struct PreprocessorContext ctx;
 
   /* GCC named variadic: #define LOG(args...) */
   /* Our parser detects this if it finds ID then ... */
-  (void)rc;
+  rc += 0;
   write_to_file(fname, "#define LOG(args...) printf(args)\n");
 
   pp_context_init(&ctx);
@@ -415,7 +415,7 @@ TEST test_pp_define_variadic_gcc(void) {
 TEST test_macro_evaluator_uncovered(void) {
   struct PreprocessorContext ctx;
   cdd_macro_eval_result_t res;
-  int rc;
+  int rc = 0;
   struct MacroDef def;
 
   pp_context_init(&ctx);

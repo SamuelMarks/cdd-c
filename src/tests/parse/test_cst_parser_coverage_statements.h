@@ -48,7 +48,7 @@ TEST test_cst_full_coverage_statements(void) {
   struct TokenList *tl_bracket = NULL;
   struct TokenList tl_hash;
   struct Token h_tok;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 13. Statement with struct not preceded by paren: typedef struct S S_t; */
   rc = tokenize(

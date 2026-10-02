@@ -30,7 +30,7 @@ static cdd_c_error_t tokenize_string(const char *s,
                                      struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
   az_span span;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   span = az_span_create_from_str((char *)(size_t)s);
@@ -197,7 +197,7 @@ TEST test_matches_string_with_splice(void) {
 
 TEST test_all_remaining_trigraphs(void) {
   struct TokenList *tl = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Test ??( [ */
   rc = tokenize_string("?\?(", &tl);
@@ -263,7 +263,7 @@ TEST test_all_remaining_trigraphs(void) {
 
 TEST test_splice_crlf_and_eof(void) {
   struct TokenList *tl = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Test CRLF splice: \ \r \n */
   rc = tokenize_string("i\\\r\nnt y;", &tl);

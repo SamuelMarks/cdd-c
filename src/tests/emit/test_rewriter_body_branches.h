@@ -33,7 +33,7 @@ run_body_rewrite(const char *code, const struct RefactoredFunction *funcs,
                  char **out) {
   struct TokenList *tl = NULL;
   struct AllocationSiteList sites = {0};
-  int rc;
+  int rc = 0;
   const az_span source =
       az_span_create_from_str((char *)(size_t)(size_t)(size_t)code);
 
@@ -60,7 +60,7 @@ TEST test_rewrite_body_all_branches(void) {
   struct AllocationSiteList allocs;
   struct TokenList *tl = NULL;
   char *out_code = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   extern C_CDD_EXPORT int g_cdd_fail_find_stmt_start;
 
   funcs[0].name = "my_strdup";

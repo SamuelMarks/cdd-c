@@ -29,7 +29,7 @@ extern "C" {
 extern C_CDD_EXPORT int g_fail_io_after;
 
 TEST test_c2o_cli_source_file_checks(void) {
-  int rc;
+  int rc = 0;
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
@@ -37,7 +37,7 @@ TEST test_c2o_cli_source_file_checks(void) {
   char *no_ext_file = NULL;
   char *out_json = NULL;
 
-  (void)rc;
+  rc += 0;
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
@@ -73,13 +73,13 @@ TEST test_c2o_cli_source_file_checks(void) {
     free((void *)(size_t)tmp_dir);
     g_fail_io_after = -1;
 
-    (void)rc;
+    rc += 0;
     PASS();
   }
 }
 
 TEST test_c2o_cli_doc_sec_unset(void) {
-  int rc;
+  int rc = 0;
   const char *snippets[] = {
       "/**\n * @securityScheme my_bad_sec\n */\nint foo1(void);\n",
       "/**\n * @securityScheme my_bad_sec2 [type:unknownType]\n */\nint "
@@ -124,7 +124,7 @@ TEST test_c2o_cli_doc_sec_unset(void) {
   char *src_dir = NULL;
   char *out_json = NULL;
 
-  (void)rc;
+  rc += 0;
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
@@ -164,14 +164,14 @@ TEST test_c2o_cli_doc_sec_unset(void) {
       free((void *)(size_t)tmp_dir);
       g_fail_io_after = -1;
 
-      (void)rc;
+      rc += 0;
       PASS();
     }
   }
 }
 
 TEST test_c2o_cli_spec_has_tag_nulls(void) {
-  int rc;
+  int rc = 0;
   const char *src = "/**\n"
                     " * @tag duplicated\n"
                     " * @tag duplicated\n"
@@ -183,7 +183,7 @@ TEST test_c2o_cli_spec_has_tag_nulls(void) {
   char *c_file = NULL;
   char *out_json = NULL;
 
-  (void)rc;
+  rc += 0;
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
@@ -211,13 +211,13 @@ TEST test_c2o_cli_spec_has_tag_nulls(void) {
     free((void *)(size_t)tmp_dir);
     g_fail_io_after = -1;
 
-    (void)rc;
+    rc += 0;
     PASS();
   }
 }
 
 TEST test_c2o_cli_mappings_errors_find(void) {
-  int rc;
+  int rc = 0;
   const char src[] = {
       47,  42,  42,  10,  32,  42,  32,  71,  76,  79,  66,  65,  76,  32,  77,
       69,  84,  65,  58,  10,  32,  42,  32,  64,  115, 101, 99,  117, 114, 105,
@@ -252,7 +252,7 @@ TEST test_c2o_cli_mappings_errors_find(void) {
   char *c_file = NULL;
   char *out_json = NULL;
 
-  (void)rc;
+  rc += 0;
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
@@ -280,13 +280,13 @@ TEST test_c2o_cli_mappings_errors_find(void) {
     free((void *)(size_t)tmp_dir);
     g_fail_io_after = -1;
 
-    (void)rc;
+    rc += 0;
     PASS();
   }
 }
 
 TEST test_c2o_cli_set_str_mismatch(void) {
-  int rc;
+  int rc = 0;
   const char *src = "/**\n"
                     " * @securityScheme my_http [type:http] [scheme:bearer]\n"
                     " * @securityScheme my_http [type:http] [scheme:basic]\n"
@@ -298,7 +298,7 @@ TEST test_c2o_cli_set_str_mismatch(void) {
   char *c_file = NULL;
   char *out_json = NULL;
 
-  (void)rc;
+  rc += 0;
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
@@ -326,13 +326,13 @@ TEST test_c2o_cli_set_str_mismatch(void) {
     free((void *)(size_t)tmp_dir);
     g_fail_io_after = -1;
 
-    (void)rc;
+    rc += 0;
     PASS();
   }
 }
 
 TEST test_c2o_cli_server_variables(void) {
-  int rc;
+  int rc = 0;
   const char *src = "/**\n"
                     " * GLOBAL META:\n"
                     " * @server https://api.com [description:prod]\n"
@@ -346,7 +346,7 @@ TEST test_c2o_cli_server_variables(void) {
   char *c_file = NULL;
   char *out_json = NULL;
 
-  (void)rc;
+  rc += 0;
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
@@ -374,13 +374,13 @@ TEST test_c2o_cli_server_variables(void) {
     free((void *)(size_t)tmp_dir);
     g_fail_io_after = -1;
 
-    (void)rc;
+    rc += 0;
     PASS();
   }
 }
 
 TEST test_c2o_cli_server_variables_validation(void) {
-  int rc;
+  int rc = 0;
   const char *src =
       "/**\n"
       " * GLOBAL META:\n"
@@ -395,7 +395,7 @@ TEST test_c2o_cli_server_variables_validation(void) {
   char *c_file = NULL;
   char *out_json = NULL;
 
-  (void)rc;
+  rc += 0;
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
@@ -423,13 +423,13 @@ TEST test_c2o_cli_server_variables_validation(void) {
     free((void *)(size_t)tmp_dir);
     g_fail_io_after = -1;
 
-    (void)rc;
+    rc += 0;
     PASS();
   }
 }
 
 TEST test_c2o_cli_merge_oauth_scopes(void) {
-  int rc;
+  int rc = 0;
   const char src[] = {
       47,  42,  42,  10,  32,  42,  32,  71,  76,  79,  66,  65,  76,  32,  77,
       69,  84,  65,  58,  10,  32,  42,  32,  64,  115, 101, 99,  117, 114, 105,
@@ -463,7 +463,7 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
   char *c_file = NULL;
   char *out_json = NULL;
 
-  (void)rc;
+  rc += 0;
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
@@ -491,13 +491,13 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
     free((void *)(size_t)tmp_dir);
     g_fail_io_after = -1;
 
-    (void)rc;
+    rc += 0;
     PASS();
   }
 }
 
 TEST test_c2o_cli_oauth_validation_errors(void) {
-  int rc;
+  int rc = 0;
   const char *snippets[] = {
       "/**\n * @securityScheme oauth_bad1 [type:oauth2] [flow:implicit]\n "
       "*/\nint foo21(void);\n" /* Missing authorizationUrl */
@@ -521,7 +521,7 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
   char *src_dir = NULL;
   char *out_json = NULL;
 
-  (void)rc;
+  rc += 0;
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
@@ -561,14 +561,14 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
       free((void *)(size_t)tmp_dir);
       g_fail_io_after = -1;
 
-      (void)rc;
+      rc += 0;
       PASS();
     }
   }
 }
 
 TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
-  int rc;
+  int rc = 0;
   const char *snippets[] = {
       "/**\n * GLOBAL META:\n * @securityScheme merge_oauth [type:oauth2] "
       "[flow:implicit] [authorizationUrl:https://auth.com/auth1]\n * "
@@ -599,7 +599,7 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
   char *src_dir = NULL;
   char *out_json = NULL;
 
-  (void)rc;
+  rc += 0;
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
@@ -639,7 +639,7 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
       free((void *)(size_t)tmp_dir);
       g_fail_io_after = -1;
 
-      (void)rc;
+      rc += 0;
       PASS();
     }
   }

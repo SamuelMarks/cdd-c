@@ -27,7 +27,7 @@ TEST test_openapi_null_and_invalid_args(void) {
   struct OpenAPI_SchemaRef sref;
   JSON_Value *jv_str;
   JSON_Value *jv_bool;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&spec, 0, sizeof(spec));
   memset(&sref, 0, sizeof(sref));
@@ -128,7 +128,7 @@ TEST test_openapi_spec_find_schema_branches(void) {
   char *names[2];
   char model_name[] = "FoundModel";
   struct StructFields *found = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&spec, 0, sizeof(spec));
   memset(fields, 0, sizeof(fields));
@@ -160,7 +160,7 @@ TEST test_openapi_spec_find_schema_by_id_branches(void) {
   char *ids[2];
   char user_schema_id[] = "https://example.com/schemas/user";
   struct StructFields *found = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&spec, 0, sizeof(spec));
   memset(fields, 0, sizeof(fields));
@@ -236,7 +236,7 @@ TEST test_openapi_spec_find_schema_by_anchor_branches(void) {
   char anchor_buf[] = "MyAnchor";
   char dyn_anchor_buf[] = "DynAnchor";
   struct StructFields *found = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&spec, 0, sizeof(spec));
   memset(fields, 0, sizeof(fields));
@@ -316,7 +316,7 @@ TEST test_openapi_spec_find_schema_for_ref_branches(void) {
   char static_ref_buf[] = "#Static";
   char id_ref_buf[] = "https://schema/user";
   struct StructFields *found = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&spec, 0, sizeof(spec));
   memset(&target_spec, 0, sizeof(target_spec));
@@ -544,7 +544,7 @@ TEST test_openapi_schema_document_extra_branches(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_DocRegistry reg;
   JSON_Value *jv;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   openapi_doc_registry_init(&reg);
 
@@ -594,7 +594,7 @@ TEST test_openapi_schema_document_extra_branches(void) {
 TEST test_openapi_swagger_oom_and_specs(void) {
   struct OpenAPI_Spec spec;
   JSON_Value *jv;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Swagger with host, basePath, schemes, consumes, produces */
   const char *swag_json =
@@ -685,7 +685,7 @@ TEST test_openapi_swagger_oom_and_specs(void) {
 TEST test_openapi_oauth2_and_extensions_branches(void) {
   struct OpenAPI_Spec spec;
   JSON_Value *jv;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   const char *oauth2_no_schemas;
   const char *self_and_dialect;
   const char *paths_ext;
@@ -800,7 +800,7 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_DocRegistry reg;
   JSON_Value *jv;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* No paths, webhooks, or components */
   jv = json_parse_string("{\"openapi\": \"3.1.0\", \"info\": {\"title\": "

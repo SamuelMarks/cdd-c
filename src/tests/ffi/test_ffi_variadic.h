@@ -53,7 +53,7 @@ TEST test_ffi_variadic_format_parser(void) {
   cdd_ffi_type_t types[20];
   size_t count;
 
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Invalid args */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,

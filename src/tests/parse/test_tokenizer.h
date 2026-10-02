@@ -115,7 +115,7 @@ TEST tokenize_c23_digit_separators(void) {
   const az_span code = az_span_create_from_str(
       (char *)(size_t)(size_t) "123'456 0xAB'CD 0b10'10");
   struct TokenList *tl = NULL;
-  int rc;
+  int rc = 0;
   char buf[32];
   char *str_out = NULL;
 
@@ -209,7 +209,7 @@ TEST tokenize_digit_separator_edge_case(void) {
       (char *)(size_t)(size_t) "123' 456"); /* Space after ' */
   struct TokenList *tl = NULL;
   char buf[32];
-  int rc;
+  int rc = 0;
 
   rc = tokenize(code, &tl);
   ASSERT_EQ(0, rc);
@@ -247,7 +247,7 @@ TEST test_tokenize_all_keywords(void) {
       "false embed _Pragma __attribute__ __declspec";
   const az_span code = az_span_create_from_str((char *)(size_t)src);
   struct TokenList *tl = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   size_t i;
   enum TokenKind kinds[59];
   size_t expected_kinds = 0;
@@ -340,7 +340,7 @@ TEST test_tokenize_operators_and_digraphs(void) {
       "# ##";
   const az_span code = az_span_create_from_str((char *)(size_t)src);
   struct TokenList *tl = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   size_t i;
   enum TokenKind ops[49];
   size_t expected_ops = 0;
@@ -417,7 +417,7 @@ TEST test_tokenize_operators_and_digraphs(void) {
 
 TEST test_tokenize_comments_and_ucn(void) {
   struct TokenList *tl = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Line comment, block comment, unterminated block comment */
   rc = tokenize(
@@ -570,7 +570,7 @@ TEST test_tokenize_comments_and_ucn(void) {
 
 TEST test_tokenize_spliced_keywords_and_numbers(void) {
   struct TokenList *tl = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Number with underscore */
   rc = tokenize(az_span_create_from_str((char *)(size_t) "123_456"), &tl);
@@ -646,7 +646,7 @@ TEST test_tokenizer_oom_and_edge_cases(void) {
   extern C_CDD_EXPORT int g_cdd_alloc_fail;
   extern C_CDD_EXPORT int g_cdd_fail_token_matches_string;
   struct TokenList *tl = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   int is_match = 0;
   size_t next_idx = 0;
   struct Token dummy_tok;

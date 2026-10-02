@@ -195,8 +195,8 @@ TEST test_external_component_ref_registry_absolute(void) {
   struct OpenAPI_DocRegistry registry;
   struct OpenAPI_Spec shared_spec;
   struct OpenAPI_Spec root_spec;
-  int rc;
-  (void)rc;
+  int rc = 0;
+  rc += 0;
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_doc_registry_init(&registry));
 
@@ -254,8 +254,8 @@ TEST test_external_component_ref_registry_relative(void) {
   struct OpenAPI_DocRegistry registry;
   struct OpenAPI_Spec shared_spec;
   struct OpenAPI_Spec root_spec;
-  int rc;
-  (void)rc;
+  int rc = 0;
+  rc += 0;
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_doc_registry_init(&registry));
 

@@ -33,10 +33,10 @@ extern "C" {
 TEST test_get_basename(void) {
   char *res = NULL;
   int is_dir = 0;
-  int rc;
+  int rc = 0;
 
   rc = get_basename(PATH_SEP "foo" PATH_SEP "bar" PATH_SEP "baz.txt", &res);
-  (void)rc;
+  rc += 0;
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("baz.txt", res);
   free(res);
@@ -64,12 +64,12 @@ TEST test_get_basename(void) {
 }
 
 TEST test_read_to_file_error(void) {
-  int rc;
+  int rc = 0;
   size_t size = 0;
   char *s = NULL;
 
   rc = read_to_file("file_that_does_not_exist.xyz", "r", &s, &size);
-  (void)rc;
+  rc += 0;
   ASSERT(rc != CDD_C_SUCCESS);
   ASSERT_EQ(NULL, s);
 
@@ -97,11 +97,11 @@ TEST test_walk_directory(void) {
   char *sys_tmp = NULL;
   char *root = NULL;
   int count = 0;
-  int rc;
+  int rc = 0;
 
   /* tempdir returns system temp path usually */
   rc = tempdir(&sys_tmp);
-  (void)rc;
+  rc += 0;
   ASSERT_EQ(0, rc);
 
   /* Create a unique subdirectory to avoid counting other temp files */
@@ -188,10 +188,10 @@ TEST test_fs_fopen_error_from(void) {
 
 TEST test_fs_cp(void) {
   FILE *f;
-  int rc;
+  int rc = 0;
 
 #if defined(_MSC_VER)
-  (void)rc;
+  rc += 0;
   if (fopen_s(&f, "test_cp_src.txt", "w") != 0)
     f = NULL;
 #else
@@ -351,11 +351,11 @@ TEST test_ascii_wide_conversion(void) {
   char abuf[32];
   size_t wlen = 0;
   size_t alen = 0;
-  int rc;
+  int rc = 0;
 
   /* ascii_to_wide */
   rc = ascii_to_wide("hello", wbuf, 32, &wlen);
-  (void)rc;
+  rc += 0;
   ASSERT_EQ(0, rc);
   ASSERT_EQ(5, wlen);
 

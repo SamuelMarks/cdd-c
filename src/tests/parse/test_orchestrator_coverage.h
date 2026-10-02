@@ -156,13 +156,13 @@ TEST test_orchestrator_coverage_fix_dir_errors(void) {
 TEST test_orchestrator_coverage_fix_file_failures(void) {
   char *argv_c[] = {(char *)(size_t)(size_t) "test_empty.c",
                     (char *)(size_t)(size_t) "out.c"};
-  int rc;
+  int rc = 0;
 
   /* Trigger orchestrate_fix failure inside fix_file_callback */
   g_cdd_alloc_fail = 1;
   rc = fix_code_main(2, argv_c);
   g_cdd_alloc_fail = 0;
-  (void)rc;
+  rc += 0;
   ASSERT_EQ((int)EXIT_FAILURE, rc);
 
   PASS();
@@ -171,7 +171,7 @@ TEST test_orchestrator_coverage_fix_file_failures(void) {
 TEST test_orchestrator_coverage_fix_file_failures_2(void) {
   char *argv_c[] = {(char *)(size_t)(size_t) "test_empty.c",
                     (char *)(size_t)(size_t) "out.c"};
-  int rc;
+  int rc = 0;
 
   /* Trigger orchestrate_fix failure inside fix_file_callback by skipping first
    * alloc */
@@ -179,7 +179,7 @@ TEST test_orchestrator_coverage_fix_file_failures_2(void) {
   rc = fix_code_main(2, argv_c);
   g_cdd_alloc_fail = 0;
 
-  (void)rc;
+  rc += 0;
   ASSERT_EQ((int)EXIT_FAILURE, rc);
 
   PASS();

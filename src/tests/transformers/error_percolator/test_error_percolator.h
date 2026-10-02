@@ -926,7 +926,7 @@ TEST test_cdd_transform_percolate_errors_oom(void) {
   int i;
   for (i = 1; i < 50; i++) {
     cdd_cst_tree_t *tree = NULL;
-    int rc;
+    int rc = 0;
     rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
                        &tree);
     ASSERT_EQ(0, rc);

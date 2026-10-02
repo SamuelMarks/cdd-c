@@ -529,7 +529,7 @@ TEST test_ffi_emit_java_fopen_fail(void) {
 TEST test_ffi_extractor_missing_branches(void) {
   cdd_generate_bindings_config_t config;
   cdd_ffi_ir_t test_ir;
-  int rc;
+  int rc = 0;
   const char *code_class;
   const char *code_struct;
   const char *code_nested;

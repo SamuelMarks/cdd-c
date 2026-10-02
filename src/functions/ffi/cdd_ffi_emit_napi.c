@@ -174,27 +174,120 @@ static cdd_c_error_t emit_napi_c(cdd_ffi_ir_t *ir,
                    "NULL, NULL));\n");
       }
 
+      /* Convert NAPI arguments to C */
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "  /* Mapping argument %lu: %s */\n", (unsigned long)j,
-                node->fields[j].name ? node->fields[j].name : "arg");
-        /* In a full implementation we'd check type.kind and map to
-         * napi_get_value_int32 etc */
-        /* For now we stub the argument parsing to satisfy C89 and allow
-         * compiling */
+        const char *arg_name =
+            node->fields[j].name ? node->fields[j].name : "arg";
+        fprintf(f, "  /* Mapping %s */\n", arg_name);
+        if (node->fields[j].type.pointer_depth > 0 &&
+            (node->fields[j].type.kind == CDD_FFI_KIND_INT8 ||
+             node->fields[j].type.kind == CDD_FFI_KIND_UINT8)) {
+          fprintf(f, "  char _c_%s[1024] = {0};\n", arg_name);
+          fprintf(f, "  size_t _c_%s_len = 0;\n", arg_name);
+          fprintf(f,
+                  "  NAPI_CALL(env, napi_get_value_string_utf8(env, argv[%lu], "
+                  "_c_%s, sizeof(_c_%s), &_c_%s_len));\n",
+                  (unsigned long)j, arg_name, arg_name, arg_name);
+        } else if (node->fields[j].type.pointer_depth > 0 ||
+                   node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF) {
+          fprintf(f, "  void* _c_%s = NULL;\n", arg_name);
+          fprintf(f, "  /* Pointer/Struct args currently unsupported deeply in "
+                     "stub-free napi */\n");
+        } else if (node->fields[j].type.kind == CDD_FFI_KIND_FLOAT32 ||
+                   node->fields[j].type.kind == CDD_FFI_KIND_FLOAT64) {
+          fprintf(f, "  double _c_%s = 0;\n", arg_name);
+          fprintf(f,
+                  "  NAPI_CALL(env, napi_get_value_double(env, argv[%lu], "
+                  "&_c_%s));\n",
+                  (unsigned long)j, arg_name);
+        } else if (node->fields[j].type.kind == CDD_FFI_KIND_BOOL) {
+          fprintf(f, "  bool _c_%s = false;\n", arg_name);
+          fprintf(f,
+                  "  NAPI_CALL(env, napi_get_value_bool(env, argv[%lu], "
+                  "&_c_%s));\n",
+                  (unsigned long)j, arg_name);
+        } else {
+          fprintf(f, "  int32_t _c_%s = 0;\n", arg_name);
+          fprintf(f,
+                  "  NAPI_CALL(env, napi_get_value_int32(env, argv[%lu], "
+                  "&_c_%s));\n",
+                  (unsigned long)j, arg_name);
+        }
       }
 
-      fprintf(f, "\n  /* %s(...) */\n", node->name);
+      /* Call C Function */
+      fprintf(f, "\n  ");
       if (node->return_or_base_type.kind != CDD_FFI_KIND_VOID) {
-        fprintf(f,
-                "  /* Call the C function and map return to N-API value */\n");
-        fprintf(f, "  napi_value result;\n");
-        fprintf(f, "  NAPI_CALL(env, napi_get_undefined(env, &result));\n");
-        fprintf(f, "  return result;\n");
-      } else {
-        fprintf(f, "  napi_value result;\n");
-        fprintf(f, "  NAPI_CALL(env, napi_get_undefined(env, &result));\n");
-        fprintf(f, "  return result;\n");
+        if (node->return_or_base_type.pointer_depth > 0 &&
+            (node->return_or_base_type.kind == CDD_FFI_KIND_INT8 ||
+             node->return_or_base_type.kind == CDD_FFI_KIND_UINT8)) {
+          fprintf(f, "const char* _c_ret = ");
+        } else if (node->return_or_base_type.pointer_depth > 0 ||
+                   node->return_or_base_type.kind == CDD_FFI_KIND_STRUCT_REF) {
+          fprintf(f, "void* _c_ret = ");
+        } else if (node->return_or_base_type.kind == CDD_FFI_KIND_FLOAT32) {
+          fprintf(f, "float _c_ret = ");
+        } else if (node->return_or_base_type.kind == CDD_FFI_KIND_FLOAT64) {
+          fprintf(f, "double _c_ret = ");
+        } else if (node->return_or_base_type.kind == CDD_FFI_KIND_BOOL) {
+          fprintf(f, "bool _c_ret = ");
+        } else if (node->return_or_base_type.kind == CDD_FFI_KIND_UINT32) {
+          fprintf(f, "uint32_t _c_ret = ");
+        } else {
+          fprintf(f, "int32_t _c_ret = ");
+        }
       }
+      fprintf(f, "%s(", node->name);
+      for (j = 0; j < node->fields_count; j++) {
+        const char *arg_name =
+            node->fields[j].name ? node->fields[j].name : "arg";
+        if (j > 0)
+          fprintf(f, ", ");
+        if (node->fields[j].type.kind == CDD_FFI_KIND_FLOAT32 &&
+            node->fields[j].type.pointer_depth == 0) {
+          fprintf(f, "(float)_c_%s", arg_name);
+        } else if (node->fields[j].type.kind == CDD_FFI_KIND_UINT32 &&
+                   node->fields[j].type.pointer_depth == 0) {
+          fprintf(f, "(uint32_t)_c_%s", arg_name);
+        } else {
+          fprintf(f, "_c_%s", arg_name);
+        }
+      }
+      fprintf(f, ");\n");
+
+      /* Map return value back */
+      fprintf(f, "  napi_value result;\n");
+      if (node->return_or_base_type.kind == CDD_FFI_KIND_VOID) {
+        fprintf(f, "  NAPI_CALL(env, napi_get_undefined(env, &result));\n");
+      } else {
+        if (node->return_or_base_type.pointer_depth > 0 &&
+            (node->return_or_base_type.kind == CDD_FFI_KIND_INT8 ||
+             node->return_or_base_type.kind == CDD_FFI_KIND_UINT8)) {
+          fprintf(f,
+                  "  if (_c_ret) NAPI_CALL(env, napi_create_string_utf8(env, "
+                  "_c_ret, NAPI_AUTO_LENGTH, &result));\n");
+          fprintf(f, "  else NAPI_CALL(env, napi_get_null(env, &result));\n");
+        } else if (node->return_or_base_type.pointer_depth > 0 ||
+                   node->return_or_base_type.kind == CDD_FFI_KIND_STRUCT_REF) {
+          fprintf(f, "  NAPI_CALL(env, napi_get_undefined(env, &result)); /* "
+                     "Unmapped ptr */\n");
+        } else if (node->return_or_base_type.kind == CDD_FFI_KIND_FLOAT32 ||
+                   node->return_or_base_type.kind == CDD_FFI_KIND_FLOAT64) {
+          fprintf(f, "  NAPI_CALL(env, napi_create_double(env, (double)_c_ret, "
+                     "&result));\n");
+        } else if (node->return_or_base_type.kind == CDD_FFI_KIND_BOOL) {
+          fprintf(
+              f, "  NAPI_CALL(env, napi_get_boolean(env, _c_ret, &result));\n");
+        } else if (node->return_or_base_type.kind == CDD_FFI_KIND_UINT32) {
+          fprintf(
+              f,
+              "  NAPI_CALL(env, napi_create_uint32(env, _c_ret, &result));\n");
+        } else {
+          fprintf(f, "  NAPI_CALL(env, napi_create_int32(env, (int32_t)_c_ret, "
+                     "&result));\n");
+        }
+      }
+      fprintf(f, "  return result;\n");
       fprintf(f, "}\n\n");
     }
   }

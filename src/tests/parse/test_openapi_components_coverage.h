@@ -39,7 +39,7 @@ TEST test_openapi_component_parameters_branches(void) {
   struct OpenAPI_Spec spec;
   JSON_Value *jv = NULL;
   const JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&spec, 0, sizeof(spec));
 
@@ -129,7 +129,7 @@ TEST test_openapi_component_responses_branches(void) {
   struct OpenAPI_Spec spec;
   JSON_Value *jv = NULL;
   const JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&spec, 0, sizeof(spec));
 
@@ -219,7 +219,7 @@ TEST test_openapi_component_headers_branches(void) {
   struct OpenAPI_Spec spec;
   JSON_Value *jv = NULL;
   const JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&spec, 0, sizeof(spec));
 
@@ -308,7 +308,7 @@ TEST test_openapi_component_request_bodies_branches(void) {
   struct OpenAPI_Spec spec;
   JSON_Value *jv = NULL;
   const JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&spec, 0, sizeof(spec));
 
@@ -401,7 +401,7 @@ TEST test_openapi_component_media_types_branches(void) {
   struct OpenAPI_Spec spec;
   JSON_Value *jv = NULL;
   const JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&spec, 0, sizeof(spec));
 
@@ -500,7 +500,7 @@ TEST test_openapi_component_examples_branches(void) {
   struct OpenAPI_Spec spec;
   JSON_Value *jv = NULL;
   const JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&spec, 0, sizeof(spec));
 
@@ -590,7 +590,7 @@ TEST test_openapi_component_links_branches(void) {
   struct OpenAPI_Spec spec;
   JSON_Value *jv = NULL;
   const JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&spec, 0, sizeof(spec));
 
@@ -673,7 +673,7 @@ TEST test_openapi_component_callbacks_branches(void) {
   struct OpenAPI_Spec spec;
   JSON_Value *jv = NULL;
   const JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&spec, 0, sizeof(spec));
 
@@ -758,7 +758,7 @@ TEST test_openapi_component_path_items_branches(void) {
   struct OpenAPI_Spec spec;
   JSON_Value *jv = NULL;
   const JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&spec, 0, sizeof(spec));
 
@@ -833,7 +833,7 @@ TEST test_openapi_components_full_coverage(void) {
   struct OpenAPI_Spec spec;
   JSON_Value *jv = NULL;
   const JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   int k;
 
   memset(&spec, 0, sizeof(spec));

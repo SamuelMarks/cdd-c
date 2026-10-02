@@ -827,7 +827,7 @@ TEST test_doc_parse_encodings(void) {
 
 TEST test_doc_parse_dupes_and_extras(void) {
   struct DocMetadata meta;
-  int rc;
+  int rc = 0;
   const char comment[] = {0};
 
   doc_metadata_init(&meta);
@@ -840,7 +840,7 @@ TEST test_doc_parse_dupes_and_extras(void) {
 
 TEST test_doc_parse_equal_signs(void) {
   struct DocMetadata meta;
-  int rc;
+  int rc = 0;
   const char comment[] = {
       10, 32, 32, 32, 32, 32, 32, 10, 32, 32, 32, 32, 32, 32, 10, 32, 32,
       32, 32, 32, 32, 10, 32, 32, 32, 32, 32, 32, 10, 32, 32, 32, 32, 32,
@@ -863,7 +863,7 @@ TEST test_doc_parse_equal_signs(void) {
 
 TEST test_doc_parse_more_branches(void) {
   struct DocMetadata meta;
-  int rc;
+  int rc = 0;
   const char comment[] = {0};
   doc_metadata_init(&meta);
   rc = doc_parse_block(comment, &meta);

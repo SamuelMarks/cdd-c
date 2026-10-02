@@ -230,7 +230,7 @@ cdd_test_parse_operation(const char *verb_str, const JSON_Object *op_obj,
 static cdd_c_error_t load_spec_str(const char *json_str,
                                    struct OpenAPI_Spec *spec) {
   JSON_Value *dyn = json_parse_string(json_str);
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   if (!dyn)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   openapi_spec_init(spec);
@@ -244,7 +244,7 @@ load_spec_str_with_context(const char *json_str, const char *retrieval_uri,
                            struct OpenAPI_DocRegistry *registry,
                            struct OpenAPI_Spec *spec) {
   JSON_Value *dyn = json_parse_string(json_str);
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   if (!dyn)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   openapi_spec_init(spec);

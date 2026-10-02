@@ -59,7 +59,7 @@ static const char *get_simple_schema(void) {
 TEST test_c2openapi_helpers_global_meta_conflicts_full(void) {
   struct OpenAPI_Spec spec;
   struct DocMetadata meta;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   openapi_spec_init(&spec);
   doc_metadata_init(&meta);
@@ -397,7 +397,7 @@ TEST test_c2openapi_oom_helpers_servers_and_security(void) {
 TEST test_c2openapi_oom_helpers_sig_and_file_process(void) {
   struct OpenAPI_Spec spec;
   const char *test_c = "test_c2openapi_oom_tmp.c";
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   int k;
 
   /* parse_c_signature_string OOM */
@@ -439,7 +439,7 @@ TEST test_c2openapi_remaining_edge_cases(void) {
   struct OpenAPI_Spec spec;
   struct DocMetadata meta;
   struct C2OpenAPI_ParsedSig sig;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   openapi_spec_init(&spec);
   doc_metadata_init(&meta);

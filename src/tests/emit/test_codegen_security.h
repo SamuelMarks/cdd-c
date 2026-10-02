@@ -52,7 +52,7 @@ static cdd_c_error_t gen_sec_code(const struct OpenAPI_Spec *spec,
   const struct OpenAPI_Operation *op = op_in;
   long sz;
   char *content = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Op is unused currently but required by signature */
   if (!op) {

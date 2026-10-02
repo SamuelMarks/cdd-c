@@ -43,7 +43,7 @@ TEST test_client_body_writer_sub_emitters(void) {
   struct OpenAPI_Operation op;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Encoding enc;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Null argument assertions */
   rc = client_body_write_text_plain_success(NULL);
@@ -199,7 +199,7 @@ TEST test_client_body_all_operation_patterns(void) {
   struct OpenAPI_Header hdrs[6];
   struct OpenAPI_MediaType mt_form;
   struct OpenAPI_MediaType mt_mp;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   spec.defined_schemas =
@@ -590,7 +590,7 @@ TEST test_client_body_default_responses_and_inlines(void) {
   struct OpenAPI_Operation op;
   struct OpenAPI_Parameter param;
   struct OpenAPI_Response responses[3];
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   memset(&op, 0, sizeof(op));

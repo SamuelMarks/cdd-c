@@ -28,7 +28,7 @@ extern "C" {
 /* clang-format on */
 
 TEST test_c2openapi_full_flow(void) {
-  int rc;
+  int rc = 0;
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
@@ -36,7 +36,7 @@ TEST test_c2openapi_full_flow(void) {
   char *out_json = NULL;
 
   /* 0. Setup Directories */
-  (void)rc;
+  rc += 0;
   tempdir((char **)&tmp_dir);
   /* Use %c for PATH_SEP_C */
   asprintf((char **)&src_dir, "%s%cc2o_test_%d", tmp_dir, PATH_SEP_C, rand());
@@ -297,12 +297,12 @@ TEST test_c2openapi_full_flow(void) {
   free((void *)(size_t)tmp_dir);
   g_fail_io_after = -1;
 
-  (void)rc;
+  rc += 0;
   PASS();
 }
 
 TEST test_c2openapi_with_base_spec(void) {
-  int rc;
+  int rc = 0;
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
@@ -310,7 +310,7 @@ TEST test_c2openapi_with_base_spec(void) {
   char *out_json = NULL;
   char *base_json = NULL;
 
-  (void)rc;
+  rc += 0;
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_base_%d", tmp_dir, PATH_SEP_C, rand());
   makedir(src_dir);
@@ -443,19 +443,19 @@ TEST test_c2openapi_with_base_spec(void) {
   free((void *)(size_t)tmp_dir);
   g_fail_io_after = -1;
 
-  (void)rc;
+  rc += 0;
   PASS();
 }
 
 TEST test_c2openapi_with_self_uri(void) {
-  int rc;
+  int rc = 0;
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
   char *h_file = NULL;
   char *out_json = NULL;
 
-  (void)rc;
+  rc += 0;
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_self_%d", tmp_dir, PATH_SEP_C, rand());
   makedir(src_dir);
@@ -506,18 +506,18 @@ TEST test_c2openapi_with_self_uri(void) {
   free((void *)(size_t)tmp_dir);
   g_fail_io_after = -1;
 
-  (void)rc;
+  rc += 0;
   PASS();
 }
 
 TEST test_c2openapi_global_meta_security_schemes(void) {
-  int rc;
+  int rc = 0;
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
   char *out_json = NULL;
 
-  (void)rc;
+  rc += 0;
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_global_%d", tmp_dir, PATH_SEP_C, rand());
   makedir(src_dir);
@@ -611,7 +611,7 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
   free((void *)(size_t)tmp_dir);
   g_fail_io_after = -1;
 
-  (void)rc;
+  rc += 0;
   PASS();
 }
 

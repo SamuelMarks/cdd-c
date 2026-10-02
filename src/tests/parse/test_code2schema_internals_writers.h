@@ -48,7 +48,7 @@ TEST test_code2schema_constraint_writers(void) {
   char u_str[16];
   char u_null[16];
   char *union_types[2];
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   CDD_STRCPY(u_str, sizeof(u_str), "string");
   CDD_STRCPY(u_null, sizeof(u_null), "null");
@@ -143,7 +143,7 @@ TEST test_code2schema_constraint_writers(void) {
  */
 TEST test_code2schema_c2s_collapse_arrays(void) {
   struct StructFields sf;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Invalid argument */
   rc = c2s_collapse_arrays(NULL);
@@ -184,7 +184,7 @@ TEST test_code2schema_merge_struct_fields_branches(void) {
   struct StructFields dst_sf;
   struct StructField src_f;
   struct StructField dst_f;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Invalid argument NULL checks */
   rc = merge_struct_field(NULL, NULL);
@@ -276,7 +276,7 @@ TEST test_code2schema_allof_and_unions(void) {
   JSON_Value *union_val;
   JSON_Array *union_arr;
   struct StructFields sf;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* apply_allof_to_struct_fields NULL check */
   rc = apply_allof_to_struct_fields(NULL, NULL, NULL);
@@ -345,7 +345,7 @@ TEST test_code2schema_allof_and_unions(void) {
  */
 TEST test_code2schema_parse_struct_member_line_internals(void) {
   struct StructFields sf;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Invalid arguments */
   rc = parse_struct_member_line(NULL, NULL);
@@ -403,7 +403,7 @@ TEST test_code2schema_write_struct_to_json_schema_internals(void) {
   JSON_Value *schemas_val = json_value_init_object();
   JSON_Object *schemas_obj = json_value_get_object(schemas_val);
   struct StructFields sf;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Invalid argument NULL checks */
   rc = write_struct_to_json_schema(NULL, NULL, NULL);
@@ -466,7 +466,7 @@ TEST test_code2schema_write_struct_to_json_schema_internals(void) {
  */
 TEST test_code2schema_sanitize_identifier_edge_cases(void) {
   char *out = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* NULL or empty string -> "Variant" */
   rc = sanitize_identifier(NULL, &out);
@@ -500,7 +500,7 @@ TEST test_code2schema_sanitize_identifier_edge_cases(void) {
 TEST test_code2schema_make_unique_variant_name_fallbacks(void) {
   struct StructFields sf;
   char *out = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* NULL dest */
   rc = make_unique_variant_name(NULL, "Test", 0, &out);
@@ -538,7 +538,7 @@ TEST test_code2schema_register_inline_schema_branches(void) {
   JSON_Value *schema_val = json_parse_string("{\"type\":\"string\"}");
   char *name1 = NULL;
   char *name2 = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Invalid arguments */
   rc = register_inline_schema_c2s(NULL, "Schema", "Variant", NULL, schema_val,
@@ -585,7 +585,7 @@ TEST test_code2schema_allof_and_fallback_branches(void) {
   JSON_Value *arr_val;
   JSON_Array *arr;
   struct StructFields sf;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = struct_fields_init(&sf);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -624,7 +624,7 @@ TEST test_code2schema_collect_property_names_empty(void) {
   JSON_Object *obj = json_value_get_object(val);
   char **names = NULL;
   size_t count = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = c2s_collect_property_names(obj, &names, &count);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -643,7 +643,7 @@ TEST test_code2schema_collect_property_names_empty(void) {
  */
 TEST test_code2schema_parse_struct_member_line_extended_types(void) {
   struct StructFields sf;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = struct_fields_init(&sf);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -673,7 +673,7 @@ TEST test_code2schema_merge_struct_field_bounds_and_unions(void) {
   struct StructField src;
   char *u1[1];
   char *u2[1];
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   u1[0] = (char *)(size_t) "string";
   u2[0] = (char *)(size_t) "integer";
@@ -728,7 +728,7 @@ TEST test_code2schema_discriminator_more_branches(void) {
       json_parse_string("{\"mapping\":{\"dog\":\"DogClass\"}}");
   JSON_Object *disc_obj = json_value_get_object(disc_val);
   char *out = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Match by ref_name (after last slash) */
   rc = discriminator_value_for_variant(disc_obj, NULL,
@@ -770,7 +770,7 @@ TEST test_code2schema_c2s_parse_union_and_write_internals(void) {
   FILE *fp = tmpfile();
   JSON_Value *val = json_value_init_object();
   JSON_Object *obj = json_value_get_object(val);
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   ASSERT(fp != NULL);
   fputs("\n   \n  int id;\n  char str_val;\n  float num_val;\n  char* name;\n  "

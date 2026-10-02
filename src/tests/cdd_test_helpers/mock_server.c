@@ -366,7 +366,7 @@ static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
 /* --- Wrapper API --- */
 
 cdd_c_error_t mock_server_init(MockServerPtr *out) {
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   struct MockServer_ *s;
 
   if (!out)

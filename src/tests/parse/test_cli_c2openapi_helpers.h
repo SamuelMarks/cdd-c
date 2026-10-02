@@ -62,7 +62,7 @@ TEST test_c2openapi_helpers_register_types_cases(void) {
   struct StructFields sf;
   struct EnumMembers em;
   char *unions[] = {(char *)(size_t) "string", (char *)(size_t) "integer"};
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   openapi_spec_init(&spec);
   type_def_list_init(&types);
@@ -172,7 +172,7 @@ TEST test_to_docs_json_cli_main_all_verbs(void) {
   const char *invalid_spec = "test_docs_invalid_spec.json";
   char *argv1[5];
   char *argv2[3];
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Write spec containing operations with all HTTP verbs */
   {
@@ -244,7 +244,7 @@ TEST test_generate_bindings_cli_main_options(void) {
   const char *out_dir = "test_cli_bind_out";
   char *argv_full[14];
   char *argv_missing[5];
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   write_to_file(dummy_header, "int my_api_add(int a, int b);\n");
   makedir(out_dir);
@@ -296,7 +296,7 @@ TEST test_c2openapi_cli_main_edge_branches(void) {
                             (char *)(size_t) "nonexistent_src_dir_123",
                             (char *)(size_t) "out.json"};
   char *argv_write_fail[3];
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   argv_write_fail[0] = (char *)(size_t) "c2openapi";
   argv_write_fail[1] = (char *)(size_t)get_mocks_dir();
@@ -330,7 +330,7 @@ TEST test_c2openapi_helpers_tag_meta_and_collection(void) {
   struct DocTagMeta meta;
   struct OpenAPI_Operation op;
   char *tag_names[] = {(char *)(size_t) "tagA", (char *)(size_t) "tagB"};
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   openapi_spec_init(&spec);
   memset(&meta, 0, sizeof(meta));
@@ -451,7 +451,7 @@ TEST test_c2openapi_helpers_scopes_and_flow_merge(void) {
   struct DocOAuthFlow doc_flow;
   struct DocOAuthScope scopes[2];
   struct OpenAPI_OAuthFlow *found = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&scheme, 0, sizeof(scheme));
   memset(&flow, 0, sizeof(flow));
@@ -517,7 +517,7 @@ TEST test_c2openapi_helpers_servers_and_security_append(void) {
   struct DocServerVar vars[1];
   struct DocSecurityRequirement sec[1];
   char *sec_scopes[] = {(char *)(size_t) "read", (char *)(size_t) "write"};
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   openapi_spec_init(&spec);
   doc_metadata_init(&meta);
@@ -620,7 +620,7 @@ TEST test_c2openapi_helpers_servers_and_security_append(void) {
 
 TEST test_c2openapi_helpers_sig_parsing_extra(void) {
   struct C2OpenAPI_ParsedSig sig;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Function with unnamed/void argument */
   rc = c2openapi_parse_c_signature_string("void no_named_args(void)", &sig);
@@ -635,7 +635,7 @@ TEST test_c2openapi_helpers_security_schemes_all_types(void) {
   struct OpenAPI_Spec spec;
   struct DocSecurityScheme doc;
   struct DocOAuthFlow flow;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   openapi_spec_init(&spec);
   memset(&doc, 0, sizeof(doc));

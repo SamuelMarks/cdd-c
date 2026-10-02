@@ -32,7 +32,7 @@ TEST test_cdd_transform_macros(void) {
       (char *)(size_t)(size_t) "#define FOO(a) a + 1\nint main() {\n  "
                                "return FOO(42);\n}\n";
   char *out = NULL;
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
 
@@ -65,7 +65,7 @@ TEST test_cdd_transform_macros_operators(void) {
                      "  CONCAT(4, 2);\n"
                      "}\n";
   char *out = NULL;
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
 
@@ -102,7 +102,7 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
                      "  CONCAT(4, 2);\n"
                      "  FOO(42);\n"
                      "}\n";
-  int rc;
+  int rc = 0;
   int k;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));

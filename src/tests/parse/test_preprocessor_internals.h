@@ -33,7 +33,7 @@ extern "C" {
 TEST test_pp_join_path_and_file_exists(void) {
   char *out = NULL;
   int exists = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Test pp_join_path NULL arguments */
   rc = pp_join_path(NULL, "file", &out);
@@ -80,7 +80,7 @@ TEST test_pp_join_path_and_file_exists(void) {
 TEST test_pp_token_and_reconstruct_path(void) {
   struct TokenList *tl = NULL;
   char *out = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Test pp_token_to_string NULL arguments */
   rc = pp_token_to_string(NULL, &out);
@@ -141,7 +141,7 @@ TEST test_pp_token_and_reconstruct_path(void) {
 TEST test_pp_resolve_path_cases(void) {
   struct PreprocessorContext ctx;
   char *resolved = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   pp_context_init(&ctx);
 
@@ -192,7 +192,7 @@ TEST test_pp_resolve_path_cases(void) {
 TEST test_pp_context_and_macro_operations(void) {
   struct PreprocessorContext ctx;
   struct EmbedParams params;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   int i;
   char buf[32];
 
@@ -291,7 +291,7 @@ TEST test_pp_conditional_stack_operations(void) {
   enum CondState s = COND_ACTIVE;
   int enabled = 0;
   int i;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&st, 0, sizeof(st));
 
@@ -363,7 +363,7 @@ TEST test_pp_is_defined_macro_operations(void) {
   struct PreprocessorContext ctx;
   struct Token tok;
   int is_def = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   pp_context_init(&ctx);
   pp_add_macro(&ctx, "DEFINED_MACRO", "1");
@@ -406,7 +406,7 @@ TEST test_pp_parse_embed_params_cases(void) {
   struct PreprocessorContext ctx;
   struct TokenList *tl = NULL;
   struct EmbedParams params;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   pp_context_init(&ctx);
   memset(&params, 0, sizeof(params));
@@ -475,7 +475,7 @@ TEST test_pp_eval_all_branches(void) {
   struct PreprocessorContext ctx;
   struct TokenList *tl = NULL;
   long val = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   pp_context_init(&ctx);
   pp_add_search_path(&ctx, ".");

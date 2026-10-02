@@ -38,7 +38,7 @@ TEST test_cst_print_exact(void) {
   struct TokenList *tokens = NULL;
   char buffer[1024] = {0};
   FILE *f;
-  int rc;
+  int rc = 0;
   az_span span;
   span = az_span_create((uint8_t *)(size_t)src, strlen(src));
   rc = tokenize(span, &tokens);

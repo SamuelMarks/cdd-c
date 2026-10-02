@@ -47,7 +47,7 @@ TEST test_schema_codegen_circular_refs(void) {
 
    */
 
-  int rc;
+  int rc = 0;
   char *header_content = NULL;
   size_t sz;
   const char *const filename = "circular.json";
@@ -302,7 +302,7 @@ TEST test_union_config_json_guards(void) {
  * @return TEST
  */
 TEST test_schema_codegen_union_output(void) {
-  int rc;
+  int rc = 0;
   char *header_content = NULL;
   char *source_content = NULL;
   size_t sz;
@@ -366,7 +366,7 @@ TEST test_schema_codegen_union_output(void) {
  * @return TEST
  */
 TEST test_schema_codegen_union_inline_variants(void) {
-  int rc;
+  int rc = 0;
   char *header_content = NULL;
   char *source_content = NULL;
   size_t sz;
@@ -420,7 +420,7 @@ TEST test_schema_codegen_union_inline_variants(void) {
  * @return TEST
  */
 TEST test_schema_codegen_enum_output(void) {
-  int rc;
+  int rc = 0;
   char *header_content = NULL;
   char *source_content = NULL;
   size_t sz;

@@ -287,16 +287,56 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
         }
       }
       fprintf(m_file, " {\n");
-      fprintf(m_file,
-              "    // TODO: Implement actual C call and ARC conversion\n");
-      /* Stub return */
-      if (strcmp(ret_type, "void") != 0) {
-        if (ret_is_obj) {
-          fprintf(m_file, "    return nil;\n");
-        } else {
-          fprintf(m_file, "    return CDD_C_SUCCESS;\n");
+
+      /* Argument marshaling */
+      for (j = 0; j < node->fields_count; j++) {
+        const char *arg_type = map_objc_type(&node->fields[j].type, 0);
+        if (strstr(arg_type, "NSString") != NULL) {
+          fprintf(m_file, "    const char * _c_%s = [%s UTF8String];\n",
+                  node->fields[j].name, node->fields[j].name);
         }
       }
+
+      /* Call C function */
+      fprintf(m_file, "    ");
+      if (strcmp(ret_type, "void") != 0) {
+        if (strstr(ret_type, "NSString") != NULL) {
+          fprintf(m_file, "const char* _c_ret = ");
+        } else if (ret_is_obj) {
+          fprintf(m_file, "void* _c_ret = (void*)");
+        } else {
+          fprintf(m_file, "%s _c_ret = ", ret_type);
+        }
+      }
+
+      fprintf(m_file, "%s(", node->name);
+      for (j = 0; j < node->fields_count; j++) {
+        const char *arg_type = map_objc_type(&node->fields[j].type, 0);
+        if (j > 0)
+          fprintf(m_file, ", ");
+
+        if (strstr(arg_type, "NSString") != NULL) {
+          fprintf(m_file, "_c_%s", node->fields[j].name);
+        } else if (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF) {
+          fprintf(m_file, "(__bridge void *)%s", node->fields[j].name);
+        } else {
+          fprintf(m_file, "%s", node->fields[j].name);
+        }
+      }
+      fprintf(m_file, ");\n");
+
+      /* Return conversion */
+      if (strcmp(ret_type, "void") != 0) {
+        if (strstr(ret_type, "NSString") != NULL) {
+          fprintf(m_file, "    return _c_ret ? [NSString "
+                          "stringWithUTF8String:_c_ret] : nil;\n");
+        } else if (ret_is_obj) {
+          fprintf(m_file, "    return (__bridge %s *)_c_ret;\n", ret_type);
+        } else {
+          fprintf(m_file, "    return _c_ret;\n");
+        }
+      }
+
       fprintf(m_file, "}\n\n");
     }
   }

@@ -43,7 +43,7 @@ extern C_CDD_EXPORT int g_enum_members_add_strdup_fail;
 TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
   /* 13. Additional edge cases for 100% coverage */
   {
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
     char **out_arr = NULL;
     size_t out_cnt = 0;
 
@@ -127,7 +127,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
         "  \"plain_str\":{\"type\":\"string\",\"x-extra\":1}"
         "}}");
     JSON_Object *schema = json_value_get_object(val_schema);
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     /* ref_points_to_string_enum on array items failure */
     struct_fields_init(&sf);
@@ -167,7 +167,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
   /* 15. c2s_merge_schema_extras_strings error branches */
   {
     char *dest = NULL;
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     c_cdd_strdup("{\"a\":1}", &dest);
     g_c2s_helper_fail = 2;
@@ -187,7 +187,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
   /* 16. Bit-field trim_trailing failure */
   {
     struct StructFields sf;
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
     struct_fields_init(&sf);
     g_c2s_helper_fail = 2;
     rc = parse_struct_member_line("int flag : 1;", &sf);
@@ -202,7 +202,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
     struct EnumMembers em;
     JSON_Value *arr_val;
     JSON_Array *arr;
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     struct_fields_init(&sf);
     g_cdd_strdup_fail = 1;
@@ -241,7 +241,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
         json_parse_string("{\"oneOf\":[{\"type\":\"object\",\"properties\":{"
                           "\"z\":{\"type\":\"boolean\"}}}]}");
     JSON_Object *obj_oneof = json_value_get_object(val_oneof);
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     /* enum_members_init fail */
     struct_fields_init(&sf);
@@ -308,7 +308,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
     struct StructFields dest;
     char *out_val = NULL;
     char *out_name = NULL;
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     /* make_unique_variant_name sanitize error */
     struct_fields_init(&dest);
@@ -363,7 +363,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
     FILE *fp;
     JSON_Value *root_val = json_value_init_object();
     JSON_Object *root = json_value_get_object(root_val);
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     fp = tmpfile();
     if (fp) {
@@ -386,7 +386,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
       size_t out_cnt = 0;
       JSON_Value *v = json_parse_string("[\"item1\"]");
       JSON_Array *a = json_value_get_array(v);
-      cdd_c_error_t rc;
+      cdd_c_error_t rc = 0;
       g_cdd_strdup_fail = 1;
       rc = c2s_collect_string_array(a, &out_arr, &out_cnt);
       g_cdd_strdup_fail = 0;
@@ -401,7 +401,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
       JSON_Value *v = json_parse_string(
           "{\"properties\":{\"prop1\":{\"type\":\"string\"} } }");
       JSON_Object *o = json_value_get_object(v);
-      cdd_c_error_t rc;
+      cdd_c_error_t rc = 0;
       g_cdd_strdup_fail = 1;
       rc = c2s_collect_property_names(o, &out_arr, &out_cnt);
       g_cdd_strdup_fail = 0;
@@ -412,7 +412,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
     /* merge_struct_fields struct_fields_add and strdup error */
     {
       struct StructFields src, dest;
-      cdd_c_error_t rc;
+      cdd_c_error_t rc = 0;
       struct_fields_init(&src);
       struct_fields_init(&dest);
       struct_fields_add(&src, "fld", "string", NULL, NULL, NULL);
@@ -441,7 +441,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
       JSON_Array *arr = json_value_get_array(val);
       JSON_Value *root_val = json_value_init_object();
       JSON_Object *root = json_value_get_object(root_val);
-      cdd_c_error_t rc;
+      cdd_c_error_t rc = 0;
 
       struct_fields_init(&dest);
       g_cdd_fail_struct_fields_add = 1;
@@ -459,7 +459,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
     {
       FILE *fp = fopen("test_err_main.h", "w");
       char *argv[3];
-      cdd_c_error_t rc;
+      cdd_c_error_t rc = 0;
       if (fp) {
         fprintf(fp, "struct BadStruct {\n  uint32_t bad_field[10];\n};\n");
         fclose(fp);

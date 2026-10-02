@@ -51,7 +51,7 @@ TEST test_integration_full_pipeline(void) {
   struct TokenList *tokens = NULL;
   struct AllocationSiteList allocs = {0};
   char *final_output = NULL;
-  int rc;
+  int rc = 0;
 
   /* 1. Tokenize */
   rc = tokenize(az_span_create_from_str((char *)(size_t)(size_t)raw_source),
@@ -99,7 +99,7 @@ TEST test_integration_fix_file_io(void) {
                         "void f() { int * x = (int *)malloc(4); }";
   char *read_back = NULL;
   size_t sz;
-  int rc;
+  int rc = 0;
 
   /* 1. Write Input */
   rc = write_to_file(in_file, content);
@@ -135,7 +135,7 @@ TEST test_integration_fix_file_io(void) {
 TEST test_integration_recursive_fix(void) {
   char *sys_tmp = NULL;
   char *root = NULL;
-  int rc;
+  int rc = 0;
 
   tempdir(&sys_tmp);
   if (asprintf(&root, "%s%sfix_rec_test_%d", sys_tmp, PATH_SEP, rand())) {
@@ -212,7 +212,7 @@ TEST test_integration_fix_file_in_place(void) {
                         "void f() { void * p = (void *)malloc(1); }";
   char *read_back = NULL;
   size_t sz;
-  int rc;
+  int rc = 0;
 
   write_to_file(in_file, content);
 
@@ -240,7 +240,7 @@ TEST test_integration_fix_file_in_place(void) {
 TEST test_integration_fix_dir_error_no_flag(void) {
   char *sys_tmp = NULL;
   char *root = NULL;
-  int rc;
+  int rc = 0;
 
   tempdir(&sys_tmp);
   if (asprintf(&root, "%s%sfix_err_test_%d", sys_tmp, PATH_SEP, rand())) {
@@ -301,7 +301,7 @@ TEST test_end_to_end_project_lifecycle(void) {
   char *sys_tmp = NULL;
   char *project_root = NULL;
   char *src_c = NULL;
-  int rc;
+  int rc = 0;
 
   /* 1. Setup Project Environment */
   tempdir(&sys_tmp);
@@ -409,7 +409,7 @@ TEST test_integration_schema2code_with_guards(void) {
   char *param2 = (char *)(size_t)(size_t)(size_t) "--guard-utils=DATA_UTILS";
   char *content = NULL;
   size_t sz;
-  int rc;
+  int rc = 0;
 
   /* 1. Setup */
   write_to_file(schema_file,

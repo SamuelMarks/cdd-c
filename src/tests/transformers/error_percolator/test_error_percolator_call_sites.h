@@ -333,7 +333,7 @@ TEST test_cdd_rewrite_call_sites_unit(void) {
   }
 
   for (k = 1; k <= 25; k++) {
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
     ASSERT_EQ(
         0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
     g_cdd_alloc_fail = k;
@@ -354,7 +354,7 @@ TEST test_cdd_transform_percolate_errors_comprehensive(void) {
   cdd_transform_config_t config;
   cdd_cst_tree_t *tree;
   cdd_cst_tree_t empty_tree;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&config, 0, sizeof(config));
   config.indent_width = 2;

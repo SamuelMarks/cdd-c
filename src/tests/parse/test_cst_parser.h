@@ -100,9 +100,9 @@ TEST add_node_basic(void) {
     for (i = 1; i < 50; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
-      int rc;
+      int rc = 0;
       /*  (moved to global) */
-      (void)rc;
+      rc += 0;
       tokenize(az_span_create_from_str(
                    (char *)(size_t) "void f() { int x = 1; if(x) { "
                                     "_Static_assert(1); } else { "
@@ -125,9 +125,9 @@ TEST add_node_basic(void) {
     for (i = 1; i < 50; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
-      int rc;
+      int rc = 0;
       /*  (moved to global) */
-      (void)rc;
+      rc += 0;
       tokenize(
           az_span_create_from_str(
               (char *)(size_t)(size_t) "struct A { int a: 1; }; enum E { X }; "
@@ -191,9 +191,9 @@ TEST parse_tokens_basic(void) {
     for (i = 1; i < 50; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
-      int rc;
+      int rc = 0;
       /*  (moved to global) */
-      (void)rc;
+      rc += 0;
       tokenize(az_span_create_from_str(
                    (char *)(size_t) "void f() { int x = 1; if(x) { "
                                     "_Static_assert(1); } else { "
@@ -216,9 +216,9 @@ TEST parse_tokens_basic(void) {
     for (i = 1; i < 50; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
-      int rc;
+      int rc = 0;
       /*  (moved to global) */
-      (void)rc;
+      rc += 0;
       tokenize(
           az_span_create_from_str(
               (char *)(size_t)(size_t) "struct A { int a: 1; }; enum E { X }; "
@@ -254,9 +254,9 @@ TEST parse_tokens_empty(void) {
     for (i = 1; i < 50; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
-      int rc;
+      int rc = 0;
       /*  (moved to global) */
-      (void)rc;
+      rc += 0;
       tokenize(az_span_create_from_str(
                    (char *)(size_t) "void f() { int x = 1; if(x) { "
                                     "_Static_assert(1); } else { "
@@ -279,9 +279,9 @@ TEST parse_tokens_empty(void) {
     for (i = 1; i < 50; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
-      int rc;
+      int rc = 0;
       /*  (moved to global) */
-      (void)rc;
+      rc += 0;
       tokenize(
           az_span_create_from_str(
               (char *)(size_t)(size_t) "struct A { int a: 1; }; enum E { X }; "
@@ -321,9 +321,9 @@ TEST parse_tokens_oom_make(void) {
     for (i = 1; i < 50; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
-      int rc;
+      int rc = 0;
       /*  (moved to global) */
-      (void)rc;
+      rc += 0;
       tokenize(az_span_create_from_str(
                    (char *)(size_t) "void f() { int x = 1; if(x) { "
                                     "_Static_assert(1); } else { "
@@ -346,9 +346,9 @@ TEST parse_tokens_oom_make(void) {
     for (i = 1; i < 50; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
-      int rc;
+      int rc = 0;
       /*  (moved to global) */
-      (void)rc;
+      rc += 0;
       tokenize(
           az_span_create_from_str(
               (char *)(size_t)(size_t) "struct A { int a: 1; }; enum E { X }; "
@@ -382,9 +382,9 @@ TEST parse_tokens_null_args(void) {
     for (i = 1; i < 50; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
-      int rc;
+      int rc = 0;
       /*  (moved to global) */
-      (void)rc;
+      rc += 0;
       tokenize(az_span_create_from_str(
                    (char *)(size_t) "void f() { int x = 1; if(x) { "
                                     "_Static_assert(1); } else { "
@@ -407,9 +407,9 @@ TEST parse_tokens_null_args(void) {
     for (i = 1; i < 50; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
-      int rc;
+      int rc = 0;
       /*  (moved to global) */
-      (void)rc;
+      rc += 0;
       tokenize(
           az_span_create_from_str(
               (char *)(size_t)(size_t) "struct A { int a: 1; }; enum E { X }; "
@@ -451,9 +451,9 @@ TEST parse_tokens_forward_declaration(void) {
     for (i = 1; i < 50; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
-      int rc;
+      int rc = 0;
       /*  (moved to global) */
-      (void)rc;
+      rc += 0;
       tokenize(az_span_create_from_str(
                    (char *)(size_t) "void f() { int x = 1; if(x) { "
                                     "_Static_assert(1); } else { "
@@ -476,9 +476,9 @@ TEST parse_tokens_forward_declaration(void) {
     for (i = 1; i < 50; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
-      int rc;
+      int rc = 0;
       /*  (moved to global) */
-      (void)rc;
+      rc += 0;
       tokenize(
           az_span_create_from_str(
               (char *)(size_t)(size_t) "struct A { int a: 1; }; enum E { X }; "
@@ -520,9 +520,9 @@ TEST parse_tokens_anonymous_struct(void) {
     for (i = 1; i < 50; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
-      int rc;
+      int rc = 0;
       /*  (moved to global) */
-      (void)rc;
+      rc += 0;
       tokenize(az_span_create_from_str(
                    (char *)(size_t) "void f() { int x = 1; if(x) { "
                                     "_Static_assert(1); } else { "
@@ -545,9 +545,9 @@ TEST parse_tokens_anonymous_struct(void) {
     for (i = 1; i < 50; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
-      int rc;
+      int rc = 0;
       /*  (moved to global) */
-      (void)rc;
+      rc += 0;
       tokenize(
           az_span_create_from_str(
               (char *)(size_t)(size_t) "struct A { int a: 1; }; enum E { X }; "
@@ -598,9 +598,9 @@ TEST parse_tokens_struct_variable_declaration(void) {
     for (i = 1; i < 50; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
-      int rc;
+      int rc = 0;
       /*  (moved to global) */
-      (void)rc;
+      rc += 0;
       tokenize(az_span_create_from_str(
                    (char *)(size_t) "void f() { int x = 1; if(x) { "
                                     "_Static_assert(1); } else { "
@@ -623,9 +623,9 @@ TEST parse_tokens_struct_variable_declaration(void) {
     for (i = 1; i < 50; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
-      int rc;
+      int rc = 0;
       /*  (moved to global) */
-      (void)rc;
+      rc += 0;
       tokenize(
           az_span_create_from_str(
               (char *)(size_t)(size_t) "struct A { int a: 1; }; enum E { X }; "
@@ -669,9 +669,9 @@ TEST parse_simple_array_init(void) {
     for (i = 1; i < 50; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
-      int rc;
+      int rc = 0;
       /*  (moved to global) */
-      (void)rc;
+      rc += 0;
       tokenize(az_span_create_from_str(
                    (char *)(size_t) "void f() { int x = 1; if(x) { "
                                     "_Static_assert(1); } else { "
@@ -694,9 +694,9 @@ TEST parse_simple_array_init(void) {
     for (i = 1; i < 50; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
-      int rc;
+      int rc = 0;
       /*  (moved to global) */
-      (void)rc;
+      rc += 0;
       tokenize(
           az_span_create_from_str(
               (char *)(size_t)(size_t) "struct A { int a: 1; }; enum E { X }; "

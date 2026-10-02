@@ -183,7 +183,7 @@ TEST test_make_oom(void) {
 #ifdef CDD_BUILD_TESTS
   /* extern C_CDD_EXPORT int g_cdd_fprintf_fail; (moved to global) */
   int i;
-  int rc;
+  int rc = 0;
 #endif
 
   config.project_name = (char *)(size_t)(size_t) "proj";

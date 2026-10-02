@@ -76,14 +76,33 @@ static cdd_int128_t cdd_make_int128(int64_t high, uint64_t low) {
   return res;
 }
 
+#if defined(__SIZEOF_INT128__)
+__extension__ typedef __int128 cdd_native_int128_t;
+__extension__ typedef unsigned __int128 cdd_native_uint128_t;
+
+#define cdd_make_int128_from_native(val)                                       \
+  cdd_make_int128((int64_t)((val) >> 64), (uint64_t)(val))
+
+#define cdd_make_int128_from_native_u(val)                                     \
+  cdd_make_int128((int64_t)((val) >> 64), (uint64_t)(val))
+
 /**
  * @brief Polyfill for extracting 128-bit ints from va_list.
  * Since cdd_int128_t is a struct, standard C ABI rules for structs apply,
  * which differ from native __int128 rules. This macro bridges the gap.
  */
 #define CDD_VA_ARG_INT128(ap, is_signed)                                       \
-  (is_signed ? *(cdd_int128_t *)0                                              \
-             : *(cdd_int128_t *)0) /* Stub implementation */
+  ((is_signed)                                                                 \
+       ? cdd_make_int128_from_native(va_arg(ap, cdd_native_int128_t))          \
+       : cdd_make_int128_from_native_u(va_arg(ap, cdd_native_uint128_t)))
+#else
+/**
+ * @brief Polyfill for extracting 128-bit ints from va_list.
+ * Since cdd_int128_t is a struct, standard C ABI rules for structs apply,
+ * which differ from native __int128 rules. This macro bridges the gap.
+ */
+#define CDD_VA_ARG_INT128(ap, is_signed) va_arg(ap, cdd_int128_t)
+#endif
 
 #ifdef __cplusplus
 }

@@ -35,7 +35,7 @@ extern C_CDD_EXPORT int g_cdd_alloc_fail;
 TEST test_openapi_uri_basics(void) {
   char *str = NULL;
   size_t ulen = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. json_pointer_unescape */
   rc = cdd_test_json_pointer_unescape(NULL, &str);
@@ -116,7 +116,7 @@ TEST test_openapi_uri_basics(void) {
  */
 TEST test_openapi_uri_normalize_path_branches(void) {
   char *str = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* NULL path */
   rc = cdd_test_normalize_path(NULL, &str);
@@ -194,7 +194,7 @@ TEST test_openapi_uri_normalize_path_branches(void) {
  */
 TEST test_openapi_uri_resolve_reference_branches(void) {
   char *str = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* NULL ref */
   rc = cdd_test_resolve_uri_reference("http://example.com", NULL, &str);
@@ -247,7 +247,7 @@ TEST test_openapi_uri_resolve_reference_branches(void) {
  */
 TEST test_openapi_uri_compute_document_uri_branches(void) {
   char *str = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Both NULL or empty */
   rc = cdd_test_compute_document_uri(NULL, NULL, &str);
@@ -302,7 +302,7 @@ TEST test_openapi_uri_schema_and_ref_branches(void) {
   char *name = NULL;
   JSON_Value *jv = NULL;
   JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. root_has_openapi_fields */
   rc = cdd_test_root_has_openapi_fields(NULL);
@@ -497,7 +497,7 @@ extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
 TEST test_openapi_uri_advanced_branches(void) {
   struct OpenAPI_Spec spec;
   char *str = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. json_pointer_unescape with '~' at end of string */
   rc = cdd_test_json_pointer_unescape("abc~", &str);
@@ -641,7 +641,7 @@ TEST test_openapi_uri_advanced_branches(void) {
 TEST test_openapi_uri_final_edges(void) {
   struct OpenAPI_Spec spec;
   char *str = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. normalize_path:
      - path with multiple slashes "a//b"
@@ -693,7 +693,7 @@ TEST test_openapi_uri_exhaust_branches(void) {
   struct OpenAPI_Spec spec;
   struct ResolvedRefTarget tgt;
   char *str = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. normalize_path realloc failure on '..' when absolute == 0 */
   {
@@ -784,7 +784,7 @@ TEST test_openapi_uri_exhaust_branches(void) {
  */
 TEST test_openapi_uri_non_matching_relative(void) {
   struct OpenAPI_Spec spec;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* document_uri with non-matching suffix:
      base_len >= rel_len, but strncmp != 0
@@ -821,7 +821,7 @@ TEST test_openapi_uri_final_unhit_branches(void) {
   char *str = NULL;
   JSON_Value *jv = NULL;
   JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. root_has_openapi_fields with "components" */
   jv = json_parse_string("{\"components\": {}}");
@@ -862,7 +862,7 @@ TEST test_openapi_uri_100_percent_final(void) {
   struct OpenAPI_DocRegistryEntry entries[2];
   struct ResolvedRefTarget tgt;
   char *str = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. normalize_path: 5 regular segments to grow cap from 4 to 8 */
   rc = cdd_test_normalize_path("a/b/c/d/e", &str);
@@ -965,7 +965,7 @@ TEST test_openapi_uri_branch_finishing(void) {
   struct OpenAPI_DocRegistryEntry entry;
   struct ResolvedRefTarget tgt;
   char *str = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. base_uri with scheme where scheme_len + 2 >= base_len (e.g. "http:" or
    * "http:/") */

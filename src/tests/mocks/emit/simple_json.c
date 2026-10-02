@@ -78,7 +78,7 @@ __attribute__((format(printf, 2, 3)))
 static int test_jasprintf(char **unto, const char *fmt, ...) {
   va_list args;
   char *new_part = NULL;
-  int rc;
+  int rc = 0;
 
   if (g_simple_json_fail_alloc > 0) {
     g_simple_json_fail_alloc--;
@@ -245,7 +245,7 @@ cdd_c_error_t HazE_display(const struct HazE *haz_e, FILE *fh) {
 }
 
 cdd_c_error_t HazE_debug(const struct HazE *haz_e, FILE *fh) {
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   if (haz_e == NULL) {
     rc = (cdd_c_error_t)fputs("<null HazE>\n", fh);
     return rc < 0 ? rc : CDD_C_SUCCESS;
@@ -366,7 +366,7 @@ cdd_c_error_t HazE_from_jsonObject(const JSON_Object *jsonObject,
 cdd_c_error_t HazE_from_json(const char *json, struct HazE **haz_e) {
   JSON_Value *root = NULL;
   const JSON_Object *jsonObject = NULL;
-  int rc;
+  int rc = 0;
   (void)rc;
   if (json == NULL || haz_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -396,7 +396,7 @@ cdd_c_error_t FooE_cleanup(struct FooE *foo_e) {
 }
 
 cdd_c_error_t FooE_default(struct FooE **foo_e) {
-  int rc;
+  int rc = 0;
   (void)rc;
   if (foo_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -468,7 +468,7 @@ cdd_c_error_t FooE_display(const struct FooE *foo_e, FILE *fh) {
 }
 
 cdd_c_error_t FooE_debug(const struct FooE *foo_e, FILE *fh) {
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   if (foo_e == NULL) {
     rc = (cdd_c_error_t)fputs("<null FooE>\n", fh);
     return rc < 0 ? rc : CDD_C_SUCCESS;
@@ -600,7 +600,7 @@ cdd_c_error_t FooE_from_jsonObject(const JSON_Object *jsonObject,
 cdd_c_error_t FooE_from_json(const char *json, struct FooE **foo_e) {
   JSON_Value *root = NULL;
   const JSON_Object *jsonObject = NULL;
-  int rc;
+  int rc = 0;
 
   (void)rc;
   if (json == NULL || foo_e == NULL)
@@ -623,7 +623,7 @@ cdd_c_error_t FooE_from_json(const char *json, struct FooE **foo_e) {
 
 cdd_c_error_t run_mocks_test(void) {
   const enum Tank t = Tank_BIG;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   char *tank_as_str = NULL;
   struct HazE haz_e;
   struct FooE foo_e;

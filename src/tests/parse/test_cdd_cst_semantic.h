@@ -236,7 +236,7 @@ TEST test_cdd_cst_semantic_oom(void) {
                  *id_node = NULL, *type_decl = NULL, *id_node2 = NULL;
   cdd_token_t *tok_var = NULL;
   cdd_token_t *tok_type = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   tree->root = root;

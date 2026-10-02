@@ -119,7 +119,7 @@ TEST test_ffi_emit_napi_dir(void) {
 TEST test_ffi_emit_objc_dir(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_generate_bindings_config_t config = {0};
-  int rc;
+  int rc = 0;
 
 #ifdef _WIN32
   _mkdir("test_objc_dir_new");
@@ -150,7 +150,7 @@ TEST test_ffi_emit_objc_dir(void) {
 TEST test_ffi_emit_perl_dir(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_generate_bindings_config_t config = {0};
-  int rc;
+  int rc = 0;
 
 #ifdef _WIN32
   _mkdir("test_perl_dir");
@@ -208,7 +208,7 @@ TEST test_ffi_emit_csharp_makedir(void) {
   cdd_ffi_ir_t *ir = create_dummy_ir();
   cdd_generate_bindings_config_t config = {0};
   const char *test_dir = "test_out_dir_cs_new";
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   remove("test_out_dir_cs_new/Bindings.cs");
   remove("test_out_dir_cs_new/BindingsTests.cs");
@@ -292,7 +292,7 @@ TEST test_ffi_emit_rust_fresh_dir(void) {
   cdd_ffi_ir_t *ir = create_dummy_ir();
   cdd_generate_bindings_config_t config = {0};
   const char *test_dir = "test_out_rust_fresh";
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   remove("test_out_rust_fresh/src/lib.rs");
   remove("test_out_rust_fresh/src/sys.rs");
@@ -355,7 +355,7 @@ TEST test_ffi_emit_rust_io_null(void) {
   cdd_ffi_ir_t *ir = create_dummy_ir();
   cdd_generate_bindings_config_t config = {0};
   const char *test_dir = "test_out_rust_null";
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
 #ifdef _WIN32
   _mkdir(test_dir);
@@ -463,7 +463,7 @@ TEST test_ffi_emit_clojure_io_fail(void) {
   cdd_ffi_ir_t *ir = create_dummy_ir();
   cdd_generate_bindings_config_t config = {0};
   const char *test_dir = "test_out_clj_io";
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
 #ifdef _WIN32
   _mkdir(test_dir);
@@ -516,7 +516,7 @@ TEST test_ffi_emit_swift_io_fail(void) {
   cdd_ffi_ir_t *ir = create_dummy_ir();
   cdd_generate_bindings_config_t config = {0};
   const char *test_dir = "test_out_swift_io";
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
 #ifdef _WIN32
   _mkdir(test_dir);
@@ -562,16 +562,7 @@ TEST test_ffi_emit_swift_io_fail(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-TEST test_ffi_emit_elixir_internals(void) {
-  free_dummy_ir(NULL);
-  ASSERT_EQ(CDD_C_SUCCESS, test_cdd_ffi_emit_elixir_internals());
-  PASS();
-}
 
-TEST test_ffi_emit_erlang_internals(void) {
-  ASSERT_EQ(CDD_C_SUCCESS, test_cdd_ffi_emit_erlang_internals());
-  PASS();
-}
 #endif
 
 SUITE(ffi_emitters_edge_suite) {
@@ -579,8 +570,6 @@ SUITE(ffi_emitters_edge_suite) {
   RUN_TEST(test_ffi_emit_cpp_trampoline_edge_cases);
   RUN_TEST(test_ffi_emit_csharp_makedir);
 #ifdef CDD_BUILD_TESTS
-  RUN_TEST(test_ffi_emit_elixir_internals);
-  RUN_TEST(test_ffi_emit_erlang_internals);
 #endif
   RUN_TEST(test_ffi_emit_java_pom_dir);
   RUN_TEST(test_ffi_emit_matlab_m_dir);

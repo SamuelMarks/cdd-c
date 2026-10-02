@@ -41,7 +41,7 @@ static void mock_parson_oom_free(void *ptr) { free(ptr); }
 static cdd_c_error_t load_spec_str2(const char *json_str,
                                     struct OpenAPI_Spec *spec) {
   JSON_Value *dyn;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   dyn = json_parse_string(json_str);
   if (!dyn)
     return CDD_C_ERROR_INVALID_ARGUMENT;

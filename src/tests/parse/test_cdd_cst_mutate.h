@@ -39,12 +39,12 @@ TEST test_cdd_cst_mutate_replace(void) {
   const char *code = "int main() {\n  return 0;\n}";
   char *out = NULL;
   cdd_cst_query_result_t res;
-  int rc;
+  int rc = 0;
   cdd_cst_node_t *target;
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
                      &tree);
-  (void)rc;
+  rc += 0;
   ASSERT_EQ(0, rc);
 
   rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_STATEMENT, &res);
@@ -323,9 +323,9 @@ TEST test_cst_splice_children(void) {
   cdd_cst_node_t *child1 = NULL;
   cdd_token_t *tok = NULL;
   cdd_cst_child_t new_children[1];
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   ASSERT_EQ(0,
             cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t) ""),
                           &tree));
@@ -424,9 +424,9 @@ TEST test_cdd_cst_splice_oom(void) {
     cdd_cst_child_t new_children[2] = {0};
     cdd_token_t t_new = {0};
     cdd_cst_node_t *n_new = NULL;
-    int rc;
+    int rc = 0;
 
-    (void)rc;
+    rc += 0;
     cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
     tree->root = root;
 

@@ -34,7 +34,7 @@ TEST test_diff_generation_basic(void) {
   struct TokenList *tokens = NULL;
   struct PatchList patch_list;
   char *diff = NULL;
-  int rc;
+  int rc = 0;
   char *diff2 = NULL;
   char huge_str[5000];
   struct PatchList patch_list2;

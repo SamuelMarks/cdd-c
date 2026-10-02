@@ -141,7 +141,7 @@ TEST test_load_comprehensive_path_item_and_schema_copying(void) {
       "}"};
   char *json = NULL;
   struct OpenAPI_Spec spec = {0};
-  int rc;
+  int rc = 0;
   cdd_c_error_t err;
 
   err = concat_chunks(chunks, sizeof(chunks) / sizeof(chunks[0]), &json);
@@ -250,7 +250,7 @@ TEST test_load_components_ref_overrides_and_deep_copying(void) {
       "}"};
   char *json = NULL;
   struct OpenAPI_Spec spec = {0};
-  int rc;
+  int rc = 0;
   cdd_c_error_t err;
 
   err = concat_chunks(chunks, sizeof(chunks) / sizeof(chunks[0]), &json);
@@ -339,7 +339,7 @@ TEST test_load_all_security_scheme_types_and_flows(void) {
       "}"};
   char *json = NULL;
   struct OpenAPI_Spec spec = {0};
-  int rc;
+  int rc = 0;
   cdd_c_error_t err;
 
   err = concat_chunks(chunks, sizeof(chunks) / sizeof(chunks[0]), &json);
@@ -453,7 +453,7 @@ TEST test_load_header_schema_array_and_ref_propagation(void) {
       "}"};
   char *json = NULL;
   struct OpenAPI_Spec spec = {0};
-  int rc;
+  int rc = 0;
   cdd_c_error_t err;
 
   err = concat_chunks(chunks, sizeof(chunks) / sizeof(chunks[0]), &json);
@@ -504,7 +504,7 @@ TEST test_load_uri_resolution_and_self_matching(void) {
       "}}}}"};
   char *json = NULL;
   struct OpenAPI_Spec spec = {0};
-  int rc;
+  int rc = 0;
   cdd_c_error_t err;
 
   err = concat_chunks(chunks, sizeof(chunks) / sizeof(chunks[0]), &json);
@@ -647,7 +647,7 @@ TEST test_header_and_parameter_style_and_content_variations(void) {
   };
   char *json = NULL;
   struct OpenAPI_Spec spec = {0};
-  int rc;
+  int rc = 0;
   cdd_c_error_t err;
 
   err = concat_chunks(chunks, sizeof(chunks) / sizeof(chunks[0]), &json);
@@ -744,7 +744,7 @@ TEST test_swagger2_parameter_and_response_type_fallbacks(void) {
       "}}}}}"};
   char *json = NULL;
   struct OpenAPI_Spec spec = {0};
-  int rc;
+  int rc = 0;
   cdd_c_error_t err;
 
   err = concat_chunks(chunks, sizeof(chunks) / sizeof(chunks[0]), &json);
@@ -785,7 +785,7 @@ TEST test_load_webhooks_and_component_callbacks(void) {
       "}}"};
   char *json = NULL;
   struct OpenAPI_Spec spec = {0};
-  int rc;
+  int rc = 0;
   cdd_c_error_t err;
 
   err = concat_chunks(chunks, sizeof(chunks) / sizeof(chunks[0]), &json);

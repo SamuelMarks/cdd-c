@@ -27,7 +27,7 @@ extern "C" {
 static cdd_c_error_t load_spec_string(const char *json,
                                       struct OpenAPI_Spec *spec) {
   JSON_Value *root;
-  int rc;
+  int rc = 0;
   if (!json || !spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   root = json_parse_string(json);
@@ -58,7 +58,7 @@ TEST test_loader_enum_and_required(void) {
 
   struct OpenAPI_Spec spec;
   extern C_CDD_EXPORT int g_openapi_spec_init_fail;
-  int rc;
+  int rc = 0;
 
   /* Exercise error handling in load_spec_string */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, load_spec_string(NULL, &spec));
@@ -109,9 +109,9 @@ TEST test_writer_enum_and_required(void) {
   struct StructFields schemas[2];
   char *names[2];
   char *json = NULL;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   names[0] = (char *)(size_t)(size_t) "Color";
   names[1] = (char *)(size_t)(size_t) "Car";
 

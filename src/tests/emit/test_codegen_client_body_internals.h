@@ -34,7 +34,7 @@ extern C_CDD_EXPORT int g_cdd_fail_is_primitive_type;
 
 TEST test_client_body_verb_and_method_helpers(void) {
   const char *val = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Null argument checks */
   rc = client_body_verb_to_enum_str(OA_VERB_GET, NULL);
@@ -174,7 +174,7 @@ TEST test_client_body_find_helpers(void) {
   struct OpenAPI_Encoding encs[2];
   const struct OpenAPI_MediaType *found_mt = NULL;
   struct OpenAPI_Encoding *found_enc = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(mts, 0, sizeof(mts));
   memset(encs, 0, sizeof(encs));
@@ -250,7 +250,7 @@ TEST test_client_body_type_predicates(void) {
   int flag = 0;
   struct StructFields sf;
   struct OpenAPI_SchemaRef schema;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* is_primitive_type */
   rc = client_body_is_primitive_type("string", NULL);
@@ -420,7 +420,7 @@ TEST test_client_body_media_type_helpers(void) {
   const char *val = NULL;
   struct OpenAPI_Response resp;
   struct OpenAPI_Header hdr;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* media_type_base_len */
   rc = client_body_media_type_base_len(NULL, NULL);
@@ -839,7 +839,7 @@ TEST test_client_body_fail_is_primitive_type_branches(void) {
   struct OpenAPI_Operation op;
   struct OpenAPI_Parameter param;
   FILE *fp;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* is_primitive_type failure */
   g_cdd_fail_is_primitive_type = 1;

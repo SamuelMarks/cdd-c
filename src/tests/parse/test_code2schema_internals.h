@@ -39,7 +39,7 @@ TEST test_code2schema_c2s_read_line(void) {
   FILE *fp;
   char buf[128];
   int has_line = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Invalid arguments */
   rc = c2s_read_line(NULL, buf, sizeof(buf), NULL);
@@ -97,7 +97,7 @@ TEST test_code2schema_c2s_read_line(void) {
 TEST test_code2schema_c2s_key_in_list(void) {
   const char *list[4];
   int found = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   list[0] = "apple";
   list[1] = NULL;
@@ -138,7 +138,7 @@ TEST test_code2schema_c2s_key_in_list(void) {
 TEST test_code2schema_c2s_clone_json_value(void) {
   JSON_Value *val;
   JSON_Value *copy = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Invalid argument: NULL destination */
   rc = c2s_clone_json_value(NULL, NULL);
@@ -174,7 +174,7 @@ TEST test_code2schema_c2s_collect_schema_extras(void) {
   JSON_Object *obj;
   char *extras = NULL;
   const char *skip[2];
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   skip[0] = "type";
   skip[1] = "properties";
@@ -217,7 +217,7 @@ TEST test_code2schema_merge_extras(void) {
   JSON_Value *val;
   JSON_Object *obj;
   char *dest = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* NULL target or NULL extras */
   rc = c2s_merge_schema_extras_object(NULL, "{\"a\":1}");
@@ -270,7 +270,7 @@ TEST test_code2schema_merge_extras(void) {
  */
 TEST test_code2schema_c2s_openapi_type_is_primitive(void) {
   int is_prim = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Invalid argument */
   rc = c2s_openapi_type_is_primitive("integer", NULL);
@@ -318,7 +318,7 @@ TEST test_code2schema_c2s_openapi_type_is_primitive(void) {
 TEST test_code2schema_c2s_strip_quotes(void) {
   char buf[64];
   const char *out = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Invalid args */
   rc = c2s_strip_quotes(NULL, buf, sizeof(buf), &out);
@@ -357,7 +357,7 @@ TEST test_code2schema_parse_defaults(void) {
   int bval = -1;
   int has_val = 0;
   double nval = 0.0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* parse_bool_default NULL checks */
   rc = c2s_parse_bool_default("1", &bval, NULL);
@@ -424,7 +424,7 @@ TEST test_code2schema_c2s_detect_union_json_type(void) {
   JSON_Value *val;
   JSON_Object *obj;
   enum UnionVariantJsonType jtype;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Invalid argument */
   rc = c2s_detect_union_json_type(NULL, NULL);
@@ -529,7 +529,7 @@ TEST test_code2schema_collect_arrays(void) {
   JSON_Object *obj;
   char **strs = NULL;
   size_t count = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Invalid args */
   rc = c2s_collect_string_array(NULL, NULL, &count);
@@ -592,7 +592,7 @@ TEST test_code2schema_c2s_union_array_items_supported(void) {
   JSON_Value *val;
   JSON_Object *obj;
   int supported = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Invalid argument */
   rc = c2s_union_array_items_supported(NULL, NULL, 1, NULL);
@@ -661,7 +661,7 @@ TEST test_code2schema_enum_and_refs(void) {
   const JSON_Array *enum_arr = NULL;
   int is_enum = 0;
   int is_req = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* schema_object_is_string_enum NULL check */
   rc = schema_object_is_string_enum(NULL, NULL, NULL);
@@ -772,7 +772,7 @@ TEST test_code2schema_ref_and_discriminator(void) {
   JSON_Value *disc_val;
   JSON_Object *disc_obj;
   char *dval = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   root_val = json_parse_string("{\"MySchema\":{\"type\":\"object\"}}");
   root = json_value_get_object(root_val);

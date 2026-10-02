@@ -12,7 +12,7 @@ extern "C" {
 
 TEST test_cdd_c_strerror(void) {
   char *out = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = cdd_c_strerror(CDD_C_SUCCESS, &out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);

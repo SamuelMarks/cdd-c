@@ -199,23 +199,126 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
         fprintf(c_f, "    }\n");
       }
 
-      /* Basic argument fetching (highly simplified for the stub) */
-      for (j = 0; j < node->fields_count; j++) { /* LCOV_EXCL_BR_LINE */
-        cdd_ffi_type_t *t = &node->fields[j].type;
-        fprintf(c_f, "    /* TODO: Fetch argument %lu based on type %d */\n",
-                (unsigned long)j, t->kind);
+      /* Argument extraction */
+      for (j = 0; j < node->fields_count; j++) {
+        const char *arg_name =
+            node->fields[j].name ? node->fields[j].name : "arg";
+        if (node->fields[j].type.pointer_depth > 0 &&
+            (node->fields[j].type.kind == CDD_FFI_KIND_INT8 ||
+             node->fields[j].type.kind == CDD_FFI_KIND_UINT8)) {
+          fprintf(c_f, "    char _c_%s[1024] = {0};\n", arg_name);
+          fprintf(
+              c_f,
+              "    if (enif_get_string(env, argv[%lu], _c_%s, sizeof(_c_%s), "
+              "ERL_NIF_LATIN1) <= 0) return enif_make_badarg(env);\n",
+              (unsigned long)j, arg_name, arg_name);
+        } else if (node->fields[j].type.pointer_depth > 0 ||
+                   node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF) {
+          fprintf(
+              c_f,
+              "    void *_c_%s = NULL; /* Basic stub unsupported pointer */\n",
+              arg_name);
+        } else if (node->fields[j].type.kind == CDD_FFI_KIND_FLOAT32 ||
+                   node->fields[j].type.kind == CDD_FFI_KIND_FLOAT64) {
+          fprintf(c_f, "    double _c_%s = 0.0;\n", arg_name);
+          fprintf(c_f,
+                  "    if (!enif_get_double(env, argv[%lu], &_c_%s)) return "
+                  "enif_make_badarg(env);\n",
+                  (unsigned long)j, arg_name);
+        } else if (node->fields[j].type.kind == CDD_FFI_KIND_BOOL) {
+          fprintf(c_f, "    int _c_%s = 0;\n", arg_name);
+          /* Erlang boolean is atom 'true' or 'false' */
+          fprintf(c_f,
+                  "    { char _tmp[16]; if (enif_get_atom(env, argv[%lu], "
+                  "_tmp, sizeof(_tmp), ERL_NIF_LATIN1) && strcmp(_tmp, "
+                  "\"true\") == 0) _c_%s = 1; else _c_%s = 0; }\n",
+                  (unsigned long)j, arg_name, arg_name);
+        } else {
+          fprintf(c_f, "    int _c_%s = 0;\n", arg_name);
+          fprintf(c_f,
+                  "    if (!enif_get_int(env, argv[%lu], &_c_%s)) return "
+                  "enif_make_badarg(env);\n",
+                  (unsigned long)j, arg_name);
+        }
       }
 
-      /* LCOV_EXCL_BR_START */
-      fprintf(c_f, "    /* TODO: Call actual C function %s(...) */\n",
-              node->name);
+      /* Call the function */
+      fprintf(c_f, "    ");
+      if (node->return_or_base_type.kind != CDD_FFI_KIND_VOID ||
+          node->return_or_base_type.pointer_depth > 0) {
+        if (node->return_or_base_type.pointer_depth > 0 &&
+            (node->return_or_base_type.kind == CDD_FFI_KIND_INT8 ||
+             node->return_or_base_type.kind == CDD_FFI_KIND_UINT8)) {
+          fprintf(c_f, "const char* _c_ret = ");
+        } else if (node->return_or_base_type.pointer_depth > 0 ||
+                   node->return_or_base_type.kind == CDD_FFI_KIND_STRUCT_REF) {
+          fprintf(c_f, "void* _c_ret = ");
+        } else if (node->return_or_base_type.kind == CDD_FFI_KIND_FLOAT32) {
+          fprintf(c_f, "float _c_ret = ");
+        } else if (node->return_or_base_type.kind == CDD_FFI_KIND_FLOAT64) {
+          fprintf(c_f, "double _c_ret = ");
+        } else if (node->return_or_base_type.kind == CDD_FFI_KIND_BOOL) {
+          fprintf(c_f, "int _c_ret = ");
+        } else {
+          fprintf(c_f, "int _c_ret = ");
+        }
+      }
+      fprintf(c_f, "%s(", node->name);
+      for (j = 0; j < node->fields_count; j++) {
+        const char *arg_name =
+            node->fields[j].name ? node->fields[j].name : "arg";
+        if (j > 0)
+          fprintf(c_f, ", ");
+        if (node->fields[j].type.kind == CDD_FFI_KIND_FLOAT32 &&
+            node->fields[j].type.pointer_depth == 0) {
+          fprintf(c_f, "(float)_c_%s", arg_name);
+        } else if ((node->fields[j].type.kind == CDD_FFI_KIND_INT8 ||
+                    node->fields[j].type.kind == CDD_FFI_KIND_UINT8 ||
+                    node->fields[j].type.kind == CDD_FFI_KIND_INT16 ||
+                    node->fields[j].type.kind == CDD_FFI_KIND_UINT16) &&
+                   node->fields[j].type.pointer_depth == 0) {
+          fprintf(c_f, "(%s)_c_%s",
+                  node->fields[j].type.kind == CDD_FFI_KIND_INT8
+                      ? "int8_t"
+                      : (node->fields[j].type.kind == CDD_FFI_KIND_UINT8
+                             ? "uint8_t"
+                             : (node->fields[j].type.kind == CDD_FFI_KIND_INT16
+                                    ? "int16_t"
+                                    : "uint16_t")),
+                  arg_name);
+        } else {
+          fprintf(c_f, "_c_%s", arg_name);
+        }
+      }
+      fprintf(c_f, ");\n");
+
+      /* Map return to NIF value */
       if (node->return_or_base_type.kind == CDD_FFI_KIND_VOID &&
           node->return_or_base_type.pointer_depth == 0) {
-        /* LCOV_EXCL_BR_STOP */
         fprintf(c_f, "    return enif_make_atom(env, \"ok\");\n");
       } else {
-        fprintf(c_f, "    /* TODO: Convert return value to ERL_NIF_TERM */\n");
-        fprintf(c_f, "    return enif_make_atom(env, \"ok\");\n");
+        fprintf(c_f, "    ERL_NIF_TERM _nif_ret;\n");
+        if (node->return_or_base_type.pointer_depth > 0 &&
+            (node->return_or_base_type.kind == CDD_FFI_KIND_INT8 ||
+             node->return_or_base_type.kind == CDD_FFI_KIND_UINT8)) {
+          fprintf(c_f, "    _nif_ret = enif_make_string(env, _c_ret ? _c_ret : "
+                       "\"\", ERL_NIF_LATIN1);\n");
+        } else if (node->return_or_base_type.pointer_depth > 0 ||
+                   node->return_or_base_type.kind == CDD_FFI_KIND_STRUCT_REF) {
+          fprintf(c_f, "    _nif_ret = enif_make_atom(env, \"null\"); /* Stub "
+                       "for pointer */\n");
+        } else if (node->return_or_base_type.kind == CDD_FFI_KIND_FLOAT32 ||
+                   node->return_or_base_type.kind == CDD_FFI_KIND_FLOAT64) {
+          fprintf(c_f,
+                  "    _nif_ret = enif_make_double(env, (double)_c_ret);\n");
+        } else if (node->return_or_base_type.kind == CDD_FFI_KIND_BOOL) {
+          fprintf(c_f, "    _nif_ret = enif_make_atom(env, _c_ret ? \"true\" : "
+                       "\"false\");\n");
+        } else {
+          fprintf(c_f, "    _nif_ret = enif_make_int(env, (int)_c_ret);\n");
+        }
+        fprintf(c_f, "    return enif_make_tuple2(env, enif_make_atom(env, "
+                     "\"ok\"), _nif_ret);\n");
       }
       fprintf(c_f, "}\n\n");
     }
@@ -291,12 +394,3 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
 
   return CDD_C_SUCCESS;
 }
-
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT cdd_c_error_t test_cdd_ffi_emit_elixir_internals(void) {
-  char buf[5];
-  elixirify_name("VeryLongName", buf, sizeof(buf));
-  snake_case_name("VeryLongName", buf, sizeof(buf));
-  return CDD_C_SUCCESS;
-}
-#endif

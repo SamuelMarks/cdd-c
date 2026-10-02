@@ -59,7 +59,7 @@ static int doc_parse_block_with_oom(const char *comment,
 
 TEST test_doc_parser_100_percent_coverage_boost(void) {
   struct DocMetadata meta;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   int b_val = 0;
   enum DocParamStyle st_val = DOC_PARAM_STYLE_UNSET;
   extern C_CDD_EXPORT int g_cdd_fail_stricmp;
@@ -592,7 +592,7 @@ TEST test_doc_parser_extra_branches(void) {
   enum DocSecurityIn sec_in;
   enum DocOAuthFlowType flow_type;
   struct DocMetadata meta;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   const char *s_abc = "abc";
 
   /* 1. NULL checks on scanner / helper functions */

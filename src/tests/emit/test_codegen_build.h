@@ -259,7 +259,7 @@ TEST test_cbuild_io_failure(void) {
   long sz;
   char *content_str = NULL;
   int i;
-  int rc;
+  int rc = 0;
   (void)config;
   (void)sources;
   (void)sz;

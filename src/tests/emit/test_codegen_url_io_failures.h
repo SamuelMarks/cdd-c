@@ -35,7 +35,7 @@ TEST test_url_io_failure_branches(void) {
   struct OpenAPI_Parameter p;
   struct OpenAPI_Parameter builder_params[12];
   struct CodegenUrlConfig cfg;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   ASSERT(fp != NULL);
 
   memset(&op, 0, sizeof(op));

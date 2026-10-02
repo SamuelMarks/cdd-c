@@ -63,7 +63,7 @@ static void reset_decl_mocks(void) {
  */
 static struct TokenList *setup_tokens(const char *code) {
   struct TokenList *tl = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   rc = tokenize(az_span_create_from_str((char *)(size_t)(size_t)code), &tl);
   if (rc != CDD_C_SUCCESS) {
     return NULL;
@@ -100,7 +100,7 @@ TEST test_parse_basic_int(void) {
   const char *code = (char *)(size_t)(size_t) "int x";
   struct TokenList *tl;
   struct DeclInfo info;
-  int rc;
+  int rc = 0;
 
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(NULL, setup_tokens(code));
@@ -128,10 +128,10 @@ TEST test_parse_ptr(void) {
   const char *code = (char *)(size_t)(size_t) "char *p";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
-  int rc;
+  int rc = 0;
 
   rc = parse_declaration(tl, 0, tl->size, &info);
-  (void)rc;
+  rc += 0;
   ASSERT_EQ(0, rc);
 
   ASSERT_STR_EQ("p", info.identifier);
@@ -396,12 +396,12 @@ TEST test_parse_declarator_oom(void) {
 TEST test_parse_declarator_more_edge_cases(void) {
   struct TokenList *tl;
   struct DeclInfo info;
-  int rc;
+  int rc = 0;
   int is_group;
 
   tl = setup_tokens("enum { A, B } x");
   rc = parse_declaration(tl, 0, tl->size, &info);
-  (void)rc;
+  rc += 0;
   ASSERT_EQ(0, rc);
   decl_info_free(&info);
   free_token_list(tl);
@@ -500,12 +500,12 @@ TEST test_parse_declarator_just_x(void) {
 TEST test_parse_declarator_edge_cases(void) {
   struct TokenList *tl;
   struct DeclInfo info;
-  int rc;
+  int rc = 0;
 
   /* No explicit base type (implicit int) */
   tl = setup_tokens("*p");
   rc = parse_declaration(tl, 0, tl->size, &info);
-  (void)rc;
+  rc += 0;
   ASSERT_EQ(0, rc);
   decl_info_free(&info);
   free_token_list(tl);

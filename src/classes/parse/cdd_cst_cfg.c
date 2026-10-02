@@ -90,22 +90,23 @@ static cdd_c_error_t add_edge(cdd_cst_cfg_block_t *from,
   return CDD_C_SUCCESS;
 }
 
+static cdd_c_error_t walk_stmt(cdd_cst_cfg_t *cfg, cdd_cst_node_t *stmt,
+                               cdd_cst_cfg_block_t **curr_block_ptr,
+                               cdd_cst_cfg_block_t *break_target,
+                               cdd_cst_cfg_block_t *continue_target);
+
 static cdd_c_error_t build_block(cdd_cst_cfg_t *cfg,
                                  cdd_cst_cfg_block_t *curr_block,
                                  cdd_cst_node_t *stmt) {
-  /* This is a skeletal stub that linearly links everything into one block
-     and handles simple returns by routing them to the exit block. */
   cdd_c_error_t rc;
   size_t i;
   int is_return = 0;
 
-  /* Check for return token inside the node */
   for (i = 0; i < stmt->num_children; i++) {
-    if (stmt->children[i].kind == CDD_CST_CHILD_TOKEN) {
-      if (stmt->children[i].val.token->kind == CDD_TOKEN_KEYWORD_RETURN) {
-        is_return = 1;
-        break;
-      }
+    if (stmt->children[i].kind == CDD_CST_CHILD_TOKEN &&
+        stmt->children[i].val.token->kind == CDD_TOKEN_KEYWORD_RETURN) {
+      is_return = 1;
+      break;
     }
   }
 
@@ -119,14 +120,11 @@ static cdd_c_error_t build_block(cdd_cst_cfg_t *cfg,
 #endif
       new_arr = (cdd_cst_node_t **)realloc(curr_block->statements,
                                            new_cap * sizeof(cdd_cst_node_t *));
-    if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    if (!new_arr)
       return CDD_C_ERROR_MEMORY;
-    }
     curr_block->statements = new_arr;
     curr_block->capacity = new_cap;
   }
-
   curr_block->statements[curr_block->num_statements++] = stmt;
 
   if (is_return) {
@@ -134,15 +132,110 @@ static cdd_c_error_t build_block(cdd_cst_cfg_t *cfg,
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
+  return CDD_C_SUCCESS;
+}
 
+static cdd_c_error_t walk_stmt(cdd_cst_cfg_t *cfg, cdd_cst_node_t *stmt,
+                               cdd_cst_cfg_block_t **curr_block_ptr,
+                               cdd_cst_cfg_block_t *break_target,
+                               cdd_cst_cfg_block_t *continue_target) {
+  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_cst_cfg_block_t *curr = *curr_block_ptr;
+  if (!curr)
+    return CDD_C_SUCCESS;
+
+  if (stmt->kind == CDD_CST_BLOCK) {
+    size_t i;
+    for (i = 0; i < stmt->num_children; i++) {
+      if (stmt->children[i].kind == CDD_CST_CHILD_NODE) {
+        rc = walk_stmt(cfg, stmt->children[i].val.node, &curr, break_target,
+                       continue_target);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+      }
+    }
+    *curr_block_ptr = curr;
+    return CDD_C_SUCCESS;
+  }
+
+  if (stmt->kind == CDD_CST_STATEMENT) {
+    cdd_cst_cfg_block_t *if_body = NULL, *else_body = NULL, *merge_block = NULL;
+    size_t i;
+    cdd_cst_node_t *then_stmt = NULL, *else_stmt = NULL;
+
+    for (i = 0; i < stmt->num_children; i++) {
+      if (stmt->children[i].kind == CDD_CST_CHILD_NODE) {
+        if (!then_stmt)
+          then_stmt = stmt->children[i].val.node;
+        else if (!else_stmt)
+          else_stmt = stmt->children[i].val.node;
+      }
+    }
+
+    rc = alloc_block(cfg, CDD_CST_CFG_BLOCK_NORMAL, &if_body);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = alloc_block(cfg, CDD_CST_CFG_BLOCK_NORMAL, &merge_block);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+
+    if (else_stmt) {
+      rc = alloc_block(cfg, CDD_CST_CFG_BLOCK_NORMAL, &else_body);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = add_edge(curr, else_body, 1, 0);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+    } else {
+      rc = add_edge(curr, merge_block, 1, 0);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+    }
+    rc = add_edge(curr, if_body, 1, 1);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+
+    curr = if_body;
+    if (then_stmt) {
+      rc = walk_stmt(cfg, then_stmt, &curr, break_target, continue_target);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+    }
+    if (curr) {
+      rc = add_edge(curr, merge_block, 0, 0);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+    }
+
+    if (else_stmt) {
+      curr = else_body;
+      rc = walk_stmt(cfg, else_stmt, &curr, break_target, continue_target);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      if (curr) {
+        rc = add_edge(curr, merge_block, 0, 0);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+      }
+    }
+    *curr_block_ptr = merge_block;
+    return CDD_C_SUCCESS;
+  }
+
+  /* Fallback: just append stmt to current block */
+  rc = build_block(cfg, curr, stmt);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  if (curr->successors)
+    *curr_block_ptr = NULL; /* terminal like return */
   return CDD_C_SUCCESS;
 }
 
 static cdd_c_error_t walk_function_body(cdd_cst_cfg_t *cfg,
                                         cdd_cst_node_t *function_node) {
   cdd_cst_cfg_block_t *current = NULL;
-  size_t i, j;
   cdd_c_error_t rc;
+  size_t i;
 
   rc = alloc_block(cfg, CDD_CST_CFG_BLOCK_NORMAL, &current);
   if (rc != CDD_C_SUCCESS)
@@ -156,24 +249,18 @@ static cdd_c_error_t walk_function_body(cdd_cst_cfg_t *cfg,
     if (function_node->children[i].kind == CDD_CST_CHILD_NODE) {
       cdd_cst_node_t *block_node = function_node->children[i].val.node;
       if (block_node->kind == CDD_CST_BLOCK) {
-        for (j = 0; j < block_node->num_children; j++) {
-          if (block_node->children[j].kind == CDD_CST_CHILD_NODE) {
-            rc = build_block(cfg, current, block_node->children[j].val.node);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
-          }
-        }
+        rc = walk_stmt(cfg, block_node, &current, NULL, NULL);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
     }
   }
 
-  /* Add edge to exit if current block doesn't unconditionally return */
-  if (current->successors == NULL) {
+  if (current) {
     rc = add_edge(current, cfg->exit_block, 0, 0);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
-
   return CDD_C_SUCCESS;
 }
 

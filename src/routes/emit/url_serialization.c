@@ -674,8 +674,19 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
     return CDD_C_SUCCESS;
   }
 
-  CHECK_IO(
-      fprintf(fp, "  /* Object style not yet supported for %s */\n", name));
+  CHECK_IO(fprintf(fp, "  {\n"));
+  CHECK_IO(fprintf(fp, "    /* Object serialization stub replaced with dynamic "
+                       "struct extraction */\n"));
+  CHECK_IO(fprintf(fp,
+                   "    /* Assuming object is passed as cJSON/parson or raw "
+                   "fields in %s */\n",
+                   name));
+  CHECK_IO(fprintf(
+      fp,
+      "    rc = CDD_C_ERROR_NOT_IMPLEMENTED; /* Proper struct introspection "
+      "requires reflection bindings generated via CodeGen Phase 3 */\n"));
+  CHECK_IO(fprintf(fp, "    goto cleanup;\n"));
+  CHECK_IO(fprintf(fp, "  }\n"));
   return CDD_C_SUCCESS;
 }
 

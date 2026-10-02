@@ -58,7 +58,7 @@ static int doc_parse_block_with_oom(const char *comment,
 
 TEST test_doc_100_percent_coverage(void) {
   struct DocMetadata meta;
-  int rc;
+  int rc = 0;
   const char comment1[] = "/**\n"
                           " * @summary First summary   \n"
                           " * @summary Second summary\n"
@@ -434,7 +434,7 @@ TEST test_doc_100_percent_coverage(void) {
 
 TEST test_doc_oom_and_edges(void) {
   int i;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   for (i = 1; i < 40; i++) {
     struct DocMetadata meta;
     const char comment[] = "/**\n"

@@ -10,7 +10,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "parse/test_c2openapi_op_helpers.h"
+/* clang-format on */
 
 TEST test_build_custom_verb_additional(void) {
   struct OpBuilderContext ctx;
@@ -18,9 +20,9 @@ TEST test_build_custom_verb_additional(void) {
   struct C2OpenAPI_ParsedArg args[1];
   struct DocMetadata doc;
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
   sig.name = (char *)(size_t)(size_t) "copy_user";
@@ -57,9 +59,9 @@ TEST test_build_response_multi_content(void) {
   struct DocMetadata doc;
   struct DocResponse resps[2];
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(resps, 0, sizeof(resps));
   memset(&op, 0, sizeof(op));
   sig.name = (char *)(size_t)(size_t) "get_report";
@@ -108,9 +110,9 @@ TEST test_build_response_headers(void) {
   struct DocResponse resps[1];
   struct DocResponseHeader hdrs[1];
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(resps, 0, sizeof(resps));
   memset(hdrs, 0, sizeof(hdrs));
   memset(&op, 0, sizeof(op));
@@ -165,9 +167,9 @@ TEST test_build_response_links(void) {
   struct DocMetadata doc;
   struct DocLink links[1];
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(&op, 0, sizeof(op));
   sig.name = (char *)(size_t)(size_t) "get_page";
   sig.n_args = 0;
@@ -274,9 +276,9 @@ TEST test_build_op_security_servers_request_body(void) {
   char *server_enum[] = {(char *)(size_t)(size_t) "prod",
                          (char *)(size_t)(size_t) "staging"};
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
   sig.name = (char *)(size_t)(size_t) "api_upload";
@@ -361,9 +363,9 @@ TEST test_build_op_param_deprecated(void) {
   struct DocMetadata doc;
   struct DocParam params[1];
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(args, 0, sizeof(args));
   memset(params, 0, sizeof(params));
   memset(&op, 0, sizeof(op));
@@ -413,9 +415,9 @@ TEST test_build_request_body_example(void) {
   struct DocMetadata doc;
   struct DocRequestBody bodies[1];
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
   sig.name = (char *)(size_t)(size_t) "api_user_post";
@@ -462,9 +464,9 @@ TEST test_build_request_body_default_content_type(void) {
   struct DocMetadata doc;
   struct DocRequestBody bodies[1];
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
   sig.name = (char *)(size_t)(size_t) "api_user_post";
@@ -506,9 +508,9 @@ TEST test_build_op_request_body_multi_content(void) {
   struct DocMetadata doc;
   struct DocRequestBody bodies[2];
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
   sig.name = (char *)(size_t)(size_t) "api_upload_multi";

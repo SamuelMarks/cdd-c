@@ -23,7 +23,7 @@ TEST test_client_body_form_mega(void) {
     struct OpenAPI_Spec spec = {0};
     struct OpenAPI_Operation op = {0};
     FILE *fp;
-    int rc;
+    int rc = 0;
     int all_success = 1;
 
     memset(&op, 0, sizeof(op));

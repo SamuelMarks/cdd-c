@@ -49,7 +49,7 @@ static void reset_decl_helpers_mocks(void) {
 
 static struct TokenList *setup_tokens_helpers(const char *code) {
   struct TokenList *tl = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   rc = tokenize(az_span_create_from_str((char *)(size_t)(size_t)code), &tl);
   if (rc != CDD_C_SUCCESS) {
     return NULL;

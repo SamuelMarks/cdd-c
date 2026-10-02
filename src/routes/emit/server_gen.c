@@ -100,7 +100,6 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "#include <stdlib.h>\n");
   fprintf(fp, "#include <string.h>\n");
   fprintf(fp, "#include \"cdd_c_error.h\"\n");
-  fprintf(fp, "#include <civetweb.h>\n");
   fprintf(fp, "#include <c_rest_request.h>\n");
   fprintf(fp, "#include <c_rest_response.h>\n");
   fprintf(fp, "#include <c_rest_router.h>\n\n");
@@ -243,8 +242,7 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
               " */\n"
               "int main(int argc, char **argv) {\n");
   fprintf(fp, "    const char *options[15];\n");
-  fprintf(fp, "    struct mg_callbacks callbacks;\n");
-  fprintf(fp, "    struct mg_context *ctx;\n");
+  fprintf(fp, "    struct c_rest_context *ctx = NULL;\n");
   fprintf(fp, "    int i;\n");
   fprintf(fp, "    const char *port_str = \"8080\";\n");
   fprintf(fp, "    const char *db_path = \"oauth.db\";\n");
@@ -286,18 +284,18 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "    { cdd_c_error_t rc = init_db(); if(rc != CDD_C_SUCCESS) "
               "return rc; }\n\n");
 
-  fprintf(fp, "    memset(&callbacks, 0, sizeof(callbacks));\n");
-  fprintf(fp, "    ctx = mg_start(&callbacks, 0, options);\n");
-  fprintf(fp, "    if (ctx == NULL) {\n");
-  fprintf(
-      fp,
-      "        fprintf(stderr, \"Failed to start CivetWeb server.\\n\");\n");
-  fprintf(fp, "        return CDD_C_ERROR_UNKNOWN;\n");
+  fprintf(fp, "    cdd_c_error_t rc;\n");
+  fprintf(fp, "    rc = c_rest_init(C_REST_MODALITY_SYNC, &ctx);\n");
+  fprintf(fp, "    if (rc != CDD_C_SUCCESS) {\n");
+  fprintf(fp,
+          "        fprintf(stderr, \"Failed to start c-rest server.\\n\");\n");
+  fprintf(fp, "        return rc;\n");
   fprintf(fp, "    }\n\n");
 
   fprintf(fp, "    {\n");
   fprintf(fp, "        c_rest_router *router = NULL;\n");
-  fprintf(fp, "        if (c_rest_router_init(&router) == 0) {\n");
+  fprintf(fp, "        rc = c_rest_router_init(&router);\n");
+  fprintf(fp, "        if (rc == CDD_C_SUCCESS) {\n");
 
   /* Register MCP endpoints */
   fprintf(fp, "    /* MCP Transports: Server-Sent Events (sse) */\n");
@@ -354,16 +352,20 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
     }
   }
 
-  fprintf(fp, "            /* TODO: bind router to CivetWeb (e.g. via c_rest "
-              "dispatch middleware) */\n");
-  fprintf(fp, "            c_rest_router_destroy(router);\n");
+  fprintf(fp, "            /* Bind Router to c-rest-framework */\n");
+  fprintf(fp, "            rc = c_rest_set_router(ctx, router);\n");
+  fprintf(fp, "            if (rc != CDD_C_SUCCESS) return rc;\n");
   fprintf(fp, "        }\n");
   fprintf(fp, "    }\n\n");
 
-  fprintf(fp, "    printf(\"Server listening on port 8080... Press enter to "
-              "exit.\\n\");\n");
+  fprintf(fp, "    printf(\"Server listening... Press enter to exit.\\n\");\n");
+  fprintf(fp, "    rc = c_rest_run(ctx);\n");
+  fprintf(fp, "    if (rc != CDD_C_SUCCESS) return rc;\n");
   fprintf(fp, "    getchar();\n");
-  fprintf(fp, "    mg_stop(ctx);\n");
+  fprintf(fp, "    rc = c_rest_stop(ctx);\n");
+  fprintf(fp, "    if (rc != CDD_C_SUCCESS) return rc;\n");
+  fprintf(fp, "    rc = c_rest_destroy(ctx);\n");
+  fprintf(fp, "    if (rc != CDD_C_SUCCESS) return rc;\n");
   fprintf(fp, "    return CDD_C_SUCCESS;\n");
   fprintf(fp, "}\n");
 

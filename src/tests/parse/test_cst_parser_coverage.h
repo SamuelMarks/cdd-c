@@ -45,7 +45,7 @@ TEST test_cst_full_coverage(void) {
   struct CstNodeList list;
   struct CstNode *found_node = NULL;
   struct TokenList *tl = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. Direct cst_list_add tests */
   memset(&list, 0, sizeof(list));

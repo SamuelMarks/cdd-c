@@ -781,6 +781,7 @@ int main(int argc, char **argv) {
 
   /* New Runners */
   RUN_SUITE_RESET(cdd_cst_trivia_suite);
+
   RUN_SUITE_RESET(cst_parser_suite);
   RUN_SUITE_RESET(preprocessor_macros_suite);
   RUN_SUITE_RESET(orchestrator_internals_suite);
@@ -955,6 +956,7 @@ int main(int argc, char **argv) {
   RUN_SUITE_RESET(cli_parser_suite);
   RUN_SUITE_RESET(orchestrator_coverage_suite);
   RUN_SUITE_RESET(fs_coverage_suite);
+
   RUN_SUITE_RESET(c2openapi_op_suite);
   RUN_SUITE_RESET(c2openapi_op_responses_suite);
   RUN_SUITE_RESET(c2openapi_op_coverage_suite);

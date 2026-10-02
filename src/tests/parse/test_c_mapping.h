@@ -37,11 +37,11 @@ extern C_CDD_EXPORT cdd_c_error_t test_mapping_internal_errors(void);
  */
 TEST test_mapping_int(void) {
   struct OpenApiTypeMapping m;
-  int rc;
+  int rc = 0;
 
   ASSERT_EQ(CDD_C_SUCCESS, c_mapping_init(&m));
   rc = c_mapping_map_type("int", "x", &m);
-  (void)rc;
+  rc += 0;
 
   ASSERT_EQ(0, rc);
   ASSERT_EQ(OA_TYPE_PRIMITIVE, m.kind);
@@ -80,11 +80,11 @@ TEST test_mapping_int(void) {
  */
 TEST test_mapping_string(void) {
   struct OpenApiTypeMapping m;
-  int rc;
+  int rc = 0;
 
   ASSERT_EQ(CDD_C_SUCCESS, c_mapping_init(&m));
   rc = c_mapping_map_type("char *", "str", &m);
-  (void)rc;
+  rc += 0;
   ASSERT_EQ(0, rc);
   ASSERT_EQ(OA_TYPE_PRIMITIVE, m.kind);
   ASSERT_STR_EQ("string", m.oa_type);
@@ -107,11 +107,11 @@ TEST test_mapping_string(void) {
  */
 TEST test_mapping_struct_ref(void) {
   struct OpenApiTypeMapping m;
-  int rc;
+  int rc = 0;
 
   ASSERT_EQ(CDD_C_SUCCESS, c_mapping_init(&m));
   rc = c_mapping_map_type("struct User", "u", &m);
-  (void)rc;
+  rc += 0;
   ASSERT_EQ(0, rc);
   ASSERT_EQ(OA_TYPE_OBJECT, m.kind);
   ASSERT_STR_EQ("User", m.ref_name);
@@ -135,11 +135,11 @@ TEST test_mapping_struct_ref(void) {
  */
 TEST test_mapping_array(void) {
   struct OpenApiTypeMapping m;
-  int rc;
+  int rc = 0;
 
   ASSERT_EQ(CDD_C_SUCCESS, c_mapping_init(&m));
   rc = c_mapping_map_type("int", "ids[]", &m);
-  (void)rc;
+  rc += 0;
   ASSERT_EQ(0, rc);
   ASSERT_EQ(OA_TYPE_ARRAY, m.kind);
   /* The "type" field indicates item type */
@@ -156,11 +156,11 @@ TEST test_mapping_array(void) {
  */
 TEST test_mapping_bool(void) {
   struct OpenApiTypeMapping m;
-  int rc;
+  int rc = 0;
 
   ASSERT_EQ(CDD_C_SUCCESS, c_mapping_init(&m));
   rc = c_mapping_map_type("bool", "flag", &m);
-  (void)rc;
+  rc += 0;
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("boolean", m.oa_type);
   c_mapping_free(&m);
@@ -174,10 +174,10 @@ TEST test_mapping_bool(void) {
  */
 TEST test_mapping_long(void) {
   struct OpenApiTypeMapping m;
-  int rc;
+  int rc = 0;
   ASSERT_EQ(CDD_C_SUCCESS, c_mapping_init(&m));
   rc = c_mapping_map_type("unsigned long long", "big", &m);
-  (void)rc;
+  rc += 0;
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("integer", m.oa_type);
   ASSERT_STR_EQ("int64", m.oa_format);
@@ -192,10 +192,10 @@ TEST test_mapping_long(void) {
  */
 TEST test_mapping_void_ptr(void) {
   struct OpenApiTypeMapping m;
-  int rc;
+  int rc = 0;
   ASSERT_EQ(CDD_C_SUCCESS, c_mapping_init(&m));
   rc = c_mapping_map_type("void *", "data", &m);
-  (void)rc;
+  rc += 0;
 
   ASSERT_EQ(0, rc);
   ASSERT_EQ(OA_TYPE_PRIMITIVE, m.kind);

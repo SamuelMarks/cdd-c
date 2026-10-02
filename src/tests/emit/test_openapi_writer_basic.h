@@ -15,7 +15,7 @@ extern "C" {
 /* clang-format on */
 
 TEST test_writer_empty_spec(void) {
-  int rc;
+  int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
   json = NULL;
@@ -41,7 +41,7 @@ TEST test_writer_empty_spec(void) {
 }
 
 TEST test_writer_basic_operation(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;
@@ -75,7 +75,7 @@ TEST test_writer_basic_operation(void) {
 }
 
 TEST test_writer_schema_document(void) {
-  int rc;
+  int rc = 0;
   char *_ast_strdup_0 = NULL;
   struct OpenAPI_Spec spec;
   char *json;
@@ -100,7 +100,7 @@ TEST test_writer_schema_document(void) {
 }
 
 TEST test_writer_root_metadata_and_tags(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Tag tags[1];
   char *json;
   struct OpenAPI_Spec spec = {0};
@@ -166,7 +166,7 @@ TEST test_writer_root_metadata_and_tags(void) {
 }
 
 TEST test_writer_path_ref_and_servers(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Server path_servers[1];
   struct OpenAPI_Server op_servers[1];
   char *json;
@@ -237,7 +237,7 @@ TEST test_writer_path_ref_and_servers(void) {
 }
 
 TEST test_writer_webhooks(void) {
-  int rc;
+  int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path hook = {0};
@@ -283,7 +283,7 @@ TEST test_writer_webhooks(void) {
 }
 
 TEST test_writer_params_responses(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;
@@ -347,7 +347,7 @@ TEST test_writer_params_responses(void) {
 }
 
 TEST test_writer_parameter_metadata(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;
@@ -391,7 +391,7 @@ TEST test_writer_parameter_metadata(void) {
 }
 
 TEST test_writer_allow_empty_value(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;
@@ -430,7 +430,7 @@ TEST test_writer_allow_empty_value(void) {
 }
 
 TEST test_writer_request_body_metadata_and_response_description(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   char *json;
   struct OpenAPI_Path path = {0};
@@ -483,7 +483,7 @@ TEST test_writer_request_body_metadata_and_response_description(void) {
 }
 
 TEST test_writer_info_metadata(void) {
-  int rc;
+  int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
   json = NULL;
@@ -538,7 +538,7 @@ TEST test_writer_info_metadata(void) {
 }
 
 TEST test_writer_info_license_identifier_and_url_rejected(void) {
-  int rc;
+  int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
   json = NULL;
@@ -558,7 +558,7 @@ TEST test_writer_info_license_identifier_and_url_rejected(void) {
 }
 
 TEST test_writer_server_url_query_rejected(void) {
-  int rc;
+  int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Server server = {0};
@@ -578,7 +578,7 @@ TEST test_writer_server_url_query_rejected(void) {
 }
 
 TEST test_writer_operation_metadata(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;
@@ -615,7 +615,7 @@ TEST test_writer_operation_metadata(void) {
 }
 
 TEST test_writer_response_content_type(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   char *json;
   struct OpenAPI_Path path = {0};

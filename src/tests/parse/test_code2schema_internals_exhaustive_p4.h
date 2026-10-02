@@ -50,7 +50,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
       JSON_Array *arr = json_value_get_array(val);
       JSON_Value *root_val = json_value_init_object();
       JSON_Object *root = json_value_get_object(root_val);
-      cdd_c_error_t rc;
+      cdd_c_error_t rc = 0;
 
       struct_fields_init(&dest);
       rc = apply_union_to_struct_fields_ex(arr, &dest, root, "TestSubNull", 0,
@@ -71,7 +71,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
       JSON_Array *arr = json_value_get_array(val);
       JSON_Value *root_val = json_value_init_object();
       JSON_Object *root = json_value_get_object(root_val);
-      cdd_c_error_t rc;
+      cdd_c_error_t rc = 0;
 
       struct_fields_init(&dest);
       rc = apply_union_to_struct_fields_ex(arr, &dest, root, "FallbackHint", 0,
@@ -92,7 +92,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
       JSON_Array *arr = json_value_get_array(val);
       JSON_Value *root_val = json_value_init_object();
       JSON_Object *root = json_value_get_object(root_val);
-      cdd_c_error_t rc;
+      cdd_c_error_t rc = 0;
 
       struct_fields_init(&dest);
       rc = apply_union_to_struct_fields_ex(arr, &dest, root,
@@ -113,7 +113,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
       JSON_Array *arr = json_value_get_array(val);
       JSON_Value *root_val = json_value_init_object();
       JSON_Object *root = json_value_get_object(root_val);
-      cdd_c_error_t rc;
+      cdd_c_error_t rc = 0;
 
       struct_fields_init(&dest);
       rc = apply_union_to_struct_fields_ex(arr, &dest, root, "TestUnsupported",
@@ -132,7 +132,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
     char *dest = NULL;
     char *out_val = NULL;
     struct StructFields sf;
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     /* discriminator line 4228: str_after_last failure when ref is present */
     {
@@ -204,7 +204,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
 
   /* 32. 100% line completion tests */
   {
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     /* 1. c2s_clone_json_value g_cdd_fail_json_serialize */
     {
@@ -386,7 +386,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
   /* 33. Comprehensive branch coverage for parameter validations and C parsing
    */
   {
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
     char *src_arr[2];
     char **out_arr = NULL;
     size_t out_cnt = 0;
@@ -476,7 +476,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
 
   /* 34. Exhaustive branch coverage for remaining untaken conditions */
   {
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     /* str_starts_with with NULL _out_val */
     rc = str_starts_with("abc", "a", NULL);
@@ -581,7 +581,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
  */
 TEST test_code2schema_merge_struct_field_exhaustive(void) {
   struct StructField dest, src;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&dest, 0, sizeof(dest));
   memset(&src, 0, sizeof(src));

@@ -34,7 +34,7 @@ TEST test_pp_100_percent_coverage(void) {
   long val = 0;
   int matched = 0;
   size_t i;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   /* 1. Context init failure and capacity growth in pp_add_macro_internal */
   g_cdd_pp_context_init_fail = 1;
   rc = pp_context_init(&ctx);

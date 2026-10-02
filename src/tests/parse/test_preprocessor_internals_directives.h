@@ -54,7 +54,7 @@ TEST test_pp_100_cov_directives(void) {
   int matched = 0;
   int count = 0;
   size_t i;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   const char *test_file = "test_pp_100_cov.tmp";
 
   rc = pp_context_init(&ctx);

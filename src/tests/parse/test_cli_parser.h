@@ -57,7 +57,7 @@ TEST test_cli_parser_getopt(void) {
   struct TokenList *tokens = NULL;
   struct CstNodeList *nodes = NULL;
   struct CliCommand cmd;
-  int rc;
+  int rc = 0;
 
   nodes = (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
 

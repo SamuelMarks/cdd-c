@@ -49,7 +49,7 @@ TEST test_sync_remaining_branches(void) {
   struct CstNodeList cst;
   struct CstNode *node = NULL;
   char *str_out = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&spec, 0, sizeof(spec));
   memset(&path, 0, sizeof(path));

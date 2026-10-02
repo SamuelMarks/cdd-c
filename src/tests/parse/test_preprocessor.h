@@ -1,3 +1,10 @@
+#ifndef PATH_SEP_CHAR
+#ifdef _WIN32
+#define PATH_SEP_CHAR '\\'
+#else
+#define PATH_SEP_CHAR '/'
+#endif
+#endif
 /**
  * @file test_preprocessor.h
  * @brief Unit tests for the C preprocessor.
@@ -27,9 +34,7 @@ extern "C" {
 /* Moved extern declarations for C89 compliance */
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
-#define PATH_SEP_CHAR '\\'
 #else
-#define PATH_SEP_CHAR '/'
 #endif
 
 /* Helpers */

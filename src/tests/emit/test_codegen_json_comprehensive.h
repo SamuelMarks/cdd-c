@@ -31,7 +31,7 @@ extern C_CDD_EXPORT int g_io_calls;
 TEST test_json_exhaustive_io(void) {
 #ifdef CDD_BUILD_TESTS
   int i;
-  int rc;
+  int rc = 0;
   struct StructFields sf;
   struct CodegenJsonConfig config;
 

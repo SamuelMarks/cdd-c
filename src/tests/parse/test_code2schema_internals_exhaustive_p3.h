@@ -46,7 +46,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part3(void) {
     JSON_Value *val = json_value_init_object();
     JSON_Object *obj = json_value_get_object(val);
     struct StructField f_str, f_bool, f_num;
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     memset(&f_str, 0, sizeof(f_str));
     CDD_STRCPY(f_str.type, sizeof(f_str.type), "string");
@@ -85,7 +85,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part3(void) {
   {
     FILE *fp = fopen("test_union_err.h", "w");
     char *argv[3];
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
     if (fp) {
       fprintf(fp, "union FailUnion {\n  int x;\n};\n");
       fclose(fp);
@@ -108,7 +108,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part3(void) {
   {
     const char *out_s = NULL;
     int has_bval = 0;
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     /* c2s_strip_quotes null input */
     rc = c2s_strip_quotes(NULL, NULL, 0, &out_s);
@@ -216,7 +216,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part3(void) {
     JSON_Object *out_obj = NULL;
     struct StructField fld;
     struct StructFields sf;
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     memset(&fld, 0, sizeof(fld));
     struct_fields_init(&sf);
@@ -279,7 +279,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part3(void) {
   {
     struct StructFields dest, src;
     char *out_val = NULL;
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     struct_fields_init(&dest);
     struct_fields_add(&dest, "variant", "string", NULL, NULL, NULL);
@@ -318,7 +318,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part3(void) {
   /* 27. apply_union_to_struct_fields_ex comprehensive failure loop */
   {
     int k;
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
     for (k = 1; k <= 25; ++k) {
       struct StructFields dest;
       JSON_Value *val = json_parse_string(
@@ -357,7 +357,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part3(void) {
   /* 28. Additional coverage for merge_extras, merge_struct_field and
    * discriminator */
   {
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
     char *out_val = NULL;
 
     /* discriminator fallback strdup failure */
@@ -439,7 +439,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part3(void) {
     JSON_Object *obj_bad = json_value_get_object(val_bad);
     JSON_Value *val_root = json_value_init_object();
     JSON_Object *root = json_value_get_object(val_root);
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     /* allOf fails because sub-schema fails on unresolved ref with
      * fail_str_after_last */

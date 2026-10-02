@@ -41,7 +41,7 @@ TEST test_extern_c_late_include(void) {
   const char *code = (char *)(size_t)(size_t) "void func();\n#include "
                                               "<late.h>\nvoid func2();\n";
   char *out = NULL;
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
                      &tree);
@@ -81,7 +81,7 @@ TEST test_extern_c_late_include(void) {
 TEST test_cdd_transform_extern_c_builder_fails(void) {
 #ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
-  int rc;
+  int rc = 0;
   const char *code = (char *)(size_t)(size_t) "void func();";
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
@@ -107,7 +107,7 @@ TEST test_extern_c_bot_node_insert_oom(void) {
 #ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
   const char *code = (char *)(size_t)(size_t) "void func();"; /* This has EOF */
-  int rc;
+  int rc = 0;
   cdd_token_t *eof_tok = NULL;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
@@ -157,7 +157,7 @@ TEST test_extern_c_bot_node_append_oom(void) {
 #ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
   const char *code = (char *)(size_t)(size_t) "void func();";
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
@@ -177,7 +177,7 @@ TEST test_cdd_transform_extern_c_helper_fails(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "#ifdef __cplusplus\n#endif\n#include <stdio.h>\nint "
                      "main() { return 0; }\n";
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config = {0};
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
@@ -260,7 +260,7 @@ TEST test_extern_c_top_node_oom(void) {
   int i;
   for (i = 1; i < 50; i++) {
     cdd_cst_tree_t *tree = NULL;
-    int rc;
+    int rc = 0;
     rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
                        &tree);
     ASSERT_EQ(0, rc);
@@ -284,7 +284,7 @@ TEST test_extern_c_extra_coverage2(void) {
                      " { \n#ifdef __cplusplus\n#endif\n } return 0; }\n";
   cdd_cst_tree_t *tree = NULL;
   cdd_transform_config_t config = {0};
-  int rc;
+  int rc = 0;
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
                      &tree);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -302,7 +302,7 @@ TEST test_extern_c_extra_coverage3(void) {
                      "int z;\n";
   cdd_cst_tree_t *tree = NULL;
   cdd_transform_config_t config = {0};
-  int rc;
+  int rc = 0;
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
                      &tree);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -322,7 +322,7 @@ TEST test_extern_c_extra_coverage3(void) {
 
 TEST test_extern_c_extra_coverage4(void) {
   cdd_transform_config_t config = {0};
-  int rc;
+  int rc = 0;
 
   /* 1. Empty directive (num_children == 0) and directive with CHILD_NODE */
   {
@@ -411,7 +411,7 @@ TEST test_extern_c_extra_coverage4(void) {
 
 TEST test_extern_c_extra_coverage5(void) {
   cdd_transform_config_t config = {0};
-  int rc;
+  int rc = 0;
 
   /* 1. Late include OOMs */
   {
@@ -562,7 +562,7 @@ TEST test_extern_c_helpers_direct(void) {
   cdd_cst_node_t node;
   cdd_cst_child_t ch;
   cdd_token_t tok;
-  int rc;
+  int rc = 0;
 
   memset(&node, 0, sizeof(node));
   memset(&ch, 0, sizeof(ch));

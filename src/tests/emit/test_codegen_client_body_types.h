@@ -147,7 +147,7 @@ TEST test_client_body_all_primitive_types(void) {
       fp = cdd_test_tmpfile_global();
 #endif
       {
-        int rc;
+        int rc = 0;
 
         memset(&spec, 0, sizeof(spec));
         memset(&op, 0, sizeof(op));
@@ -318,7 +318,7 @@ TEST test_client_body_inline_response_types(void) {
       struct OpenAPI_Operation op = {0};
       struct OpenAPI_Response resp = {0};
       FILE *fp;
-      int rc;
+      int rc = 0;
       int all_success = 1;
 
       /* integer response */
@@ -496,7 +496,7 @@ TEST test_client_body_inline_response_types(void) {
     struct OpenAPI_Operation op = {0};
     struct OpenAPI_Response resp = {0};
     FILE *fp;
-    int rc;
+    int rc = 0;
 
     memset(&op, 0, sizeof(op));
     memset(&resp, 0, sizeof(resp));
@@ -533,7 +533,7 @@ TEST test_client_body_inline_types(void) {
       struct OpenAPI_Spec spec = {0};
       struct OpenAPI_Operation op = {0};
       FILE *fp;
-      int rc;
+      int rc = 0;
       int all_success = 1;
 
       /* integer */
@@ -649,7 +649,7 @@ TEST test_client_body_form_types(void) {
       struct OpenAPI_Spec spec = {0};
       struct OpenAPI_Operation op = {0};
       FILE *fp;
-      int rc;
+      int rc = 0;
       int all_success = 1;
 
       memset(&op, 0, sizeof(op));
@@ -699,7 +699,7 @@ TEST test_client_body_multipart_types(void) {
       struct OpenAPI_Spec spec = {0};
       struct OpenAPI_Operation op = {0};
       FILE *fp;
-      int rc;
+      int rc = 0;
       int all_success = 1;
 
       memset(&op, 0, sizeof(op));

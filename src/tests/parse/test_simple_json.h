@@ -49,7 +49,8 @@ TEST test_simple_cleanup_and_null(void) {
 
   {
     struct Foo *foo = (struct Foo *)calloc(1, sizeof(*foo));
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
+    (void)rc;
     ASSERT(foo != NULL);
     foo->haz = NULL;
     rc = Foo_cleanup(foo);
@@ -103,10 +104,11 @@ TEST test_foo_e_full_coverage(void) {
   FILE *f;
 #ifdef CDD_BUILD_TESTS
   int i;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
+  (void)rc;
 #endif
 
-  (void)rc;
+  rc += 0;
   printf("DEBUG: test_foo_e_full_coverage started!\n");
   fflush(stdout);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_default(NULL));
@@ -444,13 +446,14 @@ TEST test_foo_e_full_coverage(void) {
   g_simple_json_fail_alloc = 0;
 #endif
 
-  (void)rc;
+  rc += 0;
   PASS();
 }
 
 TEST test_run_mocks_test(void) {
   int i;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
+  (void)rc;
 
   rc = run_mocks_test();
   ASSERT_EQ(CDD_C_SUCCESS, rc);

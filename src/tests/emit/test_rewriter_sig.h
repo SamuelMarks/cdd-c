@@ -25,7 +25,7 @@ extern "C" {
 static cdd_c_error_t test_rewrite(const char *input, const char *expected) {
   struct TokenList *tl = NULL;
   char *output = NULL;
-  int rc;
+  int rc = 0;
   az_span source;
   source = az_span_create_from_str((char *)(size_t)(size_t)input);
 
@@ -54,7 +54,7 @@ static cdd_c_error_t test_rewrite(const char *input, const char *expected) {
 static int test_rewrite_error(const char *input) {
   struct TokenList *tl = NULL;
   char *output = NULL;
-  int rc;
+  int rc = 0;
 
   if (tokenize(az_span_create_from_str((char *)(size_t)(size_t)input), &tl) !=
       0)

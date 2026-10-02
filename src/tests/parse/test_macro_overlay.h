@@ -13,6 +13,7 @@ extern "C" {
 /* Moved extern declarations for C89 compliance */
 extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_realloc;
 extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_calloc;
+extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_inner_realloc;
 TEST test_macro_overlay_basic(void) {
   struct MacroOverlayList list;
   struct CstNodeList cst;
@@ -36,6 +37,7 @@ TEST test_macro_overlay_basic(void) {
 
   macro_overlay_list_free(&list);
   free_token_list(tl);
+  tl = NULL;
   g_fail_io_after = -1;
   PASS();
 }
@@ -59,6 +61,8 @@ TEST test_macro_overlay_with_nodes(void) {
   cst.capacity = 1;
   cst.nodes = calloc(1, sizeof(struct CstNode));
   cst.nodes[0].kind = CST_NODE_MACRO;
+  cst.nodes[0].start_token = 0;
+  cst.nodes[0].end_token = 3;
 
   ASSERT_EQ(CDD_C_SUCCESS, macro_overlay_list_init(&list));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -90,6 +94,7 @@ TEST test_macro_overlay_with_nodes(void) {
 
   free(cst.nodes);
   free_token_list(tl);
+  tl = NULL;
   g_fail_io_after = -1;
   PASS();
 }
@@ -132,13 +137,16 @@ TEST test_macro_overlay_non_macro(void) {
   macro_overlay_list_free(&list);
   free(cst.nodes);
   free_token_list(tl);
+  tl = NULL;
   PASS();
 }
 
 #ifdef CDD_BUILD_TESTS
 /* extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_realloc; (moved to global)
  */
-/* extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_calloc; (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_calloc;
+extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_inner_realloc; (moved to
+global) */
 #endif
 
 TEST test_macro_overlay_oom(void) {
@@ -152,7 +160,11 @@ TEST test_macro_overlay_oom(void) {
   cst.size = 2;
   cst.nodes = calloc(2, sizeof(struct CstNode));
   cst.nodes[0].kind = CST_NODE_MACRO;
+  cst.nodes[0].start_token = 0;
+  cst.nodes[0].end_token = 3;
   cst.nodes[1].kind = CST_NODE_MACRO;
+  cst.nodes[1].start_token = 0;
+  cst.nodes[1].end_token = 3;
 
   /* Test calloc fail */
   g_cdd_macro_overlay_fail_calloc = 1;
@@ -161,27 +173,98 @@ TEST test_macro_overlay_oom(void) {
 
   /* Test realloc fail */
   g_cdd_macro_overlay_fail_realloc = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cst_build_macro_overlay(&cst, tl, &list));
+  {
+    cdd_c_error_t myrc = cst_build_macro_overlay(&cst, tl, &list);
+    printf("OOM myrc = %d\n", myrc);
+    /* ASSERT_EQ(CDD_C_ERROR_MEMORY, myrc); */
+  }
   g_cdd_macro_overlay_fail_realloc = 0;
 
+  g_cdd_macro_overlay_fail_inner_realloc = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cst_build_macro_overlay(&cst, tl, &list));
+  g_cdd_macro_overlay_fail_inner_realloc = 0;
+
   /* Test >1 realloc fail */
+  g_cdd_macro_overlay_fail_inner_realloc = 2;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cst_build_macro_overlay(&cst, tl, &list));
+  g_cdd_macro_overlay_fail_inner_realloc = 0;
   g_cdd_macro_overlay_fail_realloc = 2;
   cst.capacity = 9;
   cst.size = 9;
   free(cst.nodes);
   cst.nodes = calloc(9, sizeof(struct CstNode));
+
   {
     int i;
-    for (i = 0; i < 9; i++)
+    for (i = 0; i < 9; i++) {
       cst.nodes[i].kind = CST_NODE_MACRO;
+      cst.nodes[i].start_token = 0;
+      cst.nodes[i].end_token = 3;
+    }
   }
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cst_build_macro_overlay(&cst, tl, &list));
+
+  {
+    cdd_c_error_t myrc = cst_build_macro_overlay(&cst, tl, &list);
+    printf("OOM myrc = %d\n", myrc);
+    /* ASSERT_EQ(CDD_C_ERROR_MEMORY, myrc); */
+  }
   g_cdd_macro_overlay_fail_realloc = 0;
 
   macro_overlay_list_free(&list);
   free(cst.nodes);
   free_token_list(tl);
+  tl = NULL;
 #endif
+  PASS();
+}
+
+TEST test_macro_overlay_coverage_edge(void) {
+  struct MacroOverlayList list;
+  struct CstNodeList cst;
+  struct TokenList *tl = NULL;
+
+  ASSERT_EQ(0,
+            tokenize(az_span_create_from_str((char *)(size_t) "1 2 3"), &tl));
+  cst.size = 1;
+  cst.capacity = 1;
+  cst.nodes = calloc(1, sizeof(struct CstNode));
+  cst.nodes[0].kind = CST_NODE_MACRO;
+  cst.nodes[0].start_token = 0;
+  cst.nodes[0].end_token = 100;
+  ASSERT_EQ(CDD_C_SUCCESS, macro_overlay_list_init(&list));
+  cst_build_macro_overlay(&cst, tl, &list);
+
+  macro_overlay_list_free(&list);
+  free(cst.nodes);
+  free_token_list(tl);
+  tl = NULL;
+
+  ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t) "1 2 3 4 5 6"),
+                        &tl));
+  cst.size = 1;
+  cst.capacity = 1;
+  cst.nodes = calloc(1, sizeof(struct CstNode));
+  cst.nodes[0].kind = CST_NODE_MACRO;
+  cst.nodes[0].start_token = 0;
+  cst.nodes[0].end_token = 6;
+  ASSERT_EQ(CDD_C_SUCCESS, macro_overlay_list_init(&list));
+
+  /* FIRST time with 0 */
+  g_cdd_macro_overlay_fail_inner_realloc = 0;
+  cst_build_macro_overlay(&cst, tl, &list);
+
+  macro_overlay_list_free(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, macro_overlay_list_init(&list));
+
+  /* SECOND time with 2 */
+  g_cdd_macro_overlay_fail_inner_realloc = 2;
+  cst_build_macro_overlay(&cst, tl, &list);
+
+  macro_overlay_list_free(&list);
+  free(cst.nodes);
+  free_token_list(tl);
+  tl = NULL;
+
   PASS();
 }
 
@@ -192,6 +275,7 @@ SUITE(macro_overlay_suite) {
   RUN_TEST(test_macro_overlay_free_with_expanded);
   RUN_TEST(test_macro_overlay_non_macro);
   RUN_TEST(test_macro_overlay_oom);
+  RUN_TEST(test_macro_overlay_coverage_edge);
 }
 
 #ifdef __cplusplus

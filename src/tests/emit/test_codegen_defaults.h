@@ -301,7 +301,7 @@ TEST test_write_enum_declaration_h_io_fail(void) {
   struct StructFields sf;
   struct CodegenConfig cfg;
   FILE *tmp = TMPFILE();
-  int rc;
+  int rc = 0;
   g_fail_io_after = 0;
   g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));
@@ -346,7 +346,7 @@ TEST test_write_struct_declaration_h_io_fail(void) {
   struct StructFields sf;
   struct CodegenConfig cfg;
   FILE *tmp = TMPFILE();
-  int rc;
+  int rc = 0;
   g_fail_io_after = 0;
   g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));
@@ -406,7 +406,7 @@ TEST test_write_union_declaration_h_io_fail(void) {
   struct StructFields sf;
   struct CodegenConfig cfg;
   FILE *tmp = TMPFILE();
-  int rc;
+  int rc = 0;
   g_fail_io_after = 0;
   g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));

@@ -498,9 +498,80 @@ static int cdd_int128_to_int64(cdd_int128_t val, int64_t *out) {
  * @brief Cast float to 128-bit signed integer.
  */
 static int cdd_float_to_int128(float val, cdd_int128_t *out) {
-  /* Stub implementation */
-  out->low = (uint64_t)(int64_t)val;
-  out->high = (val < 0) ? ((int64_t)-1) : ((int64_t)0);
+  union {
+    float f;
+    uint32_t u;
+  } u;
+  uint32_t bits;
+  int sign;
+  int exp;
+  uint32_t frac;
+  cdd_uint128_t res;
+
+  if (val == 0.0f) {
+    out->low = 0;
+    out->high = 0;
+    return 0;
+  }
+
+  u.f = val;
+  bits = u.u;
+  sign = (int)(bits >> 31);
+  exp = (int)((bits >> 23) & 0xFF);
+  frac = bits & 0x7FFFFFu;
+
+  if (exp == 0xFF) { /* NaN or Inf */
+    out->low = 0;
+    out->high = 0;
+    return 1;
+  }
+
+  if (exp == 0) {
+    /* Subnormal */
+    out->low = 0;
+    out->high = 0;
+    return 0;
+  }
+
+  frac |= 0x800000u; /* implicit 1 */
+  exp -= 127;        /* actual exponent */
+
+  if (exp < 0) {
+    out->low = 0;
+    out->high = 0;
+    return 0;
+  }
+
+  if (exp > 126) {
+    /* Overflow */
+    if (sign) {
+      out->high = ((int64_t)1) << 63; /* MIN */
+      out->low = 0;
+    } else {
+      out->high = ~(((int64_t)1) << 63); /* MAX */
+      out->low = ~(uint64_t)0;
+    }
+    return 1;
+  }
+
+  res.high = 0;
+  res.low = frac;
+
+  if (exp > 23) {
+    cdd_uint128_shl(res, (unsigned int)(exp - 23), &res);
+  } else if (exp < 23) {
+    cdd_uint128_shr(res, (unsigned int)(23 - exp), &res);
+  }
+
+  if (sign) {
+    cdd_uint128_t zero;
+    zero.high = 0;
+    zero.low = 0;
+    cdd_uint128_sub(zero, res, &res);
+  }
+
+  out->high = (int64_t)res.high;
+  out->low = res.low;
   return 0;
 }
 
@@ -508,9 +579,80 @@ static int cdd_float_to_int128(float val, cdd_int128_t *out) {
  * @brief Cast double to 128-bit signed integer.
  */
 static int cdd_double_to_int128(double val, cdd_int128_t *out) {
-  /* Stub implementation */
-  out->low = (uint64_t)(int64_t)val;
-  out->high = (val < 0) ? ((int64_t)-1) : ((int64_t)0);
+  union {
+    double d;
+    uint64_t u;
+  } u;
+  uint64_t bits;
+  int sign;
+  int exp;
+  uint64_t frac;
+  cdd_uint128_t res;
+
+  if (val == 0.0) {
+    out->low = 0;
+    out->high = 0;
+    return 0;
+  }
+
+  u.d = val;
+  bits = u.u;
+  sign = (int)(bits >> 63);
+  exp = (int)((bits >> 52) & 0x7FF);
+  frac = bits & ((((uint64_t)0xFFFFF) << 32) | (uint64_t)0xFFFFFFFF);
+
+  if (exp == 0x7FF) { /* NaN or Inf */
+    out->low = 0;
+    out->high = 0;
+    return 1;
+  }
+
+  if (exp == 0) {
+    /* Subnormal */
+    out->low = 0;
+    out->high = 0;
+    return 0;
+  }
+
+  frac |= (((uint64_t)0x100000) << 32); /* implicit 1 */
+  exp -= 1023;                          /* actual exponent */
+
+  if (exp < 0) {
+    out->low = 0;
+    out->high = 0;
+    return 0;
+  }
+
+  if (exp > 126) {
+    /* Overflow */
+    if (sign) {
+      out->high = ((int64_t)1) << 63; /* MIN */
+      out->low = 0;
+    } else {
+      out->high = ~(((int64_t)1) << 63); /* MAX */
+      out->low = ~(uint64_t)0;
+    }
+    return 1;
+  }
+
+  res.high = 0;
+  res.low = frac;
+
+  if (exp > 52) {
+    cdd_uint128_shl(res, (unsigned int)(exp - 52), &res);
+  } else if (exp < 52) {
+    cdd_uint128_shr(res, (unsigned int)(52 - exp), &res);
+  }
+
+  if (sign) {
+    cdd_uint128_t zero;
+    zero.high = 0;
+    zero.low = 0;
+    cdd_uint128_sub(zero, res, &res);
+  }
+
+  out->high = (int64_t)res.high;
+  out->low = res.low;
   return 0;
 }
 
@@ -518,8 +660,28 @@ static int cdd_double_to_int128(double val, cdd_int128_t *out) {
  * @brief Cast 128-bit signed integer to float.
  */
 static int cdd_int128_to_float(cdd_int128_t val, float *out) {
-  /* Stub implementation */
-  *out = (float)(int64_t)val.low;
+  uint64_t hi = (uint64_t)val.high;
+  uint64_t lo = val.low;
+  int sign = 0;
+  float f = 0.0f;
+  float p2_32 = 4294967296.0f;
+  float p2_64 = p2_32 * p2_32;
+  float p2_96 = p2_64 * p2_32;
+
+  if (val.high < 0) {
+    sign = 1;
+    lo = ~lo;
+    hi = ~hi;
+    if (++lo == 0)
+      hi++;
+  }
+
+  f = (float)(hi >> 32) * p2_96 + (float)(hi & 0xFFFFFFFF) * p2_64 +
+      (float)(lo >> 32) * p2_32 + (float)(lo & 0xFFFFFFFF);
+
+  if (sign)
+    f = -f;
+  *out = f;
   return 0;
 }
 
@@ -527,8 +689,28 @@ static int cdd_int128_to_float(cdd_int128_t val, float *out) {
  * @brief Cast 128-bit signed integer to double.
  */
 static int cdd_int128_to_double(cdd_int128_t val, double *out) {
-  /* Stub implementation */
-  *out = (double)(int64_t)val.low;
+  uint64_t hi = (uint64_t)val.high;
+  uint64_t lo = val.low;
+  int sign = 0;
+  double d = 0.0;
+  double p2_32 = 4294967296.0;
+  double p2_64 = p2_32 * p2_32;
+  double p2_96 = p2_64 * p2_32;
+
+  if (val.high < 0) {
+    sign = 1;
+    lo = ~lo;
+    hi = ~hi;
+    if (++lo == 0)
+      hi++;
+  }
+
+  d = (double)(hi >> 32) * p2_96 + (double)(hi & 0xFFFFFFFF) * p2_64 +
+      (double)(lo >> 32) * p2_32 + (double)(lo & 0xFFFFFFFF);
+
+  if (sign)
+    d = -d;
+  *out = d;
   return 0;
 }
 

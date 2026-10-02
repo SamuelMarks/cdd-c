@@ -597,8 +597,8 @@ TEST test_load_schema_root_document_with_id(void) {
 
   struct OpenAPI_DocRegistry registry;
   struct OpenAPI_Spec spec = {0};
-  int rc;
-  (void)rc;
+  int rc = 0;
+  rc += 0;
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_doc_registry_init(&registry));
   rc = load_spec_str_with_context(json, "https://example.com/schema.json",

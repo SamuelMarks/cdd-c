@@ -32,7 +32,7 @@ TEST test_client_gen_extra_cases(void) {
   struct OpenAPI_Server srv;
   char *out = NULL;
   char *escaped = NULL;
-  int rc;
+  int rc = 0;
 
   /* 1. Unclosed brace */
   memset(&srv, 0, sizeof(srv));
@@ -144,7 +144,7 @@ TEST test_client_gen_create_tests_mocks_expanded(void) {
   struct OpenAPI_Parameter params[2];
   struct OpenAPI_Server servers[2];
   struct OpenAPI_MediaType req_media;
-  int rc;
+  int rc = 0;
 
   memset(&op, 0, sizeof(op));
   memset(&spec, 0, sizeof(spec));
@@ -414,7 +414,7 @@ TEST test_client_gen_io_failures(void) {
   struct StructFields sf[1];
   char *snames[1];
   int i;
-  int rc;
+  int rc = 0;
   static struct OpenAPI_Callback cb;
   static struct OpenAPI_Link link;
   static struct OpenAPI_SecurityRequirementSet sec;

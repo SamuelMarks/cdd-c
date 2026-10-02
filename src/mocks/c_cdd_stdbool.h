@@ -17,7 +17,7 @@ extern "C" {
 /* clang-format on */
 #endif
 #else
-typedef size_t _c_cdd_bool;
+typedef unsigned char _c_cdd_bool;
 
 #ifdef bool
 #undef bool

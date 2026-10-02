@@ -395,7 +395,7 @@ TEST test_orchestrator_internals(void) {
                        "  p10 = malloc(10);\n"
                        "}\n";
     char *out_str = NULL;
-    int rc;
+    int rc = 0;
     int i;
     rc = orchestrate_fix(code, &out_str);
     ASSERT_EQ(CDD_C_SUCCESS, rc);

@@ -31,7 +31,7 @@ static cdd_c_error_t helper_generate_patches(const char *src,
                                              struct CstNodeList **out_nodes,
                                              struct TokenList **out_tokens) {
   az_span span;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   if (patches)
     memset(patches, 0, sizeof(*patches));
@@ -90,7 +90,7 @@ TEST test_safe_crt_add_patch_unit(void) {
   struct SafeCrtPatchList list;
   size_t i;
   char buf[32];
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, safe_crt_add_patch(NULL, 0, 1, "a"));
   memset(&list, 0, sizeof(list));
@@ -207,7 +207,7 @@ TEST test_safe_crt_strcpy(void) {
   struct TokenList *tokens = NULL;
   struct CstNodeList *nodes = NULL;
   struct SafeCrtPatchList patches;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = helper_generate_patches(src, &patches, &nodes, &tokens);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -229,7 +229,7 @@ TEST test_safe_crt_strncpy(void) {
   struct TokenList *tokens = NULL;
   struct CstNodeList *nodes = NULL;
   struct SafeCrtPatchList patches;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = helper_generate_patches(src, &patches, &nodes, &tokens);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -250,7 +250,7 @@ TEST test_safe_crt_sprintf(void) {
   struct TokenList *tokens = NULL;
   struct CstNodeList *nodes = NULL;
   struct SafeCrtPatchList patches;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = helper_generate_patches(src, &patches, &nodes, &tokens);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -270,7 +270,7 @@ TEST test_safe_crt_fopen(void) {
   struct TokenList *tokens = NULL;
   struct CstNodeList *nodes = NULL;
   struct SafeCrtPatchList patches;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = helper_generate_patches(src, &patches, &nodes, &tokens);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -291,7 +291,7 @@ TEST test_safe_crt_vla(void) {
   struct TokenList *tokens = NULL;
   struct CstNodeList *nodes = NULL;
   struct SafeCrtPatchList patches;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = helper_generate_patches(src, &patches, &nodes, &tokens);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -334,7 +334,7 @@ TEST test_safe_crt_edge_cases_1(void) {
   struct TokenList *tokens = NULL;
   struct CstNodeList *nodes = NULL;
   struct SafeCrtPatchList patches;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = helper_generate_patches(src, &patches, &nodes, &tokens);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -375,7 +375,7 @@ TEST test_safe_crt_edge_cases_2(void) {
   struct TokenList *tokens = NULL;
   struct CstNodeList *nodes = NULL;
   struct SafeCrtPatchList patches;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = helper_generate_patches(src, &patches, &nodes, &tokens);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -413,7 +413,7 @@ TEST test_safe_crt_edge_cases_3(void) {
   struct TokenList *tokens = NULL;
   struct CstNodeList *nodes = NULL;
   struct SafeCrtPatchList patches;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = helper_generate_patches(src, &patches, &nodes, &tokens);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -565,7 +565,7 @@ TEST test_safe_crt_oom(void) {
   struct CstNodeList *nodes = NULL;
   az_span span;
   int fail_count;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Exercise helper_generate_patches error branches */
   {

@@ -723,7 +723,7 @@ TEST test_openapi_loader_security_branches(void) {
         "{\"swagger\":\"2.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
         "\"securityDefinitions\":{\"basicAuth\":{\"type\":\"basic\"}},"
         "\"paths\":{}}";
-    int rc;
+    int rc = 0;
     memset(&spec, 0, sizeof(spec));
     rc = load_spec_str(sw2_basic, &spec);
     ASSERT_EQ(CDD_C_SUCCESS, rc);

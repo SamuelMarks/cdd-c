@@ -69,7 +69,7 @@ TEST test_openapi_header_object_full_branches(void) {
   struct OpenAPI_Spec spec;
   JSON_Value *jv = NULL;
   const JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&hdr, 0, sizeof(hdr));
   memset(&spec, 0, sizeof(spec));
@@ -520,7 +520,7 @@ TEST test_openapi_link_parameters_full_branches(void) {
   size_t count = 0;
   JSON_Value *jv = NULL;
   const JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. NULL checks */
   ASSERT_EQ(CDD_C_SUCCESS, parse_link_parameters(NULL, &params, &count));
@@ -572,7 +572,7 @@ TEST test_openapi_link_object_full_branches(void) {
   struct OpenAPI_Spec spec;
   JSON_Value *jv = NULL;
   const JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&link, 0, sizeof(link));
   memset(&spec, 0, sizeof(spec));
@@ -775,7 +775,7 @@ TEST test_openapi_links_object_full_branches(void) {
   size_t count = 0;
   JSON_Value *jv = NULL;
   const JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. NULL checks */
   ASSERT_EQ(CDD_C_SUCCESS, parse_links_object(NULL, &links, &count, NULL, 0));
@@ -835,7 +835,7 @@ TEST test_openapi_headers_object_full_branches(void) {
   size_t count = 0;
   JSON_Value *jv = NULL;
   const JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. NULL checks */
   ASSERT_EQ(CDD_C_SUCCESS,
@@ -932,7 +932,7 @@ TEST test_openapi_encoding_object_full_branches(void) {
   struct OpenAPI_Encoding enc;
   JSON_Value *jv = NULL;
   const JSON_Object *jo = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   memset(&enc, 0, sizeof(enc));
 
@@ -1076,7 +1076,7 @@ TEST test_openapi_encoding_map_and_array_full_branches(void) {
   JSON_Value *jv = NULL;
   const JSON_Object *jo = NULL;
   const JSON_Array *arr = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. Map NULL checks */
   ASSERT_EQ(CDD_C_SUCCESS, parse_encoding_map(NULL, &encs, &count, NULL, 0));

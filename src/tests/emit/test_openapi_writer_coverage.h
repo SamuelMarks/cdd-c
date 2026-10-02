@@ -378,7 +378,7 @@ TEST test_openapi_writer_objects_and_maps_coverage(void) {
 TEST test_openapi_writer_full_spec_edges(void) {
   struct OpenAPI_Spec spec;
   char *json = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   struct OpenAPI_Path paths[2];
   struct OpenAPI_Operation ops[4];
   struct OpenAPI_Parameter params[3];

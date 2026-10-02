@@ -90,7 +90,7 @@ TEST test_to_docs_json_basic(void) {
   char *argv[] = {(char *)(size_t)(size_t) "to_docs_json",
                   (char *)(size_t)(size_t) "-i",
                   (char *)(size_t)(size_t)TEMP_SPEC_FILE};
-  int rc;
+  int rc = 0;
   int stdout_fd = 0;
   JSON_Value *val = NULL;
   JSON_Object *root_obj = NULL;
@@ -98,7 +98,7 @@ TEST test_to_docs_json_basic(void) {
   JSON_Object *pet_obj = NULL;
   const char *code_str = NULL;
   fpos_t pos;
-  (void)rc;
+  rc += 0;
 
   memset(&pos, 0, sizeof(pos));
 
@@ -168,7 +168,7 @@ TEST test_to_docs_json_no_imports_no_wrapping(void) {
                   (char *)(size_t)(size_t) "--no-wrapping",
                   (char *)(size_t)(size_t) "-i",
                   (char *)(size_t)(size_t)TEMP_SPEC_FILE};
-  int rc;
+  int rc = 0;
   int stdout_fd = 0;
   JSON_Value *val = NULL;
   JSON_Object *root_obj = NULL;
@@ -176,7 +176,7 @@ TEST test_to_docs_json_no_imports_no_wrapping(void) {
   JSON_Object *pet_obj = NULL;
   const char *code_str = NULL;
   fpos_t pos;
-  (void)rc;
+  rc += 0;
 
   memset(&pos, 0, sizeof(pos));
 

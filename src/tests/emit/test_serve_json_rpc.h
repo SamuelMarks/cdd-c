@@ -71,7 +71,7 @@ TEST test_serve_json_rpc_bind_fail(void) {
                   (char *)(size_t)(size_t) "--port",
                   (char *)(size_t)(size_t) "12346"};
   int argc = 3;
-  int rc;
+  int rc = 0;
 
   /* Create a socket holding port 12346 */
 #if defined(_WIN32)
@@ -117,7 +117,7 @@ TEST test_serve_json_rpc_listen_once(void) {
       (char *)(size_t)(size_t) "--port", (char *)(size_t)(size_t) "12349",
       (char *)(size_t)(size_t) "--listen", (char *)(size_t)(size_t) "1"};
   int argc = 5;
-  int rc;
+  int rc = 0;
 
   /* Should break immediately because listen_flag is -1 */
   rc = serve_json_rpc_main(argc, argv);
@@ -148,7 +148,7 @@ TEST test_serve_json_rpc_basic(void) {
       (char *)(size_t)(size_t) "-p", (char *)(size_t)(size_t) "12348",
       (char *)(size_t)(size_t) "-l", (char *)(size_t)(size_t) "0"};
   int argc = 3;
-  int rc;
+  int rc = 0;
 
   /* Since we do not pass --listen, it should bind, listen, and immediately exit
    * the loop returning 0 */
@@ -187,7 +187,7 @@ TEST test_serve_json_rpc_bad_port(void) {
                             (char *)(size_t)(size_t) "-p"};
   char *argv_listen_missing[] = {(char *)(size_t)(size_t) "serve_json_rpc_main",
                                  (char *)(size_t)(size_t) "--listen"};
-  int rc;
+  int rc = 0;
 
   /* Test environment variables CDD_PORT and CDD_LISTEN */
   g_serve_json_rpc_fail_socket = 1;
@@ -255,7 +255,7 @@ TEST test_serve_json_rpc_bad_port(void) {
 TEST test_serve_mcp_stdio_main(void) {
   char *argv[] = {(char *)(size_t)(size_t) "serve_mcp_stdio_main"};
   int argc = 1;
-  int rc;
+  int rc = 0;
   FILE *tmp = NULL;
   int old_stdin;
   int old_stdout;

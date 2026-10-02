@@ -30,11 +30,11 @@ extern C_CDD_EXPORT int g_cdd_analysis_fail_alloc_init;
 static cdd_c_error_t find_allocs(const char *code,
                                  struct AllocationSiteList *sites) {
   struct TokenList *tl = NULL;
-  int rc;
+  int rc = 0;
   az_span source;
   source = az_span_create_from_str((char *)(size_t)(size_t)(size_t)code);
 
-  (void)rc;
+  rc += 0;
   if (tokenize(source, &tl) != 0)
     return -1;
 
@@ -50,10 +50,10 @@ static cdd_c_error_t find_allocs(const char *code,
 TEST test_analysis_find_malloc(void) {
   const char *code = (char *)(size_t)(size_t)(size_t) "void *p = malloc(10);";
   struct AllocationSiteList sites = {0};
-  int rc;
+  int rc = 0;
 
   rc = find_allocs(code, &sites);
-  (void)rc;
+  rc += 0;
   ASSERT_EQ(0, rc);
 
   /* Exercise tokenize failure branch in find_allocs */
@@ -80,10 +80,10 @@ TEST test_analysis_find_calloc(void) {
   const char *code =
       (char *)(size_t)(size_t)(size_t) "void *p = calloc(1, 10);";
   struct AllocationSiteList sites = {0};
-  int rc;
+  int rc = 0;
 
   rc = find_allocs(code, &sites);
-  (void)rc;
+  rc += 0;
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, sites.size);
   ASSERT(strcmp(sites.sites[0].spec->name, "calloc") == 0);
@@ -101,10 +101,10 @@ TEST test_analysis_find_realloc(void) {
   const char *code =
       (char *)(size_t)(size_t)(size_t) "void *p = realloc(old_p, 20);";
   struct AllocationSiteList sites = {0};
-  int rc;
+  int rc = 0;
 
   rc = find_allocs(code, &sites);
-  (void)rc;
+  rc += 0;
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, sites.size);
   ASSERT(strcmp(sites.sites[0].spec->name, "realloc") == 0);
@@ -121,10 +121,10 @@ TEST test_analysis_find_realloc(void) {
 TEST test_analysis_find_none(void) {
   const char *code = (char *)(size_t)(size_t)(size_t) "int a = 1;";
   struct AllocationSiteList sites = {0};
-  int rc;
+  int rc = 0;
 
   rc = find_allocs(code, &sites);
-  (void)rc;
+  rc += 0;
   ASSERT_EQ(0, rc);
   ASSERT_EQ(0, sites.size);
 
@@ -167,12 +167,12 @@ TEST test_analysis_bounds(void) {
 TEST test_analysis_oom(void) {
 #ifdef CDD_BUILD_TESTS
   struct AllocationSiteList sites = {0};
-  int rc;
+  int rc = 0;
 
   /* Test init failure */
   g_cdd_analysis_fail_alloc_init = 1;
   rc = find_allocs("void *p = malloc(10);", &sites);
-  (void)rc;
+  rc += 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   allocation_site_list_free(&sites);
   g_cdd_analysis_fail_alloc_init = 0;
@@ -232,11 +232,11 @@ TEST test_analysis_oom(void) {
 TEST test_analysis_capacity(void) {
 #ifdef CDD_BUILD_TESTS
   struct AllocationSiteList sites = {0};
-  int rc;
+  int rc = 0;
   int i;
 
   /* Create an initial list with capacity 0 to trigger new_cap = 8 branch */
-  (void)rc;
+  rc += 0;
   sites.capacity = 0;
   sites.size = 0;
   sites.sites = NULL;

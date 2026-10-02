@@ -60,7 +60,7 @@ TEST test_cdd_transform_msvc(void) {
       59,  10,  32,  32,  114, 101, 116, 117, 114, 110, 32,  48,  59,  10,  125,
       10,  0};
   char *out = NULL;
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
 
@@ -147,7 +147,7 @@ TEST test_cdd_transform_msvc_context(void) {
                      "#define MACRO(strdup) strdup\n"
                      "void foo() { struct A a; a.strdup = 1; }\n";
   char *out = NULL;
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
 
@@ -175,7 +175,7 @@ TEST test_cdd_transform_msvc_context(void) {
 TEST test_cdd_transform_msvc_builder_fails(void) {
 #ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
-  int rc;
+  int rc = 0;
   const char *code = (char *)(size_t)(size_t) "#include <unistd.h>\nvoid f() { "
                                               "__builtin_expect(1, 1); }\n";
   cdd_transform_config_t config;

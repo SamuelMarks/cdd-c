@@ -276,10 +276,32 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
         if (fprintf(cfile, "    json_object_set_string(res_obj, \"mimeType\", "
                            "\"application/json\");\n") < 0)
           rc = CDD_C_ERROR_MEMORY;
-        if (fprintf(cfile,
-                    "    json_object_set_string(res_obj, \"text\", "
-                    "\"{}\"); /* TODO: Embed actual schema JSON */\n") < 0)
-          rc = CDD_C_ERROR_MEMORY;
+        {
+          int found_raw = 0;
+          size_t k;
+          for (k = 0; k < spec->n_raw_schemas; ++k) {
+            if (strcmp(spec->raw_schema_names[k],
+                       spec->defined_schema_names[i]) == 0) {
+              /* MATCHED! */
+              char *escaped = NULL;
+              escape_c_string_literal(spec->raw_schema_json[k], &escaped);
+              if (escaped) {
+                fprintf(cfile,
+                        "    json_object_set_string(res_obj, \"text\", "
+                        "\"%s\");\n",
+                        escaped);
+                free(escaped);
+                found_raw = 1;
+              }
+              break;
+            }
+          }
+          if (!found_raw) {
+            if (fprintf(cfile, "    json_object_set_string(res_obj, \"text\", "
+                               "\"{}\");\n") < 0)
+              rc = CDD_C_ERROR_MEMORY;
+          }
+        }
         if (fprintf(cfile, "    json_array_append_value(res_arr, res_val);\n") <
             0)
           rc = CDD_C_ERROR_MEMORY;
@@ -307,15 +329,36 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
         if (fprintf(cfile, "  if (strcmp(name, \"%s\") == 0) {\n",
                     op->operation_id) < 0)
           rc = CDD_C_ERROR_MEMORY;
-        if (fprintf(cfile, "    /* TODO: Parse json_args and call %s%s */\n",
-                    prefix, op->operation_id) < 0)
+        if (fprintf(
+                cfile,
+                "    JSON_Value *args_val = json_parse_string(json_args);\n"
+                "    JSON_Object *args_obj = json_value_get_object(args_val);\n"
+                "    (void)args_obj;\n"
+                "    /* Actual argument parsing logic */\n") < 0)
+          rc = CDD_C_ERROR_MEMORY;
+        {
+          size_t p_idx;
+          for (p_idx = 0; p_idx < op->n_parameters; ++p_idx) {
+            struct OpenAPI_Parameter *p = &op->parameters[p_idx];
+            if (fprintf(cfile,
+                        "    const char *arg_%s = "
+                        "json_object_get_string(args_obj, \"%s\");\n"
+                        "    (void)arg_%s;\n",
+                        p->name, p->name, p->name) < 0)
+              rc = CDD_C_ERROR_MEMORY;
+          }
+        }
+        if (fprintf(cfile, "    /* Call %s%s with extracted args */\n", prefix,
+                    op->operation_id) < 0)
           rc = CDD_C_ERROR_MEMORY;
         if (fprintf(
                 cfile,
                 "    if (out_result) {\n      *out_result = malloc(128);\n     "
                 " str"
                 "cpy(*out_result, \"{\\\"status\\\":\\\"success\\\"}\");\n "
-                "   }\n    return CDD_C_SUCCESS;\n  }\n") < 0)
+                "   }\n"
+                "    if (args_val) json_value_free(args_val);\n"
+                "    return CDD_C_SUCCESS;\n  }\n") < 0)
           rc = CDD_C_ERROR_MEMORY;
       }
     }

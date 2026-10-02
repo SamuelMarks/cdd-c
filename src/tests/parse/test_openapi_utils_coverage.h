@@ -23,7 +23,7 @@ extern "C" {
 TEST test_openapi_utils_verbs_and_params(void) {
   enum OpenAPI_Verb verb;
   enum OpenAPI_ParamIn p_in;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. parse_verb */
   rc = parse_verb(NULL, NULL);
@@ -132,7 +132,7 @@ TEST test_openapi_utils_verbs_and_params(void) {
 TEST test_openapi_utils_param_style_and_types(void) {
   enum OpenAPI_Style style;
   struct OpenAPI_Parameter p;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. parse_param_style */
   rc = cdd_test_parse_param_style(NULL, NULL);
@@ -383,7 +383,7 @@ TEST test_openapi_utils_security_and_xml(void) {
   enum OpenAPI_SecurityIn sec_in;
   enum OpenAPI_OAuthFlowType flow_type;
   enum OpenAPI_XmlNodeType xml_type;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. parse_security_type */
   rc = cdd_test_parse_security_type(NULL, NULL);
@@ -498,7 +498,7 @@ TEST test_openapi_utils_any_values(void) {
   JSON_Object *jo = NULL;
   JSON_Array *ja = NULL;
   int out_set = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. parse_any_value NULL checks */
   ASSERT_EQ(CDD_C_SUCCESS, parse_any_value(NULL, NULL));
@@ -679,7 +679,7 @@ TEST test_openapi_utils_clone_and_extras(void) {
   JSON_Object *jo = NULL;
   char *out_json = NULL;
   const char *skip[2];
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. cdd_test_clone_json_value */
   rc = cdd_test_clone_json_value(NULL, NULL);

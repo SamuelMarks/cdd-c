@@ -35,7 +35,7 @@ TEST test_client_gen_defined_schemas(void) {
   struct OpenApiClientConfig config;
   char *content = NULL;
   size_t sz;
-  int rc;
+  int rc = 0;
 
   memset(&spec, 0, sizeof(spec));
   memset(sf, 0, sizeof(sf));
@@ -83,7 +83,7 @@ TEST test_client_gen_create_tests_mocks(void) {
   struct OpenAPI_Path path;
   struct OpenApiClientConfig config;
   struct OpenAPI_Parameter param;
-  int rc;
+  int rc = 0;
 
   memset(&spec, 0, sizeof(spec));
   memset(ops, 0, sizeof(ops));
@@ -164,7 +164,7 @@ TEST test_client_gen_mock_errors(void) {
   struct StructFields sf[3];
   char *names[3];
   char *out = NULL;
-  int rc;
+  int rc = 0;
 
   memset(&op, 0, sizeof(op));
 

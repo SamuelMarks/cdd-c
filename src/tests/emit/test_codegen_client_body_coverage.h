@@ -36,7 +36,7 @@ extern C_CDD_EXPORT int g_cdd_fail_is_primitive_type;
 
 TEST test_client_body_exhaustive_100_percent_coverage(void) {
   FILE *fp;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Section 1: Helper predicates and edge cases */
   {

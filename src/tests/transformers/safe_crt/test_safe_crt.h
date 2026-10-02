@@ -290,7 +290,7 @@ TEST test_cdd_transform_safe_crt(void) {
       'M',  'A',  'C',  'R',  'O',  '(',  'd',  'e',  's',  't',  ',',  ' ',
       '"',  'h',  '"',  ')',  ';',  ' ',  '}',  '\n', '\0'};
   char *out = NULL;
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),

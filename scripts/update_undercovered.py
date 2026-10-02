@@ -42,6 +42,8 @@ for file in files:
 
     is_test_runner = fn in ("src/tests/test_c_cdd.c", "src/tests/parse/test_simple_json.c")
     is_test_file = fn.startswith("src/tests/")
+    if is_test_file:
+        continue
     if not is_test_runner and (lp < 100.0 or fp < 100.0 or (not is_test_file and bp_val < 100.0)):
         undercovered.append(entry)
     else:

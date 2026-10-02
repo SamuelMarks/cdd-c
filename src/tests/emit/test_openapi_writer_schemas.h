@@ -15,7 +15,7 @@ extern "C" {
 /* clang-format on */
 
 TEST test_writer_inline_response_schema_primitive(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   char *json;
   struct OpenAPI_Path path = {0};
@@ -58,7 +58,7 @@ TEST test_writer_inline_response_schema_primitive(void) {
 }
 
 TEST test_writer_inline_response_schema_array(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   char *json;
   struct OpenAPI_Path path = {0};
@@ -105,7 +105,7 @@ TEST test_writer_inline_response_schema_array(void) {
 }
 
 TEST test_writer_inline_schema_format_and_content(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   char *json;
   struct OpenAPI_Path path = {0};
@@ -155,7 +155,7 @@ TEST test_writer_inline_schema_format_and_content(void) {
 }
 
 TEST test_writer_inline_schema_array_item_format_and_content(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   char *json;
   struct OpenAPI_Path path = {0};
@@ -209,7 +209,7 @@ TEST test_writer_inline_schema_array_item_format_and_content(void) {
 }
 
 TEST test_writer_schema_external_docs_discriminator_xml(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_DiscriminatorMap map;
   char *json;
@@ -301,7 +301,7 @@ TEST test_writer_schema_external_docs_discriminator_xml(void) {
 }
 
 TEST test_writer_inline_schema_const_examples_annotations(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Any examples[2];
   char *json;
@@ -372,7 +372,7 @@ TEST test_writer_inline_schema_const_examples_annotations(void) {
 }
 
 TEST test_writer_preserves_composed_component_schema(void) {
-  int rc;
+  int rc = 0;
   const char json[] = {
       123, 34,  111, 112, 101, 110, 97,  112, 105, 34,  58,  34,  51,  46,  50,
       46,  48,  34,  44,  34,  105, 110, 102, 111, 34,  58,  123, 34,  116, 105,
@@ -430,7 +430,7 @@ TEST test_writer_preserves_composed_component_schema(void) {
 }
 
 TEST test_writer_preserves_inline_composed_schema(void) {
-  int rc;
+  int rc = 0;
   /* */
 
   const char json[] = {
@@ -496,7 +496,7 @@ TEST test_writer_preserves_inline_composed_schema(void) {
 }
 
 TEST test_writer_schema_ref_summary_description(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   char *json;
   struct OpenAPI_Path path = {0};
@@ -545,7 +545,7 @@ TEST test_writer_schema_ref_summary_description(void) {
 }
 
 TEST test_writer_info_license_missing_name_rejected(void) {
-  int rc;
+  int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
   json = NULL;
@@ -562,7 +562,7 @@ TEST test_writer_info_license_missing_name_rejected(void) {
 }
 
 TEST test_writer_options_trace_verbs(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Path path;
   struct OpenAPI_Operation ops[2];
   char *json;
@@ -601,7 +601,7 @@ TEST test_writer_options_trace_verbs(void) {
 }
 
 TEST test_writer_query_and_external_docs(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;

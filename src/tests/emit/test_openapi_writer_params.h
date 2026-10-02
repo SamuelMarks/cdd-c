@@ -15,7 +15,7 @@ extern "C" {
 /* clang-format on */
 
 TEST test_writer_parameter_styles(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;
@@ -57,7 +57,7 @@ TEST test_writer_parameter_styles(void) {
 }
 
 TEST test_writer_parameter_explode_false(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;
@@ -100,7 +100,7 @@ TEST test_writer_parameter_explode_false(void) {
 }
 
 TEST test_writer_parameter_style_matrix(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;
@@ -139,7 +139,7 @@ TEST test_writer_parameter_style_matrix(void) {
 }
 
 TEST test_writer_parameter_content_any(void) {
-  int rc;
+  int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
@@ -197,7 +197,7 @@ TEST test_writer_parameter_content_any(void) {
 }
 
 TEST test_writer_parameter_and_header_content_media_type(void) {
-  int rc;
+  int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
@@ -307,7 +307,7 @@ TEST test_writer_parameter_and_header_content_media_type(void) {
 }
 
 TEST test_writer_parameter_examples_object(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   struct OpenAPI_Example ex;
@@ -359,7 +359,7 @@ TEST test_writer_parameter_examples_object(void) {
 }
 
 TEST test_writer_parameter_examples_media(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   char *json;
@@ -406,7 +406,7 @@ TEST test_writer_parameter_examples_media(void) {
 }
 
 TEST test_writer_component_examples(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Example ex;
   char *json;
   char *names[1];
@@ -446,7 +446,7 @@ TEST test_writer_component_examples(void) {
 }
 
 TEST test_writer_oauth2_flows(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_SecurityScheme scheme;
   struct OpenAPI_OAuthFlow flow;
   struct OpenAPI_OAuthScope scope;
@@ -503,7 +503,7 @@ TEST test_writer_oauth2_flows(void) {
 }
 
 TEST test_writer_servers(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Server servers[1];
   char *json;
   struct OpenAPI_Spec spec = {0};
@@ -545,7 +545,7 @@ TEST test_writer_servers(void) {
 }
 
 TEST test_writer_querystring_param(void) {
-  int rc;
+  int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
@@ -605,7 +605,7 @@ TEST test_writer_querystring_param(void) {
 }
 
 TEST test_writer_ignores_reserved_header_params(void) {
-  int rc;
+  int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};

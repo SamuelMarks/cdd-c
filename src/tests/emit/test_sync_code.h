@@ -234,7 +234,7 @@ TEST test_patch_header_basic(void) {
                     "int foo() { return 0; }";
   char *content = NULL;
   size_t sz;
-  int rc;
+  int rc = 0;
 
   write_to_file(h_path, ""
                         "void foo();\n");
@@ -268,7 +268,7 @@ TEST test_patch_header_ptr_arg(void) {
                     "int bar(int x, char **out) { *out=0;return 0; }";
   char *content = NULL;
   size_t sz;
-  int rc;
+  int rc = 0;
 
   write_to_file(h_path, "char* bar(int x);\n");
 
@@ -305,7 +305,7 @@ TEST test_patch_header_ignore_others(void) {
                     "int foo(void) { return 0; }";
   char *content = NULL;
   size_t sz;
-  int rc;
+  int rc = 0;
 
   write_to_file(h_path, ""
                         "void other();\nvoid foo();\n");
@@ -328,7 +328,7 @@ TEST test_patch_header_ignore_others(void) {
 TEST test_patch_header_bounds(void) {
   const char *h_path = (char *)(size_t)(size_t) "bounds_patch.h";
   const char *src = (char *)(size_t)(size_t) "int foo() { return 0; }";
-  int rc;
+  int rc = 0;
 
   /* End of file while looking for semicolon */
   write_to_file(h_path, "void foo()");
@@ -366,7 +366,7 @@ TEST test_patch_header_failures(void) {
 #ifdef CDD_BUILD_TESTS
   const char *h_path = (char *)(size_t)(size_t) "fail_patch.h";
   const char *src = (char *)(size_t)(size_t) "int foo() { return 0; }";
-  int rc;
+  int rc = 0;
   /* extern C_CDD_EXPORT int g_cdd_sync_fail_func_sig_init; (moved to global) */
   /* extern C_CDD_EXPORT int g_cdd_sync_fail_patch_list_init; (moved to global)
    */

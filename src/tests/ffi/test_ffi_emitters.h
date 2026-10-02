@@ -220,8 +220,8 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[6].name =
       (char *)(size_t)(size_t)(size_t) "test_func_int_with_args";
   ir->nodes[6].return_or_base_type.kind = CDD_FFI_KIND_INT32;
-  ir->nodes[6].fields = (cdd_ffi_field_t *)calloc(17, sizeof(cdd_ffi_field_t));
-  ir->nodes[6].fields_count = 17;
+  ir->nodes[6].fields = (cdd_ffi_field_t *)calloc(18, sizeof(cdd_ffi_field_t));
+  ir->nodes[6].fields_count = 18;
   ir->nodes[6].fields[0].name = NULL;
   ir->nodes[6].fields[0].type.kind = CDD_FFI_KIND_INT32;
   ir->nodes[6].fields[1].name = (char *)(size_t)(size_t)(size_t) "type";
@@ -236,6 +236,12 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[6].fields[5].type.kind = CDD_FFI_KIND_UINT16;
   ir->nodes[6].fields[6].name = (char *)(size_t)(size_t)(size_t) "p_u32";
   ir->nodes[6].fields[6].type.kind = CDD_FFI_KIND_UINT32;
+  ir->nodes[6].fields[6].type.pointer_depth = 0;
+
+  ir->nodes[6].return_or_base_type.kind = CDD_FFI_KIND_UINT32;
+  ir->nodes[6].return_or_base_type.pointer_depth = 0;
+  ir->nodes[6].return_or_base_type.pointer_depth = 0;
+  ir->nodes[6].return_or_base_type.pointer_depth = 0;
   ir->nodes[6].fields[7].name = (char *)(size_t)(size_t)(size_t) "p_i64";
   ir->nodes[6].fields[7].type.kind = CDD_FFI_KIND_INT64;
   ir->nodes[6].fields[8].name = (char *)(size_t)(size_t)(size_t) "p_u64";
@@ -259,6 +265,10 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[6].fields[15].type.kind = 999;
   ir->nodes[6].fields[16].name = (char *)(size_t)(size_t)(size_t) "p_void";
   ir->nodes[6].fields[16].type.kind = CDD_FFI_KIND_VOID;
+  ir->nodes[6].fields[6].type.pointer_depth = 0;
+  ir->nodes[6].fields[17].name = (char *)(size_t)(size_t)(size_t) "p_u32_ptr";
+  ir->nodes[6].fields[17].type.kind = CDD_FFI_KIND_UINT32;
+  ir->nodes[6].fields[17].type.pointer_depth = 1;
 
   /* node 7: Null ref_name field */
   ir->nodes[7].kind = CDD_FFI_NODE_STRUCT;
@@ -715,6 +725,131 @@ TEST_EMITTER(scala)
 TEST_EMITTER(scheme)
 TEST_EMITTER(swift)
 TEST_EMITTER(tcl)
+
+TEST test_tcl_internals(void) {
+  cdd_c_error_t rc;
+  cdd_ffi_ir_t ir;
+  cdd_generate_bindings_config_t config;
+  memset(&ir, 0, sizeof(ir));
+  memset(&config, 0, sizeof(config));
+
+  config.output_dir = ".";
+  config.library_name = "testlib";
+
+  /* Null checks */
+  rc = cdd_ffi_emit_tcl(NULL, &config);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+
+  rc = cdd_ffi_emit_tcl(&ir, NULL);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+
+  PASS();
+}
+
+TEST test_napi_internals(void) {
+  cdd_c_error_t rc;
+  cdd_ffi_ir_t ir;
+  cdd_generate_bindings_config_t config;
+  memset(&ir, 0, sizeof(ir));
+  memset(&config, 0, sizeof(config));
+
+  config.output_dir = ".";
+  config.library_name = "testlib";
+
+  /* Null checks */
+  rc = cdd_ffi_emit_napi(NULL, &config);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+
+  rc = cdd_ffi_emit_napi(&ir, NULL);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+
+  PASS();
+}
+
+TEST test_elixir_internals(void) {
+  cdd_c_error_t rc;
+  cdd_ffi_ir_t ir;
+  cdd_generate_bindings_config_t config;
+  memset(&ir, 0, sizeof(ir));
+  memset(&config, 0, sizeof(config));
+  config.output_dir = ".";
+  config.library_name = "testlib";
+  rc = cdd_ffi_emit_elixir(NULL, &config);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+  rc = cdd_ffi_emit_elixir(&ir, NULL);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+  PASS();
+}
+
+TEST test_erlang_internals(void) {
+  cdd_c_error_t rc;
+  cdd_ffi_ir_t ir;
+  cdd_generate_bindings_config_t config;
+  memset(&ir, 0, sizeof(ir));
+  memset(&config, 0, sizeof(config));
+  config.output_dir = ".";
+  config.library_name = "testlib";
+  rc = cdd_ffi_emit_erlang(NULL, &config);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+  rc = cdd_ffi_emit_erlang(&ir, NULL);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+  PASS();
+}
+
+TEST test_emit_edge_cases(void) {
+  cdd_c_error_t rc;
+  cdd_ffi_ir_t ir;
+  cdd_ffi_ir_node_t nodes[5];
+  cdd_generate_bindings_config_t config;
+  memset(&ir, 0, sizeof(ir));
+  memset(nodes, 0, sizeof(nodes));
+  memset(&config, 0, sizeof(config));
+
+  config.output_dir = ".";
+  config.library_name = "test";
+
+  ir.nodes = nodes;
+  ir.nodes_count = 5;
+
+  nodes[0].kind = CDD_FFI_NODE_FUNCTION;
+  nodes[0].name = (char *)(size_t) "ret_float";
+  nodes[0].return_or_base_type.kind = CDD_FFI_KIND_FLOAT32;
+
+  nodes[1].kind = CDD_FFI_NODE_FUNCTION;
+  nodes[1].name = (char *)(size_t) "ret_double";
+  nodes[1].return_or_base_type.kind = CDD_FFI_KIND_FLOAT64;
+
+  nodes[2].kind = CDD_FFI_NODE_FUNCTION;
+  nodes[2].name = (char *)(size_t) "ret_bool";
+  nodes[2].return_or_base_type.kind = CDD_FFI_KIND_BOOL;
+
+  nodes[3].kind = CDD_FFI_NODE_FUNCTION;
+  nodes[3].kind = CDD_FFI_NODE_FUNCTION;
+  nodes[3].name = (char *)(size_t) "ret_uint32_ptr";
+  nodes[3].return_or_base_type.kind = CDD_FFI_KIND_UINT32;
+  nodes[3].return_or_base_type.pointer_depth = 1;
+  nodes[3].fields_count = 0;
+  nodes[3].fields = NULL;
+  nodes[4].kind = CDD_FFI_NODE_FUNCTION;
+  nodes[4].name = (char *)(size_t) "ret_custom";
+  nodes[4].return_or_base_type.kind = 999;
+  nodes[4].return_or_base_type.pointer_depth = 0;
+
+  rc = cdd_ffi_emit_tcl(&ir, &config);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+
+  rc = cdd_ffi_emit_elixir(&ir, &config);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+
+  rc = cdd_ffi_emit_erlang(&ir, &config);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+
+  rc = cdd_ffi_emit_napi(&ir, &config);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+
+  PASS();
+}
+
 TEST_EMITTER(typescript)
 TEST_EMITTER(vlang)
 TEST_EMITTER(webassembly)
@@ -731,7 +866,9 @@ SUITE(ffi_emitters_suite) {
   RUN_TEST(test_ffi_emit_d);
   RUN_TEST(test_ffi_emit_delphi);
   RUN_TEST(test_ffi_emit_elixir);
+  RUN_TEST(test_elixir_internals);
   RUN_TEST(test_ffi_emit_erlang);
+  RUN_TEST(test_erlang_internals);
 #ifdef CDD_BUILD_TESTS
 #endif
   RUN_TEST(test_ffi_emit_fortran);
@@ -745,6 +882,7 @@ SUITE(ffi_emitters_suite) {
   RUN_TEST(test_ffi_emit_lua);
   RUN_TEST(test_ffi_emit_matlab);
   RUN_TEST(test_ffi_emit_napi);
+  RUN_TEST(test_napi_internals);
   RUN_TEST(test_ffi_emit_nim);
   RUN_TEST(test_ffi_emit_objc);
   RUN_TEST(test_ffi_emit_ocaml);
@@ -760,7 +898,10 @@ SUITE(ffi_emitters_suite) {
   RUN_TEST(test_ffi_emit_scheme);
   RUN_TEST(test_ffi_emit_swift);
   RUN_TEST(test_ffi_emit_tcl);
+  RUN_TEST(test_tcl_internals);
   RUN_TEST(test_ffi_emit_typescript);
+  RUN_TEST(test_emit_edge_cases);
+  RUN_TEST(test_emit_edge_cases);
   RUN_TEST(test_ffi_emit_vlang);
   RUN_TEST(test_ffi_emit_webassembly);
   RUN_TEST(test_ffi_emit_zig);

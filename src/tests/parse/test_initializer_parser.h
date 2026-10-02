@@ -44,7 +44,7 @@ TEST test_init_simple_positional(void) {
       (tokenize_str(code, &_ast_tokenize_str_0), _ast_tokenize_str_0);
   struct InitList list;
   size_t consumed = 0;
-  int rc;
+  int rc = 0;
 
   ASSERT(tl);
   init_list_init(&list);
@@ -76,7 +76,7 @@ TEST test_init_designated_fields(void) {
   struct TokenList *tl =
       (tokenize_str(code, &_ast_tokenize_str_1), _ast_tokenize_str_1);
   struct InitList list;
-  int rc;
+  int rc = 0;
 
   ASSERT(tl);
   init_list_init(&list);
@@ -107,7 +107,7 @@ TEST test_init_array_index(void) {
   struct TokenList *tl =
       (tokenize_str(code, &_ast_tokenize_str_2), _ast_tokenize_str_2);
   struct InitList list;
-  int rc;
+  int rc = 0;
 
   ASSERT(tl);
   init_list_init(&list);
@@ -139,7 +139,7 @@ TEST test_init_nested(void) {
   struct TokenList *tl =
       (tokenize_str(code, &_ast_tokenize_str_3), _ast_tokenize_str_3);
   struct InitList list;
-  int rc;
+  int rc = 0;
 
   ASSERT(tl);
   init_list_init(&list);
@@ -181,7 +181,7 @@ TEST test_init_mixed_expressions(void) {
   struct TokenList *tl =
       (tokenize_str(code, &_ast_tokenize_str_4), _ast_tokenize_str_4);
   struct InitList list;
-  int rc;
+  int rc = 0;
 
   ASSERT(tl);
   init_list_init(&list);
@@ -235,7 +235,7 @@ TEST test_init_trailing_comma(void) {
   struct TokenList *tl =
       (tokenize_str(code, &_ast_tokenize_str_5), _ast_tokenize_str_5);
   struct InitList list;
-  int rc;
+  int rc = 0;
 
   ASSERT(tl);
   init_list_init(&list);
@@ -289,7 +289,7 @@ TEST test_init_oom(void) {
   const char *code = (char *)(size_t)(size_t) "{ .pt = 1 /* c */, 2, 3, 4, 5, "
                                               "[0] = { 6 }, { 7 } }";
   struct InitList list;
-  int rc;
+  int rc = 0;
   int i;
   /*  (moved to global) */
 
@@ -322,7 +322,7 @@ TEST test_init_oom(void) {
 TEST test_init_more_errors(void) {
   struct TokenList *tl;
   struct InitList list;
-  int rc;
+  int rc = 0;
 
   /* Invalid designator ending */
   ASSERT_EQ(0, tokenize_str("{ .x , }", &tl));

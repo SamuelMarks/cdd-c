@@ -46,7 +46,7 @@ TEST test_code2schema_json_object_to_struct_fields_full(void) {
   JSON_Value *schema_val;
   JSON_Object *schema_obj;
   struct StructFields sf;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   root_val = json_parse_string(
       "{\"StatusEnum\":{\"type\":\"string\",\"enum\":[\"OK\",\"FAIL\"]},"
@@ -122,7 +122,7 @@ TEST test_code2schema_apply_union_ex_full(void) {
   JSON_Value *schema_val;
   JSON_Object *schema_obj;
   struct StructFields sf;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   root_val = json_value_init_object();
   root = json_value_get_object(root_val);
@@ -168,7 +168,7 @@ TEST test_code2schema_main_full_suite(void) {
   char test_h[256];
   char test_json[256];
   FILE *f;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Wrong argc */
   rc = code2schema_main(1, NULL);
@@ -238,7 +238,7 @@ TEST test_code2schema_c2s_union_array_items_branches(void) {
   JSON_Value *val;
   JSON_Object *obj;
   int supported = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   root_val = json_parse_string(
       "{\"StatusEnum\":{\"type\":\"string\",\"enum\":[\"A\",\"B\"]}}");
@@ -290,7 +290,7 @@ TEST test_code2schema_c2s_union_array_items_branches(void) {
  */
 TEST test_code2schema_merge_schema_extras_strings_branches(void) {
   char *dest = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Dest is not a JSON object */
   dest = (char *)malloc(32);
@@ -330,7 +330,7 @@ TEST test_code2schema_merge_struct_fields_enums_and_extras(void) {
   struct StructFields dst_sf;
   char *u1[1];
   char *u2[1];
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   u1[0] = (char *)(size_t) "string";
   u2[0] = (char *)(size_t) "null";
@@ -391,7 +391,7 @@ TEST test_code2schema_apply_union_variants_all_types(void) {
   JSON_Value *union_val;
   JSON_Array *union_arr;
   struct StructFields sf;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   root_val =
       json_parse_string("{\"MyEnum\":{\"type\":\"string\",\"enum\":[\"X\"]}}");
@@ -470,7 +470,7 @@ TEST test_code2schema_json_array_to_enum_members_nonstrings(void) {
   JSON_Value *val = json_parse_string("[123, \"VALID\", true, null]");
   JSON_Array *arr = json_value_get_array(val);
   struct EnumMembers em;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = enum_members_init(&em);
   ASSERT_EQ(0, rc);
@@ -501,7 +501,7 @@ TEST test_code2schema_alloc_failures(void) {
   char *str_out = NULL;
   struct StructFields sf1;
   struct StructFields sf2;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   src_arr[0] = (char *)(size_t) "alpha";
   src_arr[1] = (char *)(size_t) "beta";
@@ -630,7 +630,7 @@ TEST test_code2schema_empty_refs_and_defaults(void) {
   char *name = NULL;
   int is_enum = 0;
   int b = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Empty and slash refs */
   rc = ref_points_to_string_enum(root, "", &is_enum);
@@ -711,7 +711,7 @@ TEST test_code2schema_json_object_fields_more_branches(void) {
   JSON_Value *val;
   JSON_Object *obj;
   struct StructFields sf;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Schema with boolean exclusiveMinimum and field without type/ref (empty
    * property) */

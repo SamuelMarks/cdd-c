@@ -26,7 +26,7 @@ extern C_CDD_EXPORT int g_io_calls;
 TEST test_cli_gen_basic(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
-  int rc;
+  int rc = 0;
   FILE *f;
 
   struct OpenAPI_Response resp = {0};
@@ -139,7 +139,7 @@ TEST test_cli_gen_basic(void) {
 TEST test_cli_gen_fail_open(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
-  int rc;
+  int rc = 0;
 
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
@@ -171,7 +171,7 @@ TEST test_cli_gen_fail_open(void) {
 TEST test_cli_gen_full(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
-  int rc;
+  int rc = 0;
 
   memset(&spec, 0, sizeof(spec));
   spec.openapi_version = (char *)(size_t)(size_t) "3.1.0";
@@ -254,7 +254,7 @@ TEST test_cli_gen_full(void) {
 TEST test_cli_gen_malloc_fail(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
-  int rc;
+  int rc = 0;
   int i;
 
   memset(&spec, 0, sizeof(spec));
@@ -280,7 +280,7 @@ TEST test_cli_gen_malloc_fail(void) {
 TEST test_cli_gen_partial(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
-  int rc;
+  int rc = 0;
 
   memset(&spec, 0, sizeof(spec));
   spec.openapi_version = (char *)(size_t)(size_t) "3.1.0";
@@ -365,7 +365,7 @@ TEST test_cli_gen_partial(void) {
 TEST test_cli_gen_partial2(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
-  int rc;
+  int rc = 0;
 
   memset(&spec, 0, sizeof(spec));
   spec.openapi_version = (char *)(size_t)(size_t) "3.1.0";

@@ -126,7 +126,7 @@ TEST test_mock_server_basic(void) {
   MockServerPtr server = NULL;
   struct MockServerRequest req;
   int port = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = mock_server_init(&server);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -163,7 +163,7 @@ TEST test_mock_server_basic(void) {
 
 TEST test_mock_server_init_errors(void) {
   MockServerPtr server = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = mock_server_init(NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -192,7 +192,7 @@ TEST test_mock_server_init_errors(void) {
 
 TEST test_mock_server_start_errors(void) {
   MockServerPtr server = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = mock_server_start(NULL);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
@@ -240,7 +240,7 @@ TEST test_mock_server_start_errors(void) {
 TEST test_mock_server_get_port_cases(void) {
   MockServerPtr server = NULL;
   int port = 999;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = mock_server_get_port(NULL, &port);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -264,7 +264,7 @@ TEST test_mock_server_get_port_cases(void) {
 TEST test_mock_server_destroy_cases(void) {
   MockServerPtr server = NULL;
   int port = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = mock_server_destroy(NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -293,7 +293,7 @@ TEST test_mock_server_destroy_cases(void) {
 TEST test_mock_server_wait_errors(void) {
   MockServerPtr server = NULL;
   struct MockServerRequest req;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = mock_server_wait_for_request(NULL, &req);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -323,7 +323,7 @@ TEST test_mock_server_wait_errors(void) {
 
 TEST test_mock_server_cleanup_cases(void) {
   struct MockServerRequest req;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = mock_server_request_cleanup(NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -340,7 +340,7 @@ TEST test_mock_server_thread_branches(void) {
   MockServerPtr server = NULL;
   struct MockServerRequest req;
   int port = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = mock_server_init(&server);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -402,7 +402,7 @@ TEST test_mock_server_concurrent_wait(void) {
   MockServerPtr server = NULL;
   struct MockServerRequest req;
   int port = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   struct ClientThreadArg cta;
 #if defined(_WIN32)
   HANDLE client_tid;
@@ -449,7 +449,7 @@ TEST test_mock_server_concurrent_wait(void) {
 }
 
 TEST test_mock_server_client_errors(void) {
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = http_get(-1);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);

@@ -33,7 +33,7 @@ run_body_rewrite(const char *code, const struct RefactoredFunction *funcs,
                  char **out) {
   struct TokenList *tl = NULL;
   struct AllocationSiteList sites = {0};
-  int rc;
+  int rc = 0;
   const az_span source =
       az_span_create_from_str((char *)(size_t)(size_t)(size_t)code);
 
@@ -63,7 +63,7 @@ TEST test_rewriter_body_bounds(void) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      int rc2 = 0;
       struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
@@ -78,13 +78,13 @@ TEST test_rewriter_body_bounds(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      int rc2 = 0;
       struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
@@ -99,7 +99,7 @@ TEST test_rewriter_body_bounds(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
   }
   {
@@ -108,7 +108,7 @@ TEST test_rewriter_body_bounds(void) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      int rc2 = 0;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
@@ -122,13 +122,13 @@ TEST test_rewriter_body_bounds(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      int rc2 = 0;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
@@ -142,7 +142,7 @@ TEST test_rewriter_body_bounds(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
   }
 
@@ -197,7 +197,7 @@ TEST test_rewriter_body_oom(void) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      int rc2 = 0;
       struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
@@ -212,13 +212,13 @@ TEST test_rewriter_body_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      int rc2 = 0;
       struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
@@ -233,7 +233,7 @@ TEST test_rewriter_body_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
   }
   {
@@ -242,7 +242,7 @@ TEST test_rewriter_body_oom(void) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      int rc2 = 0;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
@@ -256,13 +256,13 @@ TEST test_rewriter_body_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      int rc2 = 0;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
@@ -276,7 +276,7 @@ TEST test_rewriter_body_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
   }
 
@@ -300,7 +300,7 @@ TEST test_rewriter_body_bounds2(void) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      int rc2 = 0;
       struct RefactoredFunction funcs2[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
@@ -315,13 +315,13 @@ TEST test_rewriter_body_bounds2(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      int rc2 = 0;
       struct RefactoredFunction funcs2[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
@@ -336,7 +336,7 @@ TEST test_rewriter_body_bounds2(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
   }
   {
@@ -345,7 +345,7 @@ TEST test_rewriter_body_bounds2(void) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      int rc2 = 0;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
@@ -359,13 +359,13 @@ TEST test_rewriter_body_bounds2(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      int rc2 = 0;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
@@ -379,7 +379,7 @@ TEST test_rewriter_body_bounds2(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
   }
 
@@ -392,7 +392,7 @@ TEST test_propagate_void_stmt_return(void) {
   char *output = NULL;
   struct RefactoredFunction funcs2[] = {{"f", REF_VOID_TO_INT, NULL}};
   struct SignatureTransform trans;
-  int rc2;
+  int rc2 = 0;
   trans.type = TRANSFORM_VOID_TO_INT;
 
   rc2 = run_body_rewrite(input, funcs2, 1, &trans, &output);
@@ -423,7 +423,7 @@ TEST test_propagate_void_stmt_return(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -444,7 +444,7 @@ TEST test_propagate_void_stmt_return(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
   }
   {
@@ -467,7 +467,7 @@ TEST test_propagate_void_stmt_return(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -487,7 +487,7 @@ TEST test_propagate_void_stmt_return(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
   }
 
@@ -500,7 +500,7 @@ TEST test_propagate_void_stmt_transform(void) {
   char *output = NULL;
   struct RefactoredFunction funcs2[] = {{"f", REF_VOID_TO_INT, NULL}};
   struct SignatureTransform trans;
-  int rc2;
+  int rc2 = 0;
   trans.type = TRANSFORM_VOID_TO_INT;
 
   rc2 = run_body_rewrite(input, funcs2, 1, &trans, &output);
@@ -531,7 +531,7 @@ TEST test_propagate_void_stmt_transform(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -552,7 +552,7 @@ TEST test_propagate_void_stmt_transform(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
   }
   {
@@ -575,7 +575,7 @@ TEST test_propagate_void_stmt_transform(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -595,7 +595,7 @@ TEST test_propagate_void_stmt_transform(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
   }
 
@@ -608,7 +608,7 @@ TEST test_propagate_nested_parens(void) {
   char *output = NULL;
   struct RefactoredFunction funcs2[] = {
       {"inner", REF_PTR_TO_INT_OUT, "char *"}};
-  int rc2;
+  int rc2 = 0;
 
   rc2 = run_body_rewrite(input, funcs2, 1, NULL, &output);
   ASSERT_EQ(0, rc2);
@@ -642,7 +642,7 @@ TEST test_propagate_nested_parens(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -663,7 +663,7 @@ TEST test_propagate_nested_parens(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
   }
   {
@@ -686,7 +686,7 @@ TEST test_propagate_nested_parens(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -706,7 +706,7 @@ TEST test_propagate_nested_parens(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
   }
 
@@ -754,7 +754,7 @@ TEST test_rewrite_body_oom(void) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      int rc2 = 0;
       struct RefactoredFunction funcs2[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
@@ -769,13 +769,13 @@ TEST test_rewrite_body_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      int rc2 = 0;
       struct RefactoredFunction funcs2[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
@@ -790,7 +790,7 @@ TEST test_rewrite_body_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
   }
   {
@@ -799,7 +799,7 @@ TEST test_rewrite_body_oom(void) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      int rc2 = 0;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
@@ -813,13 +813,13 @@ TEST test_rewrite_body_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      int rc2 = 0;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
@@ -833,7 +833,7 @@ TEST test_rewrite_body_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        (void)rc2;
+        rc2 += 0;
     }
   }
 

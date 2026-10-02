@@ -22,7 +22,7 @@ extern "C" {
 TEST test_jsonschema2tests_wrong_args(void) {
   char arg0[] = "program";
   char *argv[2];
-  int rc;
+  int rc = 0;
   argv[0] = arg0;
   argv[1] = NULL;
   rc = jsonschema2tests_main(1, argv);
@@ -104,7 +104,7 @@ TEST test_schema2tests_success(void) {
 TEST test_schema2tests_output_file_open_fail(void) {
   const char *const schema_filename = "schema.2tests.json";
   char *argv[3];
-  int rc;
+  int rc = 0;
   argv[0] = (char *)(size_t)(size_t)schema_filename;
   argv[1] = (char *)(size_t)(size_t) "header.h";
   argv[2] = (char *)(size_t)(size_t) "";
@@ -200,7 +200,7 @@ TEST test_schema2tests_no_schemas_object(void) {
 TEST test_schema2tests_malformed_schemas(void) {
   const char *const schema_file = "malformed.json";
   char *argv[3];
-  int rc;
+  int rc = 0;
   argv[0] = (char *)(size_t)(size_t)schema_file;
   argv[1] = (char *)(size_t)(size_t) "header.h";
   argv[2] = (char *)(size_t)(size_t) "build" PATH_SEP "out.h";
@@ -308,7 +308,7 @@ TEST test_schema2tests_sanitize_names(void) {
                   (char *)(size_t)(size_t) "h.h",
                   (char *)(size_t)(size_t) "build" PATH_SEP "test_sanitize.h"};
   const char *const schema_file = argv[0];
-  int rc;
+  int rc = 0;
 
   rc = write_to_file(
       schema_file, "{\"$defs\":{"

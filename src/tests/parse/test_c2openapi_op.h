@@ -10,7 +10,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "parse/test_c2openapi_op_helpers.h"
+/* clang-format on */
 
 TEST test_build_simple_get(void) {
   /*
@@ -22,10 +24,10 @@ TEST test_build_simple_get(void) {
   struct C2OpenAPI_ParsedArg args[1];
   struct DocMetadata doc;
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
   /* Setup Signature */
-  (void)rc;
+  rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
   sig.name = (char *)(size_t)(size_t) "api_user_get";
@@ -74,9 +76,9 @@ TEST test_build_param_format_from_mapping(void) {
   struct C2OpenAPI_ParsedArg args[1];
   struct DocMetadata doc;
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
   sig.name = (char *)(size_t)(size_t) "api_user_get";
@@ -116,9 +118,9 @@ TEST test_build_param_format_override(void) {
   struct DocMetadata doc;
   struct DocParam *params = NULL;
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
   sig.name = (char *)(size_t)(size_t) "api_user_get";
@@ -161,9 +163,9 @@ TEST test_build_response_header_format(void) {
   struct DocMetadata doc;
   struct DocResponseHeader *headers = NULL;
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(&op, 0, sizeof(op));
   sig.name = (char *)(size_t)(size_t) "api_ping";
   sig.n_args = 0;
@@ -205,9 +207,9 @@ TEST test_build_default_response_when_missing(void) {
   struct C2OpenAPI_ParsedSig sig;
   struct DocMetadata doc;
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(&op, 0, sizeof(op));
   sig.name = (char *)(size_t)(size_t) "api_ping";
   sig.n_args = 0;
@@ -241,9 +243,9 @@ TEST test_build_operation_id_override(void) {
   struct C2OpenAPI_ParsedArg args[1];
   struct DocMetadata doc;
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
   sig.name = (char *)(size_t)(size_t) "api_user_get";
@@ -280,9 +282,9 @@ TEST test_build_param_content_type(void) {
   struct DocMetadata doc;
   struct DocParam params[1];
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(args, 0, sizeof(args));
   memset(params, 0, sizeof(params));
   memset(&op, 0, sizeof(op));
@@ -326,9 +328,9 @@ TEST test_build_param_example(void) {
   struct DocMetadata doc;
   struct DocParam params[1];
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(args, 0, sizeof(args));
   memset(params, 0, sizeof(params));
   memset(&op, 0, sizeof(op));
@@ -373,9 +375,9 @@ TEST test_build_return_content_type(void) {
   struct DocMetadata doc;
   struct DocResponse returns[1];
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(returns, 0, sizeof(returns));
   memset(&op, 0, sizeof(op));
   sig.name = (char *)(size_t)(size_t) "api_status";
@@ -420,9 +422,9 @@ TEST test_build_response_example(void) {
   struct DocMetadata doc;
   struct DocResponse returns[1];
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(args, 0, sizeof(args));
   memset(returns, 0, sizeof(returns));
   memset(&op, 0, sizeof(op));
@@ -471,10 +473,10 @@ TEST test_build_post_with_body(void) {
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
   /* Sig */
-  (void)rc;
+  rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
   sig.name = (char *)(size_t)(size_t) "api_pet_create";
@@ -561,9 +563,9 @@ TEST test_build_param_style_flags(void) {
   struct DocMetadata doc;
   struct DocParam dparams[1];
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(args, 0, sizeof(args));
   memset(dparams, 0, sizeof(dparams));
   memset(&op, 0, sizeof(op));
@@ -617,9 +619,9 @@ TEST test_build_param_default_styles(void) {
   struct DocMetadata doc;
   struct DocParam dparams[1];
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(args, 0, sizeof(args));
   memset(dparams, 0, sizeof(dparams));
   memset(&op, 0, sizeof(op));
@@ -664,9 +666,9 @@ TEST test_build_reserved_header_param_ignored(void) {
   struct DocMetadata doc;
   struct DocParam dparams[1];
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(args, 0, sizeof(args));
   memset(dparams, 0, sizeof(dparams));
   memset(&op, 0, sizeof(op));
@@ -708,9 +710,9 @@ TEST test_build_with_tags_description_and_deprecated(void) {
   struct C2OpenAPI_ParsedArg args[1];
   struct DocMetadata doc;
   struct OpenAPI_Operation op;
-  int rc;
+  int rc = 0;
 
-  (void)rc;
+  rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
   sig.name = (char *)(size_t)(size_t) "api_user_list";

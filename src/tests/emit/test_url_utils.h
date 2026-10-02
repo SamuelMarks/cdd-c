@@ -155,7 +155,7 @@ TEST test_url_encode_null(void) {
 
 TEST test_query_lifecycle(void) {
   struct UrlQueryParams qp;
-  int rc;
+  int rc = 0;
 
   rc = url_query_init(&qp);
   ASSERT_EQ(0, rc);
@@ -629,7 +629,7 @@ TEST test_url_utils_full_coverage(void) {
   struct UrlQueryParams qp;
   struct OpenAPI_KV kvs[3];
   int i;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* 1. is_unreserved_form dot and hyphen */
   rc = url_encode_form("-", &res);

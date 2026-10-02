@@ -47,7 +47,7 @@ TEST test_cdd_transform_extern_c(void) {
       (char *)(size_t)(size_t) "/* license */\n#include <stdio.h>\n\nint "
                                "main() {\n  return 0;\n}\n";
   char *out = NULL;
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
@@ -90,7 +90,7 @@ TEST test_cdd_transform_extern_c_empty_tree(void) {
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
   char *out = NULL;
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   root->kind = CDD_CST_TRANSLATION_UNIT;
@@ -115,7 +115,7 @@ TEST test_cdd_transform_extern_c_empty_c_file(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = (char *)(size_t)(size_t) "   \n";
   char *out = NULL;
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
@@ -143,7 +143,7 @@ TEST test_cdd_transform_extern_c_malformed_ifdef(void) {
   const char *code =
       (char *)(size_t)(size_t) "#ifdef \nint main() { return 0; }\n";
   char *out = NULL;
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
@@ -169,7 +169,7 @@ TEST test_cdd_transform_extern_c_already_exists_conditional(void) {
   cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
   cdd_cst_node_t *dir = calloc(1, sizeof(cdd_cst_node_t));
   cdd_token_t *tok_ifdef = calloc(1, sizeof(cdd_token_t));
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   tok_ifdef->kind = CDD_TOKEN_PREPROC_IFDEF;
@@ -208,7 +208,7 @@ TEST test_cdd_transform_extern_c_inner_ifdef(void) {
       (char *)(size_t)(size_t) "int main() {\n#ifdef "
                                "__cplusplus\n#endif\nreturn 0;\n}\n";
   char *out = NULL;
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
@@ -232,7 +232,7 @@ TEST test_cdd_transform_extern_c_inner_ifdef(void) {
 TEST test_cdd_transform_extern_c_null_child(void) {
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   root->kind = CDD_CST_TRANSLATION_UNIT;
@@ -258,7 +258,7 @@ TEST test_cdd_transform_extern_c_target_parent_tokens(void) {
   cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
   cdd_cst_node_t *dir = calloc(1, sizeof(cdd_cst_node_t));
   cdd_token_t *tok_ifdef = calloc(1, sizeof(cdd_token_t));
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   tok_ifdef->kind = CDD_TOKEN_PREPROC_IFDEF;
@@ -293,7 +293,7 @@ TEST test_cdd_transform_extern_c_bot_insert_idx(void) {
   cdd_cst_node_t *decl = calloc(1, sizeof(cdd_cst_node_t));
   cdd_token_t *tok_eof = calloc(1, sizeof(cdd_token_t));
   cdd_token_t *tok_endif = calloc(1, sizeof(cdd_token_t));
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   root->kind = CDD_CST_TRANSLATION_UNIT;
@@ -340,7 +340,7 @@ TEST test_cdd_transform_extern_c_close_node_fails(void) {
     cdd_cst_node_t *dir = calloc(1, sizeof(cdd_cst_node_t));
     cdd_token_t *tok = calloc(1, sizeof(cdd_token_t));
     cdd_transform_config_t config = {0, 2, 0, 1, 0};
-    int rc;
+    int rc = 0;
 
     root->kind = CDD_CST_TRANSLATION_UNIT;
     decl->kind = CDD_CST_DECLARATION;
@@ -377,7 +377,7 @@ TEST test_cdd_transform_extern_c_bot_append_dead_code(void) {
     cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
     cdd_cst_node_t *dir = calloc(1, sizeof(cdd_cst_node_t));
     cdd_transform_config_t config = {0, 2, 0, 1, 0};
-    int rc;
+    int rc = 0;
 
     root->kind = CDD_CST_TRANSLATION_UNIT;
     dir->kind = CDD_CST_PREPROC_CONDITIONAL;
@@ -414,7 +414,7 @@ TEST test_cdd_transform_extern_c_target_parent_no_eof(void) {
   for (i = 0; i <= 50; i++) {
     cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
     cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
-    int rc;
+    int rc = 0;
     cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
     root->kind = CDD_CST_TRANSLATION_UNIT;
@@ -454,7 +454,7 @@ TEST test_cdd_transform_extern_c_empty_target_parent(void) {
     cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
     cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
     cdd_cst_node_t *dir = calloc(1, sizeof(cdd_cst_node_t));
-    int rc;
+    int rc = 0;
     cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
     root->kind = CDD_CST_TRANSLATION_UNIT;
@@ -488,7 +488,7 @@ TEST test_cdd_transform_extern_c_empty_target_parent(void) {
 TEST test_cdd_transform_extern_c_append_fails(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = (char *)(size_t)(size_t) "void func();";
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
@@ -546,7 +546,7 @@ TEST test_cdd_transform_extern_c_insert_fails(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code =
       (char *)(size_t)(size_t) "void func();\n#include <late.h>\n";
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
@@ -609,7 +609,7 @@ TEST test_cdd_transform_extern_c_already_exists_single_token(void) {
   cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
   cdd_cst_node_t *dir = calloc(1, sizeof(cdd_cst_node_t));
   cdd_token_t *tok_ifdef = calloc(1, sizeof(cdd_token_t));
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   tok_ifdef->kind = CDD_TOKEN_PREPROC_IFDEF;
@@ -642,7 +642,7 @@ TEST test_cdd_transform_extern_c_first_token(void) {
   cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
   cdd_token_t *tok = calloc(1, sizeof(cdd_token_t));
   cdd_cst_node_t *decl = calloc(1, sizeof(cdd_cst_node_t));
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   tok->kind = CDD_TOKEN_PREPROC_DEFINE;
@@ -669,7 +669,7 @@ TEST test_cdd_transform_extern_c_already_exists(void) {
   cdd_cst_node_t *dir = calloc(1, sizeof(cdd_cst_node_t));
   cdd_token_t *tok_ifdef = calloc(1, sizeof(cdd_token_t));
   cdd_token_t *tok_cpp = calloc(1, sizeof(cdd_token_t));
-  int rc;
+  int rc = 0;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   tok_ifdef->kind = CDD_TOKEN_PREPROC_IFDEF;

@@ -41,7 +41,7 @@ static cdd_c_error_t gen_body(const struct OpenAPI_Operation *op,
   long sz;
   char *content = NULL;
 
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   if (g_client_body_fail_tmpfile) {
     tmp = NULL;

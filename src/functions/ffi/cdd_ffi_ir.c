@@ -22,18 +22,20 @@ typedef struct {
  * @brief Finds the index of a node by name.
  * @param ir The IR.
  * @param name The name to find.
- * @return The index, or (size_t)-1 if not found.
+ * @return CDD_C_SUCCESS if found, CDD_C_ERROR_NOT_FOUND if not found.
  */
-static size_t find_node_index(cdd_ffi_ir_t *ir, const char *name) {
+static cdd_c_error_t find_node_index(cdd_ffi_ir_t *ir, const char *name,
+                                     size_t *out_idx) {
   size_t i;
   /* printf("toposort searching for dep: %s\n", name); */
   for (i = 0; i < ir->nodes_count; i++) {
     if (ir->nodes[i].name && strcmp(ir->nodes[i].name, name) == 0) {
-      return i;
+      *out_idx = i;
+      return CDD_C_SUCCESS;
     }
   }
   /* printf("toposort failed to find dep: %s\n", name); */
-  return (size_t)-1;
+  return CDD_C_ERROR_NOT_FOUND;
 }
 
 #ifdef CDD_BUILD_TESTS
@@ -80,8 +82,9 @@ static cdd_c_error_t toposort_dfs(toposort_ctx_t *ctx, size_t node_idx) {
       if (type->ref_name) {
         /* If it's a pointer depth > 0, it's a forward declaration acceptable
            case, but we'll sort it anyway if we find it. */
-        size_t dep_idx = find_node_index(ctx->ir, type->ref_name);
-        if (dep_idx != (size_t)-1) {
+        size_t dep_idx = 0;
+        if (find_node_index(ctx->ir, type->ref_name, &dep_idx) ==
+            CDD_C_SUCCESS) {
           {
             cdd_c_error_t rc = toposort_dfs(ctx, dep_idx);
             if (rc != CDD_C_SUCCESS)
@@ -95,9 +98,9 @@ static cdd_c_error_t toposort_dfs(toposort_ctx_t *ctx, size_t node_idx) {
   if (node->kind == CDD_FFI_NODE_TYPEDEF ||
       node->kind == CDD_FFI_NODE_FUNCTION) {
     if (node->return_or_base_type.ref_name) {
-      size_t dep_idx =
-          find_node_index(ctx->ir, node->return_or_base_type.ref_name);
-      if (dep_idx != (size_t)-1) {
+      size_t dep_idx = 0;
+      if (find_node_index(ctx->ir, node->return_or_base_type.ref_name,
+                          &dep_idx) == CDD_C_SUCCESS) {
         {
           cdd_c_error_t rc = toposort_dfs(ctx, dep_idx);
           if (rc != CDD_C_SUCCESS)

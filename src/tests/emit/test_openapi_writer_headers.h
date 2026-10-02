@@ -15,7 +15,7 @@ extern "C" {
 /* clang-format on */
 
 TEST test_writer_ignores_content_type_response_header(void) {
-  int rc;
+  int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
@@ -73,7 +73,7 @@ TEST test_writer_ignores_content_type_response_header(void) {
 }
 
 TEST test_writer_path_level_parameters(void) {
-  int rc;
+  int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
@@ -126,7 +126,7 @@ TEST test_writer_path_level_parameters(void) {
 }
 
 TEST test_writer_server_variables(void) {
-  int rc;
+  int rc = 0;
   char *enum_vals[2];
   char *json;
   struct OpenAPI_Spec spec = {0};
@@ -183,7 +183,7 @@ TEST test_writer_server_variables(void) {
 }
 
 TEST test_writer_security_schemes(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_SecurityScheme s1, s2;
   char *json;
   struct OpenAPI_Spec spec = {0};
@@ -263,7 +263,7 @@ TEST test_writer_security_schemes(void) {
 }
 
 TEST test_writer_security_requirements(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   struct OpenAPI_SecurityRequirementSet root_set;
@@ -335,7 +335,7 @@ TEST test_writer_security_requirements(void) {
 }
 
 TEST test_writer_multipart_schema(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   struct OpenAPI_MultipartField parts[2];
@@ -403,7 +403,7 @@ TEST test_writer_multipart_schema(void) {
 }
 
 TEST test_writer_components_and_response_headers(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Response responses[2];
   char *param_names[1];
   char *resp_names[1];
@@ -536,7 +536,7 @@ TEST test_writer_components_and_response_headers(void) {
 }
 
 TEST test_writer_components_request_bodies(void) {
-  int rc;
+  int rc = 0;
   char *rb_names[1];
   char *json;
   struct OpenAPI_Spec spec = {0};
@@ -606,7 +606,7 @@ TEST test_writer_components_request_bodies(void) {
 }
 
 TEST test_writer_components_schemas(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   struct StructFields sf;
   char *name;

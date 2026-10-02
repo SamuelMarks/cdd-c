@@ -58,7 +58,7 @@ static const char *get_simple_schema(void) {
 
 TEST test_c2openapi_full_coverage_100(void) {
   struct OpenAPI_Spec spec;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   int is_src = 0;
   int has_tag = 0;
   struct OpenAPI_Tag *tag = NULL;

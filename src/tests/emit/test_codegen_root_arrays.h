@@ -74,7 +74,7 @@ static cdd_c_error_t generate_ra_code(
   FILE *tmp;
   long sz;
   char *content = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   tmp = TMPFILE();
   if (!tmp)

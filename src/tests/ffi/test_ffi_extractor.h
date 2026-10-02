@@ -371,7 +371,7 @@ TEST test_ffi_ir_extract_exports_oom(void) {
 
   cdd_generate_bindings_config_t config = {0};
   cdd_ffi_ir_t *ir = NULL;
-  int rc;
+  int rc = 0;
   int k;
   const char *code =
       "enum Color { RED, GREEN }; struct Base { int a; }; struct Derived : "
@@ -679,7 +679,7 @@ TEST test_ffi_ir_extract_array_out(void) {
                         "get_items(_Out_writes_(len) char* buf, int len) {}\n";
   cdd_ffi_ir_t *ir = NULL;
   cdd_generate_bindings_config_t config = {0};
-  int rc;
+  int rc = 0;
 
   write_to_file("test_array.c", content);
 

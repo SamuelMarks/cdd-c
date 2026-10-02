@@ -40,7 +40,7 @@ extern C_CDD_EXPORT int g_cdd_strdup_fail;
 TEST test_schema_codegen_cli_exhaustive_io(void) {
 #ifdef CDD_BUILD_TESTS
   int i;
-  int rc;
+  int rc = 0;
   const char schema_json[] = {
       123, 34,  99,  111, 109, 112, 111, 110, 101, 110, 116, 115, 34,  58,  32,
       123, 32,  32,  34,  115, 99,  104, 101, 109, 97,  115, 34,  58,  32,  123,
@@ -94,7 +94,7 @@ TEST test_schema_codegen_cli_exhaustive_io(void) {
 }
 
 TEST test_schema_codegen_union_arrays(void) {
-  int rc;
+  int rc = 0;
   const char *const filename = "union_array_schema.json";
   const char *argv[2];
   const char schema[] = {
@@ -155,7 +155,7 @@ TEST test_schema_codegen_union_arrays(void) {
 }
 
 TEST test_schema_codegen_specific_structs(void) {
-  int rc;
+  int rc = 0;
   const char *const filename = "specific_structs.json";
   const char *argv[2];
   const char *schema =
@@ -190,7 +190,7 @@ TEST test_schema_codegen_specific_structs(void) {
 #endif
 
 TEST test_schema_codegen_main_paths(void) {
-  int rc;
+  int rc = 0;
   const char *const filename = "main_paths.json";
   const char *argv[5];
   const char schema_defs[] = {
@@ -343,7 +343,7 @@ extern C_CDD_EXPORT int g_schema_fail_io_after;
 TEST test_schema_codegen_init_fail(void) {
   void *root;
   void *schemas;
-  int rc;
+  int rc = 0;
   const char *schema_json =
       "{\"components\": {\"schemas\": {\"MyStruct\": {\"properties\": {}}}}}";
   FILE *f;
@@ -390,7 +390,7 @@ TEST test_schema_codegen_init_fail(void) {
 TEST test_schema_codegen_parse_error(void) {
   void *root;
   void *schemas;
-  int rc;
+  int rc = 0;
   const char *schema_json =
       "{\"components\": {\"schemas\": {\"MyStruct\": 123}}}";
   FILE *f;
@@ -425,7 +425,7 @@ TEST test_schema_codegen_parse_error(void) {
 TEST test_schema_codegen_source_fail(void) {
   void *root;
   void *schemas;
-  int rc;
+  int rc = 0;
   const char *schema_json = "{\"components\": {\"schemas\": {\"MyStruct\": "
                             "{\"type\": \"object\",\"properties\": {}}}}}";
   FILE *f;
@@ -478,7 +478,7 @@ TEST test_schema_codegen_source_fail(void) {
 TEST test_schema_codegen_system_error(void) {
   void *root;
   void *schemas;
-  int rc;
+  int rc = 0;
   const char *schema_json = "{\"components\": {\"schemas\": {\"MyStruct\": "
                             "{\"type\": \"object\",\"properties\": {}}}}}";
   FILE *f;
@@ -509,7 +509,7 @@ TEST test_schema_codegen_system_error(void) {
 }
 
 TEST test_schema_codegen_main_errors(void) {
-  int rc;
+  int rc = 0;
   char *argv_bad1[] = {(char *)(size_t)(size_t) "file.json"};
   char *argv_bad2[] = {(char *)(size_t)(size_t) "file.json",
                        (char *)(size_t)NULL};
@@ -550,7 +550,7 @@ TEST test_schema_codegen_main_errors(void) {
 TEST test_schema_codegen_non_object_no_props(void) {
   void *root;
   void *schemas;
-  int rc;
+  int rc = 0;
   const char *schema_json =
       "{\"components\": {\"schemas\": {"
       "\"SimpleStr\": {\"type\": \"string\"},"

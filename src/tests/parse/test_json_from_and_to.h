@@ -27,8 +27,8 @@ extern "C" {
 TEST test_enum_tank_to_str_and_from_str(void) {
   char *str = NULL;
   enum Tank tank_val;
-  int rc;
-  (void)rc;
+  int rc = 0;
+  rc += 0;
 
   rc = Tank_to_str(Tank_BIG, &str);
   ASSERT_EQ(0, rc);
@@ -56,8 +56,8 @@ TEST test_HazE_to_json_and_from_json(void) {
   struct HazE haz;
   char *json_str;
   struct HazE *haz_out;
-  int rc;
-  (void)rc;
+  int rc = 0;
+  rc += 0;
   haz.bzr = (char *)(size_t)(size_t) "example";
   haz.tank = Tank_BIG;
   json_str = NULL;
@@ -89,8 +89,8 @@ TEST test_FooE_to_json_and_from_json_with_null_haz(void) {
   struct FooE foo;
   char *json_str;
   struct FooE *foo_out;
-  int rc;
-  (void)rc;
+  int rc = 0;
+  rc += 0;
   foo.bar = (char *)(size_t)(size_t) "barval";
   foo.can = 42;
   foo.haz = NULL;
@@ -124,8 +124,8 @@ TEST test_FooE_to_json_and_from_json_non_null_haz(void) {
   struct FooE foo_in;
   char *json_str;
   struct FooE *foo_out;
-  int rc;
-  (void)rc;
+  int rc = 0;
+  rc += 0;
   haz_in.bzr = (char *)(size_t)(size_t) "bzr_data_here";
   haz_in.tank = Tank_BIG;
   foo_in.bar = (char *)(size_t)(size_t) "bar_data_here";

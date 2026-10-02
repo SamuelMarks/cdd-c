@@ -101,7 +101,7 @@ TEST test_patch_list_to_diff_empty(void) {
   struct TokenList empty_tokens;
   char *diff_str = NULL;
   char *t;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = patch_list_init(&list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -158,7 +158,7 @@ TEST test_diff_invalid_args(void) {
   struct TokenList *tokens = NULL;
   char *diff_str = NULL;
   char *t1;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = patch_list_init(&list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -201,7 +201,7 @@ TEST test_diff_sort_fail(void) {
   struct TokenList *tokens = NULL;
   char *diff_str = NULL;
   char *text;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = patch_list_init(&list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -241,7 +241,7 @@ TEST test_diff_insert_delete_adjacent(void) {
   char *t2;
   char *tdel;
   char *large_text;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   rc = tokenize(
       az_span_create_from_str(((char *)(size_t) "int a = 1;\nint b = 2;\n")),
@@ -305,7 +305,7 @@ TEST test_diff_end_token_zero_and_max_mod(void) {
   struct TokenList *tokens = NULL;
   char *diff_str = NULL;
   char *t1;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Test 1: Single pure insertion at token 0 (end_token_idx == 0) */
   rc = tokenize(az_span_create_from_str(((char *)(size_t) "int a;\nint b;\n")),
@@ -366,7 +366,7 @@ TEST test_diff_empty_block_and_cursor_end(void) {
   struct TokenList *tokens = NULL;
   char *diff_str = NULL;
   char *empty_text;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   /* Source has only 1 line, replacing all tokens 0..tokens->size with "" */
   rc = tokenize(az_span_create_from_str(((char *)(size_t) "int a;")), &tokens);
@@ -395,7 +395,7 @@ TEST test_diff_token_outside_lines(void) {
 #ifdef CDD_BUILD_TESTS
   struct Token tok;
   size_t out_line = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   struct DiffLine *lines = NULL;
   size_t count = 0;
   struct DiffLine dline;
@@ -435,7 +435,7 @@ TEST test_diff_find_line_errors(void) {
     struct TokenList *tokens = NULL;
     char *diff_str = NULL;
     char *t1;
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     rc =
         tokenize(az_span_create_from_str(((char *)(size_t) "int a;\nint b;\n")),
@@ -468,7 +468,7 @@ TEST test_diff_find_line_errors(void) {
     struct TokenList *tokens = NULL;
     char *diff_str = NULL;
     char *t1;
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     rc =
         tokenize(az_span_create_from_str(((char *)(size_t) "int a;\nint b;\n")),
@@ -511,7 +511,7 @@ TEST test_diff_append_errors(void) {
     struct TokenList *tokens = NULL;
     char *diff_str = NULL;
     char *t1;
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     rc = tokenize(az_span_create_from_str(((char *)(size_t)src)), &tokens);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -548,7 +548,7 @@ TEST test_diff_append_errors(void) {
     struct TokenList *tokens = NULL;
     char *diff_str = NULL;
     char *t1;
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     rc = tokenize(az_span_create_from_str(((char *)(size_t)src)), &tokens);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -596,7 +596,7 @@ TEST test_diff_multiple_blocks(void) {
                     "line 21\nline 22\nline 23\nline 24\nline 25\n"
                     "line 26\nline 27\nline 28\nline 29\nline 30\n"
                     "line 31\nline 32\nline 33\nline 34\nline 35\n";
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   char *rep1;
   char *rep2;
   char *rep3;
@@ -669,7 +669,7 @@ TEST test_diff_no_newline_eof(void) {
   struct TokenList *tokens = NULL;
   char *diff_str = NULL;
   const char *src = "alpha\nbeta\ngamma";
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   char *rep;
 
   rc = tokenize(az_span_create_from_str(((char *)(size_t)src)), &tokens);
@@ -737,7 +737,7 @@ TEST test_diff_alloc_failures(void) {
     struct TokenList *tokens = NULL;
     char *diff_str = NULL;
     char *rep;
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
 
     rc = tokenize(az_span_create_from_str(
                       ((char *)(size_t) "int x = 10;\nint y = 20;\n")),

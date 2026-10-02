@@ -303,11 +303,150 @@ TEST test_cdd_math_casts(void) {
 
 TEST test_cdd_math_casts_neg(void) {
   cdd_int128_t i;
+  float f;
+  double d;
   cdd_float_to_int128(-10.5f, &i);
   ASSERT_EQ(((int64_t)-1), i.high);
+  cdd_int128_to_float(i, &f);
+  ASSERT_EQ(-10.0f, f); /* truncated */
+
   cdd_double_to_int128(-10.5, &i);
   ASSERT_EQ(((int64_t)-1), i.high);
+  cdd_int128_to_double(i, &d);
+  ASSERT_EQ(-10.0, d); /* truncated */
+
+  /* -2^64 */
+  i.high = -1;
+  i.low = 0;
+  cdd_int128_to_double(i, &d);
+  ASSERT_EQ(-18446744073709551616.0, d);
+  cdd_int128_to_float(i, &f);
+  ASSERT_EQ(-18446744073709551616.0f, f);
+
   g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_cdd_math_casts_edge_cases(void) {
+  cdd_int128_t i;
+  float f;
+  double d;
+
+  /* 0.0 */
+  cdd_float_to_int128(0.0f, &i);
+  ASSERT_EQ(0, i.high);
+  ASSERT_EQ(0, i.low);
+  cdd_double_to_int128(0.0, &i);
+  ASSERT_EQ(0, i.high);
+  ASSERT_EQ(0, i.low);
+
+  /* subnormal */
+  {
+    union {
+      float f;
+      uint32_t u;
+    } u;
+    u.u = 1;
+    cdd_float_to_int128(u.f, &i);
+    ASSERT_EQ(0, i.high);
+    ASSERT_EQ(0, i.low);
+  }
+  {
+    union {
+      double d;
+      uint64_t u;
+    } u;
+    u.u = 1;
+    cdd_double_to_int128(u.d, &i);
+    ASSERT_EQ(0, i.high);
+    ASSERT_EQ(0, i.low);
+  }
+
+  /* NaN / Inf */
+  {
+    union {
+      float f;
+      uint32_t u;
+    } u;
+    u.u = 0x7F800000u;
+    ASSERT_EQ(1, cdd_float_to_int128(u.f, &i));
+    ASSERT_EQ(0, i.high);
+    ASSERT_EQ(0, i.low);
+  }
+  {
+    union {
+      double d;
+      uint64_t u;
+    } u;
+    u.u = (((uint64_t)0x7FF00000) << 32);
+    ASSERT_EQ(1, cdd_double_to_int128(u.d, &i));
+    ASSERT_EQ(0, i.high);
+    ASSERT_EQ(0, i.low);
+  }
+
+  /* Exp < 0 (0.5) */
+  cdd_float_to_int128(0.5f, &i);
+  ASSERT_EQ(0, i.high);
+  ASSERT_EQ(0, i.low);
+  cdd_double_to_int128(0.5, &i);
+  ASSERT_EQ(0, i.high);
+  ASSERT_EQ(0, i.low);
+
+  /* Overflow (2^127) */
+  {
+    union {
+      float f;
+      uint32_t u;
+    } u;
+    u.u = 0x7F000000u; /* 2^127 in float */
+    ASSERT_EQ(1, cdd_float_to_int128(u.f, &i));
+    ASSERT_EQ(~((uint64_t)0), i.low);
+  }
+  {
+    union {
+      float f;
+      uint32_t u;
+    } u;
+    u.u = 0xFF000000u; /* -2^127 in float */
+    ASSERT_EQ(1, cdd_float_to_int128(u.f, &i));
+    ASSERT_EQ(0, i.low);
+  }
+  {
+    union {
+      double d;
+      uint64_t u;
+    } u;
+    u.u = (((uint64_t)0x47E00000) << 32); /* 2^127 in double */
+    ASSERT_EQ(1, cdd_double_to_int128(u.d, &i));
+    ASSERT_EQ(~((uint64_t)0), i.low);
+  }
+  {
+    union {
+      double d;
+      uint64_t u;
+    } u;
+    u.u = (((uint64_t)0xC7E00000) << 32); /* -2^127 in double */
+    ASSERT_EQ(1, cdd_double_to_int128(u.d, &i));
+    ASSERT_EQ(0, i.low);
+  }
+
+  /* EXACT shift amounts */
+  cdd_float_to_int128(8388608.0f, &i);
+  ASSERT_EQ(0, i.high);
+  ASSERT_EQ(8388608, i.low);
+
+  cdd_double_to_int128(4503599627370496.0, &i);
+  ASSERT_EQ(0, i.high);
+  ASSERT_EQ((uint64_t)4503599627370496, i.low);
+
+  /* Large number exact */
+  cdd_float_to_int128(1.0e10f, &i);
+  cdd_int128_to_float(i, &f);
+  /* precision loss is expected, but no crash */
+
+  cdd_double_to_int128(1.0e20, &i);
+  cdd_int128_to_double(i, &d);
+
   PASS();
 }
 
@@ -398,6 +537,7 @@ SUITE(c_cdd_int128_suite) {
   RUN_TEST(test_cdd_math_bitwise);
   RUN_TEST(test_cdd_math_casts);
   RUN_TEST(test_cdd_math_casts_neg);
+  RUN_TEST(test_cdd_math_casts_edge_cases);
   RUN_TEST(test_cdd_math_div_large_quotient);
   RUN_TEST(test_cdd_math_div_by_zero);
 }

@@ -15,7 +15,7 @@ extern "C" {
 /* clang-format on */
 
 TEST test_writer_components_schemas_raw(void) {
-  int rc;
+  int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
   char *names[3] = {(char *)(size_t)(size_t) "Token",
@@ -65,7 +65,7 @@ TEST test_writer_components_schemas_raw(void) {
 }
 
 TEST test_writer_schema_ref_external(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   char *json;
   struct OpenAPI_Path path = {0};
@@ -112,7 +112,7 @@ TEST test_writer_schema_ref_external(void) {
 }
 
 TEST test_writer_schema_dynamic_ref_external(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   char *json;
   struct OpenAPI_Path path = {0};
@@ -160,7 +160,7 @@ TEST test_writer_schema_dynamic_ref_external(void) {
 }
 
 TEST test_writer_schema_items_ref_external(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   char *json;
   struct OpenAPI_Path path = {0};
@@ -212,7 +212,7 @@ TEST test_writer_schema_items_ref_external(void) {
 }
 
 TEST test_writer_schema_items_dynamic_ref_external(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_Spec spec;
   char *json;
   struct OpenAPI_Path path = {0};
@@ -265,7 +265,7 @@ TEST test_writer_schema_items_dynamic_ref_external(void) {
 }
 
 TEST test_writer_additional_operations(void) {
-  int rc;
+  int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
@@ -315,7 +315,7 @@ TEST test_writer_additional_operations(void) {
 }
 
 TEST test_writer_component_media_types_and_content_ref(void) {
-  int rc;
+  int rc = 0;
   char *media_names[1];
   char *json;
   struct OpenAPI_Spec spec = {0};
@@ -395,7 +395,7 @@ TEST test_writer_component_media_types_and_content_ref(void) {
 }
 
 TEST test_writer_response_multiple_content(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_MediaType contents[2];
   char *json;
   struct OpenAPI_Spec spec = {0};
@@ -451,7 +451,7 @@ TEST test_writer_response_multiple_content(void) {
 }
 
 TEST test_writer_request_body_multiple_content_and_encoding(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_MediaType media[1];
   struct OpenAPI_Encoding enc[1];
   char *json;
@@ -532,7 +532,7 @@ TEST test_writer_request_body_multiple_content_and_encoding(void) {
 }
 
 TEST test_writer_media_type_prefix_item_encoding(void) {
-  int rc;
+  int rc = 0;
   struct OpenAPI_MediaType media[1];
   char *media_names[1];
   struct OpenAPI_Encoding prefix[2];

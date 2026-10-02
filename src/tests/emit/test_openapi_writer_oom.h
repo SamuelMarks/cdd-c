@@ -25,7 +25,7 @@ TEST test_openapi_writer_extras_and_edge_branches(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path c_paths[1];
   char *json = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   val = json_value_init_object();
   obj = json_value_get_object(val);

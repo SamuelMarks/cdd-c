@@ -10,7 +10,7 @@ extern "C" {
 /* clang-format off */
 #include <stddef.h>
 /* clang-format on */
-typedef size_t _c_cdd_bool;
+typedef unsigned char _c_cdd_bool;
 
 #ifdef bool
 #undef bool

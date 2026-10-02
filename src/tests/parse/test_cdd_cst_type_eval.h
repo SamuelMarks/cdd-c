@@ -23,7 +23,7 @@ extern "C" {
 extern C_CDD_EXPORT int g_cdd_type_eval_ptr_fail;
 TEST test_cdd_cst_eval_primitive_type_basic(void) {
   cdd_cst_type_info_t info;
-  int rc;
+  int rc = 0;
 
   /* int under LP64 */
   rc = cdd_cst_eval_primitive_type("int", CDD_CST_ABI_LP64, &info);
@@ -49,7 +49,7 @@ TEST test_cdd_cst_eval_sizeof_basic(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_scope_env_t *env = NULL;
   size_t size;
-  int rc;
+  int rc = 0;
   cdd_cst_node_t *decl = NULL;
   size_t i;
   const char *src = (char *)(size_t)(size_t) "int a;";
@@ -82,7 +82,7 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_scope_env_t *env = NULL;
   size_t size, align;
-  int rc;
+  int rc = 0;
   cdd_cst_node_t *decl = NULL;
   size_t i;
   cdd_cst_tree_t *tree2 = NULL;
@@ -318,7 +318,7 @@ TEST test_type_eval_branches(void) {
   cdd_token_t tok3 = {0};
   char buf2[300] = {0};
 #ifdef CDD_BUILD_TESTS
-  int rc;
+  int rc = 0;
 #endif
 
   cdd_cst_alloc_node(CDD_CST_EXPRESSION, &decl);
@@ -434,7 +434,7 @@ TEST test_cdd_cst_type_eval_branches(void) {
   cdd_cst_scope_env_t *env = NULL;
   cdd_cst_scope_env_init(&env);
   {
-    cdd_c_error_t rc;
+    cdd_c_error_t rc = 0;
     {
       enum cdd_cst_abi_model_t abi = CDD_CST_ABI_LP64;
       cdd_cst_node_t dummy_node = {0};

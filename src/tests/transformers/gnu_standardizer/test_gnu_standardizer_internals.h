@@ -33,7 +33,7 @@ pool_string_safe_len(cdd_cst_tree_t *tree, const char *str, size_t len);
 TEST test_gnu_pool_string_safe(void) {
   cdd_cst_tree_t tree;
   const char *pooled = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   size_t i;
   char buf[32];
 
@@ -78,7 +78,7 @@ TEST test_gnu_pool_string_safe(void) {
 TEST test_gnu_pool_string_safe_len(void) {
   cdd_cst_tree_t tree;
   const char *pooled = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
   size_t i;
   char buf[32];
 
@@ -125,7 +125,7 @@ TEST test_gnu_pool_string_safe_len(void) {
 TEST test_gnu_append_int(void) {
   char buf[64];
   char *out_p = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_append_int(NULL, 0, &out_p));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_append_int(buf, 0, NULL));
@@ -154,7 +154,7 @@ TEST test_gnu_append_int(void) {
 TEST test_gnu_parse_128_literal(void) {
   uint64_t high = 0;
   uint64_t low = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_parse_128_literal(NULL, 5, &high, &low));
@@ -189,7 +189,7 @@ TEST test_gnu_parse_128_literal(void) {
 TEST test_gnu_parse_hex_128_literal(void) {
   uint64_t high = 0;
   uint64_t low = 0;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = 0;
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_parse_hex_128_literal(NULL, 5, &high, &low));

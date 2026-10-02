@@ -211,7 +211,7 @@ TEST test_enum_generation_oom(void) {
 TEST test_enum_exhaustive_io(void) {
 #ifdef CDD_BUILD_TESTS
   int i;
-  int rc;
+  int rc = 0;
   struct EnumMembers em;
   struct CodegenEnumConfig config = {"MY_GUARD"};
 
