@@ -424,10 +424,10 @@ TEST test_display_fail(void) {
     ASSERT(fh != NULL);
 
     rc = FooE_display(foo, fh); /* Try to write to read-only stream */
-    ASSERT(rc != 0);
+    ASSERT_NEQ(0, rc);
 
     rc = HazE_display(haz, fh);
-    ASSERT(rc != 0);
+    ASSERT_NEQ(0, rc);
 
     fclose(fh);
     remove(tmp_fname);
@@ -612,12 +612,12 @@ TEST test_debug_fail(void) {
     ASSERT(fh != NULL);
 
     rc = FooE_debug(foo, fh); /* Try to write to read-only stream */
-    ASSERT(rc != 0);
+    ASSERT_NEQ(0, rc);
 
     rewind(fh); /* reset for next test */
 
     rc = HazE_debug(haz, fh); /* Try to write to read-only stream */
-    ASSERT(rc != 0);
+    ASSERT_NEQ(0, rc);
 
     fclose(fh);
     remove(tmp_fname);
@@ -902,7 +902,7 @@ SUITE(dataclasses_suite) {
   RUN_TEST(test_null_args_and_errors);
   fprintf(stderr, "Starting test_json_parsing_corner_cases\n");
   RUN_TEST(test_json_parsing_corner_cases);
-#ifdef CDD_ENABLE_EXPERIMENTAL_TESTS
+#ifdef CDD_DISABLE_EXPERIMENTAL_TESTS
   /* TODO: Get them to work on MSVC and fix macOS segfaults */
 #else
   fprintf(stderr, "Starting test_display_fail\n");

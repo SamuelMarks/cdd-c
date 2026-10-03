@@ -11,7 +11,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include "openapi/parse/openapi_types.h"
 #include <parson.h>

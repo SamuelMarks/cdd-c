@@ -4,7 +4,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include "cdd_cst_parser.h"
 #include "cdd_lexer.h"

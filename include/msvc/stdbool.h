@@ -8,7 +8,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 #ifndef __cplusplus
 typedef unsigned char bool;
 #define true 1

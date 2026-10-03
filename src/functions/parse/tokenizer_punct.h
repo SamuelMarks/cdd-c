@@ -11,10 +11,17 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include <stddef.h>
+#if defined(_MSC_VER) && _MSC_VER < 1600
+#include "msvc/stdint.h"
+#else
+#if defined(_MSC_VER) && _MSC_VER < 1600
+#include "c_cdd/msvc/stdint.h"
+#else
 #include <stdint.h>
+#endif
+#endif
 
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"

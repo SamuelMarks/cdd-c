@@ -4,7 +4,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include "classes/parse/cdd_cst_node.h"
 #include "cdd_c_error.h"
@@ -12,7 +11,15 @@ extern "C" {
 #if defined(_MSC_VER) && _MSC_VER < 1600
 typedef unsigned __int64 uint64_t;
 #else
+#if defined(_MSC_VER) && _MSC_VER < 1600
+#include "msvc/stdint.h"
+#else
+#if defined(_MSC_VER) && _MSC_VER < 1600
+#include "c_cdd/msvc/stdint.h"
+#else
 #include <stdint.h>
+#endif
+#endif
 #endif
 #include "c_cdd_export.h"
 /* clang-format on */

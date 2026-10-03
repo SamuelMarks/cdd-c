@@ -25,7 +25,15 @@ static FILE *cdd_freopen_helper_main_cov(const char *p, const char *m, FILE *s) 
 #endif
 #else
 #include <sys/stat.h>
+#if defined(_MSC_VER)
+#include <io.h>
+#else
+#if defined(_WIN32)
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
+#endif
 #define TEST_MKDIR(p) mkdir(p, 0777)
 #define TEST_RMDIR(p) rmdir(p)
 #undef CDD_FREOPEN

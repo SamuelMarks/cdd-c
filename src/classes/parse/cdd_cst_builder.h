@@ -4,7 +4,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
@@ -282,6 +281,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_splice_nodes(cdd_cst_builder_t *builder,
                                                 size_t index,
                                                 cdd_cst_node_t **new_nodes,
                                                 size_t count);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

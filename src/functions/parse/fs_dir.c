@@ -75,7 +75,15 @@ extern int g_io_calls;
 #include <io.h>
 #else
 #include "c_cdd/log.h"
+#if defined(_MSC_VER)
+#include <io.h>
+#else
+#if defined(_WIN32)
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
+#endif
 /* clang-format on */
 #endif
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
@@ -253,7 +261,8 @@ cdd_c_error_t tempdir(char **out_path) {
       *out_path = NULL;
       return CDD_C_ERROR_IO;
     }
-    c_cdd_str_trim_trailing_whitespace(*out_path);
+    if (c_cdd_str_trim_trailing_whitespace(*out_path) != CDD_C_SUCCESS)
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* Remove trailing backslash if it exists, as dirname does */
     len = (DWORD)strlen(*out_path);
     if (len > 0 &&

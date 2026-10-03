@@ -12,7 +12,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 #if defined(_MSC_VER) && _MSC_VER < 1600
 typedef signed __int8 int8_t;
 typedef signed __int16 int16_t;
@@ -27,7 +26,15 @@ typedef unsigned __int64 uint64_t;
 /* clang-format off */
 #include "msvc/stdint.h"
 #else
+#if defined(_MSC_VER) && _MSC_VER < 1600
+#include "msvc/stdint.h"
+#else
+#if defined(_MSC_VER) && _MSC_VER < 1600
+#include "c_cdd/msvc/stdint.h"
+#else
 #include <stdint.h>
+#endif
+#endif
 /* clang-format on */
 #endif
 #endif

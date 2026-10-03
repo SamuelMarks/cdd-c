@@ -12,8 +12,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
+#endif /* __cplusplus */
 /**
  * @def NO_DISCARD
  * @brief Marks a return type or function such that discarding its return value
@@ -63,6 +62,6 @@ extern "C" {
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* NO_DISCARD_H */

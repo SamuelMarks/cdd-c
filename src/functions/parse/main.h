@@ -1,5 +1,6 @@
 #ifndef C_CDD_MAIN_H
 #define C_CDD_MAIN_H
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -9,7 +10,9 @@ extern "C" {
 /* clang-format on */
 /** @brief Main entry point function */
 extern C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
 #endif

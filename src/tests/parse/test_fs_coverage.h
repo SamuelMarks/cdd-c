@@ -22,7 +22,11 @@ extern "C" {
 #include <string.h>
 #ifndef _MSC_VER
 #include <sys/stat.h>
+#if defined(_MSC_VER)
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 #endif
 /* clang-format on */
 

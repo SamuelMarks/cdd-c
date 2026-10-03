@@ -10,10 +10,10 @@
 #include "c_cdd/no_discard.h"
 #define FS_H
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 #include <errno.h>
 #include "cdd_c_error.h"
 #include <stdio.h>
@@ -92,7 +92,15 @@ extern C_CDD_EXPORT cdd_c_error_t wide_to_ascii(const wchar_t *ws, char *s, size
 #if defined(_MSC_VER)
 #include <io.h>
 #else
+#if defined(_MSC_VER)
+#include <io.h>
+#else
+#if defined(_WIN32)
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
+#endif
 /* clang-format on */
 #endif
 

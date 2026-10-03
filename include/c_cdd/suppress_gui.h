@@ -9,7 +9,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #if defined(_WIN32)
 #include <winsock2.h>

@@ -22,7 +22,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include "functions/parse/tokenizer.h"
 #include "cdd_c_error.h"

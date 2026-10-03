@@ -8,8 +8,6 @@ extern "C" {
 /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
 #include <c_cdd_export.h>
 /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-#ifdef __cplusplus
-#endif /* __cplusplus */
 
 /* clang-format off */
 #include "c_cdd_export.h"

@@ -29,7 +29,15 @@ extern "C" {
 #include <netinet/in.h>
 #include <pthread.h>
 #include <sys/socket.h>
+#if defined(_MSC_VER)
+#include <io.h>
+#else
+#if defined(_WIN32)
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
+#endif
 #endif
 
 #include "c_cdd_export.h"

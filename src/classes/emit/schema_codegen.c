@@ -212,7 +212,11 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
                               "typedef signed __int64 int64_t;\n"
                               "typedef unsigned __int64 uint64_t;\n"
                               "#else\n"
+                              "#if defined(_MSC_VER) && _MSC_VER < 1600\n"
+                              "#include \"c_cdd/msvc/stdint.h\"\n"
+                              "#else\n"
                               "#include <stdint.h>\n"
+                              "#endif\n"
                               "#endif\n\n"));
   F_CHECK_IO(FPRINTF_HOOK(fp,
                           "#if defined(_MSC_VER) && _MSC_VER < 1800\n"
@@ -228,7 +232,11 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
                           "#endif\n"
                           "#endif\n"
                           "#else\n"
+                          "#if defined(_MSC_VER) && _MSC_VER < 1800\n"
+                          "#include \"c_cdd/msvc/stdbool.h\"\n"
+                          "#else\n"
                           "#include <stdbool.h>\n"
+                          "#endif\n"
                           "#endif\n\n"
                           "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n"));
 

@@ -250,7 +250,7 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
 #endif
 #endif
 #endif
-  c_cdd_str_trim_trailing_whitespace(buf);
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_str_trim_trailing_whitespace(buf));
   ASSERT_STR_EQ("hello", buf);
 
 /* Mix tabs/newlines */
@@ -268,7 +268,7 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
 #endif
 #endif
 #endif
-  c_cdd_str_trim_trailing_whitespace(buf);
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_str_trim_trailing_whitespace(buf));
   ASSERT_STR_EQ("foo", buf);
 
 /* Nothing to trim */
@@ -286,7 +286,7 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
 #endif
 #endif
 #endif
-  c_cdd_str_trim_trailing_whitespace(buf);
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_str_trim_trailing_whitespace(buf));
   ASSERT_STR_EQ("bar", buf);
 
 /* Empty */
@@ -304,7 +304,7 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
 #endif
 #endif
 #endif
-  c_cdd_str_trim_trailing_whitespace(buf);
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_str_trim_trailing_whitespace(buf));
   ASSERT_STR_EQ("", buf);
 
 /* All whitespace */
@@ -322,7 +322,7 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
 #endif
 #endif
 #endif
-  c_cdd_str_trim_trailing_whitespace(buf);
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_str_trim_trailing_whitespace(buf));
   ASSERT_STR_EQ("", buf);
 
 /* Internal whitespace preserved */
@@ -340,7 +340,7 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
 #endif
 #endif
 #endif
-  c_cdd_str_trim_trailing_whitespace(buf);
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_str_trim_trailing_whitespace(buf));
   ASSERT_STR_EQ("a b c", buf);
   g_fail_io_after = -1;
 
@@ -363,7 +363,8 @@ TEST test_c_cdd_ref_is_type_null(void) {
 }
 
 TEST test_c_cdd_str_trim_trailing_whitespace_null(void) {
-  c_cdd_str_trim_trailing_whitespace(NULL);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_str_trim_trailing_whitespace(NULL));
   g_fail_io_after = -1;
 
   PASS();

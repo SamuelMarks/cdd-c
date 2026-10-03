@@ -28,7 +28,11 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#if defined(_MSC_VER)
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 #endif
 #endif
 /* clang-format on */

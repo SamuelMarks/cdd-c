@@ -408,16 +408,13 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
           const char *opId = op->operation_id;
           if (opId) {
             fprintf(fp_test, "TEST test_server_handle_%s(void) {\n", opId);
-            fprintf(fp_test, "  /* TODO: Implement test for %s */\n", opId);
             fprintf(fp_test, "  struct c_rest_request req;\n");
             fprintf(fp_test, "  struct c_rest_response res;\n");
+            fprintf(fp_test, "  cdd_c_error_t status;\n");
             fprintf(fp_test, "  memset(&req, 0, sizeof(req));\n");
             fprintf(fp_test, "  memset(&res, 0, sizeof(res));\n");
-            fprintf(
-                fp_test,
-                "  /* cdd_c_error_t status = handle_%s(&req, &res, NULL); */\n",
-                opId);
-            fprintf(fp_test, "  /* ASSERT_EQ(CDD_C_SUCCESS, status); */\n");
+            fprintf(fp_test, "  status = handle_%s(&req, &res, NULL);\n", opId);
+            fprintf(fp_test, "  ASSERT_EQ(CDD_C_SUCCESS, status);\n");
             fprintf(fp_test, "  PASS();\n");
             fprintf(fp_test, "}\n\n");
           }

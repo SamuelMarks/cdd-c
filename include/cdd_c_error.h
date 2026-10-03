@@ -8,7 +8,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /**
  * @brief Global error enumeration for cdd-c project.
  */

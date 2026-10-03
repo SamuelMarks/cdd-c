@@ -9,7 +9,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include "int128.h"
 #include <stddef.h>

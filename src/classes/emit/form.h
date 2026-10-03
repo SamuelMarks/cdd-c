@@ -9,7 +9,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include <stdio.h>
 #include "c_cdd_export.h"

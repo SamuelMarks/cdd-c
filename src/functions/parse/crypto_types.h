@@ -16,7 +16,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"

@@ -13,7 +13,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 #ifndef C_CDD_LOG_DEBUG
 /**
  * @brief Logs debug messages.

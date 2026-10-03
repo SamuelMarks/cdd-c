@@ -1,14 +1,13 @@
 #ifndef CDD_SAFE_CRT_MSVC_H
 #define CDD_SAFE_CRT_MSVC_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 /**
  * @file safe_crt_msvc.h
  * @brief Provides MSVC Safe CRT wrappers and macros.
  */
-
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
 
 /* clang-format off */
 #include <stdio.h>

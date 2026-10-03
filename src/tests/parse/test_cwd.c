@@ -1,4 +1,5 @@
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,7 +7,15 @@
 #include <direct.h>
 #define getcwd _getcwd
 #else
+#if defined(_MSC_VER)
+#include <io.h>
+#else
+#if defined(_WIN32)
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
+#endif
 #endif
 /* clang-format on */
 int test_cwd(void) {

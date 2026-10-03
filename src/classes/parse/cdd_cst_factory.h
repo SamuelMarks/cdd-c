@@ -4,7 +4,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
@@ -74,10 +73,6 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_append_child_token(cdd_cst_node_t *parent,
  */
 C_CDD_EXPORT void cdd_cst_free_node(cdd_cst_node_t *node);
 
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
-
 #if defined(__GNUC__) || defined(__clang__)
 C_CDD_EXPORT cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
                                                 cdd_cst_node_t **out_node,
@@ -89,4 +84,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
                                                 const char *fmt, ...);
 #endif
 C_CDD_EXPORT void cdd_cst_free_node_only(cdd_cst_node_t *node);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
 #endif /* CDD_CST_FACTORY_H */

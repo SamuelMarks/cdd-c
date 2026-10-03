@@ -17,7 +17,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
@@ -62,11 +61,12 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT cdd_c_error_t test_build_system_mock_io_negative(void);
 #endif
 
+#endif /* C_CDD_GENERATE_BUILD_SYSTEM_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* C_CDD_GENERATE_BUILD_SYSTEM_H */
-
-#if defined(__clang__) || defined(__GNUC__)
 #endif

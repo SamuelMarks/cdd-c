@@ -24,7 +24,15 @@ typedef unsigned __int64 uint64_t;
 #else
 #if !defined(_MSC_VER) || _MSC_VER >= 1800
 #if !defined(_MSC_VER) || _MSC_VER >= 1800
+#if defined(_MSC_VER) && _MSC_VER < 1600
+#include "msvc/stdint.h"
+#else
+#if defined(_MSC_VER) && _MSC_VER < 1600
+#include "c_cdd/msvc/stdint.h"
+#else
 #include <stdint.h>
+#endif
+#endif
 #else
 #include "msvc/stdint.h"
 #endif /* _MSC_VER */
@@ -756,14 +764,8 @@ SUITE(code2schema_suite) {
 
   RUN_TEST(test_code2schema_file_not_found);
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  /* TODO: Fix file locking tests for MSVC */
-#else
-
   RUN_TEST(test_code2schema_parsing_details);
   RUN_TEST(test_code2schema_parse_struct_and_enum);
-
-#endif
 
   RUN_TEST(test_codegen_enum_null_args);
   RUN_TEST(test_codegen_enum_with_unknown);

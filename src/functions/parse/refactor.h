@@ -10,7 +10,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include "functions/emit/rewriter_body.h"
 #include "cdd_c_error.h"

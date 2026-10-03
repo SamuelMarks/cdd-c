@@ -41,7 +41,15 @@ extern "C" {
 #ifdef _WIN32
 #include <io.h>
 #else
+#if defined(_MSC_VER)
+#include <io.h>
+#else
+#if defined(_WIN32)
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
+#endif
 #endif
 /* clang-format on */
 

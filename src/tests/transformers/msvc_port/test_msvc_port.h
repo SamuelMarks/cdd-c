@@ -74,7 +74,7 @@ TEST test_cdd_transform_msvc(void) {
   {
     int i;
     for (i = 0; i < 50; i++) {
-      if (0) {
+      if (1) {
         cdd_cst_tree_t *tree_copy = NULL;
         rc = cdd_cst_parse(
             az_span_create_from_str((char *)(size_t)(size_t)code), &tree_copy);
@@ -173,12 +173,16 @@ TEST test_cdd_transform_msvc_context(void) {
 }
 
 TEST test_cdd_transform_msvc_builder_fails(void) {
-#ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
   int rc = 0;
-  const char *code = (char *)(size_t)(size_t) "#include <unistd.h>\nvoid f() { "
+  const char *code = (char *)(size_t)(size_t) "#if defined(_WIN32)\n#include "
+                                              "<io.h>\n#else\n#include "
+                                              "<unistd.h>\n#endif\nvoid f() { "
                                               "__builtin_expect(1, 1); }\n";
   cdd_transform_config_t config;
+  printf("HELLO FROM test_cdd_transform_msvc_builder_fails!!\nCODE STRING IS: "
+         "%s\n",
+         code);
   memset(&config, 0, sizeof(config));
 
   cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code), &tree);
@@ -190,7 +194,23 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
   tree = NULL;
   cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code), &tree);
 
+  /* Test g_msvc_port_bld_fail = 1 (wrap_node error) */
+  {
+    const char *simple_code = (char *)(size_t)(size_t) "#include <unistd.h>\n";
+    cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)simple_code),
+                  &tree);
+    g_msvc_port_bld_fail = 1;
+    rc = cdd_transform_msvc(tree, &config);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              rc); /* It will just free the wrap_node and not fail the whole
+                      transformation, according to current logic */
+    g_msvc_port_bld_fail = 0;
+    cdd_cst_tree_free(tree);
+    tree = NULL;
+  }
+
   g_msvc_port_bld_fail = 2;
+  cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code), &tree);
   rc = cdd_transform_msvc(tree, &config);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_msvc_port_bld_fail = 0;
@@ -203,7 +223,7 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
   {
     /*  (moved to global) */
     int fail_idx;
-    for (fail_idx = 1; fail_idx < 30; fail_idx++) {
+    for (fail_idx = 1; fail_idx < 150; fail_idx++) {
       cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
                     &tree);
       g_cdd_alloc_fail = fail_idx;
@@ -315,7 +335,6 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
       tree = NULL;
     }
   }
-#endif
   g_fail_io_after = -1;
   PASS();
 }

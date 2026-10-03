@@ -3,8 +3,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
+#endif /* __cplusplus */
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"

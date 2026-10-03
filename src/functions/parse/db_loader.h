@@ -8,7 +8,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /**
  * @brief Checks if libpq is available.
  * @param[out] out_avail 1 if available, 0 otherwise.

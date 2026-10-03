@@ -7,6 +7,9 @@
 #ifndef CODE2SCHEMA_INTERNAL_H
 #define CODE2SCHEMA_INTERNAL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -36,10 +39,6 @@
 #include "functions/emit/codegen.h"
 #include "functions/parse/str.h"
 /* clang-format on */
-
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
 
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT volatile int g_c2s_helper_fail;

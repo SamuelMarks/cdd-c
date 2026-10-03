@@ -165,10 +165,10 @@ cdd_c_error_t c_cdd_ref_is_type(const char *ref, const char *type, int *out_b) {
 /**
  * @brief Executes the c cdd str trim trailing whitespace operation.
  */
-void c_cdd_str_trim_trailing_whitespace(char *str) {
+cdd_c_error_t c_cdd_str_trim_trailing_whitespace(char *str) {
   size_t len;
   if (str == NULL)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   len = strlen(str);
   while (len > 0) {
     const char c = str[len - 1];
@@ -179,6 +179,7 @@ void c_cdd_str_trim_trailing_whitespace(char *str) {
       break;
     }
   }
+  return CDD_C_SUCCESS;
 }
 
 /**

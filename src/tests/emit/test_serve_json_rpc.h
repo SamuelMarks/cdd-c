@@ -47,7 +47,15 @@ typedef HANDLE cdd_test_thread_t;
 #include <netinet/in.h>
 #include <pthread.h>
 #include <sys/socket.h>
+#if defined(_MSC_VER)
+#include <io.h>
+#else
+#if defined(_WIN32)
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
+#endif
 typedef pthread_t cdd_test_thread_t;
 #define CDD_TEST_THREAD_CREATE(th, func, arg) pthread_create((th), NULL, (func), (arg))
 #define CDD_TEST_THREAD_JOIN(th) pthread_join((th), NULL)

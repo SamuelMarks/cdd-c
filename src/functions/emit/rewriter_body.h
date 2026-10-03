@@ -13,7 +13,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include "functions/parse/analysis.h"
 #include "cdd_c_error.h"

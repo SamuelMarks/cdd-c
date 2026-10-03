@@ -25,7 +25,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /**
  * @brief CLI entry point for code2schema command.
  *

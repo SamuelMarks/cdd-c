@@ -14,7 +14,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include "functions/emit/patcher.h"
 #include "cdd_c_error.h"

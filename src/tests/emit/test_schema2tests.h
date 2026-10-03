@@ -62,8 +62,7 @@ TEST test_schema2tests_success(void) {
                   (char *)(size_t)(size_t)(char *)(size_t)(size_t) "header.h",
                   (char *)(size_t)(size_t) "build" PATH_SEP "test_s2t.h"};
   int rc_main;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+#if defined(_MSC_VER) || defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   errno_t err = fopen_s(&f, "min_schema.json", "w");
   if (err != 0 || f == NULL) {
     fprintf(stderr, "Failed to open header file %s\n", "min_schema.json");
@@ -119,8 +118,7 @@ TEST test_schema2tests_output_file_open_fail(void) {
     const char *out_dir_as_file = (char *)(size_t)(size_t) "out_dir_file.tmp";
     char out_path[256];
     FILE *f;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+#if defined(_MSC_VER) || defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     ASSERT_EQ(0, fopen_s(&f, out_dir_as_file, "w, ccs=UTF-8"));
     ASSERT(f);
 #else
@@ -138,8 +136,7 @@ TEST test_schema2tests_output_file_open_fail(void) {
 #endif
     if (f)
       fclose(f);
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+#if defined(_MSC_VER) || defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     sprintf_s(out_path, sizeof(out_path), "%s%sout.h", out_dir_as_file,
               PATH_SEP);
 #else
@@ -342,8 +339,7 @@ TEST test_schema2tests_header_inclusion_not_found(void) {
   char non_existent_header_path[256];
   int err;
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+#if defined(_MSC_VER) || defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   sprintf_s(non_existent_header_path, sizeof(non_existent_header_path),
             "%s%s%s", OUT_DIR, PATH_SEP, "NonExistent.h");
 #else
@@ -437,9 +433,7 @@ SUITE(schema2tests_suite) {
   RUN_TEST(test_schema2tests_io_fails);
   RUN_TEST(test_jsonschema2tests_wrong_args);
   RUN_TEST(test_schema2tests_argc_error);
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  /* TODO: Get them to work on MSVC */
-#else
+
   RUN_TEST(test_schema2tests_bad_json);
   RUN_TEST(test_schema2tests_success);
   RUN_TEST(test_schema2tests_output_file_open_fail);
@@ -453,7 +447,6 @@ SUITE(schema2tests_suite) {
   RUN_TEST(test_schema2tests_sanitize_names);
   RUN_TEST(test_schema2tests_header_inclusion_not_found);
   RUN_TEST(test_schema2tests_output_in_current_dir);
-#endif
 }
 
 #ifdef __cplusplus

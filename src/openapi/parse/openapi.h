@@ -33,7 +33,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include <parson.h>
 #include <stddef.h>

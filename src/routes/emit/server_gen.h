@@ -1,9 +1,9 @@
 #ifndef CDD_SERVER_GEN_H
 #define CDD_SERVER_GEN_H
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include "c_cddConfig.h"
 #include "openapi/parse/openapi.h"
@@ -39,4 +39,5 @@ C_CDD_EXPORT /**
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
 #endif /* CDD_SERVER_GEN_H */

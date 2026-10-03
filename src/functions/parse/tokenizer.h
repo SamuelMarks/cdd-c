@@ -23,11 +23,8 @@
 #define C_CDD_TOKENIZER_H
 
 #ifdef __cplusplus
-
 extern "C" {
-
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include <stddef.h>
 
@@ -437,7 +434,6 @@ extern C_CDD_EXPORT int g_cdd_fail_identify_keyword_or_id;
 
 #ifdef __cplusplus
 }
-
 #endif /* __cplusplus */
 
 #endif /* C_CDD_TOKENIZER_H */

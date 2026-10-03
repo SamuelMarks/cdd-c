@@ -166,7 +166,15 @@ cdd_c_error_t errno_to_cdd_error(int err) {
 #include <io.h>
 #else
 #include "c_cdd/log.h"
+#if defined(_MSC_VER)
+#include <io.h>
+#else
+#if defined(_WIN32)
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
+#endif
 /* clang-format on */
 #endif
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
@@ -369,7 +377,7 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
   } else {
     /* If we stopped at a separator, that's the end of dirname.
      * Unless it's like "C:\", but this logic treats leading slash as root
-     * length 1. Strip trailing separators from the dirname, e.g. "a//" -> "a".
+     * length 1. Strip trailing separators from the dirname, e.g. "a///" -> "a".
      */
     while (p > path && (*p == '/' || *p == '\\')) {
       p--;

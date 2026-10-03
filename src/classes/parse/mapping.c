@@ -257,7 +257,6 @@ cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
   return CDD_C_SUCCESS;
 }
 
-#ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT cdd_c_error_t test_mapping_internal_errors(void);
 C_CDD_EXPORT cdd_c_error_t test_mapping_internal_errors(void) {
   const char *out_str = NULL;
@@ -271,4 +270,3 @@ C_CDD_EXPORT cdd_c_error_t test_mapping_internal_errors(void) {
                          (err3 ^ CDD_C_ERROR_INVALID_ARGUMENT) |
                          (err4 ^ CDD_C_ERROR_INVALID_ARGUMENT));
 }
-#endif

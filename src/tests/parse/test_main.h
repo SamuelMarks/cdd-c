@@ -444,8 +444,9 @@ TEST test_main_to_openapi_cli_options(void) {
   setenv("CDD_OUTPUT", "outdir3", 1);
 #endif
 
-  /* still fails because it's not implemented, but we hit the env var branch */
-  cdd_main(2, argv_env);
+  /* c2openapi_cli_main will return error since indir3 doesn't exist, but we
+   * successfully passed the env vars! */
+  ASSERT_NEQ(CDD_C_SUCCESS, cdd_main(2, argv_env));
 
 #if defined(_WIN32)
   _putenv("CDD_INPUT=");
@@ -458,7 +459,7 @@ TEST test_main_to_openapi_cli_options(void) {
   setenv("INPUT_DIR", "indir3", 1);
   setenv("OUT_FILE", "outdir3", 1);
 #endif
-  cdd_main(2, argv_env);
+  ASSERT_NEQ(CDD_C_SUCCESS, cdd_main(2, argv_env));
 
   /* Unset ENV vars */
 #if defined(_WIN32)

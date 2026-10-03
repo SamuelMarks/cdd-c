@@ -3,9 +3,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-/* __cplusplus */
-
+#endif /* __cplusplus */
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
@@ -90,12 +88,6 @@ extern cdd_c_error_t remove_child_at_mutate(cdd_cst_node_t *parent, size_t idx);
 extern cdd_c_error_t track_synthesized_token_mutate(cdd_cst_tree_t *tree,
                                                     cdd_token_t *tok);
 
-#ifdef __cplusplus
-}
-
-#endif
-/* __cplusplus */
-
 /**
  * @brief Removes a child from a node's children array in-place.
  * @param node The node to modify.
@@ -114,4 +106,9 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_cst_remove_child(cdd_cst_node_t *node,
  */
 extern C_CDD_EXPORT cdd_c_error_t cdd_cst_replace_token_child(
     cdd_cst_node_t *node, size_t idx, cdd_token_t *new_tok);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
 #endif /* CDD_CST_MUTATE_H */

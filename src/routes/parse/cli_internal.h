@@ -11,7 +11,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 #include <stddef.h>
@@ -46,10 +45,6 @@ cdd_c_error_t
 spec_find_security_scheme(struct OpenAPI_Spec *spec, const char *name,
                           struct OpenAPI_SecurityScheme **out_val);
 
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
-
 /**
  * @brief Test helper for c2openapi_infer_client_route.
  */
@@ -68,5 +63,9 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_server_routes(
  */
 extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_gui_views(
     const struct TokenList *tokens, struct OpenAPI_Spec *spec);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* C_CDD_ROUTES_PARSE_CLI_INTERNAL_H */

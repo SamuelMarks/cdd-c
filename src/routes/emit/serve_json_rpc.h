@@ -1,9 +1,9 @@
 #ifndef SERVER_JSON_RPC_H
 #define SERVER_JSON_RPC_H
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /**
  * @file serve_json_rpc.h
  * @brief Declarations for the JSON RPC and MCP server.
@@ -43,4 +43,5 @@ extern C_CDD_EXPORT cdd_c_error_t serve_mcp_stdio_main(int argc, char **argv);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
 #endif

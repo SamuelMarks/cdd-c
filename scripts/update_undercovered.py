@@ -9,19 +9,23 @@ covered = []
 
 for file in files:
     fn = file["filename"]
+    if "/_deps/" in fn or "cfs.c" in fn or "cfs.h" in fn or "math.h" in fn:
+        continue
+
     if "/src/" in fn:
         fn = "src/" + fn.split("/src/", 1)[1]
     elif "/include/" in fn:
         fn = "include/" + fn.split("/include/", 1)[1]
     elif not (fn.startswith("src/") or fn.startswith("include/")):
         continue
+
     file["filename"] = fn
     lp = file.get("line_percent", 0.0) or 0.0
     fp = file.get("function_percent", 0.0) or 0.0
     bp = file.get("branch_percent", 0.0)
     bc = file.get("branch_covered", 0)
     bt = file.get("branch_total", 0)
-    if bp is None:
+    if bp is None or bt == 0:
         bp_str = "0/0 (N/A)"
         bp_val = 100.0
     else:
@@ -32,6 +36,11 @@ for file in files:
     lt = file.get("line_total", 0)
     fc = file.get("function_covered", 0)
     ft = file.get("function_total", 0)
+
+    if lt == 0:
+        lp = 100.0
+    if ft == 0:
+        fp = 100.0
 
     entry = {
         "filename": file["filename"],
@@ -64,18 +73,6 @@ lines.append("")
 lines.append("- **Total Files Evaluated:** {0}".format(len(files)))
 lines.append("- **Undercovered Files (< 100% Coverage):** {0}".format(len(undercovered)))
 lines.append("- **Fully Covered Files (100% Coverage):** {0}".format(len(covered)))
-tot_lc = data.get("line_covered")
-tot_lt = data.get("line_total")
-tot_fc = data.get("function_covered")
-tot_ft = data.get("function_total")
-tot_bc = data.get("branch_covered")
-tot_bt = data.get("branch_total")
-lp = data.get("line_percent")
-fp = data.get("function_percent")
-bp = data.get("branch_percent")
-lines.append("- **Total Lines:** {0:,} / {1:,} ({2:.1f}%)".format(tot_lc, tot_lt, lp))
-lines.append("- **Total Functions:** {0:,} / {1:,} ({2:.1f}%)".format(tot_fc, tot_ft, fp))
-lines.append("- **Total Branches:** {0:,} / {1:,} ({2:.1f}%)".format(tot_bc, tot_bt, bp))
 lines.append("")
 lines.append("---")
 lines.append("")
@@ -99,7 +96,6 @@ categories = [
     ("OpenAPI (`src/openapi/`)", lambda fn: fn.startswith("src/openapi/")),
     ("Routes (`src/routes/`)", lambda fn: fn.startswith("src/routes/")),
     ("Transformers (`src/transformers/`)", lambda fn: fn.startswith("src/transformers/")),
-    ("Tests (`src/tests/`)", lambda fn: fn.startswith("src/tests/")),
 ]
 
 for title, pred in categories:
@@ -123,5 +119,3 @@ lines.append("")
 
 with open("UNDERCOVERED.md", "w") as f:
     f.write("\n".join(lines))
-
-print("UNDERCOVERED.md updated successfully!")

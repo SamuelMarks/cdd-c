@@ -31,7 +31,7 @@ if(ENABLE_COVERAGE)
         if(GCOVR_PATH)
             add_custom_target(coverage
                 COMMAND ctest --output-on-failure
-                COMMAND ${GCOVR_PATH} -r ${CMAKE_SOURCE_DIR} --html --html-details -o coverage.html --fail-under-line 100 --fail-under-branch 100
+                COMMAND ${GCOVR_PATH} -r ${CMAKE_SOURCE_DIR} --html --html-details -o coverage.html --fail-under-line 100 --fail-under-branch 100 --merge-mode-functions=separate
                 WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                 COMMENT "Running gcovr and asserting 100% coverage"
             )

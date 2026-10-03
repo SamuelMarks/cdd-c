@@ -14,7 +14,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
@@ -819,7 +818,6 @@ write_webhooks(JSON_Object *root_obj, const struct OpenAPI_Spec *spec);
 
 #ifdef __cplusplus
 }
-
 #endif /* __cplusplus */
 
 #endif /* C_CDD_OPENAPI_WRITER_H */

@@ -149,6 +149,31 @@ TEST test_server_gen_basic(void) {
       fclose(f);
   }
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  if (fopen_s(&f, "test_test_server_server.c", "r") != 0)
+    f = NULL;
+#elif defined(_MSC_VER)
+  fopen_s(&f, "test_test_server_server.c", "r");
+#else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_test_server_server.c", "r") != 0)
+    f = NULL;
+#else
+  f = fopen("test_test_server_server.c", "r");
+#endif
+#endif
+  ASSERT(f != NULL);
+  if (f) {
+    char buf[16384];
+    size_t n = fread(buf, 1, sizeof(buf) - 1, f);
+    buf[n] = '\0';
+    ASSERT(strstr(buf, "ASSERT_EQ(CDD_C_SUCCESS, status);") != NULL);
+    ASSERT(strstr(buf, "SUITE(server_endpoints_suite) {") != NULL);
+    if (f)
+      fclose(f);
+  }
+
   remove("src/test_server_server.c");
   remove("test_test_server_server.c");
   C_CDD_FREE(spec.paths[0].operations[1].req_body_media_types);

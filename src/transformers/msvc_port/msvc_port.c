@@ -216,72 +216,81 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
 
   /* 1. Wrap unistd.h and sys/time.h */
   rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_PREPROC_DIRECTIVE, &res);
-  if (rc == CDD_C_SUCCESS) {
-    for (i = 0; i < res.size; i++) {
-      cdd_cst_node_t *dir = res.nodes[i];
-      {
-        cdd_token_t *tok = dir->children[0].val.token;
-        if (tok->kind == CDD_TOKEN_PREPROC_INCLUDE) {
-          const char *inc_str = NULL;
-          size_t t_i;
-          int has_unistd = 0;
-          int has_sys_time = 0;
+  if (rc != CDD_C_SUCCESS) {
+    return rc;
+  }
+  for (i = 0; i < res.size; i++) {
+    cdd_cst_node_t *dir = res.nodes[i];
+    {
+      cdd_token_t *tok = dir->children[0].val.token;
+      if (tok->kind == CDD_TOKEN_PREPROC_INCLUDE) {
+        const char *inc_str = NULL;
+        size_t t_i;
+        int has_unistd = 0;
+        int has_sys_time = 0;
 
-          for (t_i = 0; t_i + 10 <= tok->length; ++t_i) {
-            if (memcmp(tok->start + t_i, "<unistd.h>", 10) == 0) {
-              has_unistd = 1;
-              break;
-            }
+        for (t_i = 0; t_i + 10 <= tok->length; ++t_i) {
+          if (memcmp(tok->start + t_i, "<unistd.h>", 10) == 0) {
+            has_unistd = 1;
+            break;
           }
-          for (t_i = 0; t_i + 12 <= tok->length; ++t_i) {
-            if (memcmp(tok->start + t_i, "<sys/time.h>", 12) == 0) {
-              has_sys_time = 1;
-              break;
-            }
+        }
+        for (t_i = 0; t_i + 12 <= tok->length; ++t_i) {
+          if (memcmp(tok->start + t_i, "<sys/time.h>", 12) == 0) {
+            has_sys_time = 1;
+            break;
           }
+        }
 
-          if (has_unistd) {
-            inc_str = "unistd.h";
-          } else if (has_sys_time) {
-            inc_str = "sys/time.h";
-          }
+        printf("FOUND PREPROC_INCLUDE! len=%zu str=%.*s\n", tok->length,
+               (int)tok->length, tok->start);
+        if (has_unistd) {
+          inc_str = "unistd.h";
+        } else if (has_sys_time) {
+          inc_str = "sys/time.h";
+        }
 
-          if (inc_str) {
-            cdd_cst_builder_t bld;
-            cdd_cst_node_t *wrap_node =
-                (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
-            if (wrap_node) {
-              wrap_node->kind = CDD_CST_UNKNOWN;
-              cdd_cst_builder_init(&bld, tree, wrap_node);
-              cdd_cst_bld_ifndef(&bld, "_MSC_VER");
-              cdd_cst_bld_include(&bld, inc_str, 1);
-              if (!added_compat) {
-                cdd_cst_bld_else(&bld);
-                cdd_cst_bld_include(&bld, "win_compat_sym.h", 0);
-                added_compat = 1;
-              }
-              cdd_cst_bld_endif(&bld);
+        if (inc_str) {
+          cdd_cst_builder_t bld;
+          cdd_cst_node_t *wrap_node =
+              (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
+          if (!wrap_node) {
+            C_CDD_FREE(res.nodes);
+            return CDD_C_ERROR_MEMORY;
+          }
+          wrap_node->kind = CDD_CST_UNKNOWN;
+          cdd_cst_builder_init(&bld, tree, wrap_node);
+          cdd_cst_bld_ifndef(&bld, "_MSC_VER");
+          cdd_cst_bld_include(&bld, inc_str, 1);
+          if (!added_compat) {
+            cdd_cst_bld_else(&bld);
+            cdd_cst_bld_include(&bld, "win_compat_sym.h", 0);
+            added_compat = 1;
+          }
+          cdd_cst_bld_endif(&bld);
 
 #ifdef CDD_BUILD_TESTS
-              if (g_msvc_port_bld_fail)
-                bld.error_state = 1;
+          printf("REACHED bld_fail CHECK! g_msvc_port_bld_fail=%d\n",
+                 g_msvc_port_bld_fail);
+          if (g_msvc_port_bld_fail) {
+            printf("SETTING bld.error_state = 1!\n");
+            bld.error_state = 1;
+          }
 #endif
 
-              if (bld.error_state == 0) {
-                cdd_cst_replace_node(tree, dir, wrap_node);
-                cdd_cst_free_node(dir);
-              } else {
-                C_CDD_FREE(wrap_node->children);
-                C_CDD_FREE(wrap_node);
-              }
-              cdd_cst_builder_free(&bld);
-            }
+          if (bld.error_state == 0) {
+            cdd_cst_replace_node(tree, dir, wrap_node);
+            cdd_cst_free_node(dir);
+          } else {
+            C_CDD_FREE(wrap_node->children);
+            C_CDD_FREE(wrap_node);
           }
+          cdd_cst_builder_free(&bld);
         }
       }
     }
-    C_CDD_FREE(res.nodes);
   }
+  C_CDD_FREE(res.nodes);
 
   /* 2. Traverse tokens and replace POSIX identifiers directly */
   {

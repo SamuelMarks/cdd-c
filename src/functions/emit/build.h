@@ -18,7 +18,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include <stddef.h>
 #include <stdio.h>

@@ -14,7 +14,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
@@ -136,6 +135,7 @@ extern C_CDD_EXPORT cdd_c_error_t emit_operation(
     FILE *hfile, FILE *cfile, const struct OpenAPI_Path *path,
     const struct OpenAPI_Operation *op, const struct OpenAPI_Spec *spec,
     const struct OpenApiClientConfig *config, const char *prefix);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
