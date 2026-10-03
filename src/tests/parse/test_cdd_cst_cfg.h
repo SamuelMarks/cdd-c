@@ -57,6 +57,7 @@ TEST test_cdd_cst_cfg_basic(void) {
     ASSERT(cfg != NULL);
 
     cdd_cst_cfg_free(cfg);
+    cfg = NULL;
     cdd_cst_tree_free(tree);
     g_fail_io_after = -1;
 
@@ -126,6 +127,43 @@ TEST test_cdd_cst_cfg_oom(void) {
     }
     g_cdd_cfg_alloc_fail = 0;
     cdd_cst_tree_free(ret_t);
+
+    {
+      const char *if_src = "int f() { if(1){} else{} }";
+      cdd_cst_tree_t *if_t = NULL;
+      cdd_cst_cfg_t *if_cfg = NULL;
+      cdd_cst_parse(az_span_create_from_str((char *)(size_t)if_src), &if_t);
+      for (i = 1; i < 150; ++i) {
+        g_cdd_cfg_alloc_fail = i;
+        rc = cdd_cst_cfg_build(if_t->root->children[0].val.node, &if_cfg);
+        if (if_cfg) {
+          cdd_cst_cfg_free(if_cfg);
+          if_cfg = NULL;
+        }
+        if (rc == CDD_C_SUCCESS)
+          break;
+      }
+      g_cdd_cfg_alloc_fail = 0;
+      cdd_cst_tree_free(if_t);
+    }
+    {
+      const char *if2_src = "int f() { if(1){} }";
+      cdd_cst_tree_t *if2_t = NULL;
+      cdd_cst_cfg_t *if2_cfg = NULL;
+      cdd_cst_parse(az_span_create_from_str((char *)(size_t)if2_src), &if2_t);
+      for (i = 1; i < 150; ++i) {
+        g_cdd_cfg_alloc_fail = i;
+        rc = cdd_cst_cfg_build(if2_t->root->children[0].val.node, &if2_cfg);
+        if (if2_cfg) {
+          cdd_cst_cfg_free(if2_cfg);
+          if2_cfg = NULL;
+        }
+        if (rc == CDD_C_SUCCESS)
+          break;
+      }
+      g_cdd_cfg_alloc_fail = 0;
+      cdd_cst_tree_free(if2_t);
+    }
   }
 
   cdd_cst_tree_free(tree);
@@ -181,6 +219,7 @@ TEST test_cdd_cst_cfg_empty(void) {
     ASSERT(cfg != NULL);
 
     cdd_cst_cfg_free(cfg);
+    cfg = NULL;
     cdd_cst_tree_free(tree);
     g_fail_io_after = -1;
 
@@ -224,6 +263,7 @@ TEST test_cdd_cst_cfg_no_return(void) {
     ASSERT(cfg != NULL);
 
     cdd_cst_cfg_free(cfg);
+    cfg = NULL;
     cdd_cst_tree_free(tree);
     g_fail_io_after = -1;
 
@@ -263,6 +303,7 @@ TEST test_cdd_cst_cfg_extra(void) {
         cdd_cst_free_node_only(dummy_node);
         if (rc == 0) {
           cdd_cst_cfg_free(cfg);
+          cfg = NULL;
           break;
         }
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
@@ -303,6 +344,43 @@ TEST test_cdd_cst_cfg_extra(void) {
     }
     g_cdd_cfg_alloc_fail = 0;
     cdd_cst_tree_free(ret_t);
+
+    {
+      const char *if_src = "int f() { if(1){} else{} }";
+      cdd_cst_tree_t *if_t = NULL;
+      cdd_cst_cfg_t *if_cfg = NULL;
+      cdd_cst_parse(az_span_create_from_str((char *)(size_t)if_src), &if_t);
+      for (i = 1; i < 150; ++i) {
+        g_cdd_cfg_alloc_fail = i;
+        rc = cdd_cst_cfg_build(if_t->root->children[0].val.node, &if_cfg);
+        if (if_cfg) {
+          cdd_cst_cfg_free(if_cfg);
+          if_cfg = NULL;
+        }
+        if (rc == CDD_C_SUCCESS)
+          break;
+      }
+      g_cdd_cfg_alloc_fail = 0;
+      cdd_cst_tree_free(if_t);
+    }
+    {
+      const char *if2_src = "int f() { if(1){} }";
+      cdd_cst_tree_t *if2_t = NULL;
+      cdd_cst_cfg_t *if2_cfg = NULL;
+      cdd_cst_parse(az_span_create_from_str((char *)(size_t)if2_src), &if2_t);
+      for (i = 1; i < 150; ++i) {
+        g_cdd_cfg_alloc_fail = i;
+        rc = cdd_cst_cfg_build(if2_t->root->children[0].val.node, &if2_cfg);
+        if (if2_cfg) {
+          cdd_cst_cfg_free(if2_cfg);
+          if2_cfg = NULL;
+        }
+        if (rc == CDD_C_SUCCESS)
+          break;
+      }
+      g_cdd_cfg_alloc_fail = 0;
+      cdd_cst_tree_free(if2_t);
+    }
   }
 
   cdd_cst_tree_free(tree);
@@ -349,6 +427,25 @@ TEST test_cdd_cst_cfg_if_else(void) {
   rc = cdd_cst_cfg_build(func, &cfg);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   cdd_cst_cfg_free(cfg);
+  cfg = NULL;
+
+#ifdef CDD_BUILD_TESTS
+  {
+    int j;
+    for (j = 1; j < 60; j++) {
+      g_cdd_cfg_alloc_fail = j;
+      rc = cdd_cst_cfg_build(func, &cfg);
+      if (cfg) {
+        cdd_cst_cfg_free(cfg);
+        cfg = NULL;
+        cfg = NULL;
+      }
+      if (rc == CDD_C_SUCCESS)
+        break;
+    }
+    g_cdd_cfg_alloc_fail = 0;
+  }
+#endif
 #ifdef CDD_BUILD_TESTS
   {
     int i;
@@ -382,6 +479,25 @@ TEST test_cdd_cst_cfg_if_only(void) {
   rc = cdd_cst_cfg_build(func, &cfg);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   cdd_cst_cfg_free(cfg);
+  cfg = NULL;
+
+#ifdef CDD_BUILD_TESTS
+  {
+    int j;
+    for (j = 1; j < 60; j++) {
+      g_cdd_cfg_alloc_fail = j;
+      rc = cdd_cst_cfg_build(func, &cfg);
+      if (cfg) {
+        cdd_cst_cfg_free(cfg);
+        cfg = NULL;
+        cfg = NULL;
+      }
+      if (rc == CDD_C_SUCCESS)
+        break;
+    }
+    g_cdd_cfg_alloc_fail = 0;
+  }
+#endif
   cdd_cst_free_node(func);
 
   PASS();
@@ -403,8 +519,113 @@ TEST test_cdd_cst_cfg_dead_code(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   cdd_cst_cfg_free(cfg);
+  cfg = NULL;
   cdd_cst_tree_free(tree);
 
+  PASS();
+}
+
+TEST test_cdd_cst_cfg_if_returns(void) {
+  cdd_cst_tree_t *tree = NULL;
+  cdd_cst_node_t *func = NULL;
+  cdd_cst_cfg_t *cfg = NULL;
+  int rc = 0;
+  size_t i;
+  const char *src = "int f() { if (1) { return 1; } else { return 0; } }";
+
+  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
+  ASSERT_EQ(0, rc);
+
+  for (i = 0; i < tree->root->num_children; i++) {
+    if (tree->root->children[i].kind == CDD_CST_CHILD_NODE &&
+        tree->root->children[i].val.node->kind == CDD_CST_FUNCTION_DEFINITION &&
+        func == NULL) {
+      func = tree->root->children[i].val.node;
+    }
+  }
+  ASSERT(func != NULL);
+
+  rc = cdd_cst_cfg_build(func, &cfg);
+  ASSERT_EQ(0, rc);
+  ASSERT(cfg != NULL);
+
+  cdd_cst_cfg_free(cfg);
+  cfg = NULL;
+
+#ifdef CDD_BUILD_TESTS
+  {
+    int j;
+    for (j = 1; j < 60; j++) {
+      g_cdd_cfg_alloc_fail = j;
+      rc = cdd_cst_cfg_build(func, &cfg);
+      if (cfg) {
+        cdd_cst_cfg_free(cfg);
+        cfg = NULL;
+        cfg = NULL;
+      }
+      if (rc == CDD_C_SUCCESS)
+        break;
+    }
+    g_cdd_cfg_alloc_fail = 0;
+  }
+#endif
+  cdd_cst_tree_free(tree);
+  PASS();
+}
+
+TEST test_cdd_cst_cfg_if_returns_manual(void) {
+  cdd_c_error_t rc;
+  cdd_cst_cfg_t *cfg = NULL;
+  cdd_cst_node_t *func, *blk, *stmt, *then_stmt, *else_stmt;
+  cdd_token_t ret_tok;
+
+  memset(&ret_tok, 0, sizeof(ret_tok));
+  ret_tok.kind = CDD_TOKEN_KEYWORD_RETURN;
+
+  cdd_cst_alloc_node(CDD_CST_FUNCTION_DEFINITION, &func);
+  cdd_cst_alloc_node(CDD_CST_BLOCK, &blk);
+  cdd_cst_alloc_node(CDD_CST_STATEMENT, &stmt);
+  cdd_cst_alloc_node(CDD_CST_STATEMENT, &then_stmt);
+  cdd_cst_alloc_node(CDD_CST_STATEMENT, &else_stmt);
+
+  cdd_cst_append_child_token(then_stmt, &ret_tok);
+  cdd_cst_append_child_token(else_stmt, &ret_tok);
+
+  cdd_cst_append_child_node(stmt, then_stmt);
+  cdd_cst_append_child_node(stmt, else_stmt);
+
+  cdd_cst_append_child_node(func, blk);
+  cdd_cst_append_child_node(blk, stmt);
+
+  rc = cdd_cst_cfg_build(func, &cfg);
+  ASSERT_EQ(0, rc);
+  ASSERT(cfg != NULL);
+
+  cdd_cst_cfg_free(cfg);
+  cfg = NULL;
+
+#ifdef CDD_BUILD_TESTS
+  {
+    int j;
+    for (j = 1; j < 60; j++) {
+      g_cdd_cfg_alloc_fail = j;
+      rc = cdd_cst_cfg_build(func, &cfg);
+      if (cfg) {
+        cdd_cst_cfg_free(cfg);
+        cfg = NULL;
+        cfg = NULL;
+      }
+      if (rc == CDD_C_SUCCESS)
+        break;
+    }
+    g_cdd_cfg_alloc_fail = 0;
+  }
+#endif
+  cdd_cst_free_node_only(stmt);
+  cdd_cst_free_node_only(then_stmt);
+  cdd_cst_free_node_only(else_stmt);
+  cdd_cst_free_node_only(blk);
+  cdd_cst_free_node_only(func);
   PASS();
 }
 
@@ -437,12 +658,15 @@ TEST test_cdd_cst_cfg_loop(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   cdd_cst_cfg_free(cfg);
+  cfg = NULL;
 
   cdd_cst_free_node(func);
   PASS();
 }
 
 SUITE(cdd_cst_cfg_suite) {
+  RUN_TEST(test_cdd_cst_cfg_if_returns);
+  RUN_TEST(test_cdd_cst_cfg_if_returns_manual);
   RUN_TEST(test_cdd_cst_cfg_loop);
   RUN_TEST(test_cdd_cst_cfg_if_else);
   RUN_TEST(test_cdd_cst_cfg_if_only);
