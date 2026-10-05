@@ -753,8 +753,9 @@ TEST test_cdd_transform_percolate_errors_comprehensive(void) {
       off += (size_t)sprintf_s(buf + off, sizeof(buf) - off,
                                "int fn_%d(void) { return %d; }\n", fn_i, fn_i);
 #else
-      off += (size_t)sprintf(buf + off, "int fn_%d(void) { return %d; }\n",
-                             fn_i, fn_i);
+      off +=
+          (size_t)CDD_SNPRINTF(buf + off, sizeof(buf) - off,
+                               "int fn_%d(void) { return %d; }\n", fn_i, fn_i);
 #endif
     }
     ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(buf), &tree));

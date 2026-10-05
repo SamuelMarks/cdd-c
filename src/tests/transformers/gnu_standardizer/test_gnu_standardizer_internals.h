@@ -510,7 +510,10 @@ TEST test_gnu_asm_and_visitors(void) {
   struct tramp_ctx tctx;
   cdd_cst_node_t node;
   cdd_cst_child_t children[2];
-  cdd_token_t tok1, tok2;
+  cdd_token_t toks_arr[5];
+  memset(toks_arr, 0, sizeof(toks_arr));
+#define tok1 toks_arr[0]
+#define tok2 toks_arr[1]
 
   /* Test cdd_asm_visitor */
   ASSERT_EQ(CDD_C_SUCCESS, cdd_asm_visitor(NULL, NULL));
@@ -587,6 +590,8 @@ TEST test_gnu_asm_and_visitors(void) {
   tctx.name = (const uint8_t *)"my_sym";
   tctx.length = 6;
   tok2.length = 6;
+  toks_arr[2].length = 1;
+  toks_arr[2].kind = CDD_TOKEN_IDENTIFIER;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_tramp_visitor(&node, &tctx));
   ASSERT_EQ(1, tctx.is_tramp);
 
@@ -751,3 +756,5 @@ SUITE(transformer_gnu_standardizer_internals_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_GNU_STANDARDIZER_INTERNALS_H */
+#undef tok1
+#undef tok2

@@ -369,18 +369,18 @@ TEST test_main_from_openapi_cli_options(void) {
 
   /* Set input dir to cover that branch */
 #if defined(_WIN32)
-  _putenv("CDD_INPUT_DIR=.");
+  _putenv("CDD_INPUT_DIR=src/tests/mocks");
 #else
-  setenv("CDD_INPUT_DIR", ".", 1);
+  setenv("CDD_INPUT_DIR", "src/tests/mocks", 1);
 #endif
   ASSERT_EQ(0, cdd_main(3, argv_env));
 
 #if defined(_WIN32)
   _putenv("CDD_INPUT_DIR=");
-  _putenv("INPUT_DIR=.");
+  _putenv("INPUT_DIR=src/tests/mocks");
 #else
   unsetenv("CDD_INPUT_DIR");
-  setenv("INPUT_DIR", ".", 1);
+  setenv("INPUT_DIR", "src/tests/mocks", 1);
 #endif
   ASSERT_EQ(0, cdd_main(3, argv_env));
 

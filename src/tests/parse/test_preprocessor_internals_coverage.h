@@ -56,7 +56,7 @@ TEST test_pp_100_percent_coverage(void) {
 #if defined(_MSC_VER)
     sprintf_s(buf, sizeof(buf), "MACRO%lu", (unsigned long)i);
 #else
-    sprintf(buf, "MACRO%lu", (unsigned long)i);
+    CDD_SNPRINTF(buf, sizeof(buf), "MACRO%lu", (unsigned long)i);
 #endif
     memset(&def, 0, sizeof(def));
     def.name = C_CDD_STRDUP(buf);

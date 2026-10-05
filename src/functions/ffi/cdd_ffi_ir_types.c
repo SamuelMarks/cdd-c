@@ -238,11 +238,11 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_mangle_cpp_name(const char *ns_name,
   }
 #else
   if (ns_name && class_name) {
-    sprintf(mangled, "%s_%s_%s", ns_name, class_name, method_name);
+    CDD_SNPRINTF(mangled, 1024, "%s_%s_%s", ns_name, class_name, method_name);
   } else if (ns_name) {
-    sprintf(mangled, "%s_%s", ns_name, method_name);
+    CDD_SNPRINTF(mangled, 1024, "%s_%s", ns_name, method_name);
   } else if (class_name) {
-    sprintf(mangled, "%s_%s", class_name, method_name);
+    CDD_SNPRINTF(mangled, 1024, "%s_%s", class_name, method_name);
   } else {
     strcpy(mangled, method_name);
   }

@@ -148,7 +148,8 @@ CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void) {
   sprintf_s(g_cdd_test_tmp_buf[counter], sizeof(g_cdd_test_tmp_buf[counter]),
             "cdd_test_tmp_%d.txt", counter);
 #else
-  sprintf(g_cdd_test_tmp_buf[counter], "cdd_test_tmp_%d.txt", counter);
+  CDD_SNPRINTF(g_cdd_test_tmp_buf[counter], sizeof(g_cdd_test_tmp_buf[counter]),
+               "cdd_test_tmp_%d.txt", counter);
 #endif
   remove(g_cdd_test_tmp_buf[counter]);
 #if defined(_MSC_VER)

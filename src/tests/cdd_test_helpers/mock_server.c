@@ -287,7 +287,7 @@ struct MockServer_ {
 static void cond_wait_internal(cond_t *c, mutex_t *m,
                                struct MockServer_ *server) {
   if (g_accept_fail == 999) {
-    server->running = 0;
+    server->has_request = -1;
     return;
   }
 #if defined(_WIN32)
@@ -524,11 +524,11 @@ cdd_c_error_t mock_server_wait_for_request(MockServerPtr server,
 
   mutex_lock(&server->lock);
 
-  while (!server->has_request && server->running) {
+  while (server->has_request == 0 && server->running) {
     cond_wait_internal(&server->cond_req_ready, &server->lock, server);
   }
 
-  if (server->has_request) {
+  if (server->has_request == 1) {
     /* Copy data out */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     out_req->raw_header = _strdup(server->captured_request);

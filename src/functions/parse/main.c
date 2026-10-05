@@ -286,7 +286,7 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
       sprintf_s(path, strlen(out_dir) + 32, "%s/generated_client", out_dir);
 #else
-      sprintf(path, "%s/generated_client", out_dir);
+      CDD_SNPRINTF(path, strlen(out_dir) + 32, "%s/generated_client", out_dir);
 #endif
       config.filename_base = path;
     } else {
@@ -364,7 +364,8 @@ C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
     sprintf_s(snapshot_path, sizeof(snapshot_path), "%s/openapi.snapshot.json",
               input_dir);
 #else
-    sprintf(snapshot_path, "%s/openapi.snapshot.json", input_dir);
+    CDD_SNPRINTF(snapshot_path, sizeof(snapshot_path),
+                 "%s/openapi.snapshot.json", input_dir);
 #endif
 #if defined(_MSC_VER)
     if (fopen_s(&f, snapshot_path, "r") != 0)

@@ -235,10 +235,10 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
                   "_safe_tmp; }",
                   call_expr, DEFAULT_ERROR_CODE, site->var_name);
 #else
-        sprintf(replacement,
-                "{ void *_safe_tmp = %s; if (!_safe_tmp) return %s; %s = "
-                "_safe_tmp; }",
-                call_expr, DEFAULT_ERROR_CODE, site->var_name);
+        CDD_SNPRINTF(replacement, replacement_len,
+                     "{ void *_safe_tmp = %s; if (!_safe_tmp) return %s; %s = "
+                     "_safe_tmp; }",
+                     call_expr, DEFAULT_ERROR_CODE, site->var_name);
 #endif
 #ifdef CDD_BUILD_TESTS
         if (g_cdd_fail_asprintf) {
@@ -326,8 +326,8 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
       sprintf_s(injection, len, " if (!%s) { return %s; }", site->var_name,
                 DEFAULT_ERROR_CODE);
 #else
-      sprintf(injection, " if (!%s) { return %s; }", site->var_name,
-              DEFAULT_ERROR_CODE);
+      CDD_SNPRINTF(injection, len, " if (!%s) { return %s; }", site->var_name,
+                   DEFAULT_ERROR_CODE);
 #endif
 
     } else if (site->spec->check_style == CHECK_INT_NEGATIVE) {
@@ -341,8 +341,8 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
       sprintf_s(injection, len, " if (%s < 0) { return %s; }", site->var_name,
                 DEFAULT_ERROR_CODE);
 #else
-      sprintf(injection, " if (%s < 0) { return %s; }", site->var_name,
-              DEFAULT_ERROR_CODE);
+      CDD_SNPRINTF(injection, len, " if (%s < 0) { return %s; }",
+                   site->var_name, DEFAULT_ERROR_CODE);
 #endif
 
     } else if (site->spec->check_style == CHECK_INT_NONZERO) {
@@ -356,8 +356,8 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
       sprintf_s(injection, len, " if (%s != 0) { return %s; }", site->var_name,
                 DEFAULT_ERROR_CODE);
 #else
-      sprintf(injection, " if (%s != 0) { return %s; }", site->var_name,
-              DEFAULT_ERROR_CODE);
+      CDD_SNPRINTF(injection, len, " if (%s != 0) { return %s; }",
+                   site->var_name, DEFAULT_ERROR_CODE);
 #endif
     } else {
       /* Unknown -> skip */

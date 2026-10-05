@@ -169,14 +169,14 @@ cdd_c_error_t safe_crt_generate_strcpy_patch(const struct TokenList *tokens,
             "#endif\n",
             dest, dest, src, dest, src);
 #else
-  sprintf(replacement,
-          "#if defined(_MSC_VER)\n"
-          "  strcpy_s(%s, sizeof(%s), %s);\n"
-          "#else\n"
-          "  str"
-          "cpy(%s, %s);\n"
-          "#endif\n",
-          dest, dest, src, dest, src);
+  CDD_SNPRINTF(replacement, sizeof(replacement),
+               "#if defined(_MSC_VER)\n"
+               "  strcpy_s(%s, sizeof(%s), %s);\n"
+               "#else\n"
+               "  str"
+               "cpy(%s, %s);\n"
+               "#endif\n",
+               dest, dest, src, dest, src);
 #endif
 
   rc_crt = safe_crt_add_patch(out, call_start, call_end, replacement);
@@ -276,13 +276,13 @@ cdd_c_error_t safe_crt_generate_fopen_patch(const struct TokenList *tokens,
             "#endif\n",
             dest, path, mode, dest, path, mode);
 #else
-  sprintf(replacement,
-          "#if defined(_MSC_VER)\n"
-          "  fopen_s(&%s, %s, %s);\n"
-          "#else\n"
-          "  %s = fopen(%s, %s);\n"
-          "#endif\n",
-          dest, path, mode, dest, path, mode);
+  CDD_SNPRINTF(replacement, sizeof(replacement),
+               "#if defined(_MSC_VER)\n"
+               "  fopen_s(&%s, %s, %s);\n"
+               "#else\n"
+               "  %s = fopen(%s, %s);\n"
+               "#endif\n",
+               dest, path, mode, dest, path, mode);
 #endif
   rc_crt = safe_crt_add_patch(out, assign_idx - 1, call_end, replacement);
   C_CDD_FREE(path);
@@ -354,14 +354,14 @@ cdd_c_error_t safe_crt_generate_strncpy_patch(const struct TokenList *tokens,
             "#endif\n",
             dest, dest, src, count, dest, src, count);
 #else
-  sprintf(replacement,
-          "#if defined(_MSC_VER)\n"
-          "  strncpy_s(%s, sizeof(%s), %s, %s);\n"
-          "#else\n"
-          "  str"
-          "ncpy(%s, %s, %s);\n"
-          "#endif\n",
-          dest, dest, src, count, dest, src, count);
+  CDD_SNPRINTF(replacement, sizeof(replacement),
+               "#if defined(_MSC_VER)\n"
+               "  strncpy_s(%s, sizeof(%s), %s, %s);\n"
+               "#else\n"
+               "  str"
+               "ncpy(%s, %s, %s);\n"
+               "#endif\n",
+               dest, dest, src, count, dest, src, count);
 #endif
   rc_crt = safe_crt_add_patch(out, call_start, call_end, replacement);
   C_CDD_FREE(dest);
@@ -377,7 +377,7 @@ cdd_c_error_t safe_crt_generate_sprintf_patch(const struct TokenList *tokens,
                                               size_t call_start,
                                               size_t call_end,
                                               struct SafeCrtPatchList *out) {
-  /* Pattern: sprintf(dest, format, ...) */
+  /* Pattern: CDD_SNPRINTF(dest, sizeof(dest), format, ...) */
   size_t lparen = 0, comma1 = 0, rparen = 0, i;
   char *dest = NULL;
   char *args = NULL;
@@ -423,14 +423,14 @@ cdd_c_error_t safe_crt_generate_sprintf_patch(const struct TokenList *tokens,
             "#endif",
             dest, dest, args, dest, args);
 #else
-  sprintf(replacement,
-          "#if defined(_MSC_VER)\n"
-          "  sprintf_s(%s, sizeof(%s), %s);\n"
-          "#else\n"
-          "  spr"
-          "intf(%s, %s);\n"
-          "#endif",
-          dest, dest, args, dest, args);
+  CDD_SNPRINTF(replacement, sizeof(replacement),
+               "#if defined(_MSC_VER)\n"
+               "  sprintf_s(%s, sizeof(%s), %s);\n"
+               "#else\n"
+               "  spr"
+               "intf(%s, %s);\n"
+               "#endif",
+               dest, dest, args, dest, args);
 #endif
   rc_crt = safe_crt_add_patch(out, call_start, call_end, replacement);
   C_CDD_FREE(dest);
@@ -587,14 +587,14 @@ cst_generate_safe_crt_patches(const struct CstNodeList *cst,
                           type_name, var_name, type_name, expr, type_name,
                           type_name, var_name, expr);
 #else
-                sprintf(replacement,
-                        "#if defined(_MSC_VER)\n"
-                        "  %s *%s = (%s*)_alloca((%s) * sizeof(%s));\n"
-                        "#else\n"
-                        "  %s %s[%s];\n"
-                        "#endif",
-                        type_name, var_name, type_name, expr, type_name,
-                        type_name, var_name, expr);
+                CDD_SNPRINTF(replacement, sizeof(replacement),
+                             "#if defined(_MSC_VER)\n"
+                             "  %s *%s = (%s*)_alloca((%s) * sizeof(%s));\n"
+                             "#else\n"
+                             "  %s %s[%s];\n"
+                             "#endif",
+                             type_name, var_name, type_name, expr, type_name,
+                             type_name, var_name, expr);
 #endif
 
                 /* statement usually ends with ; */

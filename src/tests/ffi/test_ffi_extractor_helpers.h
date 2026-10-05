@@ -155,7 +155,8 @@ TEST test_ffi_ir_extract_docstring_and_sal_intents(void) {
   sprintf_s(code_buf, sizeof(code_buf), "void test_long_fn(int %s) {}\n",
             long_param_buf);
 #else
-  sprintf(code_buf, "void test_long_fn(int %s) {}\n", long_param_buf);
+  CDD_SNPRINTF(code_buf, sizeof(code_buf), "void test_long_fn(int %s) {}\n",
+               long_param_buf);
 #endif
 
   write_to_file("test_long.h", code_buf);

@@ -819,7 +819,12 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
             if (g_gnu_standardizer_fail != 7)
 #endif
             {
-              rc = replace_token_with_text(tree, tok, tok->kind, heap_buf,
+              const char *pooled = pool_string_safe(tree, heap_buf);
+              if (!pooled) {
+                free(heap_buf);
+                return CDD_C_ERROR_MEMORY;
+              }
+              rc = replace_token_with_text(tree, tok, tok->kind, pooled,
                                            6 + attr->length);
               if (rc != CDD_C_SUCCESS) {
                 free(heap_buf);

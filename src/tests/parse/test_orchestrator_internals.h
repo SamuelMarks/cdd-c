@@ -173,7 +173,7 @@ TEST test_orchestrator_internals(void) {
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, fix_code_main(3, argv3));
 
   {
-    char *argv_dir[1] = {(char *)(size_t)(size_t) "."};
+    char *argv_dir[1] = {(char *)(size_t)(size_t) "src/tests/mocks"};
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, fix_code_main(1, argv_dir));
   }
 

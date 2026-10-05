@@ -57,7 +57,7 @@ cdd_c_error_t pp_join_path(const char *dir, const char *file, char **out_val) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   sprintf_s(out, len, "%s%c%s", dir, PATH_SEP_CHAR, file);
 #else
-  sprintf(out, "%s%c%s", dir, PATH_SEP_CHAR, file);
+  CDD_SNPRINTF(out, len, "%s%c%s", dir, PATH_SEP_CHAR, file);
 #endif
 
   *out_val = out;

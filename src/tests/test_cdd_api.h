@@ -132,9 +132,10 @@ TEST test_bin_cdd(void) {
 #if defined(_MSC_VER)
     sprintf_s(cmd, sizeof(cmd), "\"%s\" --help > NUL 2>&1", candidates[i]);
 #elif defined(_WIN32)
-    sprintf(cmd, "\"%s\" --help > NUL 2>&1", candidates[i]);
+    CDD_SNPRINTF(cmd, sizeof(cmd), "\"%s\" --help > NUL 2>&1", candidates[i]);
 #else
-    sprintf(cmd, "\"%s\" --help > /dev/null 2>&1", candidates[i]);
+    CDD_SNPRINTF(cmd, sizeof(cmd), "\"%s\" --help > /dev/null 2>&1",
+                 candidates[i]);
 #endif
     rc = system(cmd);
     if (rc == 0) {

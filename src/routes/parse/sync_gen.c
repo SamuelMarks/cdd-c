@@ -246,12 +246,12 @@ cdd_c_error_t generate_expected_header_line(const struct OpenAPI_Parameter *p,
               "(rc != CDD_C_SUCCESS) goto cleanup;\n  }\n",
               p->name, p->name, p->name, p->name);
 #else
-    sprintf(buf,
-            "  /* Header Parameter: %s */\n  if (%s) {\n    rc = "
-            "http_headers_add(&req.headers, \"%s\", %s);\n    if (rc != "
-            "CDD_C_SUCCESS) "
-            "goto cleanup;\n  }\n",
-            p->name, p->name, p->name, p->name);
+    CDD_SNPRINTF(buf, 512,
+                 "  /* Header Parameter: %s */\n  if (%s) {\n    rc = "
+                 "http_headers_add(&req.headers, \"%s\", %s);\n    if (rc != "
+                 "CDD_C_SUCCESS) "
+                 "goto cleanup;\n  }\n",
+                 p->name, p->name, p->name, p->name);
 #endif
   } else if (p->type && strcmp(p->type, "integer") == 0) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -262,12 +262,13 @@ cdd_c_error_t generate_expected_header_line(const struct OpenAPI_Parameter *p,
               "0) goto cleanup;\n  }\n",
               p->name, p->name, p->name);
 #else
-    sprintf(buf,
-            "  /* Header Parameter: %s */\n  {\n    char num_buf[32];\n    "
-            "sprintf(num_buf, \"%%d\", %s);\n    rc = "
-            "http_headers_add(&req.headers, \"%s\", num_buf);\n    if (rc != "
-            "0) goto cleanup;\n  }\n",
-            p->name, p->name, p->name);
+    CDD_SNPRINTF(
+        buf, 512,
+        "  /* Header Parameter: %s */\n  {\n    char num_buf[32];\n    "
+        "CDD_SNPRINTF(num_buf, sizeof(num_buf), \"%%d\", %s);\n    rc = "
+        "http_headers_add(&req.headers, \"%s\", num_buf);\n    if (rc != "
+        "0) goto cleanup;\n  }\n",
+        p->name, p->name, p->name);
 #endif
   } else {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -275,8 +276,9 @@ cdd_c_error_t generate_expected_header_line(const struct OpenAPI_Parameter *p,
               "  /* Header Parameter: %s (Type unhandled in sync) */\n",
               p->name);
 #else
-    sprintf(buf, "  /* Header Parameter: %s (Type unhandled in sync) */\n",
-            p->name);
+    CDD_SNPRINTF(buf, 512,
+                 "  /* Header Parameter: %s (Type unhandled in sync) */\n",
+                 p->name);
 #endif
   }
   *_out_val = buf;

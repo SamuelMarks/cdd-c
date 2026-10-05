@@ -140,7 +140,8 @@ TEST test_schema2tests_output_file_open_fail(void) {
     sprintf_s(out_path, sizeof(out_path), "%s%sout.h", out_dir_as_file,
               PATH_SEP);
 #else
-    sprintf(out_path, "%s%sout.h", out_dir_as_file, PATH_SEP);
+    CDD_SNPRINTF(out_path, sizeof(out_path), "%s%sout.h", out_dir_as_file,
+                 PATH_SEP);
 #endif
     argv[2] = out_path;
     rc = jsonschema2tests_main(3, argv);
@@ -343,8 +344,8 @@ TEST test_schema2tests_header_inclusion_not_found(void) {
   sprintf_s(non_existent_header_path, sizeof(non_existent_header_path),
             "%s%s%s", OUT_DIR, PATH_SEP, "NonExistent.h");
 #else
-  sprintf(non_existent_header_path, "%s%s%s", OUT_DIR, PATH_SEP,
-          "NonExistent.h");
+  CDD_SNPRINTF(non_existent_header_path, sizeof(non_existent_header_path),
+               "%s%s%s", OUT_DIR, PATH_SEP, "NonExistent.h");
 #endif
 
   err = makedirs(OUT_DIR);

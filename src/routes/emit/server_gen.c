@@ -60,7 +60,7 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
 #if defined(_MSC_VER)
     sprintf_s(src_dir, 512, "%s/src", dir_name);
 #else
-    sprintf(src_dir, "%s/src", dir_name);
+    CDD_SNPRINTF(src_dir, 512, "%s/src", dir_name);
 #endif
     {
       cdd_c_error_t rc_sg = makedirs(src_dir);
@@ -71,7 +71,7 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
         return rc_sg;
       }
     }
-    CDD_SNPRINTF(path, sizeof(path), "%s/%s_server.c", src_dir, base_name);
+    CDD_SNPRINTF(path, 1024, "%s/%s_server.c", src_dir, base_name);
     C_CDD_FREE(src_dir);
     C_CDD_FREE(dir_name);
     C_CDD_FREE(base_name);

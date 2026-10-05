@@ -102,7 +102,7 @@ TEST test_safe_crt_add_patch_unit(void) {
 #if defined(_MSC_VER)
     sprintf_s(buf, sizeof(buf), "patch_%lu", (unsigned long)i);
 #else
-    sprintf(buf, "patch_%lu", (unsigned long)i);
+    CDD_SNPRINTF(buf, sizeof(buf), "patch_%lu", (unsigned long)i);
 #endif
     rc = safe_crt_add_patch(&list, i, i + 1, buf);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -538,7 +538,7 @@ TEST test_safe_crt_direct_branches(void) {
             safe_crt_generate_sprintf_patch(tl, 0, tl->size, &patches));
   free_token_list(tl);
 
-  sp = az_span_create((uint8_t *)(size_t) "sprintf(a, b;", 13);
+  sp = az_span_create((uint8_t *)(size_t) "CDD_SNPRINTF(a, sizeof(a), b;", 13);
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_sprintf_patch(tl, 0, tl->size, &patches));

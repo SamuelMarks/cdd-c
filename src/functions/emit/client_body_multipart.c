@@ -397,7 +397,7 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
       sprintf_s(len_field, sizeof(len_field), "n_%s", f->name);
 #else
-      sprintf(len_field, "n_%s", f->name);
+      CDD_SNPRINTF(len_field, sizeof(len_field), "n_%s", f->name);
 #endif
 
       CHECK_IO(fprintf(fp, "  if (req_body->%s) {\n", f->name));

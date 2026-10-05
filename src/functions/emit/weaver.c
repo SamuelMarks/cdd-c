@@ -47,7 +47,7 @@ cdd_c_error_t weaver_wrap_ifdef(struct PatchList *patches,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   sprintf_s(ifdef_str, ifdef_len, "#ifdef %s\\n", condition);
 #else
-  sprintf(ifdef_str, "#ifdef %s\\n", condition);
+  CDD_SNPRINTF(ifdef_str, ifdef_len, "#ifdef %s\\n", condition);
 #endif
 
   res = patch_list_add(patches, start_idx, start_idx, ifdef_str);
@@ -73,7 +73,7 @@ cdd_c_error_t weaver_wrap_ifdef(struct PatchList *patches,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     sprintf_s(endif_str, endif_len, "#else\n%s\n#endif \\n ", false_code);
 #else
-    sprintf(endif_str, "#else\n%s\n#endif \\n ", false_code);
+    CDD_SNPRINTF(endif_str, endif_len, "#else\n%s\n#endif \\n ", false_code);
 #endif
   } else {
     endif_len = strlen("#endif\\n") + 20;
@@ -268,8 +268,8 @@ cdd_c_error_t weaver_vla_to_alloca(struct PatchList *patches,
   sprintf_s(str, len, "%s *%s = (%s *)_alloca((%s) * sizeof(%s));", type_str,
             var_name, type_str, size_expr, type_str);
 #else
-  sprintf(str, "%s *%s = (%s *)_alloca((%s) * sizeof(%s));", type_str, var_name,
-          type_str, size_expr, type_str);
+  CDD_SNPRINTF(str, len, "%s *%s = (%s *)_alloca((%s) * sizeof(%s));", type_str,
+               var_name, type_str, size_expr, type_str);
 #endif
 
   res = patch_list_add(patches, start_idx, end_idx, str);

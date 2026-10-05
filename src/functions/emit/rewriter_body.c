@@ -349,14 +349,16 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                       sprintf_s(arg_append, strlen(lhs_name) + 10, "&%s",
                                 lhs_name);
 #else
-                      sprintf(arg_append, "&%s", lhs_name);
+                      CDD_SNPRINTF(arg_append, sizeof(arg_append), "&%s",
+                                   lhs_name);
 #endif
                     else
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
                       sprintf_s(arg_append, strlen(lhs_name) + 10, ", &%s",
                                 lhs_name);
 #else
-                      sprintf(arg_append, ", &%s", lhs_name);
+                      CDD_SNPRINTF(arg_append, sizeof(arg_append), ", &%s",
+                                   lhs_name);
 #endif
                     {
                       char *tmp_arg = arg_append;
@@ -448,8 +450,8 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
               sprintf_s(tmp_var, sizeof(tmp_var), "_tmp_cdd_%lu",
                         (unsigned long)(tmp_var_counter++));
 #else
-              sprintf(tmp_var, "_tmp_cdd_%lu",
-                      (unsigned long)(tmp_var_counter++));
+              CDD_SNPRINTF(tmp_var, sizeof(tmp_var), "_tmp_cdd_%lu",
+                           (unsigned long)(tmp_var_counter++));
 #endif
 
               /* Extract original args */
@@ -470,11 +472,12 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                         rf->original_return_type, tmp_var, rf->name, call_args,
                         (strlen(call_args) > 0 ? ", " : ""), tmp_var);
 #else
-              sprintf(injection,
-                      "%s %s; rc = %s(%s%s&%s); if (rc != 0) return "
-                      "rc;\n  ",
-                      rf->original_return_type, tmp_var, rf->name, call_args,
-                      (strlen(call_args) > 0 ? ", " : ""), tmp_var);
+              CDD_SNPRINTF(injection, 1024,
+                           "%s %s; rc = %s(%s%s&%s); if (rc != 0) return "
+                           "rc;\n  ",
+                           rf->original_return_type, tmp_var, rf->name,
+                           call_args, (strlen(call_args) > 0 ? ", " : ""),
+                           tmp_var);
 
 #endif
               C_CDD_FREE(call_args);
@@ -581,11 +584,12 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                         transform->return_type, expr, transform->error_code,
                         transform->arg_name, transform->success_code);
 #else
-              sprintf(replacement,
-                      "{ %s _safe_ret = %s; if (!_safe_ret) return %s; *%s = "
-                      "_safe_ret; return %s; }",
-                      transform->return_type, expr, transform->error_code,
-                      transform->arg_name, transform->success_code);
+              CDD_SNPRINTF(
+                  replacement, strlen(expr) + 256,
+                  "{ %s _safe_ret = %s; if (!_safe_ret) return %s; *%s = "
+                  "_safe_ret; return %s; }",
+                  transform->return_type, expr, transform->error_code,
+                  transform->arg_name, transform->success_code);
 
 #endif
               C_CDD_FREE(expr);

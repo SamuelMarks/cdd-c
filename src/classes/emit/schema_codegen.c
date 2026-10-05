@@ -179,7 +179,7 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   sprintf_s(fname, sizeof(fname), "%s.h", prefix);
 #else
-  sprintf(fname, "%s.h", prefix);
+  CDD_SNPRINTF(fname, sizeof(fname), "%s.h", prefix);
 #endif
 #if defined(_MSC_VER)
   if (fopen_s(&fp, fname, "w") != 0)
@@ -344,7 +344,7 @@ C_CDD_EXPORT cdd_c_error_t generate_source(const char *prefix,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   sprintf_s(fname, sizeof(fname), "%s.c", prefix);
 #else
-  sprintf(fname, "%s.c", prefix);
+  CDD_SNPRINTF(fname, sizeof(fname), "%s.c", prefix);
 #endif
 #if defined(_MSC_VER)
   if (fopen_s(&fp, fname, "w") != 0)

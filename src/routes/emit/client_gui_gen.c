@@ -59,7 +59,7 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
 #if defined(_MSC_VER)
     sprintf_s(src_dir, 512, "%s/src", dir_name);
 #else
-    sprintf(src_dir, "%s/src", dir_name);
+    CDD_SNPRINTF(src_dir, 512, "%s/src", dir_name);
 #endif
     {
       cdd_c_error_t rc_cgg = makedirs(src_dir);
@@ -70,8 +70,8 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
         return rc_cgg;
       }
     }
-    CDD_SNPRINTF(path_h, sizeof(path_h), "%s/%s_gui.h", src_dir, base_name);
-    CDD_SNPRINTF(path_c, sizeof(path_c), "%s/%s_gui.c", src_dir, base_name);
+    CDD_SNPRINTF(path_h, 1024, "%s/%s_gui.h", src_dir, base_name);
+    CDD_SNPRINTF(path_c, 1024, "%s/%s_gui.c", src_dir, base_name);
     C_CDD_FREE(src_dir);
     C_CDD_FREE(dir_name);
     C_CDD_FREE(base_name);

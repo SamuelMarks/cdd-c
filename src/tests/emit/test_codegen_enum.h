@@ -80,7 +80,7 @@ TEST test_enum_generation(void) {
 #if defined(_MSC_VER)
       sprintf_s(buf, sizeof(buf), "VAL%d", i + 3);
 #else
-      sprintf(buf, "VAL%d", i + 3);
+      CDD_SNPRINTF(buf, sizeof(buf), "VAL%d", i + 3);
 #endif
       ASSERT_EQ(0, enum_members_add(&em, buf));
     }

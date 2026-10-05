@@ -2236,6 +2236,7 @@ TEST test_openapi_validation_all_branches(void) {
   memset(cbs, 0, sizeof(cbs));
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_unique_operation_ids(NULL));
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_unique_operation_ids(&spec));
+  spec.component_path_item_names = NULL;
 
   /* Spec with component path item unreferenced vs referenced */
   spec.component_path_items = paths;
@@ -2247,6 +2248,7 @@ TEST test_openapi_validation_all_branches(void) {
   paths[0].additional_operations = NULL;
   paths[0].n_additional_operations = 0;
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_unique_operation_ids(&spec));
+  spec.component_path_item_names = NULL;
 
   /* Spec with unreferenced component callback */
   cbs[0].name = (char *)(size_t) "my_cb";
@@ -2258,6 +2260,7 @@ TEST test_openapi_validation_all_branches(void) {
   spec.component_callbacks = cbs;
   spec.n_component_callbacks = 1;
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_unique_operation_ids(&spec));
+  spec.component_path_item_names = NULL;
 
   /* Duplicate between component path item and component callback */
   ops[1].operation_id = (char *)(size_t) "unique_cpi";
@@ -2326,11 +2329,13 @@ TEST test_openapi_validation_all_branches(void) {
   paths[0].operations = ops;
   paths[0].n_operations = 1;
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_unique_operation_ids(&spec));
+  spec.component_path_item_names = NULL;
   {
     char *null_name = NULL;
     char **null_names = &null_name;
     spec.component_path_item_names = null_names;
     ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_unique_operation_ids(&spec));
+    spec.component_path_item_names = NULL;
   }
 
   /* Duplicate in component_path_items callback */
@@ -2353,17 +2358,20 @@ TEST test_openapi_validation_all_branches(void) {
   spec.component_callbacks = cbs;
   spec.n_component_callbacks = 1;
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_unique_operation_ids(&spec));
+  spec.component_path_item_names = NULL;
 
   /* Spec with component_path_items != NULL && n_component_path_items == 0 */
   spec.component_path_items = paths;
   spec.n_component_path_items = 0;
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_unique_operation_ids(&spec));
+  spec.component_path_item_names = NULL;
   spec.component_path_items = NULL;
 
   /* Spec with component_callbacks != NULL && n_component_callbacks == 0 */
   spec.component_callbacks = cbs;
   spec.n_component_callbacks = 0;
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_unique_operation_ids(&spec));
+  spec.component_path_item_names = NULL;
 
   /* Spec with unreferenced component_callback having paths == NULL */
   cbs[0].name = (char *)(size_t) "cb_no_paths";
@@ -2372,6 +2380,7 @@ TEST test_openapi_validation_all_branches(void) {
   spec.component_callbacks = cbs;
   spec.n_component_callbacks = 1;
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_unique_operation_ids(&spec));
+  spec.component_path_item_names = NULL;
 
   /* Spec with component_path_items having duplicate operation IDs */
   {

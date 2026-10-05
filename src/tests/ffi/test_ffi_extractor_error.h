@@ -372,7 +372,7 @@ TEST test_ffi_ir_extract_error_paths(void) {
 #if defined(_MSC_VER)
       sprintf_s(pbuf, sizeof(pbuf), "inc_%lu.h", (unsigned long)vi);
 #else
-      sprintf(pbuf, "inc_%lu.h", (unsigned long)vi);
+      CDD_SNPRINTF(pbuf, sizeof(pbuf), "inc_%lu.h", (unsigned long)vi);
 #endif
       ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_add_visited_test(&mctx, pbuf));
     }

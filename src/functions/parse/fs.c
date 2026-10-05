@@ -52,7 +52,7 @@ cdd_c_error_t fs_path_join(const char *dir, const char *name,
 #if defined(_MSC_VER)
   sprintf_s(res, dir_len + 1 + name_len + 1, "%s%c%s", dir, PATH_SEP_C, name);
 #else
-  sprintf(res, "%s%c%s", dir, PATH_SEP_C, name);
+  CDD_SNPRINTF(res, dir_len + 1 + name_len + 1, "%s%c%s", dir, PATH_SEP_C, name);
 #endif
   *out_path = res;
   return CDD_C_SUCCESS;
@@ -76,7 +76,7 @@ cdd_c_error_t format_tmp_filename(const char *dir, const char *prefix,
 #if defined(_MSC_VER)
   sprintf_s(num_buf, sizeof(num_buf), "%lu", num);
 #else
-  sprintf(num_buf, "%lu", num);
+  CDD_SNPRINTF(num_buf, sizeof(num_buf), "%lu", num);
 #endif
 
   total_len = strlen(dir) + 1 + strlen(pfx) + strlen(num_buf) + strlen(sfx) + 1;
@@ -87,7 +87,7 @@ cdd_c_error_t format_tmp_filename(const char *dir, const char *prefix,
 #if defined(_MSC_VER)
   sprintf_s(res, total_len, "%s%c%s%s%s", dir, PATH_SEP_C, pfx, num_buf, sfx);
 #else
-  sprintf(res, "%s%c%s%s%s", dir, PATH_SEP_C, pfx, num_buf, sfx);
+  CDD_SNPRINTF(res, total_len, "%s%c%s%s%s", dir, PATH_SEP_C, pfx, num_buf, sfx);
 #endif
   *out_path = res;
   return CDD_C_SUCCESS;

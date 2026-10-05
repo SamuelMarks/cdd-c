@@ -42,7 +42,7 @@ static int test_setenv(const char *var, const char *val) {
 #if defined(_MSC_VER)
   sprintf_s(_buf, sizeof(_buf), "%s=%s", var, val);
 #else
-  sprintf(_buf, "%s=%s", var, val);
+  CDD_SNPRINTF(_buf, sizeof(_buf), "%s=%s", var, val);
 #endif
   return _putenv(_buf);
 }

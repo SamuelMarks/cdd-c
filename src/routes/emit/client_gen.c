@@ -157,10 +157,10 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   sprintf_s(mh_name, strlen(actual_base) + 10, "%s_models.h", actual_base);
   sprintf_s(mc_name, strlen(actual_base) + 10, "%s_models.c", actual_base);
 #else
-  sprintf(h_name, "%s.h", actual_base);
-  sprintf(c_name, "%s.c", actual_base);
-  sprintf(mh_name, "%s_models.h", actual_base);
-  sprintf(mc_name, "%s_models.c", actual_base);
+  CDD_SNPRINTF(h_name, strlen(actual_base) + 3, "%s.h", actual_base);
+  CDD_SNPRINTF(c_name, strlen(actual_base) + 3, "%s.c", actual_base);
+  CDD_SNPRINTF(mh_name, strlen(actual_base) + 10, "%s_models.h", actual_base);
+  CDD_SNPRINTF(mc_name, strlen(actual_base) + 10, "%s_models.c", actual_base);
 #endif
 
 #if defined(_MSC_VER)
@@ -279,7 +279,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   sprintf_s(model_guard, strlen(guard) + 8, "%s_MODELS", guard);
 #else
-  sprintf(model_guard, "%s_MODELS", guard);
+  CDD_SNPRINTF(model_guard, strlen(guard) + 8, "%s_MODELS", guard);
 #endif
 
   /* --- Write Models Header and Source --- */
@@ -396,7 +396,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
       goto cleanup;
     }
 
-    CDD_SNPRINTF(cpath, sizeof(cpath), "%s/src/url_utils.c", dir_name);
+    CDD_SNPRINTF(cpath, 512, "%s/src/url_utils.c", dir_name);
 #if defined(_MSC_VER)
     if (fopen_s(&uc, cpath, "w") != 0)
       uc = NULL;

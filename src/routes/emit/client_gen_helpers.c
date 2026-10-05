@@ -334,7 +334,7 @@ cdd_c_error_t build_base_url_literal(const char *url, char **_out_val) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   sprintf_s(literal, len, "\"%s\"", escaped);
 #else
-  sprintf(literal, "\"%s\"", escaped);
+  CDD_SNPRINTF(literal, len, "\"%s\"", escaped);
 #endif
   free(escaped);
   {
@@ -406,7 +406,7 @@ cdd_c_error_t derive_model_header(const char *base, char **_out_val) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   sprintf_s(m, len + 1, "%s_models.h", base);
 #else
-  sprintf(m, "%s_models.h", base);
+  CDD_SNPRINTF(m, len + 1, "%s_models.h", base);
 #endif
   {
     *_out_val = m;

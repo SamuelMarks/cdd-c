@@ -49,7 +49,8 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
           "/* Naive fallback for non-MSVC C89 */\n"
           "/** @brief sprintf_s_chk macro */\n",
           uc);
-    fputs("#define sprintf_s_chk(buf, size, fmt, arg) sprintf(buf, fmt, arg)\n"
+    fputs("#define sprintf_s_chk(buf, size, fmt, arg) CDD_SNPRINTF(buf, "
+          "sizeof(buf), fmt, arg)\n"
           "#endif\n"
           "\n"
           "/**\n"

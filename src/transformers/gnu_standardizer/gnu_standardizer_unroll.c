@@ -353,7 +353,7 @@ cdd_c_error_t gnu_standardize_unroll(cdd_cst_tree_t *tree,
       if (num_cleanups > 0) {
         rc = replace_token_with_text(
             tree, t, t->kind,
-            "/* warning: longjmp bypasses cleanups */ longjmp", 50);
+            "/* warning: longjmp bypasses cleanups */ longjmp", 48);
         if (rc != CDD_C_SUCCESS)
           return rc;
       }

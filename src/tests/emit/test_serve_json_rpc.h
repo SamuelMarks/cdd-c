@@ -280,7 +280,8 @@ TEST test_serve_mcp_stdio_main(void) {
   sprintf_s(mcp_tmp_path, sizeof(mcp_tmp_path), "test_mcp_stdio_tmp_%d.txt",
             ++mcp_tmp_counter);
 #else
-  sprintf(mcp_tmp_path, "test_mcp_stdio_tmp_%d.txt", ++mcp_tmp_counter);
+  CDD_SNPRINTF(mcp_tmp_path, sizeof(mcp_tmp_path), "test_mcp_stdio_tmp_%d.txt",
+               ++mcp_tmp_counter);
 #endif
 #if defined(_MSC_VER)
   if (fopen_s(&tmp, mcp_tmp_path, "w") != 0)
@@ -446,7 +447,8 @@ TEST test_serve_mcp_stdio_main(void) {
     if (fopen_s(&tmp_err, mcp_err_path, "w") != 0)
       tmp_err = NULL;
 #else
-    sprintf(mcp_err_path, "test_mcp_stdio_err_%d.txt", ++mcp_tmp_counter);
+    CDD_SNPRINTF(mcp_err_path, sizeof(mcp_err_path),
+                 "test_mcp_stdio_err_%d.txt", ++mcp_tmp_counter);
     tmp_err = fopen(mcp_err_path, "w");
 #endif
     ASSERT_NEQ(NULL, tmp_err);

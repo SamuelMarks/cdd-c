@@ -94,7 +94,7 @@ client_body_write_form_urlencoded_body(FILE *fp,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
       sprintf_s(len_field, sizeof(len_field), "n_%s", f->name);
 #else
-      sprintf(len_field, "n_%s", f->name);
+      CDD_SNPRINTF(len_field, sizeof(len_field), "n_%s", f->name);
 #endif
 
       if (allow_reserved) {

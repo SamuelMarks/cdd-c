@@ -223,7 +223,7 @@ append_to_diff(char **diff_str, size_t *diff_len, size_t *diff_cap,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   vsprintf_s(*diff_str + *diff_len, *diff_cap - *diff_len, format, args);
 #else
-  vsprintf(*diff_str + *diff_len, format, args);
+  CDD_VSNPRINTF(*diff_str + *diff_len, *diff_cap - *diff_len, format, args);
 #endif
   va_end(args);
   *diff_len += (size_t)printed;

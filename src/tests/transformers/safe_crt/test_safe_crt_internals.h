@@ -522,8 +522,13 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
     check_needs_transform((void *)&n_chk);
 
     /* length >= 127 */
-    t_chk.length = 130;
-    check_needs_transform((void *)&n_chk);
+    {
+      char long_name[130];
+      memset(long_name, 'a', 130);
+      t_chk.start = (const uint8_t *)long_name;
+      t_chk.length = 130;
+      check_needs_transform((void *)&n_chk);
+    }
 
     n_chk.type = 1;
     for (k = 0; k < sizeof(names) / sizeof(names[0]); k++) {

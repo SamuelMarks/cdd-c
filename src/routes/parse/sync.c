@@ -303,8 +303,8 @@ static cdd_c_error_t apply_header_sync(const struct OpenAPI_Operation *op,
       sprintf_s(comment_text, sizeof(comment_text),
                 "/* Header Parameter: %s */", op->parameters[i].name);
 #else
-      sprintf(comment_text, "/* Header Parameter: %s */",
-              op->parameters[i].name);
+      CDD_SNPRINTF(comment_text, sizeof(comment_text),
+                   "/* Header Parameter: %s */", op->parameters[i].name);
 #endif
 
       for (k = node->start_token; k < node->end_token; ++k) {
@@ -396,8 +396,8 @@ static cdd_c_error_t apply_updates(const char *filename,
       sprintf_s(func_name, sizeof(func_name), "%s%s",
                 cfg->func_prefix ? cfg->func_prefix : "", op->operation_id);
 #else
-      sprintf(func_name, "%s%s", cfg->func_prefix ? cfg->func_prefix : "",
-              op->operation_id);
+      CDD_SNPRINTF(func_name, sizeof(func_name), "%s%s",
+                   cfg->func_prefix ? cfg->func_prefix : "", op->operation_id);
 #endif
 
       rc = find_function_node(cst, tokens, func_name, &node);

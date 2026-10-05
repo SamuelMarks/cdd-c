@@ -74,7 +74,8 @@ cdd_c_error_t instantiate_templates(cdd_ffi_ir_t *ir) {
               sprintf_s(inst_name, sizeof(inst_name), "%s_%s", base_name,
                         arg_type_name);
 #else
-              sprintf(inst_name, "%s_%s", base_name, arg_type_name);
+              CDD_SNPRINTF(inst_name, sizeof(inst_name), "%s_%s", base_name,
+                           arg_type_name);
 #endif
 
               for (m = 0; m < ir->nodes_count; m++) {

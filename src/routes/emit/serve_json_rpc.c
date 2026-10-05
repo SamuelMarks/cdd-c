@@ -223,12 +223,13 @@ static cdd_c_error_t send_rpc_error(cdd_socket_t client_fd, int code,
             "\"message\":\"%s\"},\"id\":null}",
             code, msg);
 #else
-  sprintf(resp,
-          "HTTP/1.1 200 OK\r\nContent-Type: "
-          "application/"
-          "json\r\n\r\n{\"jsonrpc\":\"2.0\",\"error\":{\"code\":%d,\"message\":"
-          "\"%s\"},\"id\":null}",
-          code, msg);
+  CDD_SNPRINTF(
+      resp, sizeof(resp),
+      "HTTP/1.1 200 OK\r\nContent-Type: "
+      "application/"
+      "json\r\n\r\n{\"jsonrpc\":\"2.0\",\"error\":{\"code\":%d,\"message\":"
+      "\"%s\"},\"id\":null}",
+      code, msg);
 #endif
   return send_rpc_response(client_fd, resp);
 }

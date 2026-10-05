@@ -223,7 +223,7 @@ TEST test_pp_context_and_macro_operations(void) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     sprintf_s(buf, sizeof(buf), "dir_%d", i);
 #else
-    sprintf(buf, "dir_%d", i);
+    CDD_SNPRINTF(buf, sizeof(buf), "dir_%d", i);
 #endif
     rc = pp_add_search_path(&ctx, buf);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -262,7 +262,7 @@ TEST test_pp_context_and_macro_operations(void) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     sprintf_s(buf, sizeof(buf), "MACRO_%d", i);
 #else
-    sprintf(buf, "MACRO_%d", i);
+    CDD_SNPRINTF(buf, sizeof(buf), "MACRO_%d", i);
 #endif
     rc = pp_add_macro(&ctx, buf, "1");
     ASSERT_EQ(CDD_C_SUCCESS, rc);

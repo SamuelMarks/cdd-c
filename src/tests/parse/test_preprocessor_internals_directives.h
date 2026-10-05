@@ -471,6 +471,7 @@ TEST test_pp_100_cov_directives(void) {
   free_token_list(tl);
   tl = NULL;
 
+  s.ctx = NULL;
   /* Non-ident, non-keyword token in parse_primary */
   rc = tokenize(az_span_create_from_str((char *)(size_t) "+"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);

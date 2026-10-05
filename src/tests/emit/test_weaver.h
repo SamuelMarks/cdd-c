@@ -705,7 +705,7 @@ TEST test_weaver_interactive(void) {
 #if defined(_MSC_VER)
   sprintf_s(tmp_name, sizeof(tmp_name), "test_in_%d.txt", rand() % 10000);
 #else
-  sprintf(tmp_name, "test_in_%d.txt", rand() % 10000);
+  CDD_SNPRINTF(tmp_name, sizeof(tmp_name), "test_in_%d.txt", rand() % 10000);
 #endif
 #if defined(_MSC_VER)
   if (fopen_s(&fake_stdin, tmp_name, "w+") != 0)

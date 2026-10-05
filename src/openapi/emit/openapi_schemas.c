@@ -457,7 +457,8 @@ C_CDD_EXPORT void write_schema_ref(JSON_Object *parent, const char *key,
         sprintf_s(ref_path, sizeof(ref_path), "#/components/schemas/%s",
                   ref->ref_name);
 #else
-        sprintf(ref_path, "#/components/schemas/%s", ref->ref_name);
+        CDD_SNPRINTF(ref_path, sizeof(ref_path), "#/components/schemas/%s",
+                     ref->ref_name);
 #endif
         json_object_set_string(item_obj, "$ref", ref_path);
         write_items_schema_fields(item_obj, ref);
@@ -484,7 +485,8 @@ C_CDD_EXPORT void write_schema_ref(JSON_Object *parent, const char *key,
       sprintf_s(ref_path, sizeof(ref_path), "#/components/schemas/%s",
                 ref->ref_name);
 #else
-      sprintf(ref_path, "#/components/schemas/%s", ref->ref_name);
+      CDD_SNPRINTF(ref_path, sizeof(ref_path), "#/components/schemas/%s",
+                   ref->ref_name);
 #endif
       json_object_set_string(sch_obj, "$ref", ref_path);
     }
@@ -656,7 +658,8 @@ C_CDD_EXPORT void write_schema_from_type_fields(JSON_Object *parent,
         sprintf_s(ref_path, sizeof(ref_path), "#/components/schemas/%s",
                   items_type);
 #else
-        sprintf(ref_path, "#/components/schemas/%s", items_type);
+        CDD_SNPRINTF(ref_path, sizeof(ref_path), "#/components/schemas/%s",
+                     items_type);
 #endif
         json_object_set_string(item_obj, "$ref", ref_path);
       }
@@ -673,7 +676,7 @@ C_CDD_EXPORT void write_schema_from_type_fields(JSON_Object *parent,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     sprintf_s(ref_path, sizeof(ref_path), "#/components/schemas/%s", type);
 #else
-    sprintf(ref_path, "#/components/schemas/%s", type);
+    CDD_SNPRINTF(ref_path, sizeof(ref_path), "#/components/schemas/%s", type);
 #endif
     json_object_set_string(sch_obj, "$ref", ref_path);
   } else {

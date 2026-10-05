@@ -449,10 +449,10 @@ TEST test_ffi_ir_extract_inheritance_casting(void) {
           sprintf_s(down_name, sizeof(down_name), "%s_downcast_to_%s",
                     ir.nodes[k].base_classes[b].name, ir.nodes[k].name);
 #else
-          sprintf(up_name, "%s_upcast_to_%s", ir.nodes[k].name,
-                  ir.nodes[k].base_classes[b].name);
-          sprintf(down_name, "%s_downcast_to_%s",
-                  ir.nodes[k].base_classes[b].name, ir.nodes[k].name);
+          CDD_SNPRINTF(up_name, sizeof(up_name), "%s_upcast_to_%s",
+                       ir.nodes[k].name, ir.nodes[k].base_classes[b].name);
+          CDD_SNPRINTF(down_name, sizeof(down_name), "%s_downcast_to_%s",
+                       ir.nodes[k].base_classes[b].name, ir.nodes[k].name);
 #endif
 
           ir.nodes_capacity += 2;
@@ -536,7 +536,8 @@ TEST test_ffi_ir_extract_trampoline(void) {
         sprintf_s(tramp_name, sizeof(tramp_name), "%s_Trampoline",
                   ir.nodes[k].name);
 #else
-        sprintf(tramp_name, "%s_Trampoline", ir.nodes[k].name);
+        CDD_SNPRINTF(tramp_name, sizeof(tramp_name), "%s_Trampoline",
+                     ir.nodes[k].name);
 #endif
 
         ir.nodes_capacity += 1;
@@ -565,7 +566,8 @@ TEST test_ffi_ir_extract_trampoline(void) {
             sprintf_s(cb_name, sizeof(cb_name), "cb_%s",
                       ir.nodes[k].virtual_methods[m].name);
 #else
-            sprintf(cb_name, "cb_%s", ir.nodes[k].virtual_methods[m].name);
+            CDD_SNPRINTF(cb_name, sizeof(cb_name), "cb_%s",
+                         ir.nodes[k].virtual_methods[m].name);
 #endif
             trampoline_node->fields[m + 3].name = strdup(cb_name);
             trampoline_node->fields[m + 3].type.kind =

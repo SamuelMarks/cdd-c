@@ -97,7 +97,7 @@ write_path_object_serialization(FILE *fp, const struct OpenAPI_Parameter *p) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
       sprintf_s(buf_prefix, sizeof(buf_prefix), ";%s=", name);
 #else
-      sprintf(buf_prefix, ";%s=", name);
+      CDD_SNPRINTF(buf_prefix, sizeof(buf_prefix), ";%s=", name);
 #endif
       prefix = buf_prefix;
       pair_delim = ",";
@@ -601,13 +601,13 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
             sprintf_s(buf_prefix, sizeof(buf_prefix), ";%s=", name);
 #else
-            sprintf(buf_prefix, ";%s=", name);
+            CDD_SNPRINTF(buf_prefix, sizeof(buf_prefix), ";%s=", name);
 #endif
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
             sprintf_s(buf_delim, sizeof(buf_delim), ";%s=", name);
 #else
-            sprintf(buf_delim, ";%s=", name);
+            CDD_SNPRINTF(buf_delim, sizeof(buf_delim), ";%s=", name);
 #endif
             prefix = buf_prefix;
             delim = explode ? buf_delim : ",";
@@ -630,7 +630,7 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
             sprintf_s(buf_prefix, sizeof(buf_prefix), ";%s=", name);
 #else
-            sprintf(buf_prefix, ";%s=", name);
+            CDD_SNPRINTF(buf_prefix, sizeof(buf_prefix), ";%s=", name);
 #endif
             prefix = buf_prefix;
           }

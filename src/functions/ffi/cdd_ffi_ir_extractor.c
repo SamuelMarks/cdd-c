@@ -452,9 +452,11 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
               sprintf_s(search_inout, sizeof(search_inout), "@param[in,out] %s",
                         name);
 #else
-              sprintf(search_out, "@param[out] %s", name);
-              sprintf(search_in, "@param[in] %s", name);
-              sprintf(search_inout, "@param[in,out] %s", name);
+              CDD_SNPRINTF(search_out, sizeof(search_out), "@param[out] %s",
+                           name);
+              CDD_SNPRINTF(search_in, sizeof(search_in), "@param[in] %s", name);
+              CDD_SNPRINTF(search_inout, sizeof(search_inout),
+                           "@param[in,out] %s", name);
 #endif
               if (strstr(node->doc, search_inout)) {
                 node->fields[node->fields_count].intent = CDD_FFI_INTENT_INOUT;
@@ -556,7 +558,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
 #if defined(_MSC_VER)
                 sprintf_s(buf, sizeof(buf), "%f", eval_res.float_val);
 #else
-                sprintf(buf, "%f", eval_res.float_val);
+                CDD_SNPRINTF(buf, sizeof(buf), "%f", eval_res.float_val);
 #endif
                 node->evaluated_value = CDD_STRDUP(buf);
               } else {
@@ -600,10 +602,10 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
           sprintf_s(down_name, sizeof(down_name), "%s_downcast_to_%s",
                     ir->nodes[k].base_classes[b].name, ir->nodes[k].name);
 #else
-          sprintf(up_name, "%s_upcast_to_%s", ir->nodes[k].name,
-                  ir->nodes[k].base_classes[b].name);
-          sprintf(down_name, "%s_downcast_to_%s",
-                  ir->nodes[k].base_classes[b].name, ir->nodes[k].name);
+          CDD_SNPRINTF(up_name, sizeof(up_name), "%s_upcast_to_%s",
+                       ir->nodes[k].name, ir->nodes[k].base_classes[b].name);
+          CDD_SNPRINTF(down_name, sizeof(down_name), "%s_downcast_to_%s",
+                       ir->nodes[k].base_classes[b].name, ir->nodes[k].name);
 #endif
 
           rc = ir_add_node(ir, CDD_FFI_NODE_FUNCTION, up_name, &upcast_node);
@@ -652,7 +654,8 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
         sprintf_s(tramp_name, sizeof(tramp_name), "%s_Trampoline",
                   ir->nodes[k].name);
 #else
-        sprintf(tramp_name, "%s_Trampoline", ir->nodes[k].name);
+        CDD_SNPRINTF(tramp_name, sizeof(tramp_name), "%s_Trampoline",
+                     ir->nodes[k].name);
 #endif
 
         rc = ir_add_node(ir, CDD_FFI_NODE_STRUCT, tramp_name, &trampoline_node);
@@ -681,7 +684,8 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
           sprintf_s(cb_name, sizeof(cb_name), "cb_%s",
                     ir->nodes[k].virtual_methods[m].name);
 #else
-          sprintf(cb_name, "cb_%s", ir->nodes[k].virtual_methods[m].name);
+          CDD_SNPRINTF(cb_name, sizeof(cb_name), "cb_%s",
+                       ir->nodes[k].virtual_methods[m].name);
 #endif
           trampoline_node->fields[m + 3].name = CDD_STRDUP(cb_name);
           trampoline_node->fields[m + 3].type.kind = CDD_FFI_KIND_FUNCTION_PTR;

@@ -325,7 +325,7 @@ c2openapi_infer_client_route(const struct CstNode *func_node,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     sprintf_s(route, r_len, "%s %s", verb, path_str);
 #else
-    sprintf(route, "%s %s", verb, path_str);
+    CDD_SNPRINTF(route, r_len, "%s %s", verb, path_str);
 #endif
     C_CDD_FREE(path_str);
     *out_route = route;
@@ -428,7 +428,8 @@ c2openapi_scan_server_routes(const struct TokenList *tokens,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
           sprintf_s(route_str, sizeof(route_str), "%s %s", verb_str, path_str);
 #else
-          sprintf(route_str, "%s %s", verb_str, path_str);
+          CDD_SNPRINTF(route_str, sizeof(route_str), "%s %s", verb_str,
+                       path_str);
 #endif
           rc = openapi_aggregator_add_operation(spec, route_str, &op);
           if (op.operation_id) {
@@ -477,7 +478,7 @@ static cdd_c_error_t c2openapi_scan_gui_views(const struct TokenList *tokens,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
           sprintf_s(route_str, sizeof(route_str), "GET /gui/%s", op_id);
 #else
-          sprintf(route_str, "GET /gui/%s", op_id);
+          CDD_SNPRINTF(route_str, sizeof(route_str), "GET /gui/%s", op_id);
 #endif
           rc = openapi_aggregator_add_operation(spec, route_str, &op);
           C_CDD_FREE(op.operation_id);

@@ -787,7 +787,7 @@ TEST test_gnu_standardizer_error_branches(void) {
 #if defined(_MSC_VER)
       sprintf_s(code, sizeof(code), "int x = %s;\n", long_num);
 #else
-      sprintf(code, "int x = %s;\n", long_num);
+      CDD_SNPRINTF(code, sizeof(code), "int x = %s;\n", long_num);
 #endif
       if (cdd_cst_parse(az_span_create_from_str(code), &tree) == 0) {
         cdd_transform_gnu(tree, &config);

@@ -364,9 +364,10 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                       (int)prev->length, prev->start, (int)next->length,
                       next->start, (int)prev->length, prev->start);
 #else
-            sprintf(buf, "*%.*s = alloca(%.*s * sizeof(*%.*s));",
-                    (int)prev->length, prev->start, (int)next->length,
-                    next->start, (int)prev->length, prev->start);
+            CDD_SNPRINTF(buf, sizeof(buf),
+                         "*%.*s = alloca(%.*s * sizeof(*%.*s));",
+                         (int)prev->length, prev->start, (int)next->length,
+                         next->start, (int)prev->length, prev->start);
 #endif
             heap_buf = strdup(buf);
             prev->start = (const uint8_t *)heap_buf;

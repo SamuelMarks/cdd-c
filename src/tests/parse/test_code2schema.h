@@ -258,7 +258,7 @@ TEST test_struct_fields_overflow(void) {
     sprintf_s(name, sizeof(name), "f%d", i);
 #else
 
-    sprintf(name, "f%d", i);
+    CDD_SNPRINTF(name, sizeof(name), "f%d", i);
 
 #endif
 
@@ -287,7 +287,7 @@ TEST test_enum_members_overflow(void) {
     sprintf_s(name, sizeof(name), "E%d", i);
 #else
 
-    sprintf(name, "E%d", i);
+    CDD_SNPRINTF(name, sizeof(name), "E%d", i);
 
 #endif
 

@@ -497,8 +497,8 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
       sprintf_s(*out_code, len, "%s%sint %s(%s)%s", prefix, sig.storage,
                 sig.name, sig.args, k_r_suffix);
 #else
-      sprintf(*out_code, "%s%sint %s(%s)%s", prefix, sig.storage, sig.name,
-              sig.args, k_r_suffix);
+      CDD_SNPRINTF(*out_code, len, "%s%sint %s(%s)%s", prefix, sig.storage,
+                   sig.name, sig.args, k_r_suffix);
 
 #endif
     } else {
@@ -530,7 +530,7 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
           sprintf_s(new_args, strlen(sig.args) + 10, "%s, out", sig.args);
 #else
-          sprintf(new_args, "%s, out", sig.args);
+          CDD_SNPRINTF(new_args, strlen(sig.args) + 10, "%s, out", sig.args);
 
 #endif
         }
@@ -547,7 +547,8 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
           sprintf_s(new_args, strlen(sig.ret_type) + 10, "%s *out",
                     sig.ret_type);
 #else
-          sprintf(new_args, "%s *out", sig.ret_type);
+          CDD_SNPRINTF(new_args, strlen(sig.ret_type) + 10, "%s *out",
+                       sig.ret_type);
 
 #endif
         } else {
@@ -561,7 +562,8 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
           sprintf_s(new_args, strlen(sig.args) + strlen(sig.ret_type) + 10,
                     "%s, %s *out", sig.args, sig.ret_type);
 #else
-          sprintf(new_args, "%s, %s *out", sig.args, sig.ret_type);
+          CDD_SNPRINTF(new_args, strlen(sig.args) + strlen(sig.ret_type) + 10,
+                       "%s, %s *out", sig.args, sig.ret_type);
 
 #endif
         }
@@ -583,8 +585,9 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
           sprintf_s(*out_code, len, "%s%sint %s(%s)%s %s *out;", prefix,
                     sig.storage, sig.name, new_args, k_r_suffix, sig.ret_type);
 #else
-          sprintf(*out_code, "%s%sint %s(%s)%s %s *out;", prefix, sig.storage,
-                  sig.name, new_args, k_r_suffix, sig.ret_type);
+          CDD_SNPRINTF(*out_code, len, "%s%sint %s(%s)%s %s *out;", prefix,
+                       sig.storage, sig.name, new_args, k_r_suffix,
+                       sig.ret_type);
 #endif
         } else {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
@@ -592,8 +595,8 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
           sprintf_s(*out_code, len, "%s%sint %s(%s)", prefix, sig.storage,
                     sig.name, new_args);
 #else
-          sprintf(*out_code, "%s%sint %s(%s)", prefix, sig.storage, sig.name,
-                  new_args);
+          CDD_SNPRINTF(*out_code, len, "%s%sint %s(%s)", prefix, sig.storage,
+                       sig.name, new_args);
 #endif
         }
       }

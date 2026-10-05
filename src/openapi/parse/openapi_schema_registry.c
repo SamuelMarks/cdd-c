@@ -216,7 +216,7 @@ cdd_c_error_t make_unique_schema_name(const struct OpenAPI_Spec *spec,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     sprintf_s(buf, sizeof(buf), "%s_%lu", base, (unsigned long)attempt);
 #else
-    sprintf(buf, "%s_%lu", base, (unsigned long)attempt);
+    CDD_SNPRINTF(buf, sizeof(buf), "%s_%lu", base, (unsigned long)attempt);
 #endif
     if (schema_name_in_use(spec, buf) == CDD_C_SUCCESS) {
       rc = c_cdd_strdup(buf, _out_val);
@@ -542,7 +542,7 @@ cdd_c_error_t build_inline_request_name(const char *op_id, int is_item,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   sprintf_s(out, len, "Inline_%s_%s", op, suffix);
 #else
-  sprintf(out, "Inline_%s_%s", op, suffix);
+  CDD_SNPRINTF(out, len, "Inline_%s_%s", op, suffix);
 #endif
   *_out_val = out;
   return CDD_C_SUCCESS;
@@ -580,9 +580,9 @@ cdd_c_error_t build_inline_response_name(const char *op_id, const char *code,
   }
 #else
   if (suffix[0]) {
-    sprintf(out, "Inline_%s_Response_%s_%s", op, resp, suffix);
+    CDD_SNPRINTF(out, len, "Inline_%s_Response_%s_%s", op, resp, suffix);
   } else {
-    sprintf(out, "Inline_%s_Response_%s", op, resp);
+    CDD_SNPRINTF(out, len, "Inline_%s_Response_%s", op, resp);
   }
 #endif
   *_out_val = out;
@@ -610,7 +610,7 @@ cdd_c_error_t build_inline_param_name(const char *param_name, char **_out_val) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   sprintf_s(out, len, "Inline_Querystring_%s", p);
 #else
-  sprintf(out, "Inline_Querystring_%s", p);
+  CDD_SNPRINTF(out, len, "Inline_Querystring_%s", p);
 #endif
   *_out_val = out;
   return CDD_C_SUCCESS;

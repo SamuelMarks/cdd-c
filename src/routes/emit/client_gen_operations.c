@@ -439,7 +439,9 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
               strlen(config->namespace_prefix) + strlen(sanitized_group) + 2,
               "%s_%s", config->namespace_prefix, sanitized_group);
 #else
-    sprintf(full_group, "%s_%s", config->namespace_prefix, sanitized_group);
+    CDD_SNPRINTF(full_group,
+                 strlen(config->namespace_prefix) + strlen(sanitized_group) + 2,
+                 "%s_%s", config->namespace_prefix, sanitized_group);
 #endif
   } else if (config->namespace_prefix) {
     /* Name: Namespace */

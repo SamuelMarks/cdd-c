@@ -33,7 +33,8 @@
 #else
 /* Naive fallback for non-MSVC C89 */
 /** @brief sprintf_s_chk macro */
-#define sprintf_s_chk(buf, size, fmt, arg) sprintf(buf, fmt, arg)
+#define sprintf_s_chk(buf, size, fmt, arg)                                     \
+  CDD_SNPRINTF(buf, sizeof(buf), fmt, arg)
 #endif
 
 /**
