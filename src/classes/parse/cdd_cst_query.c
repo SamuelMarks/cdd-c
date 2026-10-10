@@ -68,6 +68,7 @@ static cdd_c_error_t append_result(cdd_cst_query_result_t *res,
         res->nodes, new_cap * sizeof(cdd_cst_node_t *));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+      printf("append_result returning ERROR_MEMORY!\n");
       return CDD_C_ERROR_MEMORY;
     }
     res->nodes = new_arr;

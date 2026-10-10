@@ -110,8 +110,10 @@ static cdd_c_error_t int64_to_str(int64_t val, char *buf, size_t buf_sz) {
  * @param out_node Optional pointer to receive the created node.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
-cdd_c_error_t ir_add_node(cdd_ffi_ir_t *ir, cdd_ffi_node_kind_t kind,
-                          const char *name, cdd_ffi_ir_node_t **out_node) {
+C_CDD_EXPORT cdd_c_error_t ir_add_node(cdd_ffi_ir_t *ir,
+                                       cdd_ffi_node_kind_t kind,
+                                       const char *name,
+                                       cdd_ffi_ir_node_t **out_node) {
   cdd_ffi_ir_node_t *node;
 
   if (!ir || !name)
@@ -157,18 +159,196 @@ cdd_c_error_t ir_add_node(cdd_ffi_ir_t *ir, cdd_ffi_node_kind_t kind,
  * @param config Configuration options.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
-static cdd_c_error_t
-extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
-                            const char *content,
-                            const cdd_generate_bindings_config_t *config) {
+
+/**
+ * @brief Visitor to find a class declaration by name.
+ * @param node The current node.
+ * @param user_data Pointer to user data.
+ * @return 1 to stop traversal, 0 otherwise.
+ */
+static cdd_c_error_t find_class_visitor(cdd_cst_node_t *node, void *user_data) {
+  void **ptrs = (void **)user_data;
+  const char *target_name = (const char *)ptrs[0];
+  cdd_cst_node_t **out_node = (cdd_cst_node_t **)ptrs[1];
+
+  if (node->kind == CDD_CST_CLASS_DECLARATION) {
+    size_t i;
+    for (i = 0; i < node->num_children; i++) {
+      if (node->children[i].val.token->kind == CDD_TOKEN_IDENTIFIER) {
+        cdd_token_t *tok = node->children[i].val.token;
+        if (tok->length == strlen(target_name) &&
+            strncmp((const char *)tok->start, target_name, tok->length) == 0) {
+          *out_node = node;
+          return 1; /* Stop traversal */
+        }
+      }
+    }
+  }
+  return 0;
+}
+
+/**
+ * @brief Finds a class declaration in a CST tree by its name.
+ * @param tree The CST tree.
+ * @param name The name to search for.
+ * @return The matching node, or NULL.
+ */
+static cdd_cst_node_t *find_class_declaration_by_name(cdd_cst_tree_t *tree,
+                                                      const char *name) {
+  cdd_cst_node_t *out_node = NULL;
+  void *ptrs[2];
+  ptrs[0] = (void *)name;
+  ptrs[1] = (void *)&out_node;
+  cdd_cst_traverse_preorder(tree->root, find_class_visitor, ptrs);
+  return out_node;
+}
+
+/**
+ * @brief Visitor to find a function definition by name.
+ * @param node The current node.
+ * @param user_data Pointer to user data.
+ * @return 1 to stop traversal, 0 otherwise.
+ */
+static cdd_c_error_t find_func_visitor(cdd_cst_node_t *node, void *user_data) {
+  void **ptrs = (void **)user_data;
+  const char *target_name = (const char *)ptrs[0];
+  cdd_cst_node_t **out_node = (cdd_cst_node_t **)ptrs[1];
+
+  if (node->kind == CDD_CST_FUNCTION_DEFINITION) {
+    size_t i;
+    for (i = 0; i < node->num_children; i++) {
+      if (node->children[i].val.token->kind == CDD_TOKEN_IDENTIFIER) {
+        cdd_token_t *tok = node->children[i].val.token;
+        if (tok->length == strlen(target_name) &&
+            strncmp((const char *)tok->start, target_name, tok->length) == 0) {
+          *out_node = node;
+          return 1; /* Stop traversal */
+        }
+      }
+    }
+  }
+  return 0;
+}
+
+/**
+ * @brief Finds a function definition in a CST tree by its name.
+ * @param tree The CST tree.
+ * @param name The name to search for.
+ * @return The matching node, or NULL.
+ */
+static cdd_cst_node_t *find_func_definition_by_name(cdd_cst_tree_t *tree,
+                                                    const char *name) {
+  cdd_cst_node_t *out_node = NULL;
+  void *ptrs[2];
+  ptrs[0] = (void *)name;
+  ptrs[1] = (void *)&out_node;
+  cdd_cst_traverse_preorder(tree->root, find_func_visitor, ptrs);
+  return out_node;
+}
+
+/**
+ * @brief Gets the first token of a node.
+ * @param node The node.
+ * @return The first token, or NULL.
+ */
+static cdd_token_t *get_first_token(cdd_cst_node_t *node) {
+  return node->children[0].val.token;
+}
+
+/**
+ * @brief Gets the last token of a node.
+ * @param node The node.
+ * @return The last token, or NULL.
+ */
+static cdd_token_t *get_last_token(cdd_cst_node_t *node) {
+  for (;;) {
+    size_t last_idx = node->num_children - 1;
+    if (node->children[last_idx].kind == CDD_CST_CHILD_TOKEN)
+      return node->children[last_idx].val.token;
+    node = node->children[last_idx].val.node;
+  }
+}
+/**
+ * @brief Copies a CST trivia chain to an FFI trivia chain.
+ * @param in_trivia The input trivia chain.
+ * @param out_trivia Output parameter for the copied chain.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+static cdd_c_error_t copy_trivia_chain(const cdd_trivia_t *in_trivia,
+                                       cdd_ffi_trivia_t **out_trivia) {
+  cdd_ffi_trivia_t *head = NULL;
+  cdd_ffi_trivia_t *tail = NULL;
+  const cdd_trivia_t *curr = in_trivia;
+
+  *out_trivia = NULL;
+
+  while (curr) {
+    cdd_ffi_trivia_t *new_node =
+        (cdd_ffi_trivia_t *)CDD_CALLOC(1, sizeof(cdd_ffi_trivia_t));
+    if (!new_node) {
+      cdd_ffi_trivia_t *tmp;
+      tmp = head;
+      while (tmp) {
+        cdd_ffi_trivia_t *nxt = tmp->next;
+        free(tmp->text);
+        free(tmp);
+        tmp = nxt;
+      }
+      return CDD_C_ERROR_MEMORY;
+    }
+
+    if (curr->kind == TRIVIA_WHITESPACE || curr->kind == TRIVIA_NEWLINE) {
+      new_node->kind = CDD_FFI_TRIVIA_WHITESPACE;
+    } else if (curr->kind == TRIVIA_LINE_COMMENT) {
+      new_node->kind = CDD_FFI_TRIVIA_COMMENT_LINE;
+    } else {
+      new_node->kind = CDD_FFI_TRIVIA_COMMENT_BLOCK;
+    }
+
+    new_node->text = (char *)CDD_CALLOC(1, curr->length + 1);
+    if (!new_node->text) {
+      cdd_ffi_trivia_t *tmp;
+      free(new_node);
+      tmp = head;
+      while (tmp) {
+        cdd_ffi_trivia_t *nxt = tmp->next;
+        free(tmp->text);
+        free(tmp);
+        tmp = nxt;
+      }
+      return CDD_C_ERROR_MEMORY;
+    }
+    memcpy(new_node->text, curr->start, curr->length);
+    new_node->text[curr->length] = '\0';
+    new_node->next = NULL;
+
+    if (!head) {
+      head = new_node;
+      tail = new_node;
+    } else {
+      tail->next = new_node;
+      tail = new_node;
+    }
+    curr = curr->next;
+  }
+
+  *out_trivia = head;
+  return CDD_C_SUCCESS;
+}
+
+static cdd_c_error_t extract_single_file_exports_impl(
+    cdd_ffi_ir_t *ir, const char *filename, const char *content,
+    const cdd_generate_bindings_config_t *config, cdd_cst_tree_t *tree_full) {
   cdd_c_error_t rc;
   size_t i;
   struct TypeDefList types;
   struct FuncSigList sigs;
   (void)config;
+  (void)tree_full;
 
-  if (!ir || !filename || !content)
+  if (!ir || !filename || !content) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
 
   memset(&types, 0, sizeof(types));
 
@@ -185,6 +365,10 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
       rc = ir_add_node(ir, CDD_FFI_NODE_ENUM, types.items[i].name, &node);
       if (rc != CDD_C_SUCCESS)
         break;
+      if (tree_full) {
+        /* CST parser currently does not structure enums as declarations we can
+         * look up by name. */
+      }
       if (types.items[i].details.enum_members->size > 0) {
         size_t j;
         struct EnumMembers *em = types.items[i].details.enum_members;
@@ -210,6 +394,26 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
       rc = ir_add_node(ir, CDD_FFI_NODE_STRUCT, types.items[i].name, &node);
       if (rc != CDD_C_SUCCESS)
         break;
+      if (tree_full) {
+        cdd_cst_node_t *cst_node =
+            find_class_declaration_by_name(tree_full, types.items[i].name);
+        if (cst_node) {
+          cdd_token_t *first = get_first_token(cst_node);
+          cdd_token_t *last = get_last_token(cst_node);
+          if (first && first->leading_trivia) {
+            rc =
+                copy_trivia_chain(first->leading_trivia, &node->leading_trivia);
+            if (rc != CDD_C_SUCCESS)
+              break;
+          }
+          if (last && last->trailing_trivia) {
+            rc = copy_trivia_chain(last->trailing_trivia,
+                                   &node->trailing_trivia);
+            if (rc != CDD_C_SUCCESS)
+              break;
+          }
+        }
+      }
       /* Add parsing for base classes from CST */
       {
         cdd_cst_tree_t *tree_base = NULL;
@@ -225,7 +429,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
             rc = CDD_C_ERROR_MEMORY;
 #endif
           if (rc != CDD_C_SUCCESS) {
-            cdd_cst_tree_free(tree_base);
+            /* cdd_cst_tree_free handled at end */
             break;
           }
           for (si = 0; si < structs_base.size; si++) {
@@ -301,7 +505,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
             }
           }
           free(structs_base.nodes);
-          cdd_cst_tree_free(tree_base);
+          /* cdd_cst_tree_free handled at end */
         }
       }
       if (rc != CDD_C_SUCCESS)
@@ -390,6 +594,24 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
     rc = ir_add_node(ir, CDD_FFI_NODE_FUNCTION, sigs.items[i].name, &node);
     if (rc != CDD_C_SUCCESS)
       break;
+    if (tree_full) {
+      cdd_cst_node_t *cst_node =
+          find_func_definition_by_name(tree_full, sigs.items[i].name);
+      if (cst_node) {
+        cdd_token_t *first = get_first_token(cst_node);
+        cdd_token_t *last = get_last_token(cst_node);
+        if (first && first->leading_trivia) {
+          rc = copy_trivia_chain(first->leading_trivia, &node->leading_trivia);
+          if (rc != CDD_C_SUCCESS)
+            break;
+        }
+        if (last && last->trailing_trivia) {
+          rc = copy_trivia_chain(last->trailing_trivia, &node->trailing_trivia);
+          if (rc != CDD_C_SUCCESS)
+            break;
+        }
+      }
+    }
 
     node->return_or_base_type.kind = CDD_FFI_KIND_VOID;
     node->is_variadic = sigs.items[i].is_variadic;
@@ -692,6 +914,32 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
         }
       }
     }
+  }
+
+  return rc;
+}
+
+static cdd_c_error_t
+extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
+                            const char *content,
+                            const cdd_generate_bindings_config_t *config) {
+  cdd_c_error_t rc;
+  cdd_cst_tree_t *tree_full = NULL;
+  az_span span_full;
+
+  if (!ir || !filename || !content)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  span_full = az_span_create_from_str((char *)(size_t)content);
+  if (cdd_cst_parse(span_full, &tree_full) != 0) {
+    tree_full = NULL;
+  }
+
+  rc = extract_single_file_exports_impl(ir, filename, content, config,
+                                        tree_full);
+
+  if (tree_full) {
+    cdd_cst_tree_free(tree_full);
   }
 
   return rc;

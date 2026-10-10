@@ -80,7 +80,7 @@ C_CDD_EXPORT cdd_c_error_t clone_trivia_list_mutate(cdd_trivia_t *head,
   while (head) {
     cdd_trivia_t *t;
 #ifdef CDD_BUILD_TESTS
-    extern int g_cdd_cst_alloc_token_fail;
+    extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
     if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0)
       t = NULL;
     else
@@ -347,7 +347,7 @@ cdd_c_error_t cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
         cdd_token_t *orig_tok = root->children[i].val.token;
         cdd_token_t *new_tok;
 #ifdef CDD_BUILD_TESTS
-        extern int g_cdd_cst_alloc_token_fail;
+        extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
         if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0)
           new_tok = NULL;
         else

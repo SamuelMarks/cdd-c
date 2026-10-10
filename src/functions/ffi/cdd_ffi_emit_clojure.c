@@ -16,6 +16,21 @@ extern volatile int g_fail_io_after;
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Emits trivia (comments, whitespace).
+ * @param f The FILE pointer.
+ * @param trivia The trivia chain.
+ */
+static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
+  FILE *file = (FILE *)f;
+  while (trivia) {
+    if (trivia->text) {
+      fprintf(file, "%s", trivia->text);
+    }
+    trivia = trivia->next;
+  }
+}
+
 static const char *map_clojure_jna_type(cdd_ffi_type_t *t) {
   if (t->pointer_depth > 0) {
     if (t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) {
@@ -111,6 +126,7 @@ cdd_ffi_emit_clojure(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(f, node->leading_trivia);
       fprintf(f, "    ^%s [%s [",
               map_clojure_jna_type(&node->return_or_base_type), node->name);
       for (j = 0; j < node->fields_count; j++) {
@@ -126,6 +142,7 @@ cdd_ffi_emit_clojure(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
+      emit_trivia(f, node->leading_trivia);
       fprintf(f, "(gen-class\n");
       fprintf(f, "  :name %s.%s\n", module_name, node->name);
       fprintf(f, "  :extends com.sun.jna.Structure\n");
@@ -153,6 +170,7 @@ cdd_ffi_emit_clojure(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(f, node->leading_trivia);
       fprintf(f, "(defn %s [", node->name);
       for (j = 0; j < node->fields_count; j++) {
         fprintf(f, "%s%s", j > 0 ? " " : "", node->fields[j].name);

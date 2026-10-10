@@ -14,6 +14,21 @@ extern volatile int g_fail_io_after;
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Emits trivia (comments, whitespace).
+ * @param f The FILE pointer.
+ * @param trivia The trivia chain.
+ */
+static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
+  FILE *file = (FILE *)f;
+  while (trivia) {
+    if (trivia->text) {
+      fprintf(file, "%s", trivia->text);
+    }
+    trivia = trivia->next;
+  }
+}
+
 static const char *map_groovy_jna_type(cdd_ffi_type_t *t) {
   if (t->pointer_depth > 0) {
     if (t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) {
@@ -127,6 +142,7 @@ cdd_ffi_emit_groovy(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
+      emit_trivia(f, node->leading_trivia);
       fprintf(f, "class %s extends Structure {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         fprintf(f, "    public %s %s\n",
@@ -152,6 +168,7 @@ cdd_ffi_emit_groovy(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(f, node->leading_trivia);
       fprintf(f, "    %s %s(", map_groovy_jna_type(&node->return_or_base_type),
               node->name);
       for (j = 0; j < node->fields_count; j++) {

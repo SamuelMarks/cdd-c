@@ -47,8 +47,10 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_mangle_cpp_name(const char *ns_name,
                                                    const char *method_name,
                                                    char **out_mangled);
 
-cdd_c_error_t ir_add_node(cdd_ffi_ir_t *ir, cdd_ffi_node_kind_t kind,
-                          const char *name, cdd_ffi_ir_node_t **out_node);
+C_CDD_EXPORT cdd_c_error_t ir_add_node(cdd_ffi_ir_t *ir,
+                                       cdd_ffi_node_kind_t kind,
+                                       const char *name,
+                                       cdd_ffi_ir_node_t **out_node);
 
 cdd_c_error_t instantiate_templates(cdd_ffi_ir_t *ir);
 

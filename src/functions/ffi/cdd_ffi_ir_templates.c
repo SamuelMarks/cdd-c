@@ -91,6 +91,7 @@ cdd_c_error_t instantiate_templates(cdd_ffi_ir_t *ir) {
                 if (rc_ex != CDD_C_SUCCESS)
                   return rc_ex;
 
+                node = &ir->nodes[i]; /* Re-fetch invalidated pointer */
                 base_struct = &ir->nodes[k];
 
                 new_node->fields_count = base_struct->fields_count;

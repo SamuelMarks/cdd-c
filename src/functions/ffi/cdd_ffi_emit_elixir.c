@@ -15,6 +15,22 @@ extern volatile int g_fail_io_after;
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
+
+/**
+ * @brief Emits trivia (comments, whitespace).
+ * @param f The FILE pointer.
+ * @param trivia The trivia chain.
+ */
+static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
+  FILE *file = (FILE *)f;
+  while (trivia) {
+    if (trivia->text) {
+      fprintf(file, "%s", trivia->text);
+    }
+    trivia = trivia->next;
+  }
+}
+
 static void elixirify_name(const char *c_name, char *out_name, size_t out_sz) {
   size_t i = 0, j = 0;
   while (c_name[i] && j < out_sz - 1) {
@@ -186,6 +202,7 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) { /* LCOV_EXCL_BR_LINE */
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(c_f, node->leading_trivia);
       has_functions = 1;
       fprintf(c_f,
               "static ERL_NIF_TERM nif_%s(ErlNifEnv* env, int argc, const "
@@ -329,6 +346,7 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) { /* LCOV_EXCL_BR_LINE */
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(c_f, node->leading_trivia);
       snake_case_name(node->name, snake_node_name, sizeof(snake_node_name));
       fprintf(c_f, "    {\"%s\", %lu, nif_%s, 0},\n", snake_node_name,
               (unsigned long)node->fields_count, node->name);
@@ -378,6 +396,7 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) { /* LCOV_EXCL_BR_LINE */
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(ex_f, node->leading_trivia);
       snake_case_name(node->name, snake_node_name, sizeof(snake_node_name));
       fprintf(ex_f, "  def %s(", snake_node_name);
       for (j = 0; j < node->fields_count; j++) { /* LCOV_EXCL_BR_LINE */

@@ -16,6 +16,21 @@ extern volatile int g_fail_io_after;
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Emits trivia (comments, whitespace).
+ * @param f The FILE pointer.
+ * @param trivia The trivia chain.
+ */
+static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
+  FILE *file = (FILE *)f;
+  while (trivia) {
+    if (trivia->text) {
+      fprintf(file, "%s", trivia->text);
+    }
+    trivia = trivia->next;
+  }
+}
+
 static void map_idl_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz) {
   if (t->pointer_depth > 0) {
     if ((t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) &&
@@ -233,6 +248,7 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
       }
       fprintf(idl_f, "};\n\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
+      emit_trivia(idl_f, node->leading_trivia);
       fprintf(idl_f, "enum %s {\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
@@ -248,6 +264,7 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(idl_f, node->leading_trivia);
       map_idl_type(&node->return_or_base_type, ret_type_str,
                    sizeof(ret_type_str));
       fprintf(idl_f, "  %s %s(", ret_type_str, node->name);
@@ -274,6 +291,7 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(cpp_f, node->leading_trivia);
       fprintf(cpp_f, "EMSCRIPTEN_KEEPALIVE\n");
       /* Standard C signature */
       if (node->return_or_base_type.kind == CDD_FFI_KIND_VOID &&
@@ -309,6 +327,7 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(ts_f, node->leading_trivia);
       map_ts_type(&node->return_or_base_type, ret_type_str,
                   sizeof(ret_type_str));
       fprintf(ts_f, "  _%s(", node->name);
@@ -339,6 +358,7 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
       }
       fprintf(ts_f, "}\n\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
+      emit_trivia(ts_f, node->leading_trivia);
       fprintf(ts_f, "export enum %s {\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];

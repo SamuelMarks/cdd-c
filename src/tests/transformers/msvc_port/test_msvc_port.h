@@ -23,6 +23,7 @@ extern "C" {
 
 /* Moved extern declarations for C89 compliance */
 extern C_CDD_EXPORT int g_msvc_port_bld_fail;
+extern C_CDD_EXPORT int g_msvc_port_find_fail;
 extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 
@@ -194,6 +195,24 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
   tree = NULL;
   cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code), &tree);
 
+  {
+    const char *simple_code = (char *)(size_t)(size_t) "#include <unistd.h>\n";
+    cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)simple_code),
+                  &tree);
+    g_msvc_port_find_fail = 1;
+    rc = cdd_transform_msvc(tree, &config);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    g_msvc_port_find_fail = 0;
+
+    g_msvc_port_find_fail = 2;
+    rc = cdd_transform_msvc(tree, &config);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    g_msvc_port_find_fail = 0;
+
+    cdd_cst_tree_free(tree);
+    tree = NULL;
+  }
+
   /* Test g_msvc_port_bld_fail = 1 (wrap_node error) */
   {
     const char *simple_code = (char *)(size_t)(size_t) "#include <unistd.h>\n";
@@ -226,6 +245,7 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
     for (fail_idx = 1; fail_idx < 150; fail_idx++) {
       cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
                     &tree);
+      printf("SETTING fail_idx=%d\n", fail_idx);
       g_cdd_alloc_fail = fail_idx;
       cdd_transform_msvc(tree, &config);
       g_cdd_alloc_fail = 0;

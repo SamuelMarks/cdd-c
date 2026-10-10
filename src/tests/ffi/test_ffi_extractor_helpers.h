@@ -527,6 +527,23 @@ TEST test_ffi_emit_java_fopen_fail(void) {
  *
  * @return GREATEST_TEST_RES.
  */
+TEST test_ffi_extractor_trivia(void) {
+  const char *filename = "test_trivia.h";
+  const char *code =
+      "/* leading enum */\nenum MyEnum { A };\n/* trailing enum */\n\n"
+      "/* leading func */\nvoid myFunc(void) {}\n/* trailing func */\n";
+  cdd_ffi_ir_t *ir = NULL;
+  cdd_generate_bindings_config_t config = {0};
+
+  write_to_file(filename, code);
+  ASSERT_EQ(0, cdd_ffi_ir_extract_exports(filename, code, &config, &ir));
+  ASSERT_EQ(1, ir != NULL);
+
+  cdd_ffi_ir_free(ir);
+  free(ir);
+  remove(filename);
+  PASS();
+}
 TEST test_ffi_extractor_missing_branches(void) {
   cdd_generate_bindings_config_t config;
   cdd_ffi_ir_t test_ir;
@@ -605,10 +622,44 @@ TEST test_ffi_extractor_missing_branches(void) {
   cdd_ffi_ir_free(&test_ir);
   ASSERT_EQ(0, remove("s2.h"));
 
+  /* 7. NULL arguments to extract_single_file_exports_test */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_ffi_extract_single_file_exports_test(NULL, NULL, NULL, NULL));
+
   g_fail_io_after = -1;
   PASS();
 }
 
+TEST test_ffi_extractor_trivia_oom(void) {
+  const char *filename = "test_trivia_oom.h";
+  const char *code =
+      "/* leading func */\nvoid myFuncOOM(void) {}\n/* trailing func */\n";
+  cdd_ffi_ir_t *ir = NULL;
+  cdd_generate_bindings_config_t config = {0};
+  int i;
+  int rc;
+
+  write_to_file(filename, code);
+  for (i = 1; i < 50; i++) {
+    g_ffi_extractor_alloc_fail = i;
+    rc = cdd_ffi_ir_extract_exports(filename, code, &config, &ir);
+    g_ffi_extractor_alloc_fail = 0;
+    if (rc == CDD_C_SUCCESS) {
+      cdd_ffi_ir_free(ir);
+      free(ir);
+      ir = NULL;
+      break;
+    }
+    if (ir) {
+      cdd_ffi_ir_free(ir);
+      free(ir);
+      ir = NULL;
+    }
+  }
+
+  remove(filename);
+  PASS();
+}
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

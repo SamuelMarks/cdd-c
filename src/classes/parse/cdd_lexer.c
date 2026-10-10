@@ -1,6 +1,3 @@
-#ifdef CDD_BUILD_TESTS
-extern int g_cdd_cst_alloc_token_fail;
-#endif
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -8,6 +5,9 @@ extern int g_cdd_cst_alloc_token_fail;
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
 #include <ctype.h>
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
+#endif
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>

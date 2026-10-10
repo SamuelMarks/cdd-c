@@ -8,7 +8,7 @@ undercovered = []
 covered = []
 
 for file in files:
-    fn = file["filename"]
+    fn = file.get("file", file.get("filename"))
     if "/_deps/" in fn or "cfs.c" in fn or "cfs.h" in fn or "math.h" in fn:
         continue
 

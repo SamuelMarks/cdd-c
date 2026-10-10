@@ -13,6 +13,21 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Emits trivia (comments, whitespace).
+ * @param f The FILE pointer.
+ * @param trivia The trivia chain.
+ */
+static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
+  FILE *file = (FILE *)f;
+  while (trivia) {
+    if (trivia->text) {
+      fprintf(file, "%s", trivia->text);
+    }
+    trivia = trivia->next;
+  }
+}
+
 static void schemify_name(const char *c_name, char *out_name, size_t out_sz) {
   size_t i = 0, j = 0;
   if (!c_name)
@@ -152,6 +167,7 @@ cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
     node = &ir->nodes[i];
     schemify_name(node->name, scheme_node_name, sizeof(scheme_node_name));
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(f, node->leading_trivia);
       fprintf(f, "    %s\n", scheme_node_name);
     }
   }
@@ -194,6 +210,7 @@ cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
         fprintf(f, "    ))\n\n");
       }
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
+      emit_trivia(f, node->leading_trivia);
       /* Chez does not have define-enum natively in ftype, so map to int */
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
@@ -210,6 +227,7 @@ cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
       /* define-ftype alias */
       fprintf(f, "  (define-ftype %s %s)\n\n", scheme_node_name, type_str);
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(f, node->leading_trivia);
       map_scheme_type(&node->return_or_base_type, ret_type_str,
                       sizeof(ret_type_str));
       fprintf(f, "  (define %s\n", scheme_node_name);

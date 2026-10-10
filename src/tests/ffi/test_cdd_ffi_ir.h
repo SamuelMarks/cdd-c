@@ -53,10 +53,12 @@ TEST test_ffi_ir_free_full(void) {
   n->evaluated_value = strdup("Val1");
 
   n->return_or_base_type.ref_name = strdup("RetRef");
+  n->return_or_base_type.raw_spelling = strdup("RawRetRef");
   n->return_or_base_type.template_args_count = 1;
   n->return_or_base_type.template_args =
       (cdd_ffi_type_t *)calloc(1, sizeof(cdd_ffi_type_t));
   n->return_or_base_type.template_args[0].ref_name = strdup("TArg1");
+  n->return_or_base_type.template_args[0].raw_spelling = strdup("RawTArg1");
 
   n->fields_count = 1;
   n->fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
@@ -64,6 +66,7 @@ TEST test_ffi_ir_free_full(void) {
   n->fields[0].doc = strdup("FDoc1");
   n->fields[0].array_length_ref = strdup("FLen1");
   n->fields[0].type.ref_name = strdup("FType1");
+  n->fields[0].type.raw_spelling = strdup("RawFType1");
 
   n->base_classes_count = 1;
   n->base_classes =
@@ -76,12 +79,14 @@ TEST test_ffi_ir_free_full(void) {
       (cdd_ffi_virtual_method_t *)calloc(1, sizeof(cdd_ffi_virtual_method_t));
   n->virtual_methods[0].name = strdup("VMethod1");
   n->virtual_methods[0].return_type.ref_name = strdup("VRet1");
+  n->virtual_methods[0].return_type.raw_spelling = strdup("RawVRet1");
   n->virtual_methods[0].args_count = 1;
   n->virtual_methods[0].args =
       (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   n->virtual_methods[0].args[0].name = strdup("VArg1");
   n->virtual_methods[0].args[0].doc = strdup("VArgDoc1");
   n->virtual_methods[0].args[0].type.ref_name = strdup("VArgType1");
+  n->virtual_methods[0].args[0].type.raw_spelling = strdup("RawVArgType1");
 
   n->variants_count = 1;
   n->variants =
@@ -89,6 +94,7 @@ TEST test_ffi_ir_free_full(void) {
   n->variants[0].name = strdup("Var1");
   n->variants[0].value = strdup("VarVal1");
   n->variants[0].doc = strdup("VarDoc1");
+  n->variants[0].raw_spelling = strdup("RawVar1");
 
   cdd_ffi_ir_free(&ir);
   PASS();

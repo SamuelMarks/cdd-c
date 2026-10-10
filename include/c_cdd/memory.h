@@ -42,8 +42,11 @@ C_CDD_INLINE void *c_cdd_calloc(size_t n, size_t sz) {
 
 C_CDD_INLINE void *c_cdd_realloc(void *p, size_t sz) {
 #ifdef CDD_BUILD_TESTS
-  if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0)
-    return NULL;
+  if (g_cdd_alloc_fail) {
+    if (--g_cdd_alloc_fail == 0) {
+      return NULL;
+    }
+  }
 #endif
   return realloc(p, sz);
 }

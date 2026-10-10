@@ -324,6 +324,11 @@ set(Source_Files
         "functions/parse/vcpkg_integration.c"
         "functions/ffi/cdd_ffi_ir.c"
         "functions/ffi/cdd_ffi_ir_extractor.c"
+        "functions/ffi/cdd_ffi_ir_json.c"
+        "functions/ffi/cdd_ffi_emit_ir_json.c"
+        "functions/dsl/cdd_dsl_tokenizer.c"
+        "functions/dsl/cdd_dsl_parser.c"
+        "functions/dsl/cdd_ffi_emit_dsl.c"
         "functions/ffi/cdd_ffi_emit_ada.c"
         "functions/ffi/cdd_ffi_emit_clojure.c"
         "functions/ffi/cdd_ffi_emit_common_lisp.c"
@@ -722,4 +727,8 @@ if (APPLE)
     find_library(COREFOUNDATION_LIBRARY CoreFoundation)
     find_library(CFNETWORK_LIBRARY CFNetwork)
     target_link_libraries("${LIBRARY_NAME}" PRIVATE ${COREFOUNDATION_LIBRARY} ${CFNETWORK_LIBRARY})
+endif()
+if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
+    add_executable(test_dump2 tests/test_dump2.c)
+target_link_libraries(test_dump2 c_cdd cdd_test_helpers)
 endif()

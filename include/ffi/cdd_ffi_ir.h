@@ -6,6 +6,7 @@ extern "C" {
 #endif /* __cplusplus */
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <stddef.h>
 /* clang-format on */
 
@@ -58,9 +59,60 @@ typedef enum cdd_ffi_primitive_kind_t {
 } cdd_ffi_primitive_kind_t;
 
 /**
+ * @enum cdd_ffi_trivia_kind_t
+ * @brief Represents the specific kind of lexical trivia.
+ */
+typedef enum cdd_ffi_trivia_kind_t {
+  CDD_FFI_TRIVIA_WHITESPACE,
+  CDD_FFI_TRIVIA_COMMENT_LINE,
+  CDD_FFI_TRIVIA_COMMENT_BLOCK,
+  CDD_FFI_TRIVIA_CONTINUATION
+} cdd_ffi_trivia_kind_t;
+
+/**
+ * @struct cdd_ffi_trivia_t
+ * @brief Represents lexical trivia (whitespace, comments, continuations) to
+ * allow exact formatting roundtrips.
+ */
+typedef struct cdd_ffi_trivia_t {
+  /** @brief The kind of trivia */
+  cdd_ffi_trivia_kind_t kind;
+  /** @brief Raw exact text of the trivia */
+  char *text;
+  /** @brief Pointer to the next piece of trivia in the chain */
+  struct cdd_ffi_trivia_t *next;
+} cdd_ffi_trivia_t;
+
+/**
  * @struct cdd_ffi_type_t
  * @brief Normalized representation of any C type (including pointers).
  */
+
+/**
+ * @enum cdd_ffi_number_prefix_t
+ * @brief Represents the literal prefix for numbers.
+ */
+typedef enum cdd_ffi_number_prefix_t {
+  CDD_FFI_NUM_PREFIX_NONE,
+  CDD_FFI_NUM_PREFIX_HEX,
+  CDD_FFI_NUM_PREFIX_OCTAL,
+  CDD_FFI_NUM_PREFIX_BINARY
+} cdd_ffi_number_prefix_t;
+
+/**
+ * @struct cdd_ffi_number_t
+ * @brief Enhances IR Number representations to capture exact text, prefixes,
+ * and C23 separators.
+ */
+typedef struct cdd_ffi_number_t {
+  /** @brief Exact text spelling, e.g., "1'000" */
+  char *raw_spelling;
+  /** @brief Number prefix */
+  cdd_ffi_number_prefix_t prefix;
+  /** @brief Has C23 digit separators (e.g. 1'000) */
+  int has_separators;
+} cdd_ffi_number_t;
+
 typedef struct cdd_ffi_type_t {
   /** @brief The base kind of the type */
   cdd_ffi_primitive_kind_t kind;
@@ -76,6 +128,9 @@ typedef struct cdd_ffi_type_t {
   struct cdd_ffi_type_t *template_args;
   /** @brief Number of template parameters */
   size_t template_args_count;
+  cdd_ffi_trivia_t *leading_trivia;
+  cdd_ffi_trivia_t *trailing_trivia;
+  char *raw_spelling;
 } cdd_ffi_type_t;
 
 /**
@@ -88,6 +143,20 @@ typedef enum cdd_ffi_param_intent_t {
   CDD_FFI_INTENT_OUT,
   CDD_FFI_INTENT_INOUT
 } cdd_ffi_param_intent_t;
+
+/**
+ * @struct cdd_ffi_macro_expansion_t
+ * @brief Models a macro expansion exactly as it appears in the source.
+ */
+typedef struct cdd_ffi_macro_expansion_t {
+  /** @brief The name of the macro invoked */
+  char *macro_name;
+  /** @brief The exact string of the expansion arguments (if any), e.g. "(a, b)"
+   */
+  char *raw_args;
+  /** @brief The C code that it expands to, captured for analysis if needed */
+  char *expanded_text;
+} cdd_ffi_macro_expansion_t;
 
 /**
  * @struct cdd_ffi_field_t
@@ -105,6 +174,8 @@ typedef struct cdd_ffi_field_t {
   /** @brief Reference to another field defining the array length (if
    * applicable) */
   char *array_length_ref;
+  cdd_ffi_trivia_t *leading_trivia;
+  cdd_ffi_trivia_t *trailing_trivia;
 } cdd_ffi_field_t;
 
 /**
@@ -131,6 +202,10 @@ typedef struct cdd_ffi_enum_variant_t {
   char *value;
   /** @brief Optional docstring */
   char *doc;
+  cdd_ffi_trivia_t *leading_trivia;
+  cdd_ffi_trivia_t *trailing_trivia;
+  struct cdd_ffi_number_t *number_details;
+  char *raw_spelling;
 } cdd_ffi_enum_variant_t;
 
 /**
@@ -222,6 +297,14 @@ typedef struct cdd_ffi_ir_node_t {
   /** @brief True if the function accepts a variable number of arguments (...)
    */
   int is_variadic;
+  cdd_ffi_trivia_t *leading_trivia;
+  cdd_ffi_trivia_t *trailing_trivia;
+
+  /** @brief Macro expansions contained within this node */
+  struct cdd_ffi_macro_expansion_t *macro_expansions;
+  /** @brief Number of macro expansions */
+  size_t macro_expansions_count;
+  char *raw_body;
 } cdd_ffi_ir_node_t;
 
 /**
@@ -235,6 +318,7 @@ typedef struct cdd_ffi_ir_t {
   size_t nodes_count;
   /** @brief Capacity of the nodes array */
   size_t nodes_capacity;
+  char *module_name;
 } cdd_ffi_ir_t;
 
 /**
@@ -244,6 +328,25 @@ typedef struct cdd_ffi_ir_t {
  * @return 0 on success, or an error code (e.g., EINVAL or ENOMEM).
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir);
+
+/**
+ * @brief Serializes the FFI IR into a JSON string.
+ * @param[in] ir The IR to serialize.
+ * @param[out] out_json The resulting JSON string (must be freed with free()).
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_to_json(const cdd_ffi_ir_t *ir,
+                                              char **out_json);
+
+/**
+ * @brief Deserializes a JSON string into an FFI IR structure.
+ * @param[in] json_str The JSON string to parse.
+ * @param[out] out_ir The resulting IR structure (must be freed with
+ * cdd_ffi_ir_free()).
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_from_json(const char *json_str,
+                                                cdd_ffi_ir_t **out_ir);
 
 /**
  * @brief Frees all memory associated with the FFI IR.

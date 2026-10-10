@@ -538,7 +538,7 @@ TEST test_safe_crt_direct_branches(void) {
             safe_crt_generate_sprintf_patch(tl, 0, tl->size, &patches));
   free_token_list(tl);
 
-  sp = az_span_create((uint8_t *)(size_t) "CDD_SNPRINTF(a, sizeof(a), b;", 13);
+  sp = az_span_create((uint8_t *)(size_t) "CDD_SNPRINTF(a, b;", 18);
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_sprintf_patch(tl, 0, tl->size, &patches));

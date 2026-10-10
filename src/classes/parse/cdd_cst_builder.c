@@ -473,7 +473,7 @@ cdd_c_error_t cdd_cst_pool_string(cdd_cst_tree_t *tree, const char *str,
                                   const char **out_str) {
   char *dup;
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_cst_alloc_token_fail;
+  extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 #endif
   *out_str = NULL;
 #ifdef CDD_BUILD_TESTS
@@ -692,7 +692,7 @@ cdd_c_error_t cdd_cst_splice_nodes(cdd_cst_builder_t *builder,
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_cst_alloc_token_fail;
+    extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
     if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0)
       children_wrappers = NULL;
     else

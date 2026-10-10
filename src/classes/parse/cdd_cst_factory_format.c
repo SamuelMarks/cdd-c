@@ -30,7 +30,7 @@ cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
                                    cdd_cst_node_t **out_node, const char *fmt,
                                    ...) {
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_cst_alloc_token_fail;
+  extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 #endif
   char *buf;
   va_list args;

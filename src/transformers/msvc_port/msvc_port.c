@@ -201,6 +201,7 @@ static cdd_c_error_t replace_msvc_identifiers(
  */
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_msvc_port_bld_fail = 0;
+C_CDD_EXPORT int g_msvc_port_find_fail = 0;
 #endif
 
 cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
@@ -209,6 +210,9 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
   size_t i;
   cdd_c_error_t rc = CDD_C_SUCCESS;
   int added_compat = 0;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_msvc_port_find_fail;
+#endif
   (void)config;
 
   if (!tree || !tree->root)
@@ -216,6 +220,11 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
 
   /* 1. Wrap unistd.h and sys/time.h */
   rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_PREPROC_DIRECTIVE, &res);
+#ifdef CDD_BUILD_TESTS
+  if (g_msvc_port_find_fail == 1) {
+    rc = CDD_C_ERROR_MEMORY;
+  }
+#endif
   if (rc != CDD_C_SUCCESS) {
     return rc;
   }
@@ -254,6 +263,12 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
           cdd_cst_builder_t bld;
           cdd_cst_node_t *wrap_node =
               (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
+#ifdef CDD_BUILD_TESTS
+          if (g_msvc_port_find_fail == 2) {
+            C_CDD_FREE(wrap_node);
+            wrap_node = NULL;
+          }
+#endif
           if (!wrap_node) {
             C_CDD_FREE(res.nodes);
             return CDD_C_ERROR_MEMORY;
@@ -300,6 +315,7 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
     rc = replace_msvc_identifiers(tree, tree->root, &prev, &prev_prev,
                                   &needs_basetsd, &needs_expect);
     if (rc != CDD_C_SUCCESS) {
+      printf("Line 219 taken! rc=%d\n", rc);
       return rc;
     }
 
@@ -334,6 +350,7 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
           rc = cdd_cst_insert_child_node_at(tree->root, 0, deps_node);
 #endif
           if (rc != CDD_C_SUCCESS) {
+            printf("Line 219 taken! rc=%d\n", rc);
             C_CDD_FREE(deps_node->children);
             C_CDD_FREE(deps_node);
             cdd_cst_builder_free(&bld);

@@ -233,6 +233,90 @@ TEST test_cdd_generate_bindings(void) {
   PASS();
 }
 
+TEST test_cdd_generate_bindings_from_dsl(void) {
+  cdd_generate_bindings_config_t config = {0};
+  const char *valid_dsl = "interface Test {}";
+  const char *invalid_dsl = "invalid dsl ++";
+
+  config.output_dir = ".";
+
+  /* NULL args */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_generate_bindings_from_dsl(NULL, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_generate_bindings_from_dsl(valid_dsl, NULL));
+
+  /* Exhaustive OOM testing to cover all error branches in tokenizer and parser
+   */
+#ifdef CDD_BUILD_TESTS
+  {
+    int i;
+    for (i = 1; i < 50; ++i) {
+      g_ffi_extractor_alloc_fail = i;
+      cdd_generate_bindings_from_dsl(valid_dsl, &config);
+    }
+    g_ffi_extractor_alloc_fail = 0;
+  }
+#endif
+
+  cdd_generate_bindings_from_dsl(invalid_dsl, &config);
+
+  /* valid, no target_langs */
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_bindings_from_dsl(valid_dsl, &config));
+
+  /* valid, with target_langs = dsl */
+  config.target_langs = "dsl";
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_bindings_from_dsl(valid_dsl, &config));
+
+  /* valid, with target_langs not containing dsl */
+  config.target_langs = "c";
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_bindings_from_dsl(valid_dsl, &config));
+
+  PASS();
+}
+
+TEST test_cdd_generate_bindings_json(void) {
+  cdd_generate_bindings_config_t config = {0};
+  FILE *f;
+
+  /* create dummy .json */
+  f = fopen("test_dummy.json", "w");
+  if (f) {
+    fprintf(f, "{\"nodes\":[]}");
+    fclose(f);
+  } else {
+    printf("Failed to create test_dummy.json\n");
+  }
+
+  config.input = "test_dummy.json";
+  config.output_dir = ".";
+  config.target_langs = "ir"; /* just emit it back as json */
+  cdd_generate_bindings(&config);
+
+  /* invalid json */
+  f = fopen("test_dummy_invalid.json", "w");
+  if (f) {
+    fprintf(f, "invalid");
+    fclose(f);
+  }
+  config.input = "test_dummy_invalid.json";
+  cdd_generate_bindings(&config);
+
+  /* len <= 5 */
+  f = fopen("a.c", "w");
+  if (f) {
+    fprintf(f, "/* dummy */");
+    fclose(f);
+  }
+  config.input = "a.c";
+  cdd_generate_bindings(&config);
+
+  remove("test_dummy.json");
+  remove("test_dummy_invalid.json");
+  remove("a.c");
+  PASS();
+}
+
 SUITE(cdd_api_suite) {
   RUN_TEST(test_cdd_generate_from_openapi);
   RUN_TEST(test_cdd_generate_to_openapi);
@@ -240,6 +324,8 @@ SUITE(cdd_api_suite) {
   RUN_TEST(test_cdd_serve_json_rpc);
   RUN_TEST(test_bin_cdd);
   RUN_TEST(test_cdd_generate_bindings);
+  RUN_TEST(test_cdd_generate_bindings_from_dsl);
+  RUN_TEST(test_cdd_generate_bindings_json);
 }
 
 #ifdef __cplusplus

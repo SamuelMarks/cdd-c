@@ -17,6 +17,21 @@ extern volatile int g_fail_io_after;
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Emits trivia (comments, whitespace).
+ * @param f The FILE pointer.
+ * @param trivia The trivia chain.
+ */
+static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
+  FILE *file = (FILE *)f;
+  while (trivia) {
+    if (trivia->text) {
+      fprintf(file, "%s", trivia->text);
+    }
+    trivia = trivia->next;
+  }
+}
+
 static void lispify_name(const char *c_name, char *out_name, size_t out_sz) {
   size_t i = 0, j = 0;
   if (!c_name)
@@ -201,6 +216,7 @@ cdd_ffi_emit_common_lisp(cdd_ffi_ir_t *ir,
     lispify_name(node->name, lisp_node_name, sizeof(lisp_node_name));
 
     if (node->kind == CDD_FFI_NODE_STRUCT) {
+      emit_trivia(f, node->leading_trivia);
       fprintf(f, "(defcstruct %s\n", lisp_node_name);
       for (j = 0; j < node->fields_count; j++) {
         lispify_name(node->fields[j].name, field_name, sizeof(field_name));
@@ -217,6 +233,7 @@ cdd_ffi_emit_common_lisp(cdd_ffi_ir_t *ir,
       }
       fprintf(f, ")\n\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
+      emit_trivia(f, node->leading_trivia);
       fprintf(f, "(defcenum %s\n", lisp_node_name);
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
@@ -232,6 +249,7 @@ cdd_ffi_emit_common_lisp(cdd_ffi_ir_t *ir,
       map_lisp_type(&node->return_or_base_type, type_str, sizeof(type_str));
       fprintf(f, "(defctype %s %s)\n\n", lisp_node_name, type_str);
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(f, node->leading_trivia);
       map_lisp_type(&node->return_or_base_type, ret_type_str,
                     sizeof(ret_type_str));
       fprintf(f, "(defcfun (\"%s\" %s) %s\n", node->name, lisp_node_name,

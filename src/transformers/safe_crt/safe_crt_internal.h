@@ -218,7 +218,8 @@ C_CDD_EXPORT cdd_c_error_t emit_ast_bld_strip_ampersand(expr_t *node,
  * @param[in,out] bld CST builder.
  * @param[in] dest Destination buffer expression.
  */
-C_CDD_EXPORT void emit_inferred_size(cdd_cst_builder_t *bld, expr_t *dest);
+C_CDD_EXPORT cdd_c_error_t emit_inferred_size(cdd_cst_builder_t *bld,
+                                              expr_t *dest);
 
 /**
  * @brief Emits transformed AST tokens into the CST builder.
@@ -228,7 +229,8 @@ C_CDD_EXPORT void emit_inferred_size(cdd_cst_builder_t *bld, expr_t *dest);
  * @param[in] is_msc Non-zero if targeting MSC Safe CRT.
  * @return Number of safe CRT changes emitted.
  */
-int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc);
+cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
+                           int *out_changes);
 
 /**
  * @brief Extracts the indentation string from a token's leading trivia.

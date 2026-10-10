@@ -434,6 +434,24 @@ TEST test_gnu_standardizer_error_branches(void) {
   tree = NULL;
   g_gnu_standardizer_fail = 0;
 
+  /* g_gnu_standardizer_fail == 42 (pooled == NULL in pool_string_safe) */
+  g_gnu_standardizer_fail = 42;
+  ASSERT_EQ(
+      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_noarg_attr),
+                       &tree));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
+  cdd_cst_tree_free(tree);
+  tree = NULL;
+  g_gnu_standardizer_fail = 0;
+
+  /* test code_noarg_attr with g_gnu_standardizer_fail == 0 */
+  ASSERT_EQ(
+      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_noarg_attr),
+                       &tree));
+  ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
+  cdd_cst_tree_free(tree);
+  tree = NULL;
+
   /* code_lbl_break */
   ASSERT_EQ(
       0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_lbl_break),

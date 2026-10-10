@@ -40,7 +40,7 @@ cdd_c_error_t cdd_cst_bld_line_comment(cdd_cst_builder_t *builder,
 static cdd_c_error_t create_trivia(cdd_cst_tree_t *tree, const char *text,
                                    cdd_trivia_t **out_trivia) {
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_cst_alloc_token_fail;
+  extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 #endif
   cdd_trivia_t *t;
   const char *dup;

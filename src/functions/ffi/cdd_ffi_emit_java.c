@@ -15,6 +15,21 @@ extern volatile int g_fail_io_after;
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Emits trivia (comments, whitespace).
+ * @param f The FILE pointer.
+ * @param trivia The trivia chain.
+ */
+static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
+  FILE *file = (FILE *)f;
+  while (trivia) {
+    if (trivia->text) {
+      fprintf(file, "%s", trivia->text);
+    }
+    trivia = trivia->next;
+  }
+}
+
 static const char *get_java_primitive(cdd_ffi_type_t type) {
   if (type.pointer_depth > 0) {
     if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
@@ -175,6 +190,7 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         }
       }
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
+      emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "        /**\n         * %s\n         */\n", node->doc);
       fprintf(f, "        public interface %s {\n", node->name);
@@ -200,6 +216,7 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     if (node->kind == CDD_FFI_NODE_STRUCT) {
       int has_derived = 0;
       size_t k, b;
+      emit_trivia(f, node->leading_trivia);
       for (k = 0; k < ir->nodes_count; k++) {
         if (ir->nodes[k].kind == CDD_FFI_NODE_STRUCT) {
           for (b = 0; b < ir->nodes[k].base_classes_count; b++) {
@@ -224,6 +241,7 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
+      emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "        /**\n         * %s\n         */\n", node->doc);
 
@@ -287,6 +305,7 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(f, node->leading_trivia);
       fprintf(f, "        %s %s(",
               get_java_primitive(node->return_or_base_type), node->name);
       for (j = 0; j < node->fields_count; j++) {
@@ -317,6 +336,7 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "    /**\n     * %s\n     */\n", node->doc);
       fprintf(f, "    public static %s %s(",

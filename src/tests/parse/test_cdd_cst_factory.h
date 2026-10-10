@@ -183,6 +183,16 @@ TEST test_cst_append_child_token(void) {
   ASSERT_EQ(0, cdd_cst_append_child_token(parent, tok));
   ASSERT_EQ(17, parent->num_children);
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_mock_cdd_cst_append_child_token_fail;
+    g_mock_cdd_cst_append_child_token_fail = 2;
+    ASSERT_EQ(0, cdd_cst_append_child_token(parent, tok));
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_cst_append_child_token(parent, tok));
+    g_mock_cdd_cst_append_child_token_fail = 0;
+  }
+#endif
+
   cdd_cst_free_node_only(parent);
   cdd_cst_tree_free(tree);
   g_fail_io_after = -1;

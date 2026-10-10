@@ -144,8 +144,18 @@ cdd_c_error_t cdd_cst_append_child_node(cdd_cst_node_t *parent,
   return CDD_C_SUCCESS;
 }
 
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT int g_mock_cdd_cst_append_child_token_fail = 0;
+#endif
 cdd_c_error_t cdd_cst_append_child_token(cdd_cst_node_t *parent,
                                          cdd_token_t *token) {
+#ifdef CDD_BUILD_TESTS
+  if (g_mock_cdd_cst_append_child_token_fail) {
+    if (--g_mock_cdd_cst_append_child_token_fail == 0) {
+      return CDD_C_ERROR_UNKNOWN;
+    }
+  }
+#endif
   if (!parent || !token)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 

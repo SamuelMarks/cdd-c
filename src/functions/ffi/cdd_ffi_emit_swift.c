@@ -12,6 +12,21 @@ extern volatile int g_fail_io_after;
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Emits trivia (comments, whitespace).
+ * @param f The FILE pointer.
+ * @param trivia The trivia chain.
+ */
+static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
+  FILE *file = (FILE *)f;
+  while (trivia) {
+    if (trivia->text) {
+      fprintf(file, "%s", trivia->text);
+    }
+    trivia = trivia->next;
+  }
+}
+
 static const char *get_swift_type(cdd_ffi_type_t type) {
   if (type.pointer_depth > 0) {
     if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
@@ -102,6 +117,7 @@ emit_swift_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
+      emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "/// %s\n", node->doc);
       fprintf(f, "public class %sWrapper {\n", node->name);
@@ -129,6 +145,7 @@ emit_swift_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "    /// %s\n", node->doc);
       fprintf(f, "    public static func %s(", node->name);

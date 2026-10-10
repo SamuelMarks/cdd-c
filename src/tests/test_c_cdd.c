@@ -209,9 +209,25 @@ static FILE *mock_tmpfile_fuzzer(void) {
 #include "emit/test_url_utils.h"
 #include "emit/test_weaver.h"
 #include "ffi/test_cdd_ffi_ir.h"
+#include "ffi/test_ffi_ir_json.h"
 #include "ffi/test_ffi_e2e.h"
 #include "ffi/test_ffi_emitters.h"
 #include "ffi/test_ffi_emitters_edge.h"
+#include "dsl/test_dsl_tokenizer.h"
+#include "dsl/test_dsl_tokenizer_branches.h"
+#include "dsl/test_dsl_tokenizer_macros.h"
+#include "dsl/test_dsl_tokenizer_unknown_slash.h"
+#include "dsl/test_dsl_tokenizer_eof_comment.h"
+#include "dsl/test_dsl_parser.h"
+#include "dsl/test_dsl_parser_branches.h"
+#include "dsl/test_dsl_emitter.h"
+#include "dsl/test_dsl_emitter_branches.h"
+#include "dsl/test_dsl_integration.h"
+#include "dsl/test_dsl_namespace.h"
+#include "dsl/test_dsl_number.h"
+#include "dsl/test_dsl_macros.h"
+#include "dsl/test_dsl_modifiers.h"
+
 #include "ffi/test_ffi_extractor.h"
 #include "ffi/test_ffi_extractor_emit.h"
 #include "ffi/test_ffi_extractor_emit_extra.h"
@@ -460,6 +476,35 @@ SUITE(cdd_helpers_suite) { RUN_TEST(test_cdd_helpers); }
 
 SUITE(ffi_extractor_suite) {
   RUN_TEST(test_ffi_e2e_complex_codebase);
+  RUN_TEST(test_dsl_tokenizer_basic);
+  RUN_TEST(test_dsl_tokenizer_oom);
+  RUN_TEST(test_dsl_tokenizer_exhaustive);
+  RUN_TEST(test_dsl_tokenizer_oom_loop);
+  RUN_TEST(test_dsl_tokenizer_free_null);
+  RUN_TEST(test_dsl_tokenizer_comments);
+  RUN_TEST(test_dsl_tokenizer_escapes);
+  RUN_TEST(test_dsl_tokenizer_unknown_slash);
+  RUN_TEST(test_dsl_tokenizer_eof_comment);
+  RUN_TEST(test_dsl_tokenizer_macro_invoke);
+  RUN_TEST(test_dsl_parser_basic);
+  RUN_TEST(test_dsl_parser_exhaustive);
+  RUN_TEST(test_dsl_parser_oom_loop);
+  RUN_TEST(test_dsl_parser_enum_oom);
+  RUN_TEST(test_dsl_parser_oom);
+  RUN_TEST(test_dsl_parser_invalid);
+  RUN_TEST(test_dsl_emitter_basic);
+  RUN_TEST(test_dsl_emitter_exhaustive);
+
+  RUN_TEST(test_dsl_emitter_invalid);
+  RUN_TEST(test_dsl_emitter_null_config);
+  RUN_TEST(test_dsl_emitter_io_fail);
+  RUN_TEST(test_dsl_integration_basic);
+  RUN_TEST(test_dsl_integration_fail);
+  RUN_TEST(test_dsl_parser_namespace);
+  RUN_TEST(test_dsl_parser_number);
+  RUN_TEST(test_dsl_parser_macros);
+  RUN_TEST(test_dsl_parser_modifiers);
+
   RUN_TEST(test_ffi_ir_extract_exports_all_types);
   RUN_TEST(test_ffi_ir_extract_exports_basic);
   RUN_TEST(test_ffi_ir_extract_macros);
@@ -482,6 +527,8 @@ SUITE(ffi_extractor_suite) {
   RUN_TEST(test_ffi_ir_emit_napi);
   RUN_TEST(test_ffi_ir_emit_java);
   RUN_TEST(test_ffi_emit_java_fopen_fail);
+  RUN_TEST(test_ffi_extractor_trivia);
+  RUN_TEST(test_ffi_extractor_trivia_oom);
   RUN_TEST(test_ffi_extractor_missing_branches);
   RUN_TEST(test_ffi_ir_emit_cpp);
   RUN_TEST(test_ffi_ir_emit_go);
@@ -849,6 +896,7 @@ int main(int argc, char **argv) {
   RUN_SUITE_RESET(transformer_error_percolator_suite);
   RUN_SUITE_RESET(transformer_error_percolator_call_sites_suite);
   RUN_SUITE_RESET(cdd_ffi_ir_suite);
+  RUN_SUITE_RESET(test_ffi_ir_json_suite);
   RUN_SUITE_RESET(ffi_variadic_suite);
   RUN_SUITE_RESET(ffi_emitters_suite);
   RUN_SUITE_RESET(ffi_emitters_edge_suite);
@@ -971,4 +1019,7 @@ int main(int argc, char **argv) {
 }
 
 #if defined(__GNUC__) || defined(__clang__)
+#endif
+#ifndef CDD_BUILD_TESTS
+#error "CDD_BUILD_TESTS IS NOT DEFINED!"
 #endif

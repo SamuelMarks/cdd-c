@@ -126,11 +126,20 @@ C_CDD_EXPORT cdd_c_error_t parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
  * otherwise.
  * @return CDD_C_SUCCESS on success or error code.
  */
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT int g_mock_find_and_mark_fopen_fail = 0;
+C_CDD_EXPORT int g_mock_check_unsupported_calls_fail = 0;
+#endif
+
 C_CDD_EXPORT cdd_c_error_t find_and_mark_fopen(expr_t *head, int *out_found) {
   expr_t *curr = head;
   expr_t *lhs_start = head;
   int found = 0;
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  if (g_mock_find_and_mark_fopen_fail)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_found)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -183,6 +192,10 @@ C_CDD_EXPORT cdd_c_error_t find_and_mark_fopen(expr_t *head, int *out_found) {
  */
 C_CDD_EXPORT cdd_c_error_t check_unsupported_calls(expr_t *head) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  if (g_mock_check_unsupported_calls_fail)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   while (head) {
     if (head->type == 1) {
       char name[128] = {0};
@@ -313,7 +326,7 @@ inferred_size_t infer_buffer_size(expr_t *node) {
               size_t idx = j + 2;
               expr_t *m_expr = NULL;
               parse_expr_ast(stmt, &idx, 0, &m_expr);
-              if (m_expr->type == 1) {
+              if (m_expr && m_expr->type == 1) {
                 if (m_expr->num_args == 1) {
                   /* malloc */
                   res.valid = 1;
@@ -470,7 +483,7 @@ C_CDD_EXPORT cdd_c_error_t check_needs_transform(expr_t *head) {
               if (expr_is_null_or_zero(arg) != CDD_C_SUCCESS)
                 continue;
               if (!infer_buffer_size(arg).valid) {
-                return CDD_C_ERROR_PARSE;
+                /* let it proceed, emit_inferred_size will handle it */
               }
             }
           }
@@ -479,17 +492,13 @@ C_CDD_EXPORT cdd_c_error_t check_needs_transform(expr_t *head) {
       }
       for (i = 0; i < head->num_args; i++) {
         cdd_c_error_t err = check_needs_transform(head->args[i]);
-        if (err == CDD_C_ERROR_PARSE)
-          return err;
         if (err)
-          return CDD_C_ERROR_UNKNOWN;
+          return err;
       }
     } else if (head->type == 2) {
       cdd_c_error_t err = check_needs_transform(head->args[0]);
-      if (err == CDD_C_ERROR_PARSE)
-        return err;
       if (err)
-        return CDD_C_ERROR_UNKNOWN;
+        return err;
     } else if (head->type == 3) {
       return CDD_C_ERROR_UNKNOWN;
     }

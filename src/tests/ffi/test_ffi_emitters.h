@@ -167,6 +167,13 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[1].kind = CDD_FFI_NODE_ENUM;
   ir->nodes[1].name = (char *)(size_t)(size_t)(size_t) "TestEnum";
   ir->nodes[1].doc = (char *)(size_t)(size_t)(size_t) "Enum doc";
+  ir->nodes[1].leading_trivia =
+      (cdd_ffi_trivia_t *)calloc(1, sizeof(cdd_ffi_trivia_t));
+  ir->nodes[1].leading_trivia->text =
+      (char *)(size_t)(size_t)(size_t) "/* dummy enum trivia */\n";
+  ir->nodes[1].leading_trivia->next =
+      (cdd_ffi_trivia_t *)calloc(1, sizeof(cdd_ffi_trivia_t));
+  ir->nodes[1].leading_trivia->next->text = NULL;
   ir->nodes[1].variants =
       (cdd_ffi_enum_variant_t *)calloc(2, sizeof(cdd_ffi_enum_variant_t));
   ir->nodes[1].variants_count = 2;
@@ -179,6 +186,13 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[2].kind = CDD_FFI_NODE_FUNCTION;
   ir->nodes[2].name = (char *)(size_t)(size_t)(size_t) "test_func_void";
   ir->nodes[2].return_or_base_type.kind = CDD_FFI_KIND_VOID;
+  ir->nodes[2].leading_trivia =
+      (cdd_ffi_trivia_t *)calloc(1, sizeof(cdd_ffi_trivia_t));
+  ir->nodes[2].leading_trivia->text =
+      (char *)(size_t)(size_t)(size_t) "/* func dummy trivia */\n";
+  ir->nodes[2].leading_trivia->next =
+      (cdd_ffi_trivia_t *)calloc(1, sizeof(cdd_ffi_trivia_t));
+  ir->nodes[2].leading_trivia->next->text = NULL;
   ir->nodes[2].fields = (cdd_ffi_field_t *)calloc(3, sizeof(cdd_ffi_field_t));
   ir->nodes[2].fields_count = 3;
   ir->nodes[2].fields[0].name = (char *)(size_t)(size_t)(size_t) "param1";
@@ -557,7 +571,11 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
   if (!ir)
     return;
   free(ir->nodes[0].fields);
+  free(ir->nodes[1].leading_trivia->next);
+  free(ir->nodes[1].leading_trivia);
   free(ir->nodes[1].variants);
+  free(ir->nodes[2].leading_trivia->next);
+  free(ir->nodes[2].leading_trivia);
   free(ir->nodes[2].fields);
   free(ir->nodes[3].fields);
   free(ir->nodes[4].fields);

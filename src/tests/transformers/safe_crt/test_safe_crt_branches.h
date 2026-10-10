@@ -25,6 +25,9 @@ extern C_CDD_EXPORT int g_safe_crt_malloc_fail;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
 extern C_CDD_EXPORT int g_cdd_query_err_fail;
 extern C_CDD_EXPORT int g_fail_io_after;
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_mock_safe_crt_rules_fail;
+#endif
 
 TEST test_cdd_transform_safe_crt_oom(void) {
 #ifdef CDD_BUILD_TESTS
@@ -442,7 +445,86 @@ TEST test_cdd_transform_safe_crt_more_cases(void) {
   PASS();
 }
 
+TEST test_cdd_transform_safe_crt_oom_all(void) {
+#ifdef CDD_BUILD_TESTS
+  cdd_cst_tree_t *tree = NULL;
+  const char *oom_snippets[] = {
+      "void f1() { char buf[10]; wchar_t wbuf[10]; _mbscpy(buf, \"a\"); "
+      "wcscat(wbuf, L\"a\"); vsprintf(buf, \"%d\", NULL); swprintf(wbuf, 10, "
+      "L\"a\"); vswprintf(wbuf, 10, L\"a\", NULL); _strnset(buf, 'a', 10); "
+      "_strset(buf, 'a'); _mbsset(buf, 'a'); }",
+      "void f2() { char buf[10]; wchar_t wbuf[10]; _strupr(buf); _mbslwr(buf); "
+      "_mbsupr(buf); _wcslwr(wbuf); _wcsupr(wbuf); wcsncpy(wbuf, L\"a\", 5); "
+      "wcsncat(wbuf, L\"a\", 5); _mbsncpy(buf, \"a\", 5); _mbsncat(buf, \"a\", "
+      "5); _mbsnset(buf, 'a', 5); }",
+      "void f3() { char buf[10]; wchar_t wbuf[10]; FILE *f; _snprintf(buf, 10, "
+      "\"a\"); _vsnprintf(buf, 10, \"a\", NULL); vfprintf(f, \"a\", NULL); "
+      "memmove(buf, \"a\", 5); wmemcpy(wbuf, L\"a\", 5); wmemmove(wbuf, "
+      "L\"a\", 5); }",
+      "void f4() { char buf[10]; wchar_t wbuf[10]; FILE *f; sscanf(buf, "
+      "\"%d\", &f); vscanf(\"%d\", NULL); vfscanf(f, \"%d\", NULL); "
+      "vsscanf(buf, \"%d\", NULL); _ltoa(1, buf, 10); _ultoa(1, buf, 10); "
+      "_i64toa(1, buf, 10); _ui64toa(1, buf, 10); _itow(1, wbuf, 10); _ltow(1, "
+      "wbuf, 10); _ultow(1, wbuf, 10); }",
+      "void f5() { char buf[10]; wchar_t wbuf[10]; double d; "
+      "_wsplitpath(L\"a\", wbuf, wbuf, wbuf, wbuf); _wmakepath(wbuf, L\"a\", "
+      "L\"a\", L\"a\", L\"a\"); _strerror(\"a\"); _fcvt(d, 1, 0, 0); "
+      "_mbstok(buf, \"a\"); strcpy(buf, \"a\"); _strlwr(buf); strncpy(buf, "
+      "\"a\", 5); snprintf(buf, 10, \"%d\", 1); printf(\"a\"); memcpy(buf, "
+      "\"a\", 5); scanf(\"%d\", &f); _itoa(1, buf, 10); _splitpath(\"a\", buf, "
+      "buf, buf, buf); _makepath(buf, \"a\", \"a\", \"a\", \"a\"); _gcvt(d, 1, "
+      "buf); mbstowcs(wbuf, buf, 10); }",
+      "void f6() { char buf[10]; wchar_t wbuf[10]; FILE *f; wctomb(buf, L'a'); "
+      "_searchenv(\"a\", \"b\", buf); getenv(\"A\"); _putenv(\"A=B\"); "
+      "strerror(1); _wcserror(1); _ecvt(d, 1, 0, 0); strtok(buf, \"a\"); "
+      "qsort(buf, 1, 1, NULL); wcstombs(buf, wbuf, 10); _wsearchenv(L\"a\", "
+      "L\"b\", wbuf); _wgetenv(L\"A\"); }",
+      "void f7() { char buf[10]; wchar_t wbuf[10]; FILE *f; "
+      "_wputenv(L\"A=B\"); wcstok(wbuf, L\"a\"); _fcvt(d, 1, 0, 0); fscanf(f, "
+      "\"%d\", &f); bsearch(\"a\", buf, 1, 1, NULL); gets(buf); tmpnam(buf); "
+      "strlen(buf); vprintf(\"a\", NULL); }",
+      "void f8() { char buf[10]; char *p; strncpy(buf + 2, \"a\", 5); "
+      "strncpy(buf, (char*)p, 5); strncpy((char*)malloc(10), \"a\", 5); "
+      "strncpy((char*)calloc(1, 10), \"a\", 5); strncpy(malloc(10), \"a\", 5); "
+      "strncpy(calloc(1, 10), \"a\", 5); }",
+      "void f9() { char buf[10]; wchar_t wbuf[10]; char *p; FILE *f; "
+      "scanf(\"%s\", buf); fscanf(f, \"%s\", buf); p = strtok(buf, \"a\"); p = "
+      "wcstok(wbuf, L\"a\"); p = _mbstok(buf, \"a\"); _splitpath(\"a\", NULL, "
+      "buf, 0, buf); _wsplitpath(L\"a\", NULL, wbuf, 0, wbuf); strncpy(buf, "
+      "(p), 5); }",
+      "void f10() { FILE *f; FILE *f2; FILE *f3; f = fopen(\"a\", \"b\"); f2 = "
+      "_wfopen(L\"a\", L\"b\"); f3 = freopen(\"a\", \"b\", f); f = tmpfile(); "
+      "}",
+      /* clang-format off */
+      "void f11() { char buf[10]; _splitpath(\"a\", buf, buf, buf, buf, \"extra\"); _makepath(buf, \"a\", \"a\", \"a\", \"a\", \"extra\"); }",
+      /* clang-format on */
+      "void f12() { char buf[10]; _itoa(1, buf, 10); }",
+      "void f13() { char buf[10]; _snprintf(buf, 10); }",
+      "void f14() { char buf[10]; scanf(\"%s\"); }"};
+  cdd_transform_config_t config;
+  int i;
+  size_t j;
+  memset(&config, 0, sizeof(config));
+
+  for (j = 0; j < 14; j++) {
+    for (i = 1; i <= 30000; i++) {
+      cdd_cst_tree_free(tree);
+      tree = NULL;
+      ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(
+                                     (char *)(size_t)(size_t)oom_snippets[j]),
+                                 &tree));
+      g_mock_safe_crt_rules_fail = i;
+      cdd_transform_safe_crt(tree, &config);
+      g_mock_safe_crt_rules_fail = 0;
+    }
+  }
+  cdd_cst_tree_free(tree);
+#endif
+  PASS();
+}
+
 SUITE(transformer_safe_crt_branches_suite) {
+  RUN_TEST(test_cdd_transform_safe_crt_oom_all);
   RUN_TEST(test_cdd_transform_safe_crt_oom);
   RUN_TEST(test_cdd_transform_safe_crt_needs_buffers);
   RUN_TEST(test_cdd_transform_safe_crt_more_cases);

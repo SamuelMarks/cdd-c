@@ -15,6 +15,21 @@ extern volatile int g_fail_io_after;
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Emits trivia (comments, whitespace).
+ * @param f The FILE pointer.
+ * @param trivia The trivia chain.
+ */
+static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
+  FILE *file = (FILE *)f;
+  while (trivia) {
+    if (trivia->text) {
+      fprintf(file, "%s", trivia->text);
+    }
+    trivia = trivia->next;
+  }
+}
+
 static cdd_c_error_t
 emit_matlab_mex(cdd_ffi_ir_t *ir,
                 const cdd_generate_bindings_config_t *config) {
@@ -73,6 +88,7 @@ emit_matlab_mex(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(f, node->leading_trivia);
       if (!is_first_func) {
         fprintf(f, "    else if (strcmp(func_name, \"%s\") == 0) {\n",
                 node->name);
@@ -164,6 +180,7 @@ emit_matlab_m(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "        %% %s\n", node->doc);
       fprintf(f, "        function ");

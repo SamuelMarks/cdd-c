@@ -253,6 +253,26 @@ TEST test_ffi_ir_extract_error_paths(void) {
     g_cdd_pp_scan_defines_fail = 0;
     remove("test_pp_scan_fail.h");
 
+    /* Trivia OOM branches for KIND_STRUCT */
+    {
+      int fail_idx;
+      write_to_file(
+          "test_trivia_struct.h",
+          "/* leading */\nstruct MyStruct { int a; };\n// trailing\n");
+      for (fail_idx = 1; fail_idx <= 25; fail_idx++) {
+        cdd_ffi_ir_t triv_ir;
+        memset(&triv_ir, 0, sizeof(triv_ir));
+        g_ffi_extractor_alloc_fail = fail_idx;
+        cdd_ffi_extract_single_file_exports_test(
+            &triv_ir, "test_trivia_struct.h",
+            "/* leading */\nstruct MyStruct { int a; };\n// trailing\n",
+            &config);
+        g_ffi_extractor_alloc_fail = 0;
+        cdd_ffi_ir_free(&triv_ir);
+      }
+      remove("test_trivia_struct.h");
+    }
+
     /* Macro extraction OOM branches */
     {
       int fail_idx;

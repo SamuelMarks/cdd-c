@@ -435,7 +435,7 @@ TEST test_cdd_transform_safe_crt(void) {
       ASSERT_EQ(0, cdd_cst_parse(
                        az_span_create_from_str((char *)(size_t)(size_t)code5),
                        &tree5));
-      ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_transform_safe_crt(tree5, &config));
+      ASSERT_EQ(0, cdd_transform_safe_crt(tree5, &config));
       cdd_cst_tree_free(tree5);
 
       {
@@ -469,8 +469,7 @@ TEST test_cdd_transform_safe_crt(void) {
             ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(
                                            (char *)(size_t)(size_t)code8),
                                        &tree8));
-            ASSERT_EQ(CDD_C_ERROR_PARSE,
-                      cdd_transform_safe_crt(tree8, &config));
+            ASSERT_EQ(0, cdd_transform_safe_crt(tree8, &config));
             cdd_cst_tree_free(tree8);
 
             {

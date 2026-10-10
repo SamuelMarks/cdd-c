@@ -820,6 +820,11 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
 #endif
             {
               const char *pooled = pool_string_safe(tree, heap_buf);
+#ifdef CDD_BUILD_TESTS
+              if (g_gnu_standardizer_fail == 42) {
+                pooled = NULL;
+              }
+#endif
               if (!pooled) {
                 free(heap_buf);
                 return CDD_C_ERROR_MEMORY;

@@ -179,11 +179,27 @@ cdd_c_error_t cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir) {
   return CDD_C_SUCCESS;
 }
 
+static void free_trivia_chain(cdd_ffi_trivia_t *trivia) {
+  while (trivia) {
+    cdd_ffi_trivia_t *next = trivia->next;
+    if (trivia->text)
+      free(trivia->text);
+    free(trivia);
+    trivia = next;
+  }
+}
+
 static void free_type_recursive(cdd_ffi_type_t *type) {
   if (type->ref_name) {
     free(type->ref_name);
     type->ref_name = NULL;
   }
+  if (type->raw_spelling) {
+    free(type->raw_spelling);
+    type->raw_spelling = NULL;
+  }
+  free_trivia_chain(type->leading_trivia);
+  free_trivia_chain(type->trailing_trivia);
   if (type->template_args) {
     size_t i;
     for (i = 0; i < type->template_args_count; i++) {
@@ -216,6 +232,11 @@ void cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
     if (node->evaluated_value) {
       free(node->evaluated_value);
     }
+    if (node->raw_body) {
+      free(node->raw_body);
+    }
+    free_trivia_chain(node->leading_trivia);
+    free_trivia_chain(node->trailing_trivia);
     free_type_recursive(&node->return_or_base_type);
 
     /* Free fields / arguments */
@@ -230,6 +251,8 @@ void cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
         if (node->fields[j].array_length_ref) {
           free(node->fields[j].array_length_ref);
         }
+        free_trivia_chain(node->fields[j].leading_trivia);
+        free_trivia_chain(node->fields[j].trailing_trivia);
         free_type_recursive(&node->fields[j].type);
       }
       free(node->fields);
@@ -284,6 +307,11 @@ void cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
         if (node->variants[j].doc) {
           free(node->variants[j].doc);
         }
+        if (node->variants[j].raw_spelling) {
+          free(node->variants[j].raw_spelling);
+        }
+        free_trivia_chain(node->variants[j].leading_trivia);
+        free_trivia_chain(node->variants[j].trailing_trivia);
       }
       free(node->variants);
     }

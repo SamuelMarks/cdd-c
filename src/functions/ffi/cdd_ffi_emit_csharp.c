@@ -13,6 +13,21 @@ extern volatile int g_fail_io_after;
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Emits trivia (comments, whitespace).
+ * @param f The FILE pointer.
+ * @param trivia The trivia chain.
+ */
+static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
+  FILE *file = (FILE *)f;
+  while (trivia) {
+    if (trivia->text) {
+      fprintf(file, "%s", trivia->text);
+    }
+    trivia = trivia->next;
+  }
+}
+
 static const char *get_csharp_primitive(cdd_ffi_primitive_kind_t kind) {
   switch (kind) {
   case CDD_FFI_KIND_BOOL:
@@ -142,6 +157,7 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
+      emit_trivia(f, node->leading_trivia);
       fprintf(f, "    public enum %s : int\n    {\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         fprintf(f, "        %s = %s,\n", node->variants[j].name,
@@ -158,6 +174,7 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
     if (node->kind == CDD_FFI_NODE_STRUCT) {
       int has_derived = 0;
       size_t k, b;
+      emit_trivia(f, node->leading_trivia);
       for (k = 0; k < ir->nodes_count; k++) {
         if (ir->nodes[k].kind == CDD_FFI_NODE_STRUCT) {
           for (b = 0; b < ir->nodes[k].base_classes_count; b++) {
@@ -213,6 +230,7 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(f, node->leading_trivia);
       fprintf(f, "        [DllImport(LibraryName, CallingConvention = "
                  "CallingConvention.Cdecl)]\n");
 

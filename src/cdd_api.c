@@ -53,6 +53,7 @@
 #include "functions/ffi/cdd_ffi_emit_vlang.h"
 #include "functions/ffi/cdd_ffi_emit_webassembly.h"
 #include "functions/ffi/cdd_ffi_emit_zig.h"
+#include "functions/ffi/cdd_ffi_emit_ir_json.h"
 #include "functions/ffi/cdd_ffi_ir_extractor.h"
 #include "routes/emit/serve_json_rpc.h"
 #include "routes/parse/cli.h"
@@ -240,9 +241,43 @@ static const struct FfiEmitterEntry EMITTERS[] = {
     {"delphi", "pascal", cdd_ffi_emit_delphi},
     {"ada", NULL, cdd_ffi_emit_ada},
     {"objc", "objective-c", cdd_ffi_emit_objc},
-    {"crystal", NULL, cdd_ffi_emit_crystal}};
+    {"crystal", NULL, cdd_ffi_emit_crystal},
+    {"ir", "json", cdd_ffi_emit_ir_json}};
 
-cdd_c_error_t
+/* clang-format off */
+#include "dsl/cdd_dsl_parser.h"
+#include "dsl/cdd_ffi_emit_dsl.h"
+/* clang-format on */
+
+C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
+    const char *source, const cdd_generate_bindings_config_t *config) {
+  cdd_dsl_token_list_t tokens;
+  cdd_ffi_ir_t *ir = NULL;
+  cdd_c_error_t rc;
+
+  if (!source || !config)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  rc = cdd_dsl_tokenize(source, &tokens);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_dsl_parse(&tokens, &ir);
+  cdd_dsl_token_list_free(&tokens);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  /* If target_langs includes "dsl", we can emit it back */
+  if (config->target_langs && strstr(config->target_langs, "dsl")) {
+    rc = cdd_ffi_emit_dsl(ir, (const void *)config);
+  }
+
+  cdd_ffi_ir_free(ir);
+  free(ir);
+  return rc;
+}
+
+C_CDD_EXPORT cdd_c_error_t
 cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
 
   cdd_ffi_ir_t *ir = NULL;
@@ -262,8 +297,15 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
     return rc;
   }
 
-  /* Extract exports into FFI IR */
-  rc = cdd_ffi_ir_extract_exports(config->input, file_content, config, &ir);
+  /* Parse IR from JSON or extract from C */
+  {
+    size_t len = strlen(config->input);
+    if (len > 5 && strcmp(config->input + len - 5, ".json") == 0) {
+      rc = cdd_ffi_ir_from_json(file_content, &ir);
+    } else {
+      rc = cdd_ffi_ir_extract_exports(config->input, file_content, config, &ir);
+    }
+  }
   if (rc != CDD_C_SUCCESS) {
     C_CDD_FREE(file_content);
     return rc;

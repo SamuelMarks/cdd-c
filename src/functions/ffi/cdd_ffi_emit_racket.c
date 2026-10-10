@@ -12,6 +12,21 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Emits trivia (comments, whitespace).
+ * @param f The FILE pointer.
+ * @param trivia The trivia chain.
+ */
+static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
+  FILE *file = (FILE *)f;
+  while (trivia) {
+    if (trivia->text) {
+      fprintf(file, "%s", trivia->text);
+    }
+    trivia = trivia->next;
+  }
+}
+
 static void racketify_name(const char *c_name, char *out_name, size_t out_sz) {
   size_t i = 0, j = 0;
   if (!c_name) {
@@ -180,6 +195,7 @@ cdd_ffi_emit_racket(cdd_ffi_ir_t *ir,
         }
       }
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
+      emit_trivia(f, node->leading_trivia);
       fprintf(f, "(define _%s\n", racket_node_name);
       fprintf(f, "  (_enum\n");
       fprintf(f, "   '(\n");
@@ -197,6 +213,7 @@ cdd_ffi_emit_racket(cdd_ffi_ir_t *ir,
       map_racket_type(&node->return_or_base_type, type_str, sizeof(type_str));
       fprintf(f, "(define _%s %s)\n\n", racket_node_name, type_str);
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(f, node->leading_trivia);
       map_racket_type(&node->return_or_base_type, ret_type_str,
                       sizeof(ret_type_str));
       fprintf(f, "(define-%s %s\n", racket_lib_name, node->name);

@@ -10,6 +10,21 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Emits trivia (comments, whitespace).
+ * @param f The FILE pointer.
+ * @param trivia The trivia chain.
+ */
+static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
+  FILE *file = (FILE *)f;
+  while (trivia) {
+    if (trivia->text) {
+      fprintf(file, "%s", trivia->text);
+    }
+    trivia = trivia->next;
+  }
+}
+
 static const char *get_luajit_c_type(cdd_ffi_type_t type) {
   if (type.pointer_depth > 0) {
     if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
@@ -95,6 +110,7 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
+      emit_trivia(f, node->leading_trivia);
       fprintf(f, "  typedef struct %s {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *fname =
@@ -108,6 +124,7 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       }
       fprintf(f, "  } %s;\n\n", node->name);
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
+      emit_trivia(f, node->leading_trivia);
       fprintf(f, "  enum %s {\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         cdd_ffi_enum_variant_t *var = &node->variants[j];
@@ -122,6 +139,7 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       }
       fprintf(f, "  };\n\n");
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(f, node->leading_trivia);
       fprintf(f, "  %s %s(", get_luajit_c_type(node->return_or_base_type),
               node->name);
       for (j = 0; j < node->fields_count; j++) {
@@ -145,6 +163,7 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "-- %s\n", node->doc);
       fprintf(f, "function M.%s(", node->name);

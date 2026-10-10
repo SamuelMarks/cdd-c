@@ -23,6 +23,7 @@ extern "C" {
 TEST test_ffi_e2e_complex_codebase(void) {
   const char *filename = (char *)(size_t)(size_t) "dummy_complex_lib.h";
   const char code[] = {
+
       47,  42,  32,  68,  117, 109, 109, 121, 32,  67,  111, 109, 112, 108, 101,
       120, 32,  67,  111, 100, 101, 98,  97,  115, 101, 32,  102, 111, 114, 32,
       69,  50,  69,  32,  84,  101, 115, 116, 105, 110, 103, 32,  42,  47,  10,

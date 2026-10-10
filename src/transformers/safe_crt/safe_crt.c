@@ -252,6 +252,14 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
   cdd_c_error_t rc = CDD_C_SUCCESS;
   size_t i;
   int replaced_any;
+  char indent[64];
+  cdd_cst_builder_t msc_bld, else_bld, bld;
+  cdd_cst_node_t *msc_node = NULL, *else_node = NULL, *new_node = NULL;
+  int msc_changes = 0;
+  int dummy_found = 0;
+  cdd_trivia_t *saved_trivia = NULL;
+  emit_ctx_t msc_ctx;
+
   (void)config;
 
   if (!tree || !tree->root)
@@ -298,27 +306,22 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
           continue;
       }
       parse_expr_ast(stmt, &idx, 0, &ast);
-      {
-        int dummy_found = 0;
-        find_and_mark_fopen(ast, &dummy_found);
-      }
-      check_unsupported_calls(ast);
+      dummy_found = 0;
+      rc = find_and_mark_fopen(ast, &dummy_found);
+      if (rc != CDD_C_SUCCESS)
+        goto loop_err;
+      rc = check_unsupported_calls(ast);
+      if (rc != CDD_C_SUCCESS)
+        goto loop_err;
 
       chk_rc = check_needs_transform(ast);
-      if (chk_rc == CDD_C_ERROR_PARSE) {
-        free(res.nodes);
-        arena_free_all();
-        current_tree = NULL;
-        return CDD_C_ERROR_PARSE;
-      }
       if (chk_rc) {
-        char indent[64];
-        cdd_cst_builder_t msc_bld, else_bld, bld;
-        cdd_cst_node_t *msc_node = NULL, *else_node = NULL, *new_node = NULL;
-        int msc_changes = 0;
+        msc_node = NULL;
+        else_node = NULL;
+        new_node = NULL;
+        msc_changes = 0;
 
-        cdd_trivia_t *saved_trivia = first_tok->leading_trivia;
-        emit_ctx_t msc_ctx;
+        saved_trivia = first_tok->leading_trivia;
         memset(&msc_ctx, 0, sizeof(msc_ctx));
         msc_ctx.is_msc = 1;
 
@@ -340,14 +343,19 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
           goto loop_err;
         cdd_cst_builder_init(&msc_bld, tree, msc_node);
         g_msc_ctx = &msc_ctx;
-        msc_changes = (int)emit_ast_bld(ast, &msc_bld, 1);
+        msc_changes = 0;
+        rc = emit_ast_bld(ast, &msc_bld, 1, &msc_changes);
+        if (rc != CDD_C_SUCCESS)
+          goto loop_err;
         g_msc_ctx = NULL;
 
         rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &else_node);
         if (rc != CDD_C_SUCCESS)
           goto loop_err;
         cdd_cst_builder_init(&else_bld, tree, else_node);
-        emit_ast_bld(ast, &else_bld, 0);
+        rc = emit_ast_bld(ast, &else_bld, 0, NULL);
+        if (rc != CDD_C_SUCCESS)
+          goto loop_err;
 
         first_tok->leading_trivia = saved_trivia;
 

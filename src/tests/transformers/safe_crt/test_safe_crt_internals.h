@@ -722,7 +722,64 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
   PASS();
 }
 
+struct my_expr_t {
+  int type;
+  cdd_token_t *tok;
+  cdd_token_t *close_tok;
+  void *args[16];
+  size_t num_args;
+  void *next;
+};
+
+TEST test_cdd_transform_safe_crt_emit_oom(void) {
+  struct my_expr_t node;
+  struct my_expr_t arg;
+  cdd_cst_builder_t bld;
+  cdd_cst_tree_t *tree = NULL;
+  cdd_cst_node_t *target = NULL;
+  cdd_c_error_t rc;
+  int j;
+  (void)rc;
+
+  memset(&node, 0, sizeof(node));
+  memset(&arg, 0, sizeof(arg));
+  memset(&bld, 0, sizeof(bld));
+
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str("void f() {}"), &tree));
+  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &target);
+  cdd_cst_builder_init(&bld, tree, target);
+
+  node.type = 1; /* type=1 is function call */
+  node.tok = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
+  node.tok->kind = CDD_TOKEN_IDENTIFIER;
+  node.tok->start = (const uint8_t *)"_ecvt";
+  node.tok->length = 5;
+  node.close_tok = NULL;
+  node.num_args = 1;
+  node.args[0] = &arg;
+
+  arg.type = 0;
+  arg.tok = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
+  arg.tok->kind = CDD_TOKEN_IDENTIFIER;
+  arg.tok->start = (const uint8_t *)"d";
+  arg.tok->length = 1;
+
+  for (j = 1; j <= 5; j++) {
+    extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
+    g_cdd_cst_alloc_token_fail = j;
+    emit_ast_bld_strip(&node, &bld, 0); /* 0 means is_msc = false */
+    g_cdd_cst_alloc_token_fail = 0;
+  }
+
+  free(arg.tok);
+  free(node.tok);
+  cdd_cst_tree_free(tree);
+
+  PASS();
+}
+
 SUITE(transformer_safe_crt_internals_suite) {
+  RUN_TEST(test_cdd_transform_safe_crt_emit_oom);
   RUN_TEST(test_cdd_transform_safe_crt_direct_internals);
 }
 

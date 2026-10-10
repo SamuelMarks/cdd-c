@@ -15,6 +15,21 @@ extern volatile int g_fail_io_after;
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Emits trivia (comments, whitespace).
+ * @param f The FILE pointer.
+ * @param trivia The trivia chain.
+ */
+static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
+  FILE *file = (FILE *)f;
+  while (trivia) {
+    if (trivia->text) {
+      fprintf(file, "%s", trivia->text);
+    }
+    trivia = trivia->next;
+  }
+}
+
 static const char *get_odin_type(cdd_ffi_type_t type) {
   if (type.pointer_depth > 0) {
     if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
@@ -109,6 +124,7 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
+      emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "// %s\n", node->doc);
       fprintf(f, "%s :: struct #c {\n", node->name);
@@ -126,6 +142,7 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
+      emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "// %s\n", node->doc);
       fprintf(f, "%s :: enum c.int {\n", node->name);
@@ -156,6 +173,7 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "    // %s\n", node->doc);
       fprintf(f, "    %s :: proc(", node->name);

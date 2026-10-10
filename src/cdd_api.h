@@ -132,6 +132,15 @@ cdd_serve_json_rpc(const cdd_serve_json_rpc_config_t *config);
 C_CDD_EXPORT cdd_c_error_t
 cdd_generate_bindings(const cdd_generate_bindings_config_t *config);
 
+/**
+ * @brief Parses an FFI IR DSL string and generates FFI bindings.
+ * @param source The DSL string.
+ * @param config The configuration struct.
+ * @return CDD_C_SUCCESS on success.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
+    const char *source, const cdd_generate_bindings_config_t *config);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
