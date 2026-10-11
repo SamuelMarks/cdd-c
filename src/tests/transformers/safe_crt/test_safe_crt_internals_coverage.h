@@ -788,7 +788,77 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
   PASS();
 }
 
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT cdd_c_error_t emit_ast_bld_strip(void *node,
+                                                     cdd_cst_builder_t *bld,
+                                                     int is_msc);
+#endif
+
+TEST test_cdd_transform_safe_crt_manual_lines(void) {
+  cdd_cst_tree_t *tree = NULL;
+  cdd_cst_node_t *node = NULL;
+  cdd_cst_builder_t bld;
+  struct safe_crt_expr_test call_expr, fop_expr;
+  cdd_token_t ctok, stok;
+  cdd_trivia_t triv;
+  int fail_idx;
+
+  if (cdd_cst_parse(az_span_create_from_str("void f() {}"), &tree) != 0)
+    return -1;
+  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &node);
+  cdd_cst_builder_init(&bld, tree, node);
+
+  memset(&ctok, 0, sizeof(ctok));
+  memset(&stok, 0, sizeof(stok));
+  memset(&triv, 0, sizeof(triv));
+
+  stok.kind = CDD_TOKEN_STRING;
+  stok.start = (const unsigned char *)"\"a\"";
+  stok.length = 3;
+
+  triv.kind = TRIVIA_WHITESPACE;
+  triv.start = (const unsigned char *)" ";
+  triv.length = 1;
+  ctok.leading_trivia = &triv;
+
+  memset(&call_expr, 0, sizeof(call_expr));
+  call_expr.type = 1;
+  call_expr.tok = &stok;
+  call_expr.close_tok = NULL;
+
+  for (fail_idx = 1; fail_idx <= 10; fail_idx++) {
+    g_mock_safe_crt_rules_fail = fail_idx;
+    emit_ast_bld_strip((void *)&call_expr, &bld, 1);
+  }
+  g_mock_safe_crt_rules_fail = 0;
+
+  memset(&fop_expr, 0, sizeof(fop_expr));
+  fop_expr.type = 3;
+  fop_expr.tok = &ctok;
+  fop_expr.args[0] = &fop_expr;
+  fop_expr.args[1] = &call_expr;
+
+  for (fail_idx = 1; fail_idx <= 10; fail_idx++) {
+    g_mock_safe_crt_rules_fail = fail_idx;
+    emit_ast_bld_strip((void *)&fop_expr, &bld, 1);
+  }
+  g_mock_safe_crt_rules_fail = 0;
+
+  for (fail_idx = 1; fail_idx <= 10; fail_idx++) {
+    g_mock_safe_crt_rules_fail = fail_idx;
+    emit_ast_bld_strip((void *)&fop_expr, &bld, 0);
+  }
+  g_mock_safe_crt_rules_fail = 0;
+
+  cdd_cst_builder_free(&bld);
+  cdd_cst_free_node_only(node);
+  cdd_cst_tree_free(tree);
+  PASS();
+}
+
 SUITE(transformer_safe_crt_internals_coverage_suite) {
+  RUN_TEST(test_cdd_transform_safe_crt_manual_lines);
+
   RUN_TEST(test_cdd_transform_safe_crt_direct_internals_coverage);
 }
 

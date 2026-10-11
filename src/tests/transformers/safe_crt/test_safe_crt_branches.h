@@ -27,7 +27,29 @@ extern C_CDD_EXPORT int g_cdd_query_err_fail;
 extern C_CDD_EXPORT int g_fail_io_after;
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_mock_safe_crt_rules_fail;
+extern C_CDD_EXPORT int g_mock_find_and_mark_fopen_fail;
+extern C_CDD_EXPORT int g_mock_check_unsupported_calls_fail;
 #endif
+
+TEST test_cdd_transform_safe_crt_oom_malloc(void) {
+#ifdef CDD_BUILD_TESTS
+  cdd_cst_tree_t *tree = NULL;
+  cdd_transform_config_t config;
+  int i;
+  const char code[] = "void f() { char *p = malloc; strcpy(p, \"a\"); }";
+  memset(&config, 0, sizeof(config));
+  for (i = 1; i <= 20; i++) {
+    cdd_cst_tree_free(tree);
+    tree = NULL;
+    ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
+    g_safe_crt_malloc_fail = i;
+    cdd_transform_safe_crt(tree, &config);
+  }
+  g_safe_crt_malloc_fail = 0;
+  cdd_cst_tree_free(tree);
+#endif
+  PASS();
+}
 
 TEST test_cdd_transform_safe_crt_oom(void) {
 #ifdef CDD_BUILD_TESTS
@@ -307,6 +329,7 @@ TEST test_cdd_transform_safe_crt_more_cases(void) {
       "void test_splitpath_null(void) {\n  char drive[3];\n  char dir[256];\n  "
       "char fname[256];\n  char ext[256];\n  _splitpath(\"path\", drive, dir, "
       "NULL, 0);\n}\n",
+      "void test_malloc_ident(void) { char *p = malloc; strcpy(p, \"a\"); }\n",
       "void test_putenv_var(void) {\n  char *var = \"KEY=VAL\";\n  "
       "_putenv(var);\n}\n",
       "void test_decl_fopen(void) {\n  FILE *f = fopen(\"a\", \"r\");\n}\n",
@@ -500,13 +523,15 @@ TEST test_cdd_transform_safe_crt_oom_all(void) {
       /* clang-format on */
       "void f12() { char buf[10]; _itoa(1, buf, 10); }",
       "void f13() { char buf[10]; _snprintf(buf, 10); }",
-      "void f14() { char buf[10]; scanf(\"%s\"); }"};
+      "void f14() { char buf[10]; scanf(\"%s\"); }",
+      ("void f15() { FILE *f; fscanf(f); _putenv(\"NOEQUALS\"); FILE *f_decl = "
+       "fopen(\"a\", \"b\"); _wputenv(L\"NOEQUALS\"); }")};
   cdd_transform_config_t config;
   int i;
   size_t j;
   memset(&config, 0, sizeof(config));
 
-  for (j = 0; j < 14; j++) {
+  for (j = 0; j < 15; j++) {
     for (i = 1; i <= 30000; i++) {
       cdd_cst_tree_free(tree);
       tree = NULL;
@@ -523,11 +548,35 @@ TEST test_cdd_transform_safe_crt_oom_all(void) {
   PASS();
 }
 
+TEST test_cdd_transform_safe_crt_mock_fails(void) {
+  cdd_cst_tree_t *tree = NULL;
+  cdd_transform_config_t config;
+  const char code[] = "void f() { char buf[10]; sprintf(buf, \"%d\", 1); }";
+
+  memset(&config, 0, sizeof(config));
+
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
+
+  g_mock_find_and_mark_fopen_fail = 1;
+  ASSERT_NEQ(CDD_C_SUCCESS, cdd_transform_safe_crt(tree, &config));
+  g_mock_find_and_mark_fopen_fail = 0;
+
+  g_mock_check_unsupported_calls_fail = 1;
+  ASSERT_NEQ(CDD_C_SUCCESS, cdd_transform_safe_crt(tree, &config));
+  g_mock_check_unsupported_calls_fail = 0;
+
+  cdd_cst_tree_free(tree);
+  PASS();
+}
+
 SUITE(transformer_safe_crt_branches_suite) {
   RUN_TEST(test_cdd_transform_safe_crt_oom_all);
+  RUN_TEST(test_cdd_transform_safe_crt_oom_malloc);
+
   RUN_TEST(test_cdd_transform_safe_crt_oom);
   RUN_TEST(test_cdd_transform_safe_crt_needs_buffers);
   RUN_TEST(test_cdd_transform_safe_crt_more_cases);
+  RUN_TEST(test_cdd_transform_safe_crt_mock_fails);
 }
 
 #ifdef __cplusplus

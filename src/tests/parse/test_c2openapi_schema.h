@@ -252,6 +252,43 @@ TEST test_openapi_spec_init_null2(void) {
   PASS();
 }
 
+TEST test_register_ids_anchors(void) {
+  struct OpenAPI_Spec spec = {0};
+  struct TypeDefList types = {0};
+  struct TypeDefinition def_struct = {0};
+  struct TypeDefinition def_enum = {0};
+  struct StructFields *sf =
+      (struct StructFields *)C_CDD_CALLOC(1, sizeof(struct StructFields));
+  struct EnumMembers *em =
+      (struct EnumMembers *)C_CDD_CALLOC(1, sizeof(struct EnumMembers));
+
+  spec.n_defined_schemas = 0;
+  spec.defined_schema_ids = (char **)C_CDD_CALLOC(1, sizeof(char *));
+  spec.defined_schema_anchors = (char **)C_CDD_CALLOC(1, sizeof(char *));
+  spec.defined_schema_dynamic_anchors =
+      (char **)C_CDD_CALLOC(1, sizeof(char *));
+
+  def_struct.name = C_CDD_STRDUP("TestStruct");
+  def_struct.kind = KIND_STRUCT;
+  def_struct.details.struct_fields = sf;
+
+  def_enum.name = C_CDD_STRDUP("TestEnum");
+  def_enum.kind = KIND_ENUM;
+  def_enum.details.enum_members = em;
+
+  types.size = 2;
+  types.capacity = 2;
+  types.items =
+      (struct TypeDefinition *)C_CDD_CALLOC(2, sizeof(struct TypeDefinition));
+  types.items[0] = def_struct;
+  types.items[1] = def_enum;
+
+  ASSERT_EQ(CDD_C_SUCCESS, c2openapi_register_types(&spec, &types));
+  type_def_list_free(&types);
+  openapi_spec_free(&spec);
+  PASS();
+}
+
 SUITE(c2openapi_schema_suite) {
   RUN_TEST(test_openapi_spec_init_null);
   RUN_TEST(test_openapi_spec_init_null2);
@@ -261,6 +298,7 @@ SUITE(c2openapi_schema_suite) {
   RUN_TEST(test_register_null_safety);
   RUN_TEST(test_register_enum_schema);
   RUN_TEST(test_register_type_union_copy);
+  RUN_TEST(test_register_ids_anchors);
 }
 
 #ifdef __cplusplus

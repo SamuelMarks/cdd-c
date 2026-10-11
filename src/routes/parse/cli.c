@@ -1161,6 +1161,23 @@ C_CDD_EXPORT cdd_c_error_t c2openapi_register_types(
       spec->defined_schemas =
           C_CDD_REALLOC(spec->defined_schemas,
                         spec->n_defined_schemas * sizeof(struct StructFields));
+      if (spec->defined_schema_ids) {
+        spec->defined_schema_ids = C_CDD_REALLOC(
+            spec->defined_schema_ids, spec->n_defined_schemas * sizeof(char *));
+        spec->defined_schema_ids[new_idx] = NULL;
+      }
+      if (spec->defined_schema_anchors) {
+        spec->defined_schema_anchors =
+            C_CDD_REALLOC(spec->defined_schema_anchors,
+                          spec->n_defined_schemas * sizeof(char *));
+        spec->defined_schema_anchors[new_idx] = NULL;
+      }
+      if (spec->defined_schema_dynamic_anchors) {
+        spec->defined_schema_dynamic_anchors =
+            C_CDD_REALLOC(spec->defined_schema_dynamic_anchors,
+                          spec->n_defined_schemas * sizeof(char *));
+        spec->defined_schema_dynamic_anchors[new_idx] = NULL;
+      }
       spec->defined_schema_names[new_idx] = C_CDD_STRDUP(def->name);
 
       struct_fields_init(&spec->defined_schemas[new_idx]);
@@ -1196,6 +1213,23 @@ C_CDD_EXPORT cdd_c_error_t c2openapi_register_types(
       spec->defined_schemas =
           C_CDD_REALLOC(spec->defined_schemas,
                         spec->n_defined_schemas * sizeof(struct StructFields));
+      if (spec->defined_schema_ids) {
+        spec->defined_schema_ids = C_CDD_REALLOC(
+            spec->defined_schema_ids, spec->n_defined_schemas * sizeof(char *));
+        spec->defined_schema_ids[new_idx] = NULL;
+      }
+      if (spec->defined_schema_anchors) {
+        spec->defined_schema_anchors =
+            C_CDD_REALLOC(spec->defined_schema_anchors,
+                          spec->n_defined_schemas * sizeof(char *));
+        spec->defined_schema_anchors[new_idx] = NULL;
+      }
+      if (spec->defined_schema_dynamic_anchors) {
+        spec->defined_schema_dynamic_anchors =
+            C_CDD_REALLOC(spec->defined_schema_dynamic_anchors,
+                          spec->n_defined_schemas * sizeof(char *));
+        spec->defined_schema_dynamic_anchors[new_idx] = NULL;
+      }
       spec->defined_schema_names[new_idx] = C_CDD_STRDUP(def->name);
 
       struct_fields_init(&spec->defined_schemas[new_idx]);

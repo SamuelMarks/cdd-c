@@ -53,9 +53,7 @@ static cdd_c_error_t advance_raw(parser_state_t *state,
   rc = peek_raw(state, out_tok);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  if (out_tok->kind != CDD_DSL_TOKEN_EOF) {
-    state->current++;
-  }
+  state->current++;
   return CDD_C_SUCCESS;
 }
 
@@ -64,9 +62,7 @@ static cdd_c_error_t advance(parser_state_t *state, cdd_dsl_token_t *out_tok) {
   rc = peek_raw(state, out_tok);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  if (out_tok->kind != CDD_DSL_TOKEN_EOF) {
-    state->current++;
-  }
+  state->current++;
   return CDD_C_SUCCESS;
 }
 
@@ -446,13 +442,9 @@ static cdd_c_error_t parse_namespace_decl(parser_state_t *state,
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  rc = match(state, CDD_DSL_TOKEN_KW_NAMESPACE, &is_match);
+  rc = advance(state, &tok);
   if (rc != CDD_C_SUCCESS)
     goto cleanup;
-  if (!is_match) {
-    rc = CDD_C_ERROR_PARSE;
-    goto cleanup;
-  }
 
   rc = peek(state, &tok);
   if (rc != CDD_C_SUCCESS)
@@ -485,8 +477,7 @@ static cdd_c_error_t parse_namespace_decl(parser_state_t *state,
     cdd_ffi_trivia_t *tmp;
     while (trivia) {
       tmp = trivia->next;
-      if (trivia->text)
-        free(trivia->text);
+      free(trivia->text);
       free(trivia);
       trivia = tmp;
     }
@@ -538,8 +529,7 @@ cleanup:
     cdd_ffi_trivia_t *tmp;
     while (trivia) {
       tmp = trivia->next;
-      if (trivia->text)
-        free(trivia->text);
+      free(trivia->text);
       free(trivia);
       trivia = tmp;
     }
@@ -558,13 +548,9 @@ static cdd_c_error_t parse_enum_decl(parser_state_t *state, cdd_ffi_ir_t *ir) {
   if (rc != CDD_C_SUCCESS)
     goto cleanup;
 
-  rc = match(state, CDD_DSL_TOKEN_KW_ENUM, &is_match);
+  rc = advance(state, &tok);
   if (rc != CDD_C_SUCCESS)
     goto cleanup;
-  if (!is_match) {
-    rc = CDD_C_ERROR_PARSE;
-    goto cleanup;
-  }
 
   rc = peek(state, &tok);
   if (rc != CDD_C_SUCCESS)
@@ -683,11 +669,7 @@ static cdd_c_error_t parse_macro_decl(parser_state_t *state, cdd_ffi_ir_t *ir) {
   if (rc != CDD_C_SUCCESS)
     return rc;
   kind = tok.kind;
-  if (kind != CDD_DSL_TOKEN_KW_MACRO_CONST &&
-      kind != CDD_DSL_TOKEN_KW_MACRO_EXPR &&
-      kind != CDD_DSL_TOKEN_KW_MACRO_STMT) {
-    return CDD_C_ERROR_PARSE;
-  }
+  /* checked by caller */
   rc = advance_raw(state, &tok);
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -964,15 +946,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_parse(const cdd_dsl_token_list_t *tokens,
   cdd_c_error_t rc = CDD_C_SUCCESS;
   cdd_dsl_token_t tok;
 
-  {
-    size_t i;
-    for (i = 0; i < tokens->count; i++) {
-      printf("T%zu:%d|%s ", i, tokens->tokens[i].kind,
-             tokens->tokens[i].text_copy ? tokens->tokens[i].text_copy : "");
-    }
-    printf("\n");
-  }
-  if (!tokens || !out_ir)
+  if (!tokens || !out_ir || tokens->count == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   *out_ir = (cdd_ffi_ir_t *)CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));

@@ -55,6 +55,23 @@ TEST test_cdd_ffi_ir_json_nulls(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
+
+static void *mocked_json_malloc(size_t size) {
+  if (g_cdd_alloc_fail == 1)
+    return NULL;
+  if (g_ffi_extractor_alloc_fail == 1) {
+    g_ffi_extractor_alloc_fail = 0; /* Only fail once for the loop */
+    return NULL;
+  }
+  if (g_ffi_extractor_alloc_fail > 1) {
+    g_ffi_extractor_alloc_fail--;
+  }
+  return malloc(size);
+}
+
+static void mocked_json_free(void *ptr) { free(ptr); }
+
 TEST test_cdd_ffi_ir_json_oom(void) {
   cdd_ffi_ir_t ir = {0};
   char *json_str = NULL;
@@ -82,6 +99,95 @@ TEST test_cdd_ffi_ir_json_oom(void) {
   free(json_str);
   free(ir.nodes[0].fields);
   free(ir.nodes);
+  PASS();
+}
+
+TEST test_cdd_ffi_ir_json_exhaustive_oom(void) {
+  cdd_ffi_ir_t ir = {0};
+  char *json_str = NULL;
+  cdd_ffi_ir_t *out_ir = NULL;
+  cdd_c_error_t rc;
+  int i;
+
+  json_set_allocation_functions(mocked_json_malloc, mocked_json_free);
+
+  ir.nodes_count = 5;
+  ir.nodes = calloc(5, sizeof(cdd_ffi_ir_node_t));
+
+  ir.nodes[0].kind = CDD_FFI_NODE_FUNCTION;
+  ir.nodes[0].name = C_CDD_STRDUP("func");
+  ir.nodes[0].return_or_base_type.kind = CDD_FFI_KIND_INT32;
+  ir.nodes[0].fields_count = 1;
+  ir.nodes[0].fields = calloc(1, sizeof(cdd_ffi_field_t));
+  ir.nodes[0].fields[0].name = C_CDD_STRDUP("param1");
+  ir.nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT8;
+  ir.nodes[0].fields[0].type.pointer_depth = 1;
+
+  ir.nodes[1].kind = CDD_FFI_NODE_STRUCT;
+  ir.nodes[1].name = C_CDD_STRDUP("strct");
+  ir.nodes[1].fields_count = 1;
+  ir.nodes[1].fields = calloc(1, sizeof(cdd_ffi_field_t));
+  ir.nodes[1].fields[0].name = C_CDD_STRDUP("f1");
+  ir.nodes[1].fields[0].type.kind = CDD_FFI_KIND_STRUCT_REF;
+  ir.nodes[1].fields[0].type.ref_name = C_CDD_STRDUP("inner");
+
+  ir.nodes[2].kind = CDD_FFI_NODE_ENUM;
+  ir.nodes[2].name = C_CDD_STRDUP("enm");
+  ir.nodes[2].variants_count = 2;
+  ir.nodes[2].variants = calloc(2, sizeof(cdd_ffi_enum_variant_t));
+  ir.nodes[2].variants[0].name = C_CDD_STRDUP("E1");
+  ir.nodes[2].variants[0].value = C_CDD_STRDUP("0");
+  ir.nodes[2].variants[1].name = C_CDD_STRDUP("E2");
+  ir.nodes[2].variants[1].value = C_CDD_STRDUP("1");
+
+  ir.nodes[3].kind = CDD_FFI_NODE_TYPEDEF;
+  ir.nodes[3].name = C_CDD_STRDUP("tdef");
+  ir.nodes[3].return_or_base_type.kind = CDD_FFI_KIND_INT16;
+
+  ir.nodes[4].kind = CDD_FFI_NODE_MACRO;
+  ir.nodes[4].name = C_CDD_STRDUP("MACRO_VAL");
+  ir.nodes[4].evaluated_value = C_CDD_STRDUP("123");
+
+  for (i = 1; i < 5000; i++) {
+    g_ffi_extractor_alloc_fail = i;
+    rc = cdd_ffi_ir_to_json(&ir, &json_str);
+    if (rc == CDD_C_SUCCESS) {
+      free(json_str);
+    }
+  }
+
+  g_ffi_extractor_alloc_fail = 0;
+  rc = cdd_ffi_ir_to_json(&ir, &json_str);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+
+  for (i = 1; i < 5000; i++) {
+    g_ffi_extractor_alloc_fail = i;
+    rc = cdd_ffi_ir_from_json(json_str, &out_ir);
+    if (rc == CDD_C_SUCCESS) {
+      cdd_ffi_ir_free(out_ir);
+    }
+  }
+
+  free(json_str);
+  free(ir.nodes[0].name);
+  free(ir.nodes[0].fields[0].name);
+  free(ir.nodes[0].fields);
+  free(ir.nodes[1].name);
+  free(ir.nodes[1].fields[0].name);
+  free(ir.nodes[1].fields[0].type.ref_name);
+  free(ir.nodes[1].fields);
+  free(ir.nodes[2].name);
+  free(ir.nodes[2].variants[0].name);
+  free(ir.nodes[2].variants[0].value);
+  free(ir.nodes[2].variants[1].name);
+  free(ir.nodes[2].variants[1].value);
+  free(ir.nodes[2].variants);
+  free(ir.nodes[3].name);
+  free(ir.nodes[4].name);
+  free(ir.nodes[4].evaluated_value);
+  free(ir.nodes);
+
+  json_set_allocation_functions(malloc, free);
   PASS();
 }
 #endif
@@ -123,6 +229,7 @@ SUITE(test_ffi_ir_json_suite) {
   RUN_TEST(test_cdd_ffi_emit_ir_json);
 #ifdef CDD_BUILD_TESTS
   RUN_TEST(test_cdd_ffi_ir_json_oom);
+  RUN_TEST(test_cdd_ffi_ir_json_exhaustive_oom);
 #endif
 }
 

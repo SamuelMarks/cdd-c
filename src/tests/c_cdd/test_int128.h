@@ -11,6 +11,8 @@ extern "C" {
 #include "../cdd_test_helpers/cdd_helpers.h"
 /* clang-format on */
 
+#include <stdarg.h>
+
 TEST test_int128_constructors(void) {
   cdd_uint128_t u128;
   cdd_int128_t i128;
@@ -26,7 +28,44 @@ TEST test_int128_constructors(void) {
   PASS();
 }
 
-SUITE(c_cdd_int128_suite) { RUN_TEST(test_int128_constructors); }
+static cdd_int128_t test_va_arg_helper(int count, int is_signed, ...) {
+  va_list ap;
+  cdd_int128_t res;
+  va_start(ap, is_signed);
+  res = CDD_VA_ARG_INT128(ap, is_signed);
+  va_end(ap);
+  (void)count;
+  return res;
+}
+
+TEST test_int128_va_arg(void) {
+  cdd_int128_t res;
+
+#if defined(__SIZEOF_INT128__)
+  cdd_native_int128_t n_i128 =
+      (cdd_native_int128_t)(((cdd_native_uint128_t)-1 << 64) | 2);
+  cdd_native_uint128_t n_u128 = ((cdd_native_uint128_t)1 << 64) | 2;
+
+  res = test_va_arg_helper(1, 1, n_i128);
+  ASSERT_EQ_FMT(-1, (int)res.high, "%d");
+  ASSERT_EQ_FMT(2, (int)res.low, "%d");
+
+  res = test_va_arg_helper(1, 0, n_u128);
+  ASSERT_EQ_FMT(1, (int)res.high, "%d");
+  ASSERT_EQ_FMT(2, (int)res.low, "%d");
+#else
+  cdd_int128_t i128 = cdd_make_int128(-1, 2);
+  res = test_va_arg_helper(1, 1, i128);
+  ASSERT_EQ_FMT(-1, (int)res.high, "%d");
+  ASSERT_EQ_FMT(2, (int)res.low, "%d");
+#endif
+  PASS();
+}
+
+SUITE(c_cdd_int128_suite) {
+  RUN_TEST(test_int128_constructors);
+  RUN_TEST(test_int128_va_arg);
+}
 
 #ifdef __cplusplus
 }

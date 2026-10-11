@@ -491,6 +491,7 @@ SUITE(ffi_extractor_suite) {
   RUN_TEST(test_dsl_parser_oom_loop);
   RUN_TEST(test_dsl_parser_enum_oom);
   RUN_TEST(test_dsl_parser_oom);
+  RUN_TEST(test_dsl_parser_exhaustive_oom);
   RUN_TEST(test_dsl_parser_invalid);
   RUN_TEST(test_dsl_emitter_basic);
   RUN_TEST(test_dsl_emitter_exhaustive);
@@ -936,6 +937,7 @@ int main(int argc, char **argv) {
   RUN_SUITE_RESET(cdd_cst_builder_branches_suite);
   RUN_SUITE_RESET(cdd_helpers_suite);
   RUN_SUITE_RESET(diff_generator_suite);
+  RUN_SUITE_RESET(dsl_parser_branches_suite);
   RUN_SUITE_RESET(ffi_extractor_suite);
   RUN_SUITE_RESET(parsing_suite);
   RUN_SUITE_RESET(simple_mocks_suite);

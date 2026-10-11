@@ -31,6 +31,8 @@ C_CDD_EXPORT int g_ffi_extractor_alloc_fail = 0;
 C_CDD_EXPORT int g_cdd_ffi_fail_class_name = 0;
 C_CDD_EXPORT int g_cdd_ffi_fail_is_visited = 0;
 C_CDD_EXPORT int g_cdd_ffi_extractor_fail = 0;
+C_CDD_EXPORT int g_cdd_ffi_fail_cst_node = 0;
+C_CDD_EXPORT int g_cdd_ffi_fail_token = 0;
 
 void *cdd_ffi_malloc_impl(size_t sz) {
   if (g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)
@@ -346,10 +348,6 @@ static cdd_c_error_t extract_single_file_exports_impl(
   (void)config;
   (void)tree_full;
 
-  if (!ir || !filename || !content) {
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
-
   memset(&types, 0, sizeof(types));
 
   /* Extract Types */
@@ -397,9 +395,19 @@ static cdd_c_error_t extract_single_file_exports_impl(
       if (tree_full) {
         cdd_cst_node_t *cst_node =
             find_class_declaration_by_name(tree_full, types.items[i].name);
+#ifdef CDD_BUILD_TESTS
+        if (g_cdd_ffi_fail_cst_node)
+          cst_node = NULL;
+#endif
         if (cst_node) {
           cdd_token_t *first = get_first_token(cst_node);
           cdd_token_t *last = get_last_token(cst_node);
+#ifdef CDD_BUILD_TESTS
+          if (g_cdd_ffi_fail_token) {
+            first = NULL;
+            last = NULL;
+          }
+#endif
           if (first && first->leading_trivia) {
             rc =
                 copy_trivia_chain(first->leading_trivia, &node->leading_trivia);
@@ -597,9 +605,19 @@ static cdd_c_error_t extract_single_file_exports_impl(
     if (tree_full) {
       cdd_cst_node_t *cst_node =
           find_func_definition_by_name(tree_full, sigs.items[i].name);
+#ifdef CDD_BUILD_TESTS
+      if (g_cdd_ffi_fail_cst_node)
+        cst_node = NULL;
+#endif
       if (cst_node) {
         cdd_token_t *first = get_first_token(cst_node);
         cdd_token_t *last = get_last_token(cst_node);
+#ifdef CDD_BUILD_TESTS
+        if (g_cdd_ffi_fail_token) {
+          first = NULL;
+          last = NULL;
+        }
+#endif
         if (first && first->leading_trivia) {
           rc = copy_trivia_chain(first->leading_trivia, &node->leading_trivia);
           if (rc != CDD_C_SUCCESS)

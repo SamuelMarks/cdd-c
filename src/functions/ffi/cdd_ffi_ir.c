@@ -310,10 +310,32 @@ void cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
         if (node->variants[j].raw_spelling) {
           free(node->variants[j].raw_spelling);
         }
+        if (node->variants[j].number_details) {
+          if (node->variants[j].number_details->raw_spelling) {
+            free(node->variants[j].number_details->raw_spelling);
+          }
+          free(node->variants[j].number_details);
+        }
         free_trivia_chain(node->variants[j].leading_trivia);
         free_trivia_chain(node->variants[j].trailing_trivia);
       }
       free(node->variants);
+    }
+
+    /* Free macro expansions */
+    if (node->macro_expansions) {
+      for (j = 0; j < node->macro_expansions_count; j++) {
+        if (node->macro_expansions[j].macro_name) {
+          free(node->macro_expansions[j].macro_name);
+        }
+        if (node->macro_expansions[j].raw_args) {
+          free(node->macro_expansions[j].raw_args);
+        }
+        if (node->macro_expansions[j].expanded_text) {
+          free(node->macro_expansions[j].expanded_text);
+        }
+      }
+      free(node->macro_expansions);
     }
   }
 

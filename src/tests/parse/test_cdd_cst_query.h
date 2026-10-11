@@ -638,6 +638,27 @@ TEST test_query_call_expr_coverage(void) {
   g_cdd_alloc_fail = 0;
   free(res.nodes);
 
+  {
+    cdd_cst_node_t dummy_id_node = {0};
+    cdd_cst_child_t id_children[1] = {0};
+    dummy_id_node.kind = CDD_CST_IDENTIFIER;
+    dummy_id_node.num_children = 1;
+    dummy_id_node.children = id_children;
+    id_children[0].kind = CDD_CST_CHILD_TOKEN;
+    id_children[0].val.token = &tok;
+
+    memset(&res, 0, sizeof(res));
+    dummy_call.kind = CDD_CST_CALL_EXPR;
+    children[0].kind = CDD_CST_CHILD_NODE;
+    children[0].val.node = &dummy_id_node;
+
+    g_cdd_query_err_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              cdd_cst_find_function_calls_named(&dummy_call, "foo", &res));
+    g_cdd_query_err_fail = 0;
+    free(res.nodes);
+  }
+
   memset(&res, 0, sizeof(res));
   dummy_call.kind = CDD_CST_CALL_EXPR;
   children[0].kind = CDD_CST_CHILD_TOKEN;

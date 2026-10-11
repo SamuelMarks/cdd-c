@@ -51,6 +51,32 @@ TEST test_ffi_ir_extract_error_paths(void) {
          CDD_C_SUCCESS);
   ASSERT(ir == NULL);
 
+  {
+    int i;
+    const char *exhaustive_src = "enum MyEnum { E1, E2 };\n"
+                                 "struct MyStruct { int f1; };\n"
+                                 "typedef int MyInt;\n"
+                                 "#define MY_MACRO 1\n"
+                                 "C_CDD_EXPORT int func1(int* p);\n";
+
+    write_to_file("test.h", exhaustive_src);
+
+    for (i = 1; i < 500; i++) {
+      g_ffi_extractor_alloc_fail = i;
+      ir = NULL;
+      if (cdd_ffi_ir_extract_exports("test.h", exhaustive_src, &config, &ir) ==
+          CDD_C_SUCCESS) {
+        cdd_ffi_ir_free(ir);
+      }
+    }
+    g_ffi_extractor_alloc_fail = 0;
+    ir = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_ir_extract_exports(
+                                 "test.h", exhaustive_src, &config, &ir));
+    cdd_ffi_ir_free(ir);
+    remove("test.h");
+  }
+
   /* 2. Test memory helper functions (malloc, calloc, realloc, strdup) */
   {
     void *ptr = NULL;
