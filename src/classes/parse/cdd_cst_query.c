@@ -27,13 +27,15 @@ cdd_c_error_t cdd_cst_traverse_preorder(cdd_cst_node_t *root,
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  for (i = 0; i < root->num_children; i++) {
+  i = 0;
+  while (i < root->num_children) {
     if (root->children[i].kind == CDD_CST_CHILD_NODE) {
       rc = cdd_cst_traverse_preorder(root->children[i].val.node, visitor,
                                      user_data);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
+    i++;
   }
 
   return CDD_C_SUCCESS;

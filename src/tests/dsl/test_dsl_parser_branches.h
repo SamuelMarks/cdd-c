@@ -70,6 +70,78 @@ TEST test_dsl_parser_exhaustive_oom(void) {
   PASS();
 }
 
+TEST test_dsl_parser_missing_oom(void) {
+  cdd_dsl_token_list_t list;
+  cdd_ffi_ir_t *ir = NULL;
+  cdd_c_error_t rc;
+  int i;
+  const char *source = "/* t */ namespace my_ns { /* t */ namespace nested {} "
+                       "/* t */ func foo([unknown] i32 arg) {} unknown_tok }\n"
+                       "/* t */ macro_const M = 10;\n"
+                       "/* t */ enum MyEnum { Variant1 = 1 }\n"
+                       "func bar() { unknown_token body %{ a }% }\n";
+
+  (void)rc;
+  rc = cdd_dsl_tokenize(source, &list);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
+
+  for (i = 1; i < 500; i++) {
+    g_ffi_extractor_alloc_fail = i;
+    rc = cdd_dsl_parse(&list, &ir);
+    if (rc == CDD_C_SUCCESS) {
+      cdd_ffi_ir_free(ir);
+      free(ir);
+      ir = NULL;
+      break;
+    }
+  }
+  g_ffi_extractor_alloc_fail = 0;
+  rc = cdd_dsl_parse(&list, &ir);
+  cdd_dsl_token_list_free(&list);
+  if (ir) {
+    cdd_ffi_ir_free(ir);
+    free(ir);
+  }
+  PASS();
+}
+
+TEST test_dsl_parser_missing_eof(void) {
+  cdd_dsl_token_list_t list;
+  cdd_ffi_ir_t *ir = NULL;
+  cdd_c_error_t rc;
+
+  (void)rc;
+
+  rc = cdd_dsl_tokenize("func foo(i32 arg ", &list);
+  rc = cdd_dsl_parse(&list, &ir);
+  cdd_dsl_token_list_free(&list);
+  if (ir) {
+    cdd_ffi_ir_free(ir);
+    free(ir);
+    ir = NULL;
+  }
+
+  rc = cdd_dsl_tokenize("func foo() { body %{ ", &list);
+  rc = cdd_dsl_parse(&list, &ir);
+  cdd_dsl_token_list_free(&list);
+  if (ir) {
+    cdd_ffi_ir_free(ir);
+    free(ir);
+    ir = NULL;
+  }
+
+  rc = cdd_dsl_tokenize("func foo() { body %{ a ", &list);
+  rc = cdd_dsl_parse(&list, &ir);
+  cdd_dsl_token_list_free(&list);
+  if (ir) {
+    cdd_ffi_ir_free(ir);
+    free(ir);
+    ir = NULL;
+  }
+
+  PASS();
+}
+
 TEST test_dsl_parser_invalid(void) {
   cdd_dsl_token_list_t list;
   cdd_ffi_ir_t *ir = NULL;
@@ -659,6 +731,8 @@ SUITE(dsl_parser_branches_suite) {
 
   RUN_TEST(test_dsl_parser_oom);
   RUN_TEST(test_dsl_parser_exhaustive_oom);
+  RUN_TEST(test_dsl_parser_missing_oom);
+  RUN_TEST(test_dsl_parser_missing_eof);
   RUN_TEST(test_dsl_parser_invalid);
   RUN_TEST(test_dsl_parser_enum_oom);
 }

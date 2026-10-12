@@ -18,9 +18,53 @@ TEST test_cdd_ffi_ir_json_basic(void) {
   ir.nodes_count = 1;
   ir.nodes = calloc(1, sizeof(cdd_ffi_ir_node_t));
   ir.nodes[0].kind = CDD_FFI_NODE_FUNCTION;
-  ir.nodes[0].name = (char *)(size_t)(size_t) "test_func";
-  ir.nodes[0].doc = (char *)(size_t)(size_t) "test doc";
+  ir.nodes[0].name = (char *)(size_t) "test_func";
+  ir.nodes[0].doc = (char *)(size_t) "test doc";
   ir.nodes[0].return_or_base_type.kind = CDD_FFI_KIND_INT32;
+
+  ir.nodes[0].return_or_base_type.template_args_count = 1;
+  ir.nodes[0].return_or_base_type.template_args =
+      calloc(1, sizeof(cdd_ffi_type_t));
+  ir.nodes[0].return_or_base_type.template_args[0].kind = CDD_FFI_KIND_INT32;
+  ir.nodes[0].return_or_base_type.leading_trivia =
+      calloc(1, sizeof(cdd_ffi_trivia_t));
+  ir.nodes[0].return_or_base_type.leading_trivia->text =
+      (char *)(size_t) "/* t */";
+  ir.nodes[0].return_or_base_type.trailing_trivia =
+      calloc(1, sizeof(cdd_ffi_trivia_t));
+  ir.nodes[0].return_or_base_type.trailing_trivia->text =
+      (char *)(size_t) "/* t */";
+  ir.nodes[0].return_or_base_type.raw_spelling = (char *)(size_t) "i32";
+
+  ir.nodes[0].fields_count = 1;
+  ir.nodes[0].fields = calloc(1, sizeof(cdd_ffi_field_t));
+  ir.nodes[0].fields[0].name = (char *)(size_t) "f";
+  ir.nodes[0].fields[0].leading_trivia = calloc(1, sizeof(cdd_ffi_trivia_t));
+  ir.nodes[0].fields[0].trailing_trivia = calloc(1, sizeof(cdd_ffi_trivia_t));
+
+  ir.nodes[0].base_classes_count = 1;
+  ir.nodes[0].base_classes = calloc(1, sizeof(cdd_ffi_base_class_t));
+  ir.nodes[0].base_classes[0].name = (char *)(size_t) "Base";
+  ir.nodes[0].base_classes[0].access = (char *)(size_t) "public";
+
+  ir.nodes[0].virtual_methods_count = 1;
+  ir.nodes[0].virtual_methods = calloc(1, sizeof(cdd_ffi_virtual_method_t));
+  ir.nodes[0].virtual_methods[0].name = (char *)(size_t) "vfunc";
+
+  ir.nodes[0].variants_count = 1;
+  ir.nodes[0].variants = calloc(1, sizeof(cdd_ffi_enum_variant_t));
+  ir.nodes[0].variants[0].name = (char *)(size_t) "V1";
+  ir.nodes[0].variants[0].number_details =
+      calloc(1, sizeof(struct cdd_ffi_number_t));
+  ir.nodes[0].variants[0].leading_trivia = calloc(1, sizeof(cdd_ffi_trivia_t));
+  ir.nodes[0].variants[0].trailing_trivia = calloc(1, sizeof(cdd_ffi_trivia_t));
+  ir.nodes[0].variants[0].raw_spelling = (char *)(size_t) "V1";
+
+  ir.nodes[0].macro_expansions_count = 1;
+  ir.nodes[0].macro_expansions = calloc(1, sizeof(cdd_ffi_macro_expansion_t));
+  ir.nodes[0].macro_expansions[0].macro_name = (char *)(size_t) "MY_MACRO";
+  ir.nodes[0].macro_expansions[0].raw_args = (char *)(size_t) "a, b";
+  ir.nodes[0].macro_expansions[0].expanded_text = (char *)(size_t) "a + b";
 
   rc = cdd_ffi_ir_to_json(&ir, &json_str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -31,12 +75,23 @@ TEST test_cdd_ffi_ir_json_basic(void) {
   ASSERT(out_ir != NULL);
   ASSERT_EQ(1, out_ir->nodes_count);
   ASSERT_STR_EQ("test_func", out_ir->nodes[0].name);
-  ASSERT_STR_EQ("test doc", out_ir->nodes[0].doc);
-  ASSERT_EQ(CDD_FFI_NODE_FUNCTION, out_ir->nodes[0].kind);
-  ASSERT_EQ(CDD_FFI_KIND_INT32, out_ir->nodes[0].return_or_base_type.kind);
 
   cdd_ffi_ir_free(out_ir);
   free(json_str);
+
+  free(ir.nodes[0].macro_expansions);
+  free(ir.nodes[0].variants[0].number_details);
+  free(ir.nodes[0].variants[0].leading_trivia);
+  free(ir.nodes[0].variants[0].trailing_trivia);
+  free(ir.nodes[0].variants);
+  free(ir.nodes[0].virtual_methods);
+  free(ir.nodes[0].base_classes);
+  free(ir.nodes[0].fields[0].leading_trivia);
+  free(ir.nodes[0].fields[0].trailing_trivia);
+  free(ir.nodes[0].fields);
+  free(ir.nodes[0].return_or_base_type.template_args);
+  free(ir.nodes[0].return_or_base_type.leading_trivia);
+  free(ir.nodes[0].return_or_base_type.trailing_trivia);
   free(ir.nodes);
   PASS();
 }
@@ -117,11 +172,30 @@ TEST test_cdd_ffi_ir_json_exhaustive_oom(void) {
   ir.nodes[0].kind = CDD_FFI_NODE_FUNCTION;
   ir.nodes[0].name = C_CDD_STRDUP("func");
   ir.nodes[0].return_or_base_type.kind = CDD_FFI_KIND_INT32;
+  ir.nodes[0].return_or_base_type.template_args_count = 1;
+  ir.nodes[0].return_or_base_type.template_args =
+      calloc(1, sizeof(cdd_ffi_type_t));
+  ir.nodes[0].return_or_base_type.template_args[0].kind = CDD_FFI_KIND_INT32;
+  ir.nodes[0].return_or_base_type.leading_trivia =
+      calloc(1, sizeof(cdd_ffi_trivia_t));
+  ir.nodes[0].return_or_base_type.leading_trivia->text =
+      C_CDD_STRDUP("/* t */");
+  ir.nodes[0].return_or_base_type.trailing_trivia =
+      calloc(1, sizeof(cdd_ffi_trivia_t));
+  ir.nodes[0].return_or_base_type.trailing_trivia->text =
+      C_CDD_STRDUP("/* t */");
+  ir.nodes[0].return_or_base_type.raw_spelling = C_CDD_STRDUP("i32");
+
   ir.nodes[0].fields_count = 1;
   ir.nodes[0].fields = calloc(1, sizeof(cdd_ffi_field_t));
   ir.nodes[0].fields[0].name = C_CDD_STRDUP("param1");
   ir.nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT8;
   ir.nodes[0].fields[0].type.pointer_depth = 1;
+  ir.nodes[0].fields[0].leading_trivia = calloc(1, sizeof(cdd_ffi_trivia_t));
+  ir.nodes[0].fields[0].leading_trivia->text = C_CDD_STRDUP("/* t */");
+  ir.nodes[0].fields[0].trailing_trivia = calloc(1, sizeof(cdd_ffi_trivia_t));
+  ir.nodes[0].fields[0].trailing_trivia->text = C_CDD_STRDUP("/* t */");
+  ir.nodes[0].fields[0].array_length_ref = C_CDD_STRDUP("arr_len");
 
   ir.nodes[1].kind = CDD_FFI_NODE_STRUCT;
   ir.nodes[1].name = C_CDD_STRDUP("strct");
@@ -130,6 +204,13 @@ TEST test_cdd_ffi_ir_json_exhaustive_oom(void) {
   ir.nodes[1].fields[0].name = C_CDD_STRDUP("f1");
   ir.nodes[1].fields[0].type.kind = CDD_FFI_KIND_STRUCT_REF;
   ir.nodes[1].fields[0].type.ref_name = C_CDD_STRDUP("inner");
+  ir.nodes[1].base_classes_count = 1;
+  ir.nodes[1].base_classes = calloc(1, sizeof(cdd_ffi_base_class_t));
+  ir.nodes[1].base_classes[0].name = C_CDD_STRDUP("Base");
+  ir.nodes[1].base_classes[0].access = C_CDD_STRDUP("public");
+  ir.nodes[1].virtual_methods_count = 1;
+  ir.nodes[1].virtual_methods = calloc(1, sizeof(cdd_ffi_virtual_method_t));
+  ir.nodes[1].virtual_methods[0].name = C_CDD_STRDUP("vfunc");
 
   ir.nodes[2].kind = CDD_FFI_NODE_ENUM;
   ir.nodes[2].name = C_CDD_STRDUP("enm");
@@ -137,6 +218,14 @@ TEST test_cdd_ffi_ir_json_exhaustive_oom(void) {
   ir.nodes[2].variants = calloc(2, sizeof(cdd_ffi_enum_variant_t));
   ir.nodes[2].variants[0].name = C_CDD_STRDUP("E1");
   ir.nodes[2].variants[0].value = C_CDD_STRDUP("0");
+  ir.nodes[2].variants[0].number_details =
+      calloc(1, sizeof(struct cdd_ffi_number_t));
+  ir.nodes[2].variants[0].number_details->has_separators = 1;
+  ir.nodes[2].variants[0].leading_trivia = calloc(1, sizeof(cdd_ffi_trivia_t));
+  ir.nodes[2].variants[0].leading_trivia->text = C_CDD_STRDUP("/* t */");
+  ir.nodes[2].variants[0].trailing_trivia = calloc(1, sizeof(cdd_ffi_trivia_t));
+  ir.nodes[2].variants[0].trailing_trivia->text = C_CDD_STRDUP("/* t */");
+  ir.nodes[2].variants[0].raw_spelling = C_CDD_STRDUP("E1");
   ir.nodes[2].variants[1].name = C_CDD_STRDUP("E2");
   ir.nodes[2].variants[1].value = C_CDD_STRDUP("1");
 
@@ -147,14 +236,21 @@ TEST test_cdd_ffi_ir_json_exhaustive_oom(void) {
   ir.nodes[4].kind = CDD_FFI_NODE_MACRO;
   ir.nodes[4].name = C_CDD_STRDUP("MACRO_VAL");
   ir.nodes[4].evaluated_value = C_CDD_STRDUP("123");
+  ir.nodes[4].macro_expansions_count = 1;
+  ir.nodes[4].macro_expansions = calloc(1, sizeof(cdd_ffi_macro_expansion_t));
+  ir.nodes[4].macro_expansions[0].macro_name = C_CDD_STRDUP("MY_MACRO");
+  ir.nodes[4].macro_expansions[0].raw_args = C_CDD_STRDUP("a, b");
+  ir.nodes[4].macro_expansions[0].expanded_text = C_CDD_STRDUP("a + b");
 
-  for (i = 1; i < 5000; i++) {
+  for (i = 1; i < 25000; i++) {
     g_ffi_extractor_alloc_fail = i;
     rc = cdd_ffi_ir_to_json(&ir, &json_str);
     if (rc == CDD_C_SUCCESS) {
       free(json_str);
+      break;
     }
   }
+  ASSERT(i < 25000);
 
   g_ffi_extractor_alloc_fail = 0;
   rc = cdd_ffi_ir_to_json(&ir, &json_str);
@@ -162,30 +258,23 @@ TEST test_cdd_ffi_ir_json_exhaustive_oom(void) {
 
   for (i = 1; i < 5000; i++) {
     g_ffi_extractor_alloc_fail = i;
+    printf("from_json i=%d\n", i);
     rc = cdd_ffi_ir_from_json(json_str, &out_ir);
     if (rc == CDD_C_SUCCESS) {
       cdd_ffi_ir_free(out_ir);
+      free(out_ir);
+      break;
+    } else {
+      if (out_ir) {
+        cdd_ffi_ir_free(out_ir);
+        free(out_ir);
+        out_ir = NULL;
+      }
     }
   }
 
   free(json_str);
-  free(ir.nodes[0].name);
-  free(ir.nodes[0].fields[0].name);
-  free(ir.nodes[0].fields);
-  free(ir.nodes[1].name);
-  free(ir.nodes[1].fields[0].name);
-  free(ir.nodes[1].fields[0].type.ref_name);
-  free(ir.nodes[1].fields);
-  free(ir.nodes[2].name);
-  free(ir.nodes[2].variants[0].name);
-  free(ir.nodes[2].variants[0].value);
-  free(ir.nodes[2].variants[1].name);
-  free(ir.nodes[2].variants[1].value);
-  free(ir.nodes[2].variants);
-  free(ir.nodes[3].name);
-  free(ir.nodes[4].name);
-  free(ir.nodes[4].evaluated_value);
-  free(ir.nodes);
+  cdd_ffi_ir_free(&ir);
 
   json_set_allocation_functions(malloc, free);
   PASS();

@@ -251,7 +251,7 @@ def main():
 
     if test_cov is not None:
         test_color = get_color(test_cov)
-        test_badge = f"[![Test Coverage](https://img.shields.io/badge/test_coverage-{test_cov}%25-{test_color}.svg)](#)"
+        test_badge = f"[![Test Coverage](https://img.shields.io/badge/Test%20Coverage-{test_cov}%25-{test_color}.svg)](#)"
         test_badge_pattern = r"\[\!\[Test Coverage\]\(.*?\)\]\(.*?\)"
         if re.search(test_badge_pattern, content):
             content = re.sub(test_badge_pattern, test_badge, content)
@@ -262,7 +262,7 @@ def main():
             elif "[![License]" in content:
                 content = re.sub(r"(\[!\[License\].*?\]\(.*?\)\n?)", r"\1" + test_badge + "\n", content, count=1)
 
-    doc_badge = f"[![Doc Coverage](https://img.shields.io/badge/doc_coverage-{doc_cov}%25-{doc_color}.svg)](#)"
+    doc_badge = f"[![Doc Coverage](https://img.shields.io/badge/Doc%20Coverage-{doc_cov}%25-{doc_color}.svg)](#)"
     doc_badge_pattern = r"\[\!\[Doc Coverage\]\(.*?\)\]\(.*?\)"
     if re.search(doc_badge_pattern, content):
         content = re.sub(doc_badge_pattern, doc_badge, content)

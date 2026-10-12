@@ -551,6 +551,7 @@ SUITE(ffi_extractor_suite) {
   RUN_TEST(test_ffi_ir_extract_docstring_and_sal_intents);
   RUN_TEST(test_ffi_ir_extract_trampolines_direct);
   RUN_TEST(test_ffi_ir_extractor_helpers);
+  RUN_TEST(test_ffi_ir_extract_mock_failures);
 }
 
 #ifdef CDD_BUILD_TESTS

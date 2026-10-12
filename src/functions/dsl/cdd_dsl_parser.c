@@ -166,6 +166,11 @@ static cdd_c_error_t collect_trivia(parser_state_t *state) {
 
 static cdd_c_error_t take_pending_trivia(parser_state_t *state,
                                          cdd_ffi_trivia_t **out_trivia) {
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_ffi_extractor_alloc_fail;
+  if (g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)
+    return CDD_C_ERROR_MEMORY;
+#endif
   *out_trivia = state->pending_trivia;
   state->pending_trivia = NULL;
   return CDD_C_SUCCESS;

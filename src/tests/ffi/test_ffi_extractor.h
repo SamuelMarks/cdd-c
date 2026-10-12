@@ -31,7 +31,43 @@
 #include "../../functions/ffi/cdd_ffi_emit_ocaml.h"
 /* clang-format on */
 
+TEST test_ffi_ir_extract_mock_failures(void) {
+  const char *filename = "dummy_header.h";
+  const char *code = "struct Base { int a; };\n"
+                     "void func(int a);\n";
+  cdd_ffi_ir_t *ir = NULL;
+  cdd_generate_bindings_config_t config = {0};
+  cdd_c_error_t rc;
+  extern C_CDD_EXPORT int g_cdd_ffi_fail_cst_node;
+  extern C_CDD_EXPORT int g_cdd_ffi_fail_token;
+
+  g_cdd_ffi_fail_cst_node = 1;
+  write_to_file(filename, code);
+  rc = cdd_ffi_ir_extract_exports(filename, code, &config, &ir);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (ir) {
+    cdd_ffi_ir_free(ir);
+    free(ir);
+    ir = NULL;
+  }
+  g_cdd_ffi_fail_cst_node = 0;
+
+  g_cdd_ffi_fail_token = 1;
+  rc = cdd_ffi_ir_extract_exports(filename, code, &config, &ir);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (ir) {
+    cdd_ffi_ir_free(ir);
+    free(ir);
+    ir = NULL;
+  }
+  g_cdd_ffi_fail_token = 0;
+  remove(filename);
+
+  PASS();
+}
+
 #ifdef __cplusplus
+
 extern "C" {
 #endif /* __cplusplus */
 
