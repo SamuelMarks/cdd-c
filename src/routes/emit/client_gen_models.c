@@ -79,16 +79,16 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
   {
     char *mh_base = NULL;
     int print_rc;
-    {
-      cdd_c_error_t rc_cg = get_basename(mh_name, &mh_base);
+    rc = get_basename(mh_name, &mh_base);
 #ifdef CDD_BUILD_TESTS
-      if (g_client_gen_fail == 65)
-        rc_cg = CDD_C_ERROR_INVALID_ARGUMENT;
+    if (g_client_gen_fail == 65) {
+      free(mh_base);
+      mh_base = NULL;
+      rc = CDD_C_ERROR_INVALID_ARGUMENT;
+    }
 #endif
-      if (rc_cg != CDD_C_SUCCESS) {
-        rc = rc_cg;
-        goto cleanup;
-      }
+    if (rc != CDD_C_SUCCESS) {
+      goto cleanup;
     }
     print_rc = fprintf(mcfile, "#include \"%s\"\n", mh_base);
     free(mh_base);

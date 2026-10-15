@@ -9,7 +9,9 @@
 #include "c_cdd/safe_crt_msvc.h"
 
 #include "classes/emit/enum.h"
+#include "c_cdd/code_writer.h"
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "functions/parse/str.h"
 #include <errno.h>
@@ -19,26 +21,8 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
-static int test_test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)));
-#else
-    ;
-#endif
-static int test_test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  va_list args;
-  int rc;
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  va_start(args, format);
-  rc = vfprintf(stream, format, args);
-  va_end(args);
-  return rc;
-}
 /** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK test_test_cdd_fprintf_hook
+#define FPRINTF_HOOK cdd_io_fprintf_hook
 #else
 /** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK fprintf
@@ -57,27 +41,14 @@ static const char *kStrDupFunc = "_strdup";
 static const char *kStrDupFunc = "strdup";
 #endif
 
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_enum_members_init_fail = 0;
-C_CDD_EXPORT int g_enum_members_add_fail = 0;
-C_CDD_EXPORT int g_enum_members_add_strdup_fail = 0;
-#endif
-
 cdd_c_error_t enum_members_init(struct EnumMembers *em) {
   if (!em)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   em->size = 0;
   em->capacity = 8;
-#ifdef CDD_BUILD_TESTS
-  if (g_enum_members_init_fail) {
-    em->members = NULL;
-  } else {
-#endif
-    em->members = (char **)calloc(em->capacity, sizeof(char *));
-#ifdef CDD_BUILD_TESTS
-  }
-#endif
+  em->members = (char **)C_CDD_CALLOC(em->capacity, sizeof(char *));
   if (!em->members) {
+    em->capacity = 0;
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
@@ -107,15 +78,7 @@ cdd_c_error_t enum_members_add(struct EnumMembers *em, const char *name) {
   if (em->size >= em->capacity) {
     const size_t new_cap = em->capacity == 0 ? 8 : em->capacity * 2;
     char **new_members;
-#ifdef CDD_BUILD_TESTS
-    if (g_enum_members_add_fail) {
-      new_members = NULL;
-    } else {
-#endif
-      new_members = (char **)realloc(em->members, new_cap * sizeof(char *));
-#ifdef CDD_BUILD_TESTS
-    }
-#endif
+    new_members = (char **)C_CDD_REALLOC(em->members, new_cap * sizeof(char *));
     if (!new_members) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -123,20 +86,10 @@ cdd_c_error_t enum_members_add(struct EnumMembers *em, const char *name) {
     em->members = new_members;
     em->capacity = new_cap;
   }
-#ifdef CDD_BUILD_TESTS
-  if (g_enum_members_add_strdup_fail) {
-    em->members[em->size] = NULL;
-  } else {
-#endif
-    rc = c_cdd_strdup(name, &em->members[em->size]);
-    if (rc != CDD_C_SUCCESS) {
-      return rc;
-    }
-#ifdef CDD_BUILD_TESTS
+  rc = c_cdd_strdup(name, &em->members[em->size]);
+  if (rc != CDD_C_SUCCESS) {
+    return rc;
   }
-#endif
-  if (!em->members[em->size])
-    return CDD_C_ERROR_MEMORY;
   em->size++;
   return CDD_C_SUCCESS;
 }

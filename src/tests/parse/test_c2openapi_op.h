@@ -30,17 +30,17 @@ TEST test_build_simple_get(void) {
   rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "api_user_get";
+  sig.name = cdd_test_mut_str("api_user_get");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "id";
-  args[0].type = (char *)(size_t)(size_t) "int";
+  args[0].name = cdd_test_mut_str("id");
+  args[0].type = cdd_test_mut_str("int");
 
   /* Setup Doc */
   memset(&doc, 0, sizeof(doc));
   doc.route = strdup("/user/{id}");
   doc.verb = strdup("GET");
-  doc.summary = (char *)(size_t)(size_t) "Get a user";
+  doc.summary = cdd_test_mut_str("Get a user");
 
   /* Setup Context */
   memset(&ctx, 0, sizeof(ctx));
@@ -81,11 +81,11 @@ TEST test_build_param_format_from_mapping(void) {
   rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "api_user_get";
+  sig.name = cdd_test_mut_str("api_user_get");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "id";
-  args[0].type = (char *)(size_t)(size_t) "long";
+  args[0].name = cdd_test_mut_str("id");
+  args[0].type = cdd_test_mut_str("long");
 
   memset(&doc, 0, sizeof(doc));
   doc.route = strdup("/user/{id}");
@@ -123,11 +123,11 @@ TEST test_build_param_format_override(void) {
   rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "api_user_get";
+  sig.name = cdd_test_mut_str("api_user_get");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "id";
-  args[0].type = (char *)(size_t)(size_t) "int";
+  args[0].name = cdd_test_mut_str("id");
+  args[0].type = cdd_test_mut_str("int");
 
   memset(&doc, 0, sizeof(doc));
   doc.route = strdup("/user/{id}");
@@ -167,7 +167,7 @@ TEST test_build_response_header_format(void) {
 
   rc += 0;
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "api_ping";
+  sig.name = cdd_test_mut_str("api_ping");
   sig.n_args = 0;
   sig.args = NULL;
 
@@ -211,7 +211,7 @@ TEST test_build_default_response_when_missing(void) {
 
   rc += 0;
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "api_ping";
+  sig.name = cdd_test_mut_str("api_ping");
   sig.n_args = 0;
   sig.args = NULL;
 
@@ -248,16 +248,16 @@ TEST test_build_operation_id_override(void) {
   rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "api_user_get";
+  sig.name = cdd_test_mut_str("api_user_get");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "id";
-  args[0].type = (char *)(size_t)(size_t) "int";
+  args[0].name = cdd_test_mut_str("id");
+  args[0].type = cdd_test_mut_str("int");
 
   memset(&doc, 0, sizeof(doc));
   doc.route = strdup("/user/{id}");
   doc.verb = strdup("GET");
-  doc.operation_id = (char *)(size_t)(size_t) "getUserById";
+  doc.operation_id = cdd_test_mut_str("getUserById");
 
   memset(&ctx, 0, sizeof(ctx));
   ctx.sig = &sig;
@@ -288,11 +288,11 @@ TEST test_build_param_content_type(void) {
   memset(args, 0, sizeof(args));
   memset(params, 0, sizeof(params));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "api_user_search";
+  sig.name = cdd_test_mut_str("api_user_search");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "payload";
-  args[0].type = (char *)(size_t)(size_t) "const char *";
+  args[0].name = cdd_test_mut_str("payload");
+  args[0].type = cdd_test_mut_str("const char *");
 
   memset(&doc, 0, sizeof(doc));
   memset(params, 0, sizeof(params));
@@ -300,9 +300,9 @@ TEST test_build_param_content_type(void) {
   doc.verb = strdup("GET");
   doc.params = params;
   doc.n_params = 1;
-  doc.params[0].name = (char *)(size_t)(size_t) "payload";
-  doc.params[0].in_loc = (char *)(size_t)(size_t) "query";
-  doc.params[0].content_type = (char *)(size_t)(size_t) "application/json";
+  doc.params[0].name = cdd_test_mut_str("payload");
+  doc.params[0].in_loc = cdd_test_mut_str("query");
+  doc.params[0].content_type = cdd_test_mut_str("application/json");
 
   memset(&ctx, 0, sizeof(ctx));
   ctx.sig = &sig;
@@ -334,11 +334,11 @@ TEST test_build_param_example(void) {
   memset(args, 0, sizeof(args));
   memset(params, 0, sizeof(params));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "api_user_get";
+  sig.name = cdd_test_mut_str("api_user_get");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "id";
-  args[0].type = (char *)(size_t)(size_t) "int";
+  args[0].name = cdd_test_mut_str("id");
+  args[0].type = cdd_test_mut_str("int");
 
   memset(&doc, 0, sizeof(doc));
   memset(params, 0, sizeof(params));
@@ -346,9 +346,9 @@ TEST test_build_param_example(void) {
   doc.verb = strdup("GET");
   doc.params = params;
   doc.n_params = 1;
-  doc.params[0].name = (char *)(size_t)(size_t) "id";
-  doc.params[0].in_loc = (char *)(size_t)(size_t) "path";
-  doc.params[0].example = (char *)(size_t)(size_t) "123";
+  doc.params[0].name = cdd_test_mut_str("id");
+  doc.params[0].in_loc = cdd_test_mut_str("path");
+  doc.params[0].example = cdd_test_mut_str("123");
 
   memset(&ctx, 0, sizeof(ctx));
   ctx.sig = &sig;
@@ -380,20 +380,20 @@ TEST test_build_return_content_type(void) {
   rc += 0;
   memset(returns, 0, sizeof(returns));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "api_status";
+  sig.name = cdd_test_mut_str("api_status");
   sig.n_args = 0;
   sig.args = NULL;
 
   memset(&doc, 0, sizeof(doc));
   memset(returns, 0, sizeof(returns));
-  doc.route = (char *)(size_t)(size_t) "/status";
+  doc.route = cdd_test_mut_str("/status");
   doc.verb = strdup("GET");
   doc.returns = returns;
   doc.n_returns = 1;
-  doc.returns[0].code = (char *)(size_t)(size_t) "200";
-  doc.returns[0].summary = (char *)(size_t)(size_t) "Status";
-  doc.returns[0].description = (char *)(size_t)(size_t) "OK";
-  doc.returns[0].content_type = (char *)(size_t)(size_t) "text/plain";
+  doc.returns[0].code = cdd_test_mut_str("200");
+  doc.returns[0].summary = cdd_test_mut_str("Status");
+  doc.returns[0].description = cdd_test_mut_str("OK");
+  doc.returns[0].content_type = cdd_test_mut_str("text/plain");
 
   memset(&ctx, 0, sizeof(ctx));
   ctx.sig = &sig;
@@ -428,11 +428,11 @@ TEST test_build_response_example(void) {
   memset(args, 0, sizeof(args));
   memset(returns, 0, sizeof(returns));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "api_user_get";
+  sig.name = cdd_test_mut_str("api_user_get");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "id";
-  args[0].type = (char *)(size_t)(size_t) "int";
+  args[0].name = cdd_test_mut_str("id");
+  args[0].type = cdd_test_mut_str("int");
 
   memset(&doc, 0, sizeof(doc));
   memset(returns, 0, sizeof(returns));
@@ -440,10 +440,10 @@ TEST test_build_response_example(void) {
   doc.verb = strdup("GET");
   doc.returns = returns;
   doc.n_returns = 1;
-  doc.returns[0].code = (char *)(size_t)(size_t) "200";
-  doc.returns[0].description = (char *)(size_t)(size_t) "OK";
-  doc.returns[0].content_type = (char *)(size_t)(size_t) "application/json";
-  doc.returns[0].example = (char *)(size_t)(size_t) "{\"ok\":true}";
+  doc.returns[0].code = cdd_test_mut_str("200");
+  doc.returns[0].description = cdd_test_mut_str("OK");
+  doc.returns[0].content_type = cdd_test_mut_str("application/json");
+  doc.returns[0].example = cdd_test_mut_str("{\"ok\":true}");
 
   memset(&ctx, 0, sizeof(ctx));
   ctx.sig = &sig;
@@ -479,11 +479,11 @@ TEST test_build_post_with_body(void) {
   rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "api_pet_create";
+  sig.name = cdd_test_mut_str("api_pet_create");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "p";
-  args[0].type = (char *)(size_t)(size_t) "const struct Pet *";
+  args[0].name = cdd_test_mut_str("p");
+  args[0].type = cdd_test_mut_str("const struct Pet *");
 
   /* Doc (minimal) */
   ctx.sig = &sig;
@@ -524,19 +524,19 @@ TEST test_build_params_explicit(void) {
   memset(args, 0, sizeof(args));
   memset(dparams, 0, sizeof(dparams));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "list";
+  sig.name = cdd_test_mut_str("list");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "limit";
-  args[0].type = (char *)(size_t)(size_t) "int";
+  args[0].name = cdd_test_mut_str("limit");
+  args[0].type = cdd_test_mut_str("int");
 
   /* Doc */
   memset(&doc, 0, sizeof(doc));
   doc.params = dparams;
   doc.n_params = 1;
-  dparams[0].name = (char *)(size_t)(size_t) "limit";
-  dparams[0].in_loc = (char *)(size_t)(size_t) "query";
-  dparams[0].description = (char *)(size_t)(size_t) "Max items";
+  dparams[0].name = cdd_test_mut_str("limit");
+  dparams[0].in_loc = cdd_test_mut_str("query");
+  dparams[0].description = cdd_test_mut_str("Max items");
   dparams[0].required = 0;
 
   ctx.sig = &sig;
@@ -569,18 +569,18 @@ TEST test_build_param_style_flags(void) {
   memset(args, 0, sizeof(args));
   memset(dparams, 0, sizeof(dparams));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "search";
+  sig.name = cdd_test_mut_str("search");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "tags";
-  args[0].type = (char *)(size_t)(size_t) "char **";
+  args[0].name = cdd_test_mut_str("tags");
+  args[0].type = cdd_test_mut_str("char **");
 
   memset(&doc, 0, sizeof(doc));
   memset(dparams, 0, sizeof(dparams));
   doc.params = dparams;
   doc.n_params = 1;
-  dparams[0].name = (char *)(size_t)(size_t) "tags";
-  dparams[0].in_loc = (char *)(size_t)(size_t) "query";
+  dparams[0].name = cdd_test_mut_str("tags");
+  dparams[0].in_loc = cdd_test_mut_str("query");
   dparams[0].style = DOC_PARAM_STYLE_SPACE_DELIMITED;
   dparams[0].style_set = 1;
   dparams[0].explode = 0;
@@ -625,21 +625,21 @@ TEST test_build_param_default_styles(void) {
   memset(args, 0, sizeof(args));
   memset(dparams, 0, sizeof(dparams));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "get_item";
+  sig.name = cdd_test_mut_str("get_item");
   sig.n_args = 2;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "id";
-  args[0].type = (char *)(size_t)(size_t) "int";
-  args[1].name = (char *)(size_t)(size_t) "token";
-  args[1].type = (char *)(size_t)(size_t) "char *";
+  args[0].name = cdd_test_mut_str("id");
+  args[0].type = cdd_test_mut_str("int");
+  args[1].name = cdd_test_mut_str("token");
+  args[1].type = cdd_test_mut_str("char *");
 
   memset(&doc, 0, sizeof(doc));
-  doc.route = (char *)(size_t)(size_t) "/items/{id}";
+  doc.route = cdd_test_mut_str("/items/{id}");
   doc.params = dparams;
   doc.n_params = 1;
   memset(dparams, 0, sizeof(dparams));
-  dparams[0].name = (char *)(size_t)(size_t) "token";
-  dparams[0].in_loc = (char *)(size_t)(size_t) "header";
+  dparams[0].name = cdd_test_mut_str("token");
+  dparams[0].in_loc = cdd_test_mut_str("header");
 
   memset(&ctx, 0, sizeof(ctx));
   ctx.sig = &sig;
@@ -672,21 +672,21 @@ TEST test_build_reserved_header_param_ignored(void) {
   memset(args, 0, sizeof(args));
   memset(dparams, 0, sizeof(dparams));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "get_item";
+  sig.name = cdd_test_mut_str("get_item");
   sig.n_args = 2;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "id";
-  args[0].type = (char *)(size_t)(size_t) "int";
-  args[1].name = (char *)(size_t)(size_t) "Accept";
-  args[1].type = (char *)(size_t)(size_t) "char *";
+  args[0].name = cdd_test_mut_str("id");
+  args[0].type = cdd_test_mut_str("int");
+  args[1].name = cdd_test_mut_str("Accept");
+  args[1].type = cdd_test_mut_str("char *");
 
   memset(&doc, 0, sizeof(doc));
-  doc.route = (char *)(size_t)(size_t) "/items/{id}";
+  doc.route = cdd_test_mut_str("/items/{id}");
   doc.params = dparams;
   doc.n_params = 1;
   memset(dparams, 0, sizeof(dparams));
-  dparams[0].name = (char *)(size_t)(size_t) "Accept";
-  dparams[0].in_loc = (char *)(size_t)(size_t) "header";
+  dparams[0].name = cdd_test_mut_str("Accept");
+  dparams[0].in_loc = cdd_test_mut_str("header");
 
   memset(&ctx, 0, sizeof(ctx));
   ctx.sig = &sig;
@@ -715,22 +715,24 @@ TEST test_build_with_tags_description_and_deprecated(void) {
   rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "api_user_list";
+  sig.name = cdd_test_mut_str("api_user_list");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "limit";
-  args[0].type = (char *)(size_t)(size_t) "int";
+  args[0].name = cdd_test_mut_str("limit");
+  args[0].type = cdd_test_mut_str("int");
 
   memset(&doc, 0, sizeof(doc));
-  doc.summary = (char *)(size_t)(size_t) "List users";
-  doc.description = (char *)(size_t)(size_t) "Longer description text";
+  doc.summary = cdd_test_mut_str("List users");
+  doc.description = cdd_test_mut_str("Longer description text");
   doc.deprecated_set = 1;
   doc.deprecated = 1;
-  doc.external_docs_url = (char *)(size_t)(size_t) "https://example.com/docs";
-  doc.external_docs_description = (char *)(size_t)(size_t) "External docs";
+  doc.external_docs_url = cdd_test_mut_str("https://example.com/docs");
+  doc.external_docs_description = cdd_test_mut_str("External docs");
   {
-    static char *tags[] = {(char *)(size_t)(size_t) "users",
-                           (char *)(size_t)(size_t) "admin"};
+    static char *tags[2];
+
+    tags[0] = cdd_test_mut_str("users");
+    tags[1] = cdd_test_mut_str("admin");
     doc.tags = tags;
     doc.n_tags = 2;
   }
@@ -771,18 +773,18 @@ TEST test_build_params_querystring(void) {
   memset(args, 0, sizeof(args));
   memset(dparams, 0, sizeof(dparams));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "search";
+  sig.name = cdd_test_mut_str("search");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "qs";
-  args[0].type = (char *)(size_t)(size_t) "const char *";
+  args[0].name = cdd_test_mut_str("qs");
+  args[0].type = cdd_test_mut_str("const char *");
 
   memset(&doc, 0, sizeof(doc));
   doc.params = dparams;
   doc.n_params = 1;
-  dparams[0].name = (char *)(size_t)(size_t) "qs";
-  dparams[0].in_loc = (char *)(size_t)(size_t) "querystring";
-  dparams[0].description = (char *)(size_t)(size_t) "Serialized query string";
+  dparams[0].name = cdd_test_mut_str("qs");
+  dparams[0].in_loc = cdd_test_mut_str("querystring");
+  dparams[0].description = cdd_test_mut_str("Serialized query string");
 
   ctx.sig = &sig;
   ctx.doc = &doc;
@@ -813,18 +815,18 @@ TEST test_build_params_querystring_json_struct(void) {
   memset(args, 0, sizeof(args));
   memset(dparams, 0, sizeof(dparams));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "search_query";
+  sig.name = cdd_test_mut_str("search_query");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "qs";
-  args[0].type = (char *)(size_t)(size_t) "struct Query *";
+  args[0].name = cdd_test_mut_str("qs");
+  args[0].type = cdd_test_mut_str("struct Query *");
 
   memset(&doc, 0, sizeof(doc));
   doc.params = dparams;
   doc.n_params = 1;
-  dparams[0].name = (char *)(size_t)(size_t) "qs";
-  dparams[0].in_loc = (char *)(size_t)(size_t) "querystring";
-  dparams[0].content_type = (char *)(size_t)(size_t) "application/json";
+  dparams[0].name = cdd_test_mut_str("qs");
+  dparams[0].in_loc = cdd_test_mut_str("querystring");
+  dparams[0].content_type = cdd_test_mut_str("application/json");
 
   ctx.sig = &sig;
   ctx.doc = &doc;

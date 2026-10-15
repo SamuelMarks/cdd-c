@@ -1,3 +1,7 @@
+/**
+ * @file cdd_c_error.h
+ * @brief Core cdd c error definitions and implementation.
+ */
 /* clang-format off */
 #include "c_cdd/no_discard.h"
 #include "c_cdd_export.h"

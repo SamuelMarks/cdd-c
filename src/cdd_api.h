@@ -1,3 +1,7 @@
+/**
+ * @file cdd_api.h
+ * @brief Core cdd api definitions and implementation.
+ */
 #ifndef CDD_API_H
 #define CDD_API_H
 
@@ -37,6 +41,12 @@ typedef struct {
   const char *input;
   /** @brief output */
   const char *output;
+  /** @brief base_file */
+  const char *base_file;
+  /** @brief self_uri */
+  const char *self_uri;
+  /** @brief dialect_uri */
+  const char *dialect_uri;
   /** @brief cdd_to_openapi_config_t */
 } cdd_to_openapi_config_t;
 

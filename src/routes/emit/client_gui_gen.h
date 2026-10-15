@@ -1,3 +1,7 @@
+/**
+ * @file client_gui_gen.h
+ * @brief Core client gui gen definitions and implementation.
+ */
 #ifndef C_CDD_ROUTES_EMIT_CLIENT_GUI_GEN_H
 #define C_CDD_ROUTES_EMIT_CLIENT_GUI_GEN_H
 

@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_rust.h
+ * @brief FFI binding emitter for Rust.
+ */
 #ifndef CDD_FFI_EMIT_RUST_H
 #define CDD_FFI_EMIT_RUST_H
 

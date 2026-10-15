@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_odin.c
+ * @brief FFI binding emitter for Odin.
+ */
 #ifdef CDD_BUILD_TESTS
 #ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
@@ -13,70 +17,15 @@ extern volatile int g_fail_io_after;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
-}
-
-static const char *get_odin_type(cdd_ffi_type_t type) {
-  if (type.pointer_depth > 0) {
-    if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
-      return "cstring";
-    }
-    return "rawptr";
-  }
-
-  switch (type.kind) {
-  case CDD_FFI_KIND_VOID:
-    return "---"; /* Odin functions returning void just have no return type decl
-                   */
-  case CDD_FFI_KIND_BOOL:
-    return "bool";
-  case CDD_FFI_KIND_INT8:
-    return "i8";
-  case CDD_FFI_KIND_UINT8:
-    return "u8";
-  case CDD_FFI_KIND_INT16:
-    return "i16";
-  case CDD_FFI_KIND_UINT16:
-    return "u16";
-  case CDD_FFI_KIND_INT32:
-    return "i32";
-  case CDD_FFI_KIND_UINT32:
-    return "u32";
-  case CDD_FFI_KIND_INT64:
-    return "i64";
-  case CDD_FFI_KIND_UINT64:
-    return "u64";
-  case CDD_FFI_KIND_FLOAT32:
-    return "f32";
-  case CDD_FFI_KIND_FLOAT64:
-    return "f64";
-  case CDD_FFI_KIND_FUNCTION_PTR:
-    return "rawptr";
-  case CDD_FFI_KIND_STRUCT_REF:
-    return type.ref_name ? type.ref_name : "rawptr";
-  case CDD_FFI_KIND_ENUM_REF:
-    return "c.int";
-  case CDD_FFI_KIND_TYPEDEF_REF:
-    return type.ref_name ? type.ref_name : "rawptr";
-  case CDD_FFI_KIND_OPAQUE_PTR:
-    return "rawptr";
-  default:
-    return "rawptr";
-  }
+static cdd_c_error_t get_odin_type(cdd_ffi_type_t type, const char **out_type) {
+  static const cdd_ffi_type_map_table_t k_odin_types = {
+      "---", "bool",  "i8",  "u8",  "i16", "u16",     "i32",
+      "u32", "i64",   "u64", "f32", "f64", "cstring", "rawptr",
+      NULL,  "c.int", 1,     0,     1};
+  return cdd_ffi_map_type_from_table(&k_odin_types, type, out_type);
 }
 
 static cdd_c_error_t
@@ -124,14 +73,15 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "// %s\n", node->doc);
       fprintf(f, "%s :: struct #c {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
-        const char *otype = get_odin_type(node->fields[j].type);
+        const char *otype = NULL;
+        get_odin_type(node->fields[j].type, &otype);
         fprintf(f, "    %s: %s,\n", fname, otype);
       }
       fprintf(f, "}\n\n");
@@ -142,7 +92,7 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "// %s\n", node->doc);
       fprintf(f, "%s :: enum c.int {\n", node->name);
@@ -173,25 +123,29 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "    // %s\n", node->doc);
       fprintf(f, "    %s :: proc(", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *arg_name =
             node->fields[j].name ? node->fields[j].name : "arg";
+        const char *ot = NULL;
         if (strcmp(arg_name, "context") == 0)
           arg_name = "ctx";
         if (strcmp(arg_name, "in") == 0)
           arg_name = "in_";
-        fprintf(f, "%s: %s", arg_name, get_odin_type(node->fields[j].type));
+        get_odin_type(node->fields[j].type, &ot);
+        fprintf(f, "%s: %s", arg_name, ot);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
       }
       fprintf(f, ")");
 
       if (node->return_or_base_type.kind != CDD_FFI_KIND_VOID) {
-        fprintf(f, " -> %s", get_odin_type(node->return_or_base_type));
+        const char *ret_ot = NULL;
+        get_odin_type(node->return_or_base_type, &ret_ot);
+        fprintf(f, " -> %s", ret_ot);
       }
       fprintf(f, " ---\n");
     }

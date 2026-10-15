@@ -30,54 +30,44 @@
 /**
  * @brief Check if a sequence is a trigraph and return its definition.
  *
- * @param c3 The third character of `??X`.
- * @return The replacement char or 0 if not a trigraph.
+ * @param[in] c3 The third character of `??X`.
+ * @param[out] out_mapped The replacement char or 0 if not a trigraph.
+ * @return CDD_C_SUCCESS on success.
  */
-
-static int get_trigraph_map(int c3) {
-
+static cdd_c_error_t get_trigraph_map(int c3, int *out_mapped) {
   switch (c3) {
-
   case '=':
-
-    return '#';
-
+    *out_mapped = '#';
+    break;
   case '(':
-
-    return '[';
-
+    *out_mapped = '[';
+    break;
   case '/':
-
-    return '\\';
-
+    *out_mapped = '\\';
+    break;
   case ')':
-
-    return ']';
-
+    *out_mapped = ']';
+    break;
   case '\'':
-
-    return '^';
-
+    *out_mapped = '^';
+    break;
   case '<':
-
-    return '{';
-
+    *out_mapped = '{';
+    break;
   case '!':
-
-    return '|';
-
+    *out_mapped = '|';
+    break;
   case '>':
-
-    return '}';
-
+    *out_mapped = '}';
+    break;
   case '-':
-
-    return '~';
-
+    *out_mapped = '~';
+    break;
   default:
-
-    return CDD_C_SUCCESS;
+    *out_mapped = 0;
+    break;
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -85,88 +75,66 @@ static int get_trigraph_map(int c3) {
  *
  * Handles Phase 1 (Trigraphs) and Phase 2 (Backslash-Newline Splicing).
  *
- * @param base Source buffer.
- * @param len Buffer length.
- * @param pos Current physical position.
- * @param out_consumed Output: How many physical bytes constitute this logical
- * char. Returns 0 if EOF.
- * @return The logical character (int), or EOF (-1) if end of buffer.
+ * @param[in] base Source buffer.
+ * @param[in] len Buffer length.
+ * @param[in] pos Current physical position.
+ * @param[out] out_consumed How many physical bytes constitute this logical
+ * char.
+ * @param[out] out_char The logical character, or -1 if end of buffer.
+ * @return CDD_C_SUCCESS on success.
  */
-
-int peek_logical(const uint8_t *base, size_t len, size_t pos,
-                 size_t *out_consumed) {
-
+cdd_c_error_t peek_logical(const uint8_t *base, size_t len, size_t pos,
+                           size_t *out_consumed, int *out_char) {
   size_t current = pos;
 
   while (current < len) {
-
     int c = base[current];
-
     size_t char_len = 1;
 
     /* Phase 1: Trigraphs */
-
     /* Check for ?? */
-
     if (c == '?' && current + 2 < len && base[current + 1] == '?') {
-
-      int mapped = get_trigraph_map(base[current + 2]);
-
+      int mapped = 0;
+      get_trigraph_map(base[current + 2], &mapped);
       if (mapped) {
-
         c = mapped;
-
         char_len = 3;
       }
     }
 
     /* Phase 2: Splicing */
-
     if (c == '\\') {
-
       size_t next_idx = current + char_len;
-
       /* Check if next logical char is newline */
-
       if (next_idx < len) {
-
         if (base[next_idx] == '\n') {
-
           /* \ \n */
-
           current = next_idx + 1; /* Skip \ and \n */
-
-          continue; /* Loop to get next char after splice */
-
+          continue;               /* Loop to get next char after splice */
         } else if (base[next_idx] == '\r' && next_idx + 1 < len &&
-
                    base[next_idx + 1] == '\n') {
-
           /* \ \r \n */
-
           current = next_idx + 2;
-
           continue;
         }
       }
     }
 
     /* If we got here, we found a real logical char */
-
     *out_consumed = (current - pos) + char_len;
-
-    return c;
+    *out_char = c;
+    return CDD_C_SUCCESS;
   }
 
   *out_consumed = (current > pos) ? (current - pos) : 0;
-
-  return -1; /* EOF */
+  *out_char = -1; /* EOF */
+  return CDD_C_SUCCESS;
 }
 
 /* --- Token List Setup --- */
 
 /**
- * @brief Executes the token list add operation.
+ * @brief Appends a token to a dynamic token list.
  */
 cdd_c_error_t token_list_add(struct TokenList *tl, const enum TokenKind kind,
                              const uint8_t *start, const size_t length) {
@@ -208,17 +176,12 @@ cdd_c_error_t token_list_add(struct TokenList *tl, const enum TokenKind kind,
 /* --- Main Public API --- */
 
 /**
- * @brief Executes the token find next operation.
+ * @brief Searches forward in a token list for the next token of a given kind.
  */
 cdd_c_error_t token_find_next(const struct TokenList *list, size_t start_idx,
                               size_t end_idx, const enum TokenKind kind,
                               size_t *_out_val) {
   size_t i, limit;
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cdd_fail_token_find_next;
-  if (g_cdd_fail_token_find_next && --g_cdd_fail_token_find_next == 0)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = SIZE_MAX;
@@ -263,7 +226,7 @@ void free_token_list(struct TokenList *tl) {
 }
 
 /**
- * @brief Executes the token matches string operation.
+ * @brief Checks whether a token at a given index matches a literal string.
  */
 cdd_c_error_t token_matches_string(const struct Token *tok, const char *match,
                                    int *_out_val) {
@@ -290,11 +253,11 @@ cdd_c_error_t token_matches_string(const struct Token *tok, const char *match,
 
   while (i_tok < tok->length && i_match < m_len) {
 
-    int c;
+    int c = -1;
 
     size_t adv;
 
-    c = peek_logical(t + i_tok, tok->length - i_tok, 0, &adv);
+    peek_logical(t + i_tok, tok->length - i_tok, 0, &adv, &c);
 
     if (c == -1)
 
@@ -319,15 +282,9 @@ cdd_c_error_t token_matches_string(const struct Token *tok, const char *match,
 }
 
 /**
- * @brief Executes the tokenize operation.
+ * @brief Lexes a C source string into a list of tokens including trivia.
  */
 cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
-  enum TokenKind _ast_identify_keyword_or_id_57;
-  int _ast_token_matches_string_58 = 0;
-  int _ast_token_matches_string_59 = 0;
-  int _ast_token_matches_string_60 = 0;
-  int _ast_token_matches_string_61 = 0;
-
   struct TokenList *list = NULL;
 
   const uint8_t *base;
@@ -355,14 +312,21 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
     size_t consumed;
     size_t peek_con;
+    int peek_dot_c = -1;
 
-    int c = peek_logical(base, len, pos, &consumed);
+    int c = -1;
 
     size_t start = pos;
+
+    peek_logical(base, len, pos, &consumed, &c);
 
     if (c == -1)
 
       break;
+
+    if (c == '.') {
+      peek_logical(base, len, pos + consumed, &peek_con, &peek_dot_c);
+    }
 
     if (isspace(c)) {
 
@@ -370,7 +334,9 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
       while (pos < len) {
 
-        int nc = peek_logical(base, len, pos, &consumed);
+        int nc = -1;
+
+        peek_logical(base, len, pos, &consumed, &nc);
 
         if (nc != -1 && isspace(nc)) {
 
@@ -387,10 +353,13 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
     } else if (c == '#') {
 
       size_t next_con;
+      int next_hash_c = -1;
 
       pos += consumed;
 
-      if (peek_logical(base, len, pos, &next_con) == '#') {
+      peek_logical(base, len, pos, &next_con, &next_hash_c);
+
+      if (next_hash_c == '#') {
 
         pos += next_con;
 
@@ -411,7 +380,9 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
         size_t u_con;
 
-        int u = peek_logical(base, len, pos + consumed, &u_con);
+        int u = -1;
+
+        peek_logical(base, len, pos + consumed, &u_con, &u);
 
         if (u != 'u' && u != 'U') {
 
@@ -432,7 +403,9 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
           size_t hex_con;
 
-          int h = peek_logical(base, len, pos + consumed + u_con, &hex_con);
+          int h = -1;
+
+          peek_logical(base, len, pos + consumed + u_con, &hex_con, &h);
 
           if (!isxdigit(h)) {
 
@@ -453,7 +426,9 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
         size_t nc_con;
 
-        int nc = peek_logical(base, len, pos, &nc_con);
+        int nc = -1;
+
+        peek_logical(base, len, pos, &nc_con, &nc);
 
         if (nc != -1 && (isalnum(nc) || nc == '_' || nc == '\\')) {
 
@@ -463,13 +438,17 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
             size_t u_con, hex_con;
 
-            int u = peek_logical(base, len, pos + nc_con, &u_con);
+            int u = -1;
+
+            peek_logical(base, len, pos + nc_con, &u_con, &u);
 
             if (u == 'u' || u == 'U') {
 
               /* Peek first hex char to ensure it is valid ID part */
 
-              int h = peek_logical(base, len, pos + nc_con + u_con, &hex_con);
+              int h = -1;
+
+              peek_logical(base, len, pos + nc_con + u_con, &hex_con, &h);
 
               if (!isxdigit(h)) {
 
@@ -496,17 +475,16 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
         struct Token tmp_tok;
 
-        enum TokenKind k;
+        enum TokenKind k = TOKEN_IDENTIFIER;
 
         /* Check raw text for common keywords */
 
-        k = (identify_keyword_or_id(base + start, id_len,
-                                    &_ast_identify_keyword_or_id_57),
-             _ast_identify_keyword_or_id_57);
+        identify_keyword_or_id(base + start, id_len, &k);
 
         /* If still ID, check strict logic for spliced keywords if needed */
 
         if (k == TOKEN_IDENTIFIER) {
+          int matched = 0;
 
           tmp_tok.start = base + start;
 
@@ -514,50 +492,44 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
           /* Add checks for spliced keywords if necessary */
 
-          if ((token_matches_string(&tmp_tok, "int",
-                                    &_ast_token_matches_string_58),
-               _ast_token_matches_string_58))
-
+          token_matches_string(&tmp_tok, "int", &matched);
+          if (matched) {
             k = TOKEN_KEYWORD_INT;
-
-          else if ((token_matches_string(&tmp_tok, "return",
-                                         &_ast_token_matches_string_59),
-                    _ast_token_matches_string_59))
-
-            k = TOKEN_KEYWORD_RETURN;
-
-          else if ((token_matches_string(&tmp_tok, "switch",
-                                         &_ast_token_matches_string_60),
-                    _ast_token_matches_string_60))
-
-            k = TOKEN_KEYWORD_SWITCH;
-
-          else if ((token_matches_string(&tmp_tok, "if",
-                                         &_ast_token_matches_string_61),
-                    _ast_token_matches_string_61))
-
-            k = TOKEN_KEYWORD_IF;
+          } else {
+            token_matches_string(&tmp_tok, "return", &matched);
+            if (matched) {
+              k = TOKEN_KEYWORD_RETURN;
+            } else {
+              token_matches_string(&tmp_tok, "switch", &matched);
+              if (matched) {
+                k = TOKEN_KEYWORD_SWITCH;
+              } else {
+                token_matches_string(&tmp_tok, "if", &matched);
+                if (matched) {
+                  k = TOKEN_KEYWORD_IF;
+                }
+              }
+            }
+          }
         }
 
         rc = token_list_add(list, k, base + start, id_len);
       }
 
-    } else if (isdigit(c) ||
-
-               (c == '.' &&
-
-                isdigit(peek_logical(base, len, pos + consumed, &peek_con)))) {
+    } else if (isdigit(c) || (c == '.' && isdigit(peek_dot_c))) {
 
       if (c == '.') {
-
-        peek_logical(base, len, pos, &consumed);
+        int dummy_c = -1;
+        peek_logical(base, len, pos, &consumed, &dummy_c);
       }
 
       pos += consumed;
 
       while (pos < len) {
 
-        int nc = peek_logical(base, len, pos, &consumed);
+        int nc = -1;
+
+        peek_logical(base, len, pos, &consumed, &nc);
 
         /* C23 Digit Separators: Allow '\'' inside number if followed by alnum
 
@@ -567,9 +539,9 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
           size_t next_peek_con;
 
-          int next_peek =
+          int next_peek = -1;
 
-              peek_logical(base, len, pos + consumed, &next_peek_con);
+          peek_logical(base, len, pos + consumed, &next_peek_con, &next_peek);
 
           if (isalnum(next_peek)) {
 
@@ -608,7 +580,9 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
       while (pos < len) {
 
-        int nc = peek_logical(base, len, pos, &consumed);
+        int nc = -1;
+
+        peek_logical(base, len, pos, &consumed, &nc);
 
         if (nc == -1)
 
@@ -617,8 +591,8 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
         pos += consumed;
 
         if (nc == '\\') {
-
-          peek_logical(base, len, pos, &consumed);
+          int esc_c = -1;
+          peek_logical(base, len, pos, &consumed, &esc_c);
 
           pos += consumed;
 

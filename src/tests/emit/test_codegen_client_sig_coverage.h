@@ -43,12 +43,12 @@ TEST test_sig_complete_branches_coverage(void) {
   /* 2. querystring_param_is_form_object: json error and non-json with ref_name
    */
   memset(&param, 0, sizeof(param));
-  param.content_type = (char *)(size_t)(size_t) "application/json";
+  param.content_type = cdd_test_mut_str("application/json");
   g_cdd_fail_media_type_is_json = 1;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
             cdd_test_sig_querystring_param_is_form_object(&param, &int_val));
   param.content_type = NULL;
-  param.schema.ref_name = (char *)(size_t)(size_t) "MyFormObj";
+  param.schema.ref_name = cdd_test_mut_str("MyFormObj");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_is_form_object(&param, &int_val));
   ASSERT_EQ(1, int_val);
@@ -79,20 +79,20 @@ TEST test_sig_complete_branches_coverage(void) {
   op.responses = resp;
   op.n_responses = 2;
   resp[0].code = NULL;
-  resp[1].code = (char *)(size_t)(size_t) "200";
+  resp[1].code = cdd_test_mut_str("200");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_response(&op, &out_resp));
   ASSERT(out_resp == &resp[1]);
 
   /* 5. get_success_schema: NULL code, 2XX without schema, and default response
    * with schema */
   resp[0].code = NULL;
-  resp[1].code = (char *)(size_t)(size_t) "2XX"; /* no schema, so continue */
+  resp[1].code = cdd_test_mut_str("2XX"); /* no schema, so continue */
   resp[1].schema.ref_name = NULL;
   resp[1].schema.inline_type = NULL;
   resp[1].schema.is_array = 0;
   op.n_responses = 3;
-  resp[2].code = (char *)(size_t)(size_t) "default";
-  resp[2].schema.ref_name = (char *)(size_t)(size_t) "DefaultModel";
+  resp[2].code = cdd_test_mut_str("default");
+  resp[2].schema.ref_name = cdd_test_mut_str("DefaultModel");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_schema(&op, &out_schema));
   ASSERT(out_schema == &resp[2].schema);
 
@@ -102,8 +102,8 @@ TEST test_sig_complete_branches_coverage(void) {
   memset(resp, 0, sizeof(resp));
   op.responses = resp;
   op.n_responses = 1;
-  resp[0].code = (char *)(size_t)(size_t) "default";
-  resp[0].schema.ref_name = (char *)(size_t)(size_t) "DefaultModel";
+  resp[0].code = cdd_test_mut_str("default");
+  resp[0].schema.ref_name = cdd_test_mut_str("DefaultModel");
   g_cdd_fail_schema_has_inline = 1;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
             cdd_test_sig_get_success_schema(&op, &out_schema));
@@ -111,7 +111,7 @@ TEST test_sig_complete_branches_coverage(void) {
   resp[0].schema.ref_name = NULL;
   resp[0].schema.inline_type = NULL;
   resp[0].schema.is_array = 0;
-  op.req_body.ref_name = (char *)(size_t)(size_t) "FallbackBody";
+  op.req_body.ref_name = cdd_test_mut_str("FallbackBody");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_schema(&op, &out_schema));
   ASSERT(out_schema == &op.req_body);
 
@@ -119,13 +119,13 @@ TEST test_sig_complete_branches_coverage(void) {
    * querystring param */
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
-  op.operation_id = (char *)(size_t)(size_t) "testQsJsonRef";
+  op.operation_id = cdd_test_mut_str("testQsJsonRef");
   op.n_parameters = 1;
   op.parameters = &param;
-  param.name = (char *)(size_t)(size_t) "filter";
+  param.name = cdd_test_mut_str("filter");
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.content_type = (char *)(size_t)(size_t) "application/json";
-  param.schema.ref_name = (char *)(size_t)(size_t) "FilterRef";
+  param.content_type = cdd_test_mut_str("application/json");
+  param.schema.ref_name = cdd_test_mut_str("FilterRef");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "const struct FilterRef *filter") != NULL);
@@ -133,7 +133,7 @@ TEST test_sig_complete_branches_coverage(void) {
   code = NULL;
 
   param.content_type = NULL;
-  param.schema.ref_name = (char *)(size_t)(size_t) "FormRef";
+  param.schema.ref_name = cdd_test_mut_str("FormRef");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "const struct OpenAPI_KV *filter, size_t filter_len") !=
@@ -144,9 +144,9 @@ TEST test_sig_complete_branches_coverage(void) {
   /* 7. codegen_client_write_signature: header JSON param with ref_name =
    * p->type */
   param.in = OA_PARAM_IN_HEADER;
-  param.content_type = (char *)(size_t)(size_t) "application/json";
+  param.content_type = cdd_test_mut_str("application/json");
   param.schema.ref_name = NULL;
-  param.type = (char *)(size_t)(size_t) "CustomType";
+  param.type = cdd_test_mut_str("CustomType");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "const struct CustomType *filter") != NULL);
@@ -155,10 +155,10 @@ TEST test_sig_complete_branches_coverage(void) {
 
   /* 8. codegen_client_write_signature: header JSON param with array of
    * primitives (string) */
-  param.content_type = (char *)(size_t)(size_t) "application/json";
+  param.content_type = cdd_test_mut_str("application/json");
   param.is_array = 1;
-  param.items_type = (char *)(size_t)(size_t) "string";
-  param.type = (char *)(size_t)(size_t) "array";
+  param.items_type = cdd_test_mut_str("string");
+  param.type = cdd_test_mut_str("array");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "const char **filter, size_t filter_len") != NULL);
@@ -172,17 +172,17 @@ TEST test_sig_complete_branches_coverage(void) {
 
   /* 9. Request body array of strings and array of custom structs */
   memset(&op, 0, sizeof(op));
-  op.operation_id = (char *)(size_t)(size_t) "testReqBodyArrays";
-  op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
+  op.operation_id = cdd_test_mut_str("testReqBodyArrays");
+  op.req_body.content_type = cdd_test_mut_str("application/json");
   op.req_body.is_array = 1;
-  op.req_body.ref_name = (char *)(size_t)(size_t) "string";
+  op.req_body.ref_name = cdd_test_mut_str("string");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "const char **body, size_t body_len") != NULL);
   free(code);
   code = NULL;
 
-  op.req_body.ref_name = (char *)(size_t)(size_t) "MyCustomItem";
+  op.req_body.ref_name = cdd_test_mut_str("MyCustomItem");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "struct MyCustomItem **body, size_t body_len") != NULL);
@@ -195,20 +195,20 @@ TEST test_sig_complete_branches_coverage(void) {
   memset(&mt, 0, sizeof(mt));
   memset(&enc, 0, sizeof(enc));
   memset(hdr, 0, sizeof(hdr));
-  op.operation_id = (char *)(size_t)(size_t) "testMultipartCases";
-  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
+  op.operation_id = cdd_test_mut_str("testMultipartCases");
+  op.req_body.content_type = cdd_test_mut_str("multipart/form-data");
   op.n_req_body_media_types = 1;
   op.req_body_media_types = &mt;
-  mt.name = (char *)(size_t)(size_t) "multipart/form-data";
+  mt.name = cdd_test_mut_str("multipart/form-data");
   mt.n_encoding = 1;
   mt.encoding = &enc;
-  enc.name = (char *)(size_t)(size_t) "part1";
+  enc.name = cdd_test_mut_str("part1");
   enc.n_headers = 3;
   enc.headers = hdr;
-  hdr[0].name = NULL;                                    /* skipped */
-  hdr[1].name = (char *)(size_t)(size_t) "Content-Type"; /* skipped */
-  hdr[2].name = (char *)(size_t)(size_t) "X-Meta-Obj";
-  hdr[2].type = (char *)(size_t)(size_t) "object";
+  hdr[0].name = NULL;                             /* skipped */
+  hdr[1].name = cdd_test_mut_str("Content-Type"); /* skipped */
+  hdr[2].name = cdd_test_mut_str("X-Meta-Obj");
+  hdr[2].type = cdd_test_mut_str("object");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "const struct OpenAPI_KV *part1_hdr_X_Meta_Obj, size_t "
@@ -240,19 +240,19 @@ TEST test_sig_complete_branches_coverage(void) {
    * and binary */
   memset(&op, 0, sizeof(op));
   memset(resp, 0, sizeof(resp));
-  op.operation_id = (char *)(size_t)(size_t) "testSuccessCases";
+  op.operation_id = cdd_test_mut_str("testSuccessCases");
   op.responses = resp;
   op.n_responses = 1;
-  resp[0].code = (char *)(size_t)(size_t) "200";
+  resp[0].code = cdd_test_mut_str("200");
 
   /* Failure of schema_has_inline in step 3 */
-  resp[0].schema.inline_type = (char *)(size_t)(size_t) "string";
+  resp[0].schema.inline_type = cdd_test_mut_str("string");
   g_cdd_fail_schema_has_inline = 2;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
 
   /* Array of custom structs */
   resp[0].schema.is_array = 1;
-  resp[0].schema.ref_name = (char *)(size_t)(size_t) "MyRespStruct";
+  resp[0].schema.ref_name = cdd_test_mut_str("MyRespStruct");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "struct MyRespStruct ***out, size_t *out_len") != NULL);
@@ -261,7 +261,7 @@ TEST test_sig_complete_branches_coverage(void) {
 
   /* Array of inline string */
   resp[0].schema.ref_name = NULL;
-  resp[0].schema.inline_type = (char *)(size_t)(size_t) "string";
+  resp[0].schema.inline_type = cdd_test_mut_str("string");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "char ***out, size_t *out_len") != NULL);
@@ -269,7 +269,7 @@ TEST test_sig_complete_branches_coverage(void) {
   code = NULL;
 
   /* Array of inline int */
-  resp[0].schema.inline_type = (char *)(size_t)(size_t) "integer";
+  resp[0].schema.inline_type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "int **out, size_t *out_len") != NULL);
@@ -277,7 +277,7 @@ TEST test_sig_complete_branches_coverage(void) {
   code = NULL;
 
   /* Array of inline bool */
-  resp[0].schema.inline_type = (char *)(size_t)(size_t) "boolean";
+  resp[0].schema.inline_type = cdd_test_mut_str("boolean");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "int **out, size_t *out_len") != NULL);
@@ -285,7 +285,7 @@ TEST test_sig_complete_branches_coverage(void) {
   code = NULL;
 
   /* Array of inline custom */
-  resp[0].schema.inline_type = (char *)(size_t)(size_t) "custom";
+  resp[0].schema.inline_type = cdd_test_mut_str("custom");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "void **out, size_t *out_len") != NULL);
@@ -295,7 +295,7 @@ TEST test_sig_complete_branches_coverage(void) {
   /* Non-array custom struct */
   resp[0].schema.is_array = 0;
   resp[0].schema.inline_type = NULL;
-  resp[0].schema.ref_name = (char *)(size_t)(size_t) "SingleStruct";
+  resp[0].schema.ref_name = cdd_test_mut_str("SingleStruct");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "struct SingleStruct **out") != NULL);
@@ -304,7 +304,7 @@ TEST test_sig_complete_branches_coverage(void) {
 
   /* Non-array inline string */
   resp[0].schema.ref_name = NULL;
-  resp[0].schema.inline_type = (char *)(size_t)(size_t) "string";
+  resp[0].schema.inline_type = cdd_test_mut_str("string");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "char **out") != NULL);
@@ -312,7 +312,7 @@ TEST test_sig_complete_branches_coverage(void) {
   code = NULL;
 
   /* Non-array inline int */
-  resp[0].schema.inline_type = (char *)(size_t)(size_t) "integer";
+  resp[0].schema.inline_type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "int *out") != NULL);
@@ -320,7 +320,7 @@ TEST test_sig_complete_branches_coverage(void) {
   code = NULL;
 
   /* Non-array inline bool */
-  resp[0].schema.inline_type = (char *)(size_t)(size_t) "boolean";
+  resp[0].schema.inline_type = cdd_test_mut_str("boolean");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "int *out") != NULL);
@@ -328,7 +328,7 @@ TEST test_sig_complete_branches_coverage(void) {
   code = NULL;
 
   /* Non-array inline custom */
-  resp[0].schema.inline_type = (char *)(size_t)(size_t) "custom";
+  resp[0].schema.inline_type = cdd_test_mut_str("custom");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "void *out") != NULL);
@@ -337,7 +337,7 @@ TEST test_sig_complete_branches_coverage(void) {
 
   /* Binary response success */
   resp[0].schema.inline_type = NULL;
-  resp[0].content_type = (char *)(size_t)(size_t) "application/octet-stream";
+  resp[0].content_type = cdd_test_mut_str("application/octet-stream");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "unsigned char **out, size_t *out_len") != NULL);
@@ -352,13 +352,13 @@ TEST test_sig_complete_branches_coverage(void) {
       /* hitting qs json ref */
       memset(&op, 0, sizeof(op));
       memset(&param, 0, sizeof(param));
-      op.operation_id = (char *)(size_t)(size_t) "testQsJsonRef";
+      op.operation_id = cdd_test_mut_str("testQsJsonRef");
       op.n_parameters = 1;
       op.parameters = &param;
-      param.name = (char *)(size_t)(size_t) "filter";
+      param.name = cdd_test_mut_str("filter");
       param.in = OA_PARAM_IN_QUERYSTRING;
-      param.content_type = (char *)(size_t)(size_t) "application/json";
-      param.schema.ref_name = (char *)(size_t)(size_t) "FilterRef";
+      param.content_type = cdd_test_mut_str("application/json");
+      param.schema.ref_name = cdd_test_mut_str("FilterRef");
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
@@ -369,7 +369,7 @@ TEST test_sig_complete_branches_coverage(void) {
       /* hitting header json array of objects */
       param.in = OA_PARAM_IN_HEADER;
       param.is_array = 1;
-      param.items_type = (char *)(size_t)(size_t) "object";
+      param.items_type = cdd_test_mut_str("object");
       param.schema.ref_name = NULL;
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
@@ -383,22 +383,22 @@ TEST test_sig_complete_branches_coverage(void) {
       memset(&mt, 0, sizeof(mt));
       memset(&enc, 0, sizeof(enc));
       memset(hdr, 0, sizeof(hdr));
-      op.operation_id = (char *)(size_t)(size_t) "testMultipartCases";
-      op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
+      op.operation_id = cdd_test_mut_str("testMultipartCases");
+      op.req_body.content_type = cdd_test_mut_str("multipart/form-data");
       op.n_req_body_media_types = 1;
       op.req_body_media_types = &mt;
-      mt.name = (char *)(size_t)(size_t) "multipart/form-data";
+      mt.name = cdd_test_mut_str("multipart/form-data");
       mt.n_encoding = 1;
       mt.encoding = &enc;
-      enc.name = (char *)(size_t)(size_t) "part1";
+      enc.name = cdd_test_mut_str("part1");
       enc.n_headers = 2;
       enc.headers = hdr;
-      hdr[0].name = (char *)(size_t)(size_t) "X-Arr";
-      hdr[0].type = (char *)(size_t)(size_t) "array";
+      hdr[0].name = cdd_test_mut_str("X-Arr");
+      hdr[0].type = cdd_test_mut_str("array");
       hdr[0].is_array = 1;
-      hdr[0].items_type = (char *)(size_t)(size_t) "string";
-      hdr[1].name = (char *)(size_t)(size_t) "X-Obj";
-      hdr[1].type = (char *)(size_t)(size_t) "object";
+      hdr[0].items_type = cdd_test_mut_str("string");
+      hdr[1].name = cdd_test_mut_str("X-Obj");
+      hdr[1].type = cdd_test_mut_str("object");
       for (io_i = 0; io_i < 10; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
@@ -409,12 +409,12 @@ TEST test_sig_complete_branches_coverage(void) {
       /* hitting struct array response and binary response */
       memset(&op, 0, sizeof(op));
       memset(resp, 0, sizeof(resp));
-      op.operation_id = (char *)(size_t)(size_t) "testRespCases";
+      op.operation_id = cdd_test_mut_str("testRespCases");
       op.responses = resp;
       op.n_responses = 1;
-      resp[0].code = (char *)(size_t)(size_t) "200";
+      resp[0].code = cdd_test_mut_str("200");
       resp[0].schema.is_array = 1;
-      resp[0].schema.ref_name = (char *)(size_t)(size_t) "MyRespStruct";
+      resp[0].schema.ref_name = cdd_test_mut_str("MyRespStruct");
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
@@ -424,8 +424,7 @@ TEST test_sig_complete_branches_coverage(void) {
 
       resp[0].schema.is_array = 0;
       resp[0].schema.ref_name = NULL;
-      resp[0].content_type =
-          (char *)(size_t)(size_t) "application/octet-stream";
+      resp[0].content_type = cdd_test_mut_str("application/octet-stream");
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
@@ -447,10 +446,10 @@ TEST test_sig_complete_branches_coverage(void) {
 
       /* hitting req_body string array, integer array, struct array */
       memset(&op, 0, sizeof(op));
-      op.operation_id = (char *)(size_t)(size_t) "testReqBodyArrays";
-      op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
+      op.operation_id = cdd_test_mut_str("testReqBodyArrays");
+      op.req_body.content_type = cdd_test_mut_str("application/json");
       op.req_body.is_array = 1;
-      op.req_body.ref_name = (char *)(size_t)(size_t) "string";
+      op.req_body.ref_name = cdd_test_mut_str("string");
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
@@ -458,7 +457,7 @@ TEST test_sig_complete_branches_coverage(void) {
       }
       g_fail_io_after = -1;
 
-      op.req_body.ref_name = (char *)(size_t)(size_t) "integer";
+      op.req_body.ref_name = cdd_test_mut_str("integer");
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
@@ -466,7 +465,7 @@ TEST test_sig_complete_branches_coverage(void) {
       }
       g_fail_io_after = -1;
 
-      op.req_body.ref_name = (char *)(size_t)(size_t) "MyReqItem";
+      op.req_body.ref_name = cdd_test_mut_str("MyReqItem");
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
@@ -478,16 +477,16 @@ TEST test_sig_complete_branches_coverage(void) {
        * primitive */
       memset(&op, 0, sizeof(op));
       memset(&param, 0, sizeof(param));
-      op.operation_id = (char *)(size_t)(size_t) "testParamIOs";
+      op.operation_id = cdd_test_mut_str("testParamIOs");
       op.n_parameters = 1;
       op.parameters = &param;
-      param.name = (char *)(size_t)(size_t) "kv";
+      param.name = cdd_test_mut_str("kv");
       param.in = OA_PARAM_IN_QUERYSTRING;
       param.is_array = 0;
-      param.type = (char *)(size_t)(size_t) "object";
+      param.type = cdd_test_mut_str("object");
       param.content_type =
-          (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
-      param.schema.ref_name = (char *)(size_t)(size_t) "KvRef";
+          cdd_test_mut_str("application/x-www-form-urlencoded");
+      param.schema.ref_name = cdd_test_mut_str("KvRef");
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
@@ -496,9 +495,9 @@ TEST test_sig_complete_branches_coverage(void) {
       g_fail_io_after = -1;
 
       param.in = OA_PARAM_IN_HEADER;
-      param.content_type = (char *)(size_t)(size_t) "application/json";
+      param.content_type = cdd_test_mut_str("application/json");
       param.is_array = 1;
-      param.items_type = (char *)(size_t)(size_t) "integer";
+      param.items_type = cdd_test_mut_str("integer");
       param.schema.ref_name = NULL;
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
@@ -508,9 +507,9 @@ TEST test_sig_complete_branches_coverage(void) {
       g_fail_io_after = -1;
 
       param.in = OA_PARAM_IN_HEADER;
-      param.content_type = (char *)(size_t)(size_t) "application/json";
+      param.content_type = cdd_test_mut_str("application/json");
       param.is_array = 1;
-      param.items_type = (char *)(size_t)(size_t) "MyCustomItem";
+      param.items_type = cdd_test_mut_str("MyCustomItem");
       param.schema.ref_name = NULL;
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
@@ -520,9 +519,9 @@ TEST test_sig_complete_branches_coverage(void) {
       g_fail_io_after = -1;
 
       param.in = OA_PARAM_IN_HEADER;
-      param.content_type = (char *)(size_t)(size_t) "application/json";
+      param.content_type = cdd_test_mut_str("application/json");
       param.is_array = 0;
-      param.type = (char *)(size_t)(size_t) "object";
+      param.type = cdd_test_mut_str("object");
       param.schema.ref_name = NULL;
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
@@ -532,9 +531,9 @@ TEST test_sig_complete_branches_coverage(void) {
       g_fail_io_after = -1;
 
       param.in = OA_PARAM_IN_HEADER;
-      param.content_type = (char *)(size_t)(size_t) "application/json";
+      param.content_type = cdd_test_mut_str("application/json");
       param.is_array = 0;
-      param.type = (char *)(size_t)(size_t) "string";
+      param.type = cdd_test_mut_str("string");
       param.schema.ref_name = NULL;
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
@@ -545,7 +544,7 @@ TEST test_sig_complete_branches_coverage(void) {
 
       param.in = OA_PARAM_IN_HEADER;
       param.is_array = 0;
-      param.type = (char *)(size_t)(size_t) "string";
+      param.type = cdd_test_mut_str("string");
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
@@ -556,7 +555,7 @@ TEST test_sig_complete_branches_coverage(void) {
       param.in = OA_PARAM_IN_HEADER;
       param.content_type = NULL;
       param.is_array = 1;
-      param.items_type = (char *)(size_t)(size_t) "integer";
+      param.items_type = cdd_test_mut_str("integer");
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;

@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_julia.c
+ * @brief FFI binding emitter for Julia.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -8,72 +12,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
+static cdd_c_error_t get_julia_type(cdd_ffi_type_t type,
+                                    const char **out_type) {
+  static const cdd_ffi_type_map_table_t k_julia_types = {
+      "Cvoid",   "Cint",       "Int8",  "UInt8",  "Int16",   "UInt16",
+      "Int32",   "UInt32",     "Int64", "UInt64", "Float32", "Float64",
+      "Cstring", "Ptr{Cvoid}", NULL,    "Cint",   1,         0,
+      1};
+  return cdd_ffi_map_type_from_table(&k_julia_types, type, out_type);
 }
 
-static const char *get_julia_type(cdd_ffi_type_t type) {
-  if (type.pointer_depth > 0) {
-    if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
-      return "Cstring";
-    }
-    return "Ptr{Cvoid}";
-  }
-
-  switch (type.kind) {
-  case CDD_FFI_KIND_VOID:
-    return "Cvoid";
-  case CDD_FFI_KIND_BOOL:
-    return "Cint"; /* Often bools are passed as ints in C FFI */
-  case CDD_FFI_KIND_INT8:
-    return "Int8";
-  case CDD_FFI_KIND_UINT8:
-    return "UInt8";
-  case CDD_FFI_KIND_INT16:
-    return "Int16";
-  case CDD_FFI_KIND_UINT16:
-    return "UInt16";
-  case CDD_FFI_KIND_INT32:
-    return "Int32";
-  case CDD_FFI_KIND_UINT32:
-    return "UInt32";
-  case CDD_FFI_KIND_INT64:
-    return "Int64";
-  case CDD_FFI_KIND_UINT64:
-    return "UInt64";
-  case CDD_FFI_KIND_FLOAT32:
-    return "Float32";
-  case CDD_FFI_KIND_FLOAT64:
-    return "Float64";
-  case CDD_FFI_KIND_FUNCTION_PTR:
-    return "Ptr{Cvoid}";
-  case CDD_FFI_KIND_STRUCT_REF:
-    return type.ref_name ? type.ref_name : "Ptr{Cvoid}";
-  case CDD_FFI_KIND_ENUM_REF:
-    return "Cint";
-  case CDD_FFI_KIND_TYPEDEF_REF:
-    return type.ref_name ? type.ref_name : "Ptr{Cvoid}";
-  case CDD_FFI_KIND_OPAQUE_PTR:
-    return "Ptr{Cvoid}";
-  default:
-    return "Ptr{Cvoid}";
-  }
-}
-
-static void to_camel_case(const char *snake, char *out, size_t out_size) {
+static cdd_c_error_t to_camel_case(const char *snake, char *out,
+                                   size_t out_size) {
   size_t i, j = 0;
   int up = 1;
   for (i = 0; i < strlen(snake) && j < out_size - 1; i++) {
@@ -89,6 +42,7 @@ static void to_camel_case(const char *snake, char *out, size_t out_size) {
     }
   }
   out[j] = '\0';
+  return CDD_C_SUCCESS;
 }
 
 static cdd_c_error_t
@@ -135,7 +89,7 @@ emit_julia_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "# %s\n", node->doc);
       fprintf(f, "@enum %s::Cint begin\n", node->name);
@@ -155,14 +109,16 @@ emit_julia_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "# %s\n", node->doc);
       fprintf(f, "mutable struct %s\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
-        fprintf(f, "    %s::%s\n", fname, get_julia_type(node->fields[j].type));
+        const char *jt = NULL;
+        get_julia_type(node->fields[j].type, &jt);
+        fprintf(f, "    %s::%s\n", fname, jt);
       }
       fprintf(f, "    %s() = new()\n", node->name);
       fprintf(f, "end\n\n");
@@ -173,7 +129,8 @@ emit_julia_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
+      const char *ret_jt = NULL;
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "# %s\n", node->doc);
       fprintf(f, "function %s(", node->name);
@@ -189,10 +146,12 @@ emit_julia_file(cdd_ffi_ir_t *ir,
       }
       fprintf(f, ")\n");
 
-      fprintf(f, "    ccall((:%s, lib_path), %s, (", node->name,
-              get_julia_type(node->return_or_base_type));
+      get_julia_type(node->return_or_base_type, &ret_jt);
+      fprintf(f, "    ccall((:%s, lib_path), %s, (", node->name, ret_jt);
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "%s", get_julia_type(node->fields[j].type));
+        const char *jt = NULL;
+        get_julia_type(node->fields[j].type, &jt);
+        fprintf(f, "%s", jt);
         if (j < node->fields_count - 1 || node->fields_count == 1)
           fprintf(f, ", ");
       }

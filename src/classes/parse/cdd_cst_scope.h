@@ -1,3 +1,7 @@
+/**
+ * @file cdd_cst_scope.h
+ * @brief Concrete Syntax Tree (CST) scope implementation and utilities.
+ */
 #ifndef CDD_CST_SCOPE_H
 #define CDD_CST_SCOPE_H
 
@@ -35,15 +39,17 @@ enum cdd_cst_symbol_kind_t {
   CDD_CST_SYMBOL_FUNCTION
 };
 
+/** @brief Lexical scope symbol entry typedef */
 typedef struct cdd_cst_symbol_t cdd_cst_symbol_t;
 /** @brief Struct definition */
 struct cdd_cst_symbol_t {
-  const char *name;                /**< The name of the symbol */
+  char *name;                      /**< The name of the symbol */
   enum cdd_cst_symbol_kind_t kind; /**< The kind of the symbol */
   cdd_cst_node_t *decl_node;       /**< Pointer to its declaration node */
   cdd_cst_symbol_t *next;          /**< Next symbol in linked list */
 };
 
+/** @brief Lexical scope node typedef */
 typedef struct cdd_cst_scope_t cdd_cst_scope_t;
 /** @brief Struct definition */
 struct cdd_cst_scope_t {
@@ -55,6 +61,7 @@ struct cdd_cst_scope_t {
   cdd_cst_symbol_t *symbols;      /**< Symbols defined in this scope */
 };
 
+/** @brief Lexical scope environment typedef */
 typedef struct cdd_cst_scope_env_t cdd_cst_scope_env_t;
 /** @brief Struct definition */
 struct cdd_cst_scope_env_t {
@@ -119,7 +126,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_scope_lookup_symbol(
 /**
  * @brief Check if a symbol kind is in the tag namespace (struct, union, enum).
  * @param kind The symbol kind.
- * @return 1 if it is a tag, 0 otherwise.
+ * @param out_is_tag Pointer to receive 1 if it is a tag, 0 otherwise.
+ * @return CDD_C_SUCCESS on success or error code.
  */
 C_CDD_EXPORT cdd_c_error_t
 cdd_cst_symbol_is_tag(enum cdd_cst_symbol_kind_t kind, int *out_is_tag);

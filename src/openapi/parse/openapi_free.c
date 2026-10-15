@@ -94,6 +94,7 @@ void free_path_item(struct OpenAPI_Path *p) {
     }
     free(p->additional_operations);
   }
+  memset(p, 0, sizeof(*p));
 }
 
 /**
@@ -119,6 +120,7 @@ void free_callback(struct OpenAPI_Callback *cb) {
     }
     free(cb->paths);
   }
+  memset(cb, 0, sizeof(*cb));
 }
 
 /**
@@ -209,14 +211,14 @@ void free_operation(struct OpenAPI_Operation *op) {
     op->n_security = 0;
     op->security_set = 0;
   }
+  memset(op, 0, sizeof(*op));
 }
 
 /**
- * @brief Executes the openapi spec free operation.
+ * @brief Releases all memory owned by an OpenAPI_Spec structure.
  */
 void openapi_spec_free(struct OpenAPI_Spec *spec) {
-  size_t i, j = 0;
-  (void)j;
+  size_t i;
   if (!spec)
     return;
 
@@ -228,6 +230,11 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
     free(spec->swagger_version);
     spec->swagger_version = NULL;
   }
+  free(spec->host);
+  free(spec->basePath);
+  free_string_array(spec->schemes, spec->n_schemes);
+  free_string_array(spec->consumes, spec->n_consumes);
+  free_string_array(spec->produces, spec->n_produces);
   if (spec->schema_root_json) {
     free(spec->schema_root_json);
     spec->schema_root_json = NULL;
@@ -437,7 +444,8 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
   if (spec->component_parameters) {
     for (i = 0; i < spec->n_component_parameters; ++i) {
       free_parameter(&spec->component_parameters[i]);
-      free(spec->component_parameter_names[i]);
+      if (spec->component_parameter_names)
+        free(spec->component_parameter_names[i]);
     }
     free(spec->component_parameters);
     free(spec->component_parameter_names);
@@ -449,7 +457,8 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
   if (spec->component_responses) {
     for (i = 0; i < spec->n_component_responses; ++i) {
       free_response(&spec->component_responses[i]);
-      free(spec->component_response_names[i]);
+      if (spec->component_response_names)
+        free(spec->component_response_names[i]);
     }
     free(spec->component_responses);
     free(spec->component_response_names);
@@ -461,7 +470,8 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
   if (spec->component_headers) {
     for (i = 0; i < spec->n_component_headers; ++i) {
       free_header(&spec->component_headers[i]);
-      free(spec->component_header_names[i]);
+      if (spec->component_header_names)
+        free(spec->component_header_names[i]);
     }
     free(spec->component_headers);
     free(spec->component_header_names);
@@ -473,7 +483,8 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
   if (spec->component_request_bodies) {
     for (i = 0; i < spec->n_component_request_bodies; ++i) {
       free_request_body(&spec->component_request_bodies[i]);
-      free(spec->component_request_body_names[i]);
+      if (spec->component_request_body_names)
+        free(spec->component_request_body_names[i]);
     }
     free(spec->component_request_bodies);
     free(spec->component_request_body_names);
@@ -544,7 +555,8 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
   if (spec->defined_schemas) {
     for (i = 0; i < spec->n_defined_schemas; ++i) {
       struct_fields_free(&spec->defined_schemas[i]);
-      free(spec->defined_schema_names[i]);
+      if (spec->defined_schema_names)
+        free(spec->defined_schema_names[i]);
       if (spec->defined_schema_ids)
         free(spec->defined_schema_ids[i]);
       if (spec->defined_schema_anchors)

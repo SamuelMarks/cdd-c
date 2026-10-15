@@ -30,13 +30,9 @@ extern "C" {
  * caller).
  * @return 0 on success, non-zero on failure.
  */
-C_CDD_EXPORT /**
-              * @brief Executes the patch list generate diff operation.
-              */
-    cdd_c_error_t
-    patch_list_generate_diff(const struct TokenList *tokens,
-                             const struct PatchList *list, const char *filename,
-                             char **out_diff);
+C_CDD_EXPORT cdd_c_error_t patch_list_generate_diff(
+    const struct TokenList *tokens, const struct PatchList *list,
+    const char *filename, char **out_diff);
 
 #ifdef __cplusplus
 }

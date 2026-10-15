@@ -1,3 +1,7 @@
+/**
+ * @file cdd_cst_semantic.c
+ * @brief Concrete Syntax Tree (CST) semantic implementation and utilities.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -9,8 +13,7 @@
 #include <string.h>
 /* clang-format on */
 
-static cdd_c_error_t extract_identifier(cdd_cst_node_t *node,
-                                        const char **out_name) {
+static cdd_c_error_t extract_identifier(cdd_cst_node_t *node, char **out_name) {
   size_t i;
   cdd_c_error_t rc;
 
@@ -20,7 +23,7 @@ static cdd_c_error_t extract_identifier(cdd_cst_node_t *node,
         cdd_token_t *tok = node->children[i].val.token;
         if (tok->kind == CDD_TOKEN_IDENTIFIER) {
           char *name;
-          name = (char *)(size_t)C_CDD_MALLOC(tok->length + 1);
+          name = (char *)C_CDD_MALLOC(tok->length + 1);
           if (!name) {
             return CDD_C_ERROR_MEMORY;
           }
@@ -69,7 +72,7 @@ static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
       return rc;
     break;
   case CDD_CST_DECLARATION: {
-    const char *name = NULL;
+    char *name = NULL;
     /* Very simplified extraction of identifier */
     rc = extract_identifier(node, &name);
     if (rc == CDD_C_ERROR_MEMORY)
@@ -77,21 +80,21 @@ static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
     if (rc == CDD_C_SUCCESS) {
       /* Assuming CDD_CST_SYMBOL_VARIABLE for now */
       rc = cdd_cst_scope_add_symbol(env, name, CDD_CST_SYMBOL_VARIABLE, node);
-      C_CDD_FREE((void *)name);
+      C_CDD_FREE(name);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
     break;
   }
   case CDD_CST_TYPE_SPECIFIER: {
-    const char *name = NULL;
+    char *name = NULL;
     rc = extract_identifier(node, &name);
     if (rc == CDD_C_ERROR_MEMORY)
       return rc;
     if (rc == CDD_C_SUCCESS) {
       /* Assuming Struct tag for simplicity */
       rc = cdd_cst_scope_add_symbol(env, name, CDD_CST_SYMBOL_STRUCT_TAG, node);
-      C_CDD_FREE((void *)name);
+      C_CDD_FREE(name);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }

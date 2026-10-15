@@ -228,7 +228,7 @@ TEST test_vcpkg_builder_extras(void) {
   struct VcpkgManifestBuilder builder;
   char *json = NULL;
   const char *src =
-      (char *)(size_t)(size_t) "#include <dirent.h>\n#  include <stdio.h>\n";
+      cdd_test_mut_str("#include <dirent.h>\n#  include <stdio.h>\n");
 
   ASSERT_EQ(0, vcpkg_builder_init(&builder, "my-proj", "1.0.0", "A test proj"));
   ASSERT_EQ(0, vcpkg_builder_scan_source(&builder, src));

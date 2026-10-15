@@ -1,3 +1,7 @@
+/**
+ * @file cdd_cst_type_eval.c
+ * @brief Concrete Syntax Tree (CST) type eval implementation and utilities.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -143,7 +147,7 @@ static cdd_c_error_t extract_type_name(cdd_cst_node_t *node, char **out_name,
 
   if (buf_len > 0) {
     char *ret;
-    ret = (char *)(size_t)C_CDD_MALLOC(buf_len + 1);
+    ret = (char *)C_CDD_MALLOC(buf_len + 1);
     if (!ret) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;

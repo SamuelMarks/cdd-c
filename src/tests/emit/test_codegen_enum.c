@@ -1,10 +1,15 @@
 #include "cdd_test_helpers_export.h"
 CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
+CDD_TEST_HELPERS_EXPORT char *cdd_test_mut_str(const char *str);
+#ifndef C_CDD_STR_LIT
+#define C_CDD_STR_LIT(s) cdd_test_mut_str(s)
+#endif
 /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
 /* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
 /**
  * @file test_codegen_enum.c
- * @brief Unit tests for Enum code generation module.
+ * @brief Core Unit tests for Enum code generation definitions and
+ * implementation.
  *
  * Verifies correctness of `_to_str` and `_from_str` syntax,
  * ensures robustness against NULL inputs, and verifies guard macro injection.
@@ -66,7 +71,7 @@ TEST test_enum_to_str_basic(void) {
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+  content = (char *)calloc(1, (size_t)sz + 1);
   ASSERT(content != NULL);
   fread(content, 1, (size_t)sz, tmp);
 
@@ -110,7 +115,7 @@ TEST test_enum_from_str_basic(void) {
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+  content = (char *)calloc(1, (size_t)sz + 1);
   ASSERT(content != NULL);
   fread(content, 1, (size_t)sz, tmp);
 
@@ -150,7 +155,7 @@ TEST test_enum_guards(void) {
   setup_basic_enum(&em);
 
   memset(&config, 0, sizeof(config));
-  config.guard_macro = (char *)(size_t)(size_t) "USE_ENUMS";
+  config.guard_macro = cdd_test_mut_str("USE_ENUMS");
 
   ASSERT_EQ(0, write_enum_from_str_func(tmp, "Color", &em, &config));
 
@@ -158,7 +163,7 @@ TEST test_enum_guards(void) {
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+  content = (char *)calloc(1, (size_t)sz + 1);
   fread(content, 1, (size_t)sz, tmp);
 
   ASSERT(strstr(content, "#ifdef USE_ENUMS"));

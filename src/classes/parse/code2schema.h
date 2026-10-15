@@ -488,7 +488,7 @@ extern C_CDD_EXPORT cdd_c_error_t c2s_collapse_arrays(struct StructFields *sf);
  * @return CDD_C_SUCCESS on success, or error code.
  */
 extern C_CDD_EXPORT cdd_c_error_t c2s_json_object_to_struct_fields_internal(
-    const JSON_Object *o, struct StructFields *f, JSON_Object *root,
+    const JSON_Object *o, struct StructFields *f, const JSON_Object *root,
     const char *schema_name, int allow_inline_union);
 
 /**
@@ -537,7 +537,7 @@ extern C_CDD_EXPORT cdd_c_error_t required_name_in_list(
  * @return CDD_C_SUCCESS on success, or error code.
  */
 extern C_CDD_EXPORT cdd_c_error_t resolve_schema_ref_object(
-    const JSON_Object *root, const char *ref, JSON_Object **_out_val);
+    const JSON_Object *root, const char *ref, const JSON_Object **_out_val);
 
 /**
  * @brief Merges source struct fields into destination struct fields.

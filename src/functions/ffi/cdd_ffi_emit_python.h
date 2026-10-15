@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_python.h
+ * @brief FFI binding emitter for Python.
+ */
 #ifndef CDD_FFI_EMIT_PYTHON_H
 #define CDD_FFI_EMIT_PYTHON_H
 

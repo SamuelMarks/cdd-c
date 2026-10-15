@@ -67,13 +67,8 @@ extern C_CDD_EXPORT void hoist_site_list_free(struct HoistSiteList *list);
  * @param[out] list The initialized list to populate.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the scan for mixed declarations
-                     * operation.
-                     */
-    cdd_c_error_t
-    scan_for_mixed_declarations(const struct TokenList *tokens,
-                                struct HoistSiteList *list);
+extern C_CDD_EXPORT cdd_c_error_t scan_for_mixed_declarations(
+    const struct TokenList *tokens, struct HoistSiteList *list);
 
 #ifdef __cplusplus
 }

@@ -44,7 +44,7 @@ TEST test_integration_full_pipeline(void) {
   const char *raw_source = "#include <stdlib.h>\n"
                            ""
                            "void foo(void) {\n"
-                           "  char * p = (char *)(size_t)(size_t)malloc(100);\n"
+                           "  char * p = (char *)malloc(100);\n"
                            "  *p = 0;\n"
                            "}\n";
 
@@ -54,8 +54,7 @@ TEST test_integration_full_pipeline(void) {
   int rc = 0;
 
   /* 1. Tokenize */
-  rc = tokenize(az_span_create_from_str((char *)(size_t)(size_t)raw_source),
-                &tokens);
+  rc = tokenize(az_span_create_from_str(raw_source), &tokens);
   ASSERT_EQ(0, rc);
   ASSERT(tokens != NULL);
 
@@ -75,8 +74,8 @@ TEST test_integration_full_pipeline(void) {
   {
     /* Malloc safety injection */
     const char *expected_snippet =
-        (char *)(size_t)(size_t)(size_t) "if (!p) { return CDD_C_ERROR_MEMORY; "
-                                         "}";
+        cdd_test_mut_str("if (!p) { return CDD_C_ERROR_MEMORY; "
+                         "}");
     ASSERT(strstr(final_output, expected_snippet) != NULL);
   }
 
@@ -93,8 +92,8 @@ TEST test_integration_full_pipeline(void) {
  * Ensures `fix_code_main` can read, process, and write back a single file.
  */
 TEST test_integration_fix_file_io(void) {
-  const char *in_file = (char *)(size_t)(size_t)(size_t) "integ_in.c";
-  const char *out_file = (char *)(size_t)(size_t)(size_t) "integ_out.c";
+  const char *in_file = cdd_test_mut_str("integ_in.c");
+  const char *out_file = cdd_test_mut_str("integ_out.c");
   const char *content = ""
                         "void f() { int * x = (int *)malloc(4); }";
   char *read_back = NULL;
@@ -108,8 +107,8 @@ TEST test_integration_fix_file_io(void) {
   /* 2. Call Orchestrator Main (Fix Command) */
   {
     char *argv[2];
-    argv[0] = (char *)(size_t)(size_t)in_file;
-    argv[1] = (char *)(size_t)(size_t)out_file;
+    argv[0] = cdd_test_mut_str(in_file);
+    argv[1] = cdd_test_mut_str(out_file);
     rc = fix_code_main(2, argv);
     ASSERT_EQ(0, rc);
   }
@@ -170,7 +169,7 @@ TEST test_integration_recursive_fix(void) {
     {
       char *argv[2];
       argv[0] = root;
-      argv[1] = (char *)(size_t)(size_t) "--in-place";
+      argv[1] = cdd_test_mut_str("--in-place");
       rc = fix_code_main(2, argv);
       ASSERT_EQ(0, rc);
     }
@@ -206,7 +205,7 @@ TEST test_integration_recursive_fix(void) {
  * @brief Test the `--in-place` flag on a single file.
  */
 TEST test_integration_fix_file_in_place(void) {
-  const char *in_file = (char *)(size_t)(size_t)(size_t) "inplace.c";
+  const char *in_file = cdd_test_mut_str("inplace.c");
   /* Must provide variable 'p' for safety check to attach to */
   const char *content = ""
                         "void f() { void * p = (void *)malloc(1); }";
@@ -218,8 +217,8 @@ TEST test_integration_fix_file_in_place(void) {
 
   {
     char *argv[2];
-    argv[0] = (char *)(size_t)(size_t)in_file;
-    argv[1] = (char *)(size_t)(size_t) "--in-place";
+    argv[0] = cdd_test_mut_str(in_file);
+    argv[1] = cdd_test_mut_str("--in-place");
     rc = fix_code_main(2, argv);
     ASSERT_EQ(0, rc);
   }
@@ -256,7 +255,7 @@ TEST test_integration_fix_dir_error_no_flag(void) {
 
   {
     char *argv[1];
-    argv[0] = (char *)(size_t)(size_t) "integ_in.c"; /* File */
+    argv[0] = cdd_test_mut_str("integ_in.c"); /* File */
     write_to_file("integ_in.c", "void f(){}");
     rc = fix_code_main(1, argv);
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
@@ -340,7 +339,7 @@ TEST test_end_to_end_project_lifecycle(void) {
   {
     char *argv[2];
     argv[0] = project_root;
-    argv[1] = (char *)(size_t)(size_t) "--in-place";
+    argv[1] = cdd_test_mut_str("--in-place");
     rc = fix_code_main(2, argv);
     ASSERT_EQ(0, rc);
   }
@@ -401,12 +400,12 @@ TEST test_integration_schema2code_with_guards(void) {
    *  ./cli schema2code integ_guard.json integ_guard_out \
    *    --guard-json=ENABLE_JSON --guard-utils=DATA_UTILS
    */
-  const char *schema_file = (char *)(size_t)(size_t)(size_t) "integ_guard.json";
-  const char *base_name = (char *)(size_t)(size_t)(size_t) "integ_guard_out";
-  char *header_file = (char *)(size_t)(size_t)(size_t) "integ_guard_out.h";
-  char *source_file = (char *)(size_t)(size_t)(size_t) "integ_guard_out.c";
-  char *param1 = (char *)(size_t)(size_t)(size_t) "--guard-json=ENABLE_JSON";
-  char *param2 = (char *)(size_t)(size_t)(size_t) "--guard-utils=DATA_UTILS";
+  const char *schema_file = cdd_test_mut_str("integ_guard.json");
+  const char *base_name = cdd_test_mut_str("integ_guard_out");
+  char *header_file = cdd_test_mut_str("integ_guard_out.h");
+  char *source_file = cdd_test_mut_str("integ_guard_out.c");
+  char *param1 = cdd_test_mut_str("--guard-json=ENABLE_JSON");
+  char *param2 = cdd_test_mut_str("--guard-utils=DATA_UTILS");
   char *content = NULL;
   size_t sz;
   int rc = 0;
@@ -418,8 +417,8 @@ TEST test_integration_schema2code_with_guards(void) {
   /* 2. Run */
   {
     char *argv[4];
-    argv[0] = (char *)(size_t)(size_t)schema_file;
-    argv[1] = (char *)(size_t)(size_t)base_name;
+    argv[0] = cdd_test_mut_str(schema_file);
+    argv[1] = cdd_test_mut_str(base_name);
     argv[2] = param1;
     argv[3] = param2;
     rc = schema2code_main(4, argv);

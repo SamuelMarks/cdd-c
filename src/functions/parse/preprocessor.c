@@ -96,7 +96,7 @@ cdd_c_error_t pp_file_exists(const char *path, int *out_exists) {
 }
 
 /**
- * @brief Executes the pp free macro def operation.
+ * @brief Releases memory owned by a preprocessor macro definition.
  */
 void pp_free_macro_def(struct MacroDef *def) {
   size_t i;
@@ -143,7 +143,8 @@ cdd_c_error_t pp_token_to_string(const struct Token *t, char **out_val) {
 }
 
 /**
- * @brief Executes the pp add macro internal operation.
+ * @brief Registers or updates a macro definition in the preprocessor symbol
+ * table.
  */
 cdd_c_error_t pp_add_macro_internal(struct PreprocessorContext *ctx,
                                     const struct MacroDef *def) {
@@ -407,8 +408,11 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
 
       if (next < tokens->size) {
         rc = token_matches_string(&tokens->tokens[next], "define", &is_define);
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
+          free_token_list(tokens);
+          C_CDD_FREE(content);
           return rc;
+        }
         if (is_define) {
           size_t name_idx = next + 1;
 

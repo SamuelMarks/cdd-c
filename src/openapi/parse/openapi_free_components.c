@@ -171,6 +171,7 @@ void free_schema_ref_content(struct OpenAPI_SchemaRef *ref) {
     }
     free(ref->multipart_fields);
   }
+  memset(ref, 0, sizeof(*ref));
 }
 
 /**
@@ -216,6 +217,7 @@ void free_encoding(struct OpenAPI_Encoding *enc) {
     enc->item_encoding = NULL;
     enc->item_encoding_set = 0;
   }
+  memset(enc, 0, sizeof(*enc));
 }
 
 /**
@@ -264,6 +266,7 @@ void free_media_type(struct OpenAPI_MediaType *mt) {
     mt->item_encoding = NULL;
     mt->item_encoding_set = 0;
   }
+  memset(mt, 0, sizeof(*mt));
 }
 
 /**
@@ -309,6 +312,7 @@ void free_parameter(struct OpenAPI_Parameter *param) {
     param->examples = NULL;
     param->n_examples = 0;
   }
+  memset(param, 0, sizeof(*param));
 }
 
 /**
@@ -354,6 +358,7 @@ void free_header(struct OpenAPI_Header *hdr) {
     hdr->examples = NULL;
     hdr->n_examples = 0;
   }
+  memset(hdr, 0, sizeof(*hdr));
 }
 
 /**
@@ -412,6 +417,7 @@ void free_response(struct OpenAPI_Response *resp) {
     resp->n_examples = 0;
   }
   free_schema_ref_content(&resp->schema);
+  memset(resp, 0, sizeof(*resp));
 }
 
 /**
@@ -449,6 +455,7 @@ void free_request_body(struct OpenAPI_RequestBody *rb) {
     rb->n_examples = 0;
   }
   free_schema_ref_content(&rb->schema);
+  memset(rb, 0, sizeof(*rb));
 }
 
 /**
@@ -503,6 +510,7 @@ void free_link(struct OpenAPI_Link *link) {
     link->server = NULL;
     link->server_set = 0;
   }
+  memset(link, 0, sizeof(*link));
 }
 
 /**
@@ -521,6 +529,7 @@ void free_security_requirement(struct OpenAPI_SecurityRequirement *req) {
     }
     free(req->scopes);
   }
+  memset(req, 0, sizeof(*req));
 }
 
 /**
@@ -538,6 +547,7 @@ void free_security_requirement_set(struct OpenAPI_SecurityRequirementSet *set) {
   }
   if (set->extensions_json)
     free(set->extensions_json);
+  memset(set, 0, sizeof(*set));
 }
 
 /**
@@ -564,4 +574,5 @@ void free_example(struct OpenAPI_Example *ex) {
     free_any_value(&ex->data_value);
   if (ex->value_set)
     free_any_value(&ex->value);
+  memset(ex, 0, sizeof(*ex));
 }

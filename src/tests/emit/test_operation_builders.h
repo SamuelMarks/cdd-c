@@ -14,53 +14,53 @@ extern "C" {
 #include "emit/test_operation_common.h"
 /* clang-format on */
 
-encs[1].name = (char *)(size_t) "prefix";
+encs[1].name = cdd_test_mut_str("prefix");
 encs[1].kind = 1;
 
-encs[2].name = (char *)(size_t) "items";
+encs[2].name = cdd_test_mut_str("items");
 encs[2].kind = 2;
 
 doc.request_bodies = rbs;
 doc.n_request_bodies = 1;
 doc.encodings = encs;
 doc.n_encodings = 3;
-doc.request_body_description = (char *)(size_t) "Upload payload";
+doc.request_body_description = cdd_test_mut_str("Upload payload");
 doc.request_body_required_set = 1;
 doc.request_body_required = 1;
 
-rets[0].code = (char *)(size_t) "200";
-rets[0].summary = (char *)(size_t) "Success summary";
-rets[0].description = (char *)(size_t) "Success description";
-rets[0].content_type = (char *)(size_t) "application/json";
-rets[0].example = (char *)(size_t) "{\"status\": \"ok\"}";
+rets[0].code = cdd_test_mut_str("200");
+rets[0].summary = cdd_test_mut_str("Success summary");
+rets[0].description = cdd_test_mut_str("Success description");
+rets[0].content_type = cdd_test_mut_str("application/json");
+rets[0].example = cdd_test_mut_str("{\"status\": \"ok\"}");
 
-rets[1].code = (char *)(size_t) "400";
-rets[1].summary = (char *)(size_t) "Error summary";
-rets[1].description = (char *)(size_t) "Error description";
-rets[1].content_type = (char *)(size_t) "application/problem+json";
-rets[1].example = (char *)(size_t) "{\"error\": \"bad request\"}";
+rets[1].code = cdd_test_mut_str("400");
+rets[1].summary = cdd_test_mut_str("Error summary");
+rets[1].description = cdd_test_mut_str("Error description");
+rets[1].content_type = cdd_test_mut_str("application/problem+json");
+rets[1].example = cdd_test_mut_str("{\"error\": \"bad request\"}");
 
 doc.returns = rets;
 doc.n_returns = 2;
 
-headers[0].code = (char *)(size_t) "200";
-headers[0].name = (char *)(size_t) "X-Upload-Rate";
-headers[0].type = (char *)(size_t) "integer";
+headers[0].code = cdd_test_mut_str("200");
+headers[0].name = cdd_test_mut_str("X-Upload-Rate");
+headers[0].type = cdd_test_mut_str("integer");
 
-headers[1].code = (char *)(size_t) "404";
-headers[1].name = (char *)(size_t) "X-Missing-Id";
-headers[1].type = (char *)(size_t) "string";
+headers[1].code = cdd_test_mut_str("404");
+headers[1].name = cdd_test_mut_str("X-Missing-Id");
+headers[1].type = cdd_test_mut_str("string");
 
 doc.response_headers = headers;
 doc.n_response_headers = 2;
 
-links[0].code = (char *)(size_t) "200";
-links[0].name = (char *)(size_t) "GetFile";
-links[0].operation_id = (char *)(size_t) "api_file_get";
+links[0].code = cdd_test_mut_str("200");
+links[0].name = cdd_test_mut_str("GetFile");
+links[0].operation_id = cdd_test_mut_str("api_file_get");
 
-links[1].code = (char *)(size_t) "500";
-links[1].name = (char *)(size_t) "SupportTicket";
-links[1].operation_ref = (char *)(size_t) "#/components/links/Support";
+links[1].code = cdd_test_mut_str("500");
+links[1].name = cdd_test_mut_str("SupportTicket");
+links[1].operation_ref = cdd_test_mut_str("#/components/links/Support");
 
 doc.links = links;
 doc.n_links = 2;
@@ -73,7 +73,7 @@ reset_operation_test(&op);
 doc.n_request_bodies = 0;
 doc.request_bodies = NULL;
 doc.n_encodings = 0;
-doc.request_body_content_type = (char *)(size_t) "text/plain";
+doc.request_body_content_type = cdd_test_mut_str("text/plain");
 ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
 ASSERT_STR_EQ("text/plain", op.req_body.content_type);
 reset_operation_test(&op);
@@ -102,33 +102,33 @@ TEST test_operation_c2openapi_build_operation_coverage_extensions(void) {
   ctx.sig = &sig;
   ctx.doc = &doc;
   ctx.func_name = "api_user_patch";
-  doc.verb = (char *)(size_t) "PATCH";
+  doc.verb = cdd_test_mut_str("PATCH");
 
   sig.args = args;
   sig.n_args = 4;
   doc.params = params;
   doc.n_params = 4;
 
-  args[0].name = (char *)(size_t) "in_patch";
-  args[0].type = (char *)(size_t) "const struct User *";
+  args[0].name = cdd_test_mut_str("in_patch");
+  args[0].type = cdd_test_mut_str("const struct User *");
 
-  args[1].name = (char *)(size_t) "out";
-  args[1].type = (char *)(size_t) "struct Output **";
+  args[1].name = cdd_test_mut_str("out");
+  args[1].type = cdd_test_mut_str("struct Output **");
 
-  args[2].name = (char *)(size_t) "list";
-  args[2].type = (char *)(size_t) "int[]";
-  params[2].name = (char *)(size_t) "list";
-  params[2].in_loc = (char *)(size_t) "query";
-  params[2].format = (char *)(size_t) "int64";
+  args[2].name = cdd_test_mut_str("list");
+  args[2].type = cdd_test_mut_str("int[]");
+  params[2].name = cdd_test_mut_str("list");
+  params[2].in_loc = cdd_test_mut_str("query");
+  params[2].format = cdd_test_mut_str("int64");
 
-  args[3].name = (char *)(size_t) "X-Key";
-  args[3].type = (char *)(size_t) "char *";
-  params[3].name = (char *)(size_t) "X-Key";
-  params[3].in_loc = (char *)(size_t) "header";
-  params[3].example = (char *)(size_t) "key123";
+  args[3].name = cdd_test_mut_str("X-Key");
+  args[3].type = cdd_test_mut_str("char *");
+  params[3].name = cdd_test_mut_str("X-Key");
+  params[3].in_loc = cdd_test_mut_str("header");
+  params[3].example = cdd_test_mut_str("key123");
 
-  rets[0].code = (char *)(size_t) "200";
-  rets[0].description = (char *)(size_t) "User updated successfully";
+  rets[0].code = cdd_test_mut_str("200");
+  rets[0].description = cdd_test_mut_str("User updated successfully");
   doc.returns = rets;
   doc.n_returns = 1;
 
@@ -209,34 +209,34 @@ TEST test_operation_c2openapi_build_operation_mega_oom(void) {
   ctx.doc = &doc;
   ctx.func_name = "api_mega_post";
 
-  doc.operation_id = (char *)(size_t) "megaPost";
-  doc.summary = (char *)(size_t) "Mega summary";
-  doc.description = (char *)(size_t) "Mega description";
-  doc.external_docs_url = (char *)(size_t) "https://docs.example.com";
-  doc.external_docs_description = (char *)(size_t) "Docs";
+  doc.operation_id = cdd_test_mut_str("megaPost");
+  doc.summary = cdd_test_mut_str("Mega summary");
+  doc.description = cdd_test_mut_str("Mega description");
+  doc.external_docs_url = cdd_test_mut_str("https://docs.example.com");
+  doc.external_docs_description = cdd_test_mut_str("Docs");
 
-  tags[0] = (char *)(size_t) "Tag1";
-  tags[1] = (char *)(size_t) "Tag2";
+  tags[0] = cdd_test_mut_str("Tag1");
+  tags[1] = cdd_test_mut_str("Tag2");
   doc.tags = tags;
   doc.n_tags = 2;
 
-  scopes[0] = (char *)(size_t) "read";
-  scopes[1] = (char *)(size_t) "write";
-  sec.scheme = (char *)(size_t) "Bearer";
+  scopes[0] = cdd_test_mut_str("read");
+  scopes[1] = cdd_test_mut_str("write");
+  sec.scheme = cdd_test_mut_str("Bearer");
   sec.scopes = scopes;
   sec.n_scopes = 2;
   doc.security = &sec;
   doc.n_security = 1;
 
-  enums[0] = (char *)(size_t) "v1";
-  enums[1] = (char *)(size_t) "v2";
-  svar.name = (char *)(size_t) "env";
-  svar.default_value = (char *)(size_t) "v1";
+  enums[0] = cdd_test_mut_str("v1");
+  enums[1] = cdd_test_mut_str("v2");
+  svar.name = cdd_test_mut_str("env");
+  svar.default_value = cdd_test_mut_str("v1");
   svar.enum_values = enums;
   svar.n_enum_values = 2;
-  srv.url = (char *)(size_t) "https://api.example.com";
-  srv.name = (char *)(size_t) "Server1";
-  srv.description = (char *)(size_t) "Primary";
+  srv.url = cdd_test_mut_str("https://api.example.com");
+  srv.name = cdd_test_mut_str("Server1");
+  srv.description = cdd_test_mut_str("Primary");
   srv.variables = &svar;
   srv.n_variables = 1;
   doc.servers = &srv;
@@ -247,77 +247,77 @@ TEST test_operation_c2openapi_build_operation_mega_oom(void) {
   doc.params = params;
   doc.n_params = 6;
 
-  args[0].name = (char *)(size_t) "body_in";
-  args[0].type = (char *)(size_t) "const struct Input *";
+  args[0].name = cdd_test_mut_str("body_in");
+  args[0].type = cdd_test_mut_str("const struct Input *");
 
-  args[1].name = (char *)(size_t) "data_out";
-  args[1].type = (char *)(size_t) "struct Output **";
+  args[1].name = cdd_test_mut_str("data_out");
+  args[1].type = cdd_test_mut_str("struct Output **");
 
-  args[2].name = (char *)(size_t) "num_list";
-  args[2].type = (char *)(size_t) "int[]";
-  params[2].name = (char *)(size_t) "num_list";
-  params[2].in_loc = (char *)(size_t) "query";
-  params[2].format = (char *)(size_t) "int32";
+  args[2].name = cdd_test_mut_str("num_list");
+  args[2].type = cdd_test_mut_str("int[]");
+  params[2].name = cdd_test_mut_str("num_list");
+  params[2].in_loc = cdd_test_mut_str("query");
+  params[2].format = cdd_test_mut_str("int32");
 
-  args[3].name = (char *)(size_t) "query_str";
-  args[3].type = (char *)(size_t) "char *";
-  params[3].name = (char *)(size_t) "query_str";
-  params[3].in_loc = (char *)(size_t) "querystring";
+  args[3].name = cdd_test_mut_str("query_str");
+  args[3].type = cdd_test_mut_str("char *");
+  params[3].name = cdd_test_mut_str("query_str");
+  params[3].in_loc = cdd_test_mut_str("querystring");
 
-  args[4].name = (char *)(size_t) "sess_id";
-  args[4].type = (char *)(size_t) "char *";
-  params[4].name = (char *)(size_t) "sess_id";
-  params[4].in_loc = (char *)(size_t) "cookie";
+  args[4].name = cdd_test_mut_str("sess_id");
+  args[4].type = cdd_test_mut_str("char *");
+  params[4].name = cdd_test_mut_str("sess_id");
+  params[4].in_loc = cdd_test_mut_str("cookie");
 
-  args[5].name = (char *)(size_t) "X-Custom-Hdr";
-  args[5].type = (char *)(size_t) "char *";
-  params[5].name = (char *)(size_t) "X-Custom-Hdr";
-  params[5].in_loc = (char *)(size_t) "header";
-  params[5].content_type = (char *)(size_t) "text/plain";
-  params[5].example = (char *)(size_t) "hdr_val";
+  args[5].name = cdd_test_mut_str("X-Custom-Hdr");
+  args[5].type = cdd_test_mut_str("char *");
+  params[5].name = cdd_test_mut_str("X-Custom-Hdr");
+  params[5].in_loc = cdd_test_mut_str("header");
+  params[5].content_type = cdd_test_mut_str("text/plain");
+  params[5].example = cdd_test_mut_str("hdr_val");
 
-  rbs[0].content_type = (char *)(size_t) "application/json";
-  rbs[0].example = (char *)(size_t) "{\"id\": 1}";
+  rbs[0].content_type = cdd_test_mut_str("application/json");
+  rbs[0].example = cdd_test_mut_str("{\"id\": 1}");
   doc.request_bodies = rbs;
   doc.n_request_bodies = 1;
 
-  encs[0].name = (char *)(size_t) "avatar";
-  encs[0].content_type = (char *)(size_t) "image/png";
+  encs[0].name = cdd_test_mut_str("avatar");
+  encs[0].content_type = cdd_test_mut_str("image/png");
   encs[0].kind = 0;
   doc.encodings = encs;
   doc.n_encodings = 1;
 
-  rets[0].code = (char *)(size_t) "200";
-  rets[0].summary = (char *)(size_t) "Ok";
-  rets[0].description = (char *)(size_t) "Success desc";
-  rets[0].content_type = (char *)(size_t) "application/json";
-  rets[0].example = (char *)(size_t) "{\"res\": 1}";
+  rets[0].code = cdd_test_mut_str("200");
+  rets[0].summary = cdd_test_mut_str("Ok");
+  rets[0].description = cdd_test_mut_str("Success desc");
+  rets[0].content_type = cdd_test_mut_str("application/json");
+  rets[0].example = cdd_test_mut_str("{\"res\": 1}");
 
-  rets[1].code = (char *)(size_t) "404";
-  rets[1].summary = (char *)(size_t) "NotFound";
-  rets[1].description = (char *)(size_t) "NotFound desc";
-  rets[1].content_type = (char *)(size_t) "application/problem+json";
-  rets[1].example = (char *)(size_t) "{\"err\": 1}";
+  rets[1].code = cdd_test_mut_str("404");
+  rets[1].summary = cdd_test_mut_str("NotFound");
+  rets[1].description = cdd_test_mut_str("NotFound desc");
+  rets[1].content_type = cdd_test_mut_str("application/problem+json");
+  rets[1].example = cdd_test_mut_str("{\"err\": 1}");
   doc.returns = rets;
   doc.n_returns = 2;
 
-  hdrs[0].code = (char *)(size_t) "200";
-  hdrs[0].name = (char *)(size_t) "X-Rate-Limit";
-  hdrs[0].type = (char *)(size_t) "integer";
+  hdrs[0].code = cdd_test_mut_str("200");
+  hdrs[0].name = cdd_test_mut_str("X-Rate-Limit");
+  hdrs[0].type = cdd_test_mut_str("integer");
 
-  hdrs[1].code = (char *)(size_t) "400";
-  hdrs[1].name = (char *)(size_t) "X-Bad-Request";
-  hdrs[1].type = (char *)(size_t) "string";
+  hdrs[1].code = cdd_test_mut_str("400");
+  hdrs[1].name = cdd_test_mut_str("X-Bad-Request");
+  hdrs[1].type = cdd_test_mut_str("string");
   doc.response_headers = hdrs;
   doc.n_response_headers = 2;
 
-  links[0].code = (char *)(size_t) "200";
-  links[0].name = (char *)(size_t) "GetDetails";
-  links[0].operation_id = (char *)(size_t) "getDetailsOp";
+  links[0].code = cdd_test_mut_str("200");
+  links[0].name = cdd_test_mut_str("GetDetails");
+  links[0].operation_id = cdd_test_mut_str("getDetailsOp");
 
-  links[1].code = (char *)(size_t) "500";
-  links[1].name = (char *)(size_t) "ErrorReport";
-  links[1].operation_ref = (char *)(size_t) "#/components/links/Error";
+  links[1].code = cdd_test_mut_str("500");
+  links[1].name = cdd_test_mut_str("ErrorReport");
+  links[1].operation_ref = cdd_test_mut_str("#/components/links/Error");
   doc.links = links;
   doc.n_links = 2;
 
@@ -362,18 +362,18 @@ TEST test_operation_c2openapi_build_operation_oom(void) {
   ctx.sig = &sig;
   ctx.doc = &doc;
   ctx.func_name = "api_user_get";
-  doc.operation_id = (char *)(size_t) "getUser";
-  doc.summary = (char *)(size_t) "Get user summary";
-  doc.description = (char *)(size_t) "Get user desc";
-  doc.external_docs_url = (char *)(size_t) "https://docs.example.com";
-  doc.external_docs_description = (char *)(size_t) "Docs";
+  doc.operation_id = cdd_test_mut_str("getUser");
+  doc.summary = cdd_test_mut_str("Get user summary");
+  doc.description = cdd_test_mut_str("Get user desc");
+  doc.external_docs_url = cdd_test_mut_str("https://docs.example.com");
+  doc.external_docs_description = cdd_test_mut_str("Docs");
 
   sig.args = args;
   sig.n_args = 2;
-  args[0].name = (char *)(size_t) "id";
-  args[0].type = (char *)(size_t) "int";
-  args[1].name = (char *)(size_t) "out";
-  args[1].type = (char *)(size_t) "struct User **";
+  args[0].name = cdd_test_mut_str("id");
+  args[0].type = cdd_test_mut_str("int");
+  args[1].name = cdd_test_mut_str("out");
+  args[1].type = cdd_test_mut_str("struct User **");
 
   for (i = 1; i <= 25; ++i) {
     memset(&op, 0, sizeof(op));
@@ -413,42 +413,42 @@ TEST test_operation_final_gaps(void) {
   sig.args = args;
   sig.n_args = 4;
 
-  args[0].name = (char *)(size_t) "list[]";
-  args[0].type = (char *)(size_t) "int";
+  args[0].name = cdd_test_mut_str("list[]");
+  args[0].type = cdd_test_mut_str("int");
 
-  args[1].name = (char *)(size_t) "users[]";
-  args[1].type = (char *)(size_t) "struct User";
+  args[1].name = cdd_test_mut_str("users[]");
+  args[1].type = cdd_test_mut_str("struct User");
 
-  args[2].name = (char *)(size_t) "single_user";
-  args[2].type = (char *)(size_t) "struct User";
+  args[2].name = cdd_test_mut_str("single_user");
+  args[2].type = cdd_test_mut_str("struct User");
 
-  args[3].name = (char *)(size_t) "out_val";
-  args[3].type = (char *)(size_t) "int **";
+  args[3].name = cdd_test_mut_str("out_val");
+  args[3].type = cdd_test_mut_str("int **");
 
-  rets[0].code = (char *)(size_t) "200";
+  rets[0].code = cdd_test_mut_str("200");
   rets[0].description = NULL;
 
-  rets[1].code = (char *)(size_t) "200";
-  rets[1].description = (char *)(size_t) "Merged desc";
+  rets[1].code = cdd_test_mut_str("200");
+  rets[1].description = cdd_test_mut_str("Merged desc");
 
-  rets[2].code = (char *)(size_t) "404";
+  rets[2].code = cdd_test_mut_str("404");
   rets[2].description = NULL;
 
-  rets[3].code = (char *)(size_t) "500";
+  rets[3].code = cdd_test_mut_str("500");
   rets[3].description = NULL;
 
   doc.returns = rets;
   doc.n_returns = 4;
 
-  hdrs[0].code = (char *)(size_t) "404";
-  hdrs[0].name = (char *)(size_t) "X-Missing";
-  hdrs[0].type = (char *)(size_t) "string";
+  hdrs[0].code = cdd_test_mut_str("404");
+  hdrs[0].name = cdd_test_mut_str("X-Missing");
+  hdrs[0].type = cdd_test_mut_str("string");
   doc.response_headers = hdrs;
   doc.n_response_headers = 1;
 
-  links[0].code = (char *)(size_t) "500";
-  links[0].name = (char *)(size_t) "L500";
-  links[0].operation_id = (char *)(size_t) "op500";
+  links[0].code = cdd_test_mut_str("500");
+  links[0].name = cdd_test_mut_str("L500");
+  links[0].operation_id = cdd_test_mut_str("op500");
   doc.links = links;
   doc.n_links = 1;
 
@@ -477,16 +477,16 @@ TEST test_operation_final_gaps(void) {
 
     sig2.args = args2;
     sig2.n_args = 1;
-    args2[0].name = (char *)(size_t) "user_id";
-    args2[0].type = (char *)(size_t) "int";
+    args2[0].name = cdd_test_mut_str("user_id");
+    args2[0].type = cdd_test_mut_str("int");
 
-    dp2.name = (char *)(size_t) "user_id";
-    dp2.in_loc = (char *)(size_t) "path";
-    dp2.content_type = (char *)(size_t) "text/plain";
+    dp2.name = cdd_test_mut_str("user_id");
+    dp2.in_loc = cdd_test_mut_str("path");
+    dp2.content_type = cdd_test_mut_str("text/plain");
     doc2.params = &dp2;
     doc2.n_params = 1;
 
-    doc2.request_body_content_type = (char *)(size_t) "application/xml";
+    doc2.request_body_content_type = cdd_test_mut_str("application/xml");
     doc2.request_body_required_set = 1;
     doc2.request_body_required = 1;
 

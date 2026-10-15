@@ -203,7 +203,7 @@ endif()
 if(MSVC)
     target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE /W4 /Gy /WX)
 else()
-    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE -Wall -Wextra -Wdeclaration-after-statement -Werror -pedantic)
+    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE -Wall -Wextra -Wcast-qual -Wdeclaration-after-statement -Werror -pedantic)
     target_compile_definitions("${PROJECT_NAME}_compiler_flags" INTERFACE __STDC_VERSION__=0)
 endif()
 
@@ -550,4 +550,3 @@ message(STATUS "TARGET_ARCH is ${TARGET_ARCH}")
 if(MSVC)
     target_link_options("${PROJECT_NAME}_compiler_flags" INTERFACE /NODEFAULTLIB:LIBCMTD)
 endif()
-# Let's just use Python to write test_ffi_ir_json_edge_cases2!

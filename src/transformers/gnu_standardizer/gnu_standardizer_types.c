@@ -136,7 +136,8 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
                   }
                   *out_p = '\0';
                   {
-                    const char *pooled = pool_string_safe(tree, out_buf);
+                    const char *pooled = NULL;
+                    cdd_pool_string_safe(tree, out_buf, &pooled);
                     if (!pooled) {
                       free(out_buf);
                       free(var_name);
@@ -214,6 +215,7 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
         {
           cdd_cst_node_t *temp = NULL;
           cdd_cst_builder_t bld;
+          const char *pooled = NULL;
           rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
           if (rc != CDD_C_SUCCESS)
             return rc;
@@ -222,9 +224,9 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
           cdd_cst_bld_space(&bld);
           cdd_cst_bld_punct(&bld, "{");
           cdd_cst_bld_space(&bld);
-          cdd_cst_bld_ident(
-              &bld, pool_string_safe_len(tree, (const char *)next_tok->start,
-                                         next_tok->length));
+          cdd_pool_string_safe_len(tree, (const char *)next_tok->start,
+                                   next_tok->length, &pooled);
+          cdd_cst_bld_ident(&bld, pooled);
           cdd_cst_bld_space(&bld);
           cdd_cst_bld_ident(&bld, "real");
           cdd_cst_bld_punct(&bld, ",");
@@ -257,13 +259,14 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
         {
           cdd_cst_node_t *temp = NULL;
           cdd_cst_builder_t bld;
+          const char *pooled = NULL;
           rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
           if (rc != CDD_C_SUCCESS)
             return rc;
           cdd_cst_builder_init(&bld, tree, temp);
-          cdd_cst_bld_ident(
-              &bld, pool_string_safe_len(tree, (const char *)next_tok->start,
-                                         next_tok->length));
+          cdd_pool_string_safe_len(tree, (const char *)next_tok->start,
+                                   next_tok->length, &pooled);
+          cdd_cst_bld_ident(&bld, pooled);
           cdd_cst_bld_punct(&bld, ".");
           cdd_cst_bld_ident(&bld, "real");
           cdd_cst_bld_space(&bld);
@@ -290,13 +293,14 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
         {
           cdd_cst_node_t *temp = NULL;
           cdd_cst_builder_t bld;
+          const char *pooled = NULL;
           rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
           if (rc != CDD_C_SUCCESS)
             return rc;
           cdd_cst_builder_init(&bld, tree, temp);
-          cdd_cst_bld_ident(
-              &bld, pool_string_safe_len(tree, (const char *)next_tok->start,
-                                         next_tok->length));
+          cdd_pool_string_safe_len(tree, (const char *)next_tok->start,
+                                   next_tok->length, &pooled);
+          cdd_cst_bld_ident(&bld, pooled);
           cdd_cst_bld_punct(&bld, ".");
           cdd_cst_bld_ident(&bld, "imag");
           cdd_cst_bld_space(&bld);
@@ -349,11 +353,13 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
             cdd_cst_node_t *temp = NULL;
             cdd_cst_builder_t bld;
             if (inferred) {
+              const char *pooled = NULL;
               rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
               if (rc != CDD_C_SUCCESS)
                 return rc;
               cdd_cst_builder_init(&bld, tree, temp);
-              cdd_cst_bld_ident(&bld, pool_string_safe(tree, inferred));
+              cdd_pool_string_safe(tree, inferred, &pooled);
+              cdd_cst_bld_ident(&bld, pooled);
               cdd_cst_bld_space(&bld);
               if (bld.error_state != 0) {
                 cdd_cst_builder_free(&bld);
@@ -413,6 +419,7 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
 #endif
                 if (rb) {
                   int m, ac = 0;
+                  const char *pooled_base = NULL;
 #if defined(_MSC_VER)
                   strncpy_s(base, sizeof(base), buf, (size_t)(lb - buf));
                   strncpy_s(arr, sizeof(arr), lb, (size_t)(rb - lb + 1));
@@ -436,21 +443,26 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
                   cdd_cst_builder_init(&bld, tree, temp);
                   cdd_cst_bld_ident(&bld, "typedef");
                   cdd_cst_bld_space(&bld);
-                  cdd_cst_bld_ident(&bld, pool_string_safe(tree, base));
+                  cdd_pool_string_safe(tree, base, &pooled_base);
+                  cdd_cst_bld_ident(&bld, pooled_base);
                   {
                     char tb2[128];
+                    const char *pooled_tb2 = NULL;
                     CDD_SNPRINTF(tb2, 128, "__cdd_typeof_arr_%d",
                                  typeof_arr_idx);
-                    cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
+                    cdd_pool_string_safe(tree, tb2, &pooled_tb2);
+                    cdd_cst_bld_ident(&bld, pooled_tb2);
                   }
                   cdd_cst_bld_snippet(&bld, arr_clean);
                   cdd_cst_bld_punct(&bld, ";");
                   cdd_cst_bld_space(&bld);
                   {
                     char tb2[128];
+                    const char *pooled_tb2 = NULL;
                     CDD_SNPRINTF(tb2, 128, "__cdd_typeof_arr_%d",
                                  typeof_arr_idx);
-                    cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
+                    cdd_pool_string_safe(tree, tb2, &pooled_tb2);
+                    cdd_cst_bld_ident(&bld, pooled_tb2);
                   }
                   cdd_cst_bld_space(&bld);
                   typeof_arr_idx++;
@@ -465,11 +477,13 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
                   cdd_cst_builder_free(&bld);
                   cdd_cst_free_node_only(temp);
                 } else {
+                  const char *pooled_buf = NULL;
                   rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
                   if (rc != CDD_C_SUCCESS)
                     return rc;
                   cdd_cst_builder_init(&bld, tree, temp);
-                  cdd_cst_bld_ident(&bld, pool_string_safe(tree, buf));
+                  cdd_pool_string_safe(tree, buf, &pooled_buf);
+                  cdd_cst_bld_ident(&bld, pooled_buf);
                   if (bld.error_state != 0) {
                     cdd_cst_builder_free(&bld);
                     cdd_cst_free_node_only(temp);
@@ -482,11 +496,13 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
                   cdd_cst_free_node_only(temp);
                 }
               } else {
+                const char *pooled_buf = NULL;
                 rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
                 if (rc != CDD_C_SUCCESS)
                   return rc;
                 cdd_cst_builder_init(&bld, tree, temp);
-                cdd_cst_bld_ident(&bld, pool_string_safe(tree, buf));
+                cdd_pool_string_safe(tree, buf, &pooled_buf);
+                cdd_cst_bld_ident(&bld, pooled_buf);
                 if (bld.error_state != 0) {
                   cdd_cst_builder_free(&bld);
                   cdd_cst_free_node_only(temp);
@@ -513,6 +529,7 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
         /* __auto_type inference: search forward for = and infer from RHS */
         size_t j;
         const char *inferred = "int";
+        const char *pooled_inf = NULL;
         cdd_cst_builder_t bld;
         for (j = i + 1;
              j < tree->base_tokens->size &&
@@ -540,7 +557,8 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
         if (rc != CDD_C_SUCCESS)
           return rc;
         cdd_cst_builder_init(&bld, tree, temp);
-        cdd_cst_bld_ident(&bld, pool_string_safe(tree, inferred));
+        cdd_pool_string_safe(tree, inferred, &pooled_inf);
+        cdd_cst_bld_ident(&bld, pooled_inf);
         cdd_cst_bld_space(&bld);
         if (bld.error_state != 0) {
           cdd_cst_builder_free(&bld);
@@ -593,19 +611,23 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
             cdd_cst_bld_punct(&bld, "(");
             {
               char tb2[128];
+              const char *pooled_tb2 = NULL;
               CDD_SNPRINTF(tb2, 128, "0x%08lx%08lxULL",
                            (unsigned long)(high >> 32),
                            (unsigned long)(high & 0xFFFFFFFF));
-              cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
+              cdd_pool_string_safe(tree, tb2, &pooled_tb2);
+              cdd_cst_bld_ident(&bld, pooled_tb2);
             }
             cdd_cst_bld_punct(&bld, ",");
             cdd_cst_bld_space(&bld);
             {
               char tb2[128];
+              const char *pooled_tb2 = NULL;
               CDD_SNPRINTF(tb2, 128, "0x%08lx%08lxULL",
                            (unsigned long)(low >> 32),
                            (unsigned long)(low & 0xFFFFFFFF));
-              cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
+              cdd_pool_string_safe(tree, tb2, &pooled_tb2);
+              cdd_cst_bld_ident(&bld, pooled_tb2);
             }
             cdd_cst_bld_punct(&bld, ")");
             if (bld.error_state != 0) {
@@ -659,18 +681,17 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
             {
               cdd_cst_node_t *temp = NULL;
               cdd_cst_builder_t bld;
+              const char *pooled_al = NULL;
               rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
               if (rc != CDD_C_SUCCESS)
                 return rc;
               cdd_cst_builder_init(&bld, tree, temp);
               cdd_cst_bld_ident(&bld, "_Alignas");
               cdd_cst_bld_punct(&bld, "(");
-              cdd_cst_bld_ident(
-                  &bld,
-                  pool_string_safe_len(
-                      tree,
-                      (const char *)tree->base_tokens->tokens[i + 5].start,
-                      tree->base_tokens->tokens[i + 5].length));
+              cdd_pool_string_safe_len(
+                  tree, (const char *)tree->base_tokens->tokens[i + 5].start,
+                  tree->base_tokens->tokens[i + 5].length, &pooled_al);
+              cdd_cst_bld_ident(&bld, pooled_al);
               cdd_cst_bld_punct(&bld, ")");
               if (bld.error_state != 0) {
                 cdd_cst_builder_free(&bld);
@@ -819,7 +840,8 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
             if (g_gnu_standardizer_fail != 7)
 #endif
             {
-              const char *pooled = pool_string_safe(tree, heap_buf);
+              const char *pooled = NULL;
+              cdd_pool_string_safe(tree, heap_buf, &pooled);
 #ifdef CDD_BUILD_TESTS
               if (g_gnu_standardizer_fail == 42) {
                 pooled = NULL;

@@ -18,6 +18,15 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Parse a class, struct, access specifier, asm, or expression/statement.
+ *
+ * @param[in,out] s Parser state.
+ * @param[in] parent Parent node.
+ * @param[in] t Current token.
+ * @param[out] out_node Parsed node.
+ * @return CDD_C_SUCCESS or error code.
+ */
 cdd_c_error_t parse_class_or_statement(parser_state_t *s,
                                        cdd_cst_node_t *parent, cdd_token_t *t,
                                        cdd_cst_node_t **out_node) {

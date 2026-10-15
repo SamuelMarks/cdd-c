@@ -99,7 +99,7 @@ extern C_CDD_EXPORT cdd_c_error_t doc_parse_style_text(const char *s,
  * @param[out] out_val Set to parsed boolean value.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
-extern C_CDD_EXPORT cdd_c_error_t doc_parse_optional_bool_attr(const char *attr,
+extern C_CDD_EXPORT cdd_c_error_t doc_parse_optional_bool_attr(char *attr,
                                                                const char *key,
                                                                int *out_set,
                                                                int *out_val);
@@ -107,13 +107,13 @@ extern C_CDD_EXPORT cdd_c_error_t doc_parse_optional_bool_attr(const char *attr,
 /**
  * @brief Parse optional example attribute like [example:...].
  *
- * @param[in] attr Attribute string.
+ * @param[in,out] attr Attribute string.
  * @param[out] out_example Pointer to receive allocated example string.
  * @return CDD_C_SUCCESS on success (1 if matched, 0 if not), error code on
  * failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-doc_parse_optional_example_attr(const char *attr, char **out_example);
+doc_parse_optional_example_attr(char *attr, char **out_example);
 
 /**
  * @brief Find key token in string buffer.

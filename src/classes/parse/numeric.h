@@ -127,11 +127,8 @@ struct NumericValue {
  * @return 0 on success, EINVAL if input is NULL or invalid format, ERANGE if
  * overflow.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Parses numeric literal from the given input.
-                     */
-    cdd_c_error_t
-    parse_numeric_literal(const char *str, struct NumericValue *out);
+extern C_CDD_EXPORT cdd_c_error_t
+parse_numeric_literal(const char *str, struct NumericValue *out);
 
 #ifdef __cplusplus
 }

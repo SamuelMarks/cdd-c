@@ -46,11 +46,8 @@ struct MakeConfig {
  * @param[in] config Configuration for generation.
  * @return 0 on success, EINVAL if args invalid, EIO on write failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for codegen make generate.
-                     */
-    cdd_c_error_t
-    codegen_make_generate(FILE *fp, const struct MakeConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t
+codegen_make_generate(FILE *fp, const struct MakeConfig *config);
 
 #ifdef __cplusplus
 }

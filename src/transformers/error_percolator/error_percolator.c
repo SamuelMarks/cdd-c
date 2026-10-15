@@ -30,9 +30,9 @@ C_CDD_EXPORT int g_err_perc_fail = 0;
 /**
  * @brief Percolates errors by rewriting function signatures and returning int.
  *
- * @param[in,out] tree The CST tree.
- * @param[in] config Optional configuration for trivia generation.
- * @return CDD_C_SUCCESS on success, or an error code.
+ * @param tree The CST tree.
+ * @param config Optional configuration for trivia generation.
+ * @return 0 on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
     cdd_cst_tree_t *tree, const cdd_transform_config_t *config) {
@@ -418,7 +418,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
               len += t->length;
             }
 
-            tmp_name = (char *)(size_t)C_CDD_MALLOC(len + 1);
+            tmp_name = (char *)C_CDD_MALLOC(len + 1);
 #ifdef CDD_BUILD_TESTS
             if (g_err_perc_fail == 4) {
               C_CDD_FREE(tmp_name);
@@ -445,11 +445,14 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
               char **new_pool;
               if (new_cap < 32)
                 new_cap = 32;
-              new_pool = (char **)C_CDD_REALLOC(tree->string_pool,
-                                                new_cap * sizeof(char *));
 #ifdef CDD_BUILD_TESTS
               if (g_err_perc_fail == 18) {
                 new_pool = NULL;
+              } else {
+#endif
+                new_pool = (char **)C_CDD_REALLOC(tree->string_pool,
+                                                  new_cap * sizeof(char *));
+#ifdef CDD_BUILD_TESTS
               }
 #endif
               if (!new_pool) {

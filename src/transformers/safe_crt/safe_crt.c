@@ -84,16 +84,19 @@ C_CDD_EXPORT cdd_c_error_t arena_alloc(size_t len, void **out_ptr) {
  *
  * @param[in,out] tree Target CST tree.
  * @param[in] str String to duplicate and pool.
- * @return Pointer to pooled string, or NULL on failure.
+ * @param[out] out_pooled Pointer to receive pooled string, or NULL on failure.
+ * @return CDD_C_SUCCESS on success or error code.
  */
-C_CDD_EXPORT const char *safe_crt_pool_string_safe(cdd_cst_tree_t *tree,
-                                                   const char *str) {
+C_CDD_EXPORT cdd_c_error_t safe_crt_pool_string_safe(cdd_cst_tree_t *tree,
+                                                     const char *str,
+                                                     const char **out_pooled) {
   char *dup;
+  *out_pooled = NULL;
   if (!tree || !str)
-    return NULL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 #ifdef CDD_BUILD_TESTS
   if (g_safe_crt_malloc_fail > 0 && --g_safe_crt_malloc_fail == 0) {
-    return NULL;
+    return CDD_C_ERROR_MEMORY;
   }
 #endif
   dup = strdup(str);
@@ -112,13 +115,14 @@ C_CDD_EXPORT const char *safe_crt_pool_string_safe(cdd_cst_tree_t *tree,
       new_pool = (char **)realloc(tree->string_pool, new_cap * sizeof(char *));
     if (!new_pool) {
       free(dup);
-      return NULL;
+      return CDD_C_ERROR_MEMORY;
     }
     tree->string_pool = new_pool;
     tree->string_capacity = new_cap;
   }
   tree->string_pool[tree->num_strings++] = dup;
-  return dup;
+  *out_pooled = dup;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -188,8 +192,13 @@ C_CDD_EXPORT cdd_c_error_t clone_token(cdd_cst_tree_t *tree, cdd_token_t *tok,
                            tok->length, &ct);
   if (!ct)
     return CDD_C_ERROR_MEMORY;
-  clone_trivia(tok->leading_trivia, &ct->leading_trivia);
-  clone_trivia(tok->trailing_trivia, &ct->trailing_trivia);
+  if (clone_trivia(tok->leading_trivia, &ct->leading_trivia) != CDD_C_SUCCESS ||
+      clone_trivia(tok->trailing_trivia, &ct->trailing_trivia) !=
+          CDD_C_SUCCESS) {
+    free(ct->leading_trivia);
+    ct->leading_trivia = NULL;
+    return CDD_C_ERROR_MEMORY;
+  }
   *out_token = ct;
   return CDD_C_SUCCESS;
 }
@@ -200,8 +209,10 @@ C_CDD_EXPORT cdd_c_error_t clone_token(cdd_cst_tree_t *tree, cdd_token_t *tok,
  * @param[in] tok Target token.
  * @param[out] out_indent Buffer of at least 64 bytes to receive indentation
  * string.
+ * @return CDD_C_SUCCESS on success.
  */
-C_CDD_EXPORT void get_indent_string(cdd_token_t *tok, char *out_indent) {
+C_CDD_EXPORT cdd_c_error_t get_indent_string(cdd_token_t *tok,
+                                             char *out_indent) {
   cdd_trivia_t *tr;
   cdd_trivia_t *last_ws = NULL;
 
@@ -212,7 +223,7 @@ C_CDD_EXPORT void get_indent_string(cdd_token_t *tok, char *out_indent) {
 #else
     strcpy(out_indent, "  ");
 #endif
-    return;
+    return CDD_C_SUCCESS;
   }
 
   tr = tok->leading_trivia;
@@ -237,14 +248,15 @@ C_CDD_EXPORT void get_indent_string(cdd_token_t *tok, char *out_indent) {
     strcpy(out_indent, "  ");
 #endif
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Runs the Safe CRT transformation pass over a CST syntax tree.
+ * @brief Migrates standard C functions to MSVC Safe CRT functions.
  *
- * @param[in,out] tree CST syntax tree to transform.
- * @param[in] config Transformer configuration options.
- * @return CDD_C_SUCCESS on success or error code.
+ * @param tree The CST tree.
+ * @param config Optional configuration for trivia generation.
+ * @return 0 on success, or an error code.
  */
 cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
                                      const cdd_transform_config_t *config) {
@@ -320,6 +332,9 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
         else_node = NULL;
         new_node = NULL;
         msc_changes = 0;
+        memset(&bld, 0, sizeof(bld));
+        memset(&msc_bld, 0, sizeof(msc_bld));
+        memset(&else_bld, 0, sizeof(else_bld));
 
         saved_trivia = first_tok->leading_trivia;
         memset(&msc_ctx, 0, sizeof(msc_ctx));
@@ -330,8 +345,10 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
         first_tok->leading_trivia = NULL;
 
         rc = cdd_cst_alloc_node(CDD_CST_PREPROC_CONDITIONAL, &new_node);
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
+          first_tok->leading_trivia = saved_trivia;
           goto loop_err;
+        }
         cdd_cst_builder_init(&bld, tree, new_node);
         cdd_cst_bld_newline(&bld);
         cdd_cst_bld_ifdef(&bld, "_MSC_VER");
@@ -339,28 +356,54 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
         cdd_cst_bld_space(&bld);
 
         rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &msc_node);
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
+          first_tok->leading_trivia = saved_trivia;
+          cdd_cst_free_node(new_node);
+          cdd_cst_builder_free(&bld);
           goto loop_err;
+        }
         cdd_cst_builder_init(&msc_bld, tree, msc_node);
         g_msc_ctx = &msc_ctx;
         msc_changes = 0;
         rc = emit_ast_bld(ast, &msc_bld, 1, &msc_changes);
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
+          g_msc_ctx = NULL;
+          first_tok->leading_trivia = saved_trivia;
+          cdd_cst_free_node(new_node);
+          cdd_cst_free_node(msc_node);
+          cdd_cst_builder_free(&msc_bld);
+          cdd_cst_builder_free(&bld);
           goto loop_err;
+        }
         g_msc_ctx = NULL;
 
         rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &else_node);
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
+          first_tok->leading_trivia = saved_trivia;
+          cdd_cst_free_node(new_node);
+          cdd_cst_free_node(msc_node);
+          cdd_cst_builder_free(&msc_bld);
+          cdd_cst_builder_free(&bld);
           goto loop_err;
+        }
         cdd_cst_builder_init(&else_bld, tree, else_node);
         rc = emit_ast_bld(ast, &else_bld, 0, NULL);
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
+          first_tok->leading_trivia = saved_trivia;
+          cdd_cst_free_node(new_node);
+          cdd_cst_free_node(msc_node);
+          cdd_cst_free_node(else_node);
+          cdd_cst_builder_free(&else_bld);
+          cdd_cst_builder_free(&msc_bld);
+          cdd_cst_builder_free(&bld);
           goto loop_err;
+        }
 
         first_tok->leading_trivia = saved_trivia;
 
         if (msc_changes > 0) {
           size_t _ci;
+          const char *pooled_ind = NULL;
           if (msc_ctx.needs_errbuf || msc_ctx.needs_wcserrbuf ||
               msc_ctx.needs_strtokctx || msc_ctx.needs_wcstokctx ||
               msc_ctx.needs_mbstokctx || msc_ctx.needs_ecvtbuf ||
@@ -369,8 +412,8 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
             cdd_cst_bld_punct(&bld, "{");
             cdd_cst_bld_newline(&bld);
             if (msc_ctx.needs_errbuf) {
-              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
-                                safe_crt_pool_string_safe(tree, indent));
+              safe_crt_pool_string_safe(tree, indent, &pooled_ind);
+              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
               cdd_cst_bld_ident(&bld, "char");
               cdd_cst_bld_space(&bld);
               cdd_cst_bld_ident(&bld, "__errbuf");
@@ -381,8 +424,8 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
               cdd_cst_bld_newline(&bld);
             }
             if (msc_ctx.needs_wcserrbuf) {
-              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
-                                safe_crt_pool_string_safe(tree, indent));
+              safe_crt_pool_string_safe(tree, indent, &pooled_ind);
+              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
               cdd_cst_bld_ident(&bld, "wchar_t");
               cdd_cst_bld_space(&bld);
               cdd_cst_bld_ident(&bld, "__wcserrbuf");
@@ -393,8 +436,8 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
               cdd_cst_bld_newline(&bld);
             }
             if (msc_ctx.needs_strtokctx) {
-              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
-                                safe_crt_pool_string_safe(tree, indent));
+              safe_crt_pool_string_safe(tree, indent, &pooled_ind);
+              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
               cdd_cst_bld_ident(&bld, "char");
               cdd_cst_bld_space(&bld);
               cdd_cst_bld_punct(&bld, "*");
@@ -407,8 +450,8 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
               cdd_cst_bld_newline(&bld);
             }
             if (msc_ctx.needs_wcstokctx) {
-              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
-                                safe_crt_pool_string_safe(tree, indent));
+              safe_crt_pool_string_safe(tree, indent, &pooled_ind);
+              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
               cdd_cst_bld_ident(&bld, "wchar_t");
               cdd_cst_bld_space(&bld);
               cdd_cst_bld_punct(&bld, "*");
@@ -421,8 +464,8 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
               cdd_cst_bld_newline(&bld);
             }
             if (msc_ctx.needs_mbstokctx) {
-              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
-                                safe_crt_pool_string_safe(tree, indent));
+              safe_crt_pool_string_safe(tree, indent, &pooled_ind);
+              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
               cdd_cst_bld_ident(&bld, "unsigned");
               cdd_cst_bld_space(&bld);
               cdd_cst_bld_ident(&bld, "char");
@@ -437,8 +480,8 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
               cdd_cst_bld_newline(&bld);
             }
             if (msc_ctx.needs_ecvtbuf) {
-              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
-                                safe_crt_pool_string_safe(tree, indent));
+              safe_crt_pool_string_safe(tree, indent, &pooled_ind);
+              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
               cdd_cst_bld_ident(&bld, "char");
               cdd_cst_bld_space(&bld);
               cdd_cst_bld_ident(&bld, "__ecvtbuf");
@@ -449,8 +492,8 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
               cdd_cst_bld_newline(&bld);
             }
             if (msc_ctx.needs_fcvtbuf) {
-              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
-                                safe_crt_pool_string_safe(tree, indent));
+              safe_crt_pool_string_safe(tree, indent, &pooled_ind);
+              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
               cdd_cst_bld_ident(&bld, "char");
               cdd_cst_bld_space(&bld);
               cdd_cst_bld_ident(&bld, "__fcvtbuf");
@@ -462,8 +505,8 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
             }
 
             if (msc_ctx.needs_getenv_ptr) {
-              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
-                                safe_crt_pool_string_safe(tree, indent));
+              safe_crt_pool_string_safe(tree, indent, &pooled_ind);
+              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
               cdd_cst_bld_ident(&bld, "char");
               cdd_cst_bld_space(&bld);
               cdd_cst_bld_punct(&bld, "*");
@@ -472,8 +515,8 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
               cdd_cst_bld_newline(&bld);
             }
             if (msc_ctx.needs_wgetenv_ptr) {
-              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
-                                safe_crt_pool_string_safe(tree, indent));
+              safe_crt_pool_string_safe(tree, indent, &pooled_ind);
+              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
               cdd_cst_bld_ident(&bld, "wchar_t");
               cdd_cst_bld_space(&bld);
               cdd_cst_bld_punct(&bld, "*");
@@ -481,8 +524,8 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
               cdd_cst_bld_punct(&bld, ";");
               cdd_cst_bld_newline(&bld);
             }
-            cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
-                              safe_crt_pool_string_safe(tree, indent));
+            safe_crt_pool_string_safe(tree, indent, &pooled_ind);
+            cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
             cdd_cst_bld_space(&bld);
           }
 
@@ -497,8 +540,8 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
               msc_ctx.needs_fcvtbuf || msc_ctx.needs_getenv_ptr ||
               msc_ctx.needs_wgetenv_ptr) {
             cdd_cst_bld_newline(&bld);
-            cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
-                              safe_crt_pool_string_safe(tree, indent));
+            safe_crt_pool_string_safe(tree, indent, &pooled_ind);
+            cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
             cdd_cst_bld_punct(&bld, "}");
           }
           cdd_cst_bld_newline(&bld);

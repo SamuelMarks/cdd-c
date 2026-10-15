@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_perl.h
+ * @brief FFI binding emitter for Perl.
+ */
 #ifndef CDD_FFI_EMIT_PERL_H
 #define CDD_FFI_EMIT_PERL_H
 

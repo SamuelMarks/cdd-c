@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_variadic.c
+ * @brief Core cdd ffi variadic definitions and implementation.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 #include "cdd_c_error.h"

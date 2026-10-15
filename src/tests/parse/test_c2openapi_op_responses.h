@@ -25,14 +25,14 @@ TEST test_build_custom_verb_additional(void) {
   rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "copy_user";
+  sig.name = cdd_test_mut_str("copy_user");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "id";
-  args[0].type = (char *)(size_t)(size_t) "int";
+  args[0].name = cdd_test_mut_str("id");
+  args[0].type = cdd_test_mut_str("int");
 
   memset(&doc, 0, sizeof(doc));
-  doc.route = (char *)(size_t)(size_t) "/users/{id}";
+  doc.route = cdd_test_mut_str("/users/{id}");
   doc.verb = strdup("COPY");
 
   ctx.sig = &sig;
@@ -64,7 +64,7 @@ TEST test_build_response_multi_content(void) {
   rc += 0;
   memset(resps, 0, sizeof(resps));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "get_report";
+  sig.name = cdd_test_mut_str("get_report");
   sig.n_args = 0;
   sig.args = NULL;
 
@@ -74,12 +74,12 @@ TEST test_build_response_multi_content(void) {
   doc.returns = resps;
   doc.n_returns = 2;
 
-  resps[0].code = (char *)(size_t)(size_t) "200";
-  resps[0].description = (char *)(size_t)(size_t) "OK json";
-  resps[0].content_type = (char *)(size_t)(size_t) "application/json";
-  resps[1].code = (char *)(size_t)(size_t) "200";
-  resps[1].description = (char *)(size_t)(size_t) "OK text";
-  resps[1].content_type = (char *)(size_t)(size_t) "text/plain";
+  resps[0].code = cdd_test_mut_str("200");
+  resps[0].description = cdd_test_mut_str("OK json");
+  resps[0].content_type = cdd_test_mut_str("application/json");
+  resps[1].code = cdd_test_mut_str("200");
+  resps[1].description = cdd_test_mut_str("OK text");
+  resps[1].content_type = cdd_test_mut_str("text/plain");
 
   ctx.sig = &sig;
   ctx.doc = &doc;
@@ -116,24 +116,24 @@ TEST test_build_response_headers(void) {
   memset(resps, 0, sizeof(resps));
   memset(hdrs, 0, sizeof(hdrs));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "get_user";
+  sig.name = cdd_test_mut_str("get_user");
   sig.n_args = 0;
   sig.args = NULL;
 
   memset(&doc, 0, sizeof(doc));
   doc.returns = resps;
   doc.n_returns = 1;
-  resps[0].code = (char *)(size_t)(size_t) "200";
-  resps[0].description = (char *)(size_t)(size_t) "OK";
+  resps[0].code = cdd_test_mut_str("200");
+  resps[0].description = cdd_test_mut_str("OK");
 
   doc.response_headers = hdrs;
   doc.n_response_headers = 1;
-  hdrs[0].code = (char *)(size_t)(size_t) "200";
-  hdrs[0].name = (char *)(size_t)(size_t) "X-Request-Id";
-  hdrs[0].type = (char *)(size_t)(size_t) "string";
-  hdrs[0].content_type = (char *)(size_t)(size_t) "application/xml";
-  hdrs[0].description = (char *)(size_t)(size_t) "Request identifier";
-  hdrs[0].example = (char *)(size_t)(size_t) "42";
+  hdrs[0].code = cdd_test_mut_str("200");
+  hdrs[0].name = cdd_test_mut_str("X-Request-Id");
+  hdrs[0].type = cdd_test_mut_str("string");
+  hdrs[0].content_type = cdd_test_mut_str("application/xml");
+  hdrs[0].description = cdd_test_mut_str("Request identifier");
+  hdrs[0].example = cdd_test_mut_str("42");
   hdrs[0].required_set = 1;
   hdrs[0].required = 1;
 
@@ -171,28 +171,28 @@ TEST test_build_response_links(void) {
 
   rc += 0;
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "get_page";
+  sig.name = cdd_test_mut_str("get_page");
   sig.n_args = 0;
   sig.args = NULL;
 
   memset(&doc, 0, sizeof(doc));
-  doc.route = (char *)(size_t)(size_t) "/pages";
+  doc.route = cdd_test_mut_str("/pages");
   doc.verb = strdup("GET");
   doc.links = links;
   doc.n_links = 1;
 
   memset(links, 0, sizeof(links));
-  links[0].code = (char *)(size_t)(size_t) "200";
-  links[0].name = (char *)(size_t)(size_t) "next";
-  links[0].operation_id = (char *)(size_t)(size_t) "getNextPage";
-  links[0].summary = (char *)(size_t)(size_t) "Next page";
-  links[0].description = (char *)(size_t)(size_t) "Fetch next page";
+  links[0].code = cdd_test_mut_str("200");
+  links[0].name = cdd_test_mut_str("next");
+  links[0].operation_id = cdd_test_mut_str("getNextPage");
+  links[0].summary = cdd_test_mut_str("Next page");
+  links[0].description = cdd_test_mut_str("Fetch next page");
   links[0].parameters_json =
-      (char *)(size_t)(size_t) "{\"cursor\":\"$response.body#/next\"}";
-  links[0].request_body_json = (char *)(size_t)(size_t) "{\"foo\":1}";
-  links[0].server_url = (char *)(size_t)(size_t) "https://example.com";
-  links[0].server_name = (char *)(size_t)(size_t) "prod";
-  links[0].server_description = (char *)(size_t)(size_t) "Primary server";
+      cdd_test_mut_str("{\"cursor\":\"$response.body#/next\"}");
+  links[0].request_body_json = cdd_test_mut_str("{\"foo\":1}");
+  links[0].server_url = cdd_test_mut_str("https://example.com");
+  links[0].server_name = cdd_test_mut_str("prod");
+  links[0].server_description = cdd_test_mut_str("Primary server");
 
   ctx.sig = &sig;
   ctx.doc = &doc;
@@ -237,11 +237,11 @@ TEST test_build_response_output_arg(void) {
 
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "get_obj";
+  sig.name = cdd_test_mut_str("get_obj");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "out";
-  args[0].type = (char *)(size_t)(size_t) "struct Obj **";
+  args[0].name = cdd_test_mut_str("out");
+  args[0].type = cdd_test_mut_str("struct Obj **");
 
   ctx.sig = &sig;
   ctx.doc = NULL;
@@ -269,47 +269,49 @@ TEST test_build_op_security_servers_request_body(void) {
   struct C2OpenAPI_ParsedArg args[1];
   struct DocMetadata doc;
   struct DocSecurityRequirement sec[2];
-  char *scopes1[] = {(char *)(size_t)(size_t) "write:pets",
-                     (char *)(size_t)(size_t) "read:pets"};
+  char *scopes1[2];
   struct DocServer servers[1];
   struct DocServerVar server_vars[1];
-  char *server_enum[] = {(char *)(size_t)(size_t) "prod",
-                         (char *)(size_t)(size_t) "staging"};
+  char *server_enum[2];
   struct OpenAPI_Operation op;
   int rc = 0;
 
+  scopes1[0] = cdd_test_mut_str("write:pets");
+  scopes1[1] = cdd_test_mut_str("read:pets");
+  server_enum[0] = cdd_test_mut_str("prod");
+  server_enum[1] = cdd_test_mut_str("staging");
   rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "api_upload";
+  sig.name = cdd_test_mut_str("api_upload");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "payload";
-  args[0].type = (char *)(size_t)(size_t) "const struct Payload *";
+  args[0].name = cdd_test_mut_str("payload");
+  args[0].type = cdd_test_mut_str("const struct Payload *");
 
   memset(&doc, 0, sizeof(doc));
   doc.verb = strdup("POST");
-  doc.route = (char *)(size_t)(size_t) "/upload";
-  doc.request_body_description = (char *)(size_t)(size_t) "Upload payload";
+  doc.route = cdd_test_mut_str("/upload");
+  doc.request_body_description = cdd_test_mut_str("Upload payload");
   doc.request_body_required_set = 1;
   doc.request_body_required = 0;
-  doc.request_body_content_type = (char *)(size_t)(size_t) "application/xml";
+  doc.request_body_content_type = cdd_test_mut_str("application/xml");
 
   memset(sec, 0, sizeof(sec));
-  sec[0].scheme = (char *)(size_t)(size_t) "api_key";
-  sec[1].scheme = (char *)(size_t)(size_t) "petstore_auth";
+  sec[0].scheme = cdd_test_mut_str("api_key");
+  sec[1].scheme = cdd_test_mut_str("petstore_auth");
   sec[1].scopes = scopes1;
   sec[1].n_scopes = 2;
   doc.security = sec;
   doc.n_security = 2;
 
   memset(servers, 0, sizeof(servers));
-  servers[0].url = (char *)(size_t)(size_t) "https://api.example.com";
-  servers[0].name = (char *)(size_t)(size_t) "prod";
-  servers[0].description = (char *)(size_t)(size_t) "Production API";
+  servers[0].url = cdd_test_mut_str("https://api.example.com");
+  servers[0].name = cdd_test_mut_str("prod");
+  servers[0].description = cdd_test_mut_str("Production API");
   memset(server_vars, 0, sizeof(server_vars));
-  server_vars[0].name = (char *)(size_t)(size_t) "env";
-  server_vars[0].default_value = (char *)(size_t)(size_t) "prod";
+  server_vars[0].name = cdd_test_mut_str("env");
+  server_vars[0].default_value = cdd_test_mut_str("prod");
   server_vars[0].enum_values = server_enum;
   server_vars[0].n_enum_values = 2;
   servers[0].variables = server_vars;
@@ -369,18 +371,18 @@ TEST test_build_op_param_deprecated(void) {
   memset(args, 0, sizeof(args));
   memset(params, 0, sizeof(params));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "api_get_legacy";
+  sig.name = cdd_test_mut_str("api_get_legacy");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "legacyId";
-  args[0].type = (char *)(size_t)(size_t) "int";
+  args[0].name = cdd_test_mut_str("legacyId");
+  args[0].type = cdd_test_mut_str("int");
 
   memset(&doc, 0, sizeof(doc));
   doc.verb = strdup("GET");
-  doc.route = (char *)(size_t)(size_t) "/legacy/{legacyId}";
+  doc.route = cdd_test_mut_str("/legacy/{legacyId}");
   memset(params, 0, sizeof(params));
-  params[0].name = (char *)(size_t)(size_t) "legacyId";
-  params[0].in_loc = (char *)(size_t)(size_t) "path";
+  params[0].name = cdd_test_mut_str("legacyId");
+  params[0].in_loc = cdd_test_mut_str("path");
   params[0].deprecated_set = 1;
   params[0].deprecated = 1;
   doc.params = params;
@@ -420,19 +422,19 @@ TEST test_build_request_body_example(void) {
   rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "api_user_post";
+  sig.name = cdd_test_mut_str("api_user_post");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "user";
-  args[0].type = (char *)(size_t)(size_t) "struct User *";
+  args[0].name = cdd_test_mut_str("user");
+  args[0].type = cdd_test_mut_str("struct User *");
 
   memset(&doc, 0, sizeof(doc));
   doc.verb = strdup("POST");
-  doc.route = (char *)(size_t)(size_t) "/user";
+  doc.route = cdd_test_mut_str("/user");
   memset(bodies, 0, sizeof(bodies));
-  bodies[0].content_type = (char *)(size_t)(size_t) "application/json";
-  bodies[0].description = (char *)(size_t)(size_t) "User";
-  bodies[0].example = (char *)(size_t)(size_t) "{\"name\":\"x\"}";
+  bodies[0].content_type = cdd_test_mut_str("application/json");
+  bodies[0].description = cdd_test_mut_str("User");
+  bodies[0].example = cdd_test_mut_str("{\"name\":\"x\"}");
   doc.request_bodies = bodies;
   doc.n_request_bodies = 1;
 
@@ -469,17 +471,17 @@ TEST test_build_request_body_default_content_type(void) {
   rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "api_user_post";
+  sig.name = cdd_test_mut_str("api_user_post");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "user";
-  args[0].type = (char *)(size_t)(size_t) "struct User *";
+  args[0].name = cdd_test_mut_str("user");
+  args[0].type = cdd_test_mut_str("struct User *");
 
   memset(&doc, 0, sizeof(doc));
   doc.verb = strdup("POST");
-  doc.route = (char *)(size_t)(size_t) "/user";
+  doc.route = cdd_test_mut_str("/user");
   memset(bodies, 0, sizeof(bodies));
-  bodies[0].description = (char *)(size_t)(size_t) "User";
+  bodies[0].description = cdd_test_mut_str("User");
   doc.request_bodies = bodies;
   doc.n_request_bodies = 1;
 
@@ -513,20 +515,20 @@ TEST test_build_op_request_body_multi_content(void) {
   rc += 0;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = (char *)(size_t)(size_t) "api_upload_multi";
+  sig.name = cdd_test_mut_str("api_upload_multi");
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = (char *)(size_t)(size_t) "payload";
-  args[0].type = (char *)(size_t)(size_t) "const struct Payload *";
+  args[0].name = cdd_test_mut_str("payload");
+  args[0].type = cdd_test_mut_str("const struct Payload *");
 
   memset(&doc, 0, sizeof(doc));
   doc.verb = strdup("POST");
-  doc.route = (char *)(size_t)(size_t) "/upload";
+  doc.route = cdd_test_mut_str("/upload");
   memset(bodies, 0, sizeof(bodies));
-  bodies[0].content_type = (char *)(size_t)(size_t) "application/json";
-  bodies[0].description = (char *)(size_t)(size_t) "JSON body";
-  bodies[1].content_type = (char *)(size_t)(size_t) "application/xml";
-  bodies[1].description = (char *)(size_t)(size_t) "XML body";
+  bodies[0].content_type = cdd_test_mut_str("application/json");
+  bodies[0].description = cdd_test_mut_str("JSON body");
+  bodies[1].content_type = cdd_test_mut_str("application/xml");
+  bodies[1].description = cdd_test_mut_str("XML body");
   doc.request_bodies = bodies;
   doc.n_request_bodies = 2;
 

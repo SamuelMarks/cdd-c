@@ -36,6 +36,14 @@ static void *mock_parson_oom_malloc(size_t sz) {
 }
 static void mock_parson_oom_free(void *ptr) { free(ptr); }
 
+#define ASSERT_WRITER_RC(expr)                                                 \
+  do {                                                                         \
+    cdd_c_error_t _w_rc = (expr);                                              \
+    ASSERT(_w_rc == CDD_C_SUCCESS || _w_rc == CDD_C_ERROR_MEMORY ||            \
+           _w_rc == CDD_C_ERROR_UNKNOWN ||                                     \
+           _w_rc == CDD_C_ERROR_INVALID_ARGUMENT);                             \
+  } while (0)
+
 /* --- Helpers --- */
 
 static cdd_c_error_t load_spec_str2(const char *json_str,
@@ -74,24 +82,24 @@ static void setup_test_spec(struct OpenAPI_Spec *spec,
   if (path) {
     spec->paths = path;
     spec->n_paths = 1;
-    path->route = (char *)(size_t)(size_t) "/test/route";
+    path->route = cdd_test_mut_str("/test/route");
     if (op) {
       path->operations = op;
       path->n_operations = 1;
       op->verb = OA_VERB_GET;
-      op->operation_id = (char *)(size_t)(size_t) "testOp";
+      op->operation_id = cdd_test_mut_str("testOp");
       if (param) {
         op->parameters = param;
         op->n_parameters = 1;
-        param->name = (char *)(size_t)(size_t) "p1";
+        param->name = cdd_test_mut_str("p1");
         param->in = OA_PARAM_IN_QUERY;
-        param->type = (char *)(size_t)(size_t) "string";
+        param->type = cdd_test_mut_str("string");
       }
       if (response) {
         op->responses = response;
         op->n_responses = 1;
-        response->code = (char *)(size_t)(size_t) "200";
-        response->schema.ref_name = (char *)(size_t)(size_t) "TestModel";
+        response->code = cdd_test_mut_str("200");
+        response->schema.ref_name = cdd_test_mut_str("TestModel");
       }
     }
   }

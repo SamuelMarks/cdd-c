@@ -253,6 +253,7 @@ cdd_c_error_t doc_parse_security_scheme_line(const char *line, const char *end,
     return rc;
   if (!scheme->name)
     return CDD_C_SUCCESS;
+  out->n_security_schemes++;
 
   rc = doc_skip_ws(cur, &cur);
   if (rc != CDD_C_SUCCESS)
@@ -266,7 +267,7 @@ cdd_c_error_t doc_parse_security_scheme_line(const char *line, const char *end,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)(size_t)C_CDD_MALLOC(inner_len + 1);
+      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -540,6 +541,5 @@ cdd_c_error_t doc_parse_security_scheme_line(const char *line, const char *end,
     }
   }
 
-  out->n_security_schemes++;
   return CDD_C_SUCCESS;
 }

@@ -18,7 +18,7 @@
 /* clang-format on */
 
 /**
- * @brief Executes the cdd strndup2 operation.
+ * @brief Allocates a null-terminated copy of up to n bytes of a string.
  *
  * @param[in] s Source string
  * @param[in] n Maximum length to duplicate
@@ -32,7 +32,7 @@ static cdd_c_error_t cdd_strndup2(const char *s, size_t n, char **_out_val) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   while (len < n && s[len] != '\0')
     len++;
-  result = (char *)(size_t)C_CDD_MALLOC(len + 1);
+  result = (char *)C_CDD_MALLOC(len + 1);
   if (!result) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -44,7 +44,7 @@ static cdd_c_error_t cdd_strndup2(const char *s, size_t n, char **_out_val) {
 }
 
 /**
- * @brief Executes the cli command init operation.
+ * @brief Initializes a parsed CLI command descriptor.
  *
  * @param[out] cmd CLI command structure to initialize
  * @return CDD_C_SUCCESS on success, error enum on failure
@@ -59,7 +59,7 @@ cdd_c_error_t cli_command_init(struct CliCommand *cmd) {
 }
 
 /**
- * @brief Executes the cli command free operation.
+ * @brief Releases memory associated with a parsed CLI command descriptor.
  *
  * @param[in,out] cmd CLI command structure to release
  */
@@ -110,7 +110,7 @@ static cdd_c_error_t add_option(struct CliCommand *cmd,
 }
 
 /**
- * @brief Executes the cst extract cli command operation.
+ * @brief Extracts CLI option and subcommand metadata from a C CST.
  */
 cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
                                       const struct TokenList *tokens,

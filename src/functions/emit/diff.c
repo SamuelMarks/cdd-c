@@ -172,7 +172,7 @@ static cdd_c_error_t generate_block_new_text(const struct Block *b,
 }
 
 /**
- * @brief Executes the append to diff operation.
+ * @brief Appends formatted text to a dynamically growing unified diff buffer.
  *
  * @param[in,out] diff_str Pointer to diff string pointer.
  * @param[in,out] diff_len Pointer to diff string length.
@@ -295,7 +295,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_test_split_lines(const char *str, size_t len,
 #endif
 
 /**
- * @brief Executes the patch list to diff operation.
+ * @brief Generates a unified diff string from a list of source patches.
  */
 cdd_c_error_t patch_list_to_diff(struct PatchList *list,
                                  const struct TokenList *tokens,

@@ -110,7 +110,7 @@ TEST test_cst_full_coverage(void) {
 
   /* 4. Function definition edge branches */
   /* EOF right after closing paren (k >= limit) */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "int foo()"), &tl);
+  rc = tokenize(az_span_create_from_str("int foo()"), &tl);
   ASSERT_EQ(0, rc);
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
@@ -120,7 +120,7 @@ TEST test_cst_full_coverage(void) {
   tl = NULL;
 
   /* Unclosed brace at EOF (brace_depth > 0) */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "int foo() {"), &tl);
+  rc = tokenize(az_span_create_from_str("int foo() {"), &tl);
   ASSERT_EQ(0, rc);
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
@@ -130,7 +130,7 @@ TEST test_cst_full_coverage(void) {
   tl = NULL;
 
   /* Unclosed paren at EOF */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "int foo(int x"), &tl);
+  rc = tokenize(az_span_create_from_str("int foo(int x"), &tl);
   ASSERT_EQ(0, rc);
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
@@ -140,8 +140,7 @@ TEST test_cst_full_coverage(void) {
   tl = NULL;
 
   /* Non-brace after closing paren */
-  rc =
-      tokenize(az_span_create_from_str((char *)(size_t) "int foo() = 0;"), &tl);
+  rc = tokenize(az_span_create_from_str("int foo() = 0;"), &tl);
   ASSERT_EQ(0, rc);
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
@@ -151,9 +150,7 @@ TEST test_cst_full_coverage(void) {
   tl = NULL;
 
   /* Assignment / Number / Semicolon before paren */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "int a = 1; int 42; int c;"),
-      &tl);
+  rc = tokenize(az_span_create_from_str("int a = 1; int 42; int c;"), &tl);
   ASSERT_EQ(0, rc);
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
@@ -163,8 +160,7 @@ TEST test_cst_full_coverage(void) {
   tl = NULL;
 
   /* Failure injections in match_function_definition */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "int foo() { return 0; }"), &tl);
+  rc = tokenize(az_span_create_from_str("int foo() { return 0; }"), &tl);
   ASSERT_EQ(0, rc);
   g_cdd_fail_is_type_start = 1;
   memset(&list, 0, sizeof(list));
@@ -197,9 +193,7 @@ TEST test_cst_full_coverage(void) {
   tl = NULL;
 
   /* 5. GCC Attributes */
-  rc = tokenize(az_span_create_from_str(
-                    (char *)(size_t) "__attribute__((unused)) int x;"),
-                &tl);
+  rc = tokenize(az_span_create_from_str("__attribute__((unused)) int x;"), &tl);
   ASSERT_EQ(0, rc);
   g_cdd_fail_cst_list_add = 1;
   memset(&list, 0, sizeof(list));
@@ -210,8 +204,7 @@ TEST test_cst_full_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "__attribute__((unused"), &tl);
+  rc = tokenize(az_span_create_from_str("__attribute__((unused"), &tl);
   ASSERT_EQ(0, rc);
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
@@ -221,9 +214,7 @@ TEST test_cst_full_coverage(void) {
   tl = NULL;
 
   /* 6. MSVC Declspec */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "__declspec(dllexport) int x;"),
-      &tl);
+  rc = tokenize(az_span_create_from_str("__declspec(dllexport) int x;"), &tl);
   ASSERT_EQ(0, rc);
   g_cdd_fail_cst_list_add = 1;
   memset(&list, 0, sizeof(list));
@@ -234,8 +225,7 @@ TEST test_cst_full_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "__declspec(dllexport"), &tl);
+  rc = tokenize(az_span_create_from_str("__declspec(dllexport"), &tl);
   ASSERT_EQ(0, rc);
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
@@ -245,8 +235,7 @@ TEST test_cst_full_coverage(void) {
   tl = NULL;
 
   /* 7. C23 Attributes */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "[[nodiscard]] int x;"), &tl);
+  rc = tokenize(az_span_create_from_str("[[nodiscard]] int x;"), &tl);
   ASSERT_EQ(0, rc);
   g_cdd_fail_consume_attributes = 1;
   memset(&list, 0, sizeof(list));
@@ -264,7 +253,7 @@ TEST test_cst_full_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "[[nodiscard"), &tl);
+  rc = tokenize(az_span_create_from_str("[[nodiscard"), &tl);
   ASSERT_EQ(0, rc);
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
@@ -274,9 +263,7 @@ TEST test_cst_full_coverage(void) {
   tl = NULL;
 
   /* 8. Static Assert */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "_Static_assert(1, \"msg\");"),
-      &tl);
+  rc = tokenize(az_span_create_from_str("_Static_assert(1, \"msg\");"), &tl);
   ASSERT_EQ(0, rc);
   g_cdd_fail_skip_ws = 1;
   memset(&list, 0, sizeof(list));
@@ -309,8 +296,7 @@ TEST test_cst_full_coverage(void) {
   tl = NULL;
 
   /* 9. C11 _Generic */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "_Generic(1, int: 2);"), &tl);
+  rc = tokenize(az_span_create_from_str("_Generic(1, int: 2);"), &tl);
   ASSERT_EQ(0, rc);
   g_cdd_fail_token_matches_string = 1;
   memset(&list, 0, sizeof(list));
@@ -356,9 +342,7 @@ TEST test_cst_full_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "generic_selection(1, int: 2);"),
-      &tl);
+  rc = tokenize(az_span_create_from_str("generic_selection(1, int: 2);"), &tl);
   ASSERT_EQ(0, rc);
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
@@ -368,10 +352,9 @@ TEST test_cst_full_coverage(void) {
   tl = NULL;
 
   /* 10. Struct / Enum / Union */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "struct S { int x; }; enum E { "
-                                               "A }; union U { int y; };"),
-      &tl);
+  rc = tokenize(az_span_create_from_str("struct S { int x; }; enum E { "
+                                        "A }; union U { int y; };"),
+                &tl);
   ASSERT_EQ(0, rc);
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
@@ -381,9 +364,7 @@ TEST test_cst_full_coverage(void) {
   tl = NULL;
 
   /* Struct with preceding tokens not LPAREN */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "int z; struct S { int x; };"),
-      &tl);
+  rc = tokenize(az_span_create_from_str("int z; struct S { int x; };"), &tl);
   ASSERT_EQ(0, rc);
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
@@ -393,8 +374,7 @@ TEST test_cst_full_coverage(void) {
   tl = NULL;
 
   /* Failures on struct parsing */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "struct S { int x; };"), &tl);
+  rc = tokenize(az_span_create_from_str("struct S { int x; };"), &tl);
   ASSERT_EQ(0, rc);
   g_cdd_fail_skip_ws_back = 1;
   memset(&list, 0, sizeof(list));
@@ -434,8 +414,7 @@ TEST test_cst_full_coverage(void) {
   tl = NULL;
 
   /* Forward declaration with and without semicolon */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "struct ForwardDecl;"),
-                &tl);
+  rc = tokenize(az_span_create_from_str("struct ForwardDecl;"), &tl);
   ASSERT_EQ(0, rc);
   g_cdd_fail_cst_list_add = 1;
   memset(&list, 0, sizeof(list));
@@ -446,8 +425,7 @@ TEST test_cst_full_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "struct ForwardNoSemi"), &tl);
+  rc = tokenize(az_span_create_from_str("struct ForwardNoSemi"), &tl);
   ASSERT_EQ(0, rc);
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
@@ -456,7 +434,7 @@ TEST test_cst_full_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "struct"), &tl);
+  rc = tokenize(az_span_create_from_str("struct"), &tl);
   ASSERT_EQ(0, rc);
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
@@ -465,8 +443,7 @@ TEST test_cst_full_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "enum ForwardEnum;"),
-                &tl);
+  rc = tokenize(az_span_create_from_str("enum ForwardEnum;"), &tl);
   ASSERT_EQ(0, rc);
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
@@ -475,8 +452,7 @@ TEST test_cst_full_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "union ForwardUnion;"),
-                &tl);
+  rc = tokenize(az_span_create_from_str("union ForwardUnion;"), &tl);
   ASSERT_EQ(0, rc);
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
@@ -486,7 +462,7 @@ TEST test_cst_full_coverage(void) {
   tl = NULL;
 
   /* 11. Comments and Macros */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "/* comment */"), &tl);
+  rc = tokenize(az_span_create_from_str("/* comment */"), &tl);
   ASSERT_EQ(0, rc);
   g_cdd_fail_cst_list_add = 1;
   memset(&list, 0, sizeof(list));
@@ -497,8 +473,7 @@ TEST test_cst_full_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "#define FOO 1\nint x;\n"), &tl);
+  rc = tokenize(az_span_create_from_str("#define FOO 1\nint x;\n"), &tl);
   ASSERT_EQ(0, rc);
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
@@ -507,8 +482,7 @@ TEST test_cst_full_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "#define FOO 1\n"),
-                &tl);
+  rc = tokenize(az_span_create_from_str("#define FOO 1\n"), &tl);
   ASSERT_EQ(0, rc);
   g_cdd_fail_cst_list_add = 1;
   memset(&list, 0, sizeof(list));
@@ -520,8 +494,7 @@ TEST test_cst_full_coverage(void) {
   tl = NULL;
 
   /* 12. Expression braces and statements */
-  rc =
-      tokenize(az_span_create_from_str((char *)(size_t) "int x = { 1 };"), &tl);
+  rc = tokenize(az_span_create_from_str("int x = { 1 };"), &tl);
   ASSERT_EQ(0, rc);
   g_cdd_fail_is_expression_brace = 1;
   memset(&list, 0, sizeof(list));
@@ -554,8 +527,7 @@ TEST test_cst_full_coverage(void) {
   tl = NULL;
 
   /* Expression brace preceded by paren: bpk == TOKEN_KEYWORD_IF */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "if (x) { y = 1; }"),
-                &tl);
+  rc = tokenize(az_span_create_from_str("if (x) { y = 1; }"), &tl);
   ASSERT_EQ(0, rc);
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
@@ -565,9 +537,7 @@ TEST test_cst_full_coverage(void) {
   tl = NULL;
 
   /* Expression brace preceded by paren: not if */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "int x = ((struct S){ 1 });"),
-      &tl);
+  rc = tokenize(az_span_create_from_str("int x = ((struct S){ 1 });"), &tl);
   ASSERT_EQ(0, rc);
   g_cdd_fail_skip_ws_back =
       2; /* Fails second skip_ws_back inside is_expression_brace */
@@ -580,8 +550,7 @@ TEST test_cst_full_coverage(void) {
   tl = NULL;
 
   /* Statement with cast: (struct S *)p; */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "int y; (struct S *)p;"), &tl);
+  rc = tokenize(az_span_create_from_str("int y; (struct S *)p;"), &tl);
   ASSERT_EQ(0, rc);
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
@@ -590,8 +559,7 @@ TEST test_cst_full_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "int y; struct S *p;"),
-                &tl);
+  rc = tokenize(az_span_create_from_str("int y; struct S *p;"), &tl);
   ASSERT_EQ(0, rc);
   g_cdd_fail_skip_ws_back = 1;
   memset(&list, 0, sizeof(list));
@@ -602,9 +570,7 @@ TEST test_cst_full_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "int y; _Generic(1, int: 1);"),
-      &tl);
+  rc = tokenize(az_span_create_from_str("int y; _Generic(1, int: 1);"), &tl);
   ASSERT_EQ(0, rc);
   g_cdd_fail_token_matches_string = 1;
   memset(&list, 0, sizeof(list));

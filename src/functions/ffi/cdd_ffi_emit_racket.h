@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_racket.h
+ * @brief FFI binding emitter for Racket.
+ */
 #ifndef CDD_FFI_EMIT_RACKET_H
 #define CDD_FFI_EMIT_RACKET_H
 

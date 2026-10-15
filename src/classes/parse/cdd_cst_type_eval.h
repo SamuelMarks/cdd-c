@@ -1,3 +1,7 @@
+/**
+ * @file cdd_cst_type_eval.h
+ * @brief Concrete Syntax Tree (CST) type eval implementation and utilities.
+ */
 #ifndef CDD_CST_TYPE_EVAL_H
 #define CDD_CST_TYPE_EVAL_H
 

@@ -22,53 +22,49 @@ TEST test_openapi_loader_uri_and_schema_ref_branches(void) {
   cdd_c_error_t rc = 0;
 
   /* 1. resolve_uri_reference branches */
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_resolve_uri_reference(NULL, NULL, &res));
+  ASSERT_EQ(CDD_C_SUCCESS, resolve_uri_reference(NULL, NULL, &res));
   ASSERT(res == NULL);
 
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_resolve_uri_reference("http://base", "", &res));
+  ASSERT_EQ(CDD_C_SUCCESS, resolve_uri_reference("http://base", "", &res));
   ASSERT_STR_EQ("", res);
   free(res);
 
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_resolve_uri_reference(
-                               "http://base", "http://abs/uri", &res));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            resolve_uri_reference("http://base", "http://abs/uri", &res));
   ASSERT_STR_EQ("http://abs/uri", res);
   free(res);
 
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_resolve_uri_reference(NULL, "rel/path", &res));
+  ASSERT_EQ(CDD_C_SUCCESS, resolve_uri_reference(NULL, "rel/path", &res));
+  ASSERT_STR_EQ("rel/path", res);
+  free(res);
+
+  ASSERT_EQ(CDD_C_SUCCESS, resolve_uri_reference("", "rel/path", &res));
   ASSERT_STR_EQ("rel/path", res);
   free(res);
 
   ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_resolve_uri_reference("", "rel/path", &res));
-  ASSERT_STR_EQ("rel/path", res);
-  free(res);
-
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_resolve_uri_reference("https://example.com/api",
-                                           "//cdn.example.com/lib.js", &res));
+            resolve_uri_reference("https://example.com/api",
+                                  "//cdn.example.com/lib.js", &res));
   ASSERT_STR_EQ("https://cdn.example.com/lib.js", res);
   free(res);
 
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_resolve_uri_reference(
+  ASSERT_EQ(CDD_C_SUCCESS, resolve_uri_reference(
                                "nodomain", "//cdn.example.com/lib.js", &res));
   ASSERT_STR_EQ("//cdn.example.com/lib.js", res);
   free(res);
 
   ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_resolve_uri_reference("https://example.com", "sub", &res));
-  ASSERT_STR_EQ("https://example.com/sub", res);
-  free(res);
-
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_resolve_uri_reference(
-                               "https://example.com/", "sub", &res));
+            resolve_uri_reference("https://example.com", "sub", &res));
   ASSERT_STR_EQ("https://example.com/sub", res);
   free(res);
 
   ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_resolve_uri_reference("https://example.com/api/v1/",
-                                           "../v2/users", &res));
+            resolve_uri_reference("https://example.com/", "sub", &res));
+  ASSERT_STR_EQ("https://example.com/sub", res);
+  free(res);
+
+  ASSERT_EQ(CDD_C_SUCCESS, resolve_uri_reference("https://example.com/api/v1/",
+                                                 "../v2/users", &res));
   ASSERT_STR_EQ("https://example.com/api/v2/users", res);
   free(res);
 
@@ -127,14 +123,10 @@ TEST test_openapi_loader_uri_and_schema_ref_branches(void) {
   free(sref.ref);
 
   /* 3. component_callback_is_referenced branches */
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_component_callback_is_referenced(NULL, NULL));
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_component_callback_is_referenced(&spec, NULL));
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_component_callback_is_referenced(NULL, "cb"));
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_component_callback_is_referenced(&spec, "cb"));
+  ASSERT_EQ(CDD_C_SUCCESS, component_callback_is_referenced(NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, component_callback_is_referenced(&spec, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, component_callback_is_referenced(NULL, "cb"));
+  ASSERT_EQ(CDD_C_SUCCESS, component_callback_is_referenced(&spec, "cb"));
 
   /* 4. parse_request_body_object array of inline objects */
   {
@@ -161,7 +153,7 @@ TEST test_openapi_loader_uri_and_schema_ref_branches(void) {
 TEST test_openapi_loader_media_type_and_response_examples(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_MediaType *mt_out = NULL;
-  JSON_Object *jo_out = NULL;
+  const JSON_Object *jo_out = NULL;
   JSON_Value *jv_content = NULL;
   JSON_Object *jo_content = NULL;
   JSON_Value *jv = NULL;
@@ -169,12 +161,10 @@ TEST test_openapi_loader_media_type_and_response_examples(void) {
 
   /* 1. find_component_media_type */
   memset(&spec, 0, sizeof(spec));
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_find_component_media_type(NULL, NULL, &mt_out));
+  ASSERT_EQ(CDD_C_SUCCESS, find_component_media_type(NULL, NULL, &mt_out));
   ASSERT(mt_out == NULL);
 
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_find_component_media_type(&spec, NULL, &mt_out));
+  ASSERT_EQ(CDD_C_SUCCESS, find_component_media_type(&spec, NULL, &mt_out));
   ASSERT(mt_out == NULL);
 
   spec.component_media_types =
@@ -186,24 +176,23 @@ TEST test_openapi_loader_media_type_and_response_examples(void) {
     spec.n_component_media_types = 1;
 
     ASSERT_EQ(CDD_C_SUCCESS,
-              cdd_test_find_component_media_type(
-                  &spec, "#/components/mediaTypes/Json", &mt_out));
+              find_component_media_type(&spec, "#/components/mediaTypes/Json",
+                                        &mt_out));
     ASSERT(mt_out != NULL);
 
     ASSERT_EQ(CDD_C_SUCCESS,
-              cdd_test_find_component_media_type(
-                  &spec, "#/components/mediaTypes/Xml", &mt_out));
+              find_component_media_type(&spec, "#/components/mediaTypes/Xml",
+                                        &mt_out));
     ASSERT(mt_out == NULL);
 
-    ASSERT_EQ(CDD_C_SUCCESS, cdd_test_find_component_media_type(
-                                 &spec, "#/bad/prefix/Json", &mt_out));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              find_component_media_type(&spec, "#/bad/prefix/Json", &mt_out));
     ASSERT(mt_out == NULL);
   }
   openapi_spec_free(&spec);
 
   /* 2. find_media_object_by_name */
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_find_media_object_by_name(NULL, NULL, &jo_out));
+  ASSERT_EQ(CDD_C_SUCCESS, find_media_object_by_name(NULL, NULL, &jo_out));
   ASSERT(jo_out == NULL);
 
   jv_content = json_parse_string(
@@ -212,16 +201,16 @@ TEST test_openapi_loader_media_type_and_response_examples(void) {
   if (jv_content) {
     jo_content = json_value_get_object(jv_content);
 
-    ASSERT_EQ(CDD_C_SUCCESS, cdd_test_find_media_object_by_name(
+    ASSERT_EQ(CDD_C_SUCCESS, find_media_object_by_name(
                                  jo_content, "application/json", &jo_out));
     ASSERT(jo_out != NULL);
 
-    ASSERT_EQ(CDD_C_SUCCESS, cdd_test_find_media_object_by_name(
-                                 jo_content, "text/html", &jo_out));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              find_media_object_by_name(jo_content, "text/html", &jo_out));
     ASSERT(jo_out != NULL);
 
-    ASSERT_EQ(CDD_C_SUCCESS, cdd_test_find_media_object_by_name(
-                                 jo_content, "image/png", &jo_out));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              find_media_object_by_name(jo_content, "image/png", &jo_out));
     ASSERT(jo_out == NULL);
 
     json_value_free(jv_content);
@@ -286,12 +275,11 @@ TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
   JSON_Object *jo = NULL;
   cdd_c_error_t rc = 0;
 
-  /* 1. cdd_test_parse_schema_ref edge cases */
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_parse_schema_ref(NULL, NULL, NULL));
+  /* 1. parse_schema_ref edge cases */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_schema_ref(NULL, NULL, NULL));
 
   memset(&sref, 0, sizeof(sref));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(NULL, &sref, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, parse_schema_ref(NULL, &sref, NULL));
 
   jv = json_parse_string(
       "{\"$ref\":\"#/components/schemas/Bar\",\"summary\":\"Bar "
@@ -301,7 +289,7 @@ TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&sref, 0, sizeof(sref));
-    rc = cdd_test_parse_schema_ref(jo, &sref, NULL);
+    rc = parse_schema_ref(jo, &sref, NULL);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_STR_EQ("#/components/schemas/Bar", sref.ref);
     ASSERT_STR_EQ("Bar Sum", sref.summary);
@@ -310,7 +298,7 @@ TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
     ASSERT_STR_EQ("text/plain", sref.content_media_type);
     ASSERT_STR_EQ("utf-8", sref.content_encoding);
     ASSERT_EQ(1, sref.external_docs_set);
-    cdd_test_free_schema_ref_content(&sref);
+    free_schema_ref_content(&sref);
     json_value_free(jv);
   }
 
@@ -322,7 +310,7 @@ TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&sref, 0, sizeof(sref));
-    rc = cdd_test_parse_schema_ref(jo, &sref, NULL);
+    rc = parse_schema_ref(jo, &sref, NULL);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_STR_EQ("byte", sref.items_format);
     ASSERT_STR_EQ("image/png", sref.items_content_media_type);
@@ -331,7 +319,7 @@ TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
     ASSERT_EQ(1, sref.n_items_examples);
     ASSERT_EQ(1, sref.items_const_value_set);
     ASSERT_EQ(1, sref.items_default_value_set);
-    cdd_test_free_schema_ref_content(&sref);
+    free_schema_ref_content(&sref);
     json_value_free(jv);
   }
 

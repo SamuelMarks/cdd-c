@@ -142,7 +142,7 @@ static cdd_c_error_t generate_cmake(FILE *fp,
 /* --- Public Dispatcher --- */
 
 /**
- * @brief Generates C code for codegen build generate.
+ * @brief Emits generated C code for codegen build generate.
  */
 /* LCOV_EXCL_BR_START */
 cdd_c_error_t codegen_build_generate(enum CodegenBuildSystem type, FILE *fp,

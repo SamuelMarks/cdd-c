@@ -13,7 +13,6 @@ extern "C" {
 
 /* clang-format off */
 #include "parse/test_openapi_loader_common.h"
-#include "openapi/parse/openapi_test_helpers.h"
 #include "openapi/parse/openapi_internal_components.h"
 /* clang-format on */
 
@@ -171,7 +170,7 @@ TEST test_openapi_spec_find_schema_by_id_branches(void) {
   spec.n_defined_schemas = 2;
   spec.defined_schemas = fields;
   spec.defined_schema_ids = ids;
-  spec.document_uri = (char *)(size_t) "http://example.com/base/";
+  spec.document_uri = cdd_test_mut_str("http://example.com/base/");
 
   /* Fragmented ref targeting subschema returns NULL */
   rc = openapi_spec_find_schema_by_id(
@@ -325,7 +324,7 @@ TEST test_openapi_spec_find_schema_for_ref_branches(void) {
 
   openapi_doc_registry_init(&reg);
   target_spec.retrieval_uri =
-      (char *)(size_t) "http://example.com/base/sub.json";
+      cdd_test_mut_str("http://example.com/base/sub.json");
   openapi_doc_registry_add(&reg, &target_spec);
 
   anchors[0] = static_name;
@@ -345,27 +344,8 @@ TEST test_openapi_spec_find_schema_for_ref_branches(void) {
   spec.defined_schema_anchors = anchors;
   spec.defined_schema_dynamic_anchors = dyn_anchors;
   spec.defined_schema_ids = ids;
-  spec.document_uri = (char *)(size_t) "http://example.com/base/";
+  spec.document_uri = cdd_test_mut_str("http://example.com/base/");
   spec.doc_registry = &reg;
-
-  /* Test cleanups for allocated ref members */
-  ref.n_all_of = 1;
-  ref.all_of =
-      (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
-  ref.n_any_of = 1;
-  ref.any_of =
-      (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
-  ref.n_one_of = 1;
-  ref.one_of =
-      (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
-  ref.not_schema =
-      (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
-  ref.if_schema =
-      (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
-  ref.then_schema =
-      (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
-  ref.else_schema =
-      (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
 
   /* ref has no ref or ref_name */
   rc = openapi_spec_find_schema_for_ref(&spec, &ref, &found);

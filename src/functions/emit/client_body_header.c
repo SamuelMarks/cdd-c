@@ -10,28 +10,6 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
-#include <stdarg.h>
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)))
-#endif
-    ;
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  int ret;
-  va_list args;
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  va_start(args, format);
-  ret = vfprintf(stream, format, args);
-  va_end(args);
-  return ret;
-}
-#define fprintf test_cdd_fprintf_hook
-#endif
-
-#ifdef CDD_BUILD_TESTS
 static int test_cdd_fputs_hook(const char *s, FILE *stream) {
   if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
     return -1;
@@ -41,7 +19,7 @@ static int test_cdd_fputs_hook(const char *s, FILE *stream) {
 #endif
 
 /**
- * @brief Generates C code for write header param logic.
+ * @brief Emits C source code for header param logic.
  */
 cdd_c_error_t write_header_param_logic(FILE *fp,
                                        const struct OpenAPI_Operation *op) {
@@ -526,9 +504,8 @@ cdd_c_error_t write_header_param_logic(FILE *fp,
         CHECK_IO(fprintf(
             fp,
             "        size_t extra = val_len + (joined_len > 0 ? 1 : 0);\n"));
-        CHECK_IO(fprintf(fp,
-                         "        char *tmp = (char *)(size_t)realloc(joined, "
-                         "joined_len + extra + 1);\n"));
+        CHECK_IO(fprintf(fp, "        char *tmp = (char *)realloc(joined, "
+                             "joined_len + extra + 1);\n"));
         CHECK_IO(fprintf(
             fp,
             "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
@@ -591,7 +568,7 @@ cdd_c_error_t write_header_param_logic(FILE *fp,
               "        size_t val_len = strlen(kv_raw);\n"
               "        size_t extra = key_len + val_len + 1 + "
               "(first ? 0 : 1);\n"
-              "        char *tmp = (char *)(size_t)realloc(joined, "
+              "        char *tmp = (char *)realloc(joined, "
               "joined_len + extra + 1);\n"
               "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
               "        joined = tmp;\n",
@@ -613,7 +590,7 @@ cdd_c_error_t write_header_param_logic(FILE *fp,
               "        size_t val_len = strlen(kv_raw);\n"
               "        size_t extra = key_len + val_len + 1 + "
               "(first ? 0 : 1) + 1;\n"
-              "        char *tmp = (char *)(size_t)realloc(joined, "
+              "        char *tmp = (char *)realloc(joined, "
               "joined_len + extra + 1);\n"
               "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
               "        joined = tmp;\n",

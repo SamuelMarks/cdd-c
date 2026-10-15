@@ -40,7 +40,7 @@ TEST test_scan_for_designated_initializers_basic(void) {
       "{ { { { { { { { { { { { { { { { { { { { .x = 10 } } } } } } } } } } } } "
       "} } } } } } } } };";
 
-  ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t)src), &tokens));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str(src), &tokens));
   ASSERT_EQ(CDD_C_SUCCESS, desig_init_list_init(&list));
   ASSERT_EQ(0, scan_for_designated_initializers(tokens, &list));
   ASSERT_EQ(3, list.count);
@@ -48,8 +48,7 @@ TEST test_scan_for_designated_initializers_basic(void) {
   free_token_list(tokens);
 
   tokens = NULL;
-  ASSERT_EQ(
-      0, tokenize(az_span_create_from_str((char *)(size_t)long_src), &tokens));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str(long_src), &tokens));
   ASSERT_EQ(CDD_C_SUCCESS, desig_init_list_init(&list));
   ASSERT_EQ(0, scan_for_designated_initializers(tokens, &list));
   desig_init_list_free(&list);
@@ -63,8 +62,7 @@ TEST test_scan_for_designated_initializers_errors(void) {
   struct TokenList *tl = NULL;
   struct DesigInitList list;
   ASSERT_EQ(CDD_C_SUCCESS, desig_init_list_init(&list));
-  ASSERT_EQ(
-      0, tokenize(az_span_create_from_str((char *)(size_t) "int x = 1;"), &tl));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str("int x = 1;"), &tl));
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             scan_for_designated_initializers(NULL, &list));
@@ -86,7 +84,7 @@ TEST test_scan_for_designated_initializers_oom(void) {
   int i;
   int res;
 
-  ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t)src), &tokens));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str(src), &tokens));
 
   for (i = 1; i < 20; ++i) {
     ASSERT_EQ(CDD_C_SUCCESS, desig_init_list_init(&list));
@@ -114,8 +112,7 @@ TEST test_scan_for_designated_initializers_oom_long(void) {
   int i;
   int res;
 
-  ASSERT_EQ(
-      0, tokenize(az_span_create_from_str((char *)(size_t)long_src), &tokens));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str(long_src), &tokens));
 
   for (i = 1; i < 30; ++i) {
     ASSERT_EQ(CDD_C_SUCCESS, desig_init_list_init(&list));
@@ -285,13 +282,13 @@ TEST test_desig_init_list_free_nulls(void) {
   list.sites = (struct DesigInitSite *)calloc(2, sizeof(struct DesigInitSite));
 
   /* leave sites[0] fields NULL */
-  list.sites[1].field_name = (char *)(size_t)malloc(2);
+  list.sites[1].field_name = (char *)malloc(2);
 #if defined(_MSC_VER)
   strcpy_s(list.sites[1].field_name, 2, "a");
 #else
   strcpy(list.sites[1].field_name, "a");
 #endif
-  list.sites[1].value_expr = (char *)(size_t)malloc(2);
+  list.sites[1].value_expr = (char *)malloc(2);
 #if defined(_MSC_VER)
   strcpy_s(list.sites[1].value_expr, 2, "1");
 #else

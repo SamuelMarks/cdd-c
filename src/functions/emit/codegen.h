@@ -41,14 +41,11 @@ struct CodegenConfig {
  * @param[in] struct_name Name of the struct.
  * @return 0 on success, EIO on error.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for write forward decl.
-                     */
-    cdd_c_error_t
-    write_forward_decl(FILE *fp, const char *struct_name);
+extern C_CDD_EXPORT cdd_c_error_t write_forward_decl(FILE *fp,
+                                                     const char *struct_name);
 
 /**
- * @brief Generates C code for write enum declaration.
+ * @brief Emits C source code for enum declaration.
  *
  * @param[in] hfile Output header stream.
  * @param[in] enum_name The enum name.
@@ -61,7 +58,7 @@ extern C_CDD_EXPORT cdd_c_error_t write_enum_declaration_h(
     const struct CodegenConfig *config);
 
 /**
- * @brief Generates C code for write union declaration.
+ * @brief Emits C source code for union declaration.
  *
  * @param[in] hfile Output header stream.
  * @param[in] union_name The union name.
@@ -74,7 +71,7 @@ extern C_CDD_EXPORT cdd_c_error_t write_union_declaration_h(
     const struct CodegenConfig *config);
 
 /**
- * @brief Generates C code for write struct declaration.
+ * @brief Emits C source code for struct declaration.
  *
  * @param[in] hfile Output header stream.
  * @param[in] struct_name The struct name.

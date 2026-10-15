@@ -127,12 +127,8 @@ extern C_CDD_EXPORT cdd_c_error_t url_encode_form(const char *str,
  *
  * error/allocation failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the url encode form allow reserved
-                     * operation.
-                     */
-    cdd_c_error_t
-    url_encode_form_allow_reserved(const char *str, char **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t
+url_encode_form_allow_reserved(const char *str, char **_out_val);
 
 /**
  * @brief Initialize a query parameters container.

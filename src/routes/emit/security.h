@@ -42,42 +42,28 @@ extern "C" {
  * @param[in] spec The full spec containing security definitions.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for codegen security write apply.
-                     */
-    cdd_c_error_t
-    codegen_security_write_apply(FILE *fp, const struct OpenAPI_Operation *op,
-                                 const struct OpenAPI_Spec *spec);
+extern C_CDD_EXPORT cdd_c_error_t
+codegen_security_write_apply(FILE *fp, const struct OpenAPI_Operation *op,
+                             const struct OpenAPI_Spec *spec);
 
 /**
  * @brief Determine whether the active security schemes require query params.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for codegen security requires
-                     * query.
-                     */
-    cdd_c_error_t
-    codegen_security_requires_query(const struct OpenAPI_Operation *op,
-                                    const struct OpenAPI_Spec *spec);
+extern C_CDD_EXPORT cdd_c_error_t codegen_security_requires_query(
+    const struct OpenAPI_Operation *op, const struct OpenAPI_Spec *spec);
 
 /**
  * @brief Determine whether the active security schemes require cookie params.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for codegen security requires
-                     * cookie.
-                     */
-    cdd_c_error_t
-    codegen_security_requires_cookie(const struct OpenAPI_Operation *op,
-                                     const struct OpenAPI_Spec *spec);
+extern C_CDD_EXPORT cdd_c_error_t codegen_security_requires_cookie(
+    const struct OpenAPI_Operation *op, const struct OpenAPI_Spec *spec);
 
-extern C_CDD_EXPORT /**
-                     * @brief Generate middleware check for servers
-                     */
-    cdd_c_error_t
-    codegen_security_write_server_apply(FILE *fp,
-                                        const struct OpenAPI_Operation *op,
-                                        const struct OpenAPI_Spec *spec);
+/**
+ * @brief Generate middleware check for servers
+ */
+extern C_CDD_EXPORT cdd_c_error_t codegen_security_write_server_apply(
+    FILE *fp, const struct OpenAPI_Operation *op,
+    const struct OpenAPI_Spec *spec);
 
 #ifdef __cplusplus
 }

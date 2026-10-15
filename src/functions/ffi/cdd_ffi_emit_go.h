@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_go.h
+ * @brief FFI binding emitter for Go.
+ */
 #ifndef CDD_FFI_EMIT_GO_H
 #define CDD_FFI_EMIT_GO_H
 

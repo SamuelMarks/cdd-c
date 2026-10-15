@@ -27,7 +27,7 @@ TEST test_dsl_emitter_basic(void) {
   cdd_c_error_t rc;
 
   ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
-  config.output_dir = (char *)(size_t)(size_t) "out";
+  config.output_dir = cdd_test_mut_str("out");
 
   rc = ir_add_node(ir, CDD_FFI_NODE_FUNCTION, "test_func", &node);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");

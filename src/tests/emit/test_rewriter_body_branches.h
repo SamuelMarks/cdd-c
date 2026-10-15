@@ -34,8 +34,7 @@ run_body_rewrite(const char *code, const struct RefactoredFunction *funcs,
   struct TokenList *tl = NULL;
   struct AllocationSiteList sites = {0};
   int rc = 0;
-  const az_span source =
-      az_span_create_from_str((char *)(size_t)(size_t)(size_t)code);
+  const az_span source = az_span_create_from_str(code);
 
   if (!code || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -90,8 +89,7 @@ TEST test_rewrite_body_all_branches(void) {
   t_unk.success_code = "CDD_C_SUCCESS";
 
   g_cdd_fail_find_stmt_start = 2;
-  rc = tokenize(az_span_create_from_str(
-                    (char *)(size_t) "void f() { outer(my_func(\"a\")); }"),
+  rc = tokenize(az_span_create_from_str("void f() { outer(my_func(\"a\")); }"),
                 &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
@@ -104,8 +102,7 @@ TEST test_rewrite_body_all_branches(void) {
 
   /* 2. Statement after RBRACE (line 110) */
   rc = tokenize(
-      az_span_create_from_str(
-          (char *)(size_t) "void f() { if (1) {} outer(my_func(\"a\")); }"),
+      az_span_create_from_str("void f() { if (1) {} outer(my_func(\"a\")); }"),
       &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
@@ -131,8 +128,7 @@ TEST test_rewrite_body_all_branches(void) {
   free_token_list(tl);
 
   /* 4. Token at end of file (lines 230, 235) */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "void f() { my_func"),
-                &tl);
+  rc = tokenize(az_span_create_from_str("void f() { my_func"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -143,8 +139,7 @@ TEST test_rewrite_body_all_branches(void) {
   free_token_list(tl);
 
   /* 4b. Refactored function name not followed by lparen (line 235) */
-  rc = tokenize(az_span_create_from_str(
-                    (char *)(size_t) "void f() { int x = my_func + 1; }"),
+  rc = tokenize(az_span_create_from_str("void f() { int x = my_func + 1; }"),
                 &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
@@ -156,8 +151,7 @@ TEST test_rewrite_body_all_branches(void) {
   free_token_list(tl);
 
   /* 4c. Assignment with no LHS identifier (lines 276, 289, 296, 306) */
-  rc = tokenize(az_span_create_from_str(
-                    (char *)(size_t) "void f() { [0] = my_func(\"a\"); }"),
+  rc = tokenize(az_span_create_from_str("void f() { [0] = my_func(\"a\"); }"),
                 &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
@@ -169,7 +163,7 @@ TEST test_rewrite_body_all_branches(void) {
   free_token_list(tl);
 
   /* 4d. Assignment starting at token 0 (lines 276, 289) */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "=my_func();"), &tl);
+  rc = tokenize(az_span_create_from_str("=my_func();"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -180,9 +174,8 @@ TEST test_rewrite_body_all_branches(void) {
   free_token_list(tl);
 
   /* 4e. Statement immediately following RBRACE (line 398) */
-  rc = tokenize(az_span_create_from_str(
-                    (char *)(size_t) "void f() { if (1) {} my_func(\"a\"); }"),
-                &tl);
+  rc = tokenize(
+      az_span_create_from_str("void f() { if (1) {} my_func(\"a\"); }"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -193,7 +186,7 @@ TEST test_rewrite_body_all_branches(void) {
   free_token_list(tl);
 
   /* 5. Token at start of file without braces (lines 263, 269, 664, 666) */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "my_func();"), &tl);
+  rc = tokenize(az_span_create_from_str("my_func();"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -218,9 +211,8 @@ TEST test_rewrite_body_all_branches(void) {
   free_token_list(tl);
 
   /* 7. No semicolon after call (line 379) */
-  rc = tokenize(az_span_create_from_str(
-                    (char *)(size_t) "void f() { char *s = my_strdup(\"a\") }"),
-                &tl);
+  rc = tokenize(
+      az_span_create_from_str("void f() { char *s = my_strdup(\"a\") }"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -231,7 +223,7 @@ TEST test_rewrite_body_all_branches(void) {
   free_token_list(tl);
 
   /* 8. Return at EOF with void transform (lines 520, 523) */
-  rc = tokenize(az_span_create_from_str(((char *)(size_t) "return")), &tl);
+  rc = tokenize(az_span_create_from_str((cdd_test_mut_str("return"))), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, NULL, 0, &t_void, &out_code);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -242,8 +234,7 @@ TEST test_rewrite_body_all_branches(void) {
   free_token_list(tl);
 
   /* 9. Unknown transform type (line 536) */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "void f() { return; }"), &tl);
+  rc = tokenize(az_span_create_from_str("void f() { return; }"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, NULL, 0, &t_unk, &out_code);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -254,8 +245,7 @@ TEST test_rewrite_body_all_branches(void) {
   free_token_list(tl);
 
   /* 10. Return without semicolon with ret transform (line 543) */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "void *f() { return s }"), &tl);
+  rc = tokenize(az_span_create_from_str("void *f() { return s }"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, NULL, 0, &t_ret, &out_code);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -269,10 +259,9 @@ TEST test_rewrite_body_all_branches(void) {
    * 550) */
   {
     memset(&allocs, 0, sizeof(allocs));
-    rc = tokenize(
-        az_span_create_from_str((
-            char *)(size_t) "void *f() { p = malloc(10); return malloc(20); }"),
-        &tl);
+    rc = tokenize(az_span_create_from_str(
+                      "void *f() { p = malloc(10); return malloc(20); }"),
+                  &tl);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     find_allocations(tl, &allocs);
     rc = rewrite_body(tl, &allocs, NULL, 0, &t_ret, &out_code);
@@ -288,9 +277,8 @@ TEST test_rewrite_body_all_branches(void) {
   /* 11b. Allocation after return statement (line 549) */
   {
     memset(&allocs, 0, sizeof(allocs));
-    rc = tokenize(az_span_create_from_str(
-                      (char *)(size_t) "void *f() { return p; malloc(10); }"),
-                  &tl);
+    rc = tokenize(
+        az_span_create_from_str("void *f() { return p; malloc(10); }"), &tl);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     find_allocations(tl, &allocs);
     rc = rewrite_body(tl, &allocs, NULL, 0, &t_ret, &out_code);
@@ -304,8 +292,7 @@ TEST test_rewrite_body_all_branches(void) {
   }
 
   /* 12. Void function with trailing block (lines 628, 631, 634, 641) */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "void f() { if (1) {} }"), &tl);
+  rc = tokenize(az_span_create_from_str("void f() { if (1) {} }"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, NULL, 0, &t_void, &out_code);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -317,8 +304,7 @@ TEST test_rewrite_body_all_branches(void) {
 
   /* 12b. Void function with statement lacking semicolon before closing brace
    * (line 640) */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "void f() { 1 + 2 }"),
-                &tl);
+  rc = tokenize(az_span_create_from_str("void f() { 1 + 2 }"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, NULL, 0, &t_void, &out_code);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -329,7 +315,7 @@ TEST test_rewrite_body_all_branches(void) {
   free_token_list(tl);
 
   /* 13. Void function without closing brace (line 628, 631) */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "void f()"), &tl);
+  rc = tokenize(az_span_create_from_str("void f()"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, NULL, 0, &t_void, &out_code);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -340,7 +326,7 @@ TEST test_rewrite_body_all_branches(void) {
   free_token_list(tl);
 
   /* 14. Void function with empty tokens (line 626) */
-  rc = tokenize(az_span_create_from_str(((char *)(size_t) "")), &tl);
+  rc = tokenize(az_span_create_from_str((cdd_test_mut_str(""))), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, NULL, 0, &t_void, &out_code);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -351,7 +337,7 @@ TEST test_rewrite_body_all_branches(void) {
   free_token_list(tl);
 
   /* 15. Void function with only closing brace (line 634) */
-  rc = tokenize(az_span_create_from_str(((char *)(size_t) "}")), &tl);
+  rc = tokenize(az_span_create_from_str((cdd_test_mut_str("}"))), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, NULL, 0, &t_void, &out_code);
   ASSERT_EQ(CDD_C_SUCCESS, rc);

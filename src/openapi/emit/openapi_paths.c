@@ -19,16 +19,31 @@
 #include "openapi/emit/openapi.h"
 /* clang-format on */
 
+/** @brief Safely sets a JSON object property and frees the value on failure */
+#define json_object_set_value(obj, name, val)                                  \
+  do {                                                                         \
+    JSON_Value *_cdd_jv = (val);                                               \
+    if ((json_object_set_value)((obj), (name), _cdd_jv) != JSONSuccess)        \
+      json_value_free(_cdd_jv);                                                \
+  } while (0)
+/** @brief Safely appends a JSON array element and frees the value on failure */
+#define json_array_append_value(arr, val)                                      \
+  do {                                                                         \
+    JSON_Value *_cdd_jv = (val);                                               \
+    if ((json_array_append_value)((arr), _cdd_jv) != JSONSuccess)              \
+      json_value_free(_cdd_jv);                                                \
+  } while (0)
+
 /**
- * @brief Generates C code for write callback object.
+ * @brief Serializes the OpenAPI callback object into the target JSON object.
  */
-C_CDD_EXPORT void write_callback_object(JSON_Object *cb_obj,
-                                        const struct OpenAPI_Callback *cb) {
+C_CDD_EXPORT cdd_c_error_t
+write_callback_object(JSON_Object *cb_obj, const struct OpenAPI_Callback *cb) {
   size_t i;
   cdd_c_error_t rc;
 
   if (!cb_obj || !cb)
-    return;
+    return CDD_C_SUCCESS;
 
   if (cb->ref) {
     json_object_set_string(cb_obj, "$ref", cb->ref);
@@ -36,7 +51,7 @@ C_CDD_EXPORT void write_callback_object(JSON_Object *cb_obj,
       json_object_set_string(cb_obj, "summary", cb->summary);
     if (cb->description)
       json_object_set_string(cb_obj, "description", cb->description);
-    return;
+    return CDD_C_SUCCESS;
   }
 
   if (cb->paths && cb->n_paths > 0) {
@@ -58,10 +73,11 @@ C_CDD_EXPORT void write_callback_object(JSON_Object *cb_obj,
 
   if (cb->extensions_json)
     merge_schema_extras_object_openapi(cb_obj, cb->extensions_json);
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Generates C code for write callbacks.
+ * @brief Serializes the OpenAPI callbacks into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t write_callbacks(JSON_Object *op_obj,
                                            const struct OpenAPI_Operation *op) {
@@ -94,7 +110,7 @@ C_CDD_EXPORT cdd_c_error_t write_callbacks(JSON_Object *op_obj,
 }
 
 /**
- * @brief Generates C code for write responses.
+ * @brief Serializes the OpenAPI responses into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t write_responses(JSON_Object *op_obj,
                                            const struct OpenAPI_Operation *op) {
@@ -135,7 +151,7 @@ C_CDD_EXPORT cdd_c_error_t write_responses(JSON_Object *op_obj,
 }
 
 /**
- * @brief Generates C code for write operation object.
+ * @brief Serializes the OpenAPI operation object into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t write_operation_object(
     JSON_Object *op_obj, const struct OpenAPI_Operation *op) {
@@ -209,21 +225,20 @@ C_CDD_EXPORT cdd_c_error_t write_operation_object(
 }
 
 /**
- * @brief Generates C code for write operations.
+ * @brief Serializes the OpenAPI operations into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t write_operations(JSON_Object *path_item,
                                             const struct OpenAPI_Path *path) {
-  char *_ast_verb_to_str_20 = NULL;
   size_t i;
   cdd_c_error_t rc;
 
   for (i = 0; i < path->n_operations; ++i) {
     const struct OpenAPI_Operation *op = &path->operations[i];
-    const char *verb = (verb_to_str_openapi(op->verb, &_ast_verb_to_str_20),
-                        _ast_verb_to_str_20);
+    char *verb = NULL;
     JSON_Value *op_val;
     JSON_Object *op_obj;
 
+    verb_to_str_openapi(op->verb, &verb);
     if (!verb)
       continue;
 
@@ -242,11 +257,11 @@ C_CDD_EXPORT cdd_c_error_t write_operations(JSON_Object *path_item,
 }
 
 /**
- * @brief Generates C code for write additional operations.
+ * @brief Serializes the OpenAPI additional operations into the target JSON
+ * object.
  */
 C_CDD_EXPORT cdd_c_error_t write_additional_operations(
     JSON_Object *path_item, const struct OpenAPI_Path *path) {
-  char *_ast_verb_to_str_21 = NULL;
   JSON_Value *add_val;
   JSON_Object *add_obj;
   size_t i;
@@ -265,12 +280,14 @@ C_CDD_EXPORT cdd_c_error_t write_additional_operations(
 
   for (i = 0; i < path->n_additional_operations; ++i) {
     const struct OpenAPI_Operation *op = &path->additional_operations[i];
-    const char *method =
-        op->method ? op->method
-                   : (verb_to_str_openapi(op->verb, &_ast_verb_to_str_21),
-                      _ast_verb_to_str_21);
+    char *verb_fallback = NULL;
+    const char *method;
     JSON_Value *op_val;
     JSON_Object *op_obj;
+
+    if (!op->method)
+      verb_to_str_openapi(op->verb, &verb_fallback);
+    method = op->method ? op->method : verb_fallback;
 
     if (!method)
       continue;
@@ -293,7 +310,7 @@ C_CDD_EXPORT cdd_c_error_t write_additional_operations(
 }
 
 /**
- * @brief Generates C code for write path item object.
+ * @brief Serializes the OpenAPI path item object into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_path_item_object(JSON_Object *item_obj, const struct OpenAPI_Path *path) {
@@ -335,7 +352,7 @@ write_path_item_object(JSON_Object *item_obj, const struct OpenAPI_Path *path) {
 }
 
 /**
- * @brief Generates C code for write paths.
+ * @brief Serializes the OpenAPI paths into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t write_paths(JSON_Object *root_obj,
                                        const struct OpenAPI_Spec *spec) {
@@ -381,7 +398,7 @@ C_CDD_EXPORT cdd_c_error_t write_paths(JSON_Object *root_obj,
 }
 
 /**
- * @brief Generates C code for write webhooks.
+ * @brief Serializes the OpenAPI webhooks into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t write_webhooks(JSON_Object *root_obj,
                                           const struct OpenAPI_Spec *spec) {
@@ -415,8 +432,10 @@ C_CDD_EXPORT cdd_c_error_t write_webhooks(JSON_Object *root_obj,
     JSON_Object *item_obj = json_value_get_object(item_val);
 
     rc = write_path_item_object(item_obj, p);
-    if (rc != CDD_C_SUCCESS)
+    if (rc != CDD_C_SUCCESS) {
+      json_value_free(item_val);
       break;
+    }
 
     json_object_set_value(hooks_obj, route, item_val);
   }
@@ -430,7 +449,8 @@ C_CDD_EXPORT cdd_c_error_t write_webhooks(JSON_Object *root_obj,
 }
 
 /**
- * @brief Generates C code for write security requirements.
+ * @brief Serializes the OpenAPI security requirements into the target JSON
+ * object.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_security_requirements(JSON_Object *parent, const char *key,

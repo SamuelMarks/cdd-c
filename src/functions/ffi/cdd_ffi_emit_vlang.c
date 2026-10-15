@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_vlang.c
+ * @brief FFI binding emitter for Vlang.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -9,51 +13,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-static const char *map_vlang_type(cdd_ffi_type_t *t) {
-  if (t->pointer_depth > 0) {
-    if (t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) {
-      return "&char";
-    }
-    return "voidptr";
-  }
-  switch (t->kind) {
-  case CDD_FFI_KIND_VOID:
-    return "void"; /* V uses void for return types in C interop */
-  case CDD_FFI_KIND_BOOL:
-    return "bool";
-  case CDD_FFI_KIND_INT8:
-    return "i8";
-  case CDD_FFI_KIND_UINT8:
-    return "u8";
-  case CDD_FFI_KIND_INT16:
-    return "i16";
-  case CDD_FFI_KIND_UINT16:
-    return "u16";
-  case CDD_FFI_KIND_INT32:
-    return "int";
-  case CDD_FFI_KIND_UINT32:
-    return "u32";
-  case CDD_FFI_KIND_INT64:
-    return "i64";
-  case CDD_FFI_KIND_UINT64:
-    return "u64";
-  case CDD_FFI_KIND_FLOAT32:
-    return "f32";
-  case CDD_FFI_KIND_FLOAT64:
-    return "f64";
-  case CDD_FFI_KIND_STRUCT_REF:
-  case CDD_FFI_KIND_ENUM_REF:
-  case CDD_FFI_KIND_TYPEDEF_REF:
-    if (t->ref_name) {
-      /* Ideally "C.StructName", but we return voidptr as fallback */
-      return "voidptr";
-    }
-    return "voidptr";
-  default:
-    return "voidptr";
-  }
+static cdd_c_error_t map_vlang_type(cdd_ffi_type_t *t, const char **out_type) {
+  static const cdd_ffi_type_map_table_t k_vlang_types = {
+      "void", "bool",    "i8",  "u8",  "i16", "u16",   "int",
+      "u32",  "i64",     "u64", "f32", "f64", "&char", "voidptr",
+      NULL,   "voidptr", 0,     0,     0};
+  return cdd_ffi_map_type_from_table(&k_vlang_types, *t, out_type);
 }
 
 cdd_c_error_t cdd_ffi_emit_vlang(cdd_ffi_ir_t *ir,
@@ -107,19 +75,21 @@ cdd_c_error_t cdd_ffi_emit_vlang(cdd_ffi_ir_t *ir,
       fprintf(f, "[typedef]\n");
       fprintf(f, "struct C.%s {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
+        const char *vt = NULL;
         fprintf(f, "pub mut:\n");
         /* Note: V uses `name type`, not `type name` */
-        fprintf(f, "\t%s %s\n", node->fields[j].name,
-                map_vlang_type(&node->fields[j].type));
+        map_vlang_type(&node->fields[j].type, &vt);
+        fprintf(f, "\t%s %s\n", node->fields[j].name, vt);
       }
       fprintf(f, "}\n\n");
     } else if (node->kind == CDD_FFI_NODE_UNION) {
       fprintf(f, "[typedef]\n");
       fprintf(f, "union C.%s {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
+        const char *vt = NULL;
         fprintf(f, "pub mut:\n");
-        fprintf(f, "\t%s %s\n", node->fields[j].name,
-                map_vlang_type(&node->fields[j].type));
+        map_vlang_type(&node->fields[j].type, &vt);
+        fprintf(f, "\t%s %s\n", node->fields[j].name, vt);
       }
       fprintf(f, "}\n\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
@@ -147,11 +117,12 @@ cdd_c_error_t cdd_ffi_emit_vlang(cdd_ffi_ir_t *ir,
 
       fprintf(f, "fn C.%s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "%s%s %s", j > 0 ? ", " : "", node->fields[j].name,
-                map_vlang_type(&node->fields[j].type));
+        const char *vt = NULL;
+        map_vlang_type(&node->fields[j].type, &vt);
+        fprintf(f, "%s%s %s", j > 0 ? ", " : "", node->fields[j].name, vt);
       }
 
-      ret_type = map_vlang_type(&node->return_or_base_type);
+      map_vlang_type(&node->return_or_base_type, &ret_type);
       if (strcmp(ret_type, "void") != 0) {
         fprintf(f, ") %s\n", ret_type);
       } else {

@@ -9,6 +9,7 @@
 #include "c_cdd/safe_crt_msvc.h"
 
 #include "classes/emit/types.h"
+#include "c_cdd/code_writer.h"
 #include "c_cdd/log.h"
 #include "classes/emit/struct.h" /* for get_type_from_ref */
 #include "functions/parse/str.h"
@@ -21,26 +22,8 @@
 
 /* Wrapper for fprintf to check errors tersely */
 #ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)));
-#else
-    ;
-#endif
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  int ret;
-  va_list args;
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  va_start(args, format);
-  ret = vfprintf(stream, format, args);
-  va_end(args);
-  return ret;
-}
 /** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK test_cdd_fprintf_hook
+#define FPRINTF_HOOK cdd_io_fprintf_hook
 #else
 /** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK fprintf
@@ -54,15 +37,12 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
 /* --- Union Implementation --- */
 
 /**
- * @brief Generates C code for write union to json func.
+ * @brief Emits C source code for union to json func.
  */
 cdd_c_error_t
 write_union_to_json_func(FILE *fp, const char *union_name,
                          const struct StructFields *sf,
                          const struct CodegenTypesConfig *config) {
-  char *_ast_get_type_from_ref_0 = NULL;
-  char *_ast_get_type_from_ref_1 = NULL;
-  char *_ast_get_type_from_ref_2 = NULL;
   size_t i;
   int needs_nested_rc = 0;
 
@@ -101,6 +81,7 @@ write_union_to_json_func(FILE *fp, const char *union_name,
     const char *name = sf->fields[i].name;
     const char *type = sf->fields[i].type;
     const char *ref = sf->fields[i].ref;
+    const char *ref_type = NULL;
 
     CHECK_IO(FPRINTF_HOOK(fp, "    case %s_%s:\n", union_name, name));
     if (strcmp(type, "integer") == 0) {
@@ -128,17 +109,17 @@ write_union_to_json_func(FILE *fp, const char *union_name,
       CHECK_IO(FPRINTF_HOOK(fp, "      } else { c89stringutils_jasprintf("
                                 "json, \"null\"); }\n"));
     } else if (strcmp(type, "enum") == 0) {
+      get_type_from_ref(ref, &ref_type);
       CHECK_IO(FPRINTF_HOOK(
           fp,
           "      { char *s = NULL; rc = %s_to_str(obj->data.%s, "
           "&s); if (rc != CDD_C_SUCCESS) { free(s); return rc; }\n",
-          (get_type_from_ref(ref, &_ast_get_type_from_ref_0),
-           _ast_get_type_from_ref_0),
-          name));
+          ref_type, name));
       CHECK_IO(FPRINTF_HOOK(fp, "        c89stringutils_jasprintf(json, "
                                 "\"\\\"%%s\\\"\", s); free(s); "
                                 "}\n"));
     } else if (strcmp(type, "object") == 0) {
+      get_type_from_ref(ref, &ref_type);
       CHECK_IO(FPRINTF_HOOK(
           fp,
           "      {\n"
@@ -148,9 +129,7 @@ write_union_to_json_func(FILE *fp, const char *union_name,
           "        c89stringutils_jasprintf(json, \"%%s\", sub);\n"
           "        free(sub);\n"
           "      }\n",
-          (get_type_from_ref(ref, &_ast_get_type_from_ref_1),
-           _ast_get_type_from_ref_1),
-          name));
+          ref_type, name));
     } else if (strcmp(type, "array") == 0) {
       CHECK_IO(
           FPRINTF_HOOK(fp,
@@ -188,6 +167,7 @@ write_union_to_json_func(FILE *fp, const char *union_name,
             "obj->data.%s.%s[i]);\n",
             name, name));
       } else {
+        get_type_from_ref(ref, &ref_type);
         CHECK_IO(FPRINTF_HOOK(
             fp,
             "          {\n"
@@ -197,9 +177,7 @@ write_union_to_json_func(FILE *fp, const char *union_name,
             "            c89stringutils_jasprintf(json, \"%%s\", sub);\n"
             "            free(sub);\n"
             "          }\n",
-            (get_type_from_ref(ref, &_ast_get_type_from_ref_2),
-             _ast_get_type_from_ref_2),
-            name, name));
+            ref_type, name, name));
       }
       CHECK_IO(FPRINTF_HOOK(fp,
                             "          if (!*json) return CDD_C_ERROR_MEMORY;\n"
@@ -229,14 +207,12 @@ write_union_to_json_func(FILE *fp, const char *union_name,
 }
 
 /**
- * @brief Generates C code for write union from jsonObject func.
+ * @brief Emits C source code for union from jsonObject func.
  */
 cdd_c_error_t
 write_union_from_jsonObject_func(FILE *fp, const char *union_name,
                                  const struct StructFields *sf,
                                  const struct CodegenTypesConfig *config) {
-  char *_ast_get_type_from_ref_3 = NULL;
-  char *_ast_get_type_from_ref_4 = NULL;
   size_t i;
   int needs_nested_rc = 0;
 
@@ -279,12 +255,14 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
       const char *type = sf->fields[i].type;
       const char *ref = sf->fields[i].ref;
       const char *disc_val = NULL;
+      const char *ref_type = NULL;
       if (sf->union_variants && i < sf->n_union_variants)
         disc_val = sf->union_variants[i].disc_value;
       if (!disc_val)
         continue;
       if (strcmp(type, "object") != 0)
         continue;
+      get_type_from_ref(ref, &ref_type);
       CHECK_IO(FPRINTF_HOOK(fp, "      if (strcmp(disc, \"%s\") == 0) {\n",
                             disc_val));
       CHECK_IO(
@@ -297,9 +275,7 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
           "        *out = ret;\n"
           "        return CDD_C_SUCCESS;\n"
           "      }\n",
-          (get_type_from_ref(ref, &_ast_get_type_from_ref_3),
-           _ast_get_type_from_ref_3),
-          name));
+          ref_type, name));
     }
     CHECK_IO(FPRINTF_HOOK(fp, "    }\n  }\n"));
   }
@@ -371,8 +347,10 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
     const char *name = sf->fields[i].name;
     const char *type = sf->fields[i].type;
     const char *ref = sf->fields[i].ref;
+    const char *ref_type = NULL;
     if (strcmp(type, "object") != 0)
       continue;
+    get_type_from_ref(ref, &ref_type);
     CHECK_IO(FPRINTF_HOOK(fp, "    case %lu:\n", (unsigned long)i));
     CHECK_IO(FPRINTF_HOOK(fp, "      ret->tag = %s_%s;\n", union_name, name));
     CHECK_IO(FPRINTF_HOOK(
@@ -381,9 +359,7 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
         "&ret->data.%s);\n"
         "      if (rc != CDD_C_SUCCESS) { free(ret); return rc; }\n"
         "      break;\n",
-        (get_type_from_ref(ref, &_ast_get_type_from_ref_4),
-         _ast_get_type_from_ref_4),
-        name));
+        ref_type, name));
   }
 
   CHECK_IO(FPRINTF_HOOK(fp, "    default:\n"
@@ -401,7 +377,7 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
 }
 
 /**
- * @brief Generates C code for write union from json func.
+ * @brief Emits C source code for union from json func.
  */
 cdd_c_error_t
 write_union_from_json_func(FILE *fp, const char *union_name,
@@ -819,14 +795,12 @@ write_union_from_json_func(FILE *fp, const char *union_name,
 }
 
 /**
- * @brief Generates C code for write union cleanup func.
+ * @brief Emits C source code for union cleanup func.
  */
 cdd_c_error_t
 write_union_cleanup_func(FILE *fp, const char *union_name,
                          const struct StructFields *sf,
                          const struct CodegenTypesConfig *config) {
-  char *_ast_get_type_from_ref_5 = NULL;
-  char *_ast_get_type_from_ref_6 = NULL;
   size_t i;
   int iter_needed = 0;
   if (!fp || !union_name || !sf)
@@ -851,15 +825,14 @@ write_union_cleanup_func(FILE *fp, const char *union_name,
 
   for (i = 0; i < sf->size; ++i) {
     const char *name = sf->fields[i].name;
+    const char *ref_type = NULL;
     CHECK_IO(FPRINTF_HOOK(fp, "    case %s_%s:\n", union_name, name));
     if (strcmp(sf->fields[i].type, "string") == 0) {
       CHECK_IO(FPRINTF_HOOK(fp, "      free((void*)obj->data.%s);\n", name));
     } else if (strcmp(sf->fields[i].type, "object") == 0) {
-      CHECK_IO(FPRINTF_HOOK(
-          fp, "      %s_cleanup(obj->data.%s);\n",
-          (get_type_from_ref(sf->fields[i].ref, &_ast_get_type_from_ref_5),
-           _ast_get_type_from_ref_5),
-          name));
+      get_type_from_ref(sf->fields[i].ref, &ref_type);
+      CHECK_IO(FPRINTF_HOOK(fp, "      %s_cleanup(obj->data.%s);\n", ref_type,
+                            name));
     } else if (strcmp(sf->fields[i].type, "array") == 0) {
       const char *r = sf->fields[i].ref;
       if (strcmp(r, "string") == 0 ||
@@ -872,13 +845,11 @@ write_union_cleanup_func(FILE *fp, const char *union_name,
           CHECK_IO(FPRINTF_HOOK(fp, "        free(obj->data.%s.%s[i]);\n", name,
                                 name));
         } else {
-          CHECK_IO(
-              FPRINTF_HOOK(fp,
-                           "        %s_cleanup(obj->data.%s.%s[i]);\n"
-                           "        free(obj->data.%s.%s[i]);\n",
-                           (get_type_from_ref(r, &_ast_get_type_from_ref_6),
-                            _ast_get_type_from_ref_6),
-                           name, name, name, name));
+          get_type_from_ref(r, &ref_type);
+          CHECK_IO(FPRINTF_HOOK(fp,
+                                "        %s_cleanup(obj->data.%s.%s[i]);\n"
+                                "        free(obj->data.%s.%s[i]);\n",
+                                ref_type, name, name, name, name));
         }
         CHECK_IO(FPRINTF_HOOK(fp, "      }\n"));
       }

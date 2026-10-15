@@ -1,3 +1,7 @@
+/**
+ * @file cdd_cst_semantic.h
+ * @brief Concrete Syntax Tree (CST) semantic implementation and utilities.
+ */
 #ifndef CDD_CST_SEMANTIC_H
 #define CDD_CST_SEMANTIC_H
 

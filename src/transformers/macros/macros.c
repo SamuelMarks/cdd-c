@@ -23,11 +23,11 @@
 /* clang-format on */
 
 /**
- * @brief Walks the CST and selectively expands function-like macros
- *        into standard AST nodes for FFI ingestion.
+ * @brief Expands function-like macros (and handles stringification/token
+ * pasting) inside the AST.
  *
  * @param tree The CST tree.
- * @param config The transform configuration.
+ * @param config Optional configuration for trivia generation.
  * @return 0 on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(

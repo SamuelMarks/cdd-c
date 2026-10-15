@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_delphi.h
+ * @brief FFI binding emitter for Delphi.
+ */
 #ifndef CDD_FFI_EMIT_DELPHI_H
 #define CDD_FFI_EMIT_DELPHI_H
 

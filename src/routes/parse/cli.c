@@ -63,7 +63,7 @@ cdd_c_error_t parse_c_signature_string(const char *sig_str,
 
   memset(out, 0, sizeof(*out));
 
-  if (tokenize(az_span_create_from_str((char *)(size_t)sig_str), &tl) != 0) {
+  if (tokenize(az_span_create_from_str(sig_str), &tl) != 0) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
@@ -107,10 +107,7 @@ cdd_c_error_t parse_c_signature_string(const char *sig_str,
   /* Extract Args between ( and ) */
   /* Split by COMMA. For each segment, last ID is name, rest is
    * type. */
-  rc = token_find_next(tl, lp, tl->size, TOKEN_RPAREN, &rp);
-  if (rc != CDD_C_SUCCESS) {
-    goto cleanup;
-  }
+  token_find_next(tl, lp, tl->size, TOKEN_RPAREN, &rp);
   if (rp >= tl->size) {
     rc = CDD_C_ERROR_INVALID_ARGUMENT;
     goto cleanup;
@@ -351,20 +348,7 @@ c2openapi_scan_server_routes(const struct TokenList *tokens,
   for (i = 0; i < tokens->size; ++i) {
     if (tokens->tokens[i].kind == TOKEN_IDENTIFIER) {
       int matches = 0;
-      rc = token_matches_string(&tokens->tokens[i], "c_rest_router_add",
-                                &matches);
-#ifdef CDD_BUILD_TESTS
-      {
-        extern C_CDD_EXPORT int g_cdd_fail_token_matches;
-        if (g_cdd_fail_token_matches) {
-          g_cdd_fail_token_matches = 0;
-          rc = CDD_C_ERROR_INVALID_ARGUMENT;
-        }
-      }
-#endif
-      if (rc != CDD_C_SUCCESS) {
-        return rc;
-      }
+      token_matches_string(&tokens->tokens[i], "c_rest_router_add", &matches);
       if (matches) {
         size_t j = i + 1;
         char verb_str[16];
@@ -494,7 +478,8 @@ static cdd_c_error_t c2openapi_scan_gui_views(const struct TokenList *tokens,
 }
 
 /**
- * @brief Executes the process file operation.
+ * @brief Parses a single C source/header file and extracts schemas and route
+ * operations.
  */
 cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
   char *content = NULL;
@@ -623,18 +608,7 @@ cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
         if (inferred_route) {
           struct DocMetadata meta;
           size_t sig_len = func_node->length;
-#ifdef CDD_BUILD_TESTS
-          extern C_CDD_EXPORT int g_cdd_fail_sig_raw_alloc;
-          char *sig_raw = NULL;
-          if (g_cdd_fail_sig_raw_alloc) {
-            g_cdd_fail_sig_raw_alloc = 0;
-            sig_raw = NULL;
-          } else {
-            sig_raw = (char *)C_CDD_MALLOC(sig_len + 1);
-          }
-#else
           char *sig_raw = (char *)C_CDD_MALLOC(sig_len + 1);
-#endif
           if (sig_raw) {
             struct C2OpenAPI_ParsedSig psig;
             const uint8_t *brace =
@@ -729,7 +703,8 @@ cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
 }
 
 /**
- * @brief Executes the walker cb operation.
+ * @brief Directory traversal callback that processes C source and header files
+ * for c2openapi.
  */
 cdd_c_error_t walker_cb(const char *path, void *user_data) {
   struct OpenAPI_Spec *spec = (struct OpenAPI_Spec *)user_data;
@@ -737,9 +712,7 @@ cdd_c_error_t walker_cb(const char *path, void *user_data) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   {
     int is_src = 0;
-    cdd_c_error_t rc_src = is_source_file(path, &is_src);
-    if (rc_src != CDD_C_SUCCESS)
-      return rc_src;
+    is_source_file(path, &is_src);
     if (!is_src)
       return CDD_C_SUCCESS;
   }
@@ -760,7 +733,8 @@ cdd_c_error_t walker_cb(const char *path, void *user_data) {
 }
 
 /**
- * @brief Executes the load base spec operation.
+ * @brief Loads an existing base OpenAPI JSON file to merge extracted C routes
+ * into.
  */
 cdd_c_error_t load_base_spec(const char *path, struct OpenAPI_Spec *spec) {
   JSON_Value *root = NULL;
@@ -779,61 +753,21 @@ cdd_c_error_t load_base_spec(const char *path, struct OpenAPI_Spec *spec) {
 }
 
 /**
- * @brief Executes the c2openapi cli main operation.
+ * @brief Generates an OpenAPI specification from C source code using a typed
+ * configuration struct.
  */
-C_CDD_EXPORT cdd_c_error_t c2openapi_cli_main(int argc, char **argv) {
+C_CDD_EXPORT cdd_c_error_t
+c2openapi_generate(const cdd_to_openapi_config_t *config) {
   struct OpenAPI_Spec spec;
   const char *src_dir;
   const char *out_file;
-  const char *base_file = NULL;
-  const char *self_uri = NULL;
-  const char *dialect_uri = NULL;
+  const char *base_file;
+  const char *self_uri;
+  const char *dialect_uri;
   char *json = NULL;
   cdd_c_error_t rc;
-  int argi = 1;
 
-  while (argi < argc && argv[argi][0] == '-') {
-    if (strcmp(argv[argi], "--base") == 0 || strcmp(argv[argi], "-b") == 0) {
-      if (argi + 1 >= argc) {
-        fprintf(stderr, "Usage: c2openapi [--base "
-                        "<openapi.json>] [--self <uri>] "
-                        "[--dialect <uri>] "
-                        "<src_dir> <out.json>\n");
-        return CDD_C_ERROR_UNKNOWN;
-      }
-      base_file = argv[argi + 1];
-      argi += 2;
-      continue;
-    }
-    if (strcmp(argv[argi], "--self") == 0 || strcmp(argv[argi], "-s") == 0) {
-      if (argi + 1 >= argc) {
-        fprintf(stderr, "Usage: c2openapi [--base "
-                        "<openapi.json>] [--self <uri>] "
-                        "[--dialect <uri>] "
-                        "<src_dir> <out.json>\n");
-        return CDD_C_ERROR_UNKNOWN;
-      }
-      self_uri = argv[argi + 1];
-      argi += 2;
-      continue;
-    }
-    if (strcmp(argv[argi], "--dialect") == 0 ||
-        strcmp(argv[argi], "--jsonSchemaDialect") == 0) {
-      if (argi + 1 >= argc) {
-        fprintf(stderr, "Usage: c2openapi [--base "
-                        "<openapi.json>] [--self <uri>] "
-                        "[--dialect <uri>] "
-                        "<src_dir> <out.json>\n");
-        return CDD_C_ERROR_UNKNOWN;
-      }
-      dialect_uri = argv[argi + 1];
-      argi += 2;
-      continue;
-    }
-    break;
-  }
-
-  if (argc - argi != 2) {
+  if (!config || !config->input || !config->output) {
     fprintf(stderr, "Usage: c2openapi [--base <openapi.json>] "
                     "[--self <uri>] "
                     "[--dialect <uri>] "
@@ -841,11 +775,13 @@ C_CDD_EXPORT cdd_c_error_t c2openapi_cli_main(int argc, char **argv) {
     return CDD_C_ERROR_UNKNOWN;
   }
 
-  src_dir = argv[argi];
-  out_file = argv[argi + 1];
-  rc = openapi_spec_init(&spec);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  src_dir = config->input;
+  out_file = config->output;
+  base_file = config->base_file;
+  self_uri = config->self_uri;
+  dialect_uri = config->dialect_uri;
+
+  openapi_spec_init(&spec);
 
   if (base_file) {
     rc = load_base_spec(base_file, &spec);
@@ -917,139 +853,100 @@ C_CDD_EXPORT cdd_c_error_t c2openapi_cli_main(int argc, char **argv) {
 }
 
 /**
- * @brief Executes the to docs json cli main operation.
+ * @brief CLI entry point for extracting an OpenAPI specification from C source
+ * code.
+ */
+C_CDD_EXPORT cdd_c_error_t c2openapi_cli_main(int argc, char **argv) {
+  cdd_to_openapi_config_t cfg;
+  int argi = 1;
+
+  memset(&cfg, 0, sizeof(cfg));
+
+  while (argi < argc && argv[argi][0] == '-') {
+    if (strcmp(argv[argi], "--base") == 0 || strcmp(argv[argi], "-b") == 0) {
+      if (argi + 1 >= argc) {
+        fprintf(stderr, "Usage: c2openapi [--base "
+                        "<openapi.json>] [--self <uri>] "
+                        "[--dialect <uri>] "
+                        "<src_dir> <out.json>\n");
+        return CDD_C_ERROR_UNKNOWN;
+      }
+      cfg.base_file = argv[argi + 1];
+      argi += 2;
+      continue;
+    }
+    if (strcmp(argv[argi], "--self") == 0 || strcmp(argv[argi], "-s") == 0) {
+      if (argi + 1 >= argc) {
+        fprintf(stderr, "Usage: c2openapi [--base "
+                        "<openapi.json>] [--self <uri>] "
+                        "[--dialect <uri>] "
+                        "<src_dir> <out.json>\n");
+        return CDD_C_ERROR_UNKNOWN;
+      }
+      cfg.self_uri = argv[argi + 1];
+      argi += 2;
+      continue;
+    }
+    if (strcmp(argv[argi], "--dialect") == 0 ||
+        strcmp(argv[argi], "--jsonSchemaDialect") == 0) {
+      if (argi + 1 >= argc) {
+        fprintf(stderr, "Usage: c2openapi [--base "
+                        "<openapi.json>] [--self <uri>] "
+                        "[--dialect <uri>] "
+                        "<src_dir> <out.json>\n");
+        return CDD_C_ERROR_UNKNOWN;
+      }
+      cfg.dialect_uri = argv[argi + 1];
+      argi += 2;
+      continue;
+    }
+    break;
+  }
+
+  if (argc - argi != 2) {
+    fprintf(stderr, "Usage: c2openapi [--base <openapi.json>] "
+                    "[--self <uri>] "
+                    "[--dialect <uri>] "
+                    "<src_dir> <out.json>\n");
+    return CDD_C_ERROR_UNKNOWN;
+  }
+
+  cfg.input = argv[argi];
+  cfg.output = argv[argi + 1];
+  return c2openapi_generate(&cfg);
+}
+
+/**
+ * @brief CLI entry point for generating documentation JSON snippets from an
+ * OpenAPI spec.
  */
 C_CDD_EXPORT cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
-  const char *input_file =
-      getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_FILE");
-  int no_imports = getenv("CDD_NO_IMPORTS") ? 1 : 0;
-  int no_wrapping = getenv("CDD_NO_WRAPPING") ? 1 : 0;
+  cdd_docs_json_config_t cfg;
   int i;
-  struct OpenAPI_Spec spec = {0};
-  cdd_c_error_t rc;
-  JSON_Value *parsed_root;
-  JSON_Value *root_val;
-  JSON_Object *root_obj;
-  JSON_Value *endpoints_val;
-  JSON_Object *endpoints_obj;
-  size_t p, op_idx;
+
+  memset(&cfg, 0, sizeof(cfg));
+  cfg.input = getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_FILE");
+  cfg.output = getenv("CDD_OUTPUT") ? getenv("CDD_OUTPUT") : getenv("OUT_FILE");
+  cfg.no_imports = getenv("CDD_NO_IMPORTS") ? 1 : 0;
+  cfg.no_wrapping = getenv("CDD_NO_WRAPPING") ? 1 : 0;
 
   for (i = 0; i < argc; i++) {
     if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
       return CDD_C_SUCCESS;
     } else if (strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--input") == 0) {
       if (i + 1 < argc)
-        input_file = argv[++i];
+        cfg.input = argv[++i];
+    } else if (strcmp(argv[i], "-o") == 0 || strcmp(argv[i], "--output") == 0) {
+      if (i + 1 < argc)
+        cfg.output = argv[++i];
     } else if (strcmp(argv[i], "--no-imports") == 0) {
-      no_imports = 1;
+      cfg.no_imports = 1;
     } else if (strcmp(argv[i], "--no-wrapping") == 0) {
-      no_wrapping = 1;
+      cfg.no_wrapping = 1;
     }
   }
 
-  if (!input_file)
-    return CDD_C_ERROR_UNKNOWN;
-
-  parsed_root = json_parse_file(input_file);
-  if (!parsed_root)
-    return CDD_C_ERROR_UNKNOWN;
-
-  rc = openapi_load_from_json(parsed_root, &spec);
-  json_value_free(parsed_root);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-
-  root_val = json_value_init_object();
-  root_obj = json_value_get_object(root_val);
-  endpoints_val = json_value_init_object();
-  endpoints_obj = json_value_get_object(endpoints_val);
-
-  for (p = 0; p < spec.n_paths; p++) {
-    struct OpenAPI_Path *pi = &spec.paths[p];
-    JSON_Value *path_val = json_value_init_object();
-    JSON_Object *path_obj = json_value_get_object(path_val);
-    json_object_set_value(endpoints_obj, pi->route, path_val);
-
-    for (op_idx = 0; op_idx < pi->n_operations; op_idx++) {
-      struct OpenAPI_Operation *op = &pi->operations[op_idx];
-      const char *method = "";
-      char snippet[4096];
-      char final_code[8192];
-      const char *op_id = op->operation_id ? op->operation_id : "unknown";
-
-      switch (op->verb) {
-      case OA_VERB_GET:
-        method = "get";
-        break;
-      case OA_VERB_POST:
-        method = "post";
-        break;
-      case OA_VERB_PUT:
-        method = "put";
-        break;
-      case OA_VERB_DELETE:
-        method = "delete";
-        break;
-      case OA_VERB_PATCH:
-        method = "patch";
-        break;
-      case OA_VERB_HEAD:
-        method = "head";
-        break;
-      case OA_VERB_OPTIONS:
-        method = "options";
-        break;
-      case OA_VERB_TRACE:
-        method = "trace";
-        break;
-      default:
-        method = "custom";
-        break;
-      }
-
-      snippet[0] = '\0';
-      final_code[0] = '\0';
-
-      if (!no_imports) {
-        CDD_STRCAT(final_code, sizeof(final_code),
-                   "#include \"generated_client.h\"\n#include "
-                   "<stdio.h>\n\n");
-      }
-      if (!no_wrapping) {
-        CDD_STRCAT(final_code, sizeof(final_code),
-                   "int main(void) {\n  struct HttpClient client;\n  "
-                   "struct ApiError *err = NULL;\n  api_init(&client, "
-                   "\"https://api.example.com\");\n");
-      }
-
-      snprintf(snippet, sizeof(snippet),
-               "  /* Call the %s API */\n  cdd_c_error_t rc = "
-               "api_%s(&client, &err);\n  "
-               "if (rc != CDD_C_SUCCESS) {\n    /* handle error */\n  }\n",
-               op_id, op_id);
-      CDD_STRCAT(final_code, sizeof(final_code), snippet);
-
-      if (!no_wrapping) {
-        CDD_STRCAT(final_code, sizeof(final_code),
-                   "  api_cleanup(&client);\n  return "
-                   "CDD_C_SUCCESS;\n}\n");
-      }
-
-      json_object_set_string(path_obj, method, final_code);
-    }
-  }
-
-  json_object_set_value(root_obj, "endpoints", endpoints_val);
-
-  {
-    char *serialized = json_serialize_to_string_pretty(root_val);
-    printf("%s\n", serialized);
-    json_free_serialized_string(serialized);
-  }
-
-  json_value_free(root_val);
-  openapi_spec_free(&spec);
-  return CDD_C_SUCCESS;
+  return cdd_generate_docs_json(&cfg);
 }
 
 /**

@@ -1,6 +1,11 @@
+/**
+ * @file codegen.c
+ * @brief Core codegen definitions and implementation.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
+#include "c_cdd/code_writer.h"
 #include "functions/emit/codegen.h"
 #include <errno.h>
 #include <stdarg.h>
@@ -10,26 +15,8 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)));
-#else
-    ;
-#endif
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  int ret;
-  va_list args;
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  va_start(args, format);
-  ret = vfprintf(stream, format, args);
-  va_end(args);
-  return ret;
-}
 /** @brief fprintf macro */
-#define fprintf test_cdd_fprintf_hook
+#define fprintf cdd_io_fprintf_hook
 #else
 /** @brief fprintf macro */
 #define fprintf fprintf
@@ -92,9 +79,6 @@ cdd_c_error_t write_enum_declaration_h(FILE *hfile, const char *enum_name,
 cdd_c_error_t write_union_declaration_h(FILE *hfile, const char *union_name,
                                         const struct StructFields *sf,
                                         const struct CodegenConfig *config) {
-  char *_ast_get_type_from_ref_0 = NULL;
-  char *_ast_get_type_from_ref_1 = NULL;
-  char *_ast_get_type_from_ref_2 = NULL;
   size_t i;
   if (!hfile || !union_name || !sf)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -114,6 +98,7 @@ cdd_c_error_t write_union_declaration_h(FILE *hfile, const char *union_name,
     const char *n = field->name;
     const char *t = field->type;
     const char *r = field->ref;
+    const char *ref_type = NULL;
 
     if (strcmp(t, "string") == 0) {
       CHECK_IO(fprintf(hfile, "    const char *%s;\n", n));
@@ -124,15 +109,11 @@ cdd_c_error_t write_union_declaration_h(FILE *hfile, const char *union_name,
     } else if (strcmp(t, "boolean") == 0) {
       CHECK_IO(fprintf(hfile, "    int %s;\n", n));
     } else if (strcmp(t, "enum") == 0) {
-      CHECK_IO(fprintf(hfile, "    enum %s %s;\n",
-                       (get_type_from_ref(r, &_ast_get_type_from_ref_0),
-                        _ast_get_type_from_ref_0),
-                       n));
+      get_type_from_ref(r, &ref_type);
+      CHECK_IO(fprintf(hfile, "    enum %s %s;\n", ref_type, n));
     } else if (strcmp(t, "object") == 0) {
-      CHECK_IO(fprintf(hfile, "    struct %s *%s;\n",
-                       (get_type_from_ref(r, &_ast_get_type_from_ref_1),
-                        _ast_get_type_from_ref_1),
-                       n));
+      get_type_from_ref(r, &ref_type);
+      CHECK_IO(fprintf(hfile, "    struct %s *%s;\n", ref_type, n));
     } else if (strcmp(t, "array") == 0) {
       CHECK_IO(fprintf(hfile, "    struct {\n"));
       CHECK_IO(fprintf(hfile, "      size_t n_%s;\n", n));
@@ -143,10 +124,8 @@ cdd_c_error_t write_union_declaration_h(FILE *hfile, const char *union_name,
       } else if (strcmp(r, "number") == 0) {
         CHECK_IO(fprintf(hfile, "      double *%s;\n", n));
       } else {
-        CHECK_IO(fprintf(hfile, "      struct %s **%s;\n",
-                         (get_type_from_ref(r, &_ast_get_type_from_ref_2),
-                          _ast_get_type_from_ref_2),
-                         n));
+        get_type_from_ref(r, &ref_type);
+        CHECK_IO(fprintf(hfile, "      struct %s **%s;\n", ref_type, n));
       }
       CHECK_IO(fprintf(hfile, "    } %s;\n", n));
     } else {
@@ -185,9 +164,6 @@ cdd_c_error_t write_union_declaration_h(FILE *hfile, const char *union_name,
 cdd_c_error_t write_struct_declaration_h(FILE *hfile, const char *struct_name,
                                          const struct StructFields *sf,
                                          const struct CodegenConfig *config) {
-  char *_ast_get_type_from_ref_3 = NULL;
-  char *_ast_get_type_from_ref_4 = NULL;
-  char *_ast_get_type_from_ref_5 = NULL;
   size_t i;
 
   if (!hfile || !struct_name || !sf)
@@ -202,6 +178,7 @@ cdd_c_error_t write_struct_declaration_h(FILE *hfile, const char *struct_name,
     const char *n = field->name;
     const char *t = field->type;
     const char *r = field->ref;
+    const char *ref_type = NULL;
 
     if (strcmp(t, "string") == 0) {
       CHECK_IO(fprintf(hfile, "  const char *%s;\n", n));
@@ -212,15 +189,11 @@ cdd_c_error_t write_struct_declaration_h(FILE *hfile, const char *struct_name,
     } else if (strcmp(t, "boolean") == 0) {
       CHECK_IO(fprintf(hfile, "  int %s;\n", n));
     } else if (strcmp(t, "enum") == 0) {
-      CHECK_IO(fprintf(hfile, "  enum %s %s;\n",
-                       (get_type_from_ref(r, &_ast_get_type_from_ref_3),
-                        _ast_get_type_from_ref_3),
-                       n));
+      get_type_from_ref(r, &ref_type);
+      CHECK_IO(fprintf(hfile, "  enum %s %s;\n", ref_type, n));
     } else if (strcmp(t, "object") == 0) {
-      CHECK_IO(fprintf(hfile, "  struct %s *%s;\n",
-                       (get_type_from_ref(r, &_ast_get_type_from_ref_4),
-                        _ast_get_type_from_ref_4),
-                       n));
+      get_type_from_ref(r, &ref_type);
+      CHECK_IO(fprintf(hfile, "  struct %s *%s;\n", ref_type, n));
     } else if (strcmp(t, "array") == 0) {
       CHECK_IO(fprintf(hfile, "  size_t n_%s;\n", n));
       if (strcmp(r, "string") == 0) {
@@ -230,10 +203,8 @@ cdd_c_error_t write_struct_declaration_h(FILE *hfile, const char *struct_name,
       } else if (strcmp(r, "number") == 0) {
         CHECK_IO(fprintf(hfile, "  double *%s;\n", n));
       } else {
-        CHECK_IO(fprintf(hfile, "  struct %s **%s;\n",
-                         (get_type_from_ref(r, &_ast_get_type_from_ref_5),
-                          _ast_get_type_from_ref_5),
-                         n));
+        get_type_from_ref(r, &ref_type);
+        CHECK_IO(fprintf(hfile, "  struct %s **%s;\n", ref_type, n));
       }
     } else {
       CHECK_IO(fprintf(hfile, "  void *%s;\n", n));

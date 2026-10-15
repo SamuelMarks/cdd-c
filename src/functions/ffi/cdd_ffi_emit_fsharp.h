@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_fsharp.h
+ * @brief FFI binding emitter for Fsharp.
+ */
 #ifndef CDD_FFI_EMIT_FSHARP_H
 #define CDD_FFI_EMIT_FSHARP_H
 

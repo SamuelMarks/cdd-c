@@ -43,21 +43,21 @@ cdd_c_error_t skip_ws_back(const struct TokenList *tokens, size_t i,
                            size_t *_out_val);
 
 /**
- * @brief Checks if a token starts a type specification.
+ * @brief Checks if a token is a valid start of a type specifier.
  *
- * @param[in] tok Token to inspect.
+ * @param[in] tok The token to inspect.
  * @param[out] out_is_type Pointer to int set to 1 if type start, 0 otherwise.
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t is_type_start(const struct Token *tok, int *out_is_type);
 
 /**
- * @brief Matches function definition patterns.
+ * @brief Heuristic to detect function definitions.
  *
  * @param[in] tokens Token list.
  * @param[in] start_idx Start token index.
- * @param[in] limit Limit token index.
- * @param[out] end_idx_out Output index after function signature.
+ * @param[in] limit Index limit.
+ * @param[out] end_idx_out Pointer to receive end token index.
  * @param[out] out_is_match Pointer to receive 1 if match, 0 otherwise.
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
@@ -66,11 +66,11 @@ cdd_c_error_t match_function_definition(const struct TokenList *tokens,
                                         size_t *end_idx_out, int *out_is_match);
 
 /**
- * @brief Consumes balanced parentheses starting from LPAREN.
+ * @brief Consume a balanced parenthesized block `( ... )`.
  *
  * @param[in] tokens Token list.
- * @param[in] start Index of LPAREN token.
- * @param[in] limit Upper bound token index.
+ * @param[in] start Start index (at LPAREN).
+ * @param[in] limit Index limit.
  * @param[out] _out_val Index after closing RPAREN.
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
@@ -79,11 +79,11 @@ cdd_c_error_t consume_balanced_parens(const struct TokenList *tokens,
                                       size_t *_out_val);
 
 /**
- * @brief Consumes C23 standard attributes [[ ... ]].
+ * @brief Consume a C23 attribute block `[[ ... ]]`.
  *
  * @param[in] tokens Token list.
- * @param[in] start Index of first LBRACKET token.
- * @param[in] limit Upper bound token index.
+ * @param[in] start Start index (at first LBRACKET).
+ * @param[in] limit Index limit.
  * @param[out] _out_val Index after closing RBRACKETs or start if unclosed.
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
@@ -91,11 +91,11 @@ cdd_c_error_t consume_attributes(const struct TokenList *tokens, size_t start,
                                  size_t limit, size_t *_out_val);
 
 /**
- * @brief Consumes C11 static assert directive: _Static_assert ( ... ) ;
+ * @brief Consume a static assertion declaration.
  *
  * @param[in] tokens Token list.
- * @param[in] start Index of STATIC_ASSERT token.
- * @param[in] limit Upper bound token index.
+ * @param[in] start Start index.
+ * @param[in] limit Index limit.
  * @param[out] _out_val Index after semicolon, or start if invalid.
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
@@ -104,11 +104,11 @@ cdd_c_error_t consume_static_assert(const struct TokenList *tokens,
                                     size_t *_out_val);
 
 /**
- * @brief Consumes C11 generic selection: _Generic ( ... )
+ * @brief Consume a _Generic selection `_Generic ( ... )`.
  *
  * @param[in] tokens Token list.
- * @param[in] start Index of GENERIC token.
- * @param[in] limit Upper bound token index.
+ * @param[in] start Start index.
+ * @param[in] limit Index limit.
  * @param[out] _out_val Index after balanced parens.
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
@@ -117,12 +117,12 @@ cdd_c_error_t consume_generic_selection(const struct TokenList *tokens,
                                         size_t *_out_val);
 
 /**
- * @brief Determines if an opening brace belongs to an expression rather than a
- * block.
+ * @brief Identify if the LBRACE at `brace_idx` signifies an expression/init
+ * list.
  *
  * @param[in] tokens Token list.
- * @param[in] brace_idx Index of the LBRACE token.
- * @param[out] out_is_expr Output 1 if brace belongs to expression, 0
+ * @param[in] brace_idx Index of LBRACE token.
+ * @param[out] out_is_expr Pointer to receive 1 if expression brace, 0
  * otherwise.
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
@@ -130,11 +130,11 @@ cdd_c_error_t is_expression_brace(const struct TokenList *tokens,
                                   size_t brace_idx, int *out_is_expr);
 
 /**
- * @brief Consumes balanced curly braces { ... }.
+ * @brief Consume a brace-enclosed block, respecting nesting.
  *
  * @param[in] tokens Token list.
- * @param[in] start Index of opening LBRACE token.
- * @param[in] limit Upper bound token index.
+ * @param[in] start Start index (at LBRACE).
+ * @param[in] limit Index limit.
  * @param[out] _out_val Index after closing RBRACE.
  * @return CDD_C_SUCCESS on success, error code on failure.
  */

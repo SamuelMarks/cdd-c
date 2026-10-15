@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_julia.h
+ * @brief FFI binding emitter for Julia.
+ */
 #ifndef CDD_FFI_EMIT_JULIA_H
 #define CDD_FFI_EMIT_JULIA_H
 

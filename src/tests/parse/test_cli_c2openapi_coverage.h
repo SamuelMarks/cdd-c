@@ -203,19 +203,19 @@ TEST test_c2openapi_full_coverage_100(void) {
   doc_srv.n_variables = 1;
   doc_srv.variables = doc_vars;
   memset(doc_vars, 0, sizeof(doc_vars));
-  doc_vars[0].name = (char *)(size_t) "var1";
+  doc_vars[0].name = cdd_test_mut_str("var1");
   doc_vars[0].default_value = NULL;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             copy_doc_server_variables(&srv, &doc_srv));
   doc_vars[0].name = NULL;
-  doc_vars[0].default_value = (char *)(size_t) "def";
+  doc_vars[0].default_value = cdd_test_mut_str("def");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             copy_doc_server_variables(&srv, &doc_srv));
-  doc_vars[0].name = (char *)(size_t) "var1";
-  doc_vars[0].default_value = (char *)(size_t) "def";
-  doc_vars[0].description = (char *)(size_t) "desc";
-  enum_vals[0] = (char *)(size_t) "val1";
-  enum_vals[1] = (char *)(size_t) "def";
+  doc_vars[0].name = cdd_test_mut_str("var1");
+  doc_vars[0].default_value = cdd_test_mut_str("def");
+  doc_vars[0].description = cdd_test_mut_str("desc");
+  enum_vals[0] = cdd_test_mut_str("val1");
+  enum_vals[1] = cdd_test_mut_str("def");
   doc_vars[0].enum_values = enum_vals;
   doc_vars[0].n_enum_values = 2;
   /* strdup fail for default_val */
@@ -235,10 +235,10 @@ TEST test_c2openapi_full_coverage_100(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_doc_server_variables(&srv, &doc_srv));
   g_cdd_alloc_fail = 0;
   /* found_default == 0 */
-  enum_vals[1] = (char *)(size_t) "no_match";
+  enum_vals[1] = cdd_test_mut_str("no_match");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             copy_doc_server_variables(&srv, &doc_srv));
-  enum_vals[1] = (char *)(size_t) "def";
+  enum_vals[1] = cdd_test_mut_str("def");
 
   /* 10. merge_scopes */
   memset(&flow_dst, 0, sizeof(flow_dst));
@@ -248,8 +248,8 @@ TEST test_c2openapi_full_coverage_100(void) {
   doc_flow.n_scopes = 1;
   doc_flow.scopes = doc_scopes;
   memset(doc_scopes, 0, sizeof(doc_scopes));
-  doc_scopes[0].name = (char *)(size_t) "read";
-  doc_scopes[0].description = (char *)(size_t) "Read access";
+  doc_scopes[0].name = cdd_test_mut_str("read");
+  doc_scopes[0].description = cdd_test_mut_str("Read access");
   /* strdup fail for name */
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, merge_scopes(&flow_dst, &doc_flow));
@@ -259,8 +259,8 @@ TEST test_c2openapi_full_coverage_100(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY, merge_scopes(&flow_dst, &doc_flow));
   g_cdd_strdup_fail = 0;
   /* success with non-null name and desc */
-  doc_scopes[0].name = (char *)(size_t)(size_t) "read";
-  doc_scopes[0].description = (char *)(size_t)(size_t) "read desc";
+  doc_scopes[0].name = cdd_test_mut_str("read");
+  doc_scopes[0].description = cdd_test_mut_str("read desc");
   ASSERT_EQ(CDD_C_SUCCESS, merge_scopes(&flow_dst, &doc_flow));
   if (flow_dst.scopes) {
     size_t si;
@@ -296,14 +296,14 @@ TEST test_c2openapi_full_coverage_100(void) {
   doc_flow.type = DOC_OAUTH_FLOW_UNSET;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_oauth_flows(&scheme, &doc_sec));
   doc_flow.type = DOC_OAUTH_FLOW_IMPLICIT;
-  doc_flow.authorization_url = (char *)(size_t) "http://auth";
-  doc_flow.token_url = (char *)(size_t) "http://token";
-  doc_flow.refresh_url = (char *)(size_t) "http://refresh";
-  doc_flow.device_authorization_url = (char *)(size_t) "http://device";
+  doc_flow.authorization_url = cdd_test_mut_str("http://auth");
+  doc_flow.token_url = cdd_test_mut_str("http://token");
+  doc_flow.refresh_url = cdd_test_mut_str("http://refresh");
+  doc_flow.device_authorization_url = cdd_test_mut_str("http://device");
   doc_flow.n_scopes = 1;
   doc_flow.scopes = doc_scopes;
-  doc_scopes[0].name = (char *)(size_t) "scope1";
-  doc_scopes[0].description = (char *)(size_t) "desc1";
+  doc_scopes[0].name = cdd_test_mut_str("scope1");
+  doc_scopes[0].description = cdd_test_mut_str("desc1");
   /* URL strdup fails */
   g_cdd_strdup_fail = 2; /* token_url fail */
   ASSERT_EQ(CDD_C_ERROR_MEMORY, add_oauth_flows(&scheme, &doc_sec));
@@ -333,12 +333,12 @@ TEST test_c2openapi_full_coverage_100(void) {
   ASSERT_EQ(CDD_C_SUCCESS, spec_add_security_scheme(&spec, NULL));
   doc_sec.name = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, spec_add_security_scheme(&spec, &doc_sec));
-  doc_sec.name = (char *)(size_t) "";
+  doc_sec.name = cdd_test_mut_str("");
   ASSERT_EQ(CDD_C_SUCCESS, spec_add_security_scheme(&spec, &doc_sec));
   /* realloc fail */
-  doc_sec.name = (char *)(size_t) "MySec";
+  doc_sec.name = cdd_test_mut_str("MySec");
   doc_sec.type = DOC_SEC_HTTP;
-  doc_sec.scheme = (char *)(size_t) "bearer";
+  doc_sec.scheme = cdd_test_mut_str("bearer");
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_add_security_scheme(&spec, &doc_sec));
   g_cdd_alloc_fail = 0;
@@ -354,14 +354,14 @@ TEST test_c2openapi_full_coverage_100(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             spec_add_security_scheme(&spec, &doc_sec));
   /* API key invalid in */
-  doc_sec.name = (char *)(size_t) "ApiKeyBad";
+  doc_sec.name = cdd_test_mut_str("ApiKeyBad");
   doc_sec.type = DOC_SEC_APIKEY;
-  doc_sec.param_name = (char *)(size_t) "X-Api-Key";
+  doc_sec.param_name = cdd_test_mut_str("X-Api-Key");
   doc_sec.in = DOC_SEC_IN_UNSET;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             spec_add_security_scheme(&spec, &doc_sec));
   /* OAuth2 empty flows */
-  doc_sec.name = (char *)(size_t) "OAuth2Empty";
+  doc_sec.name = cdd_test_mut_str("OAuth2Empty");
   doc_sec.type = DOC_SEC_OAUTH2;
   doc_sec.n_flows = 0;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -375,9 +375,9 @@ TEST test_c2openapi_full_coverage_100(void) {
   ASSERT_EQ(CDD_C_SUCCESS, apply_doc_security_schemes(&spec, NULL));
   meta.n_security_schemes = 1;
   meta.security_schemes = &doc_sec;
-  doc_sec.name = (char *)(size_t) "SecMemFail";
+  doc_sec.name = cdd_test_mut_str("SecMemFail");
   doc_sec.type = DOC_SEC_HTTP;
-  doc_sec.scheme = (char *)(size_t) "bearer";
+  doc_sec.scheme = cdd_test_mut_str("bearer");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, apply_doc_security_schemes(&spec, &meta));
   g_cdd_strdup_fail = 0;
@@ -391,10 +391,10 @@ TEST test_c2openapi_full_coverage_100(void) {
   meta.n_security = 1;
   meta.security = &doc_req;
   memset(&doc_req, 0, sizeof(doc_req));
-  doc_req.scheme = (char *)(size_t) "oauth";
+  doc_req.scheme = cdd_test_mut_str("oauth");
   doc_req.n_scopes = 1;
   doc_req.scopes = req_scopes;
-  req_scopes[0] = (char *)(size_t) "read";
+  req_scopes[0] = cdd_test_mut_str("read");
   /* calloc requirements fail */
   g_cdd_alloc_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, append_root_security(&spec, &meta));
@@ -421,9 +421,9 @@ TEST test_c2openapi_full_coverage_100(void) {
   meta.n_servers = 1;
   meta.servers = &doc_srv;
   memset(&doc_srv, 0, sizeof(doc_srv));
-  doc_srv.url = (char *)(size_t) "http://srv";
-  doc_srv.name = (char *)(size_t) "srv1";
-  doc_srv.description = (char *)(size_t) "Main srv";
+  doc_srv.url = cdd_test_mut_str("http://srv");
+  doc_srv.name = cdd_test_mut_str("srv1");
+  doc_srv.description = cdd_test_mut_str("Main srv");
   /* url strdup fail */
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, append_root_servers(&spec, &meta));
@@ -444,24 +444,24 @@ TEST test_c2openapi_full_coverage_100(void) {
   ASSERT_EQ(CDD_C_SUCCESS, apply_doc_global_meta(NULL, &meta));
   ASSERT_EQ(CDD_C_SUCCESS, apply_doc_global_meta(&spec, NULL));
   /* license conflicts */
-  meta.license_name = (char *)(size_t) "MIT";
-  meta.license_url = (char *)(size_t) "http://lic";
-  meta.license_identifier = (char *)(size_t) "MIT-id";
+  meta.license_name = cdd_test_mut_str("MIT");
+  meta.license_url = cdd_test_mut_str("http://lic");
+  meta.license_identifier = cdd_test_mut_str("MIT-id");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, apply_doc_global_meta(&spec, &meta));
   meta.license_url = NULL;
-  meta.license_identifier = (char *)(size_t) "MIT-id";
+  meta.license_identifier = cdd_test_mut_str("MIT-id");
   ASSERT_EQ(CDD_C_SUCCESS, apply_doc_global_meta(&spec, &meta));
   meta.license_identifier = NULL;
-  meta.license_url = (char *)(size_t) "http://lic";
+  meta.license_url = cdd_test_mut_str("http://lic");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, apply_doc_global_meta(&spec, &meta));
   openapi_spec_free(&spec);
 
   /* externalDocs url conflict */
   memset(&spec, 0, sizeof(spec));
   memset(&meta, 0, sizeof(meta));
-  meta.external_docs_url = (char *)(size_t) "http://docs1";
+  meta.external_docs_url = cdd_test_mut_str("http://docs1");
   ASSERT_EQ(CDD_C_SUCCESS, apply_doc_global_meta(&spec, &meta));
-  meta.external_docs_url = (char *)(size_t) "http://docs2";
+  meta.external_docs_url = cdd_test_mut_str("http://docs2");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, apply_doc_global_meta(&spec, &meta));
   openapi_spec_free(&spec);
 
@@ -470,15 +470,15 @@ TEST test_c2openapi_full_coverage_100(void) {
   memset(&doc_tag, 0, sizeof(doc_tag));
   ASSERT_EQ(CDD_C_SUCCESS, spec_apply_tag_meta(NULL, &doc_tag));
   ASSERT_EQ(CDD_C_SUCCESS, spec_apply_tag_meta(&spec, NULL));
-  doc_tag.name = (char *)(size_t) "";
+  doc_tag.name = cdd_test_mut_str("");
   ASSERT_EQ(CDD_C_SUCCESS, spec_apply_tag_meta(&spec, &doc_tag));
-  doc_tag.name = (char *)(size_t) "Tag1";
-  doc_tag.summary = (char *)(size_t) "Summ";
-  doc_tag.description = (char *)(size_t) "Desc";
-  doc_tag.parent = (char *)(size_t) "Par";
-  doc_tag.kind = (char *)(size_t) "K";
-  doc_tag.external_docs_url = (char *)(size_t) "http://doc";
-  doc_tag.external_docs_description = (char *)(size_t) "ExtDesc";
+  doc_tag.name = cdd_test_mut_str("Tag1");
+  doc_tag.summary = cdd_test_mut_str("Summ");
+  doc_tag.description = cdd_test_mut_str("Desc");
+  doc_tag.parent = cdd_test_mut_str("Par");
+  doc_tag.kind = cdd_test_mut_str("K");
+  doc_tag.external_docs_url = cdd_test_mut_str("http://doc");
+  doc_tag.external_docs_description = cdd_test_mut_str("ExtDesc");
   ASSERT_EQ(CDD_C_SUCCESS, spec_apply_tag_meta(&spec, &doc_tag));
   /* apply second time: all fields already populated */
   ASSERT_EQ(CDD_C_SUCCESS, spec_apply_tag_meta(&spec, &doc_tag));
@@ -503,7 +503,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   path.operations = &op;
   op.n_tags = 1;
   op.tags = op_tags;
-  op_tags[0] = (char *)(size_t) "OpTag";
+  op_tags[0] = cdd_test_mut_str("OpTag");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, collect_tags_from_paths(&spec, &path, 1));
   g_cdd_strdup_fail = 0;
@@ -550,26 +550,26 @@ TEST test_c2openapi_full_coverage_100(void) {
 
   /* 25. c2openapi_cli_main options */
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c2openapi_cli_main(0, NULL));
-  argv[0] = (char *)(size_t) "c2openapi";
-  argv[1] = (char *)(size_t) "--jsonSchemaDialect";
-  argv[2] = (char *)(size_t) "http://dialect";
-  argv[3] = (char *)(size_t) "-b";
-  argv[4] = (char *)(size_t) "nonexistent.json";
-  argv[5] = (char *)(size_t) "src";
-  argv[6] = (char *)(size_t) "out.json";
+  argv[0] = cdd_test_mut_str("c2openapi");
+  argv[1] = cdd_test_mut_str("--jsonSchemaDialect");
+  argv[2] = cdd_test_mut_str("http://dialect");
+  argv[3] = cdd_test_mut_str("-b");
+  argv[4] = cdd_test_mut_str("nonexistent.json");
+  argv[5] = cdd_test_mut_str("src");
+  argv[6] = cdd_test_mut_str("out.json");
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c2openapi_cli_main(7, argv));
 
   /* 26. generate_bindings_cli_main short options */
-  argv[0] = (char *)(size_t) "bind";
-  argv[1] = (char *)(size_t) "-i";
-  argv[2] = (char *)(size_t) "include";
-  argv[3] = (char *)(size_t) "-o";
-  argv[4] = (char *)(size_t) "out_dir";
-  argv[5] = (char *)(size_t) "-l";
-  argv[6] = (char *)(size_t) "python";
-  argv[7] = (char *)(size_t) "-n";
-  argv[8] = (char *)(size_t) "mylib";
-  argv[9] = (char *)(size_t) "-m";
+  argv[0] = cdd_test_mut_str("bind");
+  argv[1] = cdd_test_mut_str("-i");
+  argv[2] = cdd_test_mut_str("include");
+  argv[3] = cdd_test_mut_str("-o");
+  argv[4] = cdd_test_mut_str("out_dir");
+  argv[5] = cdd_test_mut_str("-l");
+  argv[6] = cdd_test_mut_str("python");
+  argv[7] = cdd_test_mut_str("-n");
+  argv[8] = cdd_test_mut_str("mylib");
+  argv[9] = cdd_test_mut_str("-m");
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(10, argv));
 
   /* 27. c2openapi_register_types */
@@ -581,7 +581,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   {
     memset(&spec, 0, sizeof(spec));
     memset(&meta, 0, sizeof(meta));
-    meta.info_title = (char *)(size_t) "NewTitle";
+    meta.info_title = cdd_test_mut_str("NewTitle");
     g_cdd_strdup_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, apply_doc_global_meta(&spec, &meta));
     g_cdd_strdup_fail = 0;
@@ -598,7 +598,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   doc_flow.n_scopes = 1;
   doc_flow.scopes = doc_scopes;
   memset(doc_scopes, 0, sizeof(doc_scopes));
-  doc_scopes[0].name = (char *)(size_t) "read";
+  doc_scopes[0].name = cdd_test_mut_str("read");
   ASSERT_EQ(CDD_C_SUCCESS, merge_scopes(&flow_dst, &doc_flow));
   if (flow_dst.scopes) {
     if (flow_dst.scopes[1].name)
@@ -631,24 +631,24 @@ TEST test_c2openapi_full_coverage_100(void) {
   /* 33. spec_add_security_scheme branches */
   memset(&spec, 0, sizeof(spec));
   memset(&doc_sec, 0, sizeof(doc_sec));
-  doc_sec.name = (char *)(size_t) "ApiKeyEmptyParam";
+  doc_sec.name = cdd_test_mut_str("ApiKeyEmptyParam");
   doc_sec.type = DOC_SEC_APIKEY;
-  doc_sec.param_name = (char *)(size_t) "";
+  doc_sec.param_name = cdd_test_mut_str("");
   doc_sec.in = DOC_SEC_IN_HEADER;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             spec_add_security_scheme(&spec, &doc_sec));
-  doc_sec.name = (char *)(size_t) "HttpNullBearer";
+  doc_sec.name = cdd_test_mut_str("HttpNullBearer");
   doc_sec.type = DOC_SEC_HTTP;
-  doc_sec.scheme = (char *)(size_t) "bearer";
+  doc_sec.scheme = cdd_test_mut_str("bearer");
   doc_sec.bearer_format = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, spec_add_security_scheme(&spec, &doc_sec));
-  doc_sec.name = (char *)(size_t) "OAuthNullMetaUrl";
+  doc_sec.name = cdd_test_mut_str("OAuthNullMetaUrl");
   doc_sec.type = DOC_SEC_OAUTH2;
   doc_sec.oauth2_metadata_url = NULL;
   doc_sec.n_flows = 1;
   doc_sec.flows = &doc_flow;
   doc_flow.type = DOC_OAUTH_FLOW_CLIENT_CREDENTIALS;
-  doc_flow.token_url = (char *)(size_t) "http://token";
+  doc_flow.token_url = cdd_test_mut_str("http://token");
   ASSERT_EQ(CDD_C_SUCCESS, spec_add_security_scheme(&spec, &doc_sec));
   openapi_spec_free(&spec);
 
@@ -671,13 +671,13 @@ TEST test_c2openapi_full_coverage_100(void) {
   meta.n_servers = 1;
   meta.servers = &doc_srv;
   memset(&doc_srv, 0, sizeof(doc_srv));
-  doc_srv.url = (char *)(size_t) "http://srv";
-  doc_srv.name = (char *)(size_t) "srv_name";
-  doc_srv.description = (char *)(size_t) "srv_desc";
+  doc_srv.url = cdd_test_mut_str("http://srv");
+  doc_srv.name = cdd_test_mut_str("srv_name");
+  doc_srv.description = cdd_test_mut_str("srv_desc");
   doc_srv.n_variables = 1;
   doc_srv.variables = doc_vars;
   memset(doc_vars, 0, sizeof(doc_vars));
-  doc_vars[0].name = (char *)(size_t) "var_bad";
+  doc_vars[0].name = cdd_test_mut_str("var_bad");
   doc_vars[0].default_value = NULL; /* causes vrc != CDD_C_SUCCESS */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, append_root_servers(&spec, &meta));
   /* NULL url, name, description */
@@ -691,9 +691,9 @@ TEST test_c2openapi_full_coverage_100(void) {
   /* 36. apply_doc_global_meta license & ext docs */
   memset(&spec, 0, sizeof(spec));
   memset(&meta, 0, sizeof(meta));
-  spec.info.license.name = (char *)(size_t) "Apache-2.0";
+  spec.info.license.name = cdd_test_mut_str("Apache-2.0");
   meta.license_name = NULL;
-  meta.license_url = (char *)(size_t) "http://apache.org";
+  meta.license_url = cdd_test_mut_str("http://apache.org");
   meta.license_identifier = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, apply_doc_global_meta(&spec, &meta));
   spec.info.license.name = NULL; /* avoid double free */
@@ -702,9 +702,9 @@ TEST test_c2openapi_full_coverage_100(void) {
   /* ext docs description when url already set */
   memset(&spec, 0, sizeof(spec));
   memset(&meta, 0, sizeof(meta));
-  spec.external_docs.url = (char *)(size_t) "http://docs";
-  meta.external_docs_url = (char *)(size_t) "http://docs";
-  meta.external_docs_description = (char *)(size_t) "New Desc";
+  spec.external_docs.url = cdd_test_mut_str("http://docs");
+  meta.external_docs_url = cdd_test_mut_str("http://docs");
+  meta.external_docs_description = cdd_test_mut_str("New Desc");
   ASSERT_EQ(CDD_C_SUCCESS, apply_doc_global_meta(&spec, &meta));
   spec.external_docs.url = NULL;
   openapi_spec_free(&spec);
@@ -712,20 +712,20 @@ TEST test_c2openapi_full_coverage_100(void) {
   /* 37. spec_apply_tag_meta */
   memset(&spec, 0, sizeof(spec));
   memset(&doc_tag, 0, sizeof(doc_tag));
-  doc_tag.name = (char *)(size_t) "TagNullUrl";
+  doc_tag.name = cdd_test_mut_str("TagNullUrl");
   doc_tag.external_docs_url = NULL;
-  doc_tag.external_docs_description = (char *)(size_t) "DescOnly";
+  doc_tag.external_docs_description = cdd_test_mut_str("DescOnly");
   ASSERT_EQ(CDD_C_SUCCESS, spec_apply_tag_meta(&spec, &doc_tag));
   /* strdup fail for description and parent */
   memset(&doc_tag, 0, sizeof(doc_tag));
-  doc_tag.name = (char *)(size_t) "TagFail";
-  doc_tag.description = (char *)(size_t) "Desc";
+  doc_tag.name = cdd_test_mut_str("TagFail");
+  doc_tag.description = cdd_test_mut_str("Desc");
   g_cdd_strdup_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_apply_tag_meta(&spec, &doc_tag));
   g_cdd_strdup_fail = 0;
   memset(&doc_tag, 0, sizeof(doc_tag));
-  doc_tag.name = (char *)(size_t) "TagFail2";
-  doc_tag.parent = (char *)(size_t) "Parent";
+  doc_tag.name = cdd_test_mut_str("TagFail2");
+  doc_tag.parent = cdd_test_mut_str("Parent");
   g_cdd_strdup_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_apply_tag_meta(&spec, &doc_tag));
   g_cdd_strdup_fail = 0;
@@ -741,7 +741,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   memset(&op, 0, sizeof(op));
   op.n_tags = 1;
   op.tags = op_tags;
-  op_tags[0] = (char *)(size_t) "TagX";
+  op_tags[0] = cdd_test_mut_str("TagX");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, collect_spec_tags(&spec));
   g_cdd_strdup_fail = 0;
@@ -766,19 +766,19 @@ TEST test_c2openapi_full_coverage_100(void) {
 
   /* 40. c2openapi_cli_main -s, --dialect, and overwrite options */
   {
-    argv[0] = (char *)(size_t) "c2openapi";
-    argv[1] = (char *)(size_t) "-s";
-    argv[2] = (char *)(size_t) "http://self_s";
-    argv[3] = (char *)(size_t) "--dialect";
-    argv[4] = (char *)(size_t) "http://dialect_d";
-    argv[5] = (char *)(size_t) "nonexistent_src_dir_99";
-    argv[6] = (char *)(size_t) "out.json";
+    argv[0] = cdd_test_mut_str("c2openapi");
+    argv[1] = cdd_test_mut_str("-s");
+    argv[2] = cdd_test_mut_str("http://self_s");
+    argv[3] = cdd_test_mut_str("--dialect");
+    argv[4] = cdd_test_mut_str("http://dialect_d");
+    argv[5] = cdd_test_mut_str("nonexistent_src_dir_99");
+    argv[6] = cdd_test_mut_str("out.json");
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c2openapi_cli_main(7, argv));
   }
 
   /* 41. to_docs_json_cli_main with --no-imports and --no-wrapping */
   {
-    const char *tmp_spec = "test_docs_json_flags.json";
+    const char *tmp_spec = "build/test_docs_json_flags.json";
     FILE *fp = fopen(tmp_spec, "w");
     if (fp) {
       fputs("{\"openapi\":\"3.0.0\",\"info\":{\"title\":\"T\",\"version\":"
@@ -788,27 +788,27 @@ TEST test_c2openapi_full_coverage_100(void) {
             fp);
       fclose(fp);
     }
-    argv[0] = (char *)(size_t) "to_docs_json";
-    argv[1] = (char *)(size_t) "--input";
-    argv[2] = (char *)(size_t)tmp_spec;
-    argv[3] = (char *)(size_t) "--no-imports";
-    argv[4] = (char *)(size_t) "--no-wrapping";
+    argv[0] = cdd_test_mut_str("to_docs_json");
+    argv[1] = cdd_test_mut_str("--input");
+    argv[2] = cdd_test_mut_str(tmp_spec);
+    argv[3] = cdd_test_mut_str("--no-imports");
+    argv[4] = cdd_test_mut_str("--no-wrapping");
     ASSERT_EQ(CDD_C_SUCCESS, to_docs_json_cli_main(5, argv));
     remove(tmp_spec);
   }
 
   /* 42. generate_bindings_cli_main flags */
   {
-    argv[0] = (char *)(size_t) "bind";
-    argv[1] = (char *)(size_t) "--input";
-    argv[2] = (char *)(size_t) "include";
-    argv[3] = (char *)(size_t) "--output-dir";
-    argv[4] = (char *)(size_t) "out_dir";
-    argv[5] = (char *)(size_t) "--lang";
-    argv[6] = (char *)(size_t) "python";
-    argv[7] = (char *)(size_t) "--skip-static";
-    argv[8] = (char *)(size_t) "--opaque-pointers";
-    argv[9] = (char *)(size_t) "--generate-tests";
+    argv[0] = cdd_test_mut_str("bind");
+    argv[1] = cdd_test_mut_str("--input");
+    argv[2] = cdd_test_mut_str("include");
+    argv[3] = cdd_test_mut_str("--output-dir");
+    argv[4] = cdd_test_mut_str("build/out_dir");
+    argv[5] = cdd_test_mut_str("--lang");
+    argv[6] = cdd_test_mut_str("python");
+    argv[7] = cdd_test_mut_str("--skip-static");
+    argv[8] = cdd_test_mut_str("--opaque-pointers");
+    argv[9] = cdd_test_mut_str("--generate-tests");
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(10, argv));
   }
 
@@ -822,15 +822,15 @@ TEST test_c2openapi_full_coverage_100(void) {
     types.capacity = 4;
 
     types.items[0].kind = KIND_STRUCT;
-    types.items[0].name = (char *)(size_t) "StructNullFields";
+    types.items[0].name = cdd_test_mut_str("StructNullFields");
     types.items[0].details.struct_fields = NULL;
 
     types.items[1].kind = KIND_ENUM;
-    types.items[1].name = (char *)(size_t) "EnumNullMembers";
+    types.items[1].name = cdd_test_mut_str("EnumNullMembers");
     types.items[1].details.enum_members = NULL;
 
     types.items[2].kind = (enum TypeDefinitionKind)999;
-    types.items[2].name = (char *)(size_t) "OtherKind";
+    types.items[2].name = cdd_test_mut_str("OtherKind");
 
     types.items[3].kind = KIND_STRUCT;
     types.items[3].name = NULL;
@@ -844,14 +844,14 @@ TEST test_c2openapi_full_coverage_100(void) {
 
   /* 44. process_file error in function doc comment via title conflict */
   {
-    const char *fpath = "test_func_doc_err.c";
+    const char *fpath = "build/test_func_doc_err.c";
     FILE *fp = fopen(fpath, "w");
     if (fp) {
       fputs("/**\n * @infoTitle DocTitleNew\n */\nvoid bad_route(void) {}\n",
             fp);
       fclose(fp);
       memset(&spec, 0, sizeof(spec));
-      spec.info.title = (char *)(size_t)c_cdd_strdup_macro("DocTitleExisting");
+      spec.info.title = c_cdd_strdup_macro("DocTitleExisting");
       rc = process_file(fpath, &spec);
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
       openapi_spec_free(&spec);
@@ -861,13 +861,13 @@ TEST test_c2openapi_full_coverage_100(void) {
 
   /* 45. process_file error in standalone doc comment via title conflict */
   {
-    const char *fpath = "test_standalone_doc_err.c";
+    const char *fpath = "build/test_standalone_doc_err.c";
     FILE *fp = fopen(fpath, "w");
     if (fp) {
       fputs("/**\n * @infoTitle DocTitleStandaloneNew\n */\n", fp);
       fclose(fp);
       memset(&spec, 0, sizeof(spec));
-      spec.info.title = (char *)(size_t)c_cdd_strdup_macro("DocTitleExisting");
+      spec.info.title = c_cdd_strdup_macro("DocTitleExisting");
       rc = process_file(fpath, &spec);
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
       openapi_spec_free(&spec);
@@ -877,7 +877,7 @@ TEST test_c2openapi_full_coverage_100(void) {
 
   /* 46. process_file function declaration without brace */
   {
-    const char *fpath = "test_no_brace.c";
+    const char *fpath = "build/test_no_brace.c";
     FILE *fp = fopen(fpath, "w");
     if (fp) {
       fputs("/**\n * @route GET /nobrace\n */\nvoid no_brace(void);\n", fp);
@@ -891,26 +891,26 @@ TEST test_c2openapi_full_coverage_100(void) {
 
   /* 47. c2openapi_cli_main duplicate --self and --dialect */
   {
-    argv[0] = (char *)(size_t) "c2openapi";
-    argv[1] = (char *)(size_t) "--self";
-    argv[2] = (char *)(size_t) "http://self1";
-    argv[3] = (char *)(size_t) "--self";
-    argv[4] = (char *)(size_t) "http://self2";
-    argv[5] = (char *)(size_t) "--dialect";
-    argv[6] = (char *)(size_t) "http://d1";
-    argv[7] = (char *)(size_t) "--dialect";
-    argv[8] = (char *)(size_t) "http://d2";
+    argv[0] = cdd_test_mut_str("c2openapi");
+    argv[1] = cdd_test_mut_str("--self");
+    argv[2] = cdd_test_mut_str("http://self1");
+    argv[3] = cdd_test_mut_str("--self");
+    argv[4] = cdd_test_mut_str("http://self2");
+    argv[5] = cdd_test_mut_str("--dialect");
+    argv[6] = cdd_test_mut_str("http://d1");
+    argv[7] = cdd_test_mut_str("--dialect");
+    argv[8] = cdd_test_mut_str("http://d2");
     /* missing dir/file -> error */
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c2openapi_cli_main(9, argv));
   }
 
   /* 48. c2openapi_cli_main --dialect strdup fail */
   {
-    argv[0] = (char *)(size_t) "c2openapi";
-    argv[1] = (char *)(size_t) "--dialect";
-    argv[2] = (char *)(size_t) "http://d1";
-    argv[3] = (char *)(size_t) "my_empty_dir";
-    argv[4] = (char *)(size_t) "out.json";
+    argv[0] = cdd_test_mut_str("c2openapi");
+    argv[1] = cdd_test_mut_str("--dialect");
+    argv[2] = cdd_test_mut_str("http://d1");
+    argv[3] = cdd_test_mut_str("build/my_empty_dir");
+    argv[4] = cdd_test_mut_str("build/out.json");
     g_cdd_strdup_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c2openapi_cli_main(5, argv));
     g_cdd_strdup_fail = 0;
@@ -930,7 +930,7 @@ TEST test_c2openapi_full_coverage_100(void) {
     types.size = 1;
     types.capacity = 1;
     types.items[0].kind = KIND_ENUM;
-    types.items[0].name = (char *)(size_t) "ValidEnum";
+    types.items[0].name = cdd_test_mut_str("ValidEnum");
     types.items[0].details.enum_members = &em;
 
     memset(&spec, 0, sizeof(spec));

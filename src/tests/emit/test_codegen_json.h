@@ -63,7 +63,7 @@ TEST test_json_to_plain(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -113,7 +113,7 @@ TEST test_json_from_plain(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -158,7 +158,7 @@ TEST test_json_recursive_obj(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -203,7 +203,7 @@ TEST test_json_array_logic(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -350,7 +350,7 @@ TEST test_json_guards(void) {
     sf.fields[sf.size - 1].exclusive_min = 0;
     sf.fields[sf.size - 1].exclusive_max = 1;
 
-    config.guard_macro = (char *)(size_t)(size_t) "JSON_ENABLED";
+    config.guard_macro = cdd_test_mut_str("JSON_ENABLED");
 
     ASSERT_EQ(0, write_struct_from_json_func(tmp, "Data", &config));
     ASSERT_EQ(0, write_struct_array_from_json_func(tmp, "Data", &config));
@@ -358,7 +358,7 @@ TEST test_json_guards(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -396,7 +396,7 @@ TEST test_struct_array_from_json(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -563,7 +563,7 @@ TEST test_json_null_args(void) {
       sf.fields[sf.size - 1].exclusive_min = 0;
       sf.fields[sf.size - 1].exclusive_max = 1;
 
-      config.guard_macro = (char *)(size_t)(size_t) "JSON_ENABLED";
+      config.guard_macro = cdd_test_mut_str("JSON_ENABLED");
 
       if (readonly_f) {
         g_fail_io_after = 0;
@@ -630,7 +630,7 @@ TEST test_standalone_json_func(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 

@@ -1,3 +1,7 @@
+/**
+ * @file db_loader.h
+ * @brief Core db loader definitions and implementation.
+ */
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"

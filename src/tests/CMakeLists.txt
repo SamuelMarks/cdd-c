@@ -257,18 +257,6 @@ if (C_CDD_USE_ASAN)
     set_tests_properties("${EXEC_NAME}" PROPERTIES ENVIRONMENT "ASAN_OPTIONS=allocator_may_return_null=1")
 endif()
 
-
-
-if(MSVC)
-
-endif()
-
-if(MSVC)
-
-endif()
-add_subdirectory(src)
-target_link_libraries(test_c_cdd PUBLIC "generated_client")
-
 target_include_directories(
         test_simple_json
         PRIVATE

@@ -40,8 +40,7 @@ TEST test_cdd_cst_roundtrip_basic(void) {
                      "}\n"
                      "// end";
   char *out = NULL;
-  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                         &tree);
+  int rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
 
   ASSERT_EQ(0, rc);
   ASSERT(tree != NULL);
@@ -69,8 +68,7 @@ TEST test_cdd_cst_roundtrip_macros(void) {
   const char *code = "#define MACRO(x) (x + 1)\n"
                      "int var = MACRO(5);";
   char *out = NULL;
-  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                         &tree);
+  int rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
 
   ASSERT_EQ(0, rc);
   ASSERT(tree != NULL);
@@ -97,8 +95,7 @@ TEST test_cdd_cst_asm_statement(void) {
                      "  __asm__ volatile (\"nop\" : : : \"memory\");\n"
                      "}";
   char *out = NULL;
-  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                         &tree);
+  int rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
 
   ASSERT_EQ(0, rc);
   ASSERT(tree != NULL);
@@ -141,11 +138,9 @@ TEST test_cdd_cst_asm_statement(void) {
  */
 TEST test_cdd_cst_cpp_class(void) {
   cdd_cst_tree_t *tree = NULL;
-  int rc =
-      cdd_cst_parse(az_span_create_from_str(
-                        (char *)(size_t)(size_t) "class MyClass { public: int "
+  int rc = cdd_cst_parse(az_span_create_from_str("class MyClass { public: int "
                                                  "x; private: int y; };"),
-                    &tree);
+                         &tree);
   ASSERT_EQ(0, rc);
   ASSERT(tree != NULL);
   ASSERT_EQ(CDD_CST_TRANSLATION_UNIT, tree->root->kind);
@@ -165,12 +160,11 @@ TEST test_cdd_cst_cpp_class(void) {
 TEST test_cdd_cst_cpp_methods(void) {
   cdd_cst_tree_t *tree = NULL;
   int rc = cdd_cst_parse(
-      az_span_create_from_str((
-          char *)(size_t)(size_t) "class MyClass { \n"
-                                  "  MyClass() {} \n"
-                                  "  ~MyClass() {} \n"
-                                  "  MyClass& operator=(const MyClass& o) {} \n"
-                                  "};"),
+      az_span_create_from_str("class MyClass { \n"
+                              "  MyClass() {} \n"
+                              "  ~MyClass() {} \n"
+                              "  MyClass& operator=(const MyClass& o) {} \n"
+                              "};"),
       &tree);
   ASSERT_EQ(0, rc);
   ASSERT(tree != NULL);
@@ -221,8 +215,7 @@ TEST test_cdd_cst_cpp_exceptions(void) {
                      "  }\n"
                      "}\n";
   cdd_cst_tree_t *tree = NULL;
-  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                         &tree);
+  int rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
   ASSERT_EQ(0, rc);
   ASSERT(tree != NULL);
   ASSERT_EQ(CDD_CST_TRANSLATION_UNIT, tree->root->kind);
@@ -291,9 +284,7 @@ TEST test_cdd_cst_cpp_namespace(void) {
   cdd_cst_tree_t *tree = NULL;
   char *out = NULL;
 
-  ASSERT_EQ(0,
-            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                          &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT(tree != NULL);
   ASSERT(tree->root != NULL);
 
@@ -337,9 +328,7 @@ TEST test_cdd_cst_cpp_template(void) {
   cdd_cst_tree_t *tree = NULL;
   char *out = NULL;
 
-  ASSERT_EQ(0,
-            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                          &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT(tree != NULL);
   ASSERT(tree->root != NULL);
 
@@ -375,9 +364,7 @@ TEST test_cdd_cst_cpp_inheritance(void) {
   cdd_cst_tree_t *tree = NULL;
   char *out = NULL;
 
-  ASSERT_EQ(0,
-            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                          &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT(tree != NULL);
   ASSERT(tree->root != NULL);
 
@@ -476,8 +463,7 @@ TEST test_cdd_cst_parser_oom(void) {
   for (i = 1; i < 120; i++) {
     tree = NULL;
     g_cdd_alloc_fail = (int)i;
-    if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                      &tree) != CDD_C_SUCCESS) {
+    if (cdd_cst_parse(az_span_create_from_str(code), &tree) != CDD_C_SUCCESS) {
     }
     cdd_cst_tree_free(tree);
   }
@@ -486,8 +472,7 @@ TEST test_cdd_cst_parser_oom(void) {
   for (i = 1; i < 150; i++) {
     tree = NULL;
     g_cdd_cst_realloc_fail = (int)i;
-    if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                      &tree) != CDD_C_SUCCESS) {
+    if (cdd_cst_parse(az_span_create_from_str(code), &tree) != CDD_C_SUCCESS) {
     }
     cdd_cst_tree_free(tree);
   }
@@ -499,8 +484,8 @@ TEST test_cdd_cst_parser_oom(void) {
     for (i = 1; i < 150; i++) {
       tree = NULL;
       g_cdd_fail_cst_advance = (int)i;
-      if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                        &tree) != CDD_C_SUCCESS) {
+      if (cdd_cst_parse(az_span_create_from_str(code), &tree) !=
+          CDD_C_SUCCESS) {
       }
       cdd_cst_tree_free(tree);
     }
@@ -509,8 +494,8 @@ TEST test_cdd_cst_parser_oom(void) {
     for (i = 1; i < 150; i++) {
       tree = NULL;
       g_cdd_fail_cst_peek = (int)i;
-      if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                        &tree) != CDD_C_SUCCESS) {
+      if (cdd_cst_parse(az_span_create_from_str(code), &tree) !=
+          CDD_C_SUCCESS) {
       }
       cdd_cst_tree_free(tree);
     }
@@ -536,9 +521,8 @@ TEST test_cdd_cst_parser_oom(void) {
         for (i = 1; i <= 35; i++) {
           tree = NULL;
           g_cdd_alloc_fail = (int)i;
-          if (cdd_cst_parse(
-                  az_span_create_from_str((char *)(size_t)oom_snippets[s_idx]),
-                  &tree) != CDD_C_SUCCESS) {
+          if (cdd_cst_parse(az_span_create_from_str(oom_snippets[s_idx]),
+                            &tree) != CDD_C_SUCCESS) {
           }
           if (tree)
             cdd_cst_tree_free(tree);
@@ -548,9 +532,8 @@ TEST test_cdd_cst_parser_oom(void) {
         for (i = 1; i <= 35; i++) {
           tree = NULL;
           g_cdd_cst_realloc_fail = (int)i;
-          if (cdd_cst_parse(
-                  az_span_create_from_str((char *)(size_t)oom_snippets[s_idx]),
-                  &tree) != CDD_C_SUCCESS) {
+          if (cdd_cst_parse(az_span_create_from_str(oom_snippets[s_idx]),
+                            &tree) != CDD_C_SUCCESS) {
           }
           if (tree)
             cdd_cst_tree_free(tree);
@@ -560,9 +543,8 @@ TEST test_cdd_cst_parser_oom(void) {
         for (i = 1; i <= 35; i++) {
           tree = NULL;
           g_cdd_fail_cst_advance = (int)i;
-          if (cdd_cst_parse(
-                  az_span_create_from_str((char *)(size_t)oom_snippets[s_idx]),
-                  &tree) != CDD_C_SUCCESS) {
+          if (cdd_cst_parse(az_span_create_from_str(oom_snippets[s_idx]),
+                            &tree) != CDD_C_SUCCESS) {
           }
           if (tree)
             cdd_cst_tree_free(tree);
@@ -572,9 +554,8 @@ TEST test_cdd_cst_parser_oom(void) {
         for (i = 1; i <= 35; i++) {
           tree = NULL;
           g_cdd_fail_cst_peek = (int)i;
-          if (cdd_cst_parse(
-                  az_span_create_from_str((char *)(size_t)oom_snippets[s_idx]),
-                  &tree) != CDD_C_SUCCESS) {
+          if (cdd_cst_parse(az_span_create_from_str(oom_snippets[s_idx]),
+                            &tree) != CDD_C_SUCCESS) {
           }
           if (tree)
             cdd_cst_tree_free(tree);
@@ -590,16 +571,14 @@ TEST test_cdd_cst_parser_oom(void) {
       g_cdd_fail_get_class_name = 1;
       tree = NULL;
       rc_cst = cdd_cst_parse(
-          az_span_create_from_str((char *)(size_t) "class C { void f() { } };"),
-          &tree);
+          az_span_create_from_str("class C { void f() { } };"), &tree);
       ASSERT(rc_cst == CDD_C_SUCCESS || rc_cst != CDD_C_SUCCESS);
       cdd_cst_tree_free(tree);
 
       g_cdd_fail_get_class_name = 2;
       tree = NULL;
       rc_cst = cdd_cst_parse(
-          az_span_create_from_str((char *)(size_t) "class C { void f() { } };"),
-          &tree);
+          az_span_create_from_str("class C { void f() { } };"), &tree);
       ASSERT(rc_cst == CDD_C_SUCCESS || rc_cst != CDD_C_SUCCESS);
       cdd_cst_tree_free(tree);
       g_cdd_fail_get_class_name = 0;
@@ -608,16 +587,16 @@ TEST test_cdd_cst_parser_oom(void) {
     {
       g_cdd_fail_cst_advance = 1;
       tree = NULL;
-      if (cdd_cst_parse(az_span_create_from_str((char *)(size_t) "/* eof */"),
-                        &tree) != CDD_C_SUCCESS) {
+      if (cdd_cst_parse(az_span_create_from_str("/* eof */"), &tree) !=
+          CDD_C_SUCCESS) {
       }
       cdd_cst_tree_free(tree);
       g_cdd_fail_cst_advance = 0;
 
       g_cdd_cst_realloc_fail = 1;
       tree = NULL;
-      if (cdd_cst_parse(az_span_create_from_str((char *)(size_t) "/* eof */"),
-                        &tree) != CDD_C_SUCCESS) {
+      if (cdd_cst_parse(az_span_create_from_str("/* eof */"), &tree) !=
+          CDD_C_SUCCESS) {
       }
       cdd_cst_tree_free(tree);
       g_cdd_cst_realloc_fail = 0;
@@ -656,9 +635,7 @@ TEST test_cdd_cst_parser_macros_full(void) {
       59,  32,  105, 110, 116, 32,  103, 59,  32,  105, 110, 116, 32,  104, 59,
       32,  105, 110, 116, 32,  105, 59,  32,  105, 110, 116, 32,  106, 59,  32,
       125, 0};
-  ASSERT_EQ(0,
-            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                          &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
@@ -682,8 +659,7 @@ TEST test_cdd_cst_peek_advance_eof(void) {
   parser_state_t s = {0};
   cdd_token_t *tok = NULL;
   cdd_token_list_t *tl = NULL;
-  cdd_lexer_tokenize(az_span_create_from_str((char *)(size_t)(size_t) "int x;"),
-                     &tl);
+  cdd_lexer_tokenize(az_span_create_from_str("int x;"), &tl);
   s.list = tl;
   s.pos = tl->size; /* Move past end */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, peek(NULL, &tok));
@@ -737,9 +713,7 @@ TEST test_cdd_cst_parser_complex_syntax(void) {
       110, 116, 32,  101, 59,  32,  105, 110, 116, 32,  102, 59,  32,  105, 110,
       116, 32,  103, 59,  32,  105, 110, 116, 32,  104, 59,  32,  105, 110, 116,
       32,  105, 59,  32,  105, 110, 116, 32,  106, 59,  32,  125, 0};
-  ASSERT_EQ(0,
-            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                          &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
@@ -748,95 +722,75 @@ TEST test_cdd_cst_parser_complex_syntax(void) {
 TEST test_cdd_cst_parser_errors(void) {
   cdd_cst_tree_t *tree = NULL;
   /* Unmatched brace */
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t) "{"), &tree);
+  cdd_cst_parse(az_span_create_from_str("{"), &tree);
   cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Missing namespace name */
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t) "namespace {"),
-                &tree);
+  cdd_cst_parse(az_span_create_from_str("namespace {"), &tree);
   cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Missing catch */
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t) "try { }"),
-                &tree);
+  cdd_cst_parse(az_span_create_from_str("try { }"), &tree);
   cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Class without semicolon or body */
-  cdd_cst_parse(
-      az_span_create_from_str((char *)(size_t)(size_t) "class X : public Y"),
-      &tree);
+  cdd_cst_parse(az_span_create_from_str("class X : public Y"), &tree);
   cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Not a function due to rbrace */
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t) "} func() {"),
-                &tree);
+  cdd_cst_parse(az_span_create_from_str("} func() {"), &tree);
   cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Not a function: expression with parens and then semicolon */
-  cdd_cst_parse(
-      az_span_create_from_str((char *)(size_t)(size_t) "int x = (1);"), &tree);
+  cdd_cst_parse(az_span_create_from_str("int x = (1);"), &tree);
   cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_parse(
-      az_span_create_from_str((char *)(size_t)(size_t) "int arr[] = {1};"),
-      &tree);
+  cdd_cst_parse(az_span_create_from_str("int arr[] = {1};"), &tree);
   cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t) "x = {1};"),
-                &tree);
+  cdd_cst_parse(az_span_create_from_str("x = {1};"), &tree);
   cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t) "return {1};"),
-                &tree);
+  cdd_cst_parse(az_span_create_from_str("return {1};"), &tree);
   cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_parse(
-      az_span_create_from_str((char *)(size_t)(size_t) "int x = (1) {1};"),
-      &tree);
+  cdd_cst_parse(az_span_create_from_str("int x = (1) {1};"), &tree);
   cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_parse(
-      az_span_create_from_str((char *)(size_t)(size_t) "int x(1) {1};"), &tree);
+  cdd_cst_parse(az_span_create_from_str("int x(1) {1};"), &tree);
   cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_parse(
-      az_span_create_from_str((char *)(size_t)(size_t) "int x(1) : 1 {1};"),
-      &tree);
+  cdd_cst_parse(az_span_create_from_str("int x(1) : 1 {1};"), &tree);
   cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t) "int x, {1};"),
-                &tree);
+  cdd_cst_parse(az_span_create_from_str("int x, {1};"), &tree);
   cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Not a function: unmatched parens */
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t) "int x = (1;"),
-                &tree);
+  cdd_cst_parse(az_span_create_from_str("int x = (1;"), &tree);
   cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Not a function: function call */
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t) "func();"),
-                &tree);
+  cdd_cst_parse(az_span_create_from_str("func();"), &tree);
   cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Template without params */
-  cdd_cst_parse(
-      az_span_create_from_str((char *)(size_t)(size_t) "template < > class X;"),
-      &tree);
+  cdd_cst_parse(az_span_create_from_str("template < > class X;"), &tree);
   cdd_cst_tree_free(tree);
   tree = NULL;
 
@@ -932,9 +886,8 @@ TEST test_cdd_cst_parser_exhaustive_coverage(void) {
   cdd_cst_tree_t *tree = NULL;
 
   /* Invalid argument: out_tree is NULL */
-  ASSERT_EQ(
-      CDD_C_ERROR_INVALID_ARGUMENT,
-      cdd_cst_parse(az_span_create_from_str((char *)(size_t) "int x;"), NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_parse(az_span_create_from_str("int x;"), NULL));
 
   /* cdd_cst_tree_free with NULL */
   cdd_cst_tree_free(NULL);
@@ -963,8 +916,7 @@ TEST test_cdd_cst_parser_exhaustive_coverage(void) {
   for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
     cdd_c_error_t rc_snip;
     tree = NULL;
-    rc_snip = cdd_cst_parse(
-        az_span_create_from_str((char *)(size_t)snippets[i]), &tree);
+    rc_snip = cdd_cst_parse(az_span_create_from_str(snippets[i]), &tree);
     ASSERT(rc_snip == CDD_C_SUCCESS || rc_snip != CDD_C_SUCCESS);
     if (tree) {
       cdd_cst_tree_free(tree);
@@ -976,8 +928,7 @@ TEST test_cdd_cst_parser_exhaustive_coverage(void) {
   {
     cdd_c_error_t rc_snip;
     tree = NULL;
-    rc_snip =
-        cdd_cst_parse(az_span_create_from_str((char *)(size_t) ""), &tree);
+    rc_snip = cdd_cst_parse(az_span_create_from_str(""), &tree);
     ASSERT(rc_snip == CDD_C_SUCCESS || rc_snip != CDD_C_SUCCESS);
     if (tree) {
       cdd_cst_tree_free(tree);

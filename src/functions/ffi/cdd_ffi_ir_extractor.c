@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_ir_extractor.c
+ * @brief Core cdd ffi ir extractor definitions and implementation.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -146,21 +150,12 @@ C_CDD_EXPORT cdd_c_error_t ir_add_node(cdd_ffi_ir_t *ir,
 }
 
 /**
- * @brief Maps a C type string to an FFI primitive kind.
- *
- * @param c_type C type string.
- * @param out_kind Destination primitive kind pointer.
- * @return CDD_C_SUCCESS on success, error code otherwise.
+ * @brief Context for searching a CST node by name.
  */
-/**
- * @brief Extracts exported functions, types, and macros from a single file.
- *
- * @param ir Pointer to FFI IR structure.
- * @param filename File name.
- * @param content File contents string.
- * @param config Configuration options.
- * @return CDD_C_SUCCESS on success, error code otherwise.
- */
+struct find_node_ctx_t {
+  const char *target_name;   /**< Target identifier name to match */
+  cdd_cst_node_t **out_node; /**< Output pointer to receive the matched node */
+};
 
 /**
  * @brief Visitor to find a class declaration by name.
@@ -169,9 +164,9 @@ C_CDD_EXPORT cdd_c_error_t ir_add_node(cdd_ffi_ir_t *ir,
  * @return 1 to stop traversal, 0 otherwise.
  */
 static cdd_c_error_t find_class_visitor(cdd_cst_node_t *node, void *user_data) {
-  void **ptrs = (void **)user_data;
-  const char *target_name = (const char *)ptrs[0];
-  cdd_cst_node_t **out_node = (cdd_cst_node_t **)ptrs[1];
+  struct find_node_ctx_t *ctx = (struct find_node_ctx_t *)user_data;
+  const char *target_name = ctx->target_name;
+  cdd_cst_node_t **out_node = ctx->out_node;
 
   if (node->kind == CDD_CST_CLASS_DECLARATION) {
     size_t i;
@@ -191,18 +186,20 @@ static cdd_c_error_t find_class_visitor(cdd_cst_node_t *node, void *user_data) {
 
 /**
  * @brief Finds a class declaration in a CST tree by its name.
- * @param tree The CST tree.
- * @param name The name to search for.
- * @return The matching node, or NULL.
+ * @param[in] tree The CST tree.
+ * @param[in] name The name to search for.
+ * @param[out] out_node The matching node, or NULL.
+ * @return CDD_C_SUCCESS on success.
  */
-static cdd_cst_node_t *find_class_declaration_by_name(cdd_cst_tree_t *tree,
-                                                      const char *name) {
-  cdd_cst_node_t *out_node = NULL;
-  void *ptrs[2];
-  ptrs[0] = (void *)name;
-  ptrs[1] = (void *)&out_node;
-  cdd_cst_traverse_preorder(tree->root, find_class_visitor, ptrs);
-  return out_node;
+static cdd_c_error_t find_class_declaration_by_name(cdd_cst_tree_t *tree,
+                                                    const char *name,
+                                                    cdd_cst_node_t **out_node) {
+  struct find_node_ctx_t ctx;
+  *out_node = NULL;
+  ctx.target_name = name;
+  ctx.out_node = out_node;
+  cdd_cst_traverse_preorder(tree->root, find_class_visitor, &ctx);
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -212,9 +209,9 @@ static cdd_cst_node_t *find_class_declaration_by_name(cdd_cst_tree_t *tree,
  * @return 1 to stop traversal, 0 otherwise.
  */
 static cdd_c_error_t find_func_visitor(cdd_cst_node_t *node, void *user_data) {
-  void **ptrs = (void **)user_data;
-  const char *target_name = (const char *)ptrs[0];
-  cdd_cst_node_t **out_node = (cdd_cst_node_t **)ptrs[1];
+  struct find_node_ctx_t *ctx = (struct find_node_ctx_t *)user_data;
+  const char *target_name = ctx->target_name;
+  cdd_cst_node_t **out_node = ctx->out_node;
 
   if (node->kind == CDD_CST_FUNCTION_DEFINITION) {
     size_t i;
@@ -234,39 +231,48 @@ static cdd_c_error_t find_func_visitor(cdd_cst_node_t *node, void *user_data) {
 
 /**
  * @brief Finds a function definition in a CST tree by its name.
- * @param tree The CST tree.
- * @param name The name to search for.
- * @return The matching node, or NULL.
+ * @param[in] tree The CST tree.
+ * @param[in] name The name to search for.
+ * @param[out] out_node The matching node, or NULL.
+ * @return CDD_C_SUCCESS on success.
  */
-static cdd_cst_node_t *find_func_definition_by_name(cdd_cst_tree_t *tree,
-                                                    const char *name) {
-  cdd_cst_node_t *out_node = NULL;
-  void *ptrs[2];
-  ptrs[0] = (void *)name;
-  ptrs[1] = (void *)&out_node;
-  cdd_cst_traverse_preorder(tree->root, find_func_visitor, ptrs);
-  return out_node;
+static cdd_c_error_t find_func_definition_by_name(cdd_cst_tree_t *tree,
+                                                  const char *name,
+                                                  cdd_cst_node_t **out_node) {
+  struct find_node_ctx_t ctx;
+  *out_node = NULL;
+  ctx.target_name = name;
+  ctx.out_node = out_node;
+  cdd_cst_traverse_preorder(tree->root, find_func_visitor, &ctx);
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Gets the first token of a node.
- * @param node The node.
- * @return The first token, or NULL.
+ * @param[in] node The node.
+ * @param[out] out_tok The first token, or NULL.
+ * @return CDD_C_SUCCESS on success.
  */
-static cdd_token_t *get_first_token(cdd_cst_node_t *node) {
-  return node->children[0].val.token;
+static cdd_c_error_t get_first_token(cdd_cst_node_t *node,
+                                     cdd_token_t **out_tok) {
+  *out_tok = node->children[0].val.token;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Gets the last token of a node.
- * @param node The node.
- * @return The last token, or NULL.
+ * @param[in] node The node.
+ * @param[out] out_tok The last token, or NULL.
+ * @return CDD_C_SUCCESS on success.
  */
-static cdd_token_t *get_last_token(cdd_cst_node_t *node) {
+static cdd_c_error_t get_last_token(cdd_cst_node_t *node,
+                                    cdd_token_t **out_tok) {
   for (;;) {
     size_t last_idx = node->num_children - 1;
-    if (node->children[last_idx].kind == CDD_CST_CHILD_TOKEN)
-      return node->children[last_idx].val.token;
+    if (node->children[last_idx].kind == CDD_CST_CHILD_TOKEN) {
+      *out_tok = node->children[last_idx].val.token;
+      return CDD_C_SUCCESS;
+    }
     node = node->children[last_idx].val.node;
   }
 }
@@ -393,15 +399,18 @@ static cdd_c_error_t extract_single_file_exports_impl(
       if (rc != CDD_C_SUCCESS)
         break;
       if (tree_full) {
-        cdd_cst_node_t *cst_node =
-            find_class_declaration_by_name(tree_full, types.items[i].name);
+        cdd_cst_node_t *cst_node = NULL;
+        find_class_declaration_by_name(tree_full, types.items[i].name,
+                                       &cst_node);
 #ifdef CDD_BUILD_TESTS
         if (g_cdd_ffi_fail_cst_node)
           cst_node = NULL;
 #endif
         if (cst_node) {
-          cdd_token_t *first = get_first_token(cst_node);
-          cdd_token_t *last = get_last_token(cst_node);
+          cdd_token_t *first = NULL;
+          cdd_token_t *last = NULL;
+          get_first_token(cst_node, &first);
+          get_last_token(cst_node, &last);
 #ifdef CDD_BUILD_TESTS
           if (g_cdd_ffi_fail_token) {
             first = NULL;
@@ -428,7 +437,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
         cdd_cst_query_result_t structs_base = {0};
         size_t si;
         az_span span_base;
-        span_base = az_span_create_from_str((char *)(size_t)content);
+        span_base = az_span_create_from_str(content);
         if (cdd_cst_parse(span_base, &tree_base) == 0) {
           rc = cdd_cst_find_nodes_by_type(
               tree_base->root, CDD_CST_CLASS_DECLARATION, &structs_base);
@@ -437,7 +446,8 @@ static cdd_c_error_t extract_single_file_exports_impl(
             rc = CDD_C_ERROR_MEMORY;
 #endif
           if (rc != CDD_C_SUCCESS) {
-            /* cdd_cst_tree_free handled at end */
+            free(structs_base.nodes);
+            cdd_cst_tree_free(tree_base);
             break;
           }
           for (si = 0; si < structs_base.size; si++) {
@@ -513,7 +523,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
             }
           }
           free(structs_base.nodes);
-          /* cdd_cst_tree_free handled at end */
+          cdd_cst_tree_free(tree_base);
         }
       }
       if (rc != CDD_C_SUCCESS)
@@ -603,15 +613,17 @@ static cdd_c_error_t extract_single_file_exports_impl(
     if (rc != CDD_C_SUCCESS)
       break;
     if (tree_full) {
-      cdd_cst_node_t *cst_node =
-          find_func_definition_by_name(tree_full, sigs.items[i].name);
+      cdd_cst_node_t *cst_node = NULL;
+      find_func_definition_by_name(tree_full, sigs.items[i].name, &cst_node);
 #ifdef CDD_BUILD_TESTS
       if (g_cdd_ffi_fail_cst_node)
         cst_node = NULL;
 #endif
       if (cst_node) {
-        cdd_token_t *first = get_first_token(cst_node);
-        cdd_token_t *last = get_last_token(cst_node);
+        cdd_token_t *first = NULL;
+        cdd_token_t *last = NULL;
+        get_first_token(cst_node, &first);
+        get_last_token(cst_node, &last);
 #ifdef CDD_BUILD_TESTS
         if (g_cdd_ffi_fail_token) {
           first = NULL;
@@ -790,8 +802,10 @@ static cdd_c_error_t extract_single_file_exports_impl(
                 if (g_cdd_ffi_extractor_fail == 5)
                   rc = CDD_C_ERROR_UNKNOWN;
 #endif
-                if (rc != CDD_C_SUCCESS)
+                if (rc != CDD_C_SUCCESS) {
+                  cdd_macro_eval_result_free(&eval_res);
                   break;
+                }
                 node->evaluated_value = CDD_STRDUP(buf);
               } else if (eval_res.type == MACRO_EVAL_TYPE_FLOAT) {
                 char buf[64];
@@ -948,7 +962,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
   if (!ir || !filename || !content)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  span_full = az_span_create_from_str((char *)(size_t)content);
+  span_full = az_span_create_from_str(content);
   if (cdd_cst_parse(span_full, &tree_full) != 0) {
     tree_full = NULL;
   }
@@ -1132,6 +1146,7 @@ cdd_ffi_ir_extract_exports(const char *filename, const char *content,
   rc = pp_context_init(&pp_ctx);
   if (rc != CDD_C_SUCCESS) {
     cdd_ffi_ir_free(ir);
+    free(ir);
     return rc;
   }
 

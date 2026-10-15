@@ -9,21 +9,12 @@
 #include "c_cdd/memory.h"
 /* clang-format on */
 
-/**
- * @brief Parses paths object from the given input.
- */
-cdd_c_error_t parse_paths_object(const JSON_Object *paths_obj,
-                                 struct OpenAPI_Path **out_paths,
-                                 size_t *out_count,
-                                 const struct OpenAPI_Spec *spec,
-                                 int require_leading_slash, int resolve_refs) {
-  struct OpenAPI_Path *_ast_find_component_path_item_80;
-  char *_ast_strdup_286 = NULL;
-  char *_ast_strdup_287 = NULL;
-  char *_ast_strdup_288 = NULL;
-  char *_ast_strdup_289 = NULL;
-  char *_ast_strdup_290 = NULL;
-  char *_ast_strdup_291 = NULL;
+static cdd_c_error_t parse_paths_object_inner(const JSON_Object *paths_obj,
+                                              struct OpenAPI_Path **out_paths,
+                                              size_t *out_count,
+                                              struct OpenAPI_Spec *spec,
+                                              int require_leading_slash,
+                                              int resolve_refs) {
   size_t i, n_paths;
   size_t raw_count;
   size_t out_idx;
@@ -66,7 +57,7 @@ cdd_c_error_t parse_paths_object(const JSON_Object *paths_obj,
 
     if (require_leading_slash && route[0] != '/')
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    curr_path->route = (c_cdd_strdup(route, &_ast_strdup_286), _ast_strdup_286);
+    c_cdd_strdup(route, &curr_path->route);
     if (!curr_path->route)
       return CDD_C_ERROR_MEMORY;
 
@@ -77,39 +68,36 @@ cdd_c_error_t parse_paths_object(const JSON_Object *paths_obj,
           json_object_get_string(p_obj, "description");
       const JSON_Array *path_params =
           json_object_get_array(p_obj, "parameters");
+      cdd_c_error_t rc;
 
       if (path_ref) {
-        curr_path->ref =
-            (c_cdd_strdup(path_ref, &_ast_strdup_287), _ast_strdup_287);
+        c_cdd_strdup(path_ref, &curr_path->ref);
         if (!curr_path->ref)
           return CDD_C_ERROR_MEMORY;
         if (resolve_refs && spec) {
-          const struct OpenAPI_Path *comp =
-              (find_component_path_item(spec, path_ref,
-                                        &_ast_find_component_path_item_80),
-               _ast_find_component_path_item_80);
+          struct OpenAPI_Path *comp = NULL;
+          find_component_path_item(spec, path_ref, &comp);
           if (comp) {
-            {
-              cdd_c_error_t _rc = copy_path_fields(curr_path, comp);
-              if (_rc != CDD_C_SUCCESS)
-                return _rc;
-            }
+            rc = copy_path_fields(curr_path, comp);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
           }
         }
         if (path_summary) {
-          if (curr_path->summary)
+          if (curr_path->summary) {
             free(curr_path->summary);
-          curr_path->summary =
-              (c_cdd_strdup(path_summary, &_ast_strdup_288), _ast_strdup_288);
+            curr_path->summary = NULL;
+          }
+          c_cdd_strdup(path_summary, &curr_path->summary);
           if (!curr_path->summary)
             return CDD_C_ERROR_MEMORY;
         }
         if (path_description) {
-          if (curr_path->description)
+          if (curr_path->description) {
             free(curr_path->description);
-          curr_path->description =
-              (c_cdd_strdup(path_description, &_ast_strdup_289),
-               _ast_strdup_289);
+            curr_path->description = NULL;
+          }
+          c_cdd_strdup(path_description, &curr_path->description);
           if (!curr_path->description)
             return CDD_C_ERROR_MEMORY;
         }
@@ -117,41 +105,29 @@ cdd_c_error_t parse_paths_object(const JSON_Object *paths_obj,
         continue;
       }
       if (path_summary) {
-        curr_path->summary =
-            (c_cdd_strdup(path_summary, &_ast_strdup_290), _ast_strdup_290);
+        c_cdd_strdup(path_summary, &curr_path->summary);
         if (!curr_path->summary)
           return CDD_C_ERROR_MEMORY;
       }
       if (path_description) {
-        curr_path->description =
-            (c_cdd_strdup(path_description, &_ast_strdup_291), _ast_strdup_291);
+        c_cdd_strdup(path_description, &curr_path->description);
         if (!curr_path->description)
           return CDD_C_ERROR_MEMORY;
       }
-      {
-        cdd_c_error_t _rc =
-            collect_extensions(p_obj, &curr_path->extensions_json);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
-      {
-        cdd_c_error_t rc =
-            parse_parameters_array(path_params, &curr_path->parameters,
-                                   &curr_path->n_parameters, spec);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-      }
-      {
-        cdd_c_error_t _rc = parse_servers_array(
-            p_obj, "servers", &curr_path->servers, &curr_path->n_servers);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
-      {
-        cdd_c_error_t _rc = parse_additional_operations(p_obj, curr_path, spec);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      rc = collect_extensions(p_obj, &curr_path->extensions_json);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = parse_parameters_array(path_params, &curr_path->parameters,
+                                  &curr_path->n_parameters, spec);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = parse_servers_array(p_obj, "servers", &curr_path->servers,
+                               &curr_path->n_servers);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = parse_additional_operations(p_obj, curr_path, spec);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
 
     if (n_ops_in_obj > 0) {
@@ -191,7 +167,29 @@ cdd_c_error_t parse_paths_object(const JSON_Object *paths_obj,
 }
 
 /**
- * @brief Executes the name in list operation.
+ * @brief Parses paths object from the given input.
+ */
+cdd_c_error_t parse_paths_object(const JSON_Object *paths_obj,
+                                 struct OpenAPI_Path **out_paths,
+                                 size_t *out_count, struct OpenAPI_Spec *spec,
+                                 int require_leading_slash, int resolve_refs) {
+  cdd_c_error_t rc =
+      parse_paths_object_inner(paths_obj, out_paths, out_count, spec,
+                               require_leading_slash, resolve_refs);
+  if (rc != CDD_C_SUCCESS && out_paths && *out_paths) {
+    size_t i;
+    for (i = 0; out_count && i < *out_count; ++i)
+      free_path_item(&(*out_paths)[i]);
+    free(*out_paths);
+    *out_paths = NULL;
+    if (out_count)
+      *out_count = 0;
+  }
+  return rc;
+}
+
+/**
+ * @brief Checks whether a parameter name is present in a string array.
  */
 cdd_c_error_t name_in_list(const char *name, char **names, size_t count) {
   size_t i;
@@ -239,7 +237,7 @@ cdd_c_error_t collect_path_template_names(const char *route, char ***out_names,
       }
       {
         size_t len = end - start;
-        char *name = (char *)(size_t)C_CDD_MALLOC(len + 1);
+        char *name = (char *)C_CDD_MALLOC(len + 1);
         if (!name) {
           free_name_list(names, count);
           return CDD_C_ERROR_MEMORY;
@@ -281,7 +279,7 @@ cdd_c_error_t collect_path_template_names(const char *route, char ***out_names,
  */
 cdd_c_error_t find_path_param(const struct OpenAPI_Parameter *params, size_t n,
                               const char *name,
-                              struct OpenAPI_Parameter **_out_val) {
+                              const struct OpenAPI_Parameter **_out_val) {
   size_t i;
   if (!params || !name) {
     *_out_val = NULL;
@@ -293,7 +291,7 @@ cdd_c_error_t find_path_param(const struct OpenAPI_Parameter *params, size_t n,
     if (!params[i].name)
       continue;
     if (strcmp(params[i].name, name) == 0) {
-      *_out_val = (struct OpenAPI_Parameter *)(&params[i]);
+      *_out_val = &params[i];
       return CDD_C_SUCCESS;
     }
   }
@@ -304,7 +302,7 @@ cdd_c_error_t find_path_param(const struct OpenAPI_Parameter *params, size_t n,
 }
 
 /**
- * @brief Executes the validate path params list operation.
+ * @brief Validates path parameters for required=true and duplicate names.
  */
 cdd_c_error_t validate_path_params_list(const struct OpenAPI_Parameter *params,
                                         size_t n_params, char **template_names,
@@ -325,13 +323,12 @@ cdd_c_error_t validate_path_params_list(const struct OpenAPI_Parameter *params,
 }
 
 /**
- * @brief Executes the validate path template for operation operation.
+ * @brief Verifies that all path template variables are declared as path
+ * parameters.
  */
 cdd_c_error_t validate_path_template_for_operation(
     const struct OpenAPI_Path *path, const struct OpenAPI_Operation *op,
     char **template_names, size_t n_template_names) {
-  struct OpenAPI_Parameter *_ast_find_path_param_81;
-  struct OpenAPI_Parameter *_ast_find_path_param_82;
   size_t i;
   if (!path || !template_names || n_template_names == 0)
     return CDD_C_SUCCESS;
@@ -342,15 +339,13 @@ cdd_c_error_t validate_path_template_for_operation(
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   for (i = 0; i < n_template_names; ++i) {
-    const struct OpenAPI_Parameter *p =
-        op ? (find_path_param(op->parameters, op->n_parameters,
-                              template_names[i], &_ast_find_path_param_81),
-              _ast_find_path_param_81)
-           : NULL;
+    const struct OpenAPI_Parameter *p = NULL;
+    if (op) {
+      find_path_param(op->parameters, op->n_parameters, template_names[i], &p);
+    }
     if (!p) {
-      p = (find_path_param(path->parameters, path->n_parameters,
-                           template_names[i], &_ast_find_path_param_82),
-           _ast_find_path_param_82);
+      find_path_param(path->parameters, path->n_parameters, template_names[i],
+                      &p);
     }
     if (!p)
       return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -360,7 +355,8 @@ cdd_c_error_t validate_path_template_for_operation(
 }
 
 /**
- * @brief Executes the validate path templates operation.
+ * @brief Validates path template syntax and parameter bindings across all
+ * paths.
  */
 cdd_c_error_t validate_path_templates(const struct OpenAPI_Path *paths,
                                       size_t n_paths) {
@@ -423,7 +419,8 @@ cdd_c_error_t validate_path_templates(const struct OpenAPI_Path *paths,
 }
 
 /**
- * @brief Executes the normalize path template route operation.
+ * @brief Normalizes parameter placeholders in a route path to canonical form
+ * for collision detection.
  */
 cdd_c_error_t normalize_path_template_route(const char *route,
                                             char **_out_val) {
@@ -453,7 +450,7 @@ cdd_c_error_t normalize_path_template_route(const char *route,
       ++i;
     }
   }
-  out = (char *)(size_t)C_CDD_CALLOC(len + 1, sizeof(char));
+  out = (char *)C_CDD_CALLOC(len + 1, sizeof(char));
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -479,35 +476,30 @@ cdd_c_error_t normalize_path_template_route(const char *route,
 }
 
 /**
- * @brief Executes the validate path template collisions operation.
+ * @brief Detects ambiguous or colliding path templates in an OpenAPI
+ * specification.
  */
 cdd_c_error_t
 validate_path_template_collisions(const struct OpenAPI_Path *paths,
                                   size_t n_paths) {
-  char *_ast_normalize_path_template_route_83 = NULL;
-  char *_ast_normalize_path_template_route_84 = NULL;
   size_t i;
   if (!paths)
     return CDD_C_SUCCESS;
   for (i = 0; i < n_paths; ++i) {
     const char *route_i = paths[i].route;
-    char *norm_i;
+    char *norm_i = NULL;
     size_t j;
     if (!route_i || route_i[0] != '/' || !strchr(route_i, '{'))
       continue;
-    norm_i = (normalize_path_template_route(
-                  route_i, &_ast_normalize_path_template_route_83),
-              _ast_normalize_path_template_route_83);
+    normalize_path_template_route(route_i, &norm_i);
     if (!norm_i)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     for (j = i + 1; j < n_paths; ++j) {
       const char *route_j = paths[j].route;
-      char *norm_j;
+      char *norm_j = NULL;
       if (!route_j || route_j[0] != '/' || !strchr(route_j, '{'))
         continue;
-      norm_j = (normalize_path_template_route(
-                    route_j, &_ast_normalize_path_template_route_84),
-                _ast_normalize_path_template_route_84);
+      normalize_path_template_route(route_j, &norm_j);
       if (!norm_j) {
         free(norm_i);
         return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -524,22 +516,12 @@ validate_path_template_collisions(const struct OpenAPI_Path *paths,
   return CDD_C_SUCCESS;
 }
 
-/**
- * @brief Parses operation from the given input.
- */
-cdd_c_error_t parse_operation(const char *verb_str, const JSON_Object *op_obj,
-                              struct OpenAPI_Operation *out_op,
-                              const struct OpenAPI_Spec *spec,
-                              int is_additional, const char *route_hint) {
-  enum OpenAPI_Verb _ast_parse_verb_79;
-  char *_ast_strdup_262 = NULL;
-  char *_ast_strdup_263 = NULL;
-  char *_ast_strdup_264 = NULL;
-  char *_ast_strdup_265 = NULL;
-  char *_ast_strdup_266 = NULL;
-  char *_ast_strdup_267 = NULL;
-  char *_ast_strdup_268 = NULL;
-  char *_ast_strdup_269 = NULL;
+static cdd_c_error_t parse_operation_inner(const char *verb_str,
+                                           const JSON_Object *op_obj,
+                                           struct OpenAPI_Operation *out_op,
+                                           struct OpenAPI_Spec *spec,
+                                           int is_additional,
+                                           const char *route_hint) {
   const char *op_id;
   const JSON_Array *params;
   const JSON_Array *tags;
@@ -549,7 +531,7 @@ cdd_c_error_t parse_operation(const char *verb_str, const JSON_Object *op_obj,
   const JSON_Object *ext_docs;
   int deprecated_present;
   int deprecated_val;
-  cdd_c_error_t rc_sec;
+  cdd_c_error_t rc;
 
   if (!verb_str || !op_obj || !out_op)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -558,35 +540,31 @@ cdd_c_error_t parse_operation(const char *verb_str, const JSON_Object *op_obj,
     /* Optional route hint */
   }
 
-  out_op->verb =
-      (parse_verb(verb_str, &_ast_parse_verb_79), _ast_parse_verb_79);
+  parse_verb(verb_str, &out_op->verb);
   out_op->is_additional = is_additional;
-  out_op->method = (c_cdd_strdup(verb_str, &_ast_strdup_262), _ast_strdup_262);
-  if (!out_op->method)
-    return CDD_C_ERROR_MEMORY;
   if (out_op->verb == OA_VERB_UNKNOWN && !is_additional)
     return CDD_C_SUCCESS;
+  c_cdd_strdup(verb_str, &out_op->method);
+  if (!out_op->method)
+    return CDD_C_ERROR_MEMORY;
 
   op_id = json_object_get_string(op_obj, "operationId");
-  out_op->operation_id =
-      (c_cdd_strdup(op_id ? op_id : NULL, &_ast_strdup_263), _ast_strdup_263);
+  c_cdd_strdup(op_id ? op_id : NULL, &out_op->operation_id);
   summary = json_object_get_string(op_obj, "summary");
   if (summary) {
-    out_op->summary =
-        (c_cdd_strdup(summary, &_ast_strdup_264), _ast_strdup_264);
+    c_cdd_strdup(summary, &out_op->summary);
     if (!out_op->summary)
       return CDD_C_ERROR_MEMORY;
   }
   description = json_object_get_string(op_obj, "description");
   if (description) {
-    out_op->description =
-        (c_cdd_strdup(description, &_ast_strdup_265), _ast_strdup_265);
+    c_cdd_strdup(description, &out_op->description);
     if (!out_op->description)
       return CDD_C_ERROR_MEMORY;
   }
   ext_docs = json_object_get_object(op_obj, "externalDocs");
   if (ext_docs) {
-    cdd_c_error_t rc = parse_external_docs(ext_docs, &out_op->external_docs);
+    rc = parse_external_docs(ext_docs, &out_op->external_docs);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
@@ -594,24 +572,20 @@ cdd_c_error_t parse_operation(const char *verb_str, const JSON_Object *op_obj,
   deprecated_val = json_object_get_boolean(op_obj, "deprecated");
   if (deprecated_present)
     out_op->deprecated = (deprecated_val == 1);
-  rc_sec = parse_security_field(op_obj, "security", &out_op->security,
-                                &out_op->n_security, &out_op->security_set);
-  if (rc_sec != 0)
-    return rc_sec;
-  {
-    cdd_c_error_t _rc = collect_extensions(op_obj, &out_op->extensions_json);
-    if (_rc != CDD_C_SUCCESS)
-      return _rc;
-  }
+  rc = parse_security_field(op_obj, "security", &out_op->security,
+                            &out_op->n_security, &out_op->security_set);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = collect_extensions(op_obj, &out_op->extensions_json);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   /* 1. Parameters */
   params = json_object_get_array(op_obj, "parameters");
-  {
-    cdd_c_error_t rc = parse_parameters_array(params, &out_op->parameters,
-                                              &out_op->n_parameters, spec);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-  }
+  rc = parse_parameters_array(params, &out_op->parameters,
+                              &out_op->n_parameters, spec);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   /* 2. Request Body */
   req_body = json_object_get_object(op_obj, "requestBody");
@@ -626,16 +600,14 @@ cdd_c_error_t parse_operation(const char *verb_str, const JSON_Object *op_obj,
       return rc_req;
     }
     if (rb.ref) {
-      out_op->req_body_ref =
-          (c_cdd_strdup(rb.ref, &_ast_strdup_266), _ast_strdup_266);
+      c_cdd_strdup(rb.ref, &out_op->req_body_ref);
       if (!out_op->req_body_ref) {
         free_request_body(&rb);
         return CDD_C_ERROR_MEMORY;
       }
     }
     if (rb.description) {
-      out_op->req_body_description =
-          (c_cdd_strdup(rb.description, &_ast_strdup_267), _ast_strdup_267);
+      c_cdd_strdup(rb.description, &out_op->req_body_description);
       if (!out_op->req_body_description) {
         free_request_body(&rb);
         return CDD_C_ERROR_MEMORY;
@@ -646,8 +618,7 @@ cdd_c_error_t parse_operation(const char *verb_str, const JSON_Object *op_obj,
       out_op->req_body_required = rb.required;
     }
     if (rb.extensions_json) {
-      out_op->req_body_extensions_json =
-          (c_cdd_strdup(rb.extensions_json, &_ast_strdup_268), _ast_strdup_268);
+      c_cdd_strdup(rb.extensions_json, &out_op->req_body_extensions_json);
       if (!out_op->req_body_extensions_json) {
         free_request_body(&rb);
         return CDD_C_ERROR_MEMORY;
@@ -670,23 +641,18 @@ cdd_c_error_t parse_operation(const char *verb_str, const JSON_Object *op_obj,
 
   /* 3. Responses */
   responses = json_object_get_object(op_obj, "responses");
-  {
-    cdd_c_error_t rc =
-        parse_responses(responses, out_op, spec, out_op->operation_id);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-  }
+  rc = parse_responses(responses, out_op, spec, out_op->operation_id);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   /* 4. Callbacks */
   {
     const JSON_Object *callbacks_obj =
         json_object_get_object(op_obj, "callbacks");
-    {
-      cdd_c_error_t _rc = parse_callbacks_object(
-          callbacks_obj, &out_op->callbacks, &out_op->n_callbacks, spec, 1);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    rc = parse_callbacks_object(callbacks_obj, &out_op->callbacks,
+                                &out_op->n_callbacks, spec, 1);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   /* 5. Tags */
@@ -701,30 +667,39 @@ cdd_c_error_t parse_operation(const char *verb_str, const JSON_Object *op_obj,
         return CDD_C_ERROR_MEMORY;
       for (k = 0; k < t_count; ++k) {
         const char *t_val = json_array_get_string(tags, k);
-        out_op->tags[k] = (c_cdd_strdup(t_val ? t_val : "", &_ast_strdup_269),
-                           _ast_strdup_269);
+        c_cdd_strdup(t_val ? t_val : "", &out_op->tags[k]);
         if (!out_op->tags[k])
           return CDD_C_ERROR_MEMORY;
       }
     }
   }
 
-  {
-    cdd_c_error_t _rc = parse_servers_array(op_obj, "servers", &out_op->servers,
-                                            &out_op->n_servers);
-    if (_rc != CDD_C_SUCCESS)
-      return _rc;
-  }
+  rc = parse_servers_array(op_obj, "servers", &out_op->servers,
+                           &out_op->n_servers);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Parses additional operations from the given input.
+ * @brief Parses operation from the given input.
  */
-cdd_c_error_t parse_additional_operations(const JSON_Object *path_obj,
-                                          struct OpenAPI_Path *path,
-                                          const struct OpenAPI_Spec *spec) {
+cdd_c_error_t parse_operation(const char *verb_str, const JSON_Object *op_obj,
+                              struct OpenAPI_Operation *out_op,
+                              struct OpenAPI_Spec *spec, int is_additional,
+                              const char *route_hint) {
+  cdd_c_error_t rc = parse_operation_inner(verb_str, op_obj, out_op, spec,
+                                           is_additional, route_hint);
+  if (rc != CDD_C_SUCCESS && out_op)
+    free_operation(out_op);
+  return rc;
+}
+
+static cdd_c_error_t
+parse_additional_operations_inner(const JSON_Object *path_obj,
+                                  struct OpenAPI_Path *path,
+                                  struct OpenAPI_Spec *spec) {
   const JSON_Object *add_ops;
   size_t count, i;
 
@@ -761,4 +736,22 @@ cdd_c_error_t parse_additional_operations(const JSON_Object *path_obj,
   }
 
   return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Parses additional operations from the given input.
+ */
+cdd_c_error_t parse_additional_operations(const JSON_Object *path_obj,
+                                          struct OpenAPI_Path *path,
+                                          struct OpenAPI_Spec *spec) {
+  cdd_c_error_t rc = parse_additional_operations_inner(path_obj, path, spec);
+  if (rc != CDD_C_SUCCESS && path && path->additional_operations) {
+    size_t i;
+    for (i = 0; i < path->n_additional_operations; ++i)
+      free_operation(&path->additional_operations[i]);
+    free(path->additional_operations);
+    path->additional_operations = NULL;
+    path->n_additional_operations = 0;
+  }
+  return rc;
 }

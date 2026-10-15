@@ -25,15 +25,8 @@ extern "C" {
 #include <parson.h>
 /* clang-format on */
 
-extern C_CDD_EXPORT volatile int g_c2s_helper_fail;
-extern C_CDD_EXPORT volatile int g_cdd_fail_c2s_collect_schema_extras;
 extern C_CDD_EXPORT volatile int g_cdd_fail_json_set_value;
 extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
-extern C_CDD_EXPORT volatile int g_cdd_fail_struct_fields_get;
-extern C_CDD_EXPORT volatile int g_cdd_fail_struct_fields_add;
-extern C_CDD_EXPORT int g_struct_fields_init_fail;
-extern C_CDD_EXPORT int g_enum_members_init_fail;
-extern C_CDD_EXPORT int g_enum_members_add_strdup_fail;
 
 TEST test_code2schema_c2s_read_line(void) {
   FILE *fp;
@@ -768,7 +761,7 @@ TEST test_code2schema_enum_and_refs(void) {
 TEST test_code2schema_ref_and_discriminator(void) {
   JSON_Value *root_val;
   JSON_Object *root;
-  JSON_Object *resolved = NULL;
+  const JSON_Object *resolved = NULL;
   JSON_Value *disc_val;
   JSON_Object *disc_obj;
   char *dval = NULL;

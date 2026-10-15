@@ -153,34 +153,6 @@ cdd_c_error_t cdd_pool_string_safe_len(cdd_cst_tree_t *tree, const char *str,
   return CDD_C_SUCCESS;
 }
 
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT const char *pool_string_safe(cdd_cst_tree_t *tree,
-                                          const char *str);
-C_CDD_EXPORT const char *pool_string_safe_len(cdd_cst_tree_t *tree,
-                                              const char *str, size_t len);
-const char *pool_string_safe
-#else
-const char *pool_string_safe
-#endif
-    (cdd_cst_tree_t *tree, const char *str) {
-  const char *res = NULL;
-  if (cdd_pool_string_safe(tree, str, &res) != CDD_C_SUCCESS)
-    return NULL;
-  return res;
-}
-
-#ifdef CDD_BUILD_TESTS
-const char *pool_string_safe_len
-#else
-const char *pool_string_safe_len
-#endif
-    (cdd_cst_tree_t *tree, const char *str, size_t len) {
-  const char *res = NULL;
-  if (cdd_pool_string_safe_len(tree, str, len, &res) != CDD_C_SUCCESS)
-    return NULL;
-  return res;
-}
-
 /**
  * @brief Appends an integer as string to the buffer.
  *
@@ -388,10 +360,10 @@ cdd_c_error_t cdd_magic_visitor(cdd_cst_node_t *node, void *user_data) {
           buf[1 + ctx->func_len] = '"';
           buf[2 + ctx->func_len] = '\0';
 
-          pooled = pool_string_safe(ctx->tree, buf);
-          if (!pooled) {
+          rc_tok = cdd_pool_string_safe(ctx->tree, buf, &pooled);
+          if (rc_tok != CDD_C_SUCCESS) {
             free(buf);
-            return CDD_C_ERROR_MEMORY;
+            return rc_tok;
           }
           rc_tok = cdd_cst_create_token_len(ctx->tree, CDD_TOKEN_STRING, pooled,
                                             ctx->func_len + 2, &new_tok);

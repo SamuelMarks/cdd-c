@@ -46,7 +46,7 @@ TEST test_scan_for_vlas_basic(void) {
                     "  int const c_vla[n];\n"
                     "}\n";
 
-  ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t)src), &tokens));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str(src), &tokens));
 
   ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
   ASSERT_EQ(0, scan_for_vlas(tokens, &list));
@@ -88,8 +88,7 @@ TEST test_scan_for_vlas_errors(void) {
   struct TokenList *tl = NULL;
   struct VLASiteList list;
   ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
-  ASSERT_EQ(
-      0, tokenize(az_span_create_from_str((char *)(size_t) "int x[n];"), &tl));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str("int x[n];"), &tl));
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, scan_for_vlas(NULL, &list));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, scan_for_vlas(tl, NULL));
@@ -98,7 +97,7 @@ TEST test_scan_for_vlas_errors(void) {
   {
     extern C_CDD_EXPORT int g_cdd_fail_vla_basic_type;
     struct TokenList *tl_vla = NULL;
-    tokenize(az_span_create_from_str((char *)(size_t) "int a[n];"), &tl_vla);
+    tokenize(az_span_create_from_str("int a[n];"), &tl_vla);
 
     g_cdd_fail_vla_basic_type = 1;
     ASSERT_NEQ(0, scan_for_vlas(tl_vla, &list));
@@ -144,7 +143,7 @@ TEST test_scan_for_vlas_oom(void) {
   int i;
   int res;
 
-  ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t)src), &tokens));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str(src), &tokens));
 
   for (i = 0; i < 25; ++i) {
     g_io_calls = 0;
@@ -167,9 +166,8 @@ TEST test_scan_for_vlas_edge_cases(void) {
   struct VLASiteList list;
 
   /* Empty array size */
-  const char *src1 = (char *)(size_t)(size_t) "int arr[]; int arr2[ ];";
-  ASSERT_EQ(0,
-            tokenize(az_span_create_from_str((char *)(size_t)src1), &tokens));
+  const char *src1 = cdd_test_mut_str("int arr[]; int arr2[ ];");
+  ASSERT_EQ(0, tokenize(az_span_create_from_str(src1), &tokens));
   ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
   ASSERT_EQ(0, scan_for_vlas(tokens, &list));
   ASSERT_EQ(0, list.count); /* Not a VLA */
@@ -180,10 +178,9 @@ TEST test_scan_for_vlas_edge_cases(void) {
   /* Type alias / Typedef name as type: e.g. MyType arr[n]; or MyType *arr[n];
    */
   {
-    const char *src2 = (char *)(size_t)(size_t) "MyType arr[n]; MyType "
-                                                "*arr2[n]; MyType   arr3[n];";
-    ASSERT_EQ(0,
-              tokenize(az_span_create_from_str((char *)(size_t)src2), &tokens));
+    const char *src2 = cdd_test_mut_str("MyType arr[n]; MyType "
+                                        "*arr2[n]; MyType   arr3[n];");
+    ASSERT_EQ(0, tokenize(az_span_create_from_str(src2), &tokens));
     ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
     ASSERT_EQ(0, scan_for_vlas(tokens, &list));
     ASSERT_EQ(3, list.count);
@@ -193,9 +190,8 @@ TEST test_scan_for_vlas_edge_cases(void) {
 
     /* Missing variable name (syntax error but we should not crash) */
     {
-      const char *src3 = (char *)(size_t)(size_t) "int [n];";
-      ASSERT_EQ(
-          0, tokenize(az_span_create_from_str((char *)(size_t)src3), &tokens));
+      const char *src3 = cdd_test_mut_str("int [n];");
+      ASSERT_EQ(0, tokenize(az_span_create_from_str(src3), &tokens));
       ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
       ASSERT_EQ(0, scan_for_vlas(tokens, &list));
       vla_site_list_free(&list);
@@ -204,9 +200,8 @@ TEST test_scan_for_vlas_edge_cases(void) {
 
       /* Missing semicolon */
       {
-        const char *src4 = (char *)(size_t)(size_t) "int arr[n]";
-        ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t)src4),
-                              &tokens));
+        const char *src4 = cdd_test_mut_str("int arr[n]");
+        ASSERT_EQ(0, tokenize(az_span_create_from_str(src4), &tokens));
         ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
         ASSERT_EQ(0, scan_for_vlas(tokens, &list));
         vla_site_list_free(&list);
@@ -215,9 +210,8 @@ TEST test_scan_for_vlas_edge_cases(void) {
 
         /* Missing array bracket closing */
         {
-          const char *src5 = (char *)(size_t)(size_t) "int arr[n";
-          ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t)src5),
-                                &tokens));
+          const char *src5 = cdd_test_mut_str("int arr[n");
+          ASSERT_EQ(0, tokenize(az_span_create_from_str(src5), &tokens));
           ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
           ASSERT_EQ(0, scan_for_vlas(tokens, &list));
           vla_site_list_free(&list);
@@ -226,10 +220,8 @@ TEST test_scan_for_vlas_edge_cases(void) {
 
           /* Type modifiers with whitespace */
           {
-            const char *src6 =
-                (char *)(size_t)(size_t) "const  int  arr [ n ] ;";
-            ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t)src6),
-                                  &tokens));
+            const char *src6 = cdd_test_mut_str("const  int  arr [ n ] ;");
+            ASSERT_EQ(0, tokenize(az_span_create_from_str(src6), &tokens));
             ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
             ASSERT_EQ(0, scan_for_vlas(tokens, &list));
             ASSERT_EQ(1, list.count);
@@ -242,9 +234,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
               const char *src7 =
                   "void f(int n) { int a[n]; int b[n]; int c[n]; int d[n]; "
                   "int e[n]; int f[n]; }";
-              ASSERT_EQ(0,
-                        tokenize(az_span_create_from_str((char *)(size_t)src7),
-                                 &tokens));
+              ASSERT_EQ(0, tokenize(az_span_create_from_str(src7), &tokens));
               ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
               ASSERT_EQ(0, scan_for_vlas(tokens, &list));
               ASSERT_EQ(6, list.count);
@@ -254,18 +244,30 @@ TEST test_scan_for_vlas_edge_cases(void) {
 
               /* Abrupt endings to hit i < tokens->size branches */
               {
-                const char *abrupt_cases[] = {
-                    "struct", "union",    "enum",     "struct S",
-                    "const",  "int",      "int a",    "int a   ",
-                    "int *",  "int a[",   "int a[n",  "int a[10",
-                    "MyType", "MyType *", "int a[n]", "int a[n]  "};
+                const char *abrupt_cases[16];
                 size_t i;
+
+                abrupt_cases[0] = cdd_test_mut_str("struct");
+                abrupt_cases[1] = cdd_test_mut_str("union");
+                abrupt_cases[2] = cdd_test_mut_str("enum");
+                abrupt_cases[3] = cdd_test_mut_str("struct S");
+                abrupt_cases[4] = cdd_test_mut_str("const");
+                abrupt_cases[5] = cdd_test_mut_str("int");
+                abrupt_cases[6] = cdd_test_mut_str("int a");
+                abrupt_cases[7] = cdd_test_mut_str("int a   ");
+                abrupt_cases[8] = cdd_test_mut_str("int *");
+                abrupt_cases[9] = cdd_test_mut_str("int a[");
+                abrupt_cases[10] = cdd_test_mut_str("int a[n");
+                abrupt_cases[11] = cdd_test_mut_str("int a[10");
+                abrupt_cases[12] = cdd_test_mut_str("MyType");
+                abrupt_cases[13] = cdd_test_mut_str("MyType *");
+                abrupt_cases[14] = cdd_test_mut_str("int a[n]");
+                abrupt_cases[15] = cdd_test_mut_str("int a[n]  ");
                 for (i = 0; i < sizeof(abrupt_cases) / sizeof(abrupt_cases[0]);
                      i++) {
-                  ASSERT_EQ(0, tokenize(az_span_create_from_str(
-                                            (char *)(size_t)(char *)(size_t)
-                                                abrupt_cases[i]),
-                                        &tokens));
+                  ASSERT_EQ(0,
+                            tokenize(az_span_create_from_str(abrupt_cases[i]),
+                                     &tokens));
                   ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
                   ASSERT_EQ(0, scan_for_vlas(tokens, &list));
                   vla_site_list_free(&list);

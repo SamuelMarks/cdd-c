@@ -1,6 +1,6 @@
 /**
  * @file struct.h
- * @brief Struct Lifecycle generation module.
+ * @brief Core Struct Lifecycle generation definitions and implementation.
  *
  * Provides functionality to generate C "Data Class" utilities:
  * - `_cleanup`: Recursive memory freeing.
@@ -194,13 +194,9 @@ struct_fields_get(const struct StructFields *sf, const char *name,
  * @param[in] config Configuration options.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for write struct cleanup func.
-                     */
-    cdd_c_error_t
-    write_struct_cleanup_func(FILE *fp, const char *struct_name,
-                              const struct StructFields *sf,
-                              const struct CodegenStructConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_struct_cleanup_func(
+    FILE *fp, const char *struct_name, const struct StructFields *sf,
+    const struct CodegenStructConfig *config);
 
 /**
  * @brief Generate the `_deepcopy` function.
@@ -212,13 +208,9 @@ extern C_CDD_EXPORT /**
  * @param[in] config Configuration options.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for write struct deepcopy func.
-                     */
-    cdd_c_error_t
-    write_struct_deepcopy_func(FILE *fp, const char *struct_name,
-                               const struct StructFields *sf,
-                               const struct CodegenStructConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_struct_deepcopy_func(
+    FILE *fp, const char *struct_name, const struct StructFields *sf,
+    const struct CodegenStructConfig *config);
 
 /**
  * @brief Generate the `_eq` function.
@@ -230,13 +222,9 @@ extern C_CDD_EXPORT /**
  * @param[in] config Configuration options.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for write struct eq func.
-                     */
-    cdd_c_error_t
-    write_struct_eq_func(FILE *fp, const char *struct_name,
-                         const struct StructFields *sf,
-                         const struct CodegenStructConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_struct_eq_func(
+    FILE *fp, const char *struct_name, const struct StructFields *sf,
+    const struct CodegenStructConfig *config);
 
 /**
  * @brief Generate the `_default` function.
@@ -250,13 +238,9 @@ extern C_CDD_EXPORT /**
  * @param[in] config Configuration options.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for write struct default func.
-                     */
-    cdd_c_error_t
-    write_struct_default_func(FILE *fp, const char *struct_name,
-                              const struct StructFields *sf,
-                              const struct CodegenStructConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_struct_default_func(
+    FILE *fp, const char *struct_name, const struct StructFields *sf,
+    const struct CodegenStructConfig *config);
 
 /**
  * @brief Generate the `_debug` function.
@@ -268,13 +252,9 @@ extern C_CDD_EXPORT /**
  * @param[in] config Configuration options.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for write struct debug func.
-                     */
-    cdd_c_error_t
-    write_struct_debug_func(FILE *fp, const char *struct_name,
-                            const struct StructFields *sf,
-                            const struct CodegenStructConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_struct_debug_func(
+    FILE *fp, const char *struct_name, const struct StructFields *sf,
+    const struct CodegenStructConfig *config);
 
 /**
  * @brief Generate the `_display` function.
@@ -286,13 +266,9 @@ extern C_CDD_EXPORT /**
  * @param[in] config Configuration options.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for write struct display func.
-                     */
-    cdd_c_error_t
-    write_struct_display_func(FILE *fp, const char *struct_name,
-                              const struct StructFields *sf,
-                              const struct CodegenStructConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_struct_display_func(
+    FILE *fp, const char *struct_name, const struct StructFields *sf,
+    const struct CodegenStructConfig *config);
 
 /**
  * @param[out] _out_val Pointer to store the result
@@ -301,11 +277,8 @@ extern C_CDD_EXPORT /**
  * @param[in] ref Reference string (e.g. "#/components/schemas/Type").
  * @return The base type name ("Type") or the input string if no slash.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Retrieves the type from ref.
-                     */
-    cdd_c_error_t
-    get_type_from_ref(const char *ref, char **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t get_type_from_ref(const char *ref,
+                                                    const char **_out_val);
 
 #ifdef __cplusplus
 }

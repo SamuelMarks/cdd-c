@@ -131,12 +131,8 @@ extern C_CDD_EXPORT cdd_c_error_t allocation_site_list_add(
  * @param[out] out The results container.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Retrieves the allocations.
-                     */
-    cdd_c_error_t
-    find_allocations(const struct TokenList *tokens,
-                     struct AllocationSiteList *out);
+extern C_CDD_EXPORT cdd_c_error_t find_allocations(
+    const struct TokenList *tokens, struct AllocationSiteList *out);
 
 /**
  * @brief Check if a specific allocation instance is safe.
@@ -153,13 +149,12 @@ extern C_CDD_EXPORT /**
  * unchecked.
  * @return 0 on success, EINVAL on error.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Checks if checked.
-                     */
-    cdd_c_error_t
-    is_checked(const struct TokenList *tokens, size_t alloc_idx,
-               const char *var_name, const struct AllocatorSpec *spec,
-               int *used_before_check, int *out_is_checked);
+extern C_CDD_EXPORT cdd_c_error_t is_checked(const struct TokenList *tokens,
+                                             size_t alloc_idx,
+                                             const char *var_name,
+                                             const struct AllocatorSpec *spec,
+                                             int *used_before_check,
+                                             int *out_is_checked);
 
 #ifdef __cplusplus
 }

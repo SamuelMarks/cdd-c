@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_webassembly.h
+ * @brief FFI binding emitter for Webassembly.
+ */
 #ifndef CDD_FFI_EMIT_WEBASSEMBLY_H
 #define CDD_FFI_EMIT_WEBASSEMBLY_H
 

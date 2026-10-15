@@ -40,7 +40,7 @@ C_CDD_EXPORT int g_cdd_audit_fail_find = 0;
 #endif
 
 /**
- * @brief Executes the audit stats init operation.
+ * @brief Initializes codebase audit statistics counters.
  */
 cdd_c_error_t audit_stats_init(struct AuditStats *stats) {
 #ifdef CDD_BUILD_TESTS
@@ -61,7 +61,7 @@ cdd_c_error_t audit_stats_init(struct AuditStats *stats) {
 }
 
 /**
- * @brief Executes the audit stats free operation.
+ * @brief Releases memory held by codebase audit statistics.
  */
 void audit_stats_free(struct AuditStats *stats) {
   size_t i;
@@ -93,8 +93,8 @@ static cdd_c_error_t add_violation(struct AuditStats *stats,
     struct AuditViolation *new_items;
 #ifdef CDD_BUILD_TESTS
     {
-      extern C_CDD_EXPORT /** @brief g_cdd_fail_alloc_audit */
-          int g_cdd_fail_alloc_audit;
+      /** @brief g_cdd_fail_alloc_audit */
+      extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
       if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
         new_items = NULL;
       else
@@ -114,8 +114,8 @@ static cdd_c_error_t add_violation(struct AuditStats *stats,
   }
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT /** @brief g_cdd_fail_alloc_audit */
-        int g_cdd_fail_alloc_audit;
+    /** @brief g_cdd_fail_alloc_audit */
+    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
     if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
       list->items[list->size].file_path = NULL;
     else
@@ -128,8 +128,8 @@ static cdd_c_error_t add_violation(struct AuditStats *stats,
   list->items[list->size].col = col;
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT /** @brief g_cdd_fail_alloc_audit */
-        int g_cdd_fail_alloc_audit;
+    /** @brief g_cdd_fail_alloc_audit */
+    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
     if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
       list->items[list->size].variable_name = NULL;
     else
@@ -186,8 +186,8 @@ static cdd_c_error_t add_violation(struct AuditStats *stats,
  * @param[out] line 1-based line number.
  * @param[out] col 1-based column number.
  */
-static void get_line_col(const char *content, const uint8_t *token_ptr,
-                         size_t *line, size_t *col) {
+static cdd_c_error_t get_line_col(const char *content, const uint8_t *token_ptr,
+                                  size_t *line, size_t *col) {
   const char *p = content;
   *line = 1;
   *col = 1;
@@ -201,6 +201,7 @@ static void get_line_col(const char *content, const uint8_t *token_ptr,
     }
     p++;
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -387,7 +388,8 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
 }
 
 /**
- * @brief Executes the audit project operation.
+ * @brief Scans a project directory to collect safety, allocation, and macro
+ * audit metrics.
  */
 cdd_c_error_t audit_project(const char *root_path, struct AuditStats *stats) {
   if (!root_path || !stats)
@@ -397,7 +399,7 @@ cdd_c_error_t audit_project(const char *root_path, struct AuditStats *stats) {
 }
 
 /**
- * @brief Executes the audit print json operation.
+ * @brief Serializes collected audit statistics as a JSON report.
  */
 cdd_c_error_t audit_print_json(const struct AuditStats *stats,
                                char **out_json) {
@@ -411,8 +413,8 @@ cdd_c_error_t audit_print_json(const struct AuditStats *stats,
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT /** @brief g_cdd_fail_alloc_audit */
-        int g_cdd_fail_alloc_audit;
+    /** @brief g_cdd_fail_alloc_audit */
+    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
     if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
       root_val = NULL;
     else

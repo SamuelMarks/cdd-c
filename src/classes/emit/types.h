@@ -48,13 +48,9 @@ struct CodegenTypesConfig {
  * @param[in] config Optional config for guards.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for write union to json func.
-                     */
-    cdd_c_error_t
-    write_union_to_json_func(FILE *fp, const char *union_name,
-                             const struct StructFields *sf,
-                             const struct CodegenTypesConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_union_to_json_func(
+    FILE *fp, const char *union_name, const struct StructFields *sf,
+    const struct CodegenTypesConfig *config);
 
 /**
  * @brief Generate `_from_jsonObject` for a Tagged Union.
@@ -67,14 +63,9 @@ extern C_CDD_EXPORT /**
  * @param[in] config Optional config.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for write union from jsonObject
-                     * func.
-                     */
-    cdd_c_error_t
-    write_union_from_jsonObject_func(FILE *fp, const char *union_name,
-                                     const struct StructFields *sf,
-                                     const struct CodegenTypesConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_union_from_jsonObject_func(
+    FILE *fp, const char *union_name, const struct StructFields *sf,
+    const struct CodegenTypesConfig *config);
 
 /**
  * @brief Generate `_from_json` for a Tagged Union.
@@ -87,13 +78,9 @@ extern C_CDD_EXPORT /**
  * @param[in] config Optional config.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for write union from json func.
-                     */
-    cdd_c_error_t
-    write_union_from_json_func(FILE *fp, const char *union_name,
-                               const struct StructFields *sf,
-                               const struct CodegenTypesConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_union_from_json_func(
+    FILE *fp, const char *union_name, const struct StructFields *sf,
+    const struct CodegenTypesConfig *config);
 
 /**
  * @brief Generate `_cleanup` for a Tagged Union.
@@ -105,13 +92,9 @@ extern C_CDD_EXPORT /**
  * @param[in] config Optional config.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for write union cleanup func.
-                     */
-    cdd_c_error_t
-    write_union_cleanup_func(FILE *fp, const char *union_name,
-                             const struct StructFields *sf,
-                             const struct CodegenTypesConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_union_cleanup_func(
+    FILE *fp, const char *union_name, const struct StructFields *sf,
+    const struct CodegenTypesConfig *config);
 
 /* --- Root Array Functions --- */
 
@@ -127,14 +110,9 @@ extern C_CDD_EXPORT /**
  * @param[in] config Optional config.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for write root array to json
-                     * func.
-                     */
-    cdd_c_error_t
-    write_root_array_to_json_func(FILE *fp, const char *name,
-                                  const char *item_type, const char *item_ref,
-                                  const struct CodegenTypesConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_root_array_to_json_func(
+    FILE *fp, const char *name, const char *item_type, const char *item_ref,
+    const struct CodegenTypesConfig *config);
 
 /**
  * @brief Generate `_from_json` for a root array type.
@@ -149,14 +127,9 @@ extern C_CDD_EXPORT /**
  * @param[in] config Optional config.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for write root array from json
-                     * func.
-                     */
-    cdd_c_error_t
-    write_root_array_from_json_func(FILE *fp, const char *name,
-                                    const char *item_type, const char *item_ref,
-                                    const struct CodegenTypesConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_root_array_from_json_func(
+    FILE *fp, const char *name, const char *item_type, const char *item_ref,
+    const struct CodegenTypesConfig *config);
 
 /**
  * @brief Generate `_cleanup` for a root array type.
@@ -168,14 +141,9 @@ extern C_CDD_EXPORT /**
  * @param[in] config Optional config.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for write root array cleanup
-                     * func.
-                     */
-    cdd_c_error_t
-    write_root_array_cleanup_func(FILE *fp, const char *name,
-                                  const char *item_type, const char *item_ref,
-                                  const struct CodegenTypesConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_root_array_cleanup_func(
+    FILE *fp, const char *name, const char *item_type, const char *item_ref,
+    const struct CodegenTypesConfig *config);
 
 #ifdef __cplusplus
 }

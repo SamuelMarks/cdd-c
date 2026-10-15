@@ -123,7 +123,7 @@ static cdd_c_error_t find_stmt_start(const struct TokenList *tokens, size_t pos,
 }
 
 /**
- * @brief Executes the join tokens range operation.
+ * @brief Concatenates a range of tokens into a newly allocated string.
  */
 static cdd_c_error_t join_tokens_range(const struct TokenList *tokens,
                                        size_t start, size_t end,
@@ -165,7 +165,7 @@ static cdd_c_error_t join_tokens_range(const struct TokenList *tokens,
 /* --- Core Logic --- */
 
 /**
- * @brief Executes the rewrite body operation.
+ * @brief Rewrites a C function body to propagate error return codes.
  */
 cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                            const struct AllocationSiteList *allocs,
@@ -349,7 +349,7 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                       sprintf_s(arg_append, strlen(lhs_name) + 10, "&%s",
                                 lhs_name);
 #else
-                      CDD_SNPRINTF(arg_append, sizeof(arg_append), "&%s",
+                      CDD_SNPRINTF(arg_append, strlen(lhs_name) + 10, "&%s",
                                    lhs_name);
 #endif
                     else
@@ -357,7 +357,7 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                       sprintf_s(arg_append, strlen(lhs_name) + 10, ", &%s",
                                 lhs_name);
 #else
-                      CDD_SNPRINTF(arg_append, sizeof(arg_append), ", &%s",
+                      CDD_SNPRINTF(arg_append, strlen(lhs_name) + 10, ", &%s",
                                    lhs_name);
 #endif
                     {
@@ -571,7 +571,7 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
               if (rc != CDD_C_SUCCESS)
                 goto cleanup;
 
-              replacement = (char *)(size_t)C_CDD_MALLOC(strlen(expr) + 256);
+              replacement = (char *)C_CDD_MALLOC(strlen(expr) + 256);
               if (!replacement) {
                 C_CDD_FREE(expr);
                 rc = CDD_C_ERROR_MEMORY;

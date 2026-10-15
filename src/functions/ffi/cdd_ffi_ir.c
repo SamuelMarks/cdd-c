@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_ir.c
+ * @brief Core cdd ffi ir definitions and implementation.
+ */
 /* clang-format off */
 #include "cdd_c_error.h"
 #include "c_cdd/safe_crt_msvc.h"
@@ -22,6 +26,7 @@ typedef struct {
  * @brief Finds the index of a node by name.
  * @param ir The IR.
  * @param name The name to find.
+ * @param out_idx Pointer to receive the matched node index.
  * @return CDD_C_SUCCESS if found, CDD_C_ERROR_NOT_FOUND if not found.
  */
 static cdd_c_error_t find_node_index(cdd_ffi_ir_t *ir, const char *name,
@@ -341,6 +346,10 @@ void cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
 
   if (ir->nodes) {
     free(ir->nodes);
+  }
+  if (ir->module_name) {
+    free(ir->module_name);
+    ir->module_name = NULL;
   }
 
   ir->nodes = NULL;

@@ -67,6 +67,7 @@ TEST test_ffi_ir_extract_error_paths(void) {
       if (cdd_ffi_ir_extract_exports("test.h", exhaustive_src, &config, &ir) ==
           CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
+        free(ir);
       }
     }
     g_ffi_extractor_alloc_fail = 0;
@@ -74,6 +75,7 @@ TEST test_ffi_ir_extract_error_paths(void) {
     ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_ir_extract_exports(
                                  "test.h", exhaustive_src, &config, &ir));
     cdd_ffi_ir_free(ir);
+    free(ir);
     remove("test.h");
   }
 
@@ -157,12 +159,25 @@ TEST test_ffi_ir_extract_error_paths(void) {
               cdd_ffi_parse_template_type_test("std::vector<int", &t));
     ASSERT_EQ(CDD_C_SUCCESS,
               cdd_ffi_parse_template_type_test("std::vector<MyTmpl<int>>", &t));
+    free(t.ref_name);
+    free(t.template_args[0].ref_name);
+    free(t.template_args[0].template_args);
+    free(t.template_args);
+    memset(&t, 0, sizeof(t));
     ASSERT(cdd_ffi_parse_template_type_test("std::vector<MyTmpl<>>", &t) !=
            CDD_C_SUCCESS);
     ASSERT_EQ(CDD_C_SUCCESS,
               cdd_ffi_parse_template_type_test("std::vector<MyType<int>", &t));
+    free(t.ref_name);
+    free(t.template_args[0].ref_name);
+    free(t.template_args);
+    memset(&t, 0, sizeof(t));
     ASSERT_EQ(CDD_C_SUCCESS,
               cdd_ffi_parse_template_type_test("std::vector<A > B < C>", &t));
+    free(t.ref_name);
+    free(t.template_args[0].ref_name);
+    free(t.template_args);
+    memset(&t, 0, sizeof(t));
 
     /* Template struct ref with strdup OOM */
     g_ffi_extractor_alloc_fail = 4;

@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_crystal.c
+ * @brief FFI binding emitter for Crystal.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -9,66 +13,70 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
-}
-
-static const char *map_crystal_type(cdd_ffi_type_t *t) {
+static cdd_c_error_t map_crystal_type(cdd_ffi_type_t *t,
+                                      const char **out_type) {
   if (t->pointer_depth > 0) {
     if (t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) {
       if (t->is_const) {
-        return "Pointer(LibC::Char)"; /* or Pointer(UInt8) */
+        *out_type = "Pointer(LibC::Char)"; /* or Pointer(UInt8) */
+        return CDD_C_SUCCESS;
       }
     }
-    return "Pointer(Void)";
+    *out_type = "Pointer(Void)";
+    return CDD_C_SUCCESS;
   }
   switch (t->kind) {
   case CDD_FFI_KIND_VOID:
-    return "Void";
+    *out_type = "Void";
+    break;
   case CDD_FFI_KIND_BOOL:
-    return "Bool";
+    *out_type = "Bool";
+    break;
   case CDD_FFI_KIND_INT8:
   case CDD_FFI_KIND_UINT8:
-    return "LibC::Char"; /* or Int8/UInt8 */
+    *out_type = "LibC::Char"; /* or Int8/UInt8 */
+    break;
   case CDD_FFI_KIND_INT16:
-    return "LibC::Short";
+    *out_type = "LibC::Short";
+    break;
   case CDD_FFI_KIND_UINT16:
-    return "LibC::UShort";
+    *out_type = "LibC::UShort";
+    break;
   case CDD_FFI_KIND_INT32:
-    return "LibC::Int";
+    *out_type = "LibC::Int";
+    break;
   case CDD_FFI_KIND_UINT32:
-    return "LibC::UInt";
+    *out_type = "LibC::UInt";
+    break;
   case CDD_FFI_KIND_INT64:
-    return "LibC::LongLong";
+    *out_type = "LibC::LongLong";
+    break;
   case CDD_FFI_KIND_UINT64:
-    return "LibC::ULongLong";
+    *out_type = "LibC::ULongLong";
+    break;
   case CDD_FFI_KIND_FLOAT32:
-    return "LibC::Float";
+    *out_type = "LibC::Float";
+    break;
   case CDD_FFI_KIND_FLOAT64:
-    return "LibC::Double";
+    *out_type = "LibC::Double";
+    break;
   case CDD_FFI_KIND_STRUCT_REF:
   case CDD_FFI_KIND_ENUM_REF:
   case CDD_FFI_KIND_TYPEDEF_REF:
     if (t->ref_name) {
-      return t->ref_name;
+      *out_type = t->ref_name;
+    } else {
+      *out_type = "Pointer(Void)";
     }
-    return "Pointer(Void)";
+    break;
   default:
-    return "Pointer(Void)";
+    *out_type = "Pointer(Void)";
+    break;
   }
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t
@@ -116,22 +124,24 @@ cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
 
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "  struct %s\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "    %s : %s\n", node->fields[j].name,
-                map_crystal_type(&node->fields[j].type));
+        const char *ct = NULL;
+        map_crystal_type(&node->fields[j].type, &ct);
+        fprintf(f, "    %s : %s\n", node->fields[j].name, ct);
       }
       fprintf(f, "  end\n\n");
     } else if (node->kind == CDD_FFI_NODE_UNION) {
       fprintf(f, "  union %s\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "    %s : %s\n", node->fields[j].name,
-                map_crystal_type(&node->fields[j].type));
+        const char *ct = NULL;
+        map_crystal_type(&node->fields[j].type, &ct);
+        fprintf(f, "    %s : %s\n", node->fields[j].name, ct);
       }
       fprintf(f, "  end\n\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "  enum %s\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         cdd_ffi_enum_variant_t *var = &node->variants[j];
@@ -143,13 +153,16 @@ cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
       }
       fprintf(f, "  end\n\n");
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
+      const char *ret_ct = NULL;
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "  fun %s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "%s%s : %s", j > 0 ? ", " : "", node->fields[j].name,
-                map_crystal_type(&node->fields[j].type));
+        const char *ct = NULL;
+        map_crystal_type(&node->fields[j].type, &ct);
+        fprintf(f, "%s%s : %s", j > 0 ? ", " : "", node->fields[j].name, ct);
       }
-      fprintf(f, ") : %s\n", map_crystal_type(&node->return_or_base_type));
+      map_crystal_type(&node->return_or_base_type, &ret_ct);
+      fprintf(f, ") : %s\n", ret_ct);
     }
   }
 

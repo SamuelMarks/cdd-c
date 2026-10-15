@@ -1,6 +1,6 @@
 /**
  * @file enum.h
- * @brief Enum code generation module.
+ * @brief Core Enum code generation definitions and implementation.
  *
  * Provides functionality to extract enum definitions from C code and generate:
  * - `_to_str` functions (String serialization)
@@ -92,13 +92,9 @@ extern C_CDD_EXPORT cdd_c_error_t enum_members_add(struct EnumMembers *em,
  * @param[in] config Optional configuration for guards (can be NULL).
  * @return 0 on success, error code (EINVAL/EIO) on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for write enum from str func.
-                     */
-    cdd_c_error_t
-    write_enum_from_str_func(FILE *fp, const char *enum_name,
-                             const struct EnumMembers *em,
-                             const struct CodegenEnumConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_enum_from_str_func(
+    FILE *fp, const char *enum_name, const struct EnumMembers *em,
+    const struct CodegenEnumConfig *config);
 
 /**
  * @brief Generate the `_to_str` implementation for an enum.
@@ -112,13 +108,9 @@ extern C_CDD_EXPORT /**
  * @param[in] config Optional configuration for guards (can be NULL).
  * @return 0 on success, error code (EINVAL/EIO) on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for write enum to str func.
-                     */
-    cdd_c_error_t
-    write_enum_to_str_func(FILE *fp, const char *enum_name,
-                           const struct EnumMembers *em,
-                           const struct CodegenEnumConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_enum_to_str_func(
+    FILE *fp, const char *enum_name, const struct EnumMembers *em,
+    const struct CodegenEnumConfig *config);
 
 #ifdef __cplusplus
 }

@@ -204,7 +204,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_rewrite_call_sites(cdd_cst_tree_t *tree,
                 cdd_cst_node_t *parent_ptr;
                 int needs_comma;
 
-                dup_id = (char *)(size_t)C_CDD_CALLOC(1, 256);
+                dup_id = (char *)C_CDD_CALLOC(1, 256);
                 if (!dup_id)
                   return CDD_C_ERROR_MEMORY;
 

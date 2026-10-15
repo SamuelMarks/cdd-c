@@ -1,3 +1,7 @@
+/**
+ * @file cdd_cst_query.h
+ * @brief Concrete Syntax Tree (CST) query implementation and utilities.
+ */
 #ifndef CDD_CST_QUERY_H
 #define CDD_CST_QUERY_H
 

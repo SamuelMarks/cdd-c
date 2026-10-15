@@ -9,30 +9,8 @@
 #include "functions/emit/client_body_internal.h"
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
-#include <stdarg.h>
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)))
-#endif
-    ;
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  int ret;
-  va_list args;
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  va_start(args, format);
-  ret = vfprintf(stream, format, args);
-  va_end(args);
-  return ret;
-}
-#define fprintf test_cdd_fprintf_hook
-#endif
-
 /**
- * @brief Generates C code for write multipart part headers.
+ * @brief Emits C source code for multipart part headers.
  */
 cdd_c_error_t
 client_body_write_multipart_part_headers(FILE *fp,
@@ -112,11 +90,10 @@ client_body_write_multipart_part_headers(FILE *fp,
                        "            size_t extra = val_len + "
                        "(%s > 0 ? 1 : 0);\n",
                        joined_len_name));
-      CHECK_IO(
-          fprintf(fp,
-                  "            char *tmp = (char *)(size_t)realloc(%s, %s + "
-                  "extra + 1);\n",
-                  joined_name, joined_len_name));
+      CHECK_IO(fprintf(fp,
+                       "            char *tmp = (char *)realloc(%s, %s + "
+                       "extra + 1);\n",
+                       joined_name, joined_len_name));
       CHECK_IO(fprintf(fp, "            if (!tmp) { rc = CDD_C_ERROR_MEMORY; "
                            "goto cleanup; }\n"));
       CHECK_IO(fprintf(fp, "            %s = tmp;\n", joined_name));
@@ -200,7 +177,7 @@ client_body_write_multipart_part_headers(FILE *fp,
             "            size_t key_len = strlen(kv_key);\n"
             "            size_t val_len = strlen(kv_raw);\n"
             "            size_t extra = key_len + val_len + 1 + (%s ? 0 : 1);\n"
-            "            char *tmp = (char *)(size_t)realloc(%s, %s + extra + "
+            "            char *tmp = (char *)realloc(%s, %s + extra + "
             "1);\n"
             "            if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; "
             "}\n",
@@ -230,7 +207,7 @@ client_body_write_multipart_part_headers(FILE *fp,
             "            size_t val_len = strlen(kv_raw);\n"
             "            size_t extra = key_len + val_len + 1 + (%s ? 0 : 1) + "
             "1;\n"
-            "            char *tmp = (char *)(size_t)realloc(%s, %s + extra + "
+            "            char *tmp = (char *)realloc(%s, %s + extra + "
             "1);\n"
             "            if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; "
             "}\n",
@@ -329,30 +306,19 @@ client_body_write_multipart_part_headers(FILE *fp,
 }
 
 /**
- * @brief Generates C code for write multipart body.
+ * @brief Emits C source code for multipart body.
  */
 cdd_c_error_t
 client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
                                  const struct OpenAPI_Spec *spec) {
-  struct StructFields *_ast_openapi_spec_find_schema_for_ref_7;
-  const struct OpenAPI_MediaType *_ast_find_media_type_8;
-  struct OpenAPI_Encoding *_ast_find_encoding_9;
-  const char *_ast_first_content_type_entry_10 = NULL;
-  const char *_ast_first_content_type_entry_11 = NULL;
-  const char *_ast_first_content_type_entry_12 = NULL;
-  const char *_ast_first_content_type_entry_13 = NULL;
-  const char *_ast_first_content_type_entry_14 = NULL;
-  const char *_ast_first_content_type_entry_15 = NULL;
-  const struct StructFields *sf;
-  const struct OpenAPI_MediaType *mt;
+  struct StructFields *sf = NULL;
+  const struct OpenAPI_MediaType *mt = NULL;
   size_t i;
 
   if (!fp || !op || !spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  sf = (openapi_spec_find_schema_for_ref(
-            spec, &op->req_body, &_ast_openapi_spec_find_schema_for_ref_7),
-        _ast_openapi_spec_find_schema_for_ref_7);
+  openapi_spec_find_schema_for_ref(spec, &op->req_body, &sf);
   if (!sf) {
     CHECK_IO(fprintf(
         fp,
@@ -362,15 +328,13 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
   }
 
   CHECK_IO(fprintf(fp, "  /* Multipart Body Construction */\n"));
-  mt = (find_media_type(op->req_body_media_types, op->n_req_body_media_types,
-                        "multipart/form-data", &_ast_find_media_type_8),
-        _ast_find_media_type_8);
+  find_media_type(op->req_body_media_types, op->n_req_body_media_types,
+                  "multipart/form-data", &mt);
   for (i = 0; i < sf->size; ++i) {
     const struct StructField *f = &sf->fields[i];
-    const struct OpenAPI_Encoding *enc =
-        (mt != NULL) ? (find_encoding(mt, f->name, &_ast_find_encoding_9),
-                        _ast_find_encoding_9)
-                     : NULL;
+    struct OpenAPI_Encoding *enc = NULL;
+    if (mt != NULL)
+      find_encoding(mt, f->name, &enc);
     if (strcmp(f->type, "array") == 0) {
       const char *items_type = f->ref[0] != '\0' ? f->ref : "string";
       int items_is_object = 0;
@@ -387,10 +351,8 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
       if (!final_ct && items_is_object)
         final_ct = "application/json";
       if (final_ct && final_ct[0] != '\0') {
-        final_ct =
-            (first_content_type_entry(final_ct, ct_clean, sizeof(ct_clean),
-                                      &_ast_first_content_type_entry_10),
-             _ast_first_content_type_entry_10);
+        first_content_type_entry(final_ct, ct_clean, sizeof(ct_clean),
+                                 &final_ct);
         CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", final_ct);
         ct_arg = ct_buf;
       }
@@ -519,10 +481,8 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
       char ct_clean[256];
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
-        content_type =
-            (first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
-                                      &_ast_first_content_type_entry_11),
-             _ast_first_content_type_entry_11);
+        first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
+                                 &content_type);
         CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
@@ -544,13 +504,8 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
       char ct_clean[256];
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
-
-        content_type =
-            (first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
-
-                                      &_ast_first_content_type_entry_12),
-             _ast_first_content_type_entry_12);
-
+        first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
+                                 &content_type);
         CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
@@ -576,13 +531,8 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
       char ct_clean[256];
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
-
-        content_type =
-            (first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
-
-                                      &_ast_first_content_type_entry_13),
-             _ast_first_content_type_entry_13);
-
+        first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
+                                 &content_type);
         CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
@@ -608,13 +558,8 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
       char ct_clean[256];
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
-
-        content_type =
-            (first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
-
-                                      &_ast_first_content_type_entry_14),
-             _ast_first_content_type_entry_14);
-
+        first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
+                                 &content_type);
         CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
@@ -642,10 +587,8 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
       if (!final_ct)
         final_ct = "application/json";
       if (final_ct[0] != '\0') {
-        final_ct =
-            (first_content_type_entry(final_ct, ct_clean, sizeof(ct_clean),
-                                      &_ast_first_content_type_entry_15),
-             _ast_first_content_type_entry_15);
+        first_content_type_entry(final_ct, ct_clean, sizeof(ct_clean),
+                                 &final_ct);
         CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", final_ct);
         ct_arg = ct_buf;
       }

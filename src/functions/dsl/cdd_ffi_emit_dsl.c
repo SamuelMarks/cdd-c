@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_dsl.c
+ * @brief FFI binding emitter for Dsl.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -12,7 +16,7 @@
 #include <string.h>
 /* clang-format on */
 
-static void emit_trivia(FILE *f, cdd_ffi_trivia_t *trivia) {
+static cdd_c_error_t emit_trivia(FILE *f, cdd_ffi_trivia_t *trivia) {
   while (trivia) {
     if (trivia->text) {
       if (trivia->kind == CDD_FFI_TRIVIA_WHITESPACE) {
@@ -25,6 +29,7 @@ static void emit_trivia(FILE *f, cdd_ffi_trivia_t *trivia) {
     }
     trivia = trivia->next;
   }
+  return CDD_C_SUCCESS;
 }
 
 static cdd_c_error_t emit_type(FILE *f, const cdd_ffi_type_t *type) {
@@ -120,8 +125,8 @@ static cdd_c_error_t emit_field(FILE *f, const cdd_ffi_field_t *field) {
   return CDD_C_SUCCESS;
 }
 
-C_CDD_EXPORT cdd_c_error_t cdd_ffi_emit_dsl(cdd_ffi_ir_t *ir,
-                                            const void *config) {
+C_CDD_EXPORT cdd_c_error_t cdd_ffi_emit_dsl(
+    cdd_ffi_ir_t *ir, const struct cdd_generate_bindings_config *config) {
   FILE *f;
   size_t i, j;
   cdd_c_error_t rc = CDD_C_SUCCESS;

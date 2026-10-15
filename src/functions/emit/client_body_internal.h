@@ -21,6 +21,7 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/code_writer.h"
 #include "c_cdd/safe_crt.h"
 #include "c_cdd_stdbool.h"
 #include "classes/emit/struct.h"
@@ -32,6 +33,11 @@ extern "C" {
 #include "win_compat_sym.h"
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+#define fprintf cdd_io_fprintf_hook
+#endif /* CDD_BUILD_TESTS */
+
+/** @brief Returns CDD_C_ERROR_IO if an I/O call returns negative */
 #define CHECK_IO(x)                                                            \
   for (; (x) < 0;)                                                             \
   return CDD_C_ERROR_IO
@@ -42,45 +48,85 @@ extern "C" {
 #endif
 #endif
 
+/** @brief Symbol alias for client_body_verb_to_enum_str */
 #define verb_to_enum_str client_body_verb_to_enum_str
+/** @brief Symbol alias for client_body_method_str_to_enum_str */
 #define method_str_to_enum_str client_body_method_str_to_enum_str
+/** @brief Symbol alias for client_body_mapped_err_code */
 #define mapped_err_code client_body_mapped_err_code
+/** @brief Symbol alias for client_body_find_media_type */
 #define find_media_type client_body_find_media_type
+/** @brief Symbol alias for client_body_find_encoding */
 #define find_encoding client_body_find_encoding
+/** @brief Symbol alias for client_body_is_primitive_type */
 #define is_primitive_type client_body_is_primitive_type
+/** @brief Symbol alias for client_body_is_object_ref_type */
 #define is_object_ref_type client_body_is_object_ref_type
+/** @brief Symbol alias for client_body_struct_fields_all_primitive */
 #define struct_fields_all_primitive client_body_struct_fields_all_primitive
+/** @brief Symbol alias for client_body_schema_has_inline */
 #define schema_has_inline client_body_schema_has_inline
+/** @brief Symbol alias for client_body_media_type_base_len */
 #define media_type_base_len client_body_media_type_base_len
+/** @brief Symbol alias for client_body_media_type_has_prefix */
 #define media_type_has_prefix client_body_media_type_has_prefix
+/** @brief Symbol alias for client_body_media_type_has_suffix */
 #define media_type_has_suffix client_body_media_type_has_suffix
+/** @brief Symbol alias for client_body_media_type_ieq */
 #define media_type_ieq client_body_media_type_ieq
+/** @brief Symbol alias for client_body_media_type_is_json */
 #define media_type_is_json client_body_media_type_is_json
+/** @brief Symbol alias for client_body_media_type_is_form */
 #define media_type_is_form client_body_media_type_is_form
+/** @brief Symbol alias for client_body_media_type_is_text_plain */
 #define media_type_is_text_plain client_body_media_type_is_text_plain
+/** @brief Symbol alias for client_body_media_type_is_multipart */
 #define media_type_is_multipart client_body_media_type_is_multipart
+/** @brief Symbol alias for client_body_media_type_is_multipart_form */
 #define media_type_is_multipart_form client_body_media_type_is_multipart_form
+/** @brief Symbol alias for client_body_first_content_type_entry */
 #define first_content_type_entry client_body_first_content_type_entry
+/** @brief Symbol alias for client_body_sanitize_ident */
 #define sanitize_ident client_body_sanitize_ident
+/** @brief Symbol alias for client_body_multipart_header_param_name */
 #define multipart_header_param_name client_body_multipart_header_param_name
+/** @brief Symbol alias for client_body_header_name_is_content_type */
 #define header_name_is_content_type client_body_header_name_is_content_type
+/** @brief Symbol alias for client_body_media_type_is_textual */
 #define media_type_is_textual client_body_media_type_is_textual
+/** @brief Symbol alias for client_body_media_type_is_binary */
 #define media_type_is_binary client_body_media_type_is_binary
+/** @brief Symbol alias for client_body_schema_inline_is_string */
 #define schema_inline_is_string client_body_schema_inline_is_string
+/** @brief Symbol alias for client_body_response_is_textual_string */
 #define response_is_textual_string client_body_response_is_textual_string
+/** @brief Symbol alias for client_body_response_is_binary */
 #define response_is_binary client_body_response_is_binary
+/** @brief Symbol alias for client_body_schema_has_payload */
 #define schema_has_payload client_body_schema_has_payload
+/** @brief Symbol alias for client_body_write_text_plain_success */
 #define write_text_plain_success client_body_write_text_plain_success
+/** @brief Symbol alias for client_body_write_binary_success */
 #define write_binary_success client_body_write_binary_success
+/** @brief Symbol alias for client_body_write_inline_json_parse */
 #define write_inline_json_parse client_body_write_inline_json_parse
+/** @brief Symbol alias for client_body_write_joined_form_array */
 #define write_joined_form_array client_body_write_joined_form_array
+/** @brief Symbol alias for client_body_write_form_urlencoded_body */
 #define write_form_urlencoded_body client_body_write_form_urlencoded_body
+/** @brief Symbol alias for client_body_write_cookie_param_logic */
 #define write_cookie_param_logic client_body_write_cookie_param_logic
+/** @brief Symbol alias for client_body_write_header_param_logic */
 #define write_header_param_logic client_body_write_header_param_logic
+/** @brief Symbol alias for client_body_write_multipart_part_headers */
 #define write_multipart_part_headers client_body_write_multipart_part_headers
+/** @brief Symbol alias for client_body_write_multipart_body */
 #define write_multipart_body client_body_write_multipart_body
+/** @brief Symbol alias for client_body_is_status_range_code */
 #define is_status_range_code client_body_is_status_range_code
+/** @brief Symbol alias for client_body_status_range_prefix */
 #define status_range_prefix client_body_status_range_prefix
+/** @brief Symbol alias for client_body_is_status_code_literal */
 #define is_status_code_literal client_body_is_status_code_literal
 
 #ifdef __cplusplus

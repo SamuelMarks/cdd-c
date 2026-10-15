@@ -25,7 +25,7 @@ TEST test_ffi_ir_emit_python(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_python_out";
+  char *output_dir = cdd_test_mut_str("test_python_out");
   FILE *f;
 
   config.target_langs = "python";
@@ -82,7 +82,7 @@ TEST test_ffi_ir_emit_rust(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_rust_out";
+  char *output_dir = cdd_test_mut_str("test_rust_out");
   FILE *f;
 
   config.target_langs = "rust";
@@ -139,7 +139,7 @@ TEST test_ffi_ir_emit_csharp(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_csharp_out";
+  char *output_dir = cdd_test_mut_str("test_csharp_out");
   FILE *f;
 
   config.target_langs = "csharp";
@@ -196,7 +196,7 @@ TEST test_ffi_ir_emit_typescript(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_typescript_out";
+  char *output_dir = cdd_test_mut_str("test_typescript_out");
   FILE *f;
 
   config.target_langs = "typescript";
@@ -249,7 +249,7 @@ TEST test_ffi_ir_emit_napi(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_napi_out";
+  char *output_dir = cdd_test_mut_str("test_napi_out");
   FILE *f;
 
   config.target_langs = "napi";
@@ -303,7 +303,7 @@ TEST test_ffi_ir_emit_java(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_java_out";
+  char *output_dir = cdd_test_mut_str("test_java_out");
   FILE *f;
 
   config.target_langs = "java";
@@ -361,7 +361,7 @@ TEST test_ffi_ir_emit_cpp(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_cpp_out";
+  char *output_dir = cdd_test_mut_str("test_cpp_out");
   FILE *f;
 
   config.target_langs = "cpp";
@@ -414,7 +414,7 @@ TEST test_ffi_ir_emit_go(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_go_out";
+  char *output_dir = cdd_test_mut_str("test_go_out");
   FILE *f;
 
   config.target_langs = "go";
@@ -467,7 +467,7 @@ TEST test_ffi_ir_emit_swift(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_swift_out";
+  char *output_dir = cdd_test_mut_str("test_swift_out");
   FILE *f;
 
   config.target_langs = "swift";
@@ -520,7 +520,7 @@ TEST test_ffi_ir_emit_dart(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_dart_out";
+  char *output_dir = cdd_test_mut_str("test_dart_out");
   FILE *f;
 
   config.target_langs = "dart";

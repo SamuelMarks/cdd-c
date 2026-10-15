@@ -38,10 +38,12 @@ extern "C" {
  * @param[in] pos Current physical position.
  * @param[out] out_consumed How many physical bytes constitute this logical
  * char.
- * @return The logical character, or -1 if end of buffer.
+ * @param[out] out_char The logical character, or -1 if end of buffer.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT int peek_logical(const uint8_t *base, size_t len,
-                                     size_t pos, size_t *out_consumed);
+extern C_CDD_EXPORT cdd_c_error_t peek_logical(const uint8_t *base, size_t len,
+                                               size_t pos, size_t *out_consumed,
+                                               int *out_char);
 
 /**
  * @brief Tokenizes punctuators and comments starting with character c.

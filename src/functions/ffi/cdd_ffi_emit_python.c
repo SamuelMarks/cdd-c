@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_python.c
+ * @brief FFI binding emitter for Python.
+ */
 #ifdef CDD_BUILD_TESTS
 #ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
@@ -17,49 +21,67 @@ extern volatile int g_fail_io_after;
 /**
  * @brief Emits Python ctypes wrapper for a specific C primitive type.
  */
-static const char *get_ctypes_primitive(cdd_ffi_primitive_kind_t kind) {
+static cdd_c_error_t get_ctypes_primitive(cdd_ffi_primitive_kind_t kind,
+                                          const char **out_type) {
   switch (kind) {
   case CDD_FFI_KIND_VOID:
-    return "None";
+    *out_type = "None";
+    break;
   case CDD_FFI_KIND_BOOL:
-    return "ctypes.c_bool";
+    *out_type = "ctypes.c_bool";
+    break;
   case CDD_FFI_KIND_INT8:
-    return "ctypes.c_int8";
+    *out_type = "ctypes.c_int8";
+    break;
   case CDD_FFI_KIND_UINT8:
-    return "ctypes.c_uint8";
+    *out_type = "ctypes.c_uint8";
+    break;
   case CDD_FFI_KIND_INT16:
-    return "ctypes.c_int16";
+    *out_type = "ctypes.c_int16";
+    break;
   case CDD_FFI_KIND_UINT16:
-    return "ctypes.c_uint16";
+    *out_type = "ctypes.c_uint16";
+    break;
   case CDD_FFI_KIND_INT32:
-    return "ctypes.c_int32";
+    *out_type = "ctypes.c_int32";
+    break;
   case CDD_FFI_KIND_UINT32:
-    return "ctypes.c_uint32";
+    *out_type = "ctypes.c_uint32";
+    break;
   case CDD_FFI_KIND_INT64:
-    return "ctypes.c_int64";
+    *out_type = "ctypes.c_int64";
+    break;
   case CDD_FFI_KIND_UINT64:
-    return "ctypes.c_uint64";
+    *out_type = "ctypes.c_uint64";
+    break;
   case CDD_FFI_KIND_FLOAT32:
-    return "ctypes.c_float";
+    *out_type = "ctypes.c_float";
+    break;
   case CDD_FFI_KIND_FLOAT64:
-    return "ctypes.c_double";
+    *out_type = "ctypes.c_double";
+    break;
   case CDD_FFI_KIND_OPAQUE_PTR:
-    return "ctypes.c_void_p";
+    *out_type = "ctypes.c_void_p";
+    break;
   case CDD_FFI_KIND_FUNCTION_PTR:
-    return "ctypes.c_void_p";
+    *out_type = "ctypes.c_void_p";
+    break;
   default:
-    return "ctypes.c_void_p";
+    *out_type = "ctypes.c_void_p";
+    break;
   }
+  return CDD_C_SUCCESS;
 }
 
-static void emit_type(FILE *f, const cdd_ffi_type_t *type) {
+static cdd_c_error_t emit_type(FILE *f, const cdd_ffi_type_t *type) {
+  const char *prim = NULL;
   if (type->pointer_depth > 0) {
     cdd_ffi_type_t sub_type;
     if (type->kind == CDD_FFI_KIND_INT8 || type->kind == CDD_FFI_KIND_UINT8 ||
         type->kind == CDD_FFI_KIND_VOID) {
       if (type->pointer_depth == 1) {
         fprintf(f, "ctypes.c_void_p");
-        return;
+        return CDD_C_SUCCESS;
       }
     }
     /* Simplistic pointer representation */
@@ -68,7 +90,7 @@ static void emit_type(FILE *f, const cdd_ffi_type_t *type) {
     sub_type.pointer_depth--;
     emit_type(f, &sub_type);
     fprintf(f, ")");
-    return;
+    return CDD_C_SUCCESS;
   }
 
   if (type->ref_name) {
@@ -78,10 +100,12 @@ static void emit_type(FILE *f, const cdd_ffi_type_t *type) {
     } else {
       fprintf(f, "%s", type->ref_name);
     }
-    return;
+    return CDD_C_SUCCESS;
   }
 
-  fprintf(f, "%s", get_ctypes_primitive(type->kind));
+  get_ctypes_primitive(type->kind, &prim);
+  fprintf(f, "%s", prim);
+  return CDD_C_SUCCESS;
 }
 
 enum cdd_c_error

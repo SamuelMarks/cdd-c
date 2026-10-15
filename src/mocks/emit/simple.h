@@ -6,17 +6,24 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "cdd_c_error.h"
 #include "simple_mocks_export.h"
 /* clang-format on */
 
-/** @brief haz */
-struct Haz *haz;
+struct Haz {
+  char *bzr;
+};
 
-extern SIMPLE_MOCKS_EXPORT /**
-                            * @brief Executes the Foo cleanup operation.
-                            */
-    void
-    Foo_cleanup(struct Foo *);
+struct Foo {
+  char *bar;
+  int can;
+  struct Haz *haz;
+};
+
+/**
+ * @brief Releases memory owned by a Foo instance.
+ */
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error Foo_cleanup(struct Foo *);
 
 #ifdef __cplusplus
 }

@@ -25,10 +25,10 @@ TEST test_dsl_parser_basic(void) {
   rc = cdd_dsl_parse(&list, &ir);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
 
-  ASSERT_EQ_FMT((size_t)1, ir->nodes_count, "%zu");
+  ASSERT_EQ((size_t)1, ir->nodes_count);
   ASSERT_EQ_FMT(CDD_FFI_NODE_FUNCTION, ir->nodes[0].kind, "%d");
   ASSERT_STR_EQ("my_func", ir->nodes[0].name);
-  ASSERT_EQ_FMT((size_t)1, ir->nodes[0].fields_count, "%zu");
+  ASSERT_EQ((size_t)1, ir->nodes[0].fields_count);
   ASSERT_STR_EQ("arg1", ir->nodes[0].fields[0].name);
   ASSERT_EQ_FMT(CDD_FFI_KIND_INT32, ir->nodes[0].fields[0].type.kind, "%d");
   ASSERT_EQ_FMT(1, ir->nodes[0].fields[0].type.pointer_depth, "%d");

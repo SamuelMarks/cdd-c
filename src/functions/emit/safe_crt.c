@@ -1,3 +1,7 @@
+/**
+ * @file safe_crt.c
+ * @brief Core safe crt definitions and implementation.
+ */
 /* clang-format off */
 #include "c_cdd/memory.h"
 #include "c_cdd/safe_crt_msvc.h"
@@ -12,7 +16,7 @@
 /* clang-format on */
 
 /**
- * @brief Executes the safe crt patch list init operation.
+ * @brief Initializes a Safe CRT refactoring patch list.
  */
 cdd_c_error_t safe_crt_patch_list_init(struct SafeCrtPatchList *list) {
   if (!list)
@@ -24,7 +28,7 @@ cdd_c_error_t safe_crt_patch_list_init(struct SafeCrtPatchList *list) {
 }
 
 /**
- * @brief Executes the safe crt patch list free operation.
+ * @brief Releases memory held by a Safe CRT patch list.
  */
 cdd_c_error_t safe_crt_patch_list_free(struct SafeCrtPatchList *list) {
   size_t i;
@@ -439,7 +443,8 @@ cdd_c_error_t safe_crt_generate_sprintf_patch(const struct TokenList *tokens,
 }
 
 /**
- * @brief Executes the cst generate safe crt patches operation.
+ * @brief Scans a CST and generates patches replacing unsafe CRT calls with Safe
+ * CRT equivalents.
  */
 cdd_c_error_t
 cst_generate_safe_crt_patches(const struct CstNodeList *cst,

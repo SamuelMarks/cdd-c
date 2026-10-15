@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_dart.h
+ * @brief FFI binding emitter for Dart.
+ */
 #ifndef CDD_FFI_EMIT_DART_H
 #define CDD_FFI_EMIT_DART_H
 

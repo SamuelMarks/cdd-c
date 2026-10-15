@@ -7,6 +7,7 @@
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
+#include "c_cdd/code_writer.h"
 #include "functions/emit/make.h"
 #include <errno.h>
 #include <stdarg.h>
@@ -32,26 +33,8 @@ static int test_cdd_check_io_helper_make(int rc) {
 #endif
 
 #ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)));
-#else
-    ;
-#endif
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  int ret;
-  va_list args;
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  va_start(args, format);
-  ret = vfprintf(stream, format, args);
-  va_end(args);
-  return ret;
-}
 /** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK test_cdd_fprintf_hook
+#define FPRINTF_HOOK cdd_io_fprintf_hook
 #else
 /** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK fprintf

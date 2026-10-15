@@ -64,8 +64,10 @@ cdd_c_error_t gnu_standardize_expr(cdd_cst_tree_t *tree) {
             cdd_cst_bld_space(&bld);
             {
               char tb2[128];
+              const char *pooled = NULL;
               CDD_SNPRINTF(tb2, 128, "_cdd_anon_%d", anon_counter++);
-              cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
+              cdd_pool_string_safe(tree, tb2, &pooled);
+              cdd_cst_bld_ident(&bld, pooled);
             }
             if (bld.error_state != 0) {
               cdd_cst_builder_free(&bld);
@@ -101,8 +103,10 @@ cdd_c_error_t gnu_standardize_expr(cdd_cst_tree_t *tree) {
           cdd_cst_bld_space(&bld);
           {
             char tb2[128];
+            const char *pooled = NULL;
             CDD_SNPRINTF(tb2, 128, "_cdd_anon_%d", anon_counter++);
-            cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
+            cdd_pool_string_safe(tree, tb2, &pooled);
+            cdd_cst_bld_ident(&bld, pooled);
           }
           if (bld.error_state != 0) {
             cdd_cst_builder_free(&bld);
@@ -183,10 +187,10 @@ cdd_c_error_t gnu_standardize_expr(cdd_cst_tree_t *tree) {
         memcpy(buf + 1, tree->base_tokens->tokens[rparen_idx + 1].start,
                val_len);
         buf[val_len + 1] = '\0';
-        pooled = pool_string_safe(tree, buf);
+        rc = cdd_pool_string_safe(tree, buf, &pooled);
         free(buf);
-        if (!pooled)
-          return CDD_C_ERROR_MEMORY;
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         rc = replace_token_with_text(
             tree, &tree->base_tokens->tokens[rparen_idx + 1],
             tree->base_tokens->tokens[rparen_idx + 1].kind, pooled,
@@ -274,10 +278,10 @@ cdd_c_error_t gnu_standardize_expr(cdd_cst_tree_t *tree) {
           p += len;
           *p++ = ' ';
           *p = '\0';
-          pooled = pool_string_safe(tree, buf);
+          rc = cdd_pool_string_safe(tree, buf, &pooled);
           free(buf);
-          if (!pooled)
-            return CDD_C_ERROR_MEMORY;
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           rc = replace_token_with_text(tree, tok, tok->kind, pooled,
                                        strlen(pooled));
           if (rc != CDD_C_SUCCESS)

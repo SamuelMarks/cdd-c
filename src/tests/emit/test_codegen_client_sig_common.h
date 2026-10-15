@@ -99,7 +99,7 @@ static cdd_c_error_t gen_sig(const struct OpenAPI_Operation *op,
     sz = ftell(tmp);
     rewind(tmp);
 
-    content = (char *)(size_t)(size_t)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (sz > 0)
       if (fread(content, 1, (size_t)sz, tmp)) {
       }

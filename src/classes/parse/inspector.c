@@ -33,7 +33,7 @@
 /* --- Type Definitions Logic --- */
 
 /**
- * @brief Executes the type def list init operation.
+ * @brief Initializes a list of discovered C type definitions.
  */
 cdd_c_error_t type_def_list_init(struct TypeDefList *list) {
 #ifdef CDD_BUILD_TESTS
@@ -50,7 +50,7 @@ cdd_c_error_t type_def_list_init(struct TypeDefList *list) {
 }
 
 /**
- * @brief Executes the type def list free operation.
+ * @brief Releases memory held by a C type definition list.
  */
 void type_def_list_free(struct TypeDefList *list) {
   size_t i;
@@ -117,7 +117,8 @@ static cdd_c_error_t add_type_def(struct TypeDefList *list,
 }
 
 /**
- * @brief Executes the c inspector scan file types operation.
+ * @brief Scans a C source or header file for struct, enum, and typedef
+ * declarations.
  */
 cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                                           struct TypeDefList *out) {
@@ -195,8 +196,8 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
             /* Handle C23 enum fixed type or C++ inheritance: [enum|struct] Name
              * : ... { */
             {
-              char *colon = NULL;
-              char *scan = (char *)(size_t)name_start;
+              const char *colon = NULL;
+              const char *scan = name_start;
               while (scan < brace) {
                 if (*scan == ':') {
                   colon = scan;
@@ -421,7 +422,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
 /* --- Function Signature Logic --- */
 
 /**
- * @brief Executes the func sig list init operation.
+ * @brief Initializes a list of extracted C function signatures.
  */
 cdd_c_error_t func_sig_list_init(struct FuncSigList *list) {
   if (!list)
@@ -433,7 +434,7 @@ cdd_c_error_t func_sig_list_init(struct FuncSigList *list) {
 }
 
 /**
- * @brief Executes the func sig list free operation.
+ * @brief Releases memory held by a C function signature list.
  */
 void func_sig_list_free(struct FuncSigList *list) {
   size_t i;
@@ -466,7 +467,7 @@ static cdd_c_error_t extract_span_text(const struct TokenList *tokens,
   for (i = start; i < end; i++)
     total_len += tokens->tokens[i].length;
 
-  buf = (char *)(size_t)C_CDD_MALLOC(total_len + 1);
+  buf = (char *)C_CDD_MALLOC(total_len + 1);
   if (!buf) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -485,7 +486,7 @@ static cdd_c_error_t extract_span_text(const struct TokenList *tokens,
 }
 
 /**
- * @brief Executes the c inspector extract signatures operation.
+ * @brief Extracts C function signatures and docstrings from a source file.
  */
 cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
                                              struct FuncSigList *out) {
@@ -497,7 +498,7 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
   if (!source_code || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t)source_code), &tl);
+  rc = tokenize(az_span_create_from_str(source_code), &tl);
   if (rc == CDD_C_SUCCESS) {
     rc = parse_tokens(tl, &cst);
   }

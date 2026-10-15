@@ -37,70 +37,65 @@ TEST test_server_gen_basic(void) {
   spec.n_paths = 1;
   spec.paths =
       (struct OpenAPI_Path *)C_CDD_CALLOC(1, sizeof(struct OpenAPI_Path));
-  spec.paths[0].route = (char *)(size_t)(size_t) "/test/route";
+  spec.paths[0].route = cdd_test_mut_str("/test/route");
 
   spec.paths[0].n_operations = 9;
   spec.paths[0].operations = (struct OpenAPI_Operation *)C_CDD_CALLOC(
       9, sizeof(struct OpenAPI_Operation));
 
   spec.paths[0].operations[0].verb = OA_VERB_GET;
-  spec.paths[0].operations[0].operation_id = (char *)(size_t)(size_t) "doGet";
+  spec.paths[0].operations[0].operation_id = cdd_test_mut_str("doGet");
 
   spec.paths[0].operations[1].verb = OA_VERB_POST;
-  spec.paths[0].operations[1].operation_id = (char *)(size_t)(size_t) "doPost";
+  spec.paths[0].operations[1].operation_id = cdd_test_mut_str("doPost");
 
   spec.paths[0].operations[2].verb = OA_VERB_PUT;
-  spec.paths[0].operations[2].operation_id = (char *)(size_t)(size_t) "doPut";
+  spec.paths[0].operations[2].operation_id = cdd_test_mut_str("doPut");
 
   spec.paths[0].operations[3].verb = OA_VERB_DELETE;
-  spec.paths[0].operations[3].operation_id =
-      (char *)(size_t)(size_t) "doDelete";
+  spec.paths[0].operations[3].operation_id = cdd_test_mut_str("doDelete");
 
   spec.paths[0].operations[4].verb = OA_VERB_OPTIONS;
-  spec.paths[0].operations[4].operation_id =
-      (char *)(size_t)(size_t) "doOptions";
+  spec.paths[0].operations[4].operation_id = cdd_test_mut_str("doOptions");
 
   spec.paths[0].operations[5].verb = OA_VERB_HEAD;
-  spec.paths[0].operations[5].operation_id = (char *)(size_t)(size_t) "doHead";
+  spec.paths[0].operations[5].operation_id = cdd_test_mut_str("doHead");
 
   spec.paths[0].operations[6].verb = OA_VERB_PATCH;
-  spec.paths[0].operations[6].operation_id = (char *)(size_t)(size_t) "doPatch";
+  spec.paths[0].operations[6].operation_id = cdd_test_mut_str("doPatch");
 
   spec.paths[0].operations[7].verb = OA_VERB_TRACE;
-  spec.paths[0].operations[7].operation_id = (char *)(size_t)(size_t) "doTrace";
+  spec.paths[0].operations[7].operation_id = cdd_test_mut_str("doTrace");
 
   spec.paths[0].operations[8].verb =
       (enum OpenAPI_Verb)999; /* Unknown verb triggers default branch */
-  spec.paths[0].operations[8].operation_id =
-      (char *)(size_t)(size_t) "doUnknown";
-  spec.info.description = (char *)(size_t)(size_t) "Test Desc";
-  spec.info.contact.name = (char *)(size_t)(size_t) "Test Contact";
-  spec.info.license.name = (char *)(size_t)(size_t) "Test License";
+  spec.paths[0].operations[8].operation_id = cdd_test_mut_str("doUnknown");
+  spec.info.description = cdd_test_mut_str("Test Desc");
+  spec.info.contact.name = cdd_test_mut_str("Test Contact");
+  spec.info.license.name = cdd_test_mut_str("Test License");
   spec.n_servers = 1;
   spec.servers =
       (struct OpenAPI_Server *)C_CDD_CALLOC(1, sizeof(struct OpenAPI_Server));
-  spec.servers[0].url = (char *)(size_t)(size_t) "http://test";
+  spec.servers[0].url = cdd_test_mut_str("http://test");
 
-  spec.paths[0].operations[0].description =
-      (char *)(size_t)(size_t) "Test Op Desc";
+  spec.paths[0].operations[0].description = cdd_test_mut_str("Test Op Desc");
   spec.paths[0].operations[0].n_parameters = 1;
   spec.paths[0].operations[0].parameters =
       (struct OpenAPI_Parameter *)C_CDD_CALLOC(
           1, sizeof(struct OpenAPI_Parameter));
-  spec.paths[0].operations[0].parameters[0].name =
-      (char *)(size_t)(size_t) "param1";
+  spec.paths[0].operations[0].parameters[0].name = cdd_test_mut_str("param1");
   spec.paths[0].operations[0].parameters[0].in = OA_PARAM_IN_QUERY;
   spec.paths[0].operations[0].parameters[0].description =
-      (char *)(size_t)(size_t) "Test Param Desc";
+      cdd_test_mut_str("Test Param Desc");
 
   spec.paths[0].operations[0].deprecated = 1;
   spec.paths[0].operations[0].req_body.content_schema =
       (struct OpenAPI_SchemaRef *)C_CDD_CALLOC(
           1, sizeof(struct OpenAPI_SchemaRef));
-  spec.paths[0].operations[0].req_body.ref = (char *)(size_t)(size_t) "TestRef";
+  spec.paths[0].operations[0].req_body.ref = cdd_test_mut_str("TestRef");
 
   spec.paths[0].operations[1].req_body.ref_name =
-      (char *)(size_t)(size_t) "TestRefName";
+      cdd_test_mut_str("TestRefName");
 
   spec.paths[0].operations[0].n_responses = 1;
   spec.paths[0].operations[0].n_callbacks = 1;
@@ -113,12 +108,12 @@ TEST test_server_gen_basic(void) {
       (struct OpenAPI_MediaType *)C_CDD_CALLOC(
           2, sizeof(struct OpenAPI_MediaType));
   spec.paths[0].operations[1].req_body_media_types[0].name =
-      (char *)(size_t)(size_t) "application/json";
+      cdd_test_mut_str("application/json");
   spec.paths[0].operations[1].req_body_media_types[1].name =
-      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+      cdd_test_mut_str("application/x-www-form-urlencoded");
 
   memset(&config, 0, sizeof(config));
-  config.filename_base = (char *)(size_t)(size_t) "test_server";
+  config.filename_base = cdd_test_mut_str("test_server");
 
   rc = openapi_server_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -188,7 +183,7 @@ TEST test_server_gen_basic(void) {
   g_fail_io_after = -1;
 
   g_cdd_alloc_fail = 1;
-  config.filename_base = (char *)(size_t)(size_t) "test_server";
+  config.filename_base = cdd_test_mut_str("test_server");
   rc = openapi_server_generate(&spec, &config);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_alloc_fail = 0;
@@ -207,8 +202,7 @@ TEST test_server_gen_fail_open(void) {
 
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
-  config.filename_base =
-      (char *)(size_t)(size_t) "/nonexistent/dir/test_server";
+  config.filename_base = cdd_test_mut_str("/nonexistent/dir/test_server");
   g_io_calls = 0;
   g_fail_io_after = 1;
 
@@ -219,12 +213,12 @@ TEST test_server_gen_fail_open(void) {
   /* Test fopen failures */
   makedirs("test_build_dir/bad_server/src/bad_server_server.c");
   config.filename_base =
-      (char *)(size_t)(size_t) "test_build_dir/bad_server/bad_server";
+      cdd_test_mut_str("test_build_dir/bad_server/bad_server");
   rc = openapi_server_generate(&spec, &config);
   ASSERT_EQ(CDD_C_ERROR_IO, rc);
   remove("test_build_dir/bad_server/src/bad_server_server.c");
 
-  config.filename_base = (char *)(size_t)(size_t) "test_build_dir/test_server";
+  config.filename_base = cdd_test_mut_str("test_build_dir/test_server");
   {
     int i;
     for (i = 1; i <= 5; ++i) {
@@ -265,7 +259,7 @@ TEST test_server_gen_test_fopen_fail(void) {
 
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
-  config.filename_base = (char *)(size_t)(size_t) "test_server";
+  config.filename_base = cdd_test_mut_str("test_server");
 
 /* create directory so test file fopen fails */
 #if defined(_WIN32)
@@ -297,29 +291,26 @@ TEST test_server_gen_branches(void) {
 
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
-  config.filename_base = (char *)(size_t)(size_t) "test_server_branches";
+  config.filename_base = cdd_test_mut_str("test_server_branches");
 
   spec.n_paths = 1;
   spec.paths =
       (struct OpenAPI_Path *)C_CDD_CALLOC(1, sizeof(struct OpenAPI_Path));
-  spec.paths[0].route = (char *)(size_t)(size_t) "/test/route";
+  spec.paths[0].route = cdd_test_mut_str("/test/route");
   spec.paths[0].n_operations = 1;
   spec.paths[0].operations = (struct OpenAPI_Operation *)C_CDD_CALLOC(
       1, sizeof(struct OpenAPI_Operation));
 
   spec.paths[0].operations[0].verb = OA_VERB_GET;
-  spec.paths[0].operations[0].operation_id =
-      (char *)(size_t)(size_t) "doGetBranches";
-  spec.paths[0].operations[0].summary = (char *)(size_t)(size_t) "MySummary";
+  spec.paths[0].operations[0].operation_id = cdd_test_mut_str("doGetBranches");
+  spec.paths[0].operations[0].summary = cdd_test_mut_str("MySummary");
   spec.paths[0].operations[0].n_parameters = 2;
   spec.paths[0].operations[0].parameters =
       (struct OpenAPI_Parameter *)C_CDD_CALLOC(
           2, sizeof(struct OpenAPI_Parameter));
-  spec.paths[0].operations[0].parameters[0].name =
-      (char *)(size_t)(size_t) "p1";
+  spec.paths[0].operations[0].parameters[0].name = cdd_test_mut_str("p1");
   spec.paths[0].operations[0].parameters[0].in = OA_PARAM_IN_HEADER;
-  spec.paths[0].operations[0].parameters[1].name =
-      (char *)(size_t)(size_t) "p2";
+  spec.paths[0].operations[0].parameters[1].name = cdd_test_mut_str("p2");
   spec.paths[0].operations[0].parameters[1].in = OA_PARAM_IN_QUERY;
   spec.paths[0].operations[0].parameters[1].description = NULL;
 
@@ -333,8 +324,8 @@ TEST test_server_gen_branches(void) {
       (struct OpenAPI_Server *)C_CDD_CALLOC(1, sizeof(struct OpenAPI_Server));
   spec.servers[0].url = NULL;
 
-  spec.info.title = (char *)(size_t)(size_t) "A";
-  spec.info.version = (char *)(size_t)(size_t) "1";
+  spec.info.title = cdd_test_mut_str("A");
+  spec.info.version = cdd_test_mut_str("1");
 
   rc = openapi_server_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -350,7 +341,7 @@ TEST test_server_gen_branches(void) {
       (struct OpenAPI_MediaType *)C_CDD_CALLOC(
           1, sizeof(struct OpenAPI_MediaType));
   spec.paths[0].operations[0].req_body_media_types[0].name =
-      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+      cdd_test_mut_str("application/x-www-form-urlencoded");
   spec.paths[0].operations[0].req_body.ref_name = NULL;
 
   rc = openapi_server_generate(&spec, &config);
@@ -360,8 +351,7 @@ TEST test_server_gen_branches(void) {
   spec.paths[0].operations[0].operation_id = NULL;
   rc = openapi_server_generate(&spec, &config);
   ASSERT_EQ(0, rc);
-  spec.paths[0].operations[0].operation_id =
-      (char *)(size_t)(size_t) "doGetBranches";
+  spec.paths[0].operations[0].operation_id = cdd_test_mut_str("doGetBranches");
 
   /* Test operation with media type whose name is NULL or other (loop natural
    * exit) */
@@ -372,7 +362,7 @@ TEST test_server_gen_branches(void) {
           2, sizeof(struct OpenAPI_MediaType));
   spec.paths[0].operations[0].req_body_media_types[0].name = NULL;
   spec.paths[0].operations[0].req_body_media_types[1].name =
-      (char *)(size_t)(size_t) "application/json";
+      cdd_test_mut_str("application/json");
   rc = openapi_server_generate(&spec, &config);
   ASSERT_EQ(0, rc);
   C_CDD_FREE(spec.paths[0].operations[0].req_body_media_types);
@@ -391,8 +381,7 @@ TEST test_server_gen_branches(void) {
   spec.paths[0].operations = (struct OpenAPI_Operation *)C_CDD_REALLOC(
       spec.paths[0].operations, 2 * sizeof(struct OpenAPI_Operation));
   memset(&spec.paths[0].operations[1], 0, sizeof(struct OpenAPI_Operation));
-  spec.paths[0].operations[0].operation_id =
-      (char *)(size_t)(size_t) "doGetBranches";
+  spec.paths[0].operations[0].operation_id = cdd_test_mut_str("doGetBranches");
   spec.paths[0].operations[1].operation_id = NULL;
   rc = openapi_server_generate(&spec, &config);
   ASSERT_EQ(0, rc);

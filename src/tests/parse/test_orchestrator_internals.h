@@ -24,15 +24,17 @@ TEST test_orchestrator_internals(void) {
   size_t out = 0;
   char *name = NULL;
   struct FixWalkContext ctx = {0};
-  char *argv3[] = {(char *)(size_t)(size_t) "1", (char *)(size_t)(size_t) "2",
-                   (char *)(size_t)(size_t) "3"};
+  char *argv3[3];
   int is_src = 0;
   int eq = 0;
   int is_ptr = 0;
   int is_void = 0;
   char *type_str = NULL;
 
-  tokenize(az_span_create_from_str((char *)(size_t) "int a = 1;"), &tl);
+  argv3[0] = cdd_test_mut_str("1");
+  argv3[1] = cdd_test_mut_str("2");
+  argv3[2] = cdd_test_mut_str("3");
+  tokenize(az_span_create_from_str("int a = 1;"), &tl);
 
   /* Test get_token_slice error & null checks */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, get_token_slice(NULL, 0, 0, &dst));
@@ -81,7 +83,7 @@ TEST test_orchestrator_internals(void) {
 
   {
     struct TokenList *tl_paren = NULL;
-    tokenize(az_span_create_from_str((char *)(size_t) "()"), &tl_paren);
+    tokenize(az_span_create_from_str("()"), &tl_paren);
     ASSERT_EQ(CDD_C_SUCCESS,
               extract_func_name(tl_paren, 0, tl_paren->size, &name));
     ASSERT_EQ(NULL, name);
@@ -90,7 +92,7 @@ TEST test_orchestrator_internals(void) {
 
   {
     struct TokenList *tl_paren = NULL;
-    tokenize(az_span_create_from_str((char *)(size_t) "foo()"), &tl_paren);
+    tokenize(az_span_create_from_str("foo()"), &tl_paren);
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY,
               extract_func_name(tl_paren, 0, tl_paren->size, &name));
@@ -105,7 +107,7 @@ TEST test_orchestrator_internals(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, join_tokens_str(NULL, 0, 1, &name));
   {
     struct TokenList *tl_paren = NULL;
-    tokenize(az_span_create_from_str((char *)(size_t) "void foo()"), &tl_paren);
+    tokenize(az_span_create_from_str("void foo()"), &tl_paren);
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY,
               join_tokens_str(tl_paren, 0, tl_paren->size, &name));
@@ -129,7 +131,7 @@ TEST test_orchestrator_internals(void) {
   /* Test analyze_signature_tokens when no LPAREN (lparen == body_start) */
   {
     struct TokenList *my_tl = NULL;
-    tokenize(az_span_create_from_str((char *)(size_t) "int x;"), &my_tl);
+    tokenize(az_span_create_from_str("int x;"), &my_tl);
     ASSERT_EQ(CDD_C_SUCCESS,
               analyze_signature_tokens(my_tl, 0, my_tl->size, &is_ptr, &is_void,
                                        &type_str));
@@ -140,7 +142,7 @@ TEST test_orchestrator_internals(void) {
   /* Test analyze_signature_tokens void as identifier */
   {
     struct TokenList *my_tl = NULL;
-    tokenize(az_span_create_from_str((char *)(size_t) "void foo()"), &my_tl);
+    tokenize(az_span_create_from_str("void foo()"), &my_tl);
     /* Change keyword void to identifier */
     my_tl->tokens[0].kind = TOKEN_IDENTIFIER;
 
@@ -173,7 +175,9 @@ TEST test_orchestrator_internals(void) {
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, fix_code_main(3, argv3));
 
   {
-    char *argv_dir[1] = {(char *)(size_t)(size_t) "src/tests/mocks"};
+    char *argv_dir[1];
+
+    argv_dir[0] = cdd_test_mut_str("src/tests/mocks");
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, fix_code_main(1, argv_dir));
   }
 
@@ -210,8 +214,7 @@ TEST test_orchestrator_internals(void) {
 
   /* Test fix_file_callback write failure */
   {
-    const char *test_file =
-        (char *)(size_t)(size_t) "test_orchestrator_internals.c";
+    const char *test_file = cdd_test_mut_str("test_orchestrator_internals.c");
     FILE *f;
     ctx.single_output_file = NULL;
 #if defined(_MSC_VER)
@@ -232,8 +235,7 @@ TEST test_orchestrator_internals(void) {
 
   /* Test fix_file_callback orchestrator failure */
   {
-    const char *test_file =
-        (char *)(size_t)(size_t) "test_orchestrator_internals2.c";
+    const char *test_file = cdd_test_mut_str("test_orchestrator_internals2.c");
     FILE *f;
     ctx.single_output_file = NULL;
 #if defined(_MSC_VER)
@@ -311,7 +313,7 @@ TEST test_orchestrator_internals(void) {
     size_t caller = 999;
     memset(&g, 0, sizeof(g));
     memset(nodes, 0, sizeof(nodes));
-    nodes[0].name = (char *)(size_t) "A";
+    nodes[0].name = cdd_test_mut_str("A");
     nodes[0].callers = &caller;
     nodes[0].num_callers = 1;
     g.nodes = nodes;
@@ -531,7 +533,10 @@ TEST test_orchestrator_internals(void) {
       fclose(f_tmp);
     }
     {
-      char *argv_null2[] = {(char *)(size_t) "test_empty.c", NULL};
+      char *argv_null2[2];
+
+      argv_null2[0] = cdd_test_mut_str("test_empty.c");
+      argv_null2[1] = NULL;
       ASSERT_EQ(CDD_C_SUCCESS, fix_code_main(2, argv_null2));
       ASSERT_EQ(CDD_C_ERROR_UNKNOWN, fix_code_main(1, NULL));
     }

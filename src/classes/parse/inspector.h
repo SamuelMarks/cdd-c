@@ -107,12 +107,8 @@ extern C_CDD_EXPORT void type_def_list_free(struct TypeDefList *list);
  * @param[out] out Destination list to populate.
  * @return 0 on success, error code (ENOENT/EIO/ENOMEM) on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the c inspector scan file types
-                     * operation.
-                     */
-    cdd_c_error_t
-    c_inspector_scan_file_types(const char *filename, struct TypeDefList *out);
+extern C_CDD_EXPORT cdd_c_error_t
+c_inspector_scan_file_types(const char *filename, struct TypeDefList *out);
 
 /* --- Function Signatures API --- */
 
@@ -140,13 +136,8 @@ extern C_CDD_EXPORT void func_sig_list_free(struct FuncSigList *list);
  * @param[out] out Destination list to populate.
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the c inspector extract signatures
-                     * operation.
-                     */
-    cdd_c_error_t
-    c_inspector_extract_signatures(const char *source_code,
-                                   struct FuncSigList *out);
+extern C_CDD_EXPORT cdd_c_error_t c_inspector_extract_signatures(
+    const char *source_code, struct FuncSigList *out);
 
 #ifdef __cplusplus
 }

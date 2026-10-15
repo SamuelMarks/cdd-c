@@ -1,6 +1,6 @@
 /**
  * @file test_openapi_writer.h
- * @brief Unit tests for OpenAPI Writer module.
+ * @brief Core Unit tests for OpenAPI Writer definitions and implementation.
  */
 
 #ifndef TEST_OPENAPI_WRITER_H
@@ -27,7 +27,6 @@ extern "C" {
 #include "emit/test_openapi_writer_nail.h"
 #include "emit/test_openapi_writer_finish.h"
 /* clang-format on */
-}
 
 SUITE(openapi_writer_suite) {
   RUN_TEST(test_openapi_writer_close_100_percent);

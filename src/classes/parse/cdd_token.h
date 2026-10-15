@@ -1,3 +1,7 @@
+/**
+ * @file cdd_token.h
+ * @brief Core cdd token definitions and implementation.
+ */
 #ifndef CDD_TOKEN_H
 #define CDD_TOKEN_H
 

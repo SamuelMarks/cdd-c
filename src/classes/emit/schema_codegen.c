@@ -158,7 +158,7 @@ static cdd_c_error_t print_header_guard(FILE *hfile, const char *basename) {
 
 /* Write Header Guard End */
 /**
- * @brief Executes the print header guard end operation.
+ * @brief Emits the closing C++ extern guard and header include guard.
  */
 static cdd_c_error_t print_header_guard_end(FILE *hfile, const char *basename) {
   CHECK_IO(FPRINTF_HOOK(hfile, "#endif /* !%s_H */\n", basename));
@@ -445,7 +445,8 @@ C_CDD_EXPORT cdd_c_error_t generate_source(const char *prefix,
 }
 
 /**
- * @brief Executes the schema2code main operation.
+ * @brief CLI entry point for generating C structs and JSON codecs from a JSON
+ * Schema.
  */
 cdd_c_error_t schema2code_main(int argc, char **argv) {
   const char *schema_file, *prefix;

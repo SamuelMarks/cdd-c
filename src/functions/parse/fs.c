@@ -45,7 +45,7 @@ cdd_c_error_t fs_path_join(const char *dir, const char *name,
 
   dir_len = strlen(dir);
   name_len = strlen(name);
-  res = (char *)(size_t)C_CDD_MALLOC(dir_len + 1 + name_len + 1);
+  res = (char *)C_CDD_MALLOC(dir_len + 1 + name_len + 1);
   if (!res)
     return CDD_C_ERROR_MEMORY;
 
@@ -80,7 +80,7 @@ cdd_c_error_t format_tmp_filename(const char *dir, const char *prefix,
 #endif
 
   total_len = strlen(dir) + 1 + strlen(pfx) + strlen(num_buf) + strlen(sfx) + 1;
-  res = (char *)(size_t)C_CDD_MALLOC(total_len);
+  res = (char *)C_CDD_MALLOC(total_len);
   if (!res)
     return CDD_C_ERROR_MEMORY;
 
@@ -187,7 +187,7 @@ cdd_c_error_t errno_to_cdd_error(int err) {
 
 #if defined(_WIN32)
 /**
- * @brief Executes the ascii to wide operation.
+ * @brief Converts a UTF-8/ASCII string to a Windows wide-character string.
  */
 cdd_c_error_t ascii_to_wide(const char *s, wchar_t *ws, size_t buf_cap,
                             size_t *out_len) {
@@ -214,7 +214,7 @@ cdd_c_error_t ascii_to_wide(const char *s, wchar_t *ws, size_t buf_cap,
 }
 
 /**
- * @brief Executes the wide to ascii operation.
+ * @brief Converts a Windows wide-character string to a UTF-8/ASCII string.
  */
 cdd_c_error_t wide_to_ascii(const wchar_t *ws, char *s, size_t buf_cap,
                             size_t *out_len) {
@@ -260,7 +260,7 @@ cdd_c_error_t wide_to_ascii(const wchar_t *ws, char *s, size_t buf_cap,
 #endif
 
 /**
- * @brief Executes the fs is directory operation.
+ * @brief Checks whether a filesystem path refers to an existing directory.
  */
 cdd_c_error_t fs_is_directory(const char *path, int *out_is_dir) {
   c_stat st;
@@ -280,7 +280,6 @@ cdd_c_error_t fs_is_directory(const char *path, int *out_is_dir) {
  * @brief Retrieves the basename.
  */
 cdd_c_error_t get_basename(const char *path, char **out) {
-  char *_ast_strdup_0 = NULL;
   const char *start_p, *p;
   size_t len;
   char *ret;
@@ -288,7 +287,7 @@ cdd_c_error_t get_basename(const char *path, char **out) {
   if (!out || !path)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (*path == '\0') {
-    *out = (c_cdd_strdup(".", &_ast_strdup_0), _ast_strdup_0);
+    c_cdd_strdup(".", out);
     return *out == NULL ? CDD_C_ERROR_MEMORY : CDD_C_SUCCESS;
   }
 
@@ -300,7 +299,7 @@ cdd_c_error_t get_basename(const char *path, char **out) {
 
   /* Check if it was all separators (e.g. "///") -> returns "/" */
   if (p == path && (*p == '/' || *p == '\\')) {
-    *out = (char *)(size_t)C_CDD_MALLOC(2);
+    *out = (char *)C_CDD_MALLOC(2);
     if (!*out)
       return CDD_C_ERROR_MEMORY;
     (*out)[0] = '/';
@@ -315,7 +314,7 @@ cdd_c_error_t get_basename(const char *path, char **out) {
   }
 
   len = (size_t)(p - start_p) + 1;
-  ret = (char *)(size_t)C_CDD_MALLOC(len + 1);
+  ret = (char *)C_CDD_MALLOC(len + 1);
   if (!ret) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -332,8 +331,6 @@ cdd_c_error_t get_basename(const char *path, char **out) {
  * @brief Retrieves the dirname.
  */
 cdd_c_error_t get_dirname(const char *path, char **out) {
-  char *_ast_strdup_1 = NULL;
-  char *_ast_strdup_2 = NULL;
   const char *p;
   size_t len;
   char *ret;
@@ -342,7 +339,7 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (*path == '\0') {
-    *out = (c_cdd_strdup(".", &_ast_strdup_1), _ast_strdup_1);
+    c_cdd_strdup(".", out);
     return *out == NULL ? CDD_C_ERROR_MEMORY : CDD_C_SUCCESS;
   }
 
@@ -362,7 +359,7 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
   if (p == path) {
     if (*p == '/' || *p == '\\') {
       len = 1; /* Root */
-      ret = (char *)(size_t)C_CDD_MALLOC(2);
+      ret = (char *)C_CDD_MALLOC(2);
       if (!ret)
         return CDD_C_ERROR_MEMORY;
       ret[0] = '/';
@@ -371,7 +368,7 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
       return CDD_C_SUCCESS;
     } else {
       /* No separator found, e.g. "foo" -> "." */
-      *out = (c_cdd_strdup(".", &_ast_strdup_2), _ast_strdup_2);
+      c_cdd_strdup(".", out);
       return *out ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
     }
   } else {
@@ -385,7 +382,7 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
     len = (size_t)(p - path) + 1;
   }
 
-  ret = (char *)(size_t)C_CDD_MALLOC(len + 1);
+  ret = (char *)C_CDD_MALLOC(len + 1);
   if (!ret) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -400,7 +397,7 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
 enum { READ_CHUNK_SIZE = 4096 };
 
 /**
- * @brief Executes the fopen error from operation.
+ * @brief Maps a C errno value from fopen into a cdd_c_error_t code.
  */
 cdd_c_error_t fopen_error_from(int fopen_error, FopenError_t *_out_val) {
   if (!_out_val)
@@ -442,7 +439,7 @@ cdd_c_error_t fopen_error_from(int fopen_error, FopenError_t *_out_val) {
 }
 
 /**
- * @brief Executes the fs write to file operation.
+ * @brief Writes a byte buffer to a file path, overwriting any existing file.
  */
 cdd_c_error_t fs_write_to_file(const char *path, const char *content) {
   FILE *f;
@@ -512,7 +509,7 @@ cdd_c_error_t fs_write_to_file(const char *path, const char *content) {
 }
 
 /**
- * @brief Executes the read to file operation.
+ * @brief Reads the contents of a file path into a newly allocated buffer.
  */
 cdd_c_error_t read_to_file(const char *path, const char *mode, char **out_data,
                            size_t *out_size) {
@@ -599,7 +596,8 @@ cdd_c_error_t read_to_file(const char *path, const char *mode, char **out_data,
 }
 
 /**
- * @brief Executes the read from fh operation.
+ * @brief Reads all bytes from an open FILE stream into a newly allocated
+ * buffer.
  */
 cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
   char *buffer = NULL;
@@ -615,7 +613,7 @@ cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
     /* If buffer handles huge files, standard capacity doubling is fine */
     if (total_read + READ_CHUNK_SIZE + 1 > capacity) {
       size_t new_capacity = capacity == 0 ? READ_CHUNK_SIZE + 1 : capacity * 2;
-      char *new_buffer = (char *)(size_t)C_CDD_REALLOC(buffer, new_capacity);
+      char *new_buffer = (char *)C_CDD_REALLOC(buffer, new_capacity);
       if (!new_buffer) {
         C_CDD_FREE(buffer);
         return CDD_C_ERROR_MEMORY;
@@ -656,7 +654,7 @@ cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
 }
 
 /**
- * @brief Executes the cp operation.
+ * @brief Copies a file from a source path to a destination path.
  */
 cdd_c_error_t cp(const char *dst, const char *src) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

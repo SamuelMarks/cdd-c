@@ -1,3 +1,7 @@
+/**
+ * @file cdd_cst_trivia.h
+ * @brief Concrete Syntax Tree (CST) trivia implementation and utilities.
+ */
 #ifndef CDD_CST_TRIVIA_H
 #define CDD_CST_TRIVIA_H
 

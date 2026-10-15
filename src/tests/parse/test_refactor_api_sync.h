@@ -42,7 +42,7 @@ static cdd_c_error_t load_spec(const char *json, struct OpenAPI_Spec *spec) {
 
 TEST test_sync_signature_update(void) {
   /* SKIPm("fix me"); */
-  const char *src_file = (char *)(size_t)(size_t) "sync_sig.c";
+  const char *src_file = cdd_test_mut_str("sync_sig.c");
   const char *old_code = "#include \"client.h\"\n"
                          ""
                          "int get_pet(struct HttpClient *ctx) {\n"
@@ -63,12 +63,7 @@ TEST test_sync_signature_update(void) {
   /* Exercise load_spec error branches */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             load_spec("{invalid_json", &spec_err));
-  {
-    extern C_CDD_EXPORT int g_openapi_spec_init_fail;
-    g_openapi_spec_init_fail = 1;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, load_spec("{}", &spec_err));
-    g_openapi_spec_init_fail = 0;
-  }
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, load_spec("{}", NULL));
 
   rc += 0;
   write_to_file(src_file, old_code);
@@ -87,7 +82,7 @@ TEST test_sync_signature_update(void) {
 
 TEST test_sync_url_logic_update(void) {
   /* SKIPm("fix me"); */
-  const char *src_file = (char *)(size_t)(size_t) "sync_url.c";
+  const char *src_file = cdd_test_mut_str("sync_url.c");
   const char *old_code =
       ""
       "int get_pet(struct HttpClient *ctx, int id) {\n"
@@ -125,7 +120,7 @@ TEST test_sync_url_logic_update(void) {
 
 TEST test_sync_query_update(void) {
   /* SKIPm("fix me"); */
-  const char *src_file = (char *)(size_t)(size_t) "sync_query.c";
+  const char *src_file = cdd_test_mut_str("sync_query.c");
   const char *old_code = ""
                          "int list_pets(struct HttpClient *ctx) {\n"
                          "  /* Old logic */\n"
@@ -167,7 +162,7 @@ TEST test_sync_query_update(void) {
 
 TEST test_sync_header_update(void) {
   /* SKIPm("fix me"); */
-  const char *src_file = (char *)(size_t)(size_t) "sync_header.c";
+  const char *src_file = cdd_test_mut_str("sync_header.c");
   const char *old_code = ""
                          "int op(struct HttpClient *ctx, const char *key) {\n"
                          "  /* Header Parameter: key */\n"
@@ -251,15 +246,15 @@ TEST test_sync_full_coverage(void) {
   memset(&patches, 0, sizeof(patches));
 
   /* Setup mock parameter and operation */
-  param.name = (char *)(size_t) "my_param";
+  param.name = cdd_test_mut_str("my_param");
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t) "string";
+  param.type = cdd_test_mut_str("string");
 
-  op.operation_id = (char *)(size_t) "test_op";
+  op.operation_id = cdd_test_mut_str("test_op");
   op.parameters = &param;
   op.n_parameters = 1;
 
-  path.route = (char *)(size_t) "/test/{id}";
+  path.route = cdd_test_mut_str("/test/{id}");
   path.operations = &op;
   path.n_operations = 1;
 
@@ -358,7 +353,7 @@ TEST test_sync_full_coverage(void) {
   g_cdd_alloc_fail = 0;
 
   /* String type */
-  param.type = (char *)(size_t) "string";
+  param.type = cdd_test_mut_str("string");
   rc = cdd_test_sync_generate_expected_header_line(&param, &str_out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(str_out != NULL);
@@ -366,7 +361,7 @@ TEST test_sync_full_coverage(void) {
   str_out = NULL;
 
   /* Integer type */
-  param.type = (char *)(size_t) "integer";
+  param.type = cdd_test_mut_str("integer");
   rc = cdd_test_sync_generate_expected_header_line(&param, &str_out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(str_out != NULL);
@@ -374,7 +369,7 @@ TEST test_sync_full_coverage(void) {
   str_out = NULL;
 
   /* Unhandled type */
-  param.type = (char *)(size_t) "boolean";
+  param.type = cdd_test_mut_str("boolean");
   rc = cdd_test_sync_generate_expected_header_line(&param, &str_out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(str_out != NULL);
@@ -413,11 +408,10 @@ TEST test_sync_full_coverage(void) {
   str_out = NULL;
 
   /* 6. find_function_node & extract_current_sig on tokenized code */
-  rc = tokenize(az_span_create_from_str(
-                    (char *)(size_t) "int api_test_op(int a, int b) {\n"
-                                     "  int body = 1;\n"
-                                     "  return 0;\n"
-                                     "}\n"),
+  rc = tokenize(az_span_create_from_str("int api_test_op(int a, int b) {\n"
+                                        "  int body = 1;\n"
+                                        "  return 0;\n"
+                                        "}\n"),
                 &tl);
   ASSERT_EQ(0, rc);
   rc = parse_tokens(tl, &cst);
@@ -512,11 +506,10 @@ TEST test_sync_full_coverage(void) {
   tl = NULL;
 
   /* 9. Header parameter comment found but entered == 0 (no LBRACE in scope) */
-  rc = tokenize(az_span_create_from_str(
-                    (char *)(size_t) "int api_test_op(void) {\n"
-                                     "  /* Header Parameter: my_param */\n"
-                                     "  return 0;\n"
-                                     "}\n"),
+  rc = tokenize(az_span_create_from_str("int api_test_op(void) {\n"
+                                        "  /* Header Parameter: my_param */\n"
+                                        "  return 0;\n"
+                                        "}\n"),
                 &tl);
   ASSERT_EQ(0, rc);
   rc = parse_tokens(tl, &cst);
@@ -535,8 +528,7 @@ TEST test_sync_full_coverage(void) {
   tl = NULL;
 
   /* 10. Node with LBRACE before closing RPAREN (unclosed paren signature) */
-  rc = tokenize(az_span_create_from_str(
-                    (char *)(size_t) "int bad_func(int a { return 0; }\n"),
+  rc = tokenize(az_span_create_from_str("int bad_func(int a { return 0; }\n"),
                 &tl);
   ASSERT_EQ(0, rc);
   {
@@ -563,7 +555,7 @@ TEST test_sync_full_coverage(void) {
                             "  return 0;\n"
                             "}\n";
 
-    rc = tokenize(az_span_create_from_str((char *)(size_t)full_code), &tl);
+    rc = tokenize(az_span_create_from_str(full_code), &tl);
     ASSERT_EQ(0, rc);
     rc = parse_tokens(tl, &cst);
     ASSERT_EQ(0, rc);
@@ -591,7 +583,7 @@ TEST test_sync_full_coverage(void) {
     rc = cdd_test_sync_apply_updates("nonexistent_test_sync_file.c", tl, &cst,
                                      &spec, &cfg);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    op.operation_id = (char *)(size_t) "test_op";
+    op.operation_id = cdd_test_mut_str("test_op");
 
     /* Failure injections in apply_updates */
     g_cdd_fail_find_function_node = 1;
@@ -659,10 +651,9 @@ TEST test_sync_full_coverage(void) {
       struct TokenList *tl_nest = NULL;
       struct CstNodeList cst_nest;
       memset(&cst_nest, 0, sizeof(cst_nest));
-      rc = tokenize(
-          az_span_create_from_str((
-              char *)(size_t) "int api_test_op(int (*cb)(void)) { return 0; }"),
-          &tl_nest);
+      rc = tokenize(az_span_create_from_str(
+                        "int api_test_op(int (*cb)(void)) { return 0; }"),
+                    &tl_nest);
       ASSERT_EQ(0, rc);
       rc = parse_tokens(tl_nest, &cst_nest);
       ASSERT_EQ(0, rc);
@@ -682,9 +673,8 @@ TEST test_sync_full_coverage(void) {
       struct TokenList *tl_q = NULL;
       struct CstNodeList cst_q;
       memset(&cst_q, 0, sizeof(cst_q));
-      rc = tokenize(az_span_create_from_str(
-                        (char *)(size_t) "int api_test_op(int a) { "
-                                         "url_query_init(&qp); return 0; }"),
+      rc = tokenize(az_span_create_from_str("int api_test_op(int a) { "
+                                            "url_query_init(&qp); return 0; }"),
                     &tl_q);
       ASSERT_EQ(0, rc);
       rc = parse_tokens(tl_q, &cst_q);

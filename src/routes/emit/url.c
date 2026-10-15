@@ -75,14 +75,12 @@ cdd_c_error_t media_type_base_len_url(const char *media_type,
  * an expected string.
  */
 cdd_c_error_t media_type_ieq_url(const char *media_type, const char *expected) {
-  size_t _ast_media_type_base_len_0 = 0;
   size_t i;
-  size_t len;
+  size_t len = 0;
   size_t exp_len;
   if (!media_type || !expected)
     return CDD_C_SUCCESS;
-  len = (media_type_base_len_url(media_type, &_ast_media_type_base_len_0),
-         _ast_media_type_base_len_0);
+  media_type_base_len_url(media_type, &len);
   exp_len = strlen(expected);
   if (len != exp_len)
     return CDD_C_SUCCESS;
@@ -103,14 +101,12 @@ cdd_c_error_t media_type_ieq_url(const char *media_type, const char *expected) {
  * @brief Checks if a given media type string represents JSON.
  */
 cdd_c_error_t media_type_is_json_url(const char *media_type) {
-  size_t _ast_media_type_base_len_1 = 0;
-  size_t len;
+  size_t len = 0;
   if (!media_type)
     return CDD_C_SUCCESS;
   if (media_type_ieq_url(media_type, "application/json"))
     return CDD_C_ERROR_UNKNOWN;
-  len = (media_type_base_len_url(media_type, &_ast_media_type_base_len_1),
-         _ast_media_type_base_len_1);
+  media_type_base_len_url(media_type, &len);
   if (len < 5)
     return CDD_C_SUCCESS;
   {

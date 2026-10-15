@@ -24,19 +24,19 @@ TEST test_writer_component_path_items(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  path_item.route = (char *)(size_t)(size_t) "FooItem";
-  path_item.summary = (char *)(size_t)(size_t) "foo";
+  path_item.route = cdd_test_mut_str("FooItem");
+  path_item.summary = cdd_test_mut_str("foo");
   path_item.operations = &op;
   path_item.n_operations = 1;
 
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)(size_t) "getFoo";
+  op.operation_id = cdd_test_mut_str("getFoo");
   op.responses = &resp;
   op.n_responses = 1;
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.description = (char *)(size_t)(size_t) "ok";
+  resp.code = cdd_test_mut_str("200");
+  resp.description = cdd_test_mut_str("ok");
 
-  path_item_names[0] = (char *)(size_t)(size_t) "FooItem";
+  path_item_names[0] = cdd_test_mut_str("FooItem");
   spec.component_path_items = &path_item;
   spec.component_path_item_names = path_item_names;
   spec.n_component_path_items = 1;
@@ -85,35 +85,35 @@ TEST test_writer_response_links(void) {
 
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = (char *)(size_t)(size_t) "/pets";
+  path.route = cdd_test_mut_str("/pets");
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)(size_t) "listPets";
+  op.operation_id = cdd_test_mut_str("listPets");
   op.responses = &resp;
   op.n_responses = 1;
 
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.description = (char *)(size_t)(size_t) "ok";
+  resp.code = cdd_test_mut_str("200");
+  resp.description = cdd_test_mut_str("ok");
   resp.links = &link;
   resp.n_links = 1;
 
-  link.name = (char *)(size_t)(size_t) "next";
-  link.operation_id = (char *)(size_t)(size_t) "listPets";
+  link.name = cdd_test_mut_str("next");
+  link.operation_id = cdd_test_mut_str("listPets");
   link.parameters = params;
   link.n_parameters = 2;
-  params[0].name = (char *)(size_t)(size_t) "limit";
+  params[0].name = cdd_test_mut_str("limit");
   params[0].value.type = OA_ANY_NUMBER;
   params[0].value.number = 50;
-  params[1].name = (char *)(size_t)(size_t) "offset";
+  params[1].name = cdd_test_mut_str("offset");
   params[1].value.type = OA_ANY_STRING;
-  params[1].value.string = (char *)(size_t)(size_t) "$response.body#/offset";
+  params[1].value.string = cdd_test_mut_str("$response.body#/offset");
 
   link.request_body_set = 1;
   link.request_body.type = OA_ANY_STRING;
-  link.request_body.string = (char *)(size_t)(size_t) "payload";
+  link.request_body.string = cdd_test_mut_str("payload");
 
-  link_server.url = (char *)(size_t)(size_t) "https://api.example.com";
+  link_server.url = cdd_test_mut_str("https://api.example.com");
   link.server = &link_server;
   link.server_set = 1;
 
@@ -173,31 +173,31 @@ TEST test_writer_callbacks(void) {
 
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = (char *)(size_t)(size_t) "/pets";
+  path.route = cdd_test_mut_str("/pets");
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)(size_t) "listPets";
+  op.operation_id = cdd_test_mut_str("listPets");
   op.responses = &resp;
   op.n_responses = 1;
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.description = (char *)(size_t)(size_t) "ok";
+  resp.code = cdd_test_mut_str("200");
+  resp.description = cdd_test_mut_str("ok");
 
   op.callbacks = &cb;
   op.n_callbacks = 1;
-  cb.name = (char *)(size_t)(size_t) "onEvent";
+  cb.name = cdd_test_mut_str("onEvent");
   cb.paths = &cb_path;
   cb.n_paths = 1;
 
-  cb_path.route = (char *)(size_t)(size_t) "{$request.body#/url}";
+  cb_path.route = cdd_test_mut_str("{$request.body#/url}");
   cb_path.operations = &cb_op;
   cb_path.n_operations = 1;
   cb_op.verb = OA_VERB_POST;
-  cb_op.operation_id = (char *)(size_t)(size_t) "cbPost";
+  cb_op.operation_id = cdd_test_mut_str("cbPost");
   cb_op.responses = &cb_resp;
   cb_op.n_responses = 1;
-  cb_resp.code = (char *)(size_t)(size_t) "200";
-  cb_resp.description = (char *)(size_t)(size_t) "ok";
+  cb_resp.code = cdd_test_mut_str("200");
+  cb_resp.description = cdd_test_mut_str("ok");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -245,7 +245,7 @@ TEST test_writer_parameter_and_header_schema_ref(void) {
   spec.paths = &path;
   spec.n_paths = 1;
 
-  path.route = (char *)(size_t)(size_t) "/pets";
+  path.route = cdd_test_mut_str("/pets");
   path.operations = &op;
   path.n_operations = 1;
 
@@ -253,24 +253,24 @@ TEST test_writer_parameter_and_header_schema_ref(void) {
   op.parameters = params;
   op.n_parameters = 2;
 
-  params[0].name = (char *)(size_t)(size_t) "pet";
+  params[0].name = cdd_test_mut_str("pet");
   params[0].in = OA_PARAM_IN_QUERY;
-  params[0].type = (char *)(size_t)(size_t) "Pet";
+  params[0].type = cdd_test_mut_str("Pet");
 
-  params[1].name = (char *)(size_t)(size_t) "tags";
+  params[1].name = cdd_test_mut_str("tags");
   params[1].in = OA_PARAM_IN_QUERY;
   params[1].is_array = 1;
-  params[1].type = (char *)(size_t)(size_t) "array";
-  params[1].items_type = (char *)(size_t)(size_t) "Tag";
+  params[1].type = cdd_test_mut_str("array");
+  params[1].items_type = cdd_test_mut_str("Tag");
 
   op.responses = &resp;
   op.n_responses = 1;
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.description = (char *)(size_t)(size_t) "ok";
+  resp.code = cdd_test_mut_str("200");
+  resp.description = cdd_test_mut_str("ok");
   resp.headers = &hdr;
   resp.n_headers = 1;
-  hdr.name = (char *)(size_t)(size_t) "X-Rate";
-  hdr.type = (char *)(size_t)(size_t) "Rate";
+  hdr.name = cdd_test_mut_str("X-Rate");
+  hdr.type = cdd_test_mut_str("Rate");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -338,27 +338,27 @@ TEST test_writer_parameter_schema_format_and_content(void) {
   spec.paths = &path;
   spec.n_paths = 1;
 
-  path.route = (char *)(size_t)(size_t) "/pets";
+  path.route = cdd_test_mut_str("/pets");
   path.operations = &op;
   path.n_operations = 1;
 
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)(size_t) "getPets";
+  op.operation_id = cdd_test_mut_str("getPets");
   op.parameters = &param;
   op.n_parameters = 1;
 
-  param.name = (char *)(size_t)(size_t) "id";
+  param.name = cdd_test_mut_str("id");
   param.in = OA_PARAM_IN_QUERY;
   param.schema_set = 1;
-  param.schema.inline_type = (char *)(size_t)(size_t) "string";
-  param.schema.format = (char *)(size_t)(size_t) "uuid";
-  param.schema.content_media_type = (char *)(size_t)(size_t) "text/plain";
-  param.schema.content_encoding = (char *)(size_t)(size_t) "base64";
+  param.schema.inline_type = cdd_test_mut_str("string");
+  param.schema.format = cdd_test_mut_str("uuid");
+  param.schema.content_media_type = cdd_test_mut_str("text/plain");
+  param.schema.content_encoding = cdd_test_mut_str("base64");
 
   op.responses = &resp;
   op.n_responses = 1;
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.description = (char *)(size_t)(size_t) "ok";
+  resp.code = cdd_test_mut_str("200");
+  resp.description = cdd_test_mut_str("ok");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -405,19 +405,18 @@ TEST test_writer_request_body_ref_with_description(void) {
   spec.paths = &path;
   spec.n_paths = 1;
 
-  path.route = (char *)(size_t)(size_t) "/pets";
+  path.route = cdd_test_mut_str("/pets");
   path.operations = &op;
   path.n_operations = 1;
 
   op.verb = OA_VERB_POST;
-  op.operation_id = (char *)(size_t)(size_t) "createPet";
-  op.req_body_ref =
-      (char *)(size_t)(size_t) "#/components/requestBodies/CreatePet";
-  op.req_body_description = (char *)(size_t)(size_t) "Override";
+  op.operation_id = cdd_test_mut_str("createPet");
+  op.req_body_ref = cdd_test_mut_str("#/components/requestBodies/CreatePet");
+  op.req_body_description = cdd_test_mut_str("Override");
   op.responses = &resp;
   op.n_responses = 1;
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.description = (char *)(size_t)(size_t) "ok";
+  resp.code = cdd_test_mut_str("200");
+  resp.description = cdd_test_mut_str("ok");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -456,10 +455,10 @@ TEST test_writer_security_scheme_deprecated(void) {
   spec.security_schemes = &scheme;
   spec.n_security_schemes = 1;
 
-  scheme.name = (char *)(size_t)(size_t) "oldKey";
+  scheme.name = cdd_test_mut_str("oldKey");
   scheme.type = OA_SEC_APIKEY;
   scheme.in = OA_SEC_IN_HEADER;
-  scheme.key_name = (char *)(size_t)(size_t) "X-Old";
+  scheme.key_name = cdd_test_mut_str("X-Old");
   scheme.deprecated_set = 1;
   scheme.deprecated = 1;
 
@@ -496,16 +495,16 @@ TEST test_writer_schema_enum_default_nullable(void) {
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
-  param.schema.inline_type = (char *)(size_t)(size_t) "string";
+  param.schema.inline_type = cdd_test_mut_str("string");
   param.schema.nullable = 1;
   enum_vals[0].type = OA_ANY_STRING;
-  enum_vals[0].string = (char *)(size_t)(size_t) "on";
+  enum_vals[0].string = cdd_test_mut_str("on");
   enum_vals[1].type = OA_ANY_STRING;
-  enum_vals[1].string = (char *)(size_t)(size_t) "off";
+  enum_vals[1].string = cdd_test_mut_str("off");
   param.schema.enum_values = enum_vals;
   param.schema.n_enum_values = 2;
   param.schema.default_value.type = OA_ANY_STRING;
-  param.schema.default_value.string = (char *)(size_t)(size_t) "on";
+  param.schema.default_value.string = cdd_test_mut_str("on");
   param.schema.default_value_set = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
@@ -553,14 +552,16 @@ TEST test_writer_schema_type_union(void) {
   char *json;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *types[] = {(char *)(size_t)(size_t) "string",
-                   (char *)(size_t)(size_t) "integer",
-                   (char *)(size_t)(size_t) "null"};
+  char *types[3];
+
+  types[0] = cdd_test_mut_str("string");
+  types[1] = cdd_test_mut_str("integer");
+  types[2] = cdd_test_mut_str("null");
   json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
-  param.schema.inline_type = (char *)(size_t)(size_t) "string";
+  param.schema.inline_type = cdd_test_mut_str("string");
   param.schema.nullable = 1;
   param.schema.type_union = types;
   param.schema.n_type_union = 3;
@@ -610,12 +611,12 @@ TEST test_writer_schema_array_items_enum_nullable(void) {
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
   param.schema.is_array = 1;
-  param.schema.inline_type = (char *)(size_t)(size_t) "string";
+  param.schema.inline_type = cdd_test_mut_str("string");
   param.schema.items_nullable = 1;
   enum_vals[0].type = OA_ANY_STRING;
-  enum_vals[0].string = (char *)(size_t)(size_t) "a";
+  enum_vals[0].string = cdd_test_mut_str("a");
   enum_vals[1].type = OA_ANY_STRING;
-  enum_vals[1].string = (char *)(size_t)(size_t) "b";
+  enum_vals[1].string = cdd_test_mut_str("b");
   param.schema.items_enum_values = enum_vals;
   param.schema.n_items_enum_values = 2;
 

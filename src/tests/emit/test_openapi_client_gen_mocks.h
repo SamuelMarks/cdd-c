@@ -41,21 +41,21 @@ TEST test_client_gen_defined_schemas(void) {
   memset(sf, 0, sizeof(sf));
   memset(&config, 0, sizeof(config));
 
-  names[0] = (char *)(size_t)(size_t) "MyEnum";
+  names[0] = cdd_test_mut_str("MyEnum");
   sf[0].is_enum = 1;
 
-  names[1] = (char *)(size_t)(size_t) "MyUnion";
+  names[1] = cdd_test_mut_str("MyUnion");
   sf[1].is_union = 1;
 
-  names[2] = (char *)(size_t)(size_t) "MyStruct";
+  names[2] = cdd_test_mut_str("MyStruct");
 
   spec.defined_schemas = sf;
   spec.defined_schema_names = names;
   spec.n_defined_schemas = 3;
 
   config.filename_base =
-      (char *)(size_t)(size_t) "build/test_out/test_client_gen_schemas";
-  config.func_prefix = (char *)(size_t)(size_t) "api_";
+      cdd_test_mut_str("build/test_out/test_client_gen_schemas");
+  config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -92,42 +92,42 @@ TEST test_client_gen_create_tests_mocks(void) {
   memset(&config, 0, sizeof(config));
   memset(&param, 0, sizeof(param));
 
-  path.route = (char *)(size_t)(size_t) "/items/{id}";
-  param.name = (char *)(size_t)(size_t) "filter";
+  path.route = cdd_test_mut_str("/items/{id}");
+  param.name = cdd_test_mut_str("filter");
   param.in = OA_PARAM_IN_QUERY;
-  param.type = (char *)(size_t)(size_t) "string";
+  param.type = cdd_test_mut_str("string");
 
-  ops[0].operation_id = (char *)(size_t)(size_t) "getItems";
+  ops[0].operation_id = cdd_test_mut_str("getItems");
   ops[0].verb = OA_VERB_GET;
-  resps[0].code = (char *)(size_t)(size_t) "200";
+  resps[0].code = cdd_test_mut_str("200");
   ops[0].responses = &resps[0];
   ops[0].n_responses = 1;
   ops[0].parameters = &param;
   ops[0].n_parameters = 1;
 
-  ops[1].operation_id = (char *)(size_t)(size_t) "postItem";
+  ops[1].operation_id = cdd_test_mut_str("postItem");
   ops[1].verb = OA_VERB_POST;
   ops[1].req_body.is_array = 0;
-  resps[1].code = (char *)(size_t)(size_t) "201";
+  resps[1].code = cdd_test_mut_str("201");
   ops[1].responses = &resps[1];
   ops[1].n_responses = 1;
 
-  ops[2].operation_id = (char *)(size_t)(size_t) "putItem";
+  ops[2].operation_id = cdd_test_mut_str("putItem");
   ops[2].verb = OA_VERB_PUT;
   ops[2].req_body.is_array = 1;
-  resps[2].code = (char *)(size_t)(size_t) "200";
+  resps[2].code = cdd_test_mut_str("200");
   ops[2].responses = &resps[2];
   ops[2].n_responses = 1;
 
-  ops[3].operation_id = (char *)(size_t)(size_t) "deleteItem";
+  ops[3].operation_id = cdd_test_mut_str("deleteItem");
   ops[3].verb = OA_VERB_DELETE;
-  resps[3].code = (char *)(size_t)(size_t) "204";
+  resps[3].code = cdd_test_mut_str("204");
   ops[3].responses = &resps[3];
   ops[3].n_responses = 1;
 
-  ops[4].operation_id = (char *)(size_t)(size_t) "patchItem";
+  ops[4].operation_id = cdd_test_mut_str("patchItem");
   ops[4].verb = OA_VERB_PATCH;
-  resps[4].code = (char *)(size_t)(size_t) "200";
+  resps[4].code = cdd_test_mut_str("200");
   ops[4].responses = &resps[4];
   ops[4].n_responses = 1;
 
@@ -137,8 +137,7 @@ TEST test_client_gen_create_tests_mocks(void) {
   spec.paths = &path;
   spec.n_paths = 1;
 
-  config.filename_base =
-      (char *)(size_t)(size_t) "build/test_out/test_client_sdk";
+  config.filename_base = cdd_test_mut_str("build/test_out/test_client_sdk");
   config.create_tests_and_mocks = 1;
   config.no_installable_package = 1;
 
@@ -171,9 +170,9 @@ TEST test_client_gen_mock_errors(void) {
   /* Setup server with variable for render_server_url_default mocks */
   memset(&srv, 0, sizeof(srv));
   memset(&var, 0, sizeof(var));
-  var.name = (char *)(size_t)(size_t) "v";
-  var.default_value = (char *)(size_t)(size_t) "val";
-  srv.url = (char *)(size_t)(size_t) "http://api.com/{v}";
+  var.name = cdd_test_mut_str("v");
+  var.default_value = cdd_test_mut_str("val");
+  srv.url = cdd_test_mut_str("http://api.com/{v}");
   srv.variables = &var;
   srv.n_variables = 1;
 
@@ -306,9 +305,9 @@ TEST test_client_gen_mock_errors(void) {
       struct OpenAPI_ServerVariable var_nodef;
       memset(&srv_novarval, 0, sizeof(srv_novarval));
       memset(&var_nodef, 0, sizeof(var_nodef));
-      var_nodef.name = (char *)(size_t)(size_t) "v";
+      var_nodef.name = cdd_test_mut_str("v");
       var_nodef.default_value = NULL;
-      srv_novarval.url = (char *)(size_t)(size_t) "http://api.com/{v}";
+      srv_novarval.url = cdd_test_mut_str("http://api.com/{v}");
       srv_novarval.variables = &var_nodef;
       srv_novarval.n_variables = 1;
       ASSERT_EQ(CDD_C_SUCCESS, render_server_url_default(&srv_novarval, &out));
@@ -408,11 +407,11 @@ TEST test_client_gen_mock_errors(void) {
     memset(&doc_sec, 0, sizeof(doc_sec));
     memset(doc_params, 0, sizeof(doc_params));
 
-    doc_path.route = (char *)(size_t) "/doc_test";
-    doc_op.summary = (char *)(size_t) "Summary";
-    doc_op.description = (char *)(size_t) "Description";
-    doc_op.operation_id = (char *)(size_t) "docOp";
-    doc_op.external_docs.url = (char *)(size_t) "http://example.com/docs";
+    doc_path.route = cdd_test_mut_str("/doc_test");
+    doc_op.summary = cdd_test_mut_str("Summary");
+    doc_op.description = cdd_test_mut_str("Description");
+    doc_op.operation_id = cdd_test_mut_str("docOp");
+    doc_op.external_docs.url = cdd_test_mut_str("http://example.com/docs");
     doc_op.callbacks = &doc_cb;
     doc_resp.links = &doc_link;
     doc_op.responses = &doc_resp;
@@ -420,12 +419,12 @@ TEST test_client_gen_mock_errors(void) {
     doc_op.security = &doc_sec;
     doc_op.deprecated = 1;
 
-    doc_params[0].name = (char *)(size_t) "p0";
+    doc_params[0].name = cdd_test_mut_str("p0");
     doc_params[0].in = OA_PARAM_IN_QUERY;
     doc_params[0].allow_empty_value = 1;
     doc_params[0].allow_reserved = 1;
 
-    doc_params[1].name = (char *)(size_t) "p1";
+    doc_params[1].name = cdd_test_mut_str("p1");
     doc_params[1].in = OA_PARAM_IN_UNKNOWN;
 
     doc_op.parameters = doc_params;
@@ -458,7 +457,7 @@ TEST test_client_gen_mock_errors(void) {
 
     /* unclosed variable -> default_url is NULL */
     spec_srv.n_servers = 1;
-    srv_nourl[0].url = (char *)(size_t) "http://api.com/{unclosed";
+    srv_nourl[0].url = cdd_test_mut_str("http://api.com/{unclosed");
     ASSERT_EQ(CDD_C_SUCCESS,
               write_lifecycle_funcs(h_devnull, c_devnull, "test_", &spec_srv));
 
@@ -478,7 +477,7 @@ TEST test_client_gen_mock_errors(void) {
     memset(&path_noroute, 0, sizeof(path_noroute));
 
     /* 1. summary == NULL, operation_id != NULL */
-    doc_op2.operation_id = (char *)(size_t) "myOp";
+    doc_op2.operation_id = cdd_test_mut_str("myOp");
     ASSERT_EQ(CDD_C_SUCCESS, write_docblock(devnull, NULL, &doc_op2));
 
     /* 2. summary == NULL, operation_id == NULL */
@@ -518,7 +517,7 @@ TEST test_client_gen_mock_errors(void) {
 
     /* 8. IO fail on operation with operation_id */
     doc_op2.summary = NULL;
-    doc_op2.operation_id = (char *)(size_t) "myOp";
+    doc_op2.operation_id = cdd_test_mut_str("myOp");
     g_io_calls = 0;
     g_fail_io_after = 1;
     write_docblock(devnull, NULL, &doc_op2);
@@ -556,16 +555,16 @@ TEST test_client_gen_mock_errors(void) {
   /* openapi_client_generate mocks */
   ASSERT_EQ(CDD_C_SUCCESS, setup_minimal_spec(&spec, &op));
   memset(&config, 0, sizeof(config));
-  config.filename_base = (char *)(size_t)(size_t) "build/test_out/test_cg_mock";
+  config.filename_base = cdd_test_mut_str("build/test_out/test_cg_mock");
   config.no_installable_package = 1;
 
   /* Setup schemas */
   memset(sf, 0, sizeof(sf));
-  names[0] = (char *)(size_t)(size_t) "Enum1";
+  names[0] = cdd_test_mut_str("Enum1");
   sf[0].is_enum = 1;
-  names[1] = (char *)(size_t)(size_t) "Union1";
+  names[1] = cdd_test_mut_str("Union1");
   sf[1].is_union = 1;
-  names[2] = (char *)(size_t)(size_t) "Struct1";
+  names[2] = cdd_test_mut_str("Struct1");
   spec.defined_schemas = sf;
   spec.defined_schema_names = names;
   spec.n_defined_schemas = 3;
@@ -689,7 +688,7 @@ TEST test_client_gen_mock_errors(void) {
   g_client_gen_fail = 0;
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  names[0] = (char *)(size_t)(size_t) "Enum1";
+  names[0] = cdd_test_mut_str("Enum1");
 
   /* mock 21: write_header_preamble fail */
   g_client_gen_fail = 21;
@@ -709,8 +708,8 @@ TEST test_client_gen_mock_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_IO, openapi_client_generate(&spec, &config));
 
   /* Test with config->header_guard and config->model_header explicitly set */
-  config.header_guard = (char *)(size_t)(size_t) "CUSTOM_GUARD_H";
-  config.model_header = (char *)(size_t)(size_t) "custom_models.h";
+  config.header_guard = cdd_test_mut_str("CUSTOM_GUARD_H");
+  config.model_header = cdd_test_mut_str("custom_models.h");
   g_client_gen_fail = 0;
   ASSERT_EQ(CDD_C_SUCCESS, openapi_client_generate(&spec, &config));
   config.header_guard = NULL;
@@ -785,10 +784,10 @@ TEST test_client_gen_mock_errors(void) {
   {
     FILE *hf = cdd_test_tmpfile_global();
     FILE *cf = cdd_test_tmpfile_global();
-    char *tag = (char *)(size_t)(size_t) "mytag";
+    char *tag = cdd_test_mut_str("mytag");
     op.tags = &tag;
     op.n_tags = 1;
-    config.namespace_prefix = (char *)(size_t)(size_t) "ns";
+    config.namespace_prefix = cdd_test_mut_str("ns");
 
     g_client_gen_fail = 40;
     ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -890,7 +889,7 @@ TEST test_client_gen_mock_errors(void) {
     {
       struct OpenAPI_Server s_unclosed;
       memset(&s_unclosed, 0, sizeof(s_unclosed));
-      s_unclosed.url = (char *)(size_t) "http://api.com/{unclosed";
+      s_unclosed.url = cdd_test_mut_str("http://api.com/{unclosed");
       op.servers = &s_unclosed;
       op.n_servers = 1;
       g_client_gen_fail = 0;

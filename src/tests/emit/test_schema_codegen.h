@@ -165,7 +165,7 @@ TEST test_codegen_config_json_guards(void) {
 
     memset(&config, 0, sizeof(config));
 
-    config.guard_macro = (char *)(size_t)(size_t) "ENABLE_JSON";
+    config.guard_macro = cdd_test_mut_str("ENABLE_JSON");
 
     /* Generate */
 
@@ -185,7 +185,7 @@ TEST test_codegen_config_json_guards(void) {
 
     rewind(tmp);
 
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
 
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
@@ -262,7 +262,7 @@ TEST test_union_config_json_guards(void) {
 
     memset(&config, 0, sizeof(config));
 
-    config.json_guard = (char *)(size_t)(size_t) "UNION_GUARD";
+    config.json_guard = cdd_test_mut_str("UNION_GUARD");
 
     ASSERT_EQ(0, write_union_to_json_func(tmp, "U", &sf, &config));
 
@@ -276,7 +276,7 @@ TEST test_union_config_json_guards(void) {
 
     rewind(tmp);
 
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
 
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
@@ -504,7 +504,7 @@ TEST test_codegen_config_utils_guards(void) {
 
     memset(&config, 0, sizeof(config));
 
-    config.guard_macro = (char *)(size_t)(size_t) "DATA_UTILS";
+    config.guard_macro = cdd_test_mut_str("DATA_UTILS");
 
     /* Generate helpers */
 
@@ -526,7 +526,7 @@ TEST test_codegen_config_utils_guards(void) {
 
     rewind(tmp);
 
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
 
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
@@ -616,19 +616,19 @@ TEST test_schema_constraints_bounds(void) {
   sc.has_additional_properties = 1;
   sc.additional_properties =
       (struct SchemaType *)calloc(1, sizeof(struct SchemaType));
-  sc.additional_properties->name = (char *)(size_t)malloc(2);
+  sc.additional_properties->name = (char *)malloc(2);
 #if defined(_MSC_VER)
   strcpy_s(sc.additional_properties->name, 2, "n");
 #else
   strcpy(sc.additional_properties->name, "n");
 #endif
-  sc.additional_properties->type = (char *)(size_t)malloc(2);
+  sc.additional_properties->type = (char *)malloc(2);
 #if defined(_MSC_VER)
   strcpy_s(sc.additional_properties->type, 2, "t");
 #else
   strcpy(sc.additional_properties->type, "t");
 #endif
-  sc.additional_properties->ref = (char *)(size_t)malloc(2);
+  sc.additional_properties->ref = (char *)malloc(2);
 #if defined(_MSC_VER)
   strcpy_s(sc.additional_properties->ref, 2, "r");
 #else

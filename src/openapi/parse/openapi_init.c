@@ -9,14 +9,9 @@
 /* clang-format on */
 
 /**
- * @brief Executes the openapi spec init operation.
+ * @brief Initializes an OpenAPI_Spec structure to empty defaults.
  */
 cdd_c_error_t openapi_spec_init(struct OpenAPI_Spec *spec) {
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_openapi_spec_init_fail;
-  if (g_openapi_spec_init_fail && --g_openapi_spec_init_fail == 0)
-    return CDD_C_ERROR_MEMORY;
-#endif
   if (!spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -86,7 +81,7 @@ cdd_c_error_t openapi_spec_init(struct OpenAPI_Spec *spec) {
 }
 
 /**
- * @brief Executes the openapi doc registry init operation.
+ * @brief Initializes a multi-document OpenAPI URI registry.
  */
 cdd_c_error_t openapi_doc_registry_init(struct OpenAPI_DocRegistry *registry) {
   if (!registry)
@@ -98,7 +93,8 @@ cdd_c_error_t openapi_doc_registry_init(struct OpenAPI_DocRegistry *registry) {
 }
 
 /**
- * @brief Executes the openapi doc registry free operation.
+ * @brief Releases all documents and URIs stored in an OpenAPI document
+ * registry.
  */
 void openapi_doc_registry_free(struct OpenAPI_DocRegistry *registry) {
   size_t i;
@@ -116,12 +112,11 @@ void openapi_doc_registry_free(struct OpenAPI_DocRegistry *registry) {
 }
 
 /**
- * @brief Executes the openapi doc registry add operation.
+ * @brief Registers a parsed JSON document under a canonical URI in the
+ * registry.
  */
 cdd_c_error_t openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
                                        struct OpenAPI_Spec *spec) {
-  size_t _ast_uri_base_len_19 = 0;
-  char *_ast_dup_substr_20 = NULL;
   size_t i;
   const char *base_src;
   char *base = NULL;
@@ -135,11 +130,11 @@ cdd_c_error_t openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   {
-    size_t len =
-        (uri_base_len(base_src, &_ast_uri_base_len_19), _ast_uri_base_len_19);
+    size_t len = 0;
+    uri_base_len(base_src, &len);
     if (len == 0)
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    base = (dup_substr(base_src, len, &_ast_dup_substr_20), _ast_dup_substr_20);
+    dup_substr(base_src, len, &base);
   }
   if (!base)
     return CDD_C_ERROR_MEMORY;

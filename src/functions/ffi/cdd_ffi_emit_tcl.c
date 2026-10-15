@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_tcl.c
+ * @brief FFI binding emitter for Tcl.
+ */
 #ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
 #endif
@@ -14,22 +18,8 @@ extern volatile int g_fail_io_after;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
-
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
-}
 
 cdd_c_error_t cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
                                const cdd_generate_bindings_config_t *config) {
@@ -102,7 +92,7 @@ cdd_c_error_t cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(c_f, node->leading_trivia);
+      cdd_ffi_emit_trivia(c_f, node->leading_trivia);
       fprintf(c_f,
               "static int Tcl_%s(ClientData clientData, Tcl_Interp *interp, "
               "int objc, Tcl_Obj *const objv[]) {\n",
@@ -261,7 +251,7 @@ cdd_c_error_t cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
     for (i = 0; i < ir->nodes_count; i++) {
       node = &ir->nodes[i];
       if (node->kind == CDD_FFI_NODE_FUNCTION) {
-        emit_trivia(c_f, node->leading_trivia);
+        cdd_ffi_emit_trivia(c_f, node->leading_trivia);
         fprintf(c_f,
                 "    Tcl_CreateObjCommand(interp, \"%s::%s\", Tcl_%s, NULL, "
                 "NULL);\n",

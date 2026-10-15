@@ -18,6 +18,8 @@
 
 #include "c_cddConfig.h"
 #include "c_cdd_export.h"
+#include "cdd_api.h"
+#include "c_cdd/memory.h"
 #include "classes/emit/schema_codegen.h"
 #include "classes/parse/code2schema.h"
 #include "functions/emit/build_system.h"
@@ -108,7 +110,7 @@ C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv) {
   struct AuditStats stats;
   cdd_c_error_t rc;
   if (argc != 1)
-    return CDD_C_ERROR_UNKNOWN;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = audit_stats_init(&stats);
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -124,11 +126,6 @@ C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv) {
  * @param[in] program_name The program executable name (usually argv[0])
  */
 C_CDD_EXPORT cdd_c_error_t print_help(const char *program_name) {
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cdd_fail_print_help;
-  if (g_cdd_fail_print_help && --g_cdd_fail_print_help == 0)
-    return CDD_C_ERROR_UNKNOWN;
-#endif
   printf("Usage: %s [OPTIONS] <COMMAND>\n\n", program_name);
   puts("Commands:");
   puts("  from_openapi to_sdk -i <spec.json> [-o <dir>] [--no-github-actions] "
@@ -183,34 +180,29 @@ C_CDD_EXPORT cdd_c_error_t print_help(const char *program_name) {
  * Generates C bindings, structs, and implementations.
  */
 C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
-  const char *input_file = NULL;
-  const char *input_dir = NULL;
-  const char *out_dir = NULL;
-  int is_cli = 0;
-  int is_server = 0;
+  cdd_from_openapi_config_t api_cfg;
   int i;
-  struct OpenAPI_Spec spec = {0};
 
-  struct OpenApiClientConfig config = {0};
-  cdd_c_error_t rc = CDD_C_SUCCESS;
-  JSON_Value *root;
-
-  input_file = getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_FILE");
-  input_dir =
+  memset(&api_cfg, 0, sizeof(api_cfg));
+  api_cfg.subcommand = "to_sdk";
+  api_cfg.input =
+      getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_FILE");
+  api_cfg.input_dir =
       getenv("CDD_INPUT_DIR") ? getenv("CDD_INPUT_DIR") : getenv("INPUT_DIR");
-  out_dir = getenv("CDD_OUTPUT") ? getenv("CDD_OUTPUT") : getenv("OUT_DIR");
+  api_cfg.output =
+      getenv("CDD_OUTPUT") ? getenv("CDD_OUTPUT") : getenv("OUT_DIR");
 
   if (argc > 1) {
     if (strcmp(argv[1], "to_sdk") == 0) {
-      is_cli = 0;
+      api_cfg.subcommand = "to_sdk";
       argc--;
       argv++;
     } else if (strcmp(argv[1], "to_sdk_cli") == 0) {
-      is_cli = 1;
+      api_cfg.subcommand = "to_sdk_cli";
       argc--;
       argv++;
     } else if (strcmp(argv[1], "to_server") == 0) {
-      is_server = 1;
+      api_cfg.subcommand = "to_server";
       argc--;
       argv++;
     }
@@ -242,77 +234,23 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
     } else if ((strcmp(argv[i], "-i") == 0 ||
                 strcmp(argv[i], "--input") == 0) &&
                i + 1 < argc) {
-      input_file = argv[++i];
+      api_cfg.input = argv[++i];
     } else if (strcmp(argv[i], "--input-dir") == 0 && i + 1 < argc) {
-      input_dir = argv[++i];
+      api_cfg.input_dir = argv[++i];
     } else if ((strcmp(argv[i], "-o") == 0 ||
                 strcmp(argv[i], "--output") == 0) &&
                i + 1 < argc) {
-      out_dir = argv[++i];
+      api_cfg.output = argv[++i];
     } else if (strcmp(argv[i], "--no-github-actions") == 0) {
-      config.no_github_actions = 1;
+      api_cfg.no_github_actions = 1;
     } else if (strcmp(argv[i], "--no-installable-package") == 0) {
-      config.no_installable_package = 1;
+      api_cfg.no_installable_package = 1;
     } else if (strcmp(argv[i], "--tests") == 0) {
-      config.create_tests_and_mocks = 1;
+      api_cfg.tests = 1;
     }
   }
 
-  if (!input_file && !input_dir) {
-    fprintf(stderr,
-            "Error: -i|--input <spec.json> or --input-dir <dir> required\n");
-    return CDD_C_ERROR_UNKNOWN;
-  }
-
-  if (input_file) {
-    root = json_parse_file(input_file);
-    if (!root) {
-      fprintf(stderr, "Failed to parse JSON file: %s\n", input_file);
-      return CDD_C_ERROR_UNKNOWN;
-    }
-
-    rc = openapi_load_from_json(root, &spec);
-
-    json_value_free(root);
-
-    if (rc != CDD_C_SUCCESS) {
-      fprintf(stderr, "Failed to load openapi spec from %s\n", input_file);
-      return rc;
-    }
-
-    if (out_dir) {
-      char *path = malloc(strlen(out_dir) + 32);
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-      sprintf_s(path, strlen(out_dir) + 32, "%s/generated_client", out_dir);
-#else
-      CDD_SNPRINTF(path, strlen(out_dir) + 32, "%s/generated_client", out_dir);
-#endif
-      config.filename_base = path;
-    } else {
-      config.filename_base = "test_build_dir/generated_client";
-    }
-    config.func_prefix = "api_";
-
-    if (is_server) {
-      rc = openapi_server_generate(&spec, &config);
-    } else {
-      rc = openapi_client_generate(&spec, &config);
-      if (rc == CDD_C_SUCCESS) {
-        rc = openapi_client_gui_generate(&spec, &config);
-      }
-      if (rc == CDD_C_SUCCESS && is_cli) {
-        rc = openapi_cli_generate(&spec, &config);
-      }
-    }
-
-    if (out_dir) {
-      free((void *)config.filename_base);
-    }
-    openapi_spec_free(&spec);
-  }
-
-  return rc;
+  return cdd_generate_from_openapi(&api_cfg);
 }
 
 /**
@@ -323,14 +261,16 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
  * result.
  */
 C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
-  const char *input_dir =
+  cdd_to_openapi_config_t api_cfg;
+  int i;
+
+  memset(&api_cfg, 0, sizeof(api_cfg));
+  api_cfg.input =
       getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_DIR");
-  const char *out_file =
+  api_cfg.output =
       getenv("CDD_OUTPUT")
           ? getenv("CDD_OUTPUT")
           : (getenv("OUT_FILE") ? getenv("OUT_FILE") : "openapi.json");
-  char *c2_argv[3];
-  int i;
 
   for (i = 0; i < argc; i++) {
     if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
@@ -345,50 +285,15 @@ C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
     } else if ((strcmp(argv[i], "-i") == 0 ||
                 strcmp(argv[i], "--input") == 0) &&
                i + 1 < argc) {
-      input_dir = argv[++i];
+      api_cfg.input = argv[++i];
     } else if ((strcmp(argv[i], "-o") == 0 ||
                 strcmp(argv[i], "--output") == 0) &&
                i + 1 < argc) {
-      out_file = argv[++i];
-    }
-  }
-  if (!input_dir) {
-    fprintf(stderr, "Error: -i <directory> required\n");
-    return CDD_C_ERROR_UNKNOWN;
-  }
-  {
-    char snapshot_path[1024];
-    FILE *f;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-    sprintf_s(snapshot_path, sizeof(snapshot_path), "%s/openapi.snapshot.json",
-              input_dir);
-#else
-    CDD_SNPRINTF(snapshot_path, sizeof(snapshot_path),
-                 "%s/openapi.snapshot.json", input_dir);
-#endif
-#if defined(_MSC_VER)
-    if (fopen_s(&f, snapshot_path, "r") != 0)
-      f = NULL;
-#else
-    f = fopen(snapshot_path, "r");
-#endif
-    if (f) {
-      char *c2_argv_base[5];
-      fclose(f);
-      c2_argv_base[0] = (char *)(size_t) "c2openapi";
-      c2_argv_base[1] = (char *)(size_t) "--base";
-      c2_argv_base[2] = snapshot_path;
-      c2_argv_base[3] = (char *)(size_t)input_dir;
-      c2_argv_base[4] = (char *)(size_t)out_file;
-      return c2openapi_cli_main(5, c2_argv_base);
+      api_cfg.output = argv[++i];
     }
   }
 
-  c2_argv[0] = (char *)(size_t) "c2openapi";
-  c2_argv[1] = (char *)(size_t)input_dir;
-  c2_argv[2] = (char *)(size_t)out_file;
-  return c2openapi_cli_main(3, c2_argv);
+  return cdd_generate_to_openapi(&api_cfg);
 }
 
 /**
@@ -401,9 +306,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {
   const char *cmd;
 
   if (argc < 2) {
-    rc = print_help(argc > 0 ? argv[0] : "cdd-c");
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    print_help(argc > 0 ? argv[0] : "cdd-c");
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
@@ -419,7 +322,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {
 
   if (strcmp(cmd, "audit") == 0) {
     if (argc < 3)
-      return CDD_C_ERROR_UNKNOWN;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     rc = handle_audit(argc - 2, argv + 2);
     printf("handle_audit returned %d\n", rc);
     if (rc != CDD_C_SUCCESS)
@@ -442,7 +345,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {
     return CDD_C_SUCCESS;
   } else if (strcmp(cmd, "code2schema") == 0) {
     if (argc != 4)
-      return CDD_C_ERROR_UNKNOWN;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     rc = code2schema_main(argc - 2, argv + 2);
     if (rc != CDD_C_SUCCESS)
       goto handle_err;

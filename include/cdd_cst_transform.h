@@ -1,3 +1,7 @@
+/**
+ * @file cdd_cst_transform.h
+ * @brief Concrete Syntax Tree (CST) source-to-source transformation passes.
+ */
 #ifndef CDD_CST_TRANSFORM_H
 #define CDD_CST_TRANSFORM_H
 
@@ -57,7 +61,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_tree_has_decl(cdd_cst_node_t *node,
                                              int *out_has_decl);
 
 /**
- * @brief Checks if a CST node represents an #ifdef __cplusplus guard.
+ * @brief Checks if a CST node represents an ifdef __cplusplus guard.
  * @param[in] dir Node to check.
  * @param[out] out_is_cpp Pointer to int storing 1 if guard found, 0 otherwise.
  * @return CDD_C_SUCCESS on success or error code.
@@ -87,47 +91,54 @@ C_CDD_EXPORT cdd_c_error_t
 cdd_transform_gnu(cdd_cst_tree_t *tree, const cdd_transform_config_t *config);
 
 /**
- * @brief Pools a string safely in the CST tree string pool.
- * @param[in,out] tree The CST tree.
- * @param[in] str The string to pool.
- * @param[out] out_pooled Pointer to receive the pooled string pointer.
- * @return CDD_C_SUCCESS on success, or error code.
+ * @brief Safely pools a string duplicate into the CST tree's string pool.
+ *
+ * @param[in,out] tree Target CST tree structure.
+ * @param[in] str Source string to duplicate and pool.
+ * @param[out] out_pooled Output pointer receiving the pooled string.
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT or
+ * CDD_C_ERROR_MEMORY on error.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_pool_string_safe(cdd_cst_tree_t *tree,
                                                 const char *str,
                                                 const char **out_pooled);
 
 /**
- * @brief Pools a sized string buffer safely in the CST tree string pool.
- * @param[in,out] tree The CST tree.
- * @param[in] str The string buffer to pool.
- * @param[in] len The length of the string.
- * @param[out] out_pooled Pointer to receive the pooled string pointer.
- * @return CDD_C_SUCCESS on success, or error code.
+ * @brief Safely pools a string of given length into the CST tree's string pool.
+ *
+ * @param[in,out] tree Target CST tree structure.
+ * @param[in] str Source string buffer.
+ * @param[in] len Length of source string to copy.
+ * @param[out] out_pooled Output pointer receiving the pooled string.
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT or
+ * CDD_C_ERROR_MEMORY on error.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_pool_string_safe_len(cdd_cst_tree_t *tree,
                                                     const char *str, size_t len,
                                                     const char **out_pooled);
 
 /**
- * @brief Appends an integer as decimal characters to a string buffer.
+ * @brief Appends an integer as string to the buffer.
+ *
  * @param[in,out] p Pointer to destination buffer.
  * @param[in] v Integer value to append.
- * @param[out] out_p Pointer to receive updated buffer pointer.
- * @return CDD_C_SUCCESS on success, or error code.
+ * @param[out] out_p Pointer receiving the updated buffer end pointer.
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT on NULL
+ * pointers.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_append_int(char *p, int v, char **out_p);
 
 /**
- * @brief Allocates memory using safe wrapper.
+ * @brief Allocates memory for GNU standardizer transformations.
  * @param[in] sz Number of bytes to allocate.
- * @param[out] out_ptr Pointer receiving allocated memory.
- * @return CDD_C_SUCCESS on success, error code on failure.
+ * @param[out] out_ptr Pointer to receive allocated memory.
+ * @return CDD_C_SUCCESS on success or CDD_C_ERROR_MEMORY on failure.
  */
 C_CDD_EXPORT cdd_c_error_t gnu_malloc(size_t sz, void **out_ptr);
 
 /**
  * @brief Replaces a token child in the CST with a new token holding text.
+ *
  * @param[in,out] tree CST tree.
  * @param[in,out] tok Existing token in CST to replace.
  * @param[in] kind Token kind for replacement token.
@@ -142,24 +153,28 @@ C_CDD_EXPORT cdd_c_error_t replace_token_with_text(cdd_cst_tree_t *tree,
                                                    size_t len);
 
 /**
- * @brief Parses a 128-bit decimal literal into high and low 64-bit halves.
+ * @brief Parses a decimal 128-bit literal into high and low 64-bit words.
+ *
  * @param[in] str Decimal literal string.
- * @param[in] len Length of string.
- * @param[out] out_high Pointer to store high 64 bits.
- * @param[out] out_low Pointer to store low 64 bits.
- * @return CDD_C_SUCCESS on success, or error code.
+ * @param[in] len Length of literal string.
+ * @param[out] out_high Pointer receiving the high 64 bits.
+ * @param[out] out_low Pointer receiving the low 64 bits.
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT on NULL
+ * pointers.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_parse_128_literal(const char *str, size_t len,
                                                  uint64_t *out_high,
                                                  uint64_t *out_low);
 
 /**
- * @brief Parses a 128-bit hexadecimal literal into high and low 64-bit halves.
+ * @brief Parses a hexadecimal 128-bit literal into high and low 64-bit words.
+ *
  * @param[in] str Hexadecimal literal string.
- * @param[in] len Length of string.
- * @param[out] out_high Pointer to store high 64 bits.
- * @param[out] out_low Pointer to store low 64 bits.
- * @return CDD_C_SUCCESS on success, or error code.
+ * @param[in] len Length of literal string.
+ * @param[out] out_high Pointer receiving the high 64 bits.
+ * @param[out] out_low Pointer receiving the low 64 bits.
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT on NULL
+ * pointers.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_parse_hex_128_literal(const char *str,
                                                      size_t len,
@@ -167,12 +182,13 @@ C_CDD_EXPORT cdd_c_error_t cdd_parse_hex_128_literal(const char *str,
                                                      uint64_t *out_low);
 
 /**
- * @brief Infers a C type name string from an array of expression tokens.
+ * @brief Infers the C type from a sequence of tokens.
+ *
  * @param[in] tokens Token array.
- * @param[in] num_tokens Number of tokens.
- * @param[out] out_type Pointer to receive inferred type string or NULL if
- * already a type.
- * @return CDD_C_SUCCESS on success, or error code.
+ * @param[in] num_tokens Number of tokens in array.
+ * @param[out] out_type Pointer receiving inferred type string.
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT on NULL
+ * out_type.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_infer_type(const cdd_token_t *tokens,
                                           size_t num_tokens,
@@ -194,27 +210,31 @@ struct tramp_ctx {
 };
 
 /**
- * @brief Visitor for expanding __FUNCTION__, __PRETTY_FUNCTION__, and __func__.
- * @param[in,out] node Current CST node.
- * @param[in,out] user_data Pointer to struct magic_ctx.
+ * @brief CST node visitor for standardizing magic macro identifiers.
+ *
+ * @param[in,out] node CST node to inspect and transform.
+ * @param[in,out] user_data Pointer to magic context.
  * @return CDD_C_SUCCESS on success, or error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_magic_visitor(cdd_cst_node_t *node,
                                              void *user_data);
 
 /**
- * @brief Visitor for detecting nested function trampolines.
- * @param[in,out] node Current CST node.
- * @param[in,out] user_data Pointer to struct tramp_ctx.
- * @return CDD_C_SUCCESS on success, or error code.
+ * @brief CST node visitor to detect trampoline function calls.
+ *
+ * @param[in] node CST node to inspect.
+ * @param[in,out] user_data Pointer to trampoline context.
+ * @return CDD_C_SUCCESS on success, or error code on trampoline detection or
+ * error.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_tramp_visitor(cdd_cst_node_t *node,
                                              void *user_data);
 
 /**
- * @brief Visitor for validating inline assembly statements.
- * @param[in,out] node Current CST node.
- * @param[in,out] user_data Optional user context.
+ * @brief CST node visitor for validating inline assembly statements.
+ *
+ * @param[in] node CST node to inspect.
+ * @param[in,out] user_data User data context pointer.
  * @return CDD_C_SUCCESS on success, or error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_asm_visitor(cdd_cst_node_t *node,

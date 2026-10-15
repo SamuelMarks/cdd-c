@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_fortran.h
+ * @brief FFI binding emitter for Fortran.
+ */
 #ifndef CDD_FFI_EMIT_FORTRAN_H
 #define CDD_FFI_EMIT_FORTRAN_H
 

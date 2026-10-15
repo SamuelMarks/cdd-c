@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_scheme.c
+ * @brief FFI binding emitter for Scheme.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -11,27 +15,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
-}
-
-static void schemify_name(const char *c_name, char *out_name, size_t out_sz) {
+static cdd_c_error_t schemify_name(const char *c_name, char *out_name,
+                                   size_t out_sz) {
   size_t i = 0, j = 0;
   if (!c_name)
-    return;
+    return CDD_C_SUCCESS;
   while (c_name[i] && j < out_sz - 1) {
     if (c_name[i] == '_') {
       out_name[j++] = '-';
@@ -41,17 +32,19 @@ static void schemify_name(const char *c_name, char *out_name, size_t out_sz) {
     i++;
   }
   out_name[j] = '\0';
+  return CDD_C_SUCCESS;
 }
 
-static void map_scheme_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz) {
+static cdd_c_error_t map_scheme_type(cdd_ffi_type_t *t, char *out_type,
+                                     size_t out_sz) {
   if (t->pointer_depth > 0) {
     if ((t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) &&
         t->is_const) {
       CDD_SNPRINTF(out_type, out_sz, "string");
-      return;
+      return CDD_C_SUCCESS;
     }
     CDD_SNPRINTF(out_type, out_sz, "void*");
-    return;
+    return CDD_C_SUCCESS;
   }
   switch (t->kind) {
   case CDD_FFI_KIND_VOID:
@@ -113,6 +106,7 @@ static void map_scheme_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz) {
     CDD_SNPRINTF(out_type, out_sz, "void*");
     break;
   }
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t
@@ -167,7 +161,7 @@ cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
     node = &ir->nodes[i];
     schemify_name(node->name, scheme_node_name, sizeof(scheme_node_name));
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "    %s\n", scheme_node_name);
     }
   }
@@ -210,7 +204,7 @@ cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
         fprintf(f, "    ))\n\n");
       }
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       /* Chez does not have define-enum natively in ftype, so map to int */
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
@@ -227,7 +221,7 @@ cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
       /* define-ftype alias */
       fprintf(f, "  (define-ftype %s %s)\n\n", scheme_node_name, type_str);
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       map_scheme_type(&node->return_or_base_type, ret_type_str,
                       sizeof(ret_type_str));
       fprintf(f, "  (define %s\n", scheme_node_name);

@@ -26,10 +26,6 @@ extern C_CDD_EXPORT volatile int g_gnu_replace_fail;
 extern C_CDD_EXPORT volatile int g_gnu_bld_fail;
 extern C_CDD_EXPORT volatile int g_gnu_malloc_fail;
 extern C_CDD_EXPORT volatile int g_gnu_find_fail;
-extern C_CDD_EXPORT const char *pool_string_safe(cdd_cst_tree_t *tree,
-                                                 const char *str);
-extern C_CDD_EXPORT const char *
-pool_string_safe_len(cdd_cst_tree_t *tree, const char *str, size_t len);
 
 TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
   cdd_cst_tree_t *tree = NULL;
@@ -146,8 +142,7 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
     ASSERT_NEQ(CDD_C_SUCCESS, replace_token_with_text(
                                   &tr, &dummy_t, CDD_TOKEN_IDENTIFIER, "", 0));
 
-    if (cdd_cst_parse(az_span_create_from_str((char *)(size_t) "int x;"),
-                      &tr_valid) == 0 &&
+    if (cdd_cst_parse(az_span_create_from_str("int x;"), &tr_valid) == 0 &&
         tr_valid) {
       g_gnu_standardizer_fail = 30;
       ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -157,28 +152,25 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
       g_gnu_standardizer_fail = 0;
       cdd_cst_tree_free(tr_valid);
     }
-    if (cdd_cst_parse(
-            az_span_create_from_str((char *)(size_t) "void f(void) {}\n"),
-            &tr_valid) == 0 &&
+    if (cdd_cst_parse(az_span_create_from_str("void f(void) {}\n"),
+                      &tr_valid) == 0 &&
         tr_valid) {
       g_gnu_standardizer_fail = 34;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tr_valid, &config));
       g_gnu_standardizer_fail = 0;
       cdd_cst_tree_free(tr_valid);
     }
-    if (cdd_cst_parse(
-            az_span_create_from_str((char *)(size_t) "typeof(1) x;\n"),
-            &tr_valid) == 0 &&
+    if (cdd_cst_parse(az_span_create_from_str("typeof(1) x;\n"), &tr_valid) ==
+            0 &&
         tr_valid) {
       g_gnu_standardizer_fail = 35;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tr_valid, &config));
       g_gnu_standardizer_fail = 0;
       cdd_cst_tree_free(tr_valid);
     }
-    if (cdd_cst_parse(
-            az_span_create_from_str((
-                char *)(size_t) "unsigned __int128 x = 0x10000000000000000;\n"),
-            &tr_valid) == 0 &&
+    if (cdd_cst_parse(az_span_create_from_str(
+                          "unsigned __int128 x = 0x10000000000000000;\n"),
+                      &tr_valid) == 0 &&
         tr_valid) {
       g_gnu_standardizer_fail = 36;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tr_valid, &config));
@@ -196,9 +188,8 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
       g_gnu_standardizer_fail = 0;
       cdd_cst_tree_free(tr_valid);
     }
-    if (cdd_cst_parse(
-            az_span_create_from_str((char *)(size_t) "typeof(int[]) x;\n"),
-            &tr_valid) == 0 &&
+    if (cdd_cst_parse(az_span_create_from_str("typeof(int[]) x;\n"),
+                      &tr_valid) == 0 &&
         tr_valid) {
       g_gnu_standardizer_fail = 15;
       g_gnu_bld_fail = 1;
@@ -207,9 +198,8 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
       g_gnu_bld_fail = 0;
       cdd_cst_tree_free(tr_valid);
     }
-    if (cdd_cst_parse(
-            az_span_create_from_str((char *)(size_t) "__auto_type x = 1;\n"),
-            &tr_valid) == 0 &&
+    if (cdd_cst_parse(az_span_create_from_str("__auto_type x = 1;\n"),
+                      &tr_valid) == 0 &&
         tr_valid) {
       g_gnu_standardizer_fail = 39;
       cdd_transform_gnu(tr_valid, &config);
@@ -217,8 +207,7 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
       cdd_cst_tree_free(tr_valid);
     }
     if (cdd_cst_parse(
-            az_span_create_from_str(
-                (char *)(size_t) "int f(int n) { int a[n]; return 1; }\n"),
+            az_span_create_from_str("int f(int n) { int a[n]; return 1; }\n"),
             &tr_valid) == 0 &&
         tr_valid) {
       ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_gnu(tr_valid, NULL));
@@ -289,9 +278,8 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
         int k;
         for (k = 1; k <= 12; k++) {
           g_gnu_replace_fail = k;
-          if (cdd_cst_parse(
-                  az_span_create_from_str((char *)(size_t)test_codes[j]),
-                  &tree) == 0 &&
+          if (cdd_cst_parse(az_span_create_from_str(test_codes[j]), &tree) ==
+                  0 &&
               tree) {
             cdd_transform_gnu(tree, &config);
             cdd_cst_tree_free(tree);
@@ -302,9 +290,8 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
 
         for (k = 1; k <= 12; k++) {
           g_gnu_bld_fail = k;
-          if (cdd_cst_parse(
-                  az_span_create_from_str((char *)(size_t)test_codes[j]),
-                  &tree) == 0 &&
+          if (cdd_cst_parse(az_span_create_from_str(test_codes[j]), &tree) ==
+                  0 &&
               tree) {
             cdd_transform_gnu(tree, &config);
             cdd_cst_tree_free(tree);
@@ -315,9 +302,8 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
 
         for (k = 1; k <= 12; k++) {
           g_gnu_alloc_fail = k;
-          if (cdd_cst_parse(
-                  az_span_create_from_str((char *)(size_t)test_codes[j]),
-                  &tree) == 0 &&
+          if (cdd_cst_parse(az_span_create_from_str(test_codes[j]), &tree) ==
+                  0 &&
               tree) {
             cdd_transform_gnu(tree, &config);
             cdd_cst_tree_free(tree);
@@ -328,9 +314,8 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
 
         for (k = 1; k <= 12; k++) {
           g_gnu_malloc_fail = k;
-          if (cdd_cst_parse(
-                  az_span_create_from_str((char *)(size_t)test_codes[j]),
-                  &tree) == 0 &&
+          if (cdd_cst_parse(az_span_create_from_str(test_codes[j]), &tree) ==
+                  0 &&
               tree) {
             cdd_transform_gnu(tree, &config);
             cdd_cst_tree_free(tree);
@@ -341,9 +326,8 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
 
         for (k = 1; k <= 12; k++) {
           g_gnu_find_fail = k;
-          if (cdd_cst_parse(
-                  az_span_create_from_str((char *)(size_t)test_codes[j]),
-                  &tree) == 0 &&
+          if (cdd_cst_parse(az_span_create_from_str(test_codes[j]), &tree) ==
+                  0 &&
               tree) {
             cdd_transform_gnu(tree, &config);
             cdd_cst_tree_free(tree);
@@ -359,8 +343,7 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
     int k;
     for (k = 1; k <= 15; k++) {
       g_gnu_bld_fail = k;
-      if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippets[i]),
-                        &tree) == 0 &&
+      if (cdd_cst_parse(az_span_create_from_str(snippets[i]), &tree) == 0 &&
           tree) {
         cdd_transform_gnu(tree, &config);
         cdd_cst_tree_free(tree);
@@ -371,8 +354,7 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
 
     for (k = 1; k <= 15; k++) {
       g_gnu_malloc_fail = k;
-      if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippets[i]),
-                        &tree) == 0 &&
+      if (cdd_cst_parse(az_span_create_from_str(snippets[i]), &tree) == 0 &&
           tree) {
         cdd_transform_gnu(tree, &config);
         cdd_cst_tree_free(tree);
@@ -383,8 +365,7 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
 
     for (k = 1; k <= 15; k++) {
       g_gnu_alloc_fail = k;
-      if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippets[i]),
-                        &tree) == 0 &&
+      if (cdd_cst_parse(az_span_create_from_str(snippets[i]), &tree) == 0 &&
           tree) {
         cdd_transform_gnu(tree, &config);
         cdd_cst_tree_free(tree);
@@ -395,8 +376,7 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
 
     for (k = 1; k <= 15; k++) {
       g_gnu_replace_fail = k;
-      if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippets[i]),
-                        &tree) == 0 &&
+      if (cdd_cst_parse(az_span_create_from_str(snippets[i]), &tree) == 0 &&
           tree) {
         cdd_transform_gnu(tree, &config);
         cdd_cst_tree_free(tree);
@@ -407,8 +387,7 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
 
     for (k = 1; k <= 15; k++) {
       g_gnu_standardizer_fail = 100 + k;
-      if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippets[i]),
-                        &tree) == 0 &&
+      if (cdd_cst_parse(az_span_create_from_str(snippets[i]), &tree) == 0 &&
           tree) {
         cdd_transform_gnu(tree, &config);
         cdd_cst_tree_free(tree);
@@ -417,9 +396,7 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
     }
     g_gnu_standardizer_fail = 0;
 
-    ASSERT_EQ(
-        0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippets[i]),
-                         &tree));
+    ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(snippets[i]), &tree));
     ASSERT(tree != NULL);
     ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_gnu(tree, &config));
     cdd_cst_tree_free(tree);
@@ -676,8 +653,7 @@ TEST test_gnu_standardizer_all_grammar_branches(void) {
   for (vla_mode = 0; vla_mode <= 1; vla_mode++) {
     config.fallback_vla_to_malloc = vla_mode;
     for (i = 0; i < sizeof(codes) / sizeof(codes[0]); i++) {
-      if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)codes[i]),
-                        &tree) == 0 &&
+      if (cdd_cst_parse(az_span_create_from_str(codes[i]), &tree) == 0 &&
           tree) {
         cdd_transform_gnu(tree, &config);
         cdd_cst_tree_free(tree);
@@ -699,9 +675,9 @@ TEST test_gnu_standardizer_final_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY, gnu_malloc((size_t)-1, &m_ptr));
 
   /* 1. L1710 & L1712: is_cast_lvalue == 2 loop without closing ; or = */
-  if (cdd_cst_parse(az_span_create_from_str(
-                        (char *)(size_t) "void f(void) { (union U)v = 1; }\n"),
-                    &tree) == 0 &&
+  if (cdd_cst_parse(
+          az_span_create_from_str("void f(void) { (union U)v = 1; }\n"),
+          &tree) == 0 &&
       tree) {
     tree->base_tokens->tokens[11].kind = CDD_TOKEN_PLUS;
     tree->base_tokens->size = 12;
@@ -713,9 +689,9 @@ TEST test_gnu_standardizer_final_branches(void) {
   }
 
   /* 2. L1855: return (void)expr loop without ; */
-  if (cdd_cst_parse(az_span_create_from_str(
-                        (char *)(size_t) "void f(void) { return (void)0; }\n"),
-                    &tree) == 0 &&
+  if (cdd_cst_parse(
+          az_span_create_from_str("void f(void) { return (void)0; }\n"),
+          &tree) == 0 &&
       tree) {
     tree->base_tokens->size -= 2;
     cdd_transform_gnu(tree, &config);
@@ -725,10 +701,10 @@ TEST test_gnu_standardizer_final_branches(void) {
   }
 
   /* 3. L1936: cleanup loop without ; */
-  if (cdd_cst_parse(az_span_create_from_str((
-                        char *)(size_t) "void cl(int *p) {} void f(void) { int "
-                                        "__attribute__((cleanup(cl))) x; }\n"),
-                    &tree) == 0 &&
+  if (cdd_cst_parse(
+          az_span_create_from_str("void cl(int *p) {} void f(void) { int "
+                                  "__attribute__((cleanup(cl))) x; }\n"),
+          &tree) == 0 &&
       tree) {
     tree->base_tokens->size -= 2;
     cdd_transform_gnu(tree, &config);
@@ -738,11 +714,11 @@ TEST test_gnu_standardizer_final_branches(void) {
   }
 
   /* 4. L2108: return with cleanups loop without ; */
-  if (cdd_cst_parse(az_span_create_from_str((
-                        char *)(size_t) "void cl(int *p) {} void f(void) { int "
-                                        "__attribute__((cleanup(cl))) x = 1; "
-                                        "return 1; }\n"),
-                    &tree) == 0 &&
+  if (cdd_cst_parse(
+          az_span_create_from_str("void cl(int *p) {} void f(void) { int "
+                                  "__attribute__((cleanup(cl))) x = 1; "
+                                  "return 1; }\n"),
+          &tree) == 0 &&
       tree) {
     tree->base_tokens->size -= 3;
     cdd_transform_gnu(tree, &config);
@@ -752,11 +728,11 @@ TEST test_gnu_standardizer_final_branches(void) {
   }
 
   /* 5. L2140: return with cleanups and NULL config */
-  if (cdd_cst_parse(az_span_create_from_str(
-                        (char *)(size_t) "void cl(int *p) {} int f(void) { int "
-                                         "__attribute__((cleanup(cl))) x = 1; "
-                                         "return 1; }\n"),
-                    &tree) == 0 &&
+  if (cdd_cst_parse(
+          az_span_create_from_str("void cl(int *p) {} int f(void) { int "
+                                  "__attribute__((cleanup(cl))) x = 1; "
+                                  "return 1; }\n"),
+          &tree) == 0 &&
       tree) {
     ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_gnu(tree, NULL));
     cdd_cst_tree_free(tree);
@@ -764,9 +740,9 @@ TEST test_gnu_standardizer_final_branches(void) {
   }
 
   /* 6. L2229: while (i < size) in __label__ reaches end */
-  if (cdd_cst_parse(az_span_create_from_str((
-                        char *)(size_t) "void f(void) { __label__ l1, l2; }\n"),
-                    &tree) == 0 &&
+  if (cdd_cst_parse(
+          az_span_create_from_str("void f(void) { __label__ l1, l2; }\n"),
+          &tree) == 0 &&
       tree) {
     size_t ti;
     for (ti = 0; ti < tree->base_tokens->size; ti++) {
@@ -780,9 +756,8 @@ TEST test_gnu_standardizer_final_branches(void) {
   }
 
   /* 7. L2541: zero-length array loop reaches end */
-  if (cdd_cst_parse(
-          az_span_create_from_str((char *)(size_t) "struct S { int a[0]; }\n"),
-          &tree) == 0 &&
+  if (cdd_cst_parse(az_span_create_from_str("struct S { int a[0]; }\n"),
+                    &tree) == 0 &&
       tree) {
     g_gnu_standardizer_fail = 20;
     tree->base_tokens->size = 10;
@@ -794,9 +769,8 @@ TEST test_gnu_standardizer_final_branches(void) {
   }
 
   /* 8. L2884: builtin expect loop reaches end without seeing ')' */
-  if (cdd_cst_parse(az_span_create_from_str(
-                        (char *)(size_t) "int f(int x) { return "
-                                         "__builtin_expect(x, 1); }\n"),
+  if (cdd_cst_parse(az_span_create_from_str("int f(int x) { return "
+                                            "__builtin_expect(x, 1); }\n"),
                     &tree) == 0 &&
       tree) {
     tree->base_tokens->tokens[13].kind = CDD_TOKEN_PLUS;
@@ -805,9 +779,8 @@ TEST test_gnu_standardizer_final_branches(void) {
     cdd_cst_tree_free(tree);
     tree = NULL;
   }
-  if (cdd_cst_parse(az_span_create_from_str(
-                        (char *)(size_t) "int f(int x) { return "
-                                         "__builtin_expect(x, 1); }\n"),
+  if (cdd_cst_parse(az_span_create_from_str("int f(int x) { return "
+                                            "__builtin_expect(x, 1); }\n"),
                     &tree) == 0 &&
       tree) {
     tree->base_tokens->size = 9;
@@ -818,9 +791,8 @@ TEST test_gnu_standardizer_final_branches(void) {
   }
 
   /* Empty enum and union defs */
-  if (cdd_cst_parse(az_span_create_from_str(
-                        (char *)(size_t) "void f_ed(void) { union dummy {}; "
-                                         "enum item {}; }\n"),
+  if (cdd_cst_parse(az_span_create_from_str("void f_ed(void) { union dummy {}; "
+                                            "enum item {}; }\n"),
                     &tree) == 0 &&
       tree) {
     cdd_transform_gnu(tree, &config);
@@ -829,9 +801,7 @@ TEST test_gnu_standardizer_final_branches(void) {
   }
 
   /* Trailing comma loop reaches end */
-  if (cdd_cst_parse(
-          az_span_create_from_str((char *)(size_t) "enum E { E1, };\n"),
-          &tree) == 0 &&
+  if (cdd_cst_parse(az_span_create_from_str("enum E { E1, };\n"), &tree) == 0 &&
       tree) {
     tree->base_tokens->size = 5;
     cdd_transform_gnu(tree, &config);
@@ -841,8 +811,7 @@ TEST test_gnu_standardizer_final_branches(void) {
   }
 
   /* Empty struct at EOF */
-  if (cdd_cst_parse(az_span_create_from_str((char *)(size_t) "struct S {};\n"),
-                    &tree) == 0 &&
+  if (cdd_cst_parse(az_span_create_from_str("struct S {};\n"), &tree) == 0 &&
       tree) {
     tree->base_tokens->size = 3;
     cdd_transform_gnu(tree, &config);
@@ -852,9 +821,8 @@ TEST test_gnu_standardizer_final_branches(void) {
   }
 
   /* Elvis with comma operator */
-  if (cdd_cst_parse(az_span_create_from_str(
-                        (char *)(size_t) "int f_c_elv(int a, int b) { "
-                                         "return a, a ?: b; }\n"),
+  if (cdd_cst_parse(az_span_create_from_str("int f_c_elv(int a, int b) { "
+                                            "return a, a ?: b; }\n"),
                     &tree) == 0 &&
       tree) {
     cdd_transform_gnu(tree, &config);
@@ -863,18 +831,16 @@ TEST test_gnu_standardizer_final_branches(void) {
   }
 
   /* Range without case or delimiter */
-  if (cdd_cst_parse(
-          az_span_create_from_str((char *)(size_t) "int val = 1 ... 5;\n"),
-          &tree) == 0 &&
+  if (cdd_cst_parse(az_span_create_from_str("int val = 1 ... 5;\n"), &tree) ==
+          0 &&
       tree) {
     cdd_transform_gnu(tree, &config);
     cdd_cst_tree_free(tree);
     tree = NULL;
   }
-  if (cdd_cst_parse(
-          az_span_create_from_str(
-              (char *)(size_t) "int f_br(void) { { 1 ... 5; } return 0; }\n"),
-          &tree) == 0 &&
+  if (cdd_cst_parse(az_span_create_from_str(
+                        "int f_br(void) { { 1 ... 5; } return 0; }\n"),
+                    &tree) == 0 &&
       tree) {
     cdd_transform_gnu(tree, &config);
     cdd_cst_tree_free(tree);
@@ -882,11 +848,10 @@ TEST test_gnu_standardizer_final_branches(void) {
   }
 
   /* Single & before local label */
-  if (cdd_cst_parse(
-          az_span_create_from_str(
-              (char *)(size_t) "void f_lbl_amp(void) { __label__ l1; void *p = "
-                               "&l1; (void)p; l1:; }\n"),
-          &tree) == 0 &&
+  if (cdd_cst_parse(az_span_create_from_str(
+                        "void f_lbl_amp(void) { __label__ l1; void *p = "
+                        "&l1; (void)p; l1:; }\n"),
+                    &tree) == 0 &&
       tree) {
     cdd_transform_gnu(tree, &config);
     cdd_cst_tree_free(tree);
@@ -913,9 +878,8 @@ TEST test_gnu_standardizer_final_branches(void) {
 
   /* 10. Elvis RBRACKET and RBRACE before ?: */
   if (cdd_cst_parse(
-          az_span_create_from_str(
-              (char *)(size_t) "int f(int a, int b) { int arr[10]; int z = "
-                               "arr[a] ?: b; return z; }\n"),
+          az_span_create_from_str("int f(int a, int b) { int arr[10]; int z = "
+                                  "arr[a] ?: b; return z; }\n"),
           &tree) == 0 &&
       tree) {
     cdd_transform_gnu(tree, &config);
@@ -923,9 +887,8 @@ TEST test_gnu_standardizer_final_branches(void) {
     tree = NULL;
   }
   if (cdd_cst_parse(
-          az_span_create_from_str(
-              (char *)(size_t) "int f(int a, int b) { int z = ({ int v = a; "
-                               "v; }) ?: b; return z; }\n"),
+          az_span_create_from_str("int f(int a, int b) { int z = ({ int v = a; "
+                                  "v; }) ?: b; return z; }\n"),
           &tree) == 0 &&
       tree) {
     cdd_transform_gnu(tree, &config);

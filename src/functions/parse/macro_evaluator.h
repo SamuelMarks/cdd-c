@@ -1,3 +1,7 @@
+/**
+ * @file macro_evaluator.h
+ * @brief Core macro evaluator definitions and implementation.
+ */
 #ifndef CDD_MACRO_EVALUATOR_H
 #define CDD_MACRO_EVALUATOR_H
 
@@ -12,7 +16,6 @@ extern "C" {
 /* clang-format on */
 
 /**
- * @enum cdd_macro_eval_type_t
  * @brief Represents the inferred type of a evaluated macro expression.
  */
 typedef enum cdd_macro_eval_type_t {
@@ -23,7 +26,6 @@ typedef enum cdd_macro_eval_type_t {
 } cdd_macro_eval_type_t;
 
 /**
- * @struct cdd_macro_eval_result_t
  * @brief Result of a macro expression evaluation.
  */
 typedef struct cdd_macro_eval_result_t {

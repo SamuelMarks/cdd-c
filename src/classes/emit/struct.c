@@ -14,7 +14,9 @@
 #include "c_cdd/safe_crt_msvc.h"
 
 #include "classes/emit/struct.h"
+#include "c_cdd/code_writer.h"
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "classes/parse/numeric.h"
 #include "functions/parse/str.h"
@@ -34,26 +36,8 @@ static const char *kStrDupFunc = "_strdup";
 static const char *kStrDupFunc = "strdup";
 #endif
 #ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)));
-#else
-    ;
-#endif
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  int ret;
-  va_list args;
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  va_start(args, format);
-  ret = vfprintf(stream, format, args);
-  va_end(args);
-  return ret;
-}
 /** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK test_cdd_fprintf_hook
+#define FPRINTF_HOOK cdd_io_fprintf_hook
 #else
 /** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK fprintf
@@ -82,9 +66,9 @@ static void free_string_array(char **arr, size_t n) {
 /**
  * @brief Retrieves the type from ref.
  */
-cdd_c_error_t get_type_from_ref(const char *ref, char **_out_val) {
+cdd_c_error_t get_type_from_ref(const char *ref, const char **_out_val) {
   if (ref == NULL) {
-    *_out_val = (char *)(size_t) "";
+    *_out_val = "";
     return CDD_C_SUCCESS;
   }
   {
@@ -94,53 +78,32 @@ cdd_c_error_t get_type_from_ref(const char *ref, char **_out_val) {
       if (rc_after != CDD_C_SUCCESS) {
         return rc_after;
       }
-      *_out_val = (char *)(size_t)after;
+      *_out_val = after;
     }
     return CDD_C_SUCCESS;
   }
 }
 
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_struct_fields_init_fail = 0;
-#endif
-
 /**
- * @brief Executes the struct fields init operation.
+ * @brief Initializes a dynamic array of struct field descriptors.
  */
 cdd_c_error_t struct_fields_init(struct StructFields *sf) {
   if (!sf)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  sf->size = 0;
+  memset(sf, 0, sizeof(*sf));
   sf->capacity = 8;
-#ifdef CDD_BUILD_TESTS
-  if (g_struct_fields_init_fail && --g_struct_fields_init_fail == 0) {
-    sf->fields = NULL;
-  } else {
-#endif
-    sf->fields =
-        (struct StructField *)calloc(sf->capacity, sizeof(struct StructField));
-#ifdef CDD_BUILD_TESTS
-  }
-#endif
+  sf->fields = (struct StructField *)C_CDD_CALLOC(sf->capacity,
+                                                  sizeof(struct StructField));
   if (!sf->fields) {
+    sf->capacity = 0;
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
-  sf->is_enum = 0;
-  sf->enum_members.members = NULL;
-  sf->enum_members.size = 0;
-  sf->enum_members.capacity = 0;
-  sf->schema_extra_json = NULL;
-  sf->is_union = 0;
-  sf->union_is_anyof = 0;
-  sf->union_discriminator = NULL;
-  sf->union_variants = NULL;
-  sf->n_union_variants = 0;
   return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Executes the struct fields free operation.
+ * @brief Releases all memory owned by a StructFields container.
  */
 void struct_fields_free(struct StructFields *sf) {
   if (sf && sf->fields) {
@@ -208,39 +171,22 @@ void struct_fields_free(struct StructFields *sf) {
   }
 }
 
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_struct_fields_add_fail = 0;
-#endif
-
 /**
- * @brief Executes the struct fields add operation.
+ * @brief Appends a new field descriptor to a StructFields container.
  */
 cdd_c_error_t struct_fields_add(struct StructFields *sf, const char *name,
                                 const char *type, const char *ref,
                                 const char *default_val,
                                 const char *bit_width) {
   struct StructField *f;
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT volatile int g_cdd_fail_struct_fields_add;
-  if (g_cdd_fail_struct_fields_add && --g_cdd_fail_struct_fields_add == 0)
-    return CDD_C_ERROR_MEMORY;
-#endif
   if (!sf || !name || !type)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (sf->size >= sf->capacity) {
-    const size_t new_cap = sf->capacity * 2;
+    const size_t new_cap = sf->capacity == 0 ? 8 : sf->capacity * 2;
     struct StructField *new_arr;
-#ifdef CDD_BUILD_TESTS
-    if (g_struct_fields_add_fail && --g_struct_fields_add_fail == 0) {
-      new_arr = NULL;
-    } else {
-#endif
-      new_arr = (struct StructField *)realloc(
-          sf->fields, new_cap * sizeof(struct StructField));
-#ifdef CDD_BUILD_TESTS
-    }
-#endif
+    new_arr = (struct StructField *)C_CDD_REALLOC(
+        sf->fields, new_cap * sizeof(struct StructField));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -288,16 +234,11 @@ cdd_c_error_t struct_fields_add(struct StructFields *sf, const char *name,
 }
 
 /**
- * @brief Executes the struct fields get operation.
+ * @brief Finds a struct field descriptor by name.
  */
 cdd_c_error_t struct_fields_get(const struct StructFields *sf, const char *name,
                                 struct StructField **_out_val) {
   size_t i;
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT volatile int g_cdd_fail_struct_fields_get;
-  if (g_cdd_fail_struct_fields_get && --g_cdd_fail_struct_fields_get == 0)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-#endif
   if (!sf || !name) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -317,7 +258,7 @@ cdd_c_error_t struct_fields_get(const struct StructFields *sf, const char *name,
 /* --- Generation Implementing --- */
 
 /**
- * @brief Generates C code for write struct cleanup func.
+ * @brief Emits C source code for struct cleanup func.
  */
 cdd_c_error_t
 write_struct_cleanup_func(FILE *fp, const char *struct_name,
@@ -355,7 +296,7 @@ write_struct_cleanup_func(FILE *fp, const char *struct_name,
           FPRINTF_HOOK(fp, "  if (obj->%s) free((void*)obj->%s);\n", n, n));
     } else if (strcmp(t, "object") == 0) {
       {
-        char *tn = NULL;
+        const char *tn = NULL;
         get_type_from_ref(r, &tn);
         CHECK_IO(FPRINTF_HOOK(
             fp, "  if (obj->%s) {%s_cleanup(obj->%s); free(obj->%s); }\n", n,
@@ -369,7 +310,7 @@ write_struct_cleanup_func(FILE *fp, const char *struct_name,
                  (strcmp(r, "integer") != 0 && strcmp(r, "boolean") != 0 &&
                   strcmp(r, "number") != 0)) {
         {
-          char *tn = NULL;
+          const char *tn = NULL;
           cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
           int io_rc;
           if (rc_ref != CDD_C_SUCCESS) {
@@ -397,7 +338,7 @@ write_struct_cleanup_func(FILE *fp, const char *struct_name,
 }
 
 /**
- * @brief Generates C code for write struct deepcopy func.
+ * @brief Emits C source code for struct deepcopy func.
  */
 cdd_c_error_t
 write_struct_deepcopy_func(FILE *fp, const char *struct_name,
@@ -448,7 +389,7 @@ write_struct_deepcopy_func(FILE *fp, const char *struct_name,
 }
 
 /**
- * @brief Generates C code for write struct eq func.
+ * @brief Emits C source code for struct eq func.
  */
 cdd_c_error_t write_struct_eq_func(FILE *fp, const char *struct_name,
                                    const struct StructFields *sf,
@@ -480,7 +421,7 @@ cdd_c_error_t write_struct_eq_func(FILE *fp, const char *struct_name,
   for (i = 0; i < sf->size; ++i) {
     const char *n = sf->fields[i].name;
     const char *t = sf->fields[i].type;
-    char *r = NULL;
+    const char *r = NULL;
     cdd_c_error_t rc_ref = get_type_from_ref(sf->fields[i].ref, &r);
     if (rc_ref != CDD_C_SUCCESS) {
       return rc_ref;
@@ -544,7 +485,7 @@ cdd_c_error_t write_struct_eq_func(FILE *fp, const char *struct_name,
 }
 
 /**
- * @brief Generates C code for write struct default func.
+ * @brief Emits C source code for struct default func.
  */
 cdd_c_error_t
 write_struct_default_func(FILE *fp, const char *struct_name,
@@ -582,7 +523,7 @@ write_struct_default_func(FILE *fp, const char *struct_name,
     if (def[0] != '\0') {
       const char *n = sf->fields[i].name;
       const char *t = sf->fields[i].type;
-      char *r = NULL;
+      const char *r = NULL;
       cdd_c_error_t rc_ref = get_type_from_ref(sf->fields[i].ref, &r);
       if (rc_ref != CDD_C_SUCCESS) {
         return rc_ref;
@@ -645,7 +586,7 @@ write_struct_default_func(FILE *fp, const char *struct_name,
 }
 
 /**
- * @brief Generates C code for write struct debug func.
+ * @brief Emits C source code for struct debug func.
  */
 cdd_c_error_t
 write_struct_debug_func(FILE *fp, const char *struct_name,
@@ -683,7 +624,7 @@ write_struct_debug_func(FILE *fp, const char *struct_name,
   for (i = 0; i < sf->size; ++i) {
     const char *n = sf->fields[i].name;
     const char *t = sf->fields[i].type;
-    char *r = NULL;
+    const char *r = NULL;
     cdd_c_error_t rc_ref = get_type_from_ref(sf->fields[i].ref, &r);
     if (rc_ref != CDD_C_SUCCESS) {
       return rc_ref;
@@ -774,7 +715,7 @@ write_struct_debug_func(FILE *fp, const char *struct_name,
 }
 
 /**
- * @brief Generates C code for write struct display func.
+ * @brief Emits C source code for struct display func.
  */
 cdd_c_error_t
 write_struct_display_func(FILE *fp, const char *struct_name,

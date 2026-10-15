@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_napi.c
+ * @brief FFI binding emitter for Napi.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 

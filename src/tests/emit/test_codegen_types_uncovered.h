@@ -623,15 +623,23 @@ TEST test_types_uncovered(void) {
    * various types */
   {
     int t_idx;
-    const char *arr_types[] = {"integer", "number",  "string", "object",
-                               "boolean", "unknown", "enum"};
-    const char *arr_refs[] = {(char *)(size_t)NULL,
-                              (char *)(size_t)NULL,
-                              (char *)(size_t)NULL,
-                              "ObjType",
-                              (char *)(size_t)NULL,
-                              (char *)(size_t)NULL,
-                              "MyEnum"};
+    const char *arr_types[7];
+    const char *arr_refs[7];
+
+    arr_types[0] = cdd_test_mut_str("integer");
+    arr_types[1] = cdd_test_mut_str("number");
+    arr_types[2] = cdd_test_mut_str("string");
+    arr_types[3] = cdd_test_mut_str("object");
+    arr_types[4] = cdd_test_mut_str("boolean");
+    arr_types[5] = cdd_test_mut_str("unknown");
+    arr_types[6] = cdd_test_mut_str("enum");
+    arr_refs[0] = NULL;
+    arr_refs[1] = NULL;
+    arr_refs[2] = NULL;
+    arr_refs[3] = cdd_test_mut_str("ObjType");
+    arr_refs[4] = NULL;
+    arr_refs[5] = NULL;
+    arr_refs[6] = cdd_test_mut_str("MyEnum");
     for (t_idx = 0; t_idx < 7; ++t_idx) {
       struct_fields_init(&sf);
       struct_fields_add(&sf, "arr", "array", arr_types[t_idx], arr_refs[t_idx],

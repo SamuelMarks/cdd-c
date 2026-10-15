@@ -16,13 +16,17 @@ extern C_CDD_EXPORT int g_cdd_strdup_fail;
 extern C_CDD_EXPORT cdd_c_error_t fix_code_main(int argc, char **argv);
 
 TEST test_orchestrator_coverage_fix_code_main(void) {
-  char *argv_missing[] = {(char *)(size_t)(size_t) "does_not_exist_dir",
-                          (char *)(size_t)(size_t) "--in-place"};
-  char *argv_missing2[] = {(char *)(size_t)(size_t) "does_not_exist.c",
-                           (char *)(size_t)(size_t) "out.c"};
+  char *argv_missing[2];
+  char *argv_missing2[2];
+  int rc_2_argv_missing;
+
+  argv_missing[0] = cdd_test_mut_str("does_not_exist_dir");
+  argv_missing[1] = cdd_test_mut_str("--in-place");
+  argv_missing2[0] = cdd_test_mut_str("does_not_exist.c");
+  argv_missing2[1] = cdd_test_mut_str("out.c");
 
   /* Will fail to walk directory */
-  int rc_2_argv_missing = fix_code_main(2, argv_missing);
+  rc_2_argv_missing = fix_code_main(2, argv_missing);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc_2_argv_missing);
 
   /* Missing input file */
@@ -94,14 +98,19 @@ TEST test_orchestrator_coverage_fix_file(void) {
   }
   makedir("my_empty_dir");
   {
-    char *argv_txt[] = {(char *)(size_t)(size_t) "test_empty.txt",
-                        (char *)(size_t)(size_t) "out.txt"};
-    char *argv_c[] = {(char *)(size_t)(size_t) "test_empty.c",
-                      (char *)(size_t)(size_t) "out.c"};
-    char *argv_dir[] = {(char *)(size_t)(size_t) "my_empty_dir",
-                        (char *)(size_t)(size_t) "--in-place"};
+    char *argv_txt[2];
+    char *argv_c[2];
+    char *argv_dir[2];
+    int rc_txt;
 
-    int rc_txt = fix_code_main(2, argv_txt);
+    argv_txt[0] = cdd_test_mut_str("test_empty.txt");
+    argv_txt[1] = cdd_test_mut_str("out.txt");
+    argv_c[0] = cdd_test_mut_str("test_empty.c");
+    argv_c[1] = cdd_test_mut_str("out.c");
+    argv_dir[0] = cdd_test_mut_str("my_empty_dir");
+    argv_dir[1] = cdd_test_mut_str("--in-place");
+
+    rc_txt = fix_code_main(2, argv_txt);
     ASSERT_EQ(EXIT_SUCCESS, rc_txt);
 
     /* c file -> is_c_source true -> parses -> valid c file, refactors, success
@@ -121,29 +130,39 @@ TEST test_orchestrator_coverage_fix_file(void) {
 }
 
 TEST test_orchestrator_coverage_fix_dir_no_inplace_1arg(void) {
-  char *argv[] = {(char *)(size_t)(size_t) "my_empty_dir"};
-  int rc = fix_code_main(1, argv);
+  char *argv[1];
+  int rc;
+
+  argv[0] = cdd_test_mut_str("my_empty_dir");
+  rc = fix_code_main(1, argv);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   PASS();
 }
 
 TEST test_orchestrator_coverage_fix_file_1arg(void) {
   /* Single missing file implicitly */
-  char *argv_single[] = {(char *)(size_t)(size_t) "does_not_exist.c"};
-  int rc_1_argv_single = fix_code_main(1, argv_single);
+  char *argv_single[1];
+  int rc_1_argv_single;
+
+  argv_single[0] = cdd_test_mut_str("does_not_exist.c");
+  rc_1_argv_single = fix_code_main(1, argv_single);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc_1_argv_single);
 
   PASS();
 }
 
 TEST test_orchestrator_coverage_fix_dir_errors(void) {
-  char *argv_argc0[] = {(char *)(size_t)(size_t) "dummy"};
-  char *argv_argc3[] = {(char *)(size_t)(size_t) "dir",
-                        (char *)(size_t)(size_t) "out1",
-                        (char *)(size_t)(size_t) "out2"};
+  char *argv_argc0[1];
+  char *argv_argc3[3];
+  int rc_0_argv_argc0;
+
+  argv_argc0[0] = cdd_test_mut_str("dummy");
+  argv_argc3[0] = cdd_test_mut_str("dir");
+  argv_argc3[1] = cdd_test_mut_str("out1");
+  argv_argc3[2] = cdd_test_mut_str("out2");
 
   /* Invalid argc */
-  int rc_0_argv_argc0 = fix_code_main(0, argv_argc0);
+  rc_0_argv_argc0 = fix_code_main(0, argv_argc0);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc_0_argv_argc0);
   {
     int rc_3_argv_argc3 = fix_code_main(3, argv_argc3);
@@ -154,11 +173,13 @@ TEST test_orchestrator_coverage_fix_dir_errors(void) {
 }
 
 TEST test_orchestrator_coverage_fix_file_failures(void) {
-  char *argv_c[] = {(char *)(size_t)(size_t) "test_empty.c",
-                    (char *)(size_t)(size_t) "out.c"};
+  char *argv_c[2];
   int rc = 0;
 
   /* Trigger orchestrate_fix failure inside fix_file_callback */
+
+  argv_c[0] = cdd_test_mut_str("test_empty.c");
+  argv_c[1] = cdd_test_mut_str("out.c");
   g_cdd_alloc_fail = 1;
   rc = fix_code_main(2, argv_c);
   g_cdd_alloc_fail = 0;
@@ -169,12 +190,14 @@ TEST test_orchestrator_coverage_fix_file_failures(void) {
 }
 
 TEST test_orchestrator_coverage_fix_file_failures_2(void) {
-  char *argv_c[] = {(char *)(size_t)(size_t) "test_empty.c",
-                    (char *)(size_t)(size_t) "out.c"};
+  char *argv_c[2];
   int rc = 0;
 
   /* Trigger orchestrate_fix failure inside fix_file_callback by skipping first
    * alloc */
+
+  argv_c[0] = cdd_test_mut_str("test_empty.c");
+  argv_c[1] = cdd_test_mut_str("out.c");
   g_cdd_alloc_fail = 2;
   rc = fix_code_main(2, argv_c);
   g_cdd_alloc_fail = 0;
@@ -186,9 +209,12 @@ TEST test_orchestrator_coverage_fix_file_failures_2(void) {
 }
 
 TEST test_orchestrator_coverage_fix_file_write_fail(void) {
-  char *argv_c[] = {(char *)(size_t)(size_t) "test_empty.c",
-                    (char *)(size_t)(size_t) "my_empty_dir/unwritable/out.c"};
-  int rc = fix_code_main(2, argv_c);
+  char *argv_c[2];
+  int rc;
+
+  argv_c[0] = cdd_test_mut_str("test_empty.c");
+  argv_c[1] = cdd_test_mut_str("my_empty_dir/unwritable/out.c");
+  rc = fix_code_main(2, argv_c);
   ASSERT_EQ((int)EXIT_FAILURE, rc);
   PASS();
 }

@@ -18,8 +18,10 @@ extern "C" {
  * @brief Logs debug messages.
  * @param fmt Format string.
  * @param ... Arguments.
+ * @return CDD_C_SUCCESS on success or error code.
  */
 C_CDD_EXPORT cdd_c_error_t c_cdd_log_debug(const char *fmt, ...);
+/** @brief Convenience macro alias for c_cdd_log_debug */
 #define C_CDD_LOG_DEBUG c_cdd_log_debug
 #endif /* !C_CDD_LOG_DEBUG */
 

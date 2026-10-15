@@ -1,3 +1,7 @@
+/**
+ * @file cdd_cst_emit.h
+ * @brief Concrete Syntax Tree (CST) emit implementation and utilities.
+ */
 #ifndef CDD_CST_EMIT_H
 #define CDD_CST_EMIT_H
 

@@ -28,7 +28,10 @@ extern C_CDD_EXPORT int g_cdd_sync_fail_fopen_write;
  * @return TEST
  */
 TEST test_sync_code_wrong_args(void) {
-  char *argv[] = {(char *)(size_t)(size_t) "program", (char *)(size_t)NULL};
+  char *argv[2];
+
+  argv[0] = cdd_test_mut_str("program");
+  argv[1] = NULL;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, sync_code_main(1, argv));
   g_fail_io_after = -1;
   PASS();
@@ -39,14 +42,16 @@ TEST test_sync_code_wrong_args(void) {
  * @return TEST
  */
 TEST test_sync_code_main_argc(void) {
-  char *argv[] = {(char *)(size_t)(size_t) "foo.h"};
+  char *argv[1];
+
+  argv[0] = cdd_test_mut_str("foo.h");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, sync_code_main(1, argv));
 #ifdef CDD_BUILD_TESTS
   {
     char *argv2[2];
     extern C_CDD_EXPORT int g_cdd_fail_type_def_list_init;
-    argv2[0] = (char *)(size_t) "foo.h";
-    argv2[1] = (char *)(size_t) "foo.c";
+    argv2[0] = cdd_test_mut_str("foo.h");
+    argv2[1] = cdd_test_mut_str("foo.c");
     g_cdd_fail_type_def_list_init = 2;
     ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, sync_code_main(2, argv2));
     ASSERT_EQ(CDD_C_ERROR_MEMORY, sync_code_main(2, argv2));
@@ -62,8 +67,10 @@ TEST test_sync_code_main_argc(void) {
  * @return TEST
  */
 TEST test_sync_code_file_missing(void) {
-  char *argv[] = {(char *)(size_t)(size_t) "notfound.h",
-                  (char *)(size_t)(size_t) "impl.c"};
+  char *argv[2];
+
+  argv[0] = cdd_test_mut_str("notfound.h");
+  argv[1] = cdd_test_mut_str("impl.c");
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, sync_code_main(2, argv));
   g_fail_io_after = -1;
   PASS();
@@ -76,8 +83,8 @@ TEST test_sync_code_file_missing(void) {
 TEST test_sync_code_simple_struct_enum(void) {
   const char *const filename = "test30.h";
   char *argv[2];
-  argv[0] = (char *)(size_t)(size_t)filename;
-  argv[1] = (char *)(size_t)(size_t) "impl30.c";
+  argv[0] = cdd_test_mut_str(filename);
+  argv[1] = cdd_test_mut_str("impl30.c");
   ASSERT_EQ(
       EXIT_SUCCESS,
       write_to_file(filename,
@@ -118,8 +125,8 @@ TEST test_sync_code_simple_struct_enum(void) {
 TEST test_sync_code_empty_header(void) {
   const char *const filename = "emptyheader.h";
   char *argv[2];
-  argv[0] = (char *)(size_t)(size_t)filename;
-  argv[1] = (char *)(size_t)(size_t) "emptyimpl.c";
+  argv[0] = cdd_test_mut_str(filename);
+  argv[1] = cdd_test_mut_str("emptyimpl.c");
   ASSERT_EQ(0, write_to_file(filename, ""));
   ASSERT_EQ(0, sync_code_main(2, argv));
   remove(filename);
@@ -135,8 +142,8 @@ TEST test_sync_code_empty_header(void) {
 TEST test_sync_code_no_struct_or_enum(void) {
   const char *const filename = "nostructenum.h";
   char *argv[2];
-  argv[0] = (char *)(size_t)(size_t)filename;
-  argv[1] = (char *)(size_t)(size_t) "noimpl.c";
+  argv[0] = cdd_test_mut_str(filename);
+  argv[1] = cdd_test_mut_str("noimpl.c");
   ASSERT_EQ(0, write_to_file(filename, "// just a comment\n"));
   ASSERT_EQ(0, sync_code_main(2, argv));
   remove(filename);
@@ -152,8 +159,8 @@ TEST test_sync_code_no_struct_or_enum(void) {
 TEST test_sync_code_impl_file_cannot_open(void) {
   const char *const filename = "onlystruct.h";
   char *argv[2];
-  argv[0] = (char *)(size_t)(size_t)filename;
-  argv[1] = (char *)(size_t)(size_t) "/";
+  argv[0] = cdd_test_mut_str(filename);
+  argv[1] = cdd_test_mut_str("/");
   ASSERT_EQ(0, write_to_file(filename, "struct X {int i;};\n"));
   ASSERT(sync_code_main(2, argv) != 0);
   remove(filename);
@@ -166,11 +173,13 @@ TEST test_sync_code_impl_file_cannot_open(void) {
  * @return TEST
  */
 TEST test_sync_code_too_many_defs(void) {
-  char *argv[] = {(char *)(size_t)(size_t) "too_many.h",
-                  (char *)(size_t)(size_t) "too_many.c"};
-  const char *const filename = argv[0];
+  char *argv[2];
+  const char *filename;
   FILE *f;
   int i;
+  argv[0] = cdd_test_mut_str("too_many.h");
+  argv[1] = cdd_test_mut_str("too_many.c");
+  filename = argv[0];
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   ASSERT_EQ(0, fopen_s(&f, filename, "w"));
@@ -203,10 +212,12 @@ TEST test_sync_code_too_many_defs(void) {
  * @return TEST
  */
 TEST test_sync_code_unterminated_defs(void) {
-  char *argv[] = {(char *)(size_t)(size_t) "unterminated.h",
-                  (char *)(size_t)(size_t) "unterminated.c"};
-  const char *const filename = argv[0];
+  char *argv[2];
+  const char *filename;
 
+  argv[0] = cdd_test_mut_str("unterminated.h");
+  argv[1] = cdd_test_mut_str("unterminated.c");
+  filename = argv[0];
   ASSERT_EQ(0, write_to_file(filename, "struct MyStruct { int x;"));
   ASSERT_EQ(0, sync_code_main(2, argv));
 
@@ -229,7 +240,7 @@ TEST test_patch_header_basic(void) {
      Source: int foo() { return 0; }
      Expected Header: int foo();
   */
-  const char *h_path = (char *)(size_t)(size_t) "basic_patch.h";
+  const char *h_path = cdd_test_mut_str("basic_patch.h");
   const char *src = ""
                     "int foo() { return 0; }";
   char *content = NULL;
@@ -263,7 +274,7 @@ TEST test_patch_header_ptr_arg(void) {
     Header: char* bar(int x);
     Source: int bar(int x, char **out) { ... }
   */
-  const char *h_path = (char *)(size_t)(size_t) "ptr_patch.h";
+  const char *h_path = cdd_test_mut_str("ptr_patch.h");
   const char *src = ""
                     "int bar(int x, char **out) { *out=0;return 0; }";
   char *content = NULL;
@@ -300,7 +311,7 @@ TEST test_patch_header_ignore_others(void) {
     Source contains only 'foo'.
     Header 'other' should be untouched.
   */
-  const char *h_path = (char *)(size_t)(size_t) "ignore_others.h";
+  const char *h_path = cdd_test_mut_str("ignore_others.h");
   const char *src = ""
                     "int foo(void) { return 0; }";
   char *content = NULL;
@@ -326,8 +337,8 @@ TEST test_patch_header_ignore_others(void) {
 }
 
 TEST test_patch_header_bounds(void) {
-  const char *h_path = (char *)(size_t)(size_t) "bounds_patch.h";
-  const char *src = (char *)(size_t)(size_t) "int foo() { return 0; }";
+  const char *h_path = cdd_test_mut_str("bounds_patch.h");
+  const char *src = cdd_test_mut_str("int foo() { return 0; }");
   int rc = 0;
 
   /* End of file while looking for semicolon */
@@ -364,8 +375,8 @@ TEST test_patch_header_bounds(void) {
 
 TEST test_patch_header_failures(void) {
 #ifdef CDD_BUILD_TESTS
-  const char *h_path = (char *)(size_t)(size_t) "fail_patch.h";
-  const char *src = (char *)(size_t)(size_t) "int foo() { return 0; }";
+  const char *h_path = cdd_test_mut_str("fail_patch.h");
+  const char *src = cdd_test_mut_str("int foo() { return 0; }");
   int rc = 0;
   /* extern C_CDD_EXPORT int g_cdd_sync_fail_func_sig_init; (moved to global) */
   /* extern C_CDD_EXPORT int g_cdd_sync_fail_patch_list_init; (moved to global)
@@ -457,13 +468,15 @@ TEST test_patch_header_failures(void) {
 TEST test_sync_oom(void) {
 #ifdef CDD_BUILD_TESTS
   {
-    const char *argv[] = {"header.h", "impl.c"};
+    char *argv[2];
     FILE *f;
     /*  (moved to global) */
     /* extern C_CDD_EXPORT int g_cdd_fprintf_fail; (moved to global) */
     int rc_s;
     int rc_s2;
 
+    argv[0] = cdd_test_mut_str("header.h");
+    argv[1] = cdd_test_mut_str("impl.c");
     remove("header.h");
 
 #if defined(_MSC_VER)

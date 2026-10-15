@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_dsl.h
+ * @brief FFI binding emitter for Dsl.
+ */
 #ifndef CDD_FFI_EMIT_DSL_H
 #define CDD_FFI_EMIT_DSL_H
 
@@ -12,6 +16,8 @@ extern "C" {
 /* #include "cdd_generate_bindings.h" */
 /* clang-format on */
 
+struct cdd_generate_bindings_config;
+
 /**
  * @brief Emits a Human IR DSL representation from an FFI IR AST.
  *
@@ -19,9 +25,8 @@ extern "C" {
  * @param config Binding generation configuration containing output paths.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
-struct cdd_generate_bindings_config_t;
-C_CDD_EXPORT cdd_c_error_t cdd_ffi_emit_dsl(cdd_ffi_ir_t *ir,
-                                            const void *config);
+C_CDD_EXPORT cdd_c_error_t cdd_ffi_emit_dsl(
+    cdd_ffi_ir_t *ir, const struct cdd_generate_bindings_config *config);
 
 #ifdef __cplusplus
 }

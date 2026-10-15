@@ -91,7 +91,7 @@ TEST test_operation_set_querystring_schema_from_type_map(void) {
   ASSERT_EQ(CDD_C_SUCCESS, set_querystring_schema_from_type_map(NULL, &tm));
   ASSERT_EQ(CDD_C_SUCCESS, set_querystring_schema_from_type_map(&param, NULL));
 
-  tm.ref_name = (char *)(size_t) "UserRef";
+  tm.ref_name = cdd_test_mut_str("UserRef");
   ASSERT_EQ(CDD_C_SUCCESS, set_querystring_schema_from_type_map(&param, &tm));
   ASSERT_EQ(1, param.schema_set);
   ASSERT_EQ(0, param.schema.is_array);
@@ -107,7 +107,7 @@ TEST test_operation_set_querystring_schema_from_type_map(void) {
   param.schema.ref_name = NULL;
   tm.ref_name = NULL;
 
-  tm.oa_type = (char *)(size_t) "integer";
+  tm.oa_type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS, set_querystring_schema_from_type_map(&param, &tm));
   ASSERT_STR_EQ("array", param.type);
   ASSERT_STR_EQ("integer", param.items_type);
@@ -124,7 +124,7 @@ TEST test_operation_set_querystring_schema_from_type_map(void) {
   param.type = NULL;
 
   tm.kind = OA_TYPE_PRIMITIVE;
-  tm.oa_type = (char *)(size_t) "boolean";
+  tm.oa_type = cdd_test_mut_str("boolean");
   ASSERT_EQ(CDD_C_SUCCESS, set_querystring_schema_from_type_map(&param, &tm));
   ASSERT_STR_EQ("boolean", param.type);
   free(param.type);
@@ -136,7 +136,7 @@ TEST test_operation_set_querystring_schema_from_type_map(void) {
   free(param.type);
   param.type = NULL;
 
-  tm.ref_name = (char *)(size_t) "Ref";
+  tm.ref_name = cdd_test_mut_str("Ref");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             set_querystring_schema_from_type_map(&param, &tm));
@@ -149,7 +149,7 @@ TEST test_operation_set_querystring_schema_from_type_map(void) {
             set_querystring_schema_from_type_map(&param, &tm));
   g_cdd_strdup_fail = 0;
 
-  tm.oa_type = (char *)(size_t) "integer";
+  tm.oa_type = cdd_test_mut_str("integer");
   g_cdd_strdup_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             set_querystring_schema_from_type_map(&param, &tm));
@@ -181,7 +181,7 @@ TEST test_operation_init_and_add_response_media_type(void) {
   ASSERT_EQ(0, mt.schema_set);
   free(mt.name);
 
-  resp.schema.ref_name = (char *)(size_t) "User";
+  resp.schema.ref_name = cdd_test_mut_str("User");
   ASSERT_EQ(CDD_C_SUCCESS,
             init_media_type_from_response(&mt, "app/json", &resp, 1));
   ASSERT_EQ(1, mt.item_schema_set);
@@ -212,7 +212,7 @@ TEST test_operation_init_and_add_response_media_type(void) {
   ASSERT_EQ(CDD_C_SUCCESS, add_response_media_type(&resp, NULL, 0));
   ASSERT_EQ(CDD_C_SUCCESS, add_response_media_type(&resp, "", 0));
 
-  resp.content_type = (char *)(size_t) "application/xml";
+  resp.content_type = cdd_test_mut_str("application/xml");
   ASSERT_EQ(CDD_C_SUCCESS,
             add_response_media_type(&resp, "application/json", 0));
   ASSERT_EQ(2, resp.n_content_media_types);
@@ -247,7 +247,7 @@ TEST test_operation_init_and_add_response_media_type(void) {
   resp.content_media_types = NULL;
   resp.n_content_media_types = 0;
 
-  resp.content_type = (char *)(size_t) "application/xml";
+  resp.content_type = cdd_test_mut_str("application/xml");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             add_response_media_type(&resp, "application/json", 0));
@@ -277,7 +277,7 @@ TEST test_operation_request_body_media_types(void) {
   ASSERT_EQ(CDD_C_SUCCESS, request_body_has_media_type(&op, "app/json", &has));
   ASSERT_EQ(0, has);
 
-  op.req_body.content_type = (char *)(size_t) "application/json";
+  op.req_body.content_type = cdd_test_mut_str("application/json");
   ASSERT_EQ(CDD_C_SUCCESS,
             request_body_has_media_type(&op, "application/json", &has));
   ASSERT_EQ(1, has);
@@ -285,7 +285,7 @@ TEST test_operation_request_body_media_types(void) {
   op.req_body.content_type = NULL;
   op.req_body_media_types = &mt;
   op.n_req_body_media_types = 1;
-  mt.name = (char *)(size_t) "application/xml";
+  mt.name = cdd_test_mut_str("application/xml");
   ASSERT_EQ(CDD_C_SUCCESS,
             request_body_has_media_type(&op, "application/xml", &has));
   ASSERT_EQ(1, has);
@@ -306,7 +306,7 @@ TEST test_operation_request_body_media_types(void) {
             init_media_type_from_request_body(&mt, "app/json", &op, 0));
   free(mt.name);
 
-  op.req_body.ref_name = (char *)(size_t) "Payload";
+  op.req_body.ref_name = cdd_test_mut_str("Payload");
   ASSERT_EQ(CDD_C_SUCCESS,
             init_media_type_from_request_body(&mt, "app/json", &op, 1));
   ASSERT_EQ(1, mt.item_schema_set);
@@ -336,7 +336,7 @@ TEST test_operation_request_body_media_types(void) {
   ASSERT_EQ(CDD_C_SUCCESS, add_request_body_media_type(&op, NULL, 0));
   ASSERT_EQ(CDD_C_SUCCESS, add_request_body_media_type(&op, "", 0));
 
-  op.req_body.content_type = (char *)(size_t) "application/xml";
+  op.req_body.content_type = cdd_test_mut_str("application/xml");
   ASSERT_EQ(CDD_C_SUCCESS,
             add_request_body_media_type(&op, "application/json", 0));
   ASSERT_EQ(2, op.n_req_body_media_types);
@@ -368,7 +368,7 @@ TEST test_operation_request_body_media_types(void) {
   op.req_body_media_types = NULL;
   op.n_req_body_media_types = 0;
 
-  op.req_body.content_type = (char *)(size_t) "application/xml";
+  op.req_body.content_type = cdd_test_mut_str("application/xml");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             add_request_body_media_type(&op, "application/json", 0));
@@ -389,7 +389,7 @@ TEST test_operation_media_types_item_schema_oom(void) {
   memset(&mt, 0, sizeof(mt));
   memset(&op, 0, sizeof(op));
 
-  resp.schema.ref_name = (char *)(size_t) "SchemaRef";
+  resp.schema.ref_name = cdd_test_mut_str("SchemaRef");
   g_cdd_strdup_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             init_media_type_from_response(&mt, "app/json", &resp, 1));
@@ -397,7 +397,7 @@ TEST test_operation_media_types_item_schema_oom(void) {
   free(mt.name);
   mt.name = NULL;
 
-  op.req_body.ref_name = (char *)(size_t) "BodyRef";
+  op.req_body.ref_name = cdd_test_mut_str("BodyRef");
   g_cdd_strdup_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             init_media_type_from_request_body(&mt, "app/json", &op, 1));
@@ -464,52 +464,52 @@ TEST test_operation_c2openapi_build_operation_verbs(void) {
   ctx.doc = &doc;
   ctx.func_name = "test_func";
 
-  doc.verb = (char *)(size_t) "GET";
+  doc.verb = cdd_test_mut_str("GET");
   ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
   ASSERT_EQ(OA_VERB_GET, op.verb);
   reset_operation_test(&op);
 
-  doc.verb = (char *)(size_t) "POST";
+  doc.verb = cdd_test_mut_str("POST");
   ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
   ASSERT_EQ(OA_VERB_POST, op.verb);
   reset_operation_test(&op);
 
-  doc.verb = (char *)(size_t) "PUT";
+  doc.verb = cdd_test_mut_str("PUT");
   ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
   ASSERT_EQ(OA_VERB_PUT, op.verb);
   reset_operation_test(&op);
 
-  doc.verb = (char *)(size_t) "DELETE";
+  doc.verb = cdd_test_mut_str("DELETE");
   ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
   ASSERT_EQ(OA_VERB_DELETE, op.verb);
   reset_operation_test(&op);
 
-  doc.verb = (char *)(size_t) "PATCH";
+  doc.verb = cdd_test_mut_str("PATCH");
   ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
   ASSERT_EQ(OA_VERB_PATCH, op.verb);
   reset_operation_test(&op);
 
-  doc.verb = (char *)(size_t) "HEAD";
+  doc.verb = cdd_test_mut_str("HEAD");
   ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
   ASSERT_EQ(OA_VERB_HEAD, op.verb);
   reset_operation_test(&op);
 
-  doc.verb = (char *)(size_t) "OPTIONS";
+  doc.verb = cdd_test_mut_str("OPTIONS");
   ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
   ASSERT_EQ(OA_VERB_OPTIONS, op.verb);
   reset_operation_test(&op);
 
-  doc.verb = (char *)(size_t) "TRACE";
+  doc.verb = cdd_test_mut_str("TRACE");
   ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
   ASSERT_EQ(OA_VERB_TRACE, op.verb);
   reset_operation_test(&op);
 
-  doc.verb = (char *)(size_t) "QUERY";
+  doc.verb = cdd_test_mut_str("QUERY");
   ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
   ASSERT_EQ(OA_VERB_QUERY, op.verb);
   reset_operation_test(&op);
 
-  doc.verb = (char *)(size_t) "CUSTOM";
+  doc.verb = cdd_test_mut_str("CUSTOM");
   ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
   ASSERT_EQ(OA_VERB_UNKNOWN, op.verb);
   ASSERT_EQ(1, op.is_additional);
@@ -577,30 +577,30 @@ TEST test_operation_c2openapi_build_operation_metadata(void) {
   memset(&srv, 0, sizeof(srv));
   memset(&op, 0, sizeof(op));
 
-  tags[0] = (char *)(size_t) "tagA";
-  tags[1] = (char *)(size_t) "tagB";
-  scopes[0] = (char *)(size_t) "read";
-  scopes[1] = (char *)(size_t) "write";
+  tags[0] = cdd_test_mut_str("tagA");
+  tags[1] = cdd_test_mut_str("tagB");
+  scopes[0] = cdd_test_mut_str("read");
+  scopes[1] = cdd_test_mut_str("write");
 
-  sec.scheme = (char *)(size_t) "OAuth2";
+  sec.scheme = cdd_test_mut_str("OAuth2");
   sec.scopes = scopes;
   sec.n_scopes = 2;
 
-  srv.url = (char *)(size_t) "https://example.com/v1";
-  srv.name = (char *)(size_t) "Primary";
-  srv.description = (char *)(size_t) "Primary server";
+  srv.url = cdd_test_mut_str("https://example.com/v1");
+  srv.name = cdd_test_mut_str("Primary");
+  srv.description = cdd_test_mut_str("Primary server");
 
   ctx.sig = &sig;
   ctx.doc = &doc;
   ctx.func_name = "api_widget_get";
 
-  doc.operation_id = (char *)(size_t) "getWidget";
-  doc.summary = (char *)(size_t) "Widget Summary";
-  doc.description = (char *)(size_t) "Widget Description";
+  doc.operation_id = cdd_test_mut_str("getWidget");
+  doc.summary = cdd_test_mut_str("Widget Summary");
+  doc.description = cdd_test_mut_str("Widget Description");
   doc.deprecated_set = 1;
   doc.deprecated = 1;
-  doc.external_docs_url = (char *)(size_t) "https://docs.example.com";
-  doc.external_docs_description = (char *)(size_t) "Full docs";
+  doc.external_docs_url = cdd_test_mut_str("https://docs.example.com");
+  doc.external_docs_description = cdd_test_mut_str("Full docs");
   doc.tags = tags;
   doc.n_tags = 2;
   doc.security = &sec;
@@ -649,22 +649,22 @@ TEST test_operation_c2openapi_build_operation_arguments(void) {
   ctx.sig = &sig;
   ctx.doc = &doc;
   ctx.func_name = "api_user_update";
-  doc.verb = (char *)(size_t) "PUT";
-  doc.route = (char *)(size_t) "/user/{uid}";
+  doc.verb = cdd_test_mut_str("PUT");
+  doc.route = cdd_test_mut_str("/user/{uid}");
 
   sig.args = args;
   sig.n_args = 8;
   doc.params = params;
   doc.n_params = 8;
 
-  args[0].name = (char *)(size_t) "uid";
-  args[0].type = (char *)(size_t) "int";
+  args[0].name = cdd_test_mut_str("uid");
+  args[0].type = cdd_test_mut_str("int");
 
-  args[1].name = (char *)(size_t) "session_id";
-  args[1].type = (char *)(size_t) "char *";
-  params[1].name = (char *)(size_t) "session_id";
-  params[1].in_loc = (char *)(size_t) "cookie";
-  params[1].description = (char *)(size_t) "Session cookie";
+  args[1].name = cdd_test_mut_str("session_id");
+  args[1].type = cdd_test_mut_str("char *");
+  params[1].name = cdd_test_mut_str("session_id");
+  params[1].in_loc = cdd_test_mut_str("cookie");
+  params[1].description = cdd_test_mut_str("Session cookie");
   params[1].required = 1;
   params[1].style_set = 1;
   params[1].style = DOC_PARAM_STYLE_FORM;
@@ -676,37 +676,37 @@ TEST test_operation_c2openapi_build_operation_arguments(void) {
   params[1].allow_empty_value = 1;
   params[1].deprecated_set = 1;
   params[1].deprecated = 1;
-  params[1].example = (char *)(size_t) "abc123xyz";
+  params[1].example = cdd_test_mut_str("abc123xyz");
 
-  args[2].name = (char *)(size_t) "Accept";
-  args[2].type = (char *)(size_t) "char *";
-  params[2].name = (char *)(size_t) "Accept";
-  params[2].in_loc = (char *)(size_t) "header";
-  params[2].description = (char *)(size_t) "Reserved accept header";
+  args[2].name = cdd_test_mut_str("Accept");
+  args[2].type = cdd_test_mut_str("char *");
+  params[2].name = cdd_test_mut_str("Accept");
+  params[2].in_loc = cdd_test_mut_str("header");
+  params[2].description = cdd_test_mut_str("Reserved accept header");
 
-  args[3].name = (char *)(size_t) "X-Trace-Id";
-  args[3].type = (char *)(size_t) "char *";
-  params[3].name = (char *)(size_t) "X-Trace-Id";
-  params[3].in_loc = (char *)(size_t) "header";
-  params[3].content_type = (char *)(size_t) "text/plain";
-  params[3].example = (char *)(size_t) "tr-999";
+  args[3].name = cdd_test_mut_str("X-Trace-Id");
+  args[3].type = cdd_test_mut_str("char *");
+  params[3].name = cdd_test_mut_str("X-Trace-Id");
+  params[3].in_loc = cdd_test_mut_str("header");
+  params[3].content_type = cdd_test_mut_str("text/plain");
+  params[3].example = cdd_test_mut_str("tr-999");
 
-  args[4].name = (char *)(size_t) "filter";
-  args[4].type = (char *)(size_t) "char *";
-  params[4].name = (char *)(size_t) "filter";
-  params[4].in_loc = (char *)(size_t) "querystring";
+  args[4].name = cdd_test_mut_str("filter");
+  args[4].type = cdd_test_mut_str("char *");
+  params[4].name = cdd_test_mut_str("filter");
+  params[4].in_loc = cdd_test_mut_str("querystring");
 
-  args[5].name = (char *)(size_t) "tags";
-  args[5].type = (char *)(size_t) "int[]";
-  params[5].name = (char *)(size_t) "tags";
-  params[5].format = (char *)(size_t) "int32";
+  args[5].name = cdd_test_mut_str("tags");
+  args[5].type = cdd_test_mut_str("int[]");
+  params[5].name = cdd_test_mut_str("tags");
+  params[5].format = cdd_test_mut_str("int32");
   params[5].item_schema = 1;
 
-  args[6].name = (char *)(size_t) "body";
-  args[6].type = (char *)(size_t) "struct User *";
+  args[6].name = cdd_test_mut_str("body");
+  args[6].type = cdd_test_mut_str("struct User *");
 
-  args[7].name = (char *)(size_t) "out_result";
-  args[7].type = (char *)(size_t) "struct Result **";
+  args[7].name = cdd_test_mut_str("out_result");
+  args[7].type = cdd_test_mut_str("struct Result **");
 
   ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
   ASSERT_EQ(1, op.req_body_required);
@@ -714,14 +714,14 @@ TEST test_operation_c2openapi_build_operation_arguments(void) {
   ASSERT(op.n_responses >= 1);
   reset_operation_test(&op);
 
-  args[6].type = (char *)(size_t) "const struct User *";
+  args[6].type = cdd_test_mut_str("const struct User *");
   sig.n_args = 7;
   ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
   ASSERT_EQ(1, op.req_body_required);
   reset_operation_test(&op);
 
-  params[0].name = (char *)(size_t) "uid";
-  params[0].in_loc = (char *)(size_t) "body";
+  params[0].name = cdd_test_mut_str("uid");
+  params[0].in_loc = cdd_test_mut_str("body");
   sig.n_args = 1;
   ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
   reset_operation_test(&op);
@@ -755,19 +755,19 @@ TEST test_operation_c2openapi_build_operation_bodies_returns_links(void) {
   ctx.sig = &sig;
   ctx.doc = &doc;
   ctx.func_name = "api_upload_post";
-  doc.verb = (char *)(size_t) "POST";
+  doc.verb = cdd_test_mut_str("POST");
 
   sig.args = args;
   sig.n_args = 1;
-  args[0].name = (char *)(size_t) "out_data";
-  args[0].type = (char *)(size_t) "struct UploadResponse **";
+  args[0].name = cdd_test_mut_str("out_data");
+  args[0].type = cdd_test_mut_str("struct UploadResponse **");
 
-  rbs[0].content_type = (char *)(size_t) "multipart/form-data";
+  rbs[0].content_type = cdd_test_mut_str("multipart/form-data");
   rbs[0].item_schema = 0;
-  rbs[0].example = (char *)(size_t) "{\"file\": \"data\"}";
+  rbs[0].example = cdd_test_mut_str("{\"file\": \"data\"}");
 
-  encs[0].name = (char *)(size_t) "avatar";
-  encs[0].content_type = (char *)(size_t) "image/jpeg";
+  encs[0].name = cdd_test_mut_str("avatar");
+  encs[0].content_type = cdd_test_mut_str("image/jpeg");
   encs[0].kind = 0;
   encs[0].style = DOC_PARAM_STYLE_FORM;
   encs[0].explode = 1;

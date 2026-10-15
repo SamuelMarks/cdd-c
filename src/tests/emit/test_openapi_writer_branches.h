@@ -57,13 +57,13 @@ TEST test_openapi_writer_branch_sweep(void) {
   {
     struct OpenAPI_License lic;
     memset(&lic, 0, sizeof(lic));
-    lic.identifier = (char *)(size_t) "MIT";
+    lic.identifier = cdd_test_mut_str("MIT");
     license_fields_invalid(&lic);
     memset(&lic, 0, sizeof(lic));
-    lic.url = (char *)(size_t) "http://url";
+    lic.url = cdd_test_mut_str("http://url");
     license_fields_invalid(&lic);
     memset(&lic, 0, sizeof(lic));
-    lic.extensions_json = (char *)(size_t) "{}";
+    lic.extensions_json = cdd_test_mut_str("{}");
     license_fields_invalid(&lic);
   }
 
@@ -126,27 +126,27 @@ TEST test_openapi_writer_branch_sweep(void) {
 
   /* 4. Contact metadata: only url, only email */
   memset(&spec, 0, sizeof(spec));
-  spec.info.contact.url = (char *)(size_t) "http://url";
+  spec.info.contact.url = cdd_test_mut_str("http://url");
   write_info(obj, &spec);
   memset(&spec, 0, sizeof(spec));
-  spec.info.contact.email = (char *)(size_t) "e@test.com";
+  spec.info.contact.email = cdd_test_mut_str("e@test.com");
   write_info(obj, &spec);
 
   /* 5. License metadata: only identifier, only url, only extensions */
   memset(&spec, 0, sizeof(spec));
-  spec.info.license.identifier = (char *)(size_t) "MIT";
+  spec.info.license.identifier = cdd_test_mut_str("MIT");
   write_info(obj, &spec);
   memset(&spec, 0, sizeof(spec));
-  spec.info.license.url = (char *)(size_t) "http://url";
+  spec.info.license.url = cdd_test_mut_str("http://url");
   write_info(obj, &spec);
   memset(&spec, 0, sizeof(spec));
-  spec.info.license.extensions_json = (char *)(size_t) "{}";
+  spec.info.license.extensions_json = cdd_test_mut_str("{}");
   write_info(obj, &spec);
 
   /* 6. Server variables with enum NULL */
   memset(&srv, 0, sizeof(srv));
   memset(&var, 0, sizeof(var));
-  var.name = (char *)(size_t) "port";
+  var.name = cdd_test_mut_str("port");
   var_enums[0] = NULL;
   var.enum_values = var_enums;
   var.n_enum_values = 0;
@@ -170,7 +170,7 @@ TEST test_openapi_writer_branch_sweep(void) {
   ref.n_any_of = 0;
   ref.one_of = &ref;
   ref.n_one_of = 0;
-  ref.summary = (char *)(size_t) "sum";
+  ref.summary = cdd_test_mut_str("sum");
   ref.examples = NULL;
   ref.n_examples = 0;
   write_schema_ref(obj, "ref_zeros", &ref);
@@ -192,12 +192,12 @@ TEST test_openapi_writer_branch_sweep(void) {
   memset(&h, 0, sizeof(h));
   h.type = NULL;
   h.is_array = 1;
-  h.content_type = (char *)(size_t) "application/json";
+  h.content_type = cdd_test_mut_str("application/json");
   write_header_object(obj, &h);
 
   memset(&h, 0, sizeof(h));
-  h.type = (char *)(size_t) "integer";
-  h.content_type = (char *)(size_t) "application/json";
+  h.type = cdd_test_mut_str("integer");
+  h.content_type = cdd_test_mut_str("application/json");
   write_header_object(obj, &h);
 
   /* 11. Encoding / Media type: name == NULL */
@@ -246,7 +246,7 @@ TEST test_openapi_writer_branch_sweep(void) {
   memset(&sec, 0, sizeof(sec));
   sec.type = OA_SEC_APIKEY;
   sec.in = OA_SEC_IN_UNKNOWN;
-  sec.scheme = (char *)(size_t) "basic";
+  sec.scheme = cdd_test_mut_str("basic");
   memset(&flow, 0, sizeof(flow));
   flow.type = OA_OAUTH_FLOW_IMPLICIT;
   memset(scope_obj, 0, sizeof(scope_obj));
@@ -312,9 +312,9 @@ TEST test_openapi_writer_null_and_defensive(void) {
     struct OpenAPI_Spec s_webhooks;
     char *out_j = NULL;
     memset(&s_webhooks, 0, sizeof(s_webhooks));
-    s_webhooks.openapi_version = (char *)(size_t)(size_t) "3.1.0";
-    s_webhooks.info.title = (char *)(size_t)(size_t) "Test";
-    s_webhooks.info.version = (char *)(size_t)(size_t) "1.0";
+    s_webhooks.openapi_version = cdd_test_mut_str("3.1.0");
+    s_webhooks.info.title = cdd_test_mut_str("Test");
+    s_webhooks.info.version = cdd_test_mut_str("1.0");
     s_webhooks.n_webhooks = 1;
     s_webhooks.webhooks = NULL;
     ASSERT_EQ(CDD_C_SUCCESS, openapi_write_spec_to_json(&s_webhooks, &out_j));
@@ -330,7 +330,7 @@ TEST test_openapi_writer_null_and_defensive(void) {
     char *out_j = NULL;
     memset(&s_doc, 0, sizeof(s_doc));
     s_doc.is_schema_document = 1;
-    s_doc.schema_root_json = (char *)(size_t)(size_t) "{}";
+    s_doc.schema_root_json = cdd_test_mut_str("{}");
     g_cdd_strdup_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, openapi_write_spec_to_json(&s_doc, &out_j));
     g_cdd_strdup_fail = 0;
@@ -340,9 +340,9 @@ TEST test_openapi_writer_null_and_defensive(void) {
     int k;
     struct OpenAPI_Spec s_empty;
     memset(&s_empty, 0, sizeof(s_empty));
-    s_empty.openapi_version = (char *)(size_t)(size_t) "3.1.0";
-    s_empty.info.title = (char *)(size_t)(size_t) "A";
-    s_empty.info.version = (char *)(size_t)(size_t) "1";
+    s_empty.openapi_version = cdd_test_mut_str("3.1.0");
+    s_empty.info.title = cdd_test_mut_str("A");
+    s_empty.info.version = cdd_test_mut_str("1");
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     for (k = 0; k < 20; ++k) {
       char *out_j = NULL;
@@ -402,13 +402,13 @@ TEST test_openapi_writer_schema_ref_branches(void) {
   ref.schema_is_boolean = 1;
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.schema_is_boolean = 0;
-  ref.ref_name = (char *)(size_t) "test";
+  ref.ref_name = cdd_test_mut_str("test");
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.ref_name = NULL;
-  ref.ref = (char *)(size_t) "test";
+  ref.ref = cdd_test_mut_str("test");
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.ref = NULL;
-  ref.inline_type = (char *)(size_t) "string";
+  ref.inline_type = cdd_test_mut_str("string");
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.inline_type = NULL;
   ref.n_type_union = 1;
@@ -417,25 +417,25 @@ TEST test_openapi_writer_schema_ref_branches(void) {
   ref.is_array = 1;
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.is_array = 0;
-  ref.format = (char *)(size_t) "email";
+  ref.format = cdd_test_mut_str("email");
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.format = NULL;
-  ref.content_media_type = (char *)(size_t) "app/json";
+  ref.content_media_type = cdd_test_mut_str("app/json");
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.content_media_type = NULL;
-  ref.content_encoding = (char *)(size_t) "base64";
+  ref.content_encoding = cdd_test_mut_str("base64");
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.content_encoding = NULL;
-  ref.items_format = (char *)(size_t) "int32";
+  ref.items_format = cdd_test_mut_str("int32");
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.items_format = NULL;
   ref.n_items_type_union = 1;
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.n_items_type_union = 0;
-  ref.items_content_media_type = (char *)(size_t) "text/plain";
+  ref.items_content_media_type = cdd_test_mut_str("text/plain");
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.items_content_media_type = NULL;
-  ref.items_content_encoding = (char *)(size_t) "binary";
+  ref.items_content_encoding = cdd_test_mut_str("binary");
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.items_content_encoding = NULL;
   ref.n_multipart_fields = 1;
@@ -456,10 +456,10 @@ TEST test_openapi_writer_schema_ref_branches(void) {
   ref.n_items_enum_values = 1;
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.n_items_enum_values = 0;
-  ref.summary = (char *)(size_t) "sum";
+  ref.summary = cdd_test_mut_str("sum");
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.summary = NULL;
-  ref.description = (char *)(size_t) "desc";
+  ref.description = cdd_test_mut_str("desc");
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.description = NULL;
   ref.deprecated_set = 1;
@@ -492,7 +492,7 @@ TEST test_openapi_writer_schema_ref_branches(void) {
   ref.has_max_len = 1;
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.has_max_len = 0;
-  ref.pattern = (char *)(size_t) "^a";
+  ref.pattern = cdd_test_mut_str("^a");
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.pattern = NULL;
   ref.has_min_items = 1;
@@ -516,7 +516,7 @@ TEST test_openapi_writer_schema_ref_branches(void) {
   ref.items_has_max_len = 1;
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.items_has_max_len = 0;
-  ref.items_pattern = (char *)(size_t) "^b";
+  ref.items_pattern = cdd_test_mut_str("^b");
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.items_pattern = NULL;
   ref.items_has_min_items = 1;
@@ -537,7 +537,7 @@ TEST test_openapi_writer_schema_ref_branches(void) {
   ref.items_schema_is_boolean = 1;
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.items_schema_is_boolean = 0;
-  ref.schema_extra_json = (char *)(size_t) "{}";
+  ref.schema_extra_json = cdd_test_mut_str("{}");
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.schema_extra_json = NULL;
   ref.external_docs_set = 1;
@@ -549,7 +549,7 @@ TEST test_openapi_writer_schema_ref_branches(void) {
   ref.xml_set = 1;
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.xml_set = 0;
-  ref.items_extra_json = (char *)(size_t) "{}";
+  ref.items_extra_json = cdd_test_mut_str("{}");
   ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
   ref.items_extra_json = NULL;
   ref.items_const_value_set = 1;
@@ -581,8 +581,8 @@ TEST test_openapi_writer_schema_and_types_coverage(void) {
 
   /* type_union_contains */
   types[0] = NULL;
-  types[1] = (char *)(size_t) "string";
-  types[2] = (char *)(size_t) "null";
+  types[1] = cdd_test_mut_str("string");
+  types[2] = cdd_test_mut_str("null");
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, type_union_contains(types, 3, "null"));
   ASSERT_EQ(CDD_C_SUCCESS, type_union_contains(types, 3, "integer"));
   ASSERT_EQ(CDD_C_SUCCESS, type_union_contains(NULL, 0, "null"));
@@ -619,11 +619,11 @@ TEST test_openapi_writer_schema_and_types_coverage(void) {
   ref.items_content_schema =
       (struct OpenAPI_SchemaRef *)malloc(sizeof(struct OpenAPI_SchemaRef));
   memset(ref.items_content_schema, 0, sizeof(struct OpenAPI_SchemaRef));
-  ref.items_content_schema->ref_name = (char *)(size_t) "SubSchema";
-  ref.items_format = (char *)(size_t) "date";
-  ref.items_content_media_type = (char *)(size_t) "application/json";
-  ref.items_content_encoding = (char *)(size_t) "base64";
-  ref.items_extra_json = (char *)(size_t) "{\"x-field\": true}";
+  ref.items_content_schema->ref_name = cdd_test_mut_str("SubSchema");
+  ref.items_format = cdd_test_mut_str("date");
+  ref.items_content_media_type = cdd_test_mut_str("application/json");
+  ref.items_content_encoding = cdd_test_mut_str("base64");
+  ref.items_extra_json = cdd_test_mut_str("{\"x-field\": true}");
   write_items_schema_fields(obj, &ref);
   free(ref.items_content_schema);
 

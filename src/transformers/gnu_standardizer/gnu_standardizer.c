@@ -20,8 +20,11 @@ C_CDD_EXPORT cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree) {
   rc =
       cdd_cst_find_nodes_by_type(tree->root, CDD_CST_FUNCTION_DEFINITION, &res);
 #ifdef CDD_BUILD_TESTS
-  if (g_gnu_standardizer_fail == 34)
+  if (g_gnu_standardizer_fail == 34) {
+    free(res.nodes);
+    res.nodes = NULL;
     rc = CDD_C_ERROR_MEMORY;
+  }
 #endif
   if (rc != CDD_C_SUCCESS)
     return rc;

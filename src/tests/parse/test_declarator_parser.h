@@ -57,12 +57,12 @@ static void reset_decl_mocks(void) {
 }
 
 /**
- * @brief Executes the setup tokens operation.
+ * @brief Helper to tokenize a C snippet for declarator parser tests.
  */
 static struct TokenList *setup_tokens(const char *code) {
   struct TokenList *tl = NULL;
   cdd_c_error_t rc = 0;
-  rc = tokenize(az_span_create_from_str((char *)(size_t)(size_t)code), &tl);
+  rc = tokenize(az_span_create_from_str(code), &tl);
   if (rc != CDD_C_SUCCESS) {
     return NULL;
   }
@@ -92,10 +92,10 @@ static enum greatest_test_res verify_chain(struct DeclType *head, int n, ...) {
 /* --- Concrete Declarator Tests (Named) --- */
 
 /**
- * @brief Executes the corresponding declarator parser test.
+ * @brief Performs corresponding declarator parser test.
  */
 TEST test_parse_basic_int(void) {
-  const char *code = (char *)(size_t)(size_t) "int x";
+  const char *code = cdd_test_mut_str("int x");
   struct TokenList *tl;
   struct DeclInfo info;
   int rc = 0;
@@ -120,10 +120,10 @@ TEST test_parse_basic_int(void) {
 }
 
 /**
- * @brief Executes the corresponding declarator parser test.
+ * @brief Performs corresponding declarator parser test.
  */
 TEST test_parse_ptr(void) {
-  const char *code = (char *)(size_t)(size_t) "char *p";
+  const char *code = cdd_test_mut_str("char *p");
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = 0;
@@ -143,10 +143,10 @@ TEST test_parse_ptr(void) {
 }
 
 /**
- * @brief Executes the corresponding declarator parser test.
+ * @brief Performs corresponding declarator parser test.
  */
 TEST test_parse_pointer_qualifiers(void) { /* int * const volatile p */
-  const char *code = (char *)(size_t)(size_t) "int * const volatile restrict p";
+  const char *code = cdd_test_mut_str("int * const volatile restrict p");
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -173,10 +173,10 @@ TEST test_parse_pointer_qualifiers(void) { /* int * const volatile p */
 }
 
 /**
- * @brief Executes the corresponding declarator parser test.
+ * @brief Performs corresponding declarator parser test.
  */
 TEST test_parse_atomic_specifier(void) { /* _Atomic(int) ax */
-  const char *code = (char *)(size_t)(size_t) "_Atomic(int) ax";
+  const char *code = cdd_test_mut_str("_Atomic(int) ax");
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -194,10 +194,10 @@ TEST test_parse_atomic_specifier(void) { /* _Atomic(int) ax */
 }
 
 /**
- * @brief Executes the corresponding declarator parser test.
+ * @brief Performs corresponding declarator parser test.
  */
 TEST test_parse_complex_specifier(void) { /* double _Complex c */
-  const char *code = (char *)(size_t)(size_t) "double _Complex c";
+  const char *code = cdd_test_mut_str("double _Complex c");
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -215,10 +215,10 @@ TEST test_parse_complex_specifier(void) { /* double _Complex c */
 }
 
 /**
- * @brief Executes the corresponding declarator parser test.
+ * @brief Performs corresponding declarator parser test.
  */
 TEST test_parse_atomic_qualifier_on_ptr(void) { /* int * _Atomic ap */
-  const char *code = (char *)(size_t)(size_t) "int * _Atomic ap";
+  const char *code = cdd_test_mut_str("int * _Atomic ap");
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -237,10 +237,10 @@ TEST test_parse_atomic_qualifier_on_ptr(void) { /* int * _Atomic ap */
 }
 
 /**
- * @brief Executes the corresponding declarator parser test.
+ * @brief Performs corresponding declarator parser test.
  */
 TEST test_parse_atomic_qualifier_on_base(void) { /* _Atomic int x */
-  const char *code = (char *)(size_t)(size_t) "_Atomic int x";
+  const char *code = cdd_test_mut_str("_Atomic int x");
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -261,10 +261,10 @@ TEST test_parse_atomic_qualifier_on_base(void) { /* _Atomic int x */
 /* --- Abstract Declarator Tests --- */
 
 /**
- * @brief Executes the corresponding declarator parser test.
+ * @brief Performs corresponding declarator parser test.
  */
 TEST test_abstract_atomic_ptr(void) { /* _Atomic(int) * */
-  const char *code = (char *)(size_t)(size_t) "_Atomic(int) *";
+  const char *code = cdd_test_mut_str("_Atomic(int) *");
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -281,7 +281,7 @@ TEST test_abstract_atomic_ptr(void) { /* _Atomic(int) * */
 }
 
 TEST test_parse_func_ptr(void) {
-  const char *code = (char *)(size_t)(size_t) "int (*func)(void)";
+  const char *code = cdd_test_mut_str("int (*func)(void)");
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -297,7 +297,7 @@ TEST test_parse_func_ptr(void) {
 }
 
 TEST test_parse_func_array(void) {
-  const char *code = (char *)(size_t)(size_t) "int (*a[5])(void)";
+  const char *code = cdd_test_mut_str("int (*a[5])(void)");
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -314,7 +314,7 @@ TEST test_parse_func_array(void) {
 }
 
 TEST test_abstract_func_ptr(void) {
-  const char *code = (char *)(size_t)(size_t) "int (*)(void)";
+  const char *code = cdd_test_mut_str("int (*)(void)");
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -330,7 +330,7 @@ TEST test_abstract_func_ptr(void) {
 }
 
 TEST test_abstract_array(void) {
-  const char *code = (char *)(size_t)(size_t) "int[5]";
+  const char *code = cdd_test_mut_str("int[5]");
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -368,8 +368,7 @@ TEST test_add_type_node_nulls(void) {
 }
 
 TEST test_parse_declarator_oom(void) {
-  const char *code =
-      (char *)(size_t)(size_t) "int * const volatile p[10](void)";
+  const char *code = cdd_test_mut_str("int * const volatile p[10](void)");
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int i, rc;
@@ -471,7 +470,7 @@ TEST test_parse_declarator_more_edge_cases(void) {
 }
 
 TEST test_parse_declarator_empty_array(void) {
-  const char *code = (char *)(size_t)(size_t) "int x[]";
+  const char *code = cdd_test_mut_str("int x[]");
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -483,7 +482,7 @@ TEST test_parse_declarator_empty_array(void) {
 }
 
 TEST test_parse_declarator_just_x(void) {
-  const char *code = (char *)(size_t)(size_t) "x";
+  const char *code = cdd_test_mut_str("x");
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);

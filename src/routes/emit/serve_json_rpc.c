@@ -10,6 +10,7 @@
 #ifndef __wasi__
 #include "serve_json_rpc.h"
 #include "../parse/cli.h"
+#include "../../cdd_api.h"
 #include <parson.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -450,15 +451,13 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
         rc = send_rpc_error(client_fd, -32602,
                             "Invalid arguments for to_openapi");
       } else {
-        char *argv_call[5];
+        cdd_to_openapi_config_t cfg;
         const char *resp;
         cdd_c_error_t rc_rpc;
-        argv_call[0] = (char *)(size_t) "to_openapi";
-        argv_call[1] = (char *)(size_t) "-i";
-        argv_call[2] = (char *)(size_t)input;
-        argv_call[3] = (char *)(size_t) "-o";
-        argv_call[4] = (char *)(size_t)output;
-        rc_rpc = to_openapi_cli_main(5, argv_call);
+        memset(&cfg, 0, sizeof(cfg));
+        cfg.input = input;
+        cfg.output = output;
+        rc_rpc = cdd_generate_to_openapi(&cfg);
         if (rc_rpc != CDD_C_SUCCESS) {
           rc = send_rpc_error(client_fd, -32603, "OpenAPI generation failed");
         } else {
@@ -477,24 +476,19 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
         rc = send_rpc_error(client_fd, -32602,
                             "Invalid arguments for to_docs_json");
       } else {
-        char *argv_call[10];
-        int argc_call = 0;
+        cdd_docs_json_config_t cfg;
         const char *resp;
         cdd_c_error_t rc_rpc;
-        argv_call[argc_call++] = (char *)(size_t) "to_docs_json";
-        argv_call[argc_call++] = (char *)(size_t) "-i";
-        argv_call[argc_call++] = (char *)(size_t)input;
-        if (output) {
-          argv_call[argc_call++] = (char *)(size_t) "-o";
-          argv_call[argc_call++] = (char *)(size_t)output;
-        }
+        memset(&cfg, 0, sizeof(cfg));
+        cfg.input = input;
+        cfg.output = output;
         if (json_object_get_boolean(arguments, "no_imports") == 1) {
-          argv_call[argc_call++] = (char *)(size_t) "--no-imports";
+          cfg.no_imports = 1;
         }
         if (json_object_get_boolean(arguments, "no_wrapping") == 1) {
-          argv_call[argc_call++] = (char *)(size_t) "--no-wrapping";
+          cfg.no_wrapping = 1;
         }
-        rc_rpc = to_docs_json_cli_main(argc_call, argv_call);
+        rc_rpc = cdd_generate_docs_json(&cfg);
         if (rc_rpc != CDD_C_SUCCESS) {
           rc = send_rpc_error(client_fd, -32603, "Docs generation failed");
         } else {
@@ -516,14 +510,12 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
     if (!input || !output) {
       rc = send_rpc_error(client_fd, -32602, "Invalid params");
     } else {
-      char *argv_call[5];
+      cdd_to_openapi_config_t cfg;
       cdd_c_error_t rc_sub;
-      argv_call[0] = (char *)(size_t) "to_openapi";
-      argv_call[1] = (char *)(size_t) "-i";
-      argv_call[2] = (char *)(size_t)input;
-      argv_call[3] = (char *)(size_t) "-o";
-      argv_call[4] = (char *)(size_t)output;
-      rc_sub = to_openapi_cli_main(5, argv_call);
+      memset(&cfg, 0, sizeof(cfg));
+      cfg.input = input;
+      cfg.output = output;
+      rc_sub = cdd_generate_to_openapi(&cfg);
       if (rc_sub != CDD_C_SUCCESS) {
         rc = send_rpc_error(client_fd, -32603, "OpenAPI generation failed");
       } else {
@@ -538,23 +530,18 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
     if (!input) {
       rc = send_rpc_error(client_fd, -32602, "Invalid params");
     } else {
-      char *argv_call[10];
-      int argc_call = 0;
+      cdd_docs_json_config_t cfg;
       cdd_c_error_t rc_sub;
-      argv_call[argc_call++] = (char *)(size_t) "to_docs_json";
-      argv_call[argc_call++] = (char *)(size_t) "-i";
-      argv_call[argc_call++] = (char *)(size_t)input;
-      if (output) {
-        argv_call[argc_call++] = (char *)(size_t) "-o";
-        argv_call[argc_call++] = (char *)(size_t)output;
-      }
+      memset(&cfg, 0, sizeof(cfg));
+      cfg.input = input;
+      cfg.output = output;
       if (json_object_get_boolean(params, "no_imports") == 1) {
-        argv_call[argc_call++] = (char *)(size_t) "--no-imports";
+        cfg.no_imports = 1;
       }
       if (json_object_get_boolean(params, "no_wrapping") == 1) {
-        argv_call[argc_call++] = (char *)(size_t) "--no-wrapping";
+        cfg.no_wrapping = 1;
       }
-      rc_sub = to_docs_json_cli_main(argc_call, argv_call);
+      rc_sub = cdd_generate_docs_json(&cfg);
       if (rc_sub != CDD_C_SUCCESS) {
         rc = send_rpc_error(client_fd, -32603, "Docs generation failed");
       } else {
@@ -568,47 +555,43 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
         params ? json_object_get_string(params, "input_dir") : NULL;
     const char *output =
         params ? json_object_get_string(params, "output") : NULL;
+    cdd_from_openapi_config_t cfg;
+    memset(&cfg, 0, sizeof(cfg));
 
-    char *argv_call[20];
-    int argc_call = 0;
-    argv_call[argc_call++] = (char *)(size_t) "from_openapi";
     if (strcmp(method, "from_openapi_to_sdk") == 0) {
-      argv_call[argc_call++] = (char *)(size_t) "to_sdk";
+      cfg.subcommand = "to_sdk";
     } else if (strcmp(method, "from_openapi_to_sdk_cli") == 0) {
-      argv_call[argc_call++] = (char *)(size_t) "to_sdk_cli";
+      cfg.subcommand = "to_sdk_cli";
     } else if (strcmp(method, "from_openapi_to_server") == 0) {
-      argv_call[argc_call++] = (char *)(size_t) "to_server";
+      cfg.subcommand = "to_server";
     } else {
       json_value_free(root_val);
       return send_rpc_error(client_fd, -32601, "Method not found");
     }
 
     if (input) {
-      argv_call[argc_call++] = (char *)(size_t) "-i";
-      argv_call[argc_call++] = (char *)(size_t)input;
+      cfg.input = input;
     } else if (input_dir) {
-      argv_call[argc_call++] = (char *)(size_t) "--input-dir";
-      argv_call[argc_call++] = (char *)(size_t)input_dir;
+      cfg.input_dir = input_dir;
     }
 
     if (output) {
-      argv_call[argc_call++] = (char *)(size_t) "-o";
-      argv_call[argc_call++] = (char *)(size_t)output;
+      cfg.output = output;
     }
 
     if (params && json_object_get_boolean(params, "no_github_actions") == 1) {
-      argv_call[argc_call++] = (char *)(size_t) "--no-github-actions";
+      cfg.no_github_actions = 1;
     }
     if (params &&
         json_object_get_boolean(params, "no_installable_package") == 1) {
-      argv_call[argc_call++] = (char *)(size_t) "--no-installable-package";
+      cfg.no_installable_package = 1;
     }
     if (params && json_object_get_boolean(params, "tests") == 1) {
-      argv_call[argc_call++] = (char *)(size_t) "--tests";
+      cfg.tests = 1;
     }
 
     {
-      cdd_c_error_t rc_sub = from_openapi_cli_main(argc_call, argv_call);
+      cdd_c_error_t rc_sub = cdd_generate_from_openapi(&cfg);
       if (rc_sub != CDD_C_SUCCESS) {
         rc = send_rpc_error(client_fd, -32603, "OpenAPI generation failed");
       } else {
@@ -626,48 +609,30 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
           !defined(__EMSCRIPTEN__) */
 
 /**
- * @brief Executes the server json rpc main operation.
+ * @brief Performs server json rpc operation from a typed config struct.
  *
- * @param[in] argc Argument count.
- * @param[in] argv Argument vector.
+ * @param[in] config Configuration struct.
  * @return CDD_C_SUCCESS on success, or error code.
  */
-C_CDD_EXPORT cdd_c_error_t serve_json_rpc_main(int argc, char **argv) {
+C_CDD_EXPORT cdd_c_error_t
+serve_json_rpc_run(const cdd_serve_json_rpc_config_t *config) {
 #if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__)
-  (void)argc;
-  (void)argv;
+  (void)config;
   fprintf(stderr, "Server mode is not supported on this platform.\n");
   return CDD_C_ERROR_UNKNOWN;
 #else
-  int port = getenv("CDD_PORT") ? atoi(getenv("CDD_PORT")) : 8080;
-  int listen_flag = getenv("CDD_LISTEN") ? 1 : 0;
-  int i;
+  int port;
+  int listen_flag;
   cdd_socket_t server_fd;
   struct sockaddr_in addr;
   cdd_c_error_t rc;
   (void)addr;
 
-  for (i = 0; i < argc; i++) {
-    if (strcmp(argv[i], "--port") == 0 || strcmp(argv[i], "-p") == 0) {
-      if (i + 1 < argc) {
-        port = atoi(argv[++i]);
-      } else {
-        return CDD_C_ERROR_INVALID_ARGUMENT;
-      }
-    } else if (strcmp(argv[i], "--listen") == 0 || strcmp(argv[i], "-l") == 0) {
-      listen_flag = 1;
-      if (i + 1 < argc) {
-        listen_flag = atoi(argv[++i]);
-      }
-    } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
-      printf("Usage: cdd-c serve_json_rpc [-p|--port <port>] [-l|--listen "
-             "<address>]\n");
-      return CDD_C_SUCCESS;
-    } else if (argv[i][0] == '-') {
-      fprintf(stderr, "Unknown option for serve_json_rpc: %s\n", argv[i]);
-      return CDD_C_ERROR_INVALID_ARGUMENT;
-    }
-  }
+  if (!config)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  port = (config->port > 0) ? config->port : 8080;
+  listen_flag = config->listen_host ? atoi(config->listen_host) : 0;
 
   printf("Starting JSON-RPC server on port %d...\n", port);
 
@@ -756,7 +721,60 @@ C_CDD_EXPORT cdd_c_error_t serve_json_rpc_main(int argc, char **argv) {
 #endif
 }
 
+/**
+ * @brief CLI entry point for running the JSON-RPC 2.0 server over HTTP or
+ * stdio.
+ *
+ * @param[in] argc Argument count.
+ * @param[in] argv Argument vector.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t serve_json_rpc_main(int argc, char **argv) {
+#if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__)
+  (void)argc;
+  (void)argv;
+  fprintf(stderr, "Server mode is not supported on this platform.\n");
+  return CDD_C_ERROR_UNKNOWN;
 #else
+  cdd_serve_json_rpc_config_t cfg;
+  int i;
+
+  memset(&cfg, 0, sizeof(cfg));
+  cfg.port = getenv("CDD_PORT") ? atoi(getenv("CDD_PORT")) : 8080;
+  cfg.listen_host = getenv("CDD_LISTEN") ? "1" : NULL;
+
+  for (i = 0; i < argc; i++) {
+    if (strcmp(argv[i], "--port") == 0 || strcmp(argv[i], "-p") == 0) {
+      if (i + 1 < argc) {
+        cfg.port = atoi(argv[++i]);
+      } else {
+        return CDD_C_ERROR_INVALID_ARGUMENT;
+      }
+    } else if (strcmp(argv[i], "--listen") == 0 || strcmp(argv[i], "-l") == 0) {
+      cfg.listen_host = "1";
+      if (i + 1 < argc) {
+        cfg.listen_host = argv[++i];
+      }
+    } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+      printf("Usage: cdd-c serve_json_rpc [-p|--port <port>] [-l|--listen "
+             "<address>]\n");
+      return CDD_C_SUCCESS;
+    } else if (argv[i][0] == '-') {
+      fprintf(stderr, "Unknown option for serve_json_rpc: %s\n", argv[i]);
+      return CDD_C_ERROR_INVALID_ARGUMENT;
+    }
+  }
+
+  return serve_json_rpc_run(&cfg);
+#endif
+}
+
+#else
+cdd_c_error_t serve_json_rpc_run(const cdd_serve_json_rpc_config_t *config) {
+  (void)config;
+  return CDD_C_ERROR_UNKNOWN;
+}
+
 cdd_c_error_t serve_json_rpc_main(int argc, char **argv) {
   (void)argc;
   (void)argv;

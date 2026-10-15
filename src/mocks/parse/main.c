@@ -21,17 +21,23 @@ static const char *foo_e_mock0 =
 
 /** \brief func */
 /**
- * @brief Executes the main operation.
+ * @brief Application entry point.
  */
 enum cdd_c_error main(void) {
   const enum Tank t = Tank_BIG;
   char *tank_as_str = NULL;
-  struct HazE haz_e = {"some_bzr", Tank_SMALL};
-  struct FooE foo_e = {"some_bar", 5, NULL};
+  char bzr_buf[] = "some_bzr";
+  char bar_buf[] = "some_bar";
+  struct HazE haz_e;
+  struct FooE foo_e;
   char *haz_e_json = NULL;
   char *foo_e_json = NULL;
   struct HazE *haz_e0 = C_CDD_MALLOC(sizeof(*haz_e0));
   struct FooE *foo_e0 = C_CDD_MALLOC(sizeof(*foo_e0));
+  haz_e.bzr = bzr_buf;
+  haz_e.tank = Tank_SMALL;
+  foo_e.bar = bar_buf;
+  foo_e.can = 5;
   foo_e.haz = &haz_e;
 
   if (haz_e0 == NULL || foo_e0 == NULL)

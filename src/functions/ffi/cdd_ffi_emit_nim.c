@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_nim.c
+ * @brief FFI binding emitter for Nim.
+ */
 #ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
 #endif
@@ -12,68 +16,16 @@ extern volatile int g_fail_io_after;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
-}
-
-static const char *map_nim_type(cdd_ffi_type_t *t) {
-  if (t->pointer_depth > 0) {
-    if (t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) {
-      return "cstring";
-    }
-    if (t->kind == CDD_FFI_KIND_VOID) {
-      return "pointer";
-    }
-    return "pointer";
-  }
-  switch (t->kind) {
-  case CDD_FFI_KIND_VOID:
-    return "void";
-  case CDD_FFI_KIND_BOOL:
-    return "bool";
-  case CDD_FFI_KIND_INT8:
-    return "int8";
-  case CDD_FFI_KIND_UINT8:
-    return "uint8";
-  case CDD_FFI_KIND_INT16:
-    return "int16";
-  case CDD_FFI_KIND_UINT16:
-    return "uint16";
-  case CDD_FFI_KIND_INT32:
-    return "cint";
-  case CDD_FFI_KIND_UINT32:
-    return "cuint";
-  case CDD_FFI_KIND_INT64:
-    return "clonglong";
-  case CDD_FFI_KIND_UINT64:
-    return "culonglong";
-  case CDD_FFI_KIND_FLOAT32:
-    return "cfloat";
-  case CDD_FFI_KIND_FLOAT64:
-    return "cdouble";
-  case CDD_FFI_KIND_STRUCT_REF:
-  case CDD_FFI_KIND_ENUM_REF:
-  case CDD_FFI_KIND_TYPEDEF_REF:
-    if (t->ref_name) {
-      return t->ref_name;
-    }
-    return "pointer";
-  default:
-    return "pointer";
-  }
+static cdd_c_error_t map_nim_type(cdd_ffi_type_t *t, const char **out_type) {
+  static const cdd_ffi_type_map_table_t k_nim_types = {
+      "void",    "bool",    "int8",      "uint8",      "int16",  "uint16",
+      "cint",    "cuint",   "clonglong", "culonglong", "cfloat", "cdouble",
+      "cstring", "pointer", NULL,        "pointer",    1,        1,
+      1};
+  return cdd_ffi_map_type_from_table(&k_nim_types, *t, out_type);
 }
 
 cdd_c_error_t cdd_ffi_emit_nim(cdd_ffi_ir_t *ir,
@@ -151,12 +103,13 @@ cdd_c_error_t cdd_ffi_emit_nim(cdd_ffi_ir_t *ir,
       fprintf(f, "  %s* {.importc: \"%s\", bycopy.} = object\n", node->name,
               node->name);
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "    %s*: %s\n", node->fields[j].name,
-                map_nim_type(&node->fields[j].type));
+        const char *nt = NULL;
+        map_nim_type(&node->fields[j].type, &nt);
+        fprintf(f, "    %s*: %s\n", node->fields[j].name, nt);
       }
       fprintf(f, "\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "  %s* {.size: sizeof(cint).} = enum\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         cdd_ffi_enum_variant_t *var = &node->variants[j];
@@ -174,14 +127,16 @@ cdd_c_error_t cdd_ffi_emit_nim(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
+      const char *ret_nt = NULL;
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "proc %s*(", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "%s%s: %s", j > 0 ? ", " : "", node->fields[j].name,
-                map_nim_type(&node->fields[j].type));
+        const char *nt = NULL;
+        map_nim_type(&node->fields[j].type, &nt);
+        fprintf(f, "%s%s: %s", j > 0 ? ", " : "", node->fields[j].name, nt);
       }
-      fprintf(f, "): %s {.importc: \"%s\", cdecl.}\n\n",
-              map_nim_type(&node->return_or_base_type), node->name);
+      map_nim_type(&node->return_or_base_type, &ret_nt);
+      fprintf(f, "): %s {.importc: \"%s\", cdecl.}\n\n", ret_nt, node->name);
     }
   }
 

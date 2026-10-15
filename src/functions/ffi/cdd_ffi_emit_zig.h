@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_zig.h
+ * @brief FFI binding emitter for Zig.
+ */
 #ifndef CDD_FFI_EMIT_ZIG_H
 #define CDD_FFI_EMIT_ZIG_H
 
@@ -11,7 +15,7 @@ extern "C" {
 /* clang-format on */
 
 /**
- * @brief Emits Zig bindings (via @cImport or manual extern) for the given FFI
+ * @brief Emits Zig bindings (via \@cImport or manual extern) for the given FFI
  * IR.
  * @param ir The extracted and topologically sorted FFI IR.
  * @param config The generation config.

@@ -1,3 +1,7 @@
+/**
+ * @file cdd_dsl_parser.h
+ * @brief CDD FFI Domain-Specific Language (DSL) parser.
+ */
 #ifndef CDD_DSL_PARSER_H
 #define CDD_DSL_PARSER_H
 

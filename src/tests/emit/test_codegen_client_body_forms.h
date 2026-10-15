@@ -21,7 +21,7 @@ TEST test_body_form_urlencoded(void) {
   struct OpenAPI_Operation op;
   char *code = NULL;
   char *_ast_gen_body_25 = NULL;
-  char *schema_name = (char *)(size_t)(size_t) "FormData";
+  char *schema_name = cdd_test_mut_str("FormData");
 
   memset(&op, 0, sizeof(op));
 
@@ -45,13 +45,13 @@ TEST test_body_form_urlencoded(void) {
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)(size_t) "FormData";
+  op.req_body.ref_name = cdd_test_mut_str("FormData");
   op.req_body.content_type =
-      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+      cdd_test_mut_str("application/x-www-form-urlencoded");
 
   code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_25),
           _ast_gen_body_25);
@@ -75,7 +75,7 @@ TEST test_body_form_urlencoded_with_params(void) {
   struct OpenAPI_Operation op;
   char *code = NULL;
   char *_ast_gen_body_26 = NULL;
-  char *schema_name = (char *)(size_t)(size_t) "FormData";
+  char *schema_name = cdd_test_mut_str("FormData");
 
   memset(&op, 0, sizeof(op));
 
@@ -97,14 +97,14 @@ TEST test_body_form_urlencoded_with_params(void) {
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)(size_t) "FormData";
+  op.req_body.ref_name = cdd_test_mut_str("FormData");
   op.req_body.content_type =
-      (char *)(size_t)(size_t) "application/x-www-form-urlencoded; "
-                               "charset=utf-8";
+      cdd_test_mut_str("application/x-www-form-urlencoded; "
+                       "charset=utf-8");
 
   code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_26),
           _ast_gen_body_26);
@@ -126,7 +126,7 @@ TEST test_body_form_urlencoded_object_fields(void) {
   struct OpenAPI_Operation op;
   char *code = NULL;
   char *_ast_gen_body_27 = NULL;
-  char *schema_name = (char *)(size_t)(size_t) "FormData";
+  char *schema_name = cdd_test_mut_str("FormData");
 
   memset(&op, 0, sizeof(op));
 
@@ -150,13 +150,13 @@ TEST test_body_form_urlencoded_object_fields(void) {
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)(size_t) "FormData";
+  op.req_body.ref_name = cdd_test_mut_str("FormData");
   op.req_body.content_type =
-      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+      cdd_test_mut_str("application/x-www-form-urlencoded");
 
   code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_27),
           _ast_gen_body_27);
@@ -211,21 +211,21 @@ TEST test_body_form_urlencoded_object_style_form_explode_true(void) {
   spec.n_defined_schemas = 2;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)(size_t) "FormData";
+  op.req_body.ref_name = cdd_test_mut_str("FormData");
   op.req_body.content_type =
-      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+      cdd_test_mut_str("application/x-www-form-urlencoded");
 
-  enc.name = (char *)(size_t)(size_t) "filter";
+  enc.name = cdd_test_mut_str("filter");
   enc.style = OA_STYLE_FORM;
   enc.style_set = 1;
   enc.explode = 1;
   enc.explode_set = 1;
 
-  mt.name = (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+  mt.name = cdd_test_mut_str("application/x-www-form-urlencoded");
   mt.encoding = &enc;
   mt.n_encoding = 1;
   op.req_body_media_types = &mt;
@@ -283,21 +283,21 @@ TEST test_body_form_urlencoded_object_style_form_explode_false(void) {
   spec.n_defined_schemas = 2;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)(size_t) "FormData";
+  op.req_body.ref_name = cdd_test_mut_str("FormData");
   op.req_body.content_type =
-      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+      cdd_test_mut_str("application/x-www-form-urlencoded");
 
-  enc.name = (char *)(size_t)(size_t) "filter";
+  enc.name = cdd_test_mut_str("filter");
   enc.style = OA_STYLE_FORM;
   enc.style_set = 1;
   enc.explode = 0;
   enc.explode_set = 1;
 
-  mt.name = (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+  mt.name = cdd_test_mut_str("application/x-www-form-urlencoded");
   mt.encoding = &enc;
   mt.n_encoding = 1;
   op.req_body_media_types = &mt;
@@ -356,21 +356,21 @@ TEST test_body_form_urlencoded_object_style_deep_object(void) {
   spec.n_defined_schemas = 2;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)(size_t) "FormData";
+  op.req_body.ref_name = cdd_test_mut_str("FormData");
   op.req_body.content_type =
-      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+      cdd_test_mut_str("application/x-www-form-urlencoded");
 
-  enc.name = (char *)(size_t)(size_t) "filter";
+  enc.name = cdd_test_mut_str("filter");
   enc.style = OA_STYLE_DEEP_OBJECT;
   enc.style_set = 1;
   enc.explode = 1;
   enc.explode_set = 1;
 
-  mt.name = (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+  mt.name = cdd_test_mut_str("application/x-www-form-urlencoded");
   mt.encoding = &enc;
   mt.n_encoding = 1;
   op.req_body_media_types = &mt;
@@ -394,7 +394,7 @@ TEST test_body_multipart_primitives_and_arrays(void) {
   struct OpenAPI_Operation op;
   char *code = NULL;
   char *_ast_gen_body_31 = NULL;
-  char *schema_name = (char *)(size_t)(size_t) "Upload";
+  char *schema_name = cdd_test_mut_str("Upload");
 
   memset(&op, 0, sizeof(op));
 
@@ -426,12 +426,12 @@ TEST test_body_multipart_primitives_and_arrays(void) {
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)(size_t) "Upload";
-  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
+  op.req_body.ref_name = cdd_test_mut_str("Upload");
+  op.req_body.content_type = cdd_test_mut_str("multipart/form-data");
 
   code = (gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_31),
           _ast_gen_body_31);
@@ -457,7 +457,7 @@ TEST test_body_multipart_object_fields(void) {
   struct OpenAPI_Operation op;
   char *code = NULL;
   char *_ast_gen_body_32 = NULL;
-  char *schema_name = (char *)(size_t)(size_t) "FormData";
+  char *schema_name = cdd_test_mut_str("FormData");
 
   memset(&op, 0, sizeof(op));
 
@@ -481,12 +481,12 @@ TEST test_body_multipart_object_fields(void) {
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)(size_t) "FormData";
-  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
+  op.req_body.ref_name = cdd_test_mut_str("FormData");
+  op.req_body.content_type = cdd_test_mut_str("multipart/form-data");
 
   code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_32),
           _ast_gen_body_32);
@@ -512,7 +512,7 @@ TEST test_body_multipart_encoding_content_type(void) {
   struct OpenAPI_Operation op;
   char *code = NULL;
   char *_ast_gen_body_33 = NULL;
-  char *schema_name = (char *)(size_t)(size_t) "Upload";
+  char *schema_name = cdd_test_mut_str("Upload");
 
   memset(&op, 0, sizeof(op));
 
@@ -536,16 +536,16 @@ TEST test_body_multipart_encoding_content_type(void) {
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)(size_t) "Upload";
-  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
+  op.req_body.ref_name = cdd_test_mut_str("Upload");
+  op.req_body.content_type = cdd_test_mut_str("multipart/form-data");
 
-  mt.name = (char *)(size_t)(size_t) "multipart/form-data";
-  enc.name = (char *)(size_t)(size_t) "title";
-  enc.content_type = (char *)(size_t)(size_t) "text/plain; charset=utf-8";
+  mt.name = cdd_test_mut_str("multipart/form-data");
+  enc.name = cdd_test_mut_str("title");
+  enc.content_type = cdd_test_mut_str("text/plain; charset=utf-8");
   mt.encoding = &enc;
   mt.n_encoding = 1;
   op.req_body_media_types = &mt;
@@ -572,7 +572,7 @@ TEST test_body_multipart_encoding_content_type_list(void) {
   struct OpenAPI_Operation op;
   char *code = NULL;
   char *_ast_gen_body_34 = NULL;
-  char *schema_name = (char *)(size_t)(size_t) "Upload";
+  char *schema_name = cdd_test_mut_str("Upload");
 
   memset(&op, 0, sizeof(op));
 
@@ -596,16 +596,16 @@ TEST test_body_multipart_encoding_content_type_list(void) {
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)(size_t) "Upload";
-  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
+  op.req_body.ref_name = cdd_test_mut_str("Upload");
+  op.req_body.content_type = cdd_test_mut_str("multipart/form-data");
 
-  mt.name = (char *)(size_t)(size_t) "multipart/form-data";
-  enc.name = (char *)(size_t)(size_t) "file";
-  enc.content_type = (char *)(size_t)(size_t) "image/png, image/jpeg";
+  mt.name = cdd_test_mut_str("multipart/form-data");
+  enc.name = cdd_test_mut_str("file");
+  enc.content_type = cdd_test_mut_str("image/png, image/jpeg");
   mt.encoding = &enc;
   mt.n_encoding = 1;
   op.req_body_media_types = &mt;
@@ -633,7 +633,7 @@ TEST test_body_multipart_encoding_headers(void) {
   struct OpenAPI_Operation op;
   char *code = NULL;
   char *_ast_gen_body_35 = NULL;
-  char *schema_name = (char *)(size_t)(size_t) "Upload";
+  char *schema_name = cdd_test_mut_str("Upload");
 
   memset(&op, 0, sizeof(op));
 
@@ -658,24 +658,24 @@ TEST test_body_multipart_encoding_headers(void) {
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)(size_t) "Upload";
-  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
+  op.req_body.ref_name = cdd_test_mut_str("Upload");
+  op.req_body.content_type = cdd_test_mut_str("multipart/form-data");
 
-  headers[0].name = (char *)(size_t)(size_t) "X-Trace";
-  headers[0].type = (char *)(size_t)(size_t) "string";
-  headers[1].name = (char *)(size_t)(size_t) "X-Ids";
-  headers[1].type = (char *)(size_t)(size_t) "array";
+  headers[0].name = cdd_test_mut_str("X-Trace");
+  headers[0].type = cdd_test_mut_str("string");
+  headers[1].name = cdd_test_mut_str("X-Ids");
+  headers[1].type = cdd_test_mut_str("array");
   headers[1].is_array = 1;
-  headers[1].items_type = (char *)(size_t)(size_t) "integer";
-  headers[2].name = (char *)(size_t)(size_t) "Content-Type";
-  headers[2].type = (char *)(size_t)(size_t) "string";
+  headers[1].items_type = cdd_test_mut_str("integer");
+  headers[2].name = cdd_test_mut_str("Content-Type");
+  headers[2].type = cdd_test_mut_str("string");
 
-  mt.name = (char *)(size_t)(size_t) "multipart/form-data";
-  enc.name = (char *)(size_t)(size_t) "title";
+  mt.name = cdd_test_mut_str("multipart/form-data");
+  enc.name = cdd_test_mut_str("title");
   enc.headers = headers;
   enc.n_headers = 3;
   mt.encoding = &enc;

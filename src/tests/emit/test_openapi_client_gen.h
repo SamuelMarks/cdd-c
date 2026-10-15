@@ -38,16 +38,16 @@ static cdd_c_error_t setup_minimal_spec(struct OpenAPI_Spec *spec,
     return rc;
   }
   memset(op, 0, sizeof(*op));
-  op->operation_id = (char *)(size_t)(size_t) "test_op";
+  op->operation_id = cdd_test_mut_str("test_op");
   op->verb = OA_VERB_GET;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op->responses = &resp;
   op->n_responses = 1;
 
   memset(&path, 0, sizeof(path));
-  path.route = (char *)(size_t)(size_t) "/test";
+  path.route = cdd_test_mut_str("/test");
   path.operations = op;
   path.n_operations = 1;
 
@@ -61,28 +61,21 @@ TEST test_gen_client_basic(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "build/test_out/gen_client_test";
-  char *h_file =
-      (char *)(size_t)(size_t) "build/test_out/src/gen_client_test.h";
-  char *c_file =
-      (char *)(size_t)(size_t) "build/test_out/src/gen_client_test.c";
+  char *h_file = cdd_test_mut_str("build/test_out/src/gen_client_test.h");
+  char *c_file = cdd_test_mut_str("build/test_out/src/gen_client_test.c");
   char *content = NULL;
   size_t sz;
   int rc = 0;
 
   /* Exercise setup_minimal_spec error path */
-  {
-    extern C_CDD_EXPORT int g_openapi_spec_init_fail;
-    g_openapi_spec_init_fail = 1;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, setup_minimal_spec(&spec, &op));
-    g_openapi_spec_init_fail = 0;
-  }
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, setup_minimal_spec(NULL, &op));
 
   ASSERT_EQ(CDD_C_SUCCESS, setup_minimal_spec(&spec, &op));
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = (char *)(size_t)(size_t) "api_";
-  config.model_header = (char *)(size_t)(size_t) "my_models.h";
+  config.func_prefix = cdd_test_mut_str("api_");
+  config.model_header = cdd_test_mut_str("my_models.h");
 
   rc = openapi_client_generate(&spec, &config);
   (void)rc;
@@ -108,10 +101,8 @@ TEST test_gen_client_operation_server_override(void) {
   struct OpenAPI_Server op_server;
   struct OpenApiClientConfig config;
   const char *base = "build/test_out/gen_client_op_server";
-  char *h_file =
-      (char *)(size_t)(size_t) "build/test_out/src/gen_client_op_server.h";
-  char *c_file =
-      (char *)(size_t)(size_t) "build/test_out/src/gen_client_op_server.c";
+  char *h_file = cdd_test_mut_str("build/test_out/src/gen_client_op_server.h");
+  char *c_file = cdd_test_mut_str("build/test_out/src/gen_client_op_server.c");
   char *content = NULL;
   size_t sz;
   int rc = 0;
@@ -119,13 +110,13 @@ TEST test_gen_client_operation_server_override(void) {
   ASSERT_EQ(CDD_C_SUCCESS, setup_minimal_spec(&spec, &op));
 
   memset(&op_server, 0, sizeof(op_server));
-  op_server.url = (char *)(size_t)(size_t) "https://op.example.com/api";
+  op_server.url = cdd_test_mut_str("https://op.example.com/api");
   op.servers = &op_server;
   op.n_servers = 1;
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = (char *)(size_t)(size_t) "api_";
+  config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
   (void)rc;
@@ -147,21 +138,21 @@ TEST test_gen_client_text_plain_request_body(void) {
   struct OpenApiClientConfig config;
   const char *base = "build/test_out/gen_client_text_plain_req";
   char *h_file =
-      (char *)(size_t)(size_t) "build/test_out/src/gen_client_text_plain_req.h";
+      cdd_test_mut_str("build/test_out/src/gen_client_text_plain_req.h");
   char *c_file =
-      (char *)(size_t)(size_t) "build/test_out/src/gen_client_text_plain_req.c";
+      cdd_test_mut_str("build/test_out/src/gen_client_text_plain_req.c");
   char *content = NULL;
   size_t sz;
   int rc = 0;
 
   ASSERT_EQ(CDD_C_SUCCESS, setup_minimal_spec(&spec, &op));
   op.verb = OA_VERB_POST;
-  op.req_body.content_type = (char *)(size_t)(size_t) "text/plain";
-  op.req_body.inline_type = (char *)(size_t)(size_t) "string";
+  op.req_body.content_type = cdd_test_mut_str("text/plain");
+  op.req_body.inline_type = cdd_test_mut_str("string");
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = (char *)(size_t)(size_t) "api_";
+  config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
   (void)rc;
@@ -183,22 +174,19 @@ TEST test_gen_client_octet_stream_request_body(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "build/test_out/gen_client_octet_req";
-  char *h_file =
-      (char *)(size_t)(size_t) "build/test_out/src/gen_client_octet_req.h";
-  char *c_file =
-      (char *)(size_t)(size_t) "build/test_out/src/gen_client_octet_req.c";
+  char *h_file = cdd_test_mut_str("build/test_out/src/gen_client_octet_req.h");
+  char *c_file = cdd_test_mut_str("build/test_out/src/gen_client_octet_req.c");
   char *content = NULL;
   size_t sz;
   int rc = 0;
 
   ASSERT_EQ(CDD_C_SUCCESS, setup_minimal_spec(&spec, &op));
   op.verb = OA_VERB_POST;
-  op.req_body.content_type =
-      (char *)(size_t)(size_t) "application/octet-stream";
+  op.req_body.content_type = cdd_test_mut_str("application/octet-stream");
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = (char *)(size_t)(size_t) "api_";
+  config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
   (void)rc;
@@ -221,21 +209,18 @@ TEST test_gen_client_octet_stream_response_body(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "build/test_out/gen_client_octet_resp";
-  char *h_file =
-      (char *)(size_t)(size_t) "build/test_out/src/gen_client_octet_resp.h";
-  char *c_file =
-      (char *)(size_t)(size_t) "build/test_out/src/gen_client_octet_resp.c";
+  char *h_file = cdd_test_mut_str("build/test_out/src/gen_client_octet_resp.h");
+  char *c_file = cdd_test_mut_str("build/test_out/src/gen_client_octet_resp.c");
   char *content = NULL;
   size_t sz;
   int rc = 0;
 
   ASSERT_EQ(CDD_C_SUCCESS, setup_minimal_spec(&spec, &op));
-  op.responses[0].content_type =
-      (char *)(size_t)(size_t) "application/octet-stream";
+  op.responses[0].content_type = cdd_test_mut_str("application/octet-stream");
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = (char *)(size_t)(size_t) "api_";
+  config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
   (void)rc;
@@ -260,9 +245,9 @@ TEST test_gen_client_default_base_url_from_server(void) {
   struct OpenAPI_ServerVariable var;
   const char *base = "build/test_out/gen_client_default_url";
   char *h_file =
-      (char *)(size_t)(size_t) "build/test_out/src/gen_client_default_url.h";
+      cdd_test_mut_str("build/test_out/src/gen_client_default_url.h");
   char *c_file =
-      (char *)(size_t)(size_t) "build/test_out/src/gen_client_default_url.c";
+      cdd_test_mut_str("build/test_out/src/gen_client_default_url.c");
   char *content = NULL;
   size_t sz;
   int rc = 0;
@@ -271,9 +256,9 @@ TEST test_gen_client_default_base_url_from_server(void) {
 
   memset(&server, 0, sizeof(server));
   memset(&var, 0, sizeof(var));
-  server.url = (char *)(size_t)(size_t) "https://{env}.example.com/v1";
-  var.name = (char *)(size_t)(size_t) "env";
-  var.default_value = (char *)(size_t)(size_t) "api";
+  server.url = cdd_test_mut_str("https://{env}.example.com/v1");
+  var.name = cdd_test_mut_str("env");
+  var.default_value = cdd_test_mut_str("api");
   server.variables = &var;
   server.n_variables = 1;
   spec.servers = &server;
@@ -281,7 +266,7 @@ TEST test_gen_client_default_base_url_from_server(void) {
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = (char *)(size_t)(size_t) "api_";
+  config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
   (void)rc;
@@ -305,10 +290,10 @@ TEST test_gen_client_default_base_url_no_servers(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "build/test_out/gen_client_default_url_none";
-  char *h_file = (char *)(size_t)(size_t) "build/test_out/src/"
-                                          "gen_client_default_url_none.h";
-  char *c_file = (char *)(size_t)(size_t) "build/test_out/src/"
-                                          "gen_client_default_url_none.c";
+  char *h_file = cdd_test_mut_str("build/test_out/src/"
+                                  "gen_client_default_url_none.h");
+  char *c_file = cdd_test_mut_str("build/test_out/src/"
+                                  "gen_client_default_url_none.c");
   char *content = NULL;
   size_t sz;
   int rc = 0;
@@ -317,7 +302,7 @@ TEST test_gen_client_default_base_url_no_servers(void) {
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = (char *)(size_t)(size_t) "api_";
+  config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
   (void)rc;
@@ -341,10 +326,8 @@ TEST test_gen_client_additional_operation(void) {
   struct OpenApiClientConfig config;
   struct OpenAPI_Path path;
   const char *base = "build/test_out/gen_additional_op";
-  char *h_file =
-      (char *)(size_t)(size_t) "build/test_out/src/gen_additional_op.h";
-  char *c_file =
-      (char *)(size_t)(size_t) "build/test_out/src/gen_additional_op.c";
+  char *h_file = cdd_test_mut_str("build/test_out/src/gen_additional_op.h");
+  char *c_file = cdd_test_mut_str("build/test_out/src/gen_additional_op.c");
   char *content = NULL;
   size_t sz;
   int rc = 0;
@@ -354,15 +337,15 @@ TEST test_gen_client_additional_operation(void) {
   memset(&resp, 0, sizeof(resp));
   memset(&path, 0, sizeof(path));
 
-  op.operation_id = (char *)(size_t)(size_t) "custom_connect";
+  op.operation_id = cdd_test_mut_str("custom_connect");
   op.verb = OA_VERB_UNKNOWN;
   op.is_additional = 1;
-  op.method = (char *)(size_t)(size_t) "CONNECT";
-  resp.code = (char *)(size_t)(size_t) "200";
+  op.method = cdd_test_mut_str("CONNECT");
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  path.route = (char *)(size_t)(size_t) "/custom";
+  path.route = cdd_test_mut_str("/custom");
   path.additional_operations = &op;
   path.n_additional_operations = 1;
 
@@ -371,7 +354,7 @@ TEST test_gen_client_additional_operation(void) {
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = (char *)(size_t)(size_t) "api_";
+  config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
   (void)rc;
@@ -397,7 +380,7 @@ TEST test_gen_client_op_params_only(void) {
   struct OpenApiClientConfig config;
   struct OpenAPI_Parameter op_param;
   const char *base = "build/test_out/gen_op_params";
-  char *h_file = (char *)(size_t)(size_t) "build/test_out/src/gen_op_params.h";
+  char *h_file = cdd_test_mut_str("build/test_out/src/gen_op_params.h");
   char *content = NULL;
   size_t sz;
   int rc = 0;
@@ -405,15 +388,15 @@ TEST test_gen_client_op_params_only(void) {
   ASSERT_EQ(CDD_C_SUCCESS, setup_minimal_spec(&spec, &op));
 
   memset(&op_param, 0, sizeof(op_param));
-  op_param.name = (char *)(size_t)(size_t) "limit";
+  op_param.name = cdd_test_mut_str("limit");
   op_param.in = OA_PARAM_IN_QUERY;
-  op_param.type = (char *)(size_t)(size_t) "integer";
+  op_param.type = cdd_test_mut_str("integer");
   op.parameters = &op_param;
   op.n_parameters = 1;
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = (char *)(size_t)(size_t) "api_";
+  config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
   (void)rc;
@@ -438,8 +421,7 @@ TEST test_gen_client_querystring_param(void) {
   struct OpenApiClientConfig config;
   struct OpenAPI_Parameter op_param;
   const char *base = "build/test_out/gen_querystring_param";
-  char *h_file =
-      (char *)(size_t)(size_t) "build/test_out/src/gen_querystring_param.h";
+  char *h_file = cdd_test_mut_str("build/test_out/src/gen_querystring_param.h");
   char *content = NULL;
   size_t sz;
   int rc = 0;
@@ -447,15 +429,15 @@ TEST test_gen_client_querystring_param(void) {
   ASSERT_EQ(CDD_C_SUCCESS, setup_minimal_spec(&spec, &op));
 
   memset(&op_param, 0, sizeof(op_param));
-  op_param.name = (char *)(size_t)(size_t) "qs";
+  op_param.name = cdd_test_mut_str("qs");
   op_param.in = OA_PARAM_IN_QUERYSTRING;
-  op_param.type = (char *)(size_t)(size_t) "string";
+  op_param.type = cdd_test_mut_str("string");
   op.parameters = &op_param;
   op.n_parameters = 1;
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = (char *)(size_t)(size_t) "api_";
+  config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
   (void)rc;
@@ -479,8 +461,7 @@ TEST test_gen_client_path_level_params(void) {
   struct OpenApiClientConfig config;
   struct OpenAPI_Parameter path_param;
   const char *base = "build/test_out/gen_path_params";
-  char *h_file =
-      (char *)(size_t)(size_t) "build/test_out/src/gen_path_params.h";
+  char *h_file = cdd_test_mut_str("build/test_out/src/gen_path_params.h");
   char *content = NULL;
   size_t sz;
   int rc = 0;
@@ -488,16 +469,16 @@ TEST test_gen_client_path_level_params(void) {
   ASSERT_EQ(CDD_C_SUCCESS, setup_minimal_spec(&spec, &op));
 
   memset(&path_param, 0, sizeof(path_param));
-  path_param.name = (char *)(size_t)(size_t) "x_trace";
+  path_param.name = cdd_test_mut_str("x_trace");
   path_param.in = OA_PARAM_IN_HEADER;
-  path_param.type = (char *)(size_t)(size_t) "string";
+  path_param.type = cdd_test_mut_str("string");
 
   spec.paths[0].parameters = &path_param;
   spec.paths[0].n_parameters = 1;
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = (char *)(size_t)(size_t) "api_";
+  config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
   (void)rc;
@@ -525,8 +506,7 @@ TEST test_gen_client_path_param_override(void) {
   struct OpenAPI_Parameter path_param;
   struct OpenAPI_Parameter op_param;
   const char *base = "build/test_out/gen_path_override";
-  char *h_file =
-      (char *)(size_t)(size_t) "build/test_out/src/gen_path_override.h";
+  char *h_file = cdd_test_mut_str("build/test_out/src/gen_path_override.h");
   char *content = NULL;
   size_t sz;
   int rc = 0;
@@ -534,14 +514,14 @@ TEST test_gen_client_path_param_override(void) {
   ASSERT_EQ(CDD_C_SUCCESS, setup_minimal_spec(&spec, &op));
 
   memset(&path_param, 0, sizeof(path_param));
-  path_param.name = (char *)(size_t)(size_t) "id";
+  path_param.name = cdd_test_mut_str("id");
   path_param.in = OA_PARAM_IN_PATH;
-  path_param.type = (char *)(size_t)(size_t) "integer";
+  path_param.type = cdd_test_mut_str("integer");
 
   memset(&op_param, 0, sizeof(op_param));
-  op_param.name = (char *)(size_t)(size_t) "id";
+  op_param.name = cdd_test_mut_str("id");
   op_param.in = OA_PARAM_IN_PATH;
-  op_param.type = (char *)(size_t)(size_t) "string";
+  op_param.type = cdd_test_mut_str("string");
 
   spec.paths[0].parameters = &path_param;
   spec.paths[0].n_parameters = 1;
@@ -550,7 +530,7 @@ TEST test_gen_client_path_param_override(void) {
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = (char *)(size_t)(size_t) "api_";
+  config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
   (void)rc;
@@ -573,14 +553,14 @@ TEST test_gen_client_grouped_tags_namespace(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "build/test_out/gen_group_ns_test";
-  char *h_file =
-      (char *)(size_t)(size_t) "build/test_out/src/gen_group_ns_test.h";
+  char *h_file = cdd_test_mut_str("build/test_out/src/gen_group_ns_test.h");
   char *content = NULL;
   size_t sz;
   int rc = 0;
   /* Tag string array setup */
-  static const char *tags[] = {"pet"};
+  static const char *tags[1];
 
+  tags[0] = cdd_test_mut_str("pet");
   ASSERT_EQ(CDD_C_SUCCESS, setup_minimal_spec(&spec, &op));
 
   /* Inject tag manually */
@@ -589,8 +569,8 @@ TEST test_gen_client_grouped_tags_namespace(void) {
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = (char *)(size_t)(size_t) "api_";
-  config.namespace_prefix = (char *)(size_t)(size_t) "Foo";
+  config.func_prefix = cdd_test_mut_str("api_");
+  config.namespace_prefix = cdd_test_mut_str("Foo");
 
   rc = openapi_client_generate(&spec, &config);
   (void)rc;
@@ -616,8 +596,7 @@ TEST test_gen_client_namespace_only(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "build/test_out/gen_ns_only_test";
-  char *h_file =
-      (char *)(size_t)(size_t) "build/test_out/src/gen_ns_only_test.h";
+  char *h_file = cdd_test_mut_str("build/test_out/src/gen_ns_only_test.h");
   char *content = NULL;
   size_t sz;
   int rc = 0;
@@ -627,8 +606,8 @@ TEST test_gen_client_namespace_only(void) {
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = (char *)(size_t)(size_t) "api_";
-  config.namespace_prefix = (char *)(size_t)(size_t) "Bar";
+  config.func_prefix = cdd_test_mut_str("api_");
+  config.namespace_prefix = cdd_test_mut_str("Bar");
 
   rc = openapi_client_generate(&spec, &config);
   (void)rc;
@@ -675,8 +654,7 @@ TEST test_gen_client_file_error(void) {
   int rc = 0;
 
   ASSERT_EQ(CDD_C_SUCCESS, setup_minimal_spec(&spec, &op));
-  config.filename_base =
-      (char *)(size_t)(size_t) "/this_dir_does_not_exist/file";
+  config.filename_base = cdd_test_mut_str("/this_dir_does_not_exist/file");
   g_io_calls = 0;
   g_fail_io_after = 1;
 
@@ -695,7 +673,7 @@ TEST test_gen_client_defaults(void) {
   size_t sz;
 
   ASSERT_EQ(CDD_C_SUCCESS, setup_minimal_spec(&spec, &op));
-  config.filename_base = (char *)(size_t)(size_t) "build/test_out/gen_def";
+  config.filename_base = cdd_test_mut_str("build/test_out/gen_def");
 
   ASSERT_EQ(0, openapi_client_generate(&spec, &config));
 
@@ -737,8 +715,7 @@ TEST test_gen_transport_selection(void) {
   size_t sz;
 
   ASSERT_EQ(CDD_C_SUCCESS, setup_minimal_spec(&spec, &op));
-  config.filename_base =
-      (char *)(size_t)(size_t) "build/test_out/gen_transport";
+  config.filename_base = cdd_test_mut_str("build/test_out/gen_transport");
 
   ASSERT_EQ(0, openapi_client_generate(&spec, &config));
 
@@ -788,13 +765,13 @@ TEST test_mcp_raw_schemas_io_fail(void) {
 
   spec.n_raw_schemas = 1;
   spec.raw_schema_names = (char **)malloc(1 * sizeof(char *));
-  spec.raw_schema_names[0] = (char *)(size_t) "TestStruct";
+  spec.raw_schema_names[0] = cdd_test_mut_str("TestStruct");
   spec.raw_schema_json = (char **)malloc(1 * sizeof(char *));
-  spec.raw_schema_json[0] = (char *)(size_t) "{ \"type\": \"object\" }";
+  spec.raw_schema_json[0] = cdd_test_mut_str("{ \"type\": \"object\" }");
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = (char **)malloc(1 * sizeof(char *));
-  spec.defined_schema_names[0] = (char *)(size_t) "TestStruct";
+  spec.defined_schema_names[0] = cdd_test_mut_str("TestStruct");
 
   for (i = 0; i < 30; ++i) {
     g_io_calls = 0;
@@ -823,13 +800,13 @@ TEST test_mcp_raw_schemas_escape_fail(void) {
 
   spec.n_raw_schemas = 1;
   spec.raw_schema_names = (char **)malloc(1 * sizeof(char *));
-  spec.raw_schema_names[0] = (char *)(size_t) "TestStruct";
+  spec.raw_schema_names[0] = cdd_test_mut_str("TestStruct");
   spec.raw_schema_json = (char **)malloc(1 * sizeof(char *));
-  spec.raw_schema_json[0] = (char *)(size_t) "{ \"type\": \"object\" }";
+  spec.raw_schema_json[0] = cdd_test_mut_str("{ \"type\": \"object\" }");
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = (char **)malloc(1 * sizeof(char *));
-  spec.defined_schema_names[0] = (char *)(size_t) "TestStruct";
+  spec.defined_schema_names[0] = cdd_test_mut_str("TestStruct");
 
   g_client_gen_fail = 4; /* mock escape_c_string_literal inner failure */
   rc = openapi_client_generate(&spec, &config);
@@ -857,15 +834,15 @@ TEST test_mcp_raw_schemas(void) {
 
   spec.n_raw_schemas = 2;
   spec.raw_schema_names = (char **)malloc(2 * sizeof(char *));
-  spec.raw_schema_names[0] = (char *)(size_t) "OtherStruct";
-  spec.raw_schema_names[1] = (char *)(size_t) "TestStruct";
+  spec.raw_schema_names[0] = cdd_test_mut_str("OtherStruct");
+  spec.raw_schema_names[1] = cdd_test_mut_str("TestStruct");
   spec.raw_schema_json = (char **)malloc(2 * sizeof(char *));
-  spec.raw_schema_json[0] = (char *)(size_t) "{ \"type\": \"string\" }";
-  spec.raw_schema_json[1] = (char *)(size_t) "{ \"type\": \"object\" }";
+  spec.raw_schema_json[0] = cdd_test_mut_str("{ \"type\": \"string\" }");
+  spec.raw_schema_json[1] = cdd_test_mut_str("{ \"type\": \"object\" }");
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = (char **)malloc(sizeof(char *));
-  spec.defined_schema_names[0] = (char *)(size_t) "TestStruct";
+  spec.defined_schema_names[0] = cdd_test_mut_str("TestStruct");
 
   rc = openapi_client_generate(&spec, &config);
   (void)rc;

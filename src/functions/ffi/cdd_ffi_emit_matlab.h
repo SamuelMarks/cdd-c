@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_matlab.h
+ * @brief FFI binding emitter for Matlab.
+ */
 #ifndef CDD_FFI_EMIT_MATLAB_H
 #define CDD_FFI_EMIT_MATLAB_H
 

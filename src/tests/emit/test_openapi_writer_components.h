@@ -18,13 +18,16 @@ TEST test_writer_components_schemas_raw(void) {
   int rc = 0;
   char *json;
   struct OpenAPI_Spec spec = {0};
-  char *names[3] = {(char *)(size_t)(size_t) "Token",
-                    (char *)(size_t)(size_t) "Flag",
-                    (char *)(size_t)(size_t) "Nums"};
-  char *raw[3] = {(char *)(size_t)(size_t) "{\"type\":\"string\"}",
-                  (char *)(size_t)(size_t) "true",
-                  (char *)(size_t)(size_t) "{\"type\":\"array\",\"items\":{"
-                                           "\"type\":\"integer\"}}"};
+  char *names[3];
+  char *raw[3];
+
+  names[0] = cdd_test_mut_str("Token");
+  names[1] = cdd_test_mut_str("Flag");
+  names[2] = cdd_test_mut_str("Nums");
+  raw[0] = cdd_test_mut_str("{\"type\":\"string\"}");
+  raw[1] = cdd_test_mut_str("true");
+  raw[2] = cdd_test_mut_str("{\"type\":\"array\",\"items\":{"
+                            "\"type\":\"integer\"}}");
   json = NULL;
 
   spec.raw_schema_names = names;
@@ -75,7 +78,7 @@ TEST test_writer_schema_ref_external(void) {
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.ref_name = NULL;
-  resp.schema.ref = (char *)(size_t)(size_t) "https://example.com/schemas/Pet";
+  resp.schema.ref = cdd_test_mut_str("https://example.com/schemas/Pet");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -122,7 +125,7 @@ TEST test_writer_schema_dynamic_ref_external(void) {
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.ref_name = NULL;
-  resp.schema.ref = (char *)(size_t)(size_t) "https://example.com/schemas/Pet";
+  resp.schema.ref = cdd_test_mut_str("https://example.com/schemas/Pet");
   resp.schema.ref_is_dynamic = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
@@ -171,8 +174,7 @@ TEST test_writer_schema_items_ref_external(void) {
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.ref_name = NULL;
   resp.schema.is_array = 1;
-  resp.schema.items_ref =
-      (char *)(size_t)(size_t) "https://example.com/schemas/Pet";
+  resp.schema.items_ref = cdd_test_mut_str("https://example.com/schemas/Pet");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -223,8 +225,7 @@ TEST test_writer_schema_items_dynamic_ref_external(void) {
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.ref_name = NULL;
   resp.schema.is_array = 1;
-  resp.schema.items_ref =
-      (char *)(size_t)(size_t) "https://example.com/schemas/Pet";
+  resp.schema.items_ref = cdd_test_mut_str("https://example.com/schemas/Pet");
   resp.schema.items_ref_is_dynamic = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
@@ -275,18 +276,18 @@ TEST test_writer_additional_operations(void) {
 
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = (char *)(size_t)(size_t) "/copy";
+  path.route = cdd_test_mut_str("/copy");
   path.additional_operations = &add_op;
   path.n_additional_operations = 1;
 
-  add_op.method = (char *)(size_t)(size_t) "COPY";
+  add_op.method = cdd_test_mut_str("COPY");
   add_op.is_additional = 1;
-  add_op.operation_id = (char *)(size_t)(size_t) "copyItem";
+  add_op.operation_id = cdd_test_mut_str("copyItem");
   add_op.responses = &resp;
   add_op.n_responses = 1;
 
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.description = (char *)(size_t)(size_t) "ok";
+  resp.code = cdd_test_mut_str("200");
+  resp.description = cdd_test_mut_str("ok");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -325,30 +326,30 @@ TEST test_writer_component_media_types_and_content_ref(void) {
   struct OpenAPI_MediaType mt = {0};
   json = NULL;
 
-  media_names[0] = (char *)(size_t)(size_t) "application/vnd.acme+json";
+  media_names[0] = cdd_test_mut_str("application/vnd.acme+json");
   spec.component_media_types = &mt;
   spec.component_media_type_names = media_names;
   spec.n_component_media_types = 1;
 
-  mt.name = (char *)(size_t)(size_t) "application/vnd.acme+json";
+  mt.name = cdd_test_mut_str("application/vnd.acme+json");
   mt.schema_set = 1;
-  mt.schema.ref_name = (char *)(size_t)(size_t) "Pet";
+  mt.schema.ref_name = cdd_test_mut_str("Pet");
 
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = (char *)(size_t)(size_t) "/pets";
+  path.route = cdd_test_mut_str("/pets");
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)(size_t) "getPet";
+  op.operation_id = cdd_test_mut_str("getPet");
   op.responses = &resp;
   op.n_responses = 1;
 
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.description = (char *)(size_t)(size_t) "ok";
-  resp.content_type = (char *)(size_t)(size_t) "application/vnd.acme+json";
-  resp.content_ref = (char *)(size_t)(size_t) "#/components/mediaTypes/"
-                                              "application~1vnd.acme+json";
+  resp.code = cdd_test_mut_str("200");
+  resp.description = cdd_test_mut_str("ok");
+  resp.content_type = cdd_test_mut_str("application/vnd.acme+json");
+  resp.content_ref = cdd_test_mut_str("#/components/mediaTypes/"
+                                      "application~1vnd.acme+json");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -407,14 +408,14 @@ TEST test_writer_response_multiple_content(void) {
   memset(contents, 0, sizeof(contents));
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
-  resp.description = (char *)(size_t)(size_t) "ok";
+  resp.description = cdd_test_mut_str("ok");
 
-  contents[0].name = (char *)(size_t)(size_t) "application/json";
+  contents[0].name = cdd_test_mut_str("application/json");
   contents[0].schema_set = 1;
-  contents[0].schema.ref_name = (char *)(size_t)(size_t) "TestModel";
-  contents[1].name = (char *)(size_t)(size_t) "text/plain";
+  contents[0].schema.ref_name = cdd_test_mut_str("TestModel");
+  contents[1].name = cdd_test_mut_str("text/plain");
   contents[1].schema_set = 1;
-  contents[1].schema.inline_type = (char *)(size_t)(size_t) "string";
+  contents[1].schema.inline_type = cdd_test_mut_str("string");
 
   resp.content_media_types = contents;
   resp.n_content_media_types = 2;
@@ -466,11 +467,11 @@ TEST test_writer_request_body_multiple_content_and_encoding(void) {
 
   setup_test_spec(&spec, &path, &op, NULL, NULL);
 
-  enc_hdr.name = (char *)(size_t)(size_t) "X-Rate-Limit-Limit";
-  enc_hdr.type = (char *)(size_t)(size_t) "integer";
+  enc_hdr.name = cdd_test_mut_str("X-Rate-Limit-Limit");
+  enc_hdr.type = cdd_test_mut_str("integer");
 
-  enc[0].name = (char *)(size_t)(size_t) "file";
-  enc[0].content_type = (char *)(size_t)(size_t) "image/png";
+  enc[0].name = cdd_test_mut_str("file");
+  enc[0].content_type = cdd_test_mut_str("image/png");
   enc[0].explode_set = 1;
   enc[0].explode = 1;
   enc[0].allow_reserved_set = 1;
@@ -478,9 +479,9 @@ TEST test_writer_request_body_multiple_content_and_encoding(void) {
   enc[0].headers = &enc_hdr;
   enc[0].n_headers = 1;
 
-  media[0].name = (char *)(size_t)(size_t) "multipart/form-data";
+  media[0].name = cdd_test_mut_str("multipart/form-data");
   media[0].schema_set = 1;
-  media[0].schema.inline_type = (char *)(size_t)(size_t) "object";
+  media[0].schema.inline_type = cdd_test_mut_str("object");
   media[0].encoding = enc;
   media[0].n_encoding = 1;
 
@@ -547,25 +548,25 @@ TEST test_writer_media_type_prefix_item_encoding(void) {
   memset(prefix, 0, sizeof(prefix));
   memset(nested, 0, sizeof(nested));
 
-  media_names[0] = (char *)(size_t)(size_t) "multipart/mixed";
+  media_names[0] = cdd_test_mut_str("multipart/mixed");
   spec.component_media_type_names = media_names;
-  media[0].name = (char *)(size_t)(size_t) "multipart/mixed";
+  media[0].name = cdd_test_mut_str("multipart/mixed");
   media[0].schema_set = 1;
-  media[0].schema.inline_type = (char *)(size_t)(size_t) "array";
+  media[0].schema.inline_type = cdd_test_mut_str("array");
 
-  prefix[0].content_type = (char *)(size_t)(size_t) "application/json";
-  prefix_hdr.name = (char *)(size_t)(size_t) "X-Pos";
-  prefix_hdr.type = (char *)(size_t)(size_t) "string";
-  prefix[1].content_type = (char *)(size_t)(size_t) "image/png";
+  prefix[0].content_type = cdd_test_mut_str("application/json");
+  prefix_hdr.name = cdd_test_mut_str("X-Pos");
+  prefix_hdr.type = cdd_test_mut_str("string");
+  prefix[1].content_type = cdd_test_mut_str("image/png");
   prefix[1].headers = &prefix_hdr;
   prefix[1].n_headers = 1;
 
   media[0].prefix_encoding = prefix;
   media[0].n_prefix_encoding = 2;
 
-  nested[0].name = (char *)(size_t)(size_t) "meta";
-  nested[0].content_type = (char *)(size_t)(size_t) "text/plain";
-  item.content_type = (char *)(size_t)(size_t) "application/octet-stream";
+  nested[0].name = cdd_test_mut_str("meta");
+  nested[0].content_type = cdd_test_mut_str("text/plain");
+  item.content_type = cdd_test_mut_str("application/octet-stream");
   item.encoding = nested;
   item.n_encoding = 1;
 

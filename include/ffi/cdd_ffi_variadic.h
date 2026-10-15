@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_variadic.h
+ * @brief Variadic format parsing and C-level trampoline invocation.
+ */
 #ifndef CDD_FFI_VARIADIC_H
 #define CDD_FFI_VARIADIC_H
 
@@ -40,7 +44,8 @@ typedef unsigned __int64 uint64_t;
  * @param fmt The format string to parse.
  * @param out_types Pointer to an array of cdd_ffi_type_t to populate.
  * @param max_types The maximum number of types out_types can hold.
- * @return The number of arguments found in the format string.
+ * @param out_count Pointer to receive the number of arguments found.
+ * @return CDD_C_SUCCESS on success or error code.
  */
 C_CDD_EXPORT cdd_c_error_t
 cdd_ffi_parse_printf_format(const char *fmt, cdd_ffi_type_t *out_types,
@@ -50,11 +55,11 @@ cdd_ffi_parse_printf_format(const char *fmt, cdd_ffi_type_t *out_types,
  * @brief A generic union for passing arguments to the variadic trampoline.
  */
 typedef union cdd_ffi_var_arg_t {
-  int i;
-  long l;
-  int64_t ll;
-  double d;
-  void *p;
+  int i;      /**< Integer argument value */
+  long l;     /**< Long integer argument value */
+  int64_t ll; /**< 64-bit integer argument value */
+  double d;   /**< Double-precision floating-point argument value */
+  void *p;    /**< Generic pointer argument value */
 } cdd_ffi_var_arg_t;
 
 /**

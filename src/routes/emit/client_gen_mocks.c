@@ -26,17 +26,13 @@ cdd_c_error_t client_gen_emit_mocks(const char *dir_name,
   char tdir[512], tfile[640];
   FILE *tfp;
   CDD_SNPRINTF(tdir, sizeof(tdir), "%s/src/test", dir_name);
-  {
-    cdd_c_error_t rc_cg;
-    rc_cg = makedirs(tdir);
+  rc = makedirs(tdir);
 #ifdef CDD_BUILD_TESTS
-    if (g_client_gen_fail == 51)
-      rc_cg = CDD_C_ERROR_IO;
+  if (g_client_gen_fail == 51)
+    rc = CDD_C_ERROR_IO;
 #endif
-    if (rc_cg != CDD_C_SUCCESS) {
-      rc = rc_cg;
-      goto cleanup;
-    }
+  if (rc != CDD_C_SUCCESS) {
+    goto cleanup;
   }
   CDD_SNPRINTF(tfile, sizeof(tfile), "%s/test_sdk.c", tdir);
 #if defined(_MSC_VER)

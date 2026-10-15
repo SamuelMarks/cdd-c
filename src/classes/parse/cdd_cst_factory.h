@@ -1,3 +1,7 @@
+/**
+ * @file cdd_cst_factory.h
+ * @brief Concrete Syntax Tree (CST) factory implementation and utilities.
+ */
 #ifndef CDD_CST_FACTORY_H
 #define CDD_CST_FACTORY_H
 

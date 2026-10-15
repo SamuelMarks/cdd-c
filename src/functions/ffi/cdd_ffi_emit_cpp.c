@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_cpp.c
+ * @brief FFI binding emitter for Cpp.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -7,69 +11,76 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
-}
-
-static const char *get_cpp_type(cdd_ffi_type_t type) {
+static cdd_c_error_t get_cpp_type(cdd_ffi_type_t type, const char **out_type) {
   if (type.pointer_depth > 0) {
     if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
-      return type.is_const ? "const char*" : "char*";
+      *out_type = type.is_const ? "const char*" : "char*";
+      return CDD_C_SUCCESS;
     }
-    return "void*";
+    *out_type = "void*";
+    return CDD_C_SUCCESS;
   }
 
   switch (type.kind) {
   case CDD_FFI_KIND_VOID:
-    return "void";
+    *out_type = "void";
+    break;
   case CDD_FFI_KIND_BOOL:
-    return "bool";
+    *out_type = "bool";
+    break;
   case CDD_FFI_KIND_INT8:
-    return "int8_t";
+    *out_type = "int8_t";
+    break;
   case CDD_FFI_KIND_UINT8:
-    return "uint8_t";
+    *out_type = "uint8_t";
+    break;
   case CDD_FFI_KIND_INT16:
-    return "int16_t";
+    *out_type = "int16_t";
+    break;
   case CDD_FFI_KIND_UINT16:
-    return "uint16_t";
+    *out_type = "uint16_t";
+    break;
   case CDD_FFI_KIND_INT32:
-    return "int32_t";
+    *out_type = "int32_t";
+    break;
   case CDD_FFI_KIND_UINT32:
-    return "uint32_t";
+    *out_type = "uint32_t";
+    break;
   case CDD_FFI_KIND_INT64:
-    return "int64_t";
+    *out_type = "int64_t";
+    break;
   case CDD_FFI_KIND_UINT64:
-    return "uint64_t";
+    *out_type = "uint64_t";
+    break;
   case CDD_FFI_KIND_FLOAT32:
-    return "float";
+    *out_type = "float";
+    break;
   case CDD_FFI_KIND_FLOAT64:
-    return "double";
+    *out_type = "double";
+    break;
   case CDD_FFI_KIND_FUNCTION_PTR:
-    return "void* /* callback */";
+    *out_type = "void* /* callback */";
+    break;
   case CDD_FFI_KIND_STRUCT_REF:
-    return type.ref_name ? type.ref_name : "void*";
+    *out_type = type.ref_name ? type.ref_name : "void*";
+    break;
   case CDD_FFI_KIND_ENUM_REF:
-    return type.ref_name ? type.ref_name : "int";
+    *out_type = type.ref_name ? type.ref_name : "int";
+    break;
   case CDD_FFI_KIND_TYPEDEF_REF:
-    return type.ref_name ? type.ref_name : "void*";
+    *out_type = type.ref_name ? type.ref_name : "void*";
+    break;
   case CDD_FFI_KIND_OPAQUE_PTR:
-    return "void*";
+    *out_type = "void*";
+    break;
   default:
-    return "void*";
+    *out_type = "void*";
+    break;
   }
+  return CDD_C_SUCCESS;
 }
 
 static cdd_c_error_t
@@ -121,7 +132,7 @@ emit_cpp_hpp(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "class %s_Wrapper;\n", node->name);
     }
   }
@@ -131,15 +142,16 @@ emit_cpp_hpp(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (strstr(node->name, "_Trampoline")) {
         char base_name[256];
         /* Emit the C ABI struct for Trampoline */
         fprintf(f, "extern \"C\" {\n");
         fprintf(f, "    struct %s {\n", node->name);
         for (j = 0; j < node->fields_count; j++) {
-          fprintf(f, "        %s %s;\n", get_cpp_type(node->fields[j].type),
-                  node->fields[j].name);
+          const char *ctype = NULL;
+          get_cpp_type(node->fields[j].type, &ctype);
+          fprintf(f, "        %s %s;\n", ctype, node->fields[j].name);
         }
         fprintf(f, "    };\n");
         fprintf(f, "}\n\n");
@@ -216,10 +228,12 @@ emit_cpp_hpp(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       for (j = 0; j < node->fields_count; j++) {
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
-        fprintf(f, "    %s get_%s() const { return inner.%s; }\n",
-                get_cpp_type(node->fields[j].type), fname, fname);
+        const char *ctype = NULL;
+        get_cpp_type(node->fields[j].type, &ctype);
+        fprintf(f, "    %s get_%s() const { return inner.%s; }\n", ctype, fname,
+                fname);
         fprintf(f, "    void set_%s(%s val) { inner.%s = val; }\n", fname,
-                get_cpp_type(node->fields[j].type), fname);
+                ctype, fname);
       }
       fprintf(f, "};\n\n");
     }
@@ -229,19 +243,22 @@ emit_cpp_hpp(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
+      const char *ret_ctype = NULL;
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "/**\n * %s\n */\n", node->doc);
-      fprintf(f, "inline %s %s(", get_cpp_type(node->return_or_base_type),
-              node->name);
+      get_cpp_type(node->return_or_base_type, &ret_ctype);
+      fprintf(f, "inline %s %s(", ret_ctype, node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *arg_name =
             node->fields[j].name ? node->fields[j].name : "arg";
+        const char *arg_ctype = NULL;
         if (strcmp(arg_name, "class") == 0)
           arg_name = "clazz";
         if (strcmp(arg_name, "this") == 0)
           arg_name = "this_";
-        fprintf(f, "%s %s", get_cpp_type(node->fields[j].type), arg_name);
+        get_cpp_type(node->fields[j].type, &arg_ctype);
+        fprintf(f, "%s %s", arg_ctype, arg_name);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
       }
@@ -274,8 +291,7 @@ emit_cpp_hpp(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       fprintf(f, "            err->message = const_cast<char*>(e.what());\n");
       fprintf(f, "        }\n");
       if (node->return_or_base_type.kind != CDD_FFI_KIND_VOID) {
-        fprintf(f, "        return %s{};\n",
-                get_cpp_type(node->return_or_base_type));
+        fprintf(f, "        return %s{};\n", ret_ctype);
       }
       fprintf(f, "    } catch (...) {\n");
       fprintf(f, "        if (err) {\n");
@@ -284,8 +300,7 @@ emit_cpp_hpp(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
                  "exception\");\n");
       fprintf(f, "        }\n");
       if (node->return_or_base_type.kind != CDD_FFI_KIND_VOID) {
-        fprintf(f, "        return %s{};\n",
-                get_cpp_type(node->return_or_base_type));
+        fprintf(f, "        return %s{};\n", ret_ctype);
       }
       fprintf(f, "    }\n");
       fprintf(f, "}\n\n");

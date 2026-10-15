@@ -61,14 +61,12 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
 #else
     CDD_SNPRINTF(src_dir, 512, "%s/src", dir_name);
 #endif
-    {
-      cdd_c_error_t rc_cgg = makedirs(src_dir);
-      if (rc_cgg != CDD_C_SUCCESS) {
-        C_CDD_FREE(src_dir);
-        C_CDD_FREE(dir_name);
-        C_CDD_FREE(base_name);
-        return rc_cgg;
-      }
+    rc = makedirs(src_dir);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(src_dir);
+      C_CDD_FREE(dir_name);
+      C_CDD_FREE(base_name);
+      return rc;
     }
     CDD_SNPRINTF(path_h, 1024, "%s/%s_gui.h", src_dir, base_name);
     CDD_SNPRINTF(path_c, 1024, "%s/%s_gui.c", src_dir, base_name);
@@ -122,13 +120,11 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp_c, "/* Generated GUI & Token Flow Implementation */\n");
   {
     char *base = NULL;
-    {
-      cdd_c_error_t rc_cgg = get_basename(config->filename_base, &base);
-      if (rc_cgg != CDD_C_SUCCESS) {
-        fclose(fp_h);
-        fclose(fp_c);
-        return rc_cgg;
-      }
+    cdd_c_error_t rc = get_basename(config->filename_base, &base);
+    if (rc != CDD_C_SUCCESS) {
+      fclose(fp_h);
+      fclose(fp_c);
+      return rc;
     }
     fprintf(fp_c, "#include \"%s_gui.h\"\n", base);
     C_CDD_FREE(base);
@@ -205,7 +201,7 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
     fprintf(fp_c, "    req.url = \"http://localhost:8080/oauth/token\";\n");
   }
   fprintf(fp_c, "  } else {\n");
-  fprintf(fp_c, "    req.url = (char *)(size_t)token_endpoint;\n");
+  fprintf(fp_c, "    req.url = token_endpoint;\n");
   fprintf(fp_c, "  }\n");
   fprintf(fp_c, "  req.body = payload;\n");
   fprintf(fp_c, "  req.body_len = strlen(payload);\n");

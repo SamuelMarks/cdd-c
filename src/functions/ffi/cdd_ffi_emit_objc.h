@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_objc.h
+ * @brief FFI binding emitter for Objc.
+ */
 #ifndef CDD_FFI_EMIT_OBJC_H
 #define CDD_FFI_EMIT_OBJC_H
 

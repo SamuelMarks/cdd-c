@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_crystal.h
+ * @brief FFI binding emitter for Crystal.
+ */
 #ifndef CDD_FFI_EMIT_CRYSTAL_H
 #define CDD_FFI_EMIT_CRYSTAL_H
 

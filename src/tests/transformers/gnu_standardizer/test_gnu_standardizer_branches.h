@@ -42,9 +42,7 @@ TEST test_gnu_standardizer_transparent_union(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(0,
-            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                          &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
@@ -64,9 +62,7 @@ TEST test_gnu_standardizer_vector_and_mode(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(0,
-            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                          &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
@@ -85,9 +81,7 @@ TEST test_gnu_standardizer_anon_and_compound(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(0,
-            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                          &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
@@ -105,9 +99,7 @@ TEST test_gnu_standardizer_stmt_expr_contexts(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(0,
-            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                          &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
@@ -127,9 +119,7 @@ TEST test_gnu_standardizer_cleanup_and_longjmp(void) {
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
   config.fallback_vla_to_malloc = 1;
-  ASSERT_EQ(0,
-            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                          &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
@@ -146,9 +136,7 @@ TEST test_gnu_standardizer_builtin_expect(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(0,
-            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                          &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
@@ -173,9 +161,7 @@ TEST test_gnu_standardizer_more_cases(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(0,
-            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                          &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
@@ -252,8 +238,7 @@ TEST test_gnu_standardizer_more_cases_100(void) {
                       "}\n";
 
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code1), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code1), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
@@ -262,16 +247,13 @@ TEST test_gnu_standardizer_more_cases_100(void) {
   out = NULL;
 
   /* Trampoline detection returns CDD_C_ERROR_SYSTEM */
-  ASSERT_EQ(0, cdd_cst_parse(
-                   az_span_create_from_str((char *)(size_t)code_tramp), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_tramp), &tree));
   ASSERT_EQ(CDD_C_ERROR_SYSTEM, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Zero length in middle polyfills to -1 comment */
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_zero_mid),
-                       &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_zero_mid), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   ASSERT(strstr(out, "-1 /* zero-length array in middle of struct */") != NULL);
@@ -282,8 +264,7 @@ TEST test_gnu_standardizer_more_cases_100(void) {
 
   /* Code2 with label ref and VLA goto */
   config.fallback_vla_to_malloc = 1;
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code2), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code2), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
@@ -293,8 +274,7 @@ TEST test_gnu_standardizer_more_cases_100(void) {
 
   /* Code3 with alloca mode */
   config.fallback_vla_to_malloc = 0;
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code3), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code3), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
@@ -305,8 +285,7 @@ TEST test_gnu_standardizer_more_cases_100(void) {
   /* Code4 with target_c89 for macro */
   config.fallback_vla_to_malloc = 1;
   config.target_c89 = 1;
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code4), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code4), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
@@ -315,8 +294,7 @@ TEST test_gnu_standardizer_more_cases_100(void) {
   out = NULL;
 
   /* Code5 for omitted conditional */
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code5), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code5), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
@@ -387,8 +365,7 @@ TEST test_gnu_standardizer_error_branches(void) {
 
   /* g_gnu_standardizer_fail == 14 (tramp parent_func == NULL) */
   g_gnu_standardizer_fail = 14;
-  ASSERT_EQ(0, cdd_cst_parse(
-                   az_span_create_from_str((char *)(size_t)code_tramp), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_tramp), &tree));
   ASSERT_EQ(CDD_C_ERROR_SYSTEM, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -396,9 +373,7 @@ TEST test_gnu_standardizer_error_branches(void) {
 
   /* g_gnu_standardizer_fail == 15 (typeof rb == NULL) */
   g_gnu_standardizer_fail = 15;
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_typeof_arr),
-                       &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_typeof_arr), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -406,9 +381,7 @@ TEST test_gnu_standardizer_error_branches(void) {
 
   /* g_gnu_standardizer_fail == 16 (packed n_tok == NULL) */
   g_gnu_standardizer_fail = 16;
-  ASSERT_EQ(0,
-            cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_packed),
-                          &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_packed), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -416,9 +389,7 @@ TEST test_gnu_standardizer_error_branches(void) {
 
   /* g_gnu_standardizer_fail == 6 (return void expr semi_tok failure) */
   g_gnu_standardizer_fail = 6;
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_ret_void),
-                       &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_ret_void), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -426,9 +397,7 @@ TEST test_gnu_standardizer_error_branches(void) {
 
   /* g_gnu_standardizer_fail == 7 (no-arg attribute p_node NULL) */
   g_gnu_standardizer_fail = 7;
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_noarg_attr),
-                       &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_noarg_attr), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -436,35 +405,28 @@ TEST test_gnu_standardizer_error_branches(void) {
 
   /* g_gnu_standardizer_fail == 42 (pooled == NULL in pool_string_safe) */
   g_gnu_standardizer_fail = 42;
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_noarg_attr),
-                       &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_noarg_attr), &tree));
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
   g_gnu_standardizer_fail = 0;
 
   /* test code_noarg_attr with g_gnu_standardizer_fail == 0 */
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_noarg_attr),
-                       &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_noarg_attr), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* code_lbl_break */
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_lbl_break),
-                       &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_lbl_break), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* g_gnu_standardizer_fail == 8 (parent == NULL in RBRACE scope cleanups) */
   g_gnu_standardizer_fail = 8;
-  ASSERT_EQ(0, cdd_cst_parse(
-                   az_span_create_from_str((char *)(size_t)code_scope_cleanup),
-                   &tree));
+  ASSERT_EQ(0,
+            cdd_cst_parse(az_span_create_from_str(code_scope_cleanup), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -472,9 +434,8 @@ TEST test_gnu_standardizer_error_branches(void) {
 
   /* g_gnu_standardizer_fail == 17 (pooled == NULL in RBRACE scope cleanups) */
   g_gnu_standardizer_fail = 17;
-  ASSERT_EQ(0, cdd_cst_parse(
-                   az_span_create_from_str((char *)(size_t)code_scope_cleanup),
-                   &tree));
+  ASSERT_EQ(0,
+            cdd_cst_parse(az_span_create_from_str(code_scope_cleanup), &tree));
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -482,9 +443,7 @@ TEST test_gnu_standardizer_error_branches(void) {
 
   /* g_gnu_standardizer_fail == 10 (owning_node == NULL in RBRACE) */
   g_gnu_standardizer_fail = 10;
-  ASSERT_EQ(0,
-            cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_cleanup),
-                          &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_cleanup), &tree));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -492,9 +451,7 @@ TEST test_gnu_standardizer_error_branches(void) {
 
   /* g_gnu_standardizer_fail == 11 (parent == NULL in return cleanups) */
   g_gnu_standardizer_fail = 11;
-  ASSERT_EQ(0,
-            cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_cleanup),
-                          &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_cleanup), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -502,8 +459,7 @@ TEST test_gnu_standardizer_error_branches(void) {
 
   /* g_gnu_standardizer_fail == 12 (parent == NULL in local label ref) */
   g_gnu_standardizer_fail = 12;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_lbl),
-                             &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_lbl), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -511,8 +467,7 @@ TEST test_gnu_standardizer_error_branches(void) {
 
   /* g_gnu_standardizer_fail == 3 (cdd_append_int failure in local label) */
   g_gnu_standardizer_fail = 3;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_lbl),
-                             &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_lbl), &tree));
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -520,8 +475,7 @@ TEST test_gnu_standardizer_error_branches(void) {
 
   /* g_gnu_standardizer_fail == 3 (cdd_append_int failure in case ranges) */
   g_gnu_standardizer_fail = 3;
-  ASSERT_EQ(0, cdd_cst_parse(
-                   az_span_create_from_str((char *)(size_t)code_cases), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_cases), &tree));
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -529,8 +483,7 @@ TEST test_gnu_standardizer_error_branches(void) {
 
   /* g_gnu_standardizer_fail == 1 (pool_string_safe failure in case ranges) */
   g_gnu_standardizer_fail = 1;
-  ASSERT_EQ(0, cdd_cst_parse(
-                   az_span_create_from_str((char *)(size_t)code_cases), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_cases), &tree));
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -539,8 +492,7 @@ TEST test_gnu_standardizer_error_branches(void) {
   /* g_gnu_standardizer_fail == 3 (cdd_append_int failure in designated init
    * ranges) */
   g_gnu_standardizer_fail = 3;
-  ASSERT_EQ(0, cdd_cst_parse(
-                   az_span_create_from_str((char *)(size_t)code_desig), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_desig), &tree));
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -549,8 +501,7 @@ TEST test_gnu_standardizer_error_branches(void) {
   /* g_gnu_standardizer_fail == 1 (pool_string_safe failure in designated init
    * ranges) */
   g_gnu_standardizer_fail = 1;
-  ASSERT_EQ(0, cdd_cst_parse(
-                   az_span_create_from_str((char *)(size_t)code_desig), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_desig), &tree));
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -558,9 +509,7 @@ TEST test_gnu_standardizer_error_branches(void) {
 
   /* g_gnu_standardizer_fail == 1 in return cleanups and scope cleanups */
   g_gnu_standardizer_fail = 1;
-  ASSERT_EQ(0,
-            cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_cleanup),
-                          &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_cleanup), &tree));
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -568,8 +517,7 @@ TEST test_gnu_standardizer_error_branches(void) {
 
   /* g_gnu_standardizer_fail == 1 in local labels */
   g_gnu_standardizer_fail = 1;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_lbl),
-                             &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_lbl), &tree));
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -577,8 +525,7 @@ TEST test_gnu_standardizer_error_branches(void) {
 
   /* g_gnu_standardizer_fail == 1 in lvalue cast */
   g_gnu_standardizer_fail = 1;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_lval),
-                             &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_lval), &tree));
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -586,8 +533,7 @@ TEST test_gnu_standardizer_error_branches(void) {
 
   /* g_gnu_standardizer_fail == 1 in conditional ? : */
   g_gnu_standardizer_fail = 1;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_cond),
-                             &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_cond), &tree));
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -595,8 +541,7 @@ TEST test_gnu_standardizer_error_branches(void) {
 
   /* g_gnu_standardizer_fail == 19 (conditional lhs_start == 0) */
   g_gnu_standardizer_fail = 19;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_cond),
-                             &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_cond), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -614,8 +559,7 @@ TEST test_gnu_standardizer_error_branches(void) {
   g_gnu_standardizer_fail = 0;
 
   /* g_cdd_cst_alloc_node_fail error returns */
-  if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_stmt),
-                    &tree) == 0) {
+  if (cdd_cst_parse(az_span_create_from_str(code_stmt), &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
     cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
@@ -625,8 +569,7 @@ TEST test_gnu_standardizer_error_branches(void) {
   {
     int vi;
     for (vi = 1; vi <= 6; vi++) {
-      if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_vla),
-                        &tree) == 0) {
+      if (cdd_cst_parse(az_span_create_from_str(code_vla), &tree) == 0) {
         g_cdd_cst_alloc_node_fail = vi;
         cdd_transform_gnu(tree, &config);
         g_cdd_cst_alloc_node_fail = 0;
@@ -635,8 +578,7 @@ TEST test_gnu_standardizer_error_branches(void) {
       }
     }
     config.fallback_vla_to_malloc = 0;
-    if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_vla),
-                      &tree) == 0) {
+    if (cdd_cst_parse(az_span_create_from_str(code_vla), &tree) == 0) {
       g_cdd_cst_alloc_node_fail = 1;
       cdd_transform_gnu(tree, &config);
       g_cdd_cst_alloc_node_fail = 0;
@@ -645,8 +587,7 @@ TEST test_gnu_standardizer_error_branches(void) {
     }
     config.fallback_vla_to_malloc = 1;
     for (vi = 1; vi <= 6; vi++) {
-      if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_vla_block),
-                        &tree) == 0) {
+      if (cdd_cst_parse(az_span_create_from_str(code_vla_block), &tree) == 0) {
         g_cdd_cst_alloc_node_fail = vi;
         cdd_transform_gnu(tree, &config);
         g_cdd_cst_alloc_node_fail = 0;
@@ -656,25 +597,23 @@ TEST test_gnu_standardizer_error_branches(void) {
     }
     /* mock 20 for zero-length array fwd continue */
     g_gnu_standardizer_fail = 20;
-    if (cdd_cst_parse(az_span_create_from_str(
-                          (char *)(size_t) "struct S { int a[0]; int b; };\n"),
-                      &tree) == 0) {
+    if (cdd_cst_parse(
+            az_span_create_from_str("struct S { int a[0]; int b; };\n"),
+            &tree) == 0) {
       cdd_transform_gnu(tree, &config);
       cdd_cst_tree_free(tree);
       tree = NULL;
     }
     g_gnu_standardizer_fail = 0;
   }
-  if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_typeof_arr),
-                    &tree) == 0) {
+  if (cdd_cst_parse(az_span_create_from_str(code_typeof_arr), &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
     cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
     cdd_cst_tree_free(tree);
     tree = NULL;
   }
-  if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_typeof_arr),
-                    &tree) == 0) {
+  if (cdd_cst_parse(az_span_create_from_str(code_typeof_arr), &tree) == 0) {
     g_gnu_standardizer_fail = 15;
     g_cdd_cst_alloc_node_fail = 1;
     cdd_transform_gnu(tree, &config);
@@ -683,27 +622,23 @@ TEST test_gnu_standardizer_error_branches(void) {
     cdd_cst_tree_free(tree);
     tree = NULL;
   }
-  if (cdd_cst_parse(
-          az_span_create_from_str((char *)(size_t) "typeof(int) x;\n"),
-          &tree) == 0) {
+  if (cdd_cst_parse(az_span_create_from_str("typeof(int) x;\n"), &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
     cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
     cdd_cst_tree_free(tree);
     tree = NULL;
   }
-  if (cdd_cst_parse(
-          az_span_create_from_str((char *)(size_t) "__auto_type x = 1;\n"),
-          &tree) == 0) {
+  if (cdd_cst_parse(az_span_create_from_str("__auto_type x = 1;\n"), &tree) ==
+      0) {
     g_cdd_cst_alloc_node_fail = 1;
     cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
     cdd_cst_tree_free(tree);
     tree = NULL;
   }
-  if (cdd_cst_parse(az_span_create_from_str(
-                        (char *)(size_t) "unsigned long long x = "
-                                         "18446744073709551616ULL;\n"),
+  if (cdd_cst_parse(az_span_create_from_str("unsigned long long x = "
+                                            "18446744073709551616ULL;\n"),
                     &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
     cdd_transform_gnu(tree, &config);
@@ -731,24 +666,21 @@ TEST test_gnu_standardizer_error_branches(void) {
     cdd_cst_tree_free(tree);
     tree = NULL;
   }
-  if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_complex),
-                    &tree) == 0) {
+  if (cdd_cst_parse(az_span_create_from_str(code_complex), &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
     cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
     cdd_cst_tree_free(tree);
     tree = NULL;
   }
-  if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_align),
-                    &tree) == 0) {
+  if (cdd_cst_parse(az_span_create_from_str(code_align), &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
     cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
     cdd_cst_tree_free(tree);
     tree = NULL;
   }
-  if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)code_scope_cleanup),
-                    &tree) == 0) {
+  if (cdd_cst_parse(az_span_create_from_str(code_scope_cleanup), &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
     cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
@@ -758,9 +690,8 @@ TEST test_gnu_standardizer_error_branches(void) {
 
   /* g_gnu_standardizer_fail == 18 (builtin expect j.length == 0 loop) */
   g_gnu_standardizer_fail = 18;
-  if (cdd_cst_parse(az_span_create_from_str(
-                        (char *)(size_t) "int f(int x) { return "
-                                         "__builtin_expect(x, 1); }\n"),
+  if (cdd_cst_parse(az_span_create_from_str("int f(int x) { return "
+                                            "__builtin_expect(x, 1); }\n"),
                     &tree) == 0) {
     cdd_transform_gnu(tree, &config);
     cdd_cst_tree_free(tree);
@@ -768,18 +699,9 @@ TEST test_gnu_standardizer_error_branches(void) {
   }
   g_gnu_standardizer_fail = 0;
 
-  if (cdd_cst_parse(az_span_create_from_str(
-                        (char *)(size_t) "void fc(float z) { __real__ z; }\n"),
-                    &tree) == 0) {
-    g_cdd_cst_alloc_node_fail = 1;
-    cdd_transform_gnu(tree, &config);
-    g_cdd_cst_alloc_node_fail = 0;
-    cdd_cst_tree_free(tree);
-    tree = NULL;
-  }
-  if (cdd_cst_parse(az_span_create_from_str(
-                        (char *)(size_t) "void fc(float z) { __imag__ z; }\n"),
-                    &tree) == 0) {
+  if (cdd_cst_parse(
+          az_span_create_from_str("void fc(float z) { __real__ z; }\n"),
+          &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
     cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
@@ -787,8 +709,16 @@ TEST test_gnu_standardizer_error_branches(void) {
     tree = NULL;
   }
   if (cdd_cst_parse(
-          az_span_create_from_str(
-              (char *)(size_t) "void fc(void) { __auto_type a = 1; }\n"),
+          az_span_create_from_str("void fc(float z) { __imag__ z; }\n"),
+          &tree) == 0) {
+    g_cdd_cst_alloc_node_fail = 1;
+    cdd_transform_gnu(tree, &config);
+    g_cdd_cst_alloc_node_fail = 0;
+    cdd_cst_tree_free(tree);
+    tree = NULL;
+  }
+  if (cdd_cst_parse(
+          az_span_create_from_str("void fc(void) { __auto_type a = 1; }\n"),
           &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
     cdd_transform_gnu(tree, &config);

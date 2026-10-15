@@ -43,8 +43,8 @@ extern C_CDD_EXPORT int g_cdd_strdup_fail;
 /* --- Encoding Tests --- */
 
 TEST test_url_encode_simple(void) {
-  char *_ast_url_encode_0 = NULL;
-  char *res = (url_encode("hello", &_ast_url_encode_0), _ast_url_encode_0);
+  char *res = NULL;
+  ASSERT_EQ(CDD_C_SUCCESS, url_encode("hello", &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ("hello", res);
   free(res);
@@ -53,9 +53,8 @@ TEST test_url_encode_simple(void) {
 }
 
 TEST test_url_encode_spaces(void) {
-  char *_ast_url_encode_1 = NULL;
-  char *res =
-      (url_encode("hello world", &_ast_url_encode_1), _ast_url_encode_1);
+  char *res = NULL;
+  ASSERT_EQ(CDD_C_SUCCESS, url_encode("hello world", &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ("hello%20world", res);
   free(res);
@@ -64,15 +63,15 @@ TEST test_url_encode_spaces(void) {
 }
 
 TEST test_url_encode_reserved(void) {
-  char *_ast_url_encode_2 = NULL;
   /* Gen-delims: : / ? # [ ] @ */
   /* Sub-delims: ! $ & ' ( ) * + , ; = */
   /* These should ALL be encoded in component context (query param value) */
-  const char *input = (char *)(size_t)(size_t) ":/?#[]@!$&'()*+,;=";
+  const char *input = cdd_test_mut_str(":/?#[]@!$&'()*+,;=");
   const char *expected = "%3A%2F%3F%23%5B%5D%40%21%24%26%27%28%29%2A%2B%2C%3B%"
                          "3D";
-  char *res = (url_encode(input, &_ast_url_encode_2), _ast_url_encode_2);
+  char *res = NULL;
 
+  ASSERT_EQ(CDD_C_SUCCESS, url_encode(input, &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ(expected, res);
   free(res);
@@ -81,10 +80,10 @@ TEST test_url_encode_reserved(void) {
 }
 
 TEST test_url_encode_unreserved(void) {
-  char *_ast_url_encode_3 = NULL;
   /* ALPHA, DIGIT, - . _ ~ */
-  const char *input = (char *)(size_t)(size_t) "a-b.c_d~1";
-  char *res = (url_encode(input, &_ast_url_encode_3), _ast_url_encode_3);
+  const char *input = cdd_test_mut_str("a-b.c_d~1");
+  char *res = NULL;
+  ASSERT_EQ(CDD_C_SUCCESS, url_encode(input, &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ("a-b.c_d~1", res);
   free(res);
@@ -93,12 +92,10 @@ TEST test_url_encode_unreserved(void) {
 }
 
 TEST test_url_encode_allow_reserved(void) {
-  char *_ast_url_encode_allow_reserved_4 = NULL;
-  const char *input = (char *)(size_t)(size_t) ":/?#[]@!$&'()*+,;= %2F";
-  const char *expected = (char *)(size_t)(size_t) ":/?#[]@!$&'()*+,;=%20%2F";
-  char *res =
-      (url_encode_allow_reserved(input, &_ast_url_encode_allow_reserved_4),
-       _ast_url_encode_allow_reserved_4);
+  const char *input = cdd_test_mut_str(":/?#[]@!$&'()*+,;= %2F");
+  const char *expected = cdd_test_mut_str(":/?#[]@!$&'()*+,;=%20%2F");
+  char *res = NULL;
+  ASSERT_EQ(CDD_C_SUCCESS, url_encode_allow_reserved(input, &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ(expected, res);
   free(res);
@@ -107,9 +104,8 @@ TEST test_url_encode_allow_reserved(void) {
 }
 
 TEST test_url_encode_form_spaces(void) {
-  char *_ast_url_encode_form_5 = NULL;
-  char *res = (url_encode_form("hello world", &_ast_url_encode_form_5),
-               _ast_url_encode_form_5);
+  char *res = NULL;
+  ASSERT_EQ(CDD_C_SUCCESS, url_encode_form("hello world", &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ("hello+world", res);
   free(res);
@@ -118,10 +114,9 @@ TEST test_url_encode_form_spaces(void) {
 }
 
 TEST test_url_encode_form_reserved(void) {
-  char *_ast_url_encode_form_6 = NULL;
-  const char *input = (char *)(size_t)(size_t) "&=+";
-  char *res =
-      (url_encode_form(input, &_ast_url_encode_form_6), _ast_url_encode_form_6);
+  const char *input = cdd_test_mut_str("&=+");
+  char *res = NULL;
+  ASSERT_EQ(CDD_C_SUCCESS, url_encode_form(input, &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ("%26%3D%2B", res);
   free(res);
@@ -130,13 +125,10 @@ TEST test_url_encode_form_reserved(void) {
 }
 
 TEST test_url_encode_form_allow_reserved(void) {
-  char *_ast_url_encode_form_allow_reserved_7 = NULL;
-  const char *input = (char *)(size_t)(size_t) ":/?#[]@!$&'()*+,;= %2F";
-  const char *expected =
-      (char *)(size_t)(size_t) ":/?#[]@!$%26'()*%2B,;%3D+%2F";
-  char *res = (url_encode_form_allow_reserved(
-                   input, &_ast_url_encode_form_allow_reserved_7),
-               _ast_url_encode_form_allow_reserved_7);
+  const char *input = cdd_test_mut_str(":/?#[]@!$&'()*+,;= %2F");
+  const char *expected = cdd_test_mut_str(":/?#[]@!$%26'()*%2B,;%3D+%2F");
+  char *res = NULL;
+  ASSERT_EQ(CDD_C_SUCCESS, url_encode_form_allow_reserved(input, &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ(expected, res);
   free(res);
@@ -145,8 +137,9 @@ TEST test_url_encode_form_allow_reserved(void) {
 }
 
 TEST test_url_encode_null(void) {
-  char *_ast_url_encode_8 = NULL;
-  ASSERT((url_encode(NULL, &_ast_url_encode_8), _ast_url_encode_8) == NULL);
+  char *res = NULL;
+  ASSERT_EQ(CDD_C_SUCCESS, url_encode(NULL, &res));
+  ASSERT(res == NULL);
   g_fail_io_after = -1;
   PASS();
 }
@@ -179,7 +172,7 @@ TEST test_query_build_empty(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
 
-  url_query_init(&qp);
+  ASSERT_EQ(CDD_C_SUCCESS, url_query_init(&qp));
   ASSERT_EQ(0, url_query_build(&qp, &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ("", res);
@@ -194,8 +187,8 @@ TEST test_query_build_single(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
 
-  url_query_init(&qp);
-  url_query_add(&qp, "q", "hello world");
+  ASSERT_EQ(CDD_C_SUCCESS, url_query_init(&qp));
+  ASSERT_EQ(CDD_C_SUCCESS, url_query_add(&qp, "q", "hello world"));
 
   ASSERT_EQ(0, url_query_build(&qp, &res));
   ASSERT(res != NULL);
@@ -211,9 +204,9 @@ TEST test_query_build_multiple(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
 
-  url_query_init(&qp);
-  url_query_add(&qp, "a", "1");
-  url_query_add(&qp, "b", "2+2"); /* + encodes */
+  ASSERT_EQ(CDD_C_SUCCESS, url_query_init(&qp));
+  ASSERT_EQ(CDD_C_SUCCESS, url_query_add(&qp, "a", "1"));
+  ASSERT_EQ(CDD_C_SUCCESS, url_query_add(&qp, "b", "2+2")); /* + encodes */
 
   ASSERT_EQ(0, url_query_build(&qp, &res));
   ASSERT(res != NULL);
@@ -230,8 +223,8 @@ TEST test_query_build_form_single(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
 
-  url_query_init(&qp);
-  url_query_add(&qp, "q", "hello world");
+  ASSERT_EQ(CDD_C_SUCCESS, url_query_init(&qp));
+  ASSERT_EQ(CDD_C_SUCCESS, url_query_add(&qp, "q", "hello world"));
 
   ASSERT_EQ(0, url_query_build_form(&qp, &res));
   ASSERT(res != NULL);
@@ -247,9 +240,9 @@ TEST test_query_build_form_multiple(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
 
-  url_query_init(&qp);
-  url_query_add(&qp, "a", "1");
-  url_query_add(&qp, "b", "2+2");
+  ASSERT_EQ(CDD_C_SUCCESS, url_query_init(&qp));
+  ASSERT_EQ(CDD_C_SUCCESS, url_query_add(&qp, "a", "1"));
+  ASSERT_EQ(CDD_C_SUCCESS, url_query_add(&qp, "b", "2+2"));
 
   ASSERT_EQ(0, url_query_build_form(&qp, &res));
   ASSERT(res != NULL);
@@ -265,8 +258,8 @@ TEST test_query_build_form_preserves_encoded_value(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
 
-  url_query_init(&qp);
-  url_query_add_encoded(&qp, "color", "blue,black");
+  ASSERT_EQ(CDD_C_SUCCESS, url_query_init(&qp));
+  ASSERT_EQ(CDD_C_SUCCESS, url_query_add_encoded(&qp, "color", "blue,black"));
 
   ASSERT_EQ(0, url_query_build_form(&qp, &res));
   ASSERT(res != NULL);
@@ -279,19 +272,17 @@ TEST test_query_build_form_preserves_encoded_value(void) {
 }
 
 TEST test_openapi_kv_join_form_comma(void) {
-  char *_ast_openapi_kv_join_form_9 = NULL;
   struct OpenAPI_KV kvs[2];
-  char *res;
+  char *res = NULL;
 
-  kvs[0].key = (char *)(size_t)(size_t) "R";
+  kvs[0].key = cdd_test_mut_str("R");
   kvs[0].type = OA_KV_INTEGER;
   kvs[0].value.i = 100;
-  kvs[1].key = (char *)(size_t)(size_t) "G";
+  kvs[1].key = cdd_test_mut_str("G");
   kvs[1].type = OA_KV_INTEGER;
   kvs[1].value.i = 200;
 
-  res = (openapi_kv_join_form(kvs, 2, ",", 0, &_ast_openapi_kv_join_form_9),
-         _ast_openapi_kv_join_form_9);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_kv_join_form(kvs, 2, ",", 0, &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ("R,100,G,200", res);
   free(res);
@@ -300,19 +291,17 @@ TEST test_openapi_kv_join_form_comma(void) {
 }
 
 TEST test_openapi_kv_join_form_space(void) {
-  char *_ast_openapi_kv_join_form_10 = NULL;
   struct OpenAPI_KV kvs[2];
-  char *res;
+  char *res = NULL;
 
-  kvs[0].key = (char *)(size_t)(size_t) "alpha";
+  kvs[0].key = cdd_test_mut_str("alpha");
   kvs[0].type = OA_KV_STRING;
-  kvs[0].value.s = (char *)(size_t)(size_t) "a b";
-  kvs[1].key = (char *)(size_t)(size_t) "beta";
+  kvs[0].value.s = cdd_test_mut_str("a b");
+  kvs[1].key = cdd_test_mut_str("beta");
   kvs[1].type = OA_KV_STRING;
-  kvs[1].value.s = (char *)(size_t)(size_t) "c";
+  kvs[1].value.s = cdd_test_mut_str("c");
 
-  res = (openapi_kv_join_form(kvs, 2, "%20", 0, &_ast_openapi_kv_join_form_10),
-         _ast_openapi_kv_join_form_10);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_kv_join_form(kvs, 2, "%20", 0, &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ("alpha%20a+b%20beta%20c", res);
   free(res);
@@ -321,16 +310,14 @@ TEST test_openapi_kv_join_form_space(void) {
 }
 
 TEST test_openapi_kv_join_form_pipe_allow_reserved(void) {
-  char *_ast_openapi_kv_join_form_11 = NULL;
   struct OpenAPI_KV kvs[1];
-  char *res;
+  char *res = NULL;
 
-  kvs[0].key = (char *)(size_t)(size_t) "path";
+  kvs[0].key = cdd_test_mut_str("path");
   kvs[0].type = OA_KV_STRING;
-  kvs[0].value.s = (char *)(size_t)(size_t) "a/b";
+  kvs[0].value.s = cdd_test_mut_str("a/b");
 
-  res = (openapi_kv_join_form(kvs, 1, "%7C", 1, &_ast_openapi_kv_join_form_11),
-         _ast_openapi_kv_join_form_11);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_kv_join_form(kvs, 1, "%7C", 1, &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ("path%7Ca/b", res);
   free(res);
@@ -342,9 +329,9 @@ TEST test_query_build_preserves_encoded_value(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
 
-  url_query_init(&qp);
-  url_query_add_encoded(&qp, "color", "blue,black");
-  url_query_add(&qp, "q", "hello world");
+  ASSERT_EQ(CDD_C_SUCCESS, url_query_init(&qp));
+  ASSERT_EQ(CDD_C_SUCCESS, url_query_add_encoded(&qp, "color", "blue,black"));
+  ASSERT_EQ(CDD_C_SUCCESS, url_query_add(&qp, "q", "hello world"));
 
   ASSERT_EQ(0, url_query_build(&qp, &res));
   ASSERT(res != NULL);
@@ -361,8 +348,8 @@ TEST test_query_build_encoding_keys(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
 
-  url_query_init(&qp);
-  url_query_add(&qp, "user id", "100");
+  ASSERT_EQ(CDD_C_SUCCESS, url_query_init(&qp));
+  ASSERT_EQ(CDD_C_SUCCESS, url_query_add(&qp, "user id", "100"));
 
   ASSERT_EQ(0, url_query_build(&qp, &res));
   /* Key should be encoded too */
@@ -381,7 +368,7 @@ TEST test_query_null_safety(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, url_query_init(NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, url_query_add(NULL, "k", "v"));
 
-  url_query_init(&qp);
+  ASSERT_EQ(CDD_C_SUCCESS, url_query_init(&qp));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, url_query_add(&qp, NULL, "v"));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, url_query_add(&qp, "k", NULL));
 
@@ -401,29 +388,29 @@ TEST test_url_utils_write_query_json_param(void) {
   memset(&p, 0, sizeof(p));
 
 #if defined(_MSC_VER)
-  if (fopen_s(&fp, "test_url_json.txt", "w") != 0)
+  if (fopen_s(&fp, "build/test_url_json.txt", "w") != 0)
     fp = NULL;
 #else
-  fp = fopen("test_url_json.txt", "w");
+  fp = fopen("build/test_url_json.txt", "w");
 #endif
   ASSERT(fp != NULL);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_query_json_param(NULL, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_query_json_param(fp, NULL));
 
-  p.name = (char *)(size_t)(size_t) "test";
-  p.type = (char *)(size_t)(size_t) "array";
+  p.name = cdd_test_mut_str("test");
+  p.type = cdd_test_mut_str("array");
   p.is_array = 1;
   p.items_type = NULL;
   p.schema.inline_type = NULL;
 
-  p.name = (char *)(size_t)(size_t) "test";
+  p.name = cdd_test_mut_str("test");
 
   /* unsupported array */
 
   if (fp)
     fclose(fp);
-  remove("test_url_json.txt");
+  remove("build/test_url_json.txt");
   g_fail_io_after = -1;
 
   PASS();
@@ -483,16 +470,16 @@ TEST test_openapi_kv_join_form_types(void) {
   struct OpenAPI_KV kvs[5];
   char *res = NULL;
 
-  kvs[0].key = (char *)(size_t)(size_t) "B";
+  kvs[0].key = cdd_test_mut_str("B");
   kvs[0].type = OA_KV_BOOLEAN;
   kvs[0].value.b = 0;
-  kvs[1].key = (char *)(size_t)(size_t) "F";
+  kvs[1].key = cdd_test_mut_str("F");
   kvs[1].type = OA_KV_NUMBER;
   kvs[1].value.n = 3.14;
-  kvs[2].key = (char *)(size_t)(size_t) "S";
+  kvs[2].key = cdd_test_mut_str("S");
   kvs[2].type = OA_KV_STRING;
-  kvs[2].value.s = (char *)(size_t)(size_t) "str";
-  kvs[3].key = (char *)(size_t)(size_t) "U";
+  kvs[2].value.s = cdd_test_mut_str("str");
+  kvs[3].key = cdd_test_mut_str("U");
   kvs[3].type = 999;
   kvs[4].key = NULL;
 
@@ -515,9 +502,9 @@ TEST test_openapi_kv_join_form_null(void) {
 TEST test_openapi_kv_join_form_delim_null(void) {
   struct OpenAPI_KV kvs[1];
   char *res = NULL;
-  kvs[0].key = (char *)(size_t)(size_t) "k";
+  kvs[0].key = cdd_test_mut_str("k");
   kvs[0].type = OA_KV_STRING;
-  kvs[0].value.s = (char *)(size_t)(size_t) "v";
+  kvs[0].value.s = cdd_test_mut_str("v");
   ASSERT_EQ(CDD_C_SUCCESS, openapi_kv_join_form(kvs, 1, NULL, 0, &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ("k,v", res);
@@ -528,7 +515,7 @@ TEST test_openapi_kv_join_form_delim_null(void) {
 TEST test_openapi_kv_join_form_large_string(void) {
   struct OpenAPI_KV kvs[1];
   char *res = NULL;
-  kvs[0].key = (char *)(size_t)(size_t) "large";
+  kvs[0].key = cdd_test_mut_str("large");
   kvs[0].type = OA_KV_STRING;
   kvs[0].value.s =
       "very_large_string_that_exceeds_sixty_four_bytes_to_trigger_the_while_"
@@ -543,9 +530,9 @@ TEST test_kv_value_to_string_null(void) {
   struct OpenAPI_KV kv;
   char *res = NULL;
   char buf[32];
-  kv.key = (char *)(size_t)(size_t) "x";
+  kv.key = cdd_test_mut_str("x");
   kv.type = OA_KV_STRING;
-  kv.value.s = (char *)(size_t)(size_t) "y";
+  kv.value.s = cdd_test_mut_str("y");
   ASSERT_EQ(CDD_C_SUCCESS, kv_value_to_string_test(
                                NULL, NULL, 0, (const char **)(size_t)&res));
   ASSERT_EQ(CDD_C_SUCCESS,
@@ -828,7 +815,7 @@ TEST test_url_utils_full_coverage(void) {
     struct OpenAPI_KV kv_test;
     const char *out_str = NULL;
     char sbuf[32];
-    kv_test.key = (char *)(size_t) "k";
+    kv_test.key = cdd_test_mut_str("k");
     kv_test.type = OA_KV_STRING;
     kv_test.value.s = NULL;
     rc = kv_value_to_string_test(&kv_test, sbuf, sizeof(sbuf), &out_str);
@@ -863,12 +850,12 @@ TEST test_url_utils_full_coverage(void) {
 
   memset(kvs, 0, sizeof(kvs));
   kvs[0].key = NULL; /* skipped */
-  kvs[1].key = (char *)(size_t) "k1";
+  kvs[1].key = cdd_test_mut_str("k1");
   kvs[1].type = OA_KV_STRING;
   kvs[1].value.s = NULL; /* skipped (raw_val == NULL) */
-  kvs[2].key = (char *)(size_t) "k2";
+  kvs[2].key = cdd_test_mut_str("k2");
   kvs[2].type = OA_KV_STRING;
-  kvs[2].value.s = (char *)(size_t) "v2";
+  kvs[2].value.s = cdd_test_mut_str("v2");
 
   /* non-null kvs with n == 0 */
   rc = openapi_kv_join_form(kvs, 0, ",", 0, &res);
@@ -894,12 +881,12 @@ TEST test_url_utils_full_coverage(void) {
   {
     struct OpenAPI_KV kvs_two[2];
     memset(kvs_two, 0, sizeof(kvs_two));
-    kvs_two[0].key = (char *)(size_t) "123456789012345678901234567890";
+    kvs_two[0].key = cdd_test_mut_str("123456789012345678901234567890");
     kvs_two[0].type = OA_KV_STRING;
-    kvs_two[0].value.s = (char *)(size_t) "12345678901234567890123456789012";
-    kvs_two[1].key = (char *)(size_t) "k2";
+    kvs_two[0].value.s = cdd_test_mut_str("12345678901234567890123456789012");
+    kvs_two[1].key = cdd_test_mut_str("k2");
     kvs_two[1].type = OA_KV_STRING;
-    kvs_two[1].value.s = (char *)(size_t) "v2";
+    kvs_two[1].value.s = cdd_test_mut_str("v2");
 
     for (i = 1; i <= 20; ++i) {
       g_cdd_alloc_fail = i;
@@ -919,12 +906,12 @@ TEST test_url_utils_full_coverage(void) {
     struct OpenAPI_KV kvs_long[1];
     memset(kvs_long, 0, sizeof(kvs_long));
     kvs_long[0].key =
-        (char *)(size_t) "1234567890123456789012345678901234567890"
-                         "12345678901234567890123";
+        cdd_test_mut_str("1234567890123456789012345678901234567890"
+                         "12345678901234567890123");
     kvs_long[0].type = OA_KV_STRING;
     kvs_long[0].value.s =
-        (char *)(size_t) "123456789012345678901234567890123456"
-                         "7890123456789012345678901234";
+        cdd_test_mut_str("123456789012345678901234567890123456"
+                         "7890123456789012345678901234");
 
     for (i = 1; i <= 10; ++i) {
       g_cdd_alloc_fail = i;

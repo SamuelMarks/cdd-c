@@ -47,6 +47,8 @@ TEST test_dsl_tokenizer_oom(void) {
   g_fail_io_after = 1;
   rc = cdd_dsl_tokenize(source, &list);
   g_fail_io_after = 0;
+  if (rc == CDD_C_SUCCESS)
+    cdd_dsl_token_list_free(&list);
   /* ASSERT_EQ_FMT(CDD_C_ERROR_MEMORY, rc, "%d"); */
 
   PASS();

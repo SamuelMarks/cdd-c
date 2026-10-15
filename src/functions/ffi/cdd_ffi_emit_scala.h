@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_scala.h
+ * @brief FFI binding emitter for Scala.
+ */
 #ifndef CDD_FFI_EMIT_SCALA_H
 #define CDD_FFI_EMIT_SCALA_H
 

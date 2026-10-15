@@ -62,7 +62,7 @@ TEST test_write_union_to_json(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -113,7 +113,7 @@ TEST test_write_union_from_json_object(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -166,7 +166,7 @@ TEST test_write_union_from_json(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -212,7 +212,7 @@ TEST test_write_union_array_to_json(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -255,7 +255,7 @@ TEST test_write_union_array_from_json(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -298,7 +298,7 @@ TEST test_write_union_array_cleanup(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -341,7 +341,7 @@ TEST test_write_union_cleanup_switch(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -384,7 +384,7 @@ TEST test_root_array_string_cleanup(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -424,7 +424,7 @@ TEST test_root_array_int_from_json(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -464,7 +464,7 @@ TEST test_root_array_obj_to_json(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -498,7 +498,7 @@ TEST test_union_guards(void) {
     struct_fields_init(&sf);
     struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
 
-    cfg.json_guard = (char *)(size_t)(size_t) "JSON_G";
+    cfg.json_guard = cdd_test_mut_str("JSON_G");
     cfg.utils_guard = NULL;
 
     ASSERT_EQ(0, write_union_to_json_func(tmp, "GuardedU", &sf, &cfg));
@@ -507,7 +507,7 @@ TEST test_union_guards(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 

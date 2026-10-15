@@ -38,9 +38,9 @@ static const char *k_items_skip_keys[] = {"type", "$ref"};
  * @brief Internal helper to convert a JSON Schema object to
  * StructFields.
  */
-cdd_c_error_t c2s_json_object_to_struct_fields_internal(
-    const JSON_Object *o, struct StructFields *f, JSON_Object *root,
-    const char *schema_name, int allow_inline_union) {
+cdd_c_error_t c2s_json_object_to_struct_fields_internal_mut(
+    const JSON_Object *o, struct StructFields *f, const JSON_Object *root,
+    JSON_Object *root_mut, const char *schema_name, int allow_inline_union) {
   JSON_Object *props;
   size_t i, count;
   const JSON_Array *required;
@@ -61,12 +61,10 @@ cdd_c_error_t c2s_json_object_to_struct_fields_internal(
 
   {
     int is_enum = 0;
-    cdd_c_error_t rc_c2s = schema_object_is_string_enum(o, &enum_arr, &is_enum);
-    if (rc_c2s != CDD_C_SUCCESS)
-      return rc_c2s;
+    schema_object_is_string_enum(o, &enum_arr, &is_enum);
     if (is_enum) {
       f->is_enum = 1;
-      if (enum_members_init(&f->enum_members) != 0)
+      if (enum_members_init(&f->enum_members) != CDD_C_SUCCESS)
         return CDD_C_ERROR_MEMORY;
       if (json_array_to_enum_members(enum_arr, &f->enum_members) != 0)
         return CDD_C_ERROR_MEMORY;
@@ -83,8 +81,8 @@ cdd_c_error_t c2s_json_object_to_struct_fields_internal(
 
   any_of = json_object_get_array(o, "anyOf");
   if (any_of) {
-    rc = apply_union_to_struct_fields_ex(any_of, f, root, schema_name, 1, o,
-                                         allow_inline_union);
+    rc = apply_union_to_struct_fields_ex_mut(
+        any_of, f, root, root_mut, schema_name, 1, o, allow_inline_union);
     if (rc != CDD_C_SUCCESS)
       return rc;
     if (!f->is_union) {
@@ -96,8 +94,8 @@ cdd_c_error_t c2s_json_object_to_struct_fields_internal(
 
   one_of = json_object_get_array(o, "oneOf");
   if (one_of) {
-    rc = apply_union_to_struct_fields_ex(one_of, f, root, schema_name, 0, o,
-                                         allow_inline_union);
+    rc = apply_union_to_struct_fields_ex_mut(
+        one_of, f, root, root_mut, schema_name, 0, o, allow_inline_union);
     if (rc != CDD_C_SUCCESS)
       return rc;
     if (!f->is_union) {
@@ -266,9 +264,7 @@ cdd_c_error_t c2s_json_object_to_struct_fields_internal(
 
     {
       int is_req = 0;
-      cdd_c_error_t rc_c2s = required_name_in_list(required, name, &is_req);
-      if (rc_c2s != CDD_C_SUCCESS)
-        return rc_c2s;
+      required_name_in_list(required, name, &is_req);
       if (is_req)
         field->required = 1;
     }
@@ -381,188 +377,6 @@ cdd_c_error_t c2s_json_object_to_struct_fields_internal(
       return CDD_C_ERROR_MEMORY;
   }
 
-  /* OpenAPI 3.2.0 coverage expansion:
-   *
-   * @authorizationUrl implicit password clientCredentials authorizationCode
-   * deviceAuthorization
-   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
-   * @Security Requirement Object {name}
-   * @XML Object nodeType namespace prefix attribute wrapped
-   * @Link Object operationRef operationId parameters requestBody server
-   * @Callback Object {expression}
-   * @Example Object dataValue serializedValue externalValue
-   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding
-   * style explode allowReserved
-   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
-   * @Discriminator Object defaultMapping
-   * @Components Object requestBodies securitySchemes links callbacks pathItems
-   * mediaTypes
-   * @Server Variable Object enum default
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 2:
-   *
-   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
-   * @termsOfService url email identifier
-   * @get put options head patch trace additionalOperations
-   * @externalDocs operationId
-   * @allowEmptyValue examples in required
-   * @contentType discriminator propertyName mapping
-   * @Responses default
-   * @Response Object
-   * @Example Object
-   * @Link Object
-   * @Callback Object
-   * @Encoding Object
-   * @Media Type Object
-   * @Discriminator Object
-   * @Components Object
-   * @Server Variable Object
-   * @OAuth Flows Object
-   * @OAuth Flow Object
-   * @Security Requirement Object
-   * @XML Object
-   * @Contact Object
-   * @License Object
-   * @Server Object
-   * @Paths Object
-   * @Path Item Object
-   * @Operation Object
-   * @External Documentation Object
-   * @Parameter Object
-   * @Request Body Object
-   * @Header Object
-   * @Tag Object
-   * @Reference Object
-   * @Schema Object
-   * @Security Scheme Object
-   * @OpenAPI Object
-   * @Info Object
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 3:
-   *
-   * @version @contact @license @server @url @name
-   * @get @put @post @delete @options @head @patch @trace
-   * @additionalOperations @operationId @requestBody @responses
-   * @allowEmptyValue @allowReserved @example @examples @schema @items
-   * @itemSchema @encoding @prefixEncoding @itemEncoding
-   * @contentType @headers @style @explode
-   * @default @HTTP Status Code @summary @description @links
-   * @dataValue @serializedValue @externalValue @value @operationRef
-   * @server @required @deprecated @schemas @parameters
-   * @securitySchemes @pathItems @mediaTypes
-   * @parent @kind @$ref @discriminator @propertyName @mapping
-   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
-   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
-   * @oauth2MetadataUrl @implicit @password @clientCredentials
-   * @authorizationCode
-   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
-   * @refreshUrl @scopes @{name} @{expression} @XML Object
-   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
-   * @Security Scheme Object @Reference Object @Tag Object @Header Object
-   * @Link Object @Example Object @Callback Object @Response Object @Responses
-   * Object
-   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
-   * @External Documentation Object @Operation Object @Path Item Object @Paths
-   * Object
-   * @Components Object @Server Variable Object @Server Object @License Object
-   * @Contact Object @Info Object @OpenAPI Object
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 4:
-   *
-   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue
-   * @value @operationRef @server
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 5:
-   *
-   * @version
-   * @get @put @options @head @patch @trace @additionalOperations @operationId
-   * @responses
-   * @allowEmptyValue
-   * @content
-   * @encoding @prefixEncoding @itemEncoding
-   * @contentType
-   * @HTTP Status Code
-   * @dataValue @serializedValue @externalValue @value
-   * @operationRef @server
-   * @required
-   * @schemas @parameters
-   * @securitySchemes @pathItems @mediaTypes
-   * @parent @kind
-   * @propertyName @mapping @defaultMapping
-   * @nodeType @namespace @prefix @attribute @wrapped
-   * @type @in @scheme @bearerFormat @flows
-   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
-   * @authorizationCode
-   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
-   * @refreshUrl @scopes
-   * @{name} @{expression}
-   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow
-   * Object
-   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link
-   * Object
-   * @Example Object @Callback Object @Response Object @Responses Object
-   * @Encoding Object
-   * @Media Type Object @Request Body Object @Parameter Object @External
-   * Documentation Object
-   * @Operation Object @Path Item Object @Paths Object @Components Object
-   * @Server Variable Object
-   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 6:
-   *
-   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML
-   * Object
-   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object
-   * (`parameters`)
-   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object
-   * (`server`)
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 7:
-   *
-   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML
-   * Object
-   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object
-   * (`parameters`)
-   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object
-   * (`server`)
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 8:
-   *
-   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head
-   * @patch @trace @query @additionalOperations
-   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated
-   * @security @servers
-   * @in @allowEmptyValue @example @examples @style @explode @allowReserved
-   * @schema @content @required @itemSchema
-   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default
-   * @HTTP Status Code @summary @description @links
-   * @{expression} @dataValue @serializedValue @externalValue @value
-   * @operationRef @parameters @server @name @parent
-   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml
-   * @nodeType @namespace @prefix @attribute
-   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl
-   * @oauth2MetadataUrl @implicit @password @clientCredentials
-   * @authorizationCode @deviceAuthorization @authorizationUrl
-   * @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
-   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object
-   * @License Object @Server Object @Server Variable Object
-   * @Components Object @Paths Object @Path Item Object @Operation Object
-   * @External Documentation Object @Parameter Object
-   * @Request Body Object @Media Type Object @Encoding Object @Responses Object
-   * @Response Object @Callback Object @Example Object
-   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object
-   * @Discriminator Object @XML Object
-   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security
-   * Requirement Object
-   */
-
   return CDD_C_SUCCESS;
 }
 
@@ -573,6 +387,13 @@ C_CDD_EXPORT int g_json_object_to_struct_fields_fail = 0;
 /**
  * @brief Extended function to convert a JSON Schema object to StructFields.
  */
+cdd_c_error_t c2s_json_object_to_struct_fields_internal(
+    const JSON_Object *o, struct StructFields *f, const JSON_Object *root,
+    const char *schema_name, int allow_inline_union) {
+  return c2s_json_object_to_struct_fields_internal_mut(
+      o, f, root, NULL, schema_name, allow_inline_union);
+}
+
 cdd_c_error_t json_object_to_struct_fields_ex(
     const JSON_Object *schema_obj, struct StructFields *fields,
     const JSON_Object *schemas_obj_root, const char *schema_name) {
@@ -583,7 +404,7 @@ cdd_c_error_t json_object_to_struct_fields_ex(
   }
 #endif
   return c2s_json_object_to_struct_fields_internal(
-      schema_obj, fields, (JSON_Object *)schemas_obj_root, schema_name, 0);
+      schema_obj, fields, schemas_obj_root, schema_name, 0);
 }
 
 /**
@@ -599,8 +420,8 @@ cdd_c_error_t json_object_to_struct_fields_ex_codegen(
     return CDD_C_ERROR_MEMORY;
   }
 #endif
-  return c2s_json_object_to_struct_fields_internal(
-      schema_obj, fields, schemas_obj_root, schema_name, 1);
+  return c2s_json_object_to_struct_fields_internal_mut(
+      schema_obj, fields, schemas_obj_root, schemas_obj_root, schema_name, 1);
 }
 
 /**

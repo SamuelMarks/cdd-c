@@ -99,12 +99,9 @@ extern C_CDD_EXPORT void init_list_free(struct InitList *list);
  * (including empty braces).
  * @return 0 on success, EINVAL on syntax error, ENOMEM on alloc failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Parses initializer from the given input.
-                     */
-    cdd_c_error_t
-    parse_initializer(const struct TokenList *tokens, size_t start_idx,
-                      size_t end_idx, struct InitList *out, size_t *consumed);
+extern C_CDD_EXPORT cdd_c_error_t
+parse_initializer(const struct TokenList *tokens, size_t start_idx,
+                  size_t end_idx, struct InitList *out, size_t *consumed);
 
 #ifdef __cplusplus
 }

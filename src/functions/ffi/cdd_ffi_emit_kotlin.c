@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_kotlin.c
+ * @brief FFI binding emitter for Kotlin.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 

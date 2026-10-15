@@ -44,7 +44,7 @@ TEST test_ffi_emit_java_pom_dir(void) {
   mkdir("test_pom_dir/pom.xml", 0777);
 #endif
 
-  config.output_dir = (char *)(size_t)(size_t)(size_t) "test_pom_dir";
+  config.output_dir = cdd_test_mut_str("test_pom_dir");
   cdd_ffi_emit_java(&ir, &config);
 
 #ifdef _WIN32
@@ -70,7 +70,7 @@ TEST test_ffi_emit_matlab_m_dir(void) {
   mkdir("test_m_dir/mylib.m", 0777);
 #endif
 
-  config.output_dir = (char *)(size_t)(size_t)(size_t) "test_m_dir";
+  config.output_dir = cdd_test_mut_str("test_m_dir");
   cdd_ffi_emit_matlab(&ir, &config);
 
 #ifdef _WIN32
@@ -98,8 +98,8 @@ TEST test_ffi_emit_napi_dir(void) {
   mkdir("test_napi_dir/binding.gyp", 0777);
 #endif
 
-  config.output_dir = (char *)(size_t)(size_t)(size_t) "test_napi_dir";
-  config.library_name = (char *)(size_t)(size_t)(size_t) "test_Lib_name";
+  config.output_dir = cdd_test_mut_str("test_napi_dir");
+  config.library_name = cdd_test_mut_str("test_Lib_name");
   config.generate_tests = 1;
   cdd_ffi_emit_napi(&ir, &config);
 
@@ -129,8 +129,8 @@ TEST test_ffi_emit_objc_dir(void) {
   mkdir("test_objc_dir_new/Bindings.m", 0777);
 #endif
 
-  config.output_dir = (char *)(size_t)(size_t)(size_t) "test_objc_dir_new";
-  config.library_name = (char *)(size_t)(size_t)(size_t) "MyLib";
+  config.output_dir = cdd_test_mut_str("test_objc_dir_new");
+  config.library_name = cdd_test_mut_str("MyLib");
   rc = cdd_ffi_emit_objc(&ir, &config);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
 
@@ -162,8 +162,8 @@ TEST test_ffi_emit_perl_dir(void) {
   mkdir("test_perl_dir/Bindings.xs", 0777);
 #endif
 
-  config.output_dir = (char *)(size_t)(size_t)(size_t) "test_perl_dir";
-  config.module_name = (char *)(size_t)(size_t)(size_t) "Bindings";
+  config.output_dir = cdd_test_mut_str("test_perl_dir");
+  config.module_name = cdd_test_mut_str("Bindings");
   rc = cdd_ffi_emit_perl(&ir, &config);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
 
@@ -220,10 +220,10 @@ TEST test_ffi_emit_csharp_makedir(void) {
   rmdir(test_dir);
 #endif
 
-  config.input = (char *)(size_t)(size_t) "my_input.h";
-  config.output_dir = (char *)(size_t)(size_t)test_dir;
-  config.library_name = (char *)(size_t)(size_t) "test_Lib_name";
-  config.module_name = (char *)(size_t)(size_t) "TestMod";
+  config.input = cdd_test_mut_str("my_input.h");
+  config.output_dir = cdd_test_mut_str(test_dir);
+  config.library_name = cdd_test_mut_str("test_Lib_name");
+  config.module_name = cdd_test_mut_str("TestMod");
   config.generate_tests = 1;
 
   rc = cdd_ffi_emit_csharp(ir, &config);
@@ -256,7 +256,7 @@ TEST test_ffi_emit_cpp_trampoline_edge_cases(void) {
   memcpy(long_name + sizeof(long_name) - 12, "_Trampoline", 11);
 
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
-  nodes[0].name = (char *)(size_t) "_Trampoline";
+  nodes[0].name = cdd_test_mut_str("_Trampoline");
 
   nodes[1].kind = CDD_FFI_NODE_STRUCT;
   nodes[1].name = long_name;
@@ -270,10 +270,10 @@ TEST test_ffi_emit_cpp_trampoline_edge_cases(void) {
   mkdir(test_dir, 0777);
 #endif
 
-  config.input = (char *)(size_t)(size_t) "my_input.h";
-  config.output_dir = (char *)(size_t)(size_t)test_dir;
-  config.library_name = (char *)(size_t)(size_t) "test_Lib_name";
-  config.module_name = (char *)(size_t)(size_t) "TestMod";
+  config.input = cdd_test_mut_str("my_input.h");
+  config.output_dir = cdd_test_mut_str(test_dir);
+  config.library_name = cdd_test_mut_str("test_Lib_name");
+  config.module_name = cdd_test_mut_str("TestMod");
 
   ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_emit_cpp(&ir, &config));
 
@@ -308,10 +308,10 @@ TEST test_ffi_emit_rust_fresh_dir(void) {
   mkdir(test_dir, 0777);
 #endif
 
-  config.input = (char *)(size_t)(size_t) "my_input.h";
-  config.output_dir = (char *)(size_t)(size_t)test_dir;
-  config.library_name = (char *)(size_t)(size_t) "test_Lib_name";
-  config.module_name = (char *)(size_t)(size_t) "TestMod";
+  config.input = cdd_test_mut_str("my_input.h");
+  config.output_dir = cdd_test_mut_str(test_dir);
+  config.library_name = cdd_test_mut_str("test_Lib_name");
+  config.module_name = cdd_test_mut_str("TestMod");
   config.generate_tests = 1;
 
   rc = cdd_ffi_emit_rust(ir, &config);
@@ -367,10 +367,10 @@ TEST test_ffi_emit_rust_io_null(void) {
   mkdir("test_out_rust_null/tests", 0777);
 #endif
 
-  config.input = (char *)(size_t)(size_t) "my_input.h";
-  config.output_dir = (char *)(size_t)(size_t)test_dir;
-  config.library_name = (char *)(size_t)(size_t) "test_Lib_name";
-  config.module_name = (char *)(size_t)(size_t) "TestMod";
+  config.input = cdd_test_mut_str("my_input.h");
+  config.output_dir = cdd_test_mut_str(test_dir);
+  config.library_name = cdd_test_mut_str("test_Lib_name");
+  config.module_name = cdd_test_mut_str("TestMod");
   config.generate_tests = 1;
 
   /* 1. Cargo.toml is a dir -> fopen returns NULL -> g_fail_io_after triggers
@@ -471,10 +471,10 @@ TEST test_ffi_emit_clojure_io_fail(void) {
   mkdir(test_dir, 0777);
 #endif
 
-  config.input = (char *)(size_t)(size_t) "my_input.h";
-  config.output_dir = (char *)(size_t)(size_t)test_dir;
-  config.library_name = (char *)(size_t)(size_t) "test_Lib_name";
-  config.module_name = (char *)(size_t)(size_t) "TestMod";
+  config.input = cdd_test_mut_str("my_input.h");
+  config.output_dir = cdd_test_mut_str(test_dir);
+  config.library_name = cdd_test_mut_str("test_Lib_name");
+  config.module_name = cdd_test_mut_str("TestMod");
 
   /* Case 1: f is non-NULL when g_fail_io_after == 556 */
   g_fail_io_after = 556;
@@ -508,7 +508,8 @@ TEST test_ffi_emit_clojure_io_fail(void) {
 }
 
 /**
- * @brief Test IO failure when writing module.modulemap in Swift emitter.
+ * @brief Core Test IO failure when writing definitions and
+ * implementation.modulemap in Swift emitter.
  *
  * @return GREATEST test result.
  */
@@ -524,10 +525,10 @@ TEST test_ffi_emit_swift_io_fail(void) {
   mkdir(test_dir, 0777);
 #endif
 
-  config.input = (char *)(size_t)(size_t) "my_input.h";
-  config.output_dir = (char *)(size_t)(size_t)test_dir;
-  config.library_name = (char *)(size_t)(size_t) "test_Lib_name";
-  config.module_name = (char *)(size_t)(size_t) "TestMod";
+  config.input = cdd_test_mut_str("my_input.h");
+  config.output_dir = cdd_test_mut_str(test_dir);
+  config.library_name = cdd_test_mut_str("test_Lib_name");
+  config.module_name = cdd_test_mut_str("TestMod");
 
   /* Case 1: f is non-NULL when g_fail_io_after triggers on module.modulemap */
   g_fail_io_after = 2;

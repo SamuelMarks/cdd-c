@@ -38,7 +38,7 @@ static const struct AllocatorSpec ALLOCATOR_SPECS[] = {
     {NULL, ALLOC_STYLE_RETURN_PTR, CHECK_PTR_NULL, 0}};
 
 /**
- * @brief Executes the allocation site list init operation.
+ * @brief Initializes a list of tracked memory allocation sites.
  */
 cdd_c_error_t allocation_site_list_init(struct AllocationSiteList *list) {
   if (!list)
@@ -71,7 +71,7 @@ cdd_c_error_t allocation_site_list_init(struct AllocationSiteList *list) {
 }
 
 /**
- * @brief Executes the allocation site list free operation.
+ * @brief Releases memory held by an allocation site list.
  */
 void allocation_site_list_free(struct AllocationSiteList *list) {
   size_t i;
@@ -90,13 +90,12 @@ void allocation_site_list_free(struct AllocationSiteList *list) {
 }
 
 /**
- * @brief Executes the allocation site list add operation.
+ * @brief Records a newly discovered memory allocation site.
  */
 cdd_c_error_t allocation_site_list_add(struct AllocationSiteList *list,
                                        size_t index, const char *var_name,
                                        int checked, int used_before, int is_ret,
                                        const struct AllocatorSpec *spec) {
-  char *_ast_strdup_0 = NULL;
   if (!list)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -146,13 +145,11 @@ cdd_c_error_t allocation_site_list_add(struct AllocationSiteList *list,
         if (g_cdd_analysis_fail_alloc_varname > 1) {
           g_cdd_analysis_fail_alloc_varname--;
         }
-        list->sites[list->size].var_name =
-            (c_cdd_strdup(var_name, &_ast_strdup_0), _ast_strdup_0);
+        c_cdd_strdup(var_name, &list->sites[list->size].var_name);
       }
     }
 #else
-    list->sites[list->size].var_name =
-        (c_cdd_strdup(var_name, &_ast_strdup_0), _ast_strdup_0);
+    c_cdd_strdup(var_name, &list->sites[list->size].var_name);
 #endif
     if (!list->sites[list->size].var_name)
       return CDD_C_ERROR_MEMORY;
@@ -192,11 +189,11 @@ static cdd_c_error_t get_assigned_var(const struct TokenList *tokens,
         if (g_cdd_fail_alloc > 1) {
           g_cdd_fail_alloc--;
         }
-        name = (char *)(size_t)malloc(tok->length + 1);
+        name = (char *)malloc(tok->length + 1);
       }
     }
 #else
-    name = (char *)(size_t)malloc(tok->length + 1);
+    name = (char *)malloc(tok->length + 1);
 #endif
     if (!name) {
       *_out_val = NULL;
@@ -315,7 +312,6 @@ static cdd_c_error_t is_dereference_use(const struct TokenList *tokens,
 cdd_c_error_t is_checked(const struct TokenList *tokens, size_t alloc_idx,
                          const char *var_name, const struct AllocatorSpec *spec,
                          int *used_before_check, int *out_is_checked) {
-  int _ast_token_matches_string_0 = 0;
   size_t i = alloc_idx;
 #ifdef CDD_BUILD_TESTS
   extern C_CDD_EXPORT int g_cdd_fail_is_checked;
@@ -359,8 +355,9 @@ cdd_c_error_t is_checked(const struct TokenList *tokens, size_t alloc_idx,
     }
 
     if (tok->kind == TOKEN_IDENTIFIER) {
-      if ((token_matches_string(tok, var_name, &_ast_token_matches_string_0),
-           _ast_token_matches_string_0)) {
+      int matched = 0;
+      token_matches_string(tok, var_name, &matched);
+      if (matched) {
         int is_inside = 0;
         {
           cdd_c_error_t rc_an = is_inside_condition(tokens, i, &is_inside);
@@ -396,8 +393,6 @@ cdd_c_error_t is_checked(const struct TokenList *tokens, size_t alloc_idx,
  */
 cdd_c_error_t find_allocations(const struct TokenList *tokens,
                                struct AllocationSiteList *out) {
-  int _ast_token_matches_string_1 = 0;
-  char *_ast_get_assigned_var_2 = NULL;
   size_t i;
   cdd_c_error_t rc;
 
@@ -416,9 +411,9 @@ cdd_c_error_t find_allocations(const struct TokenList *tokens,
       const struct AllocatorSpec *spec = ALLOCATOR_SPECS;
 
       while (spec->name != NULL) {
-        if ((token_matches_string(tok, spec->name,
-                                  &_ast_token_matches_string_1),
-             _ast_token_matches_string_1)) {
+        int matched = 0;
+        token_matches_string(tok, spec->name, &matched);
+        if (matched) {
           char *var_name = NULL;
           int is_return = 0;
 
@@ -455,9 +450,7 @@ cdd_c_error_t find_allocations(const struct TokenList *tokens,
               case TOKEN_RBRACE:
                 break;
               case TOKEN_ASSIGN:
-                var_name =
-                    (get_assigned_var(tokens, prev, &_ast_get_assigned_var_2),
-                     _ast_get_assigned_var_2);
+                get_assigned_var(tokens, prev, &var_name);
                 break;
               default:
                 continue;

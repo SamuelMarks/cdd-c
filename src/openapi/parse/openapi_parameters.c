@@ -8,26 +8,12 @@
 #include "openapi/parse/openapi_internal.h"
 /* clang-format on */
 
-/**
- * @brief Parses parameter object from the given input.
- */
-cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
-                                     struct OpenAPI_Parameter *out_param,
-                                     const struct OpenAPI_Spec *spec,
-                                     int resolve_refs) {
-  struct OpenAPI_Parameter *_ast_find_component_parameter_58;
-  enum OpenAPI_ParamIn _ast_parse_param_in_59;
-  struct OpenAPI_MediaType *_ast_find_component_media_type_60;
+static cdd_c_error_t
+parse_parameter_object_inner(const JSON_Object *p_obj,
+                             struct OpenAPI_Parameter *out_param,
+                             struct OpenAPI_Spec *spec, int resolve_refs) {
   char *base = NULL;
   char *registered = NULL;
-  enum OpenAPI_Style _ast_parse_param_style_62;
-  char *_ast_strdup_234 = NULL;
-  char *_ast_strdup_235 = NULL;
-  char *_ast_strdup_236 = NULL;
-  char *_ast_strdup_237 = NULL;
-  char *_ast_strdup_238 = NULL;
-  char *_ast_strdup_239 = NULL;
-  char *_ast_strdup_240 = NULL;
   const char *ref;
   const char *name;
   const char *in;
@@ -55,32 +41,30 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
   const char *style_str;
   int explode_present;
   int explode_val;
+  cdd_c_error_t rc;
 
   if (!p_obj || !out_param)
     return CDD_C_SUCCESS;
 
   ref = json_object_get_string(p_obj, "$ref");
   if (ref) {
-    out_param->ref = (c_cdd_strdup(ref, &_ast_strdup_234), _ast_strdup_234);
+    c_cdd_strdup(ref, &out_param->ref);
     if (!out_param->ref)
       return CDD_C_ERROR_MEMORY;
     if (resolve_refs && spec) {
-      const struct OpenAPI_Parameter *comp =
-          (find_component_parameter(spec, ref,
-                                    &_ast_find_component_parameter_58),
-           _ast_find_component_parameter_58);
+      struct OpenAPI_Parameter *comp = NULL;
+      find_component_parameter(spec, ref, &comp);
       if (comp) {
-        {
-          cdd_c_error_t _rc = copy_parameter_fields(out_param, comp);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        rc = copy_parameter_fields(out_param, comp);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
     }
     desc = json_object_get_string(p_obj, "description");
     if (desc) {
-      out_param->description =
-          (c_cdd_strdup(desc, &_ast_strdup_235), _ast_strdup_235);
+      free(out_param->description);
+      out_param->description = NULL;
+      c_cdd_strdup(desc, &out_param->description);
       if (!out_param->description)
         return CDD_C_ERROR_MEMORY;
     }
@@ -92,11 +76,10 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
   if (!name || !*name || !in)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  out_param->name = (c_cdd_strdup(name, &_ast_strdup_236), _ast_strdup_236);
+  c_cdd_strdup(name, &out_param->name);
   if (!out_param->name)
     return CDD_C_ERROR_MEMORY;
-  out_param->in =
-      (parse_param_in(in, &_ast_parse_param_in_59), _ast_parse_param_in_59);
+  parse_param_in(in, &out_param->in);
   if (out_param->in == OA_PARAM_IN_UNKNOWN)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -115,13 +98,11 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
   if (content) {
     if (json_object_get_count(content) != 1)
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    {
-      cdd_c_error_t _rc = parse_content_object(
-          content, &out_param->content_media_types,
-          &out_param->n_content_media_types, spec, resolve_refs);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    rc = parse_content_object(content, &out_param->content_media_types,
+                              &out_param->n_content_media_types, spec,
+                              resolve_refs);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   effective_schema = schema;
   effective_schema_val = schema_val;
@@ -165,22 +146,18 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
       media_type = json_object_get_name(content, 0);
       media_obj = json_object_get_object(content, media_type);
     }
-    out_param->content_type =
-        (c_cdd_strdup(media_type, &_ast_strdup_237), _ast_strdup_237);
+    c_cdd_strdup(media_type, &out_param->content_type);
     if (!out_param->content_type)
       return CDD_C_ERROR_MEMORY;
     if (media_obj) {
       media_ref = json_object_get_string(media_obj, "$ref");
       if (media_ref) {
-        out_param->content_ref =
-            (c_cdd_strdup(media_ref, &_ast_strdup_238), _ast_strdup_238);
+        c_cdd_strdup(media_ref, &out_param->content_ref);
         if (!out_param->content_ref)
           return CDD_C_ERROR_MEMORY;
         if (resolve_refs && spec) {
-          const struct OpenAPI_MediaType *mt =
-              (find_component_media_type(spec, media_ref,
-                                         &_ast_find_component_media_type_60),
-               _ast_find_component_media_type_60);
+          struct OpenAPI_MediaType *mt = NULL;
+          find_component_media_type(spec, media_ref, &mt);
           if (mt) {
             if (mt->schema_set)
               resolved_schema = &mt->schema;
@@ -201,8 +178,7 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
     type = json_object_get_string(effective_schema, "type");
 
   if (desc) {
-    out_param->description =
-        (c_cdd_strdup(desc, &_ast_strdup_239), _ast_strdup_239);
+    c_cdd_strdup(desc, &out_param->description);
     if (!out_param->description)
       return CDD_C_ERROR_MEMORY;
   }
@@ -221,18 +197,13 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
   }
   if (resolved_schema) {
     if (out_param->in != OA_PARAM_IN_QUERYSTRING) {
-      {
-        cdd_c_error_t _rc =
-            apply_schema_ref_to_param(out_param, resolved_schema);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      rc = apply_schema_ref_to_param(out_param, resolved_schema);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
-    {
-      cdd_c_error_t _rc = copy_schema_ref(&out_param->schema, resolved_schema);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    rc = copy_schema_ref(&out_param->schema, resolved_schema);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     out_param->schema_set = 1;
   } else if (effective_schema_val &&
              json_value_get_type(effective_schema_val) == JSONBoolean) {
@@ -241,12 +212,9 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
         json_value_get_boolean(effective_schema_val);
     out_param->schema_set = 1;
   } else if (effective_schema) {
-    {
-      cdd_c_error_t _rc =
-          parse_schema_ref(effective_schema, &parsed_schema, spec);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    rc = parse_schema_ref(effective_schema, &parsed_schema, spec);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     parsed_schema_set = 1;
     if (out_param->in != OA_PARAM_IN_QUERYSTRING) {
       if (apply_schema_ref_to_param(out_param, &parsed_schema) != 0) {
@@ -265,18 +233,16 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
       media_type_is_json(out_param->content_type) && effective_schema &&
       schema_object_is_object_like(effective_schema) &&
       !out_param->schema.ref_name) {
-    cdd_c_error_t _rc;
     base = NULL;
     registered = NULL;
-    _rc = build_inline_param_name(out_param->name, &base);
-    if (_rc != CDD_C_SUCCESS) {
+    rc = build_inline_param_name(out_param->name, &base);
+    if (rc != CDD_C_SUCCESS) {
       free_schema_ref_content(&parsed_schema);
-      return _rc;
+      return rc;
     }
-    _rc = register_inline_schema((struct OpenAPI_Spec *)spec, base,
-                                 effective_schema, effective_schema_val,
-                                 &registered);
-    if (_rc == CDD_C_SUCCESS) {
+    rc = register_inline_schema(spec, base, effective_schema,
+                                effective_schema_val, &registered);
+    if (rc == CDD_C_SUCCESS) {
       if (out_param->schema.inline_type) {
         free(out_param->schema.inline_type);
         out_param->schema.inline_type = NULL;
@@ -292,8 +258,7 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
   }
 
   if (!out_param->type) {
-    out_param->type = (c_cdd_strdup(type ? type : "string", &_ast_strdup_240),
-                       _ast_strdup_240);
+    c_cdd_strdup(type ? type : "string", &out_param->type);
     if (!out_param->type) {
       if (parsed_schema_set)
         free_schema_ref_content(&parsed_schema);
@@ -302,9 +267,7 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
   }
 
   if (style_str) {
-    out_param->style =
-        (parse_param_style(style_str, &_ast_parse_param_style_62),
-         _ast_parse_param_style_62);
+    parse_param_style(style_str, &out_param->style);
     if (out_param->style == OA_STYLE_UNKNOWN)
       return CDD_C_ERROR_INVALID_ARGUMENT;
   } else {
@@ -328,13 +291,11 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
       out_param->explode = 0;
   }
 
-  {
-    cdd_c_error_t rc = validate_parameter_style(out_param, content != NULL);
-    if (rc != CDD_C_SUCCESS) {
-      if (parsed_schema_set)
-        free_schema_ref_content(&parsed_schema);
-      return rc;
-    }
+  rc = validate_parameter_style(out_param, content != NULL);
+  if (rc != CDD_C_SUCCESS) {
+    if (parsed_schema_set)
+      free_schema_ref_content(&parsed_schema);
+    return rc;
   }
 
   if (object_has_example_and_examples(p_obj)) {
@@ -343,52 +304,44 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  {
-    cdd_c_error_t rc = parse_examples_object(
-        json_object_get_object(p_obj, "examples"), &out_param->examples,
-        &out_param->n_examples, spec, resolve_refs);
+  rc = parse_examples_object(json_object_get_object(p_obj, "examples"),
+                             &out_param->examples, &out_param->n_examples, spec,
+                             resolve_refs);
+  if (rc != CDD_C_SUCCESS) {
+    if (parsed_schema_set)
+      free_schema_ref_content(&parsed_schema);
+    return rc;
+  }
+  if (out_param->n_examples == 0) {
+    rc = parse_any_field(p_obj, "example", &out_param->example,
+                         &out_param->example_set);
     if (rc != CDD_C_SUCCESS) {
       if (parsed_schema_set)
         free_schema_ref_content(&parsed_schema);
       return rc;
     }
   }
-  if (out_param->n_examples == 0) {
-    {
-      cdd_c_error_t _rc = parse_any_field(p_obj, "example", &out_param->example,
-                                          &out_param->example_set);
-      if (_rc != CDD_C_SUCCESS) {
-        if (parsed_schema_set)
-          free_schema_ref_content(&parsed_schema);
-        return _rc;
-      }
-    }
-  }
   if (out_param->example_set || out_param->n_examples > 0) {
     out_param->example_location = OA_EXAMPLE_LOC_OBJECT;
   } else if (media_obj && !media_ref) {
-    {
-      cdd_c_error_t rc = parse_media_examples(
-          media_obj, &out_param->example, &out_param->example_set,
-          &out_param->examples, &out_param->n_examples, spec, resolve_refs);
-      if (rc != CDD_C_SUCCESS) {
-        if (parsed_schema_set)
-          free_schema_ref_content(&parsed_schema);
-        return rc;
-      }
+    rc = parse_media_examples(media_obj, &out_param->example,
+                              &out_param->example_set, &out_param->examples,
+                              &out_param->n_examples, spec, resolve_refs);
+    if (rc != CDD_C_SUCCESS) {
+      if (parsed_schema_set)
+        free_schema_ref_content(&parsed_schema);
+      return rc;
     }
     if (out_param->example_set || out_param->n_examples > 0) {
       out_param->example_location = OA_EXAMPLE_LOC_MEDIA;
     }
   }
 
-  {
-    cdd_c_error_t _rc = collect_extensions(p_obj, &out_param->extensions_json);
-    if (_rc != CDD_C_SUCCESS) {
-      if (parsed_schema_set)
-        free_schema_ref_content(&parsed_schema);
-      return _rc;
-    }
+  rc = collect_extensions(p_obj, &out_param->extensions_json);
+  if (rc != CDD_C_SUCCESS) {
+    if (parsed_schema_set)
+      free_schema_ref_content(&parsed_schema);
+    return rc;
   }
 
   if (parsed_schema_set)
@@ -398,7 +351,21 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
 }
 
 /**
- * @brief Executes the param key equals operation.
+ * @brief Parses parameter object from the given input.
+ */
+cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
+                                     struct OpenAPI_Parameter *out_param,
+                                     struct OpenAPI_Spec *spec,
+                                     int resolve_refs) {
+  cdd_c_error_t rc =
+      parse_parameter_object_inner(p_obj, out_param, spec, resolve_refs);
+  if (rc != CDD_C_SUCCESS && out_param)
+    free_parameter(out_param);
+  return rc;
+}
+
+/**
+ * @brief Checks whether two OpenAPI parameters have the same name and location.
  */
 cdd_c_error_t param_key_equals(const struct OpenAPI_Parameter *a,
                                const struct OpenAPI_Parameter *b) {
@@ -413,7 +380,7 @@ cdd_c_error_t param_key_equals(const struct OpenAPI_Parameter *a,
 cdd_c_error_t parse_parameters_array(const JSON_Array *arr,
                                      struct OpenAPI_Parameter **out_params,
                                      size_t *out_count,
-                                     const struct OpenAPI_Spec *spec) {
+                                     struct OpenAPI_Spec *spec) {
   size_t i, count, valid = 0;
   if (!out_params || !out_count)
     return CDD_C_SUCCESS;
@@ -439,7 +406,13 @@ cdd_c_error_t parse_parameters_array(const JSON_Array *arr,
       struct OpenAPI_Parameter tmp = {0};
       cdd_c_error_t rc = parse_parameter_object(p_obj, &tmp, spec, 1);
       if (rc != CDD_C_SUCCESS) {
+        size_t j;
         free_parameter(&tmp);
+        for (j = 0; j < valid; ++j)
+          free_parameter(&(*out_params)[j]);
+        free(*out_params);
+        *out_params = NULL;
+        *out_count = 0;
         return rc;
       }
       if (header_param_is_reserved(&tmp)) {
@@ -450,8 +423,13 @@ cdd_c_error_t parse_parameters_array(const JSON_Array *arr,
         size_t k;
         for (k = 0; k < valid; ++k) {
           if (param_key_equals(&tmp, &(*out_params)[k])) {
+            size_t j;
             free_parameter(&tmp);
-            *out_count = valid;
+            for (j = 0; j < valid; ++j)
+              free_parameter(&(*out_params)[j]);
+            free(*out_params);
+            *out_params = NULL;
+            *out_count = 0;
             return CDD_C_ERROR_INVALID_ARGUMENT;
           }
         }

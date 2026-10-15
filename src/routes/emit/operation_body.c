@@ -28,13 +28,11 @@
 #define realloc(ptr, sz) C_CDD_REALLOC(ptr, sz)
 #undef calloc
 #define calloc(n, sz) C_CDD_CALLOC(n, sz)
-extern C_CDD_EXPORT int g_cdd_fail_schema_ref_has_data;
 extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
-extern C_CDD_EXPORT int g_cdd_fail_apply_format;
 #endif
 
 /**
- * @brief Executes the any from json value operation.
+ * @brief Populates an OpenAPI_Any variant from a Parson JSON_Value.
  */
 cdd_c_error_t any_from_json_value(const JSON_Value *val,
                                   struct OpenAPI_Any *out) {
@@ -67,12 +65,9 @@ cdd_c_error_t any_from_json_value(const JSON_Value *val,
     out->type = OA_ANY_BOOL;
     out->boolean = json_value_get_boolean(val);
     return CDD_C_SUCCESS;
-  case JSONNull:
-    out->type = OA_ANY_NULL;
-    return CDD_C_SUCCESS;
   case JSONObject:
   case JSONArray:
-    json_str = json_serialize_to_string((JSON_Value *)val);
+    json_str = json_serialize_to_string(val);
 #ifdef CDD_BUILD_TESTS
     if (g_cdd_fail_json_serialize) {
       g_cdd_fail_json_serialize = 0;
@@ -90,7 +85,9 @@ cdd_c_error_t any_from_json_value(const JSON_Value *val,
     if (rc != CDD_C_SUCCESS)
       return rc;
     return CDD_C_SUCCESS;
+  case JSONNull:
   default:
+    out->type = OA_ANY_NULL;
     return CDD_C_SUCCESS;
   }
 }
@@ -280,13 +277,6 @@ cdd_c_error_t find_media_type_op(struct OpenAPI_MediaType *mts, size_t n,
                                  const char *name,
                                  struct OpenAPI_MediaType **_out_val) {
   size_t i;
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_op_fail_find_media_type_op;
-  if (g_op_fail_find_media_type_op) {
-    g_op_fail_find_media_type_op = 0;
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
-#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = NULL;
@@ -317,7 +307,8 @@ cdd_c_error_t apply_example_to_media_type(struct OpenAPI_MediaType *mt,
 }
 
 /**
- * @brief Executes the schema ref has data basic operation.
+ * @brief Checks whether a basic OpenAPI_SchemaRef has a ref, type, or array
+ * items.
  */
 cdd_c_error_t schema_ref_has_data_basic(const struct OpenAPI_SchemaRef *ref,
                                         int *out_has_data) {
@@ -325,12 +316,6 @@ cdd_c_error_t schema_ref_has_data_basic(const struct OpenAPI_SchemaRef *ref,
     *out_has_data = 0;
   if (!ref || !out_has_data)
     return CDD_C_SUCCESS;
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_fail_schema_ref_has_data) {
-    g_cdd_fail_schema_ref_has_data = 0;
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
-#endif
   *out_has_data =
       ((ref->ref_name && *ref->ref_name) || (ref->ref && *ref->ref) ||
        (ref->inline_type && *ref->inline_type) || ref->is_array)
@@ -458,7 +443,7 @@ cdd_c_error_t request_body_has_media_type(const struct OpenAPI_Operation *op,
 }
 
 /**
- * @brief Executes the init media type from request body operation.
+ * @brief Initializes a single MediaType entry from legacy RequestBody fields.
  */
 cdd_c_error_t init_media_type_from_request_body(
     struct OpenAPI_MediaType *mt, const char *name,
@@ -471,12 +456,7 @@ cdd_c_error_t init_media_type_from_request_body(
   rc = c_cdd_strdup(name, &mt->name);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  rc = schema_ref_has_data_basic(&op->req_body, &has_data);
-  if (rc != CDD_C_SUCCESS) {
-    free(mt->name);
-    mt->name = NULL;
-    return rc;
-  }
+  schema_ref_has_data_basic(&op->req_body, &has_data);
   if (has_data) {
     if (is_item_schema) {
       rc = copy_schema_ref_basic(&mt->item_schema, &op->req_body);

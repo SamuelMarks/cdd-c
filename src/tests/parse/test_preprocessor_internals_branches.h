@@ -155,23 +155,21 @@ TEST test_pp_embed_params_error_cases(void) {
   memset(&params, 0, sizeof(params));
 
   /* Scoped param missing LPAREN */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "vendor :: custom 10"),
-                &tl);
+  rc = tokenize(az_span_create_from_str("vendor :: custom 10"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   free_token_list(tl);
 
   /* Scoped param unbalanced parens */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "vendor :: custom ((10)"), &tl);
+  rc = tokenize(az_span_create_from_str("vendor :: custom ((10)"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   free_token_list(tl);
 
   /* limit with syntax error in expression */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "limit((1 +))"), &tl);
+  rc = tokenize(az_span_create_from_str("limit((1 +))"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -233,43 +231,44 @@ TEST test_pp_eval_all_syntax_error_branches(void) {
   struct TokenList *tl = NULL;
   long val = 0;
   cdd_c_error_t rc = 0;
-  const char *err_exprs[] = {"+ )",
-                             "- )",
-                             "! )",
-                             "~ )",
-                             "1 * )",
-                             "1 / )",
-                             "1 % )",
-                             "1 + )",
-                             "1 - )",
-                             "1 << )",
-                             "1 >> )",
-                             "1 <= )",
-                             "1 >= )",
-                             "1 < )",
-                             "1 > )",
-                             "1 == )",
-                             "1 != )",
-                             "1 && )",
-                             "1 || )",
-                             "__has_include(",
-                             "__has_include(\"test.h\", 1, 2)",
-                             "1 < ",
-                             "@"};
+  const char *err_exprs[23];
   size_t i;
 
+  err_exprs[0] = cdd_test_mut_str("+ )");
+  err_exprs[1] = cdd_test_mut_str("- )");
+  err_exprs[2] = cdd_test_mut_str("! )");
+  err_exprs[3] = cdd_test_mut_str("~ )");
+  err_exprs[4] = cdd_test_mut_str("1 * )");
+  err_exprs[5] = cdd_test_mut_str("1 / )");
+  err_exprs[6] = cdd_test_mut_str("1 % )");
+  err_exprs[7] = cdd_test_mut_str("1 + )");
+  err_exprs[8] = cdd_test_mut_str("1 - )");
+  err_exprs[9] = cdd_test_mut_str("1 << )");
+  err_exprs[10] = cdd_test_mut_str("1 >> )");
+  err_exprs[11] = cdd_test_mut_str("1 <= )");
+  err_exprs[12] = cdd_test_mut_str("1 >= )");
+  err_exprs[13] = cdd_test_mut_str("1 < )");
+  err_exprs[14] = cdd_test_mut_str("1 > )");
+  err_exprs[15] = cdd_test_mut_str("1 == )");
+  err_exprs[16] = cdd_test_mut_str("1 != )");
+  err_exprs[17] = cdd_test_mut_str("1 && )");
+  err_exprs[18] = cdd_test_mut_str("1 || )");
+  err_exprs[19] = cdd_test_mut_str("__has_include(");
+  err_exprs[20] = cdd_test_mut_str("__has_include(\"test.h\", 1, 2)");
+  err_exprs[21] = cdd_test_mut_str("1 < ");
+  err_exprs[22] = cdd_test_mut_str("@");
   pp_context_init(&ctx);
   pp_add_search_path(&ctx, ".");
 
   for (i = 0; i < sizeof(err_exprs) / sizeof(err_exprs[0]); ++i) {
-    rc = tokenize(az_span_create_from_str((char *)(size_t)err_exprs[i]), &tl);
+    rc = tokenize(az_span_create_from_str(err_exprs[i]), &tl);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
     free_token_list(tl);
   }
 
   /* Empty token list */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) ""), &tl);
+  rc = tokenize(az_span_create_from_str(""), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -336,7 +335,7 @@ TEST test_pp_arithmetic_all_operators(void) {
 
 #define EVAL_ASSERT(expr_str, expected)                                        \
   do {                                                                         \
-    rc = tokenize(az_span_create_from_str((char *)(size_t)(expr_str)), &tl);   \
+    rc = tokenize(az_span_create_from_str((expr_str)), &tl);                   \
     ASSERT_EQ(CDD_C_SUCCESS, rc);                                              \
     rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);                      \
     ASSERT_EQ(CDD_C_SUCCESS, rc);                                              \
@@ -462,7 +461,7 @@ TEST test_pp_eval_oom_and_peek_eof(void) {
   pp_add_search_path(&ctx, ".");
 
   /* preprocessor_peek at EOF with trailing whitespace: '1   ' */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1   "), &tl);
+  rc = tokenize(az_span_create_from_str("1   "), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -470,9 +469,7 @@ TEST test_pp_eval_oom_and_peek_eof(void) {
   free_token_list(tl);
 
   /* __has_include(<stdio.h>) with reconstruct_path OOM */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "__has_include(<stdio.h>)"),
-      &tl);
+  rc = tokenize(az_span_create_from_str("__has_include(<stdio.h>)"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   g_cdd_alloc_fail = 1;
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
@@ -481,9 +478,7 @@ TEST test_pp_eval_oom_and_peek_eof(void) {
   free_token_list(tl);
 
   /* __has_include("test.h") with path malloc OOM */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "__has_include(\"test.h\")"),
-      &tl);
+  rc = tokenize(az_span_create_from_str("__has_include(\"test.h\")"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   g_cdd_alloc_fail = 1;
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
@@ -492,9 +487,7 @@ TEST test_pp_eval_oom_and_peek_eof(void) {
   free_token_list(tl);
 
   /* __has_include("test.h") with resolve_path OOM */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "__has_include(\"test.h\")"),
-      &tl);
+  rc = tokenize(az_span_create_from_str("__has_include(\"test.h\")"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   g_cdd_alloc_fail = 2;
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
@@ -503,9 +496,7 @@ TEST test_pp_eval_oom_and_peek_eof(void) {
   free_token_list(tl);
 
   /* __has_c_attribute(nodiscard) with token_to_string OOM */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "__has_c_attribute(nodiscard)"),
-      &tl);
+  rc = tokenize(az_span_create_from_str("__has_c_attribute(nodiscard)"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   g_cdd_alloc_fail = 1;
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
@@ -515,9 +506,8 @@ TEST test_pp_eval_oom_and_peek_eof(void) {
 
   /* __has_c_attribute(gnu::nonnull) with token_to_string OOM on scoped name
    */
-  rc = tokenize(az_span_create_from_str(
-                    (char *)(size_t) "__has_c_attribute(gnu::nonnull)"),
-                &tl);
+  rc =
+      tokenize(az_span_create_from_str("__has_c_attribute(gnu::nonnull)"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   g_cdd_alloc_fail = 2;
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
@@ -526,7 +516,7 @@ TEST test_pp_eval_oom_and_peek_eof(void) {
   free_token_list(tl);
 
   /* number literal 42 with token_to_string OOM */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "42"), &tl);
+  rc = tokenize(az_span_create_from_str("42"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   g_cdd_alloc_fail = 1;
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
@@ -535,9 +525,7 @@ TEST test_pp_eval_oom_and_peek_eof(void) {
   free_token_list(tl);
 
   /* __has_c_attribute(inline) with token_to_string OOM on keyword */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "__has_c_attribute(inline)"),
-      &tl);
+  rc = tokenize(az_span_create_from_str("__has_c_attribute(inline)"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   g_cdd_alloc_fail = 1;
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
@@ -554,7 +542,7 @@ TEST test_pp_eval_oom_and_peek_eof(void) {
     rc = pp_preprocessor_peek(&es, NULL);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
-    rc = tokenize(az_span_create_from_str((char *)(size_t) "   "), &tl);
+    rc = tokenize(az_span_create_from_str("   "), &tl);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     memset(&es, 0, sizeof(es));
     es.tokens = tl;
@@ -580,7 +568,7 @@ TEST test_pp_parse_embed_params_keywords_and_oom_paths(void) {
   memset(&params, 0, sizeof(params));
 
   /* Keyword param and trailing whitespace */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "inline(10)   "), &tl);
+  rc = tokenize(az_span_create_from_str("inline(10)   "), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -588,7 +576,7 @@ TEST test_pp_parse_embed_params_keywords_and_oom_paths(void) {
   free_token_list(tl);
 
   /* OOM on param name token_to_string */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "limit(10)"), &tl);
+  rc = tokenize(az_span_create_from_str("limit(10)"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   g_cdd_alloc_fail = 1;
   rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
@@ -597,8 +585,7 @@ TEST test_pp_parse_embed_params_keywords_and_oom_paths(void) {
   free_token_list(tl);
 
   /* OOM on scoped name token_to_string */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "vendor::custom(10)"),
-                &tl);
+  rc = tokenize(az_span_create_from_str("vendor::custom(10)"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   g_cdd_alloc_fail = 2;
   rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
@@ -607,7 +594,7 @@ TEST test_pp_parse_embed_params_keywords_and_oom_paths(void) {
   free_token_list(tl);
 
   /* OOM on prefix */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "prefix(\"A\")"), &tl);
+  rc = tokenize(az_span_create_from_str("prefix(\"A\")"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   g_cdd_alloc_fail = 2;
   rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
@@ -616,7 +603,7 @@ TEST test_pp_parse_embed_params_keywords_and_oom_paths(void) {
   free_token_list(tl);
 
   /* OOM on suffix */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "suffix(\"A\")"), &tl);
+  rc = tokenize(az_span_create_from_str("suffix(\"A\")"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   g_cdd_alloc_fail = 2;
   rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
@@ -625,8 +612,7 @@ TEST test_pp_parse_embed_params_keywords_and_oom_paths(void) {
   free_token_list(tl);
 
   /* OOM on if_empty */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "if_empty(\"A\")"),
-                &tl);
+  rc = tokenize(az_span_create_from_str("if_empty(\"A\")"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   g_cdd_alloc_fail = 2;
   rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
@@ -759,16 +745,13 @@ TEST test_pp_branch_coverage_maximizer(void) {
 
   /* 3. String literal with length < 2 in __has_include */
   pp_context_init(&ctx);
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "__has_include(\"\")"),
-                &tl);
+  rc = tokenize(az_span_create_from_str("__has_include(\"\")"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   free_token_list(tl);
 
   /* 4. Hex, octal, binary number literals */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "0x10 + 010 + 0b10 + 0B11"),
-      &tl);
+  rc = tokenize(az_span_create_from_str("0x10 + 010 + 0b10 + 0B11"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -777,10 +760,10 @@ TEST test_pp_branch_coverage_maximizer(void) {
 
   /* 5. Scoped embed parameters vendor::limit, vendor::prefix, etc. */
   memset(&params, 0, sizeof(params));
-  rc = tokenize(az_span_create_from_str(
-                    (char *)(size_t) "vendor::limit(1) vendor::prefix(2) "
-                                     "vendor::suffix(3) vendor::if_empty(4)"),
-                &tl);
+  rc =
+      tokenize(az_span_create_from_str("vendor::limit(1) vendor::prefix(2) "
+                                       "vendor::suffix(3) vendor::if_empty(4)"),
+               &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
   ASSERT_EQ(CDD_C_SUCCESS, rc);

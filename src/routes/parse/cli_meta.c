@@ -38,13 +38,6 @@
  */
 cdd_c_error_t is_source_file(const char *path, int *out_is_source) {
   const char *ext;
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cli_fail_is_source_file;
-  if (g_cli_fail_is_source_file) {
-    g_cli_fail_is_source_file = 0;
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
-#endif
   if (!path || !out_is_source)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_source = 0;
@@ -56,18 +49,12 @@ cdd_c_error_t is_source_file(const char *path, int *out_is_source) {
 }
 
 /**
- * @brief Executes the spec has tag operation.
+ * @brief Checks whether an OpenAPI_Spec already contains a tag with the given
+ * name.
  */
 cdd_c_error_t spec_has_tag(const struct OpenAPI_Spec *spec, const char *name,
                            int *out_has_tag) {
   size_t i;
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cli_fail_spec_has_tag;
-  if (g_cli_fail_spec_has_tag) {
-    g_cli_fail_spec_has_tag = 0;
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
-#endif
   if (!out_has_tag)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_has_tag = 0;
@@ -84,7 +71,7 @@ cdd_c_error_t spec_has_tag(const struct OpenAPI_Spec *spec, const char *name,
 }
 
 /**
- * @brief Executes the spec add tag operation.
+ * @brief Adds a new Tag definition to an OpenAPI_Spec.
  */
 cdd_c_error_t spec_add_tag(struct OpenAPI_Spec *spec, const char *name) {
   struct OpenAPI_Tag *new_tags;
@@ -94,9 +81,7 @@ cdd_c_error_t spec_add_tag(struct OpenAPI_Spec *spec, const char *name) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   {
     int has_tag = 0;
-    cdd_c_error_t rc_tag = spec_has_tag(spec, name, &has_tag);
-    if (rc_tag != CDD_C_SUCCESS)
-      return rc_tag;
+    spec_has_tag(spec, name, &has_tag);
     if (has_tag)
       return CDD_C_SUCCESS;
   }
@@ -110,8 +95,13 @@ cdd_c_error_t spec_add_tag(struct OpenAPI_Spec *spec, const char *name) {
   memset(tag, 0, sizeof(*tag));
   {
     cdd_c_error_t rc = c_cdd_strdup(name, &tag->name);
-    if (rc != CDD_C_SUCCESS)
+    if (rc != CDD_C_SUCCESS) {
+      if (spec->n_tags == 0) {
+        C_CDD_FREE(spec->tags);
+        spec->tags = NULL;
+      }
       return rc;
+    }
   }
   spec->n_tags++;
 
@@ -119,19 +109,11 @@ cdd_c_error_t spec_add_tag(struct OpenAPI_Spec *spec, const char *name) {
 }
 
 /**
- * @brief Executes the spec find tag operation.
+ * @brief Finds a mutable Tag definition by name in an OpenAPI_Spec.
  */
 cdd_c_error_t spec_find_tag(struct OpenAPI_Spec *spec, const char *name,
                             struct OpenAPI_Tag **_out_val) {
   size_t i;
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cli_fail_spec_find_tag;
-  if (g_cli_fail_spec_find_tag) {
-    g_cli_fail_spec_find_tag = 0;
-    return CDD_C_ERROR_MEMORY;
-  }
-#endif
-
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -275,7 +257,7 @@ cdd_c_error_t copy_doc_server_variables(struct OpenAPI_Server *dst,
 }
 
 /**
- * @brief Executes the append root servers operation.
+ * @brief Appends docstring-extracted Server definitions to an OpenAPI_Spec.
  */
 cdd_c_error_t append_root_servers(struct OpenAPI_Spec *spec,
                                   const struct DocMetadata *meta) {
@@ -449,7 +431,11 @@ cdd_c_error_t apply_doc_global_meta(struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Executes the spec apply tag meta operation.
+ * @brief Applies docstring `\@tag_meta` attributes to a Tag in an OpenAPI_Spec.
+ *
+ * @param[in,out] spec Target OpenAPI specification.
+ * @param[in] meta Parsed tag metadata from docstring.
+ * @return CDD_C_SUCCESS on success, or an error code on allocation failure.
  */
 cdd_c_error_t spec_apply_tag_meta(struct OpenAPI_Spec *spec,
                                   const struct DocTagMeta *meta) {
@@ -458,9 +444,7 @@ cdd_c_error_t spec_apply_tag_meta(struct OpenAPI_Spec *spec,
   if (!spec || !meta || !meta->name || !*meta->name)
     return CDD_C_SUCCESS;
   tag = NULL;
-  rc = spec_find_tag(spec, meta->name, &tag);
-  if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_UNKNOWN)
-    return rc;
+  spec_find_tag(spec, meta->name, &tag);
   if (!tag) {
     rc = spec_add_tag(spec, meta->name);
     if (rc != CDD_C_SUCCESS)
@@ -571,13 +555,6 @@ cdd_c_error_t collect_tags_from_paths(struct OpenAPI_Spec *spec,
  */
 cdd_c_error_t collect_spec_tags(struct OpenAPI_Spec *spec) {
   cdd_c_error_t rc;
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cli_fail_collect_spec_tags;
-  if (g_cli_fail_collect_spec_tags) {
-    g_cli_fail_collect_spec_tags = 0;
-    return CDD_C_ERROR_MEMORY;
-  }
-#endif
   if (!spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = collect_tags_from_paths(spec, spec->paths, spec->n_paths);

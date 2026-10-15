@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_zig.c
+ * @brief FFI binding emitter for Zig.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -7,69 +11,76 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
-}
-
-static const char *get_zig_type(cdd_ffi_type_t type) {
+static cdd_c_error_t get_zig_type(cdd_ffi_type_t type, const char **out_type) {
   if (type.pointer_depth > 0) {
     if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
-      return type.is_const ? "[*c]const u8" : "[*c]u8";
+      *out_type = type.is_const ? "[*c]const u8" : "[*c]u8";
+      return CDD_C_SUCCESS;
     }
-    return "?*anyopaque";
+    *out_type = "?*anyopaque";
+    return CDD_C_SUCCESS;
   }
 
   switch (type.kind) {
   case CDD_FFI_KIND_VOID:
-    return "void";
+    *out_type = "void";
+    break;
   case CDD_FFI_KIND_BOOL:
-    return "bool";
+    *out_type = "bool";
+    break;
   case CDD_FFI_KIND_INT8:
-    return "i8";
+    *out_type = "i8";
+    break;
   case CDD_FFI_KIND_UINT8:
-    return "u8";
+    *out_type = "u8";
+    break;
   case CDD_FFI_KIND_INT16:
-    return "i16";
+    *out_type = "i16";
+    break;
   case CDD_FFI_KIND_UINT16:
-    return "u16";
+    *out_type = "u16";
+    break;
   case CDD_FFI_KIND_INT32:
-    return "i32";
+    *out_type = "i32";
+    break;
   case CDD_FFI_KIND_UINT32:
-    return "u32";
+    *out_type = "u32";
+    break;
   case CDD_FFI_KIND_INT64:
-    return "i64";
+    *out_type = "i64";
+    break;
   case CDD_FFI_KIND_UINT64:
-    return "u64";
+    *out_type = "u64";
+    break;
   case CDD_FFI_KIND_FLOAT32:
-    return "f32";
+    *out_type = "f32";
+    break;
   case CDD_FFI_KIND_FLOAT64:
-    return "f64";
+    *out_type = "f64";
+    break;
   case CDD_FFI_KIND_FUNCTION_PTR:
-    return "?*anyopaque";
+    *out_type = "?*anyopaque";
+    break;
   case CDD_FFI_KIND_STRUCT_REF:
-    return type.ref_name ? type.ref_name : "?*anyopaque";
+    *out_type = type.ref_name ? type.ref_name : "?*anyopaque";
+    break;
   case CDD_FFI_KIND_ENUM_REF:
-    return "c_int";
+    *out_type = "c_int";
+    break;
   case CDD_FFI_KIND_TYPEDEF_REF:
-    return type.ref_name ? type.ref_name : "?*anyopaque";
+    *out_type = type.ref_name ? type.ref_name : "?*anyopaque";
+    break;
   case CDD_FFI_KIND_OPAQUE_PTR:
-    return "?*anyopaque";
+    *out_type = "?*anyopaque";
+    break;
   default:
-    return "?*anyopaque";
+    *out_type = "?*anyopaque";
+    break;
   }
+  return CDD_C_SUCCESS;
 }
 
 static cdd_c_error_t
@@ -114,15 +125,15 @@ emit_zig_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     for (i = 0; i < ir->nodes_count; i++) {
       cdd_ffi_ir_node_t *node = &ir->nodes[i];
       if (node->kind == CDD_FFI_NODE_FUNCTION) {
-        emit_trivia(f, node->leading_trivia);
+        cdd_ffi_emit_trivia(f, node->leading_trivia);
         fprintf(f, "pub const %s = c.%s;\n", node->name, node->name);
       } else if (node->kind == CDD_FFI_NODE_STRUCT) {
-        emit_trivia(f, node->leading_trivia);
+        cdd_ffi_emit_trivia(f, node->leading_trivia);
         fprintf(f, "pub const %s = c.%s;\n", node->name, node->name);
         fprintf(f, "pub const struct_%s = c.struct_%s;\n", node->name,
                 node->name);
       } else if (node->kind == CDD_FFI_NODE_ENUM) {
-        emit_trivia(f, node->leading_trivia);
+        cdd_ffi_emit_trivia(f, node->leading_trivia);
         fprintf(f, "pub const %s = c.%s;\n", node->name, node->name);
       }
     }
@@ -134,15 +145,16 @@ emit_zig_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     for (i = 0; i < ir->nodes_count; i++) {
       cdd_ffi_ir_node_t *node = &ir->nodes[i];
       if (node->kind == CDD_FFI_NODE_STRUCT) {
-        emit_trivia(f, node->leading_trivia);
+        cdd_ffi_emit_trivia(f, node->leading_trivia);
         if (node->doc)
           fprintf(f, "/// %s\n", node->doc);
         fprintf(f, "pub const %s = extern struct {\n", node->name);
         for (j = 0; j < node->fields_count; j++) {
           const char *fname =
               node->fields[j].name ? node->fields[j].name : "field";
-          fprintf(f, "    %s: %s,\n", fname,
-                  get_zig_type(node->fields[j].type));
+          const char *zt = NULL;
+          get_zig_type(node->fields[j].type, &zt);
+          fprintf(f, "    %s: %s,\n", fname, zt);
         }
         fprintf(f, "};\n\n");
       }
@@ -152,22 +164,26 @@ emit_zig_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     for (i = 0; i < ir->nodes_count; i++) {
       cdd_ffi_ir_node_t *node = &ir->nodes[i];
       if (node->kind == CDD_FFI_NODE_FUNCTION) {
-        emit_trivia(f, node->leading_trivia);
+        const char *ret_zt = NULL;
+        cdd_ffi_emit_trivia(f, node->leading_trivia);
         if (node->doc)
           fprintf(f, "/// %s\n", node->doc);
         fprintf(f, "pub extern fn %s(", node->name);
         for (j = 0; j < node->fields_count; j++) {
           const char *arg_name =
               node->fields[j].name ? node->fields[j].name : "arg";
+          const char *zt = NULL;
           if (strcmp(arg_name, "error") == 0)
             arg_name = "err";
           if (strcmp(arg_name, "type") == 0)
             arg_name = "type_";
-          fprintf(f, "%s: %s", arg_name, get_zig_type(node->fields[j].type));
+          get_zig_type(node->fields[j].type, &zt);
+          fprintf(f, "%s: %s", arg_name, zt);
           if (j < node->fields_count - 1)
             fprintf(f, ", ");
         }
-        fprintf(f, ") %s;\n\n", get_zig_type(node->return_or_base_type));
+        get_zig_type(node->return_or_base_type, &ret_zt);
+        fprintf(f, ") %s;\n\n", ret_zt);
       }
     }
   }

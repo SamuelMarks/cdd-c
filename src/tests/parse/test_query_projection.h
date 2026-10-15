@@ -55,8 +55,8 @@ TEST test_query_projection_add_field(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, cdd_c_query_projection_init(&proj));
 
-  field.name = (char *)(size_t)(size_t) "id";
-  field.original_name = (char *)(size_t)(size_t) "user_id";
+  field.name = cdd_test_mut_str("id");
+  field.original_name = cdd_test_mut_str("user_id");
   field.type = SQL_TYPE_INT;
   field.is_aggregate = 0;
 
@@ -101,8 +101,8 @@ TEST test_query_projection_oom(void) {
   cdd_c_query_projection_t proj;
   cdd_c_query_projection_field_t field;
 
-  field.name = (char *)(size_t)(size_t) "col";
-  field.original_name = (char *)(size_t)(size_t) "orig";
+  field.name = cdd_test_mut_str("col");
+  field.original_name = cdd_test_mut_str("orig");
   field.type = SQL_TYPE_INT;
   field.is_aggregate = 0;
 

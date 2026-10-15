@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_vlang.h
+ * @brief FFI binding emitter for Vlang.
+ */
 #ifndef CDD_FFI_EMIT_VLANG_H
 #define CDD_FFI_EMIT_VLANG_H
 

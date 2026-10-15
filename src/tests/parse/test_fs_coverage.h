@@ -587,7 +587,7 @@ TEST test_fs_coverage_filename_and_ptr(void) {
   ASSERT_EQ(CDD_C_SUCCESS, FilenameAndPtr_cleanup(&fap));
 
   memset(&fap, 0, sizeof(fap));
-  fap.filename = (char *)(size_t)C_CDD_MALLOC(128);
+  fap.filename = (char *)C_CDD_MALLOC(128);
   CDD_STRCPY(fap.filename, 128, tmp_file);
   ASSERT_EQ(CDD_C_SUCCESS, FilenameAndPtr_cleanup(&fap));
   ASSERT(fap.filename == NULL);
@@ -599,7 +599,7 @@ TEST test_fs_coverage_filename_and_ptr(void) {
 
   memset(&fap, 0, sizeof(fap));
   fs_write_to_file(tmp_file, "test");
-  fap.filename = (char *)(size_t)C_CDD_MALLOC(128);
+  fap.filename = (char *)C_CDD_MALLOC(128);
   CDD_STRCPY(fap.filename, 128, tmp_file);
   ASSERT_EQ(CDD_C_SUCCESS, FilenameAndPtr_delete_and_cleanup(&fap));
   ASSERT(fap.filename == NULL);

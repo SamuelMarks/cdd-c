@@ -46,20 +46,13 @@ struct MacroOverlayList {
 /**
  * @brief Initialize a macro overlay list.
  */
-C_CDD_EXPORT /**
-              * @brief Executes the macro overlay list init operation.
-              */
-    cdd_c_error_t
-    macro_overlay_list_init(struct MacroOverlayList *list);
+C_CDD_EXPORT cdd_c_error_t
+macro_overlay_list_init(struct MacroOverlayList *list);
 
 /**
  * @brief Free resources associated with a macro overlay list.
  */
-C_CDD_EXPORT /**
-              * @brief Executes the macro overlay list free operation.
-              */
-    void
-    macro_overlay_list_free(struct MacroOverlayList *list);
+C_CDD_EXPORT void macro_overlay_list_free(struct MacroOverlayList *list);
 
 /**
  * @brief Scan a CST for macro invocations and build the overlay mappings.
@@ -69,13 +62,9 @@ C_CDD_EXPORT /**
  * @param overlays Output overlay list to populate.
  * @return 0 on success, non-zero error code otherwise.
  */
-C_CDD_EXPORT /**
-              * @brief Executes the cst build macro overlay operation.
-              */
-    cdd_c_error_t
-    cst_build_macro_overlay(const struct CstNodeList *cst,
-                            const struct TokenList *tokens,
-                            struct MacroOverlayList *overlays);
+C_CDD_EXPORT cdd_c_error_t cst_build_macro_overlay(
+    const struct CstNodeList *cst, const struct TokenList *tokens,
+    struct MacroOverlayList *overlays);
 
 #ifdef __cplusplus
 }

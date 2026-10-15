@@ -17,20 +17,8 @@ cdd_c_error_t parse_servers(const JSON_Object *root_obj,
                              &out->n_servers);
 }
 
-/**
- * @brief Parses security schemes from the given input.
- */
-cdd_c_error_t parse_security_schemes(const JSON_Object *components,
-                                     struct OpenAPI_Spec *out) {
-  enum OpenAPI_SecurityType _ast_parse_security_type_51;
-  enum OpenAPI_SecurityIn _ast_parse_security_in_52;
-  char *_ast_strdup_209 = NULL;
-  char *_ast_strdup_210 = NULL;
-  char *_ast_strdup_211 = NULL;
-  char *_ast_strdup_212 = NULL;
-  char *_ast_strdup_213 = NULL;
-  char *_ast_strdup_214 = NULL;
-  char *_ast_strdup_215 = NULL;
+static cdd_c_error_t parse_security_schemes_inner(const JSON_Object *components,
+                                                  struct OpenAPI_Spec *out) {
   const JSON_Object *schemes;
   size_t count, i;
 
@@ -60,8 +48,8 @@ cdd_c_error_t parse_security_schemes(const JSON_Object *components,
     const char *name = json_object_get_name(schemes, i);
     const JSON_Object *sec_obj =
         json_value_get_object(json_object_get_value_at(schemes, i));
-    out->security_schemes[i].name =
-        (c_cdd_strdup(name, &_ast_strdup_209), _ast_strdup_209);
+    cdd_c_error_t rc;
+    c_cdd_strdup(name, &out->security_schemes[i].name);
     if (!out->security_schemes[i].name)
       return CDD_C_ERROR_MEMORY;
     out->security_schemes[i].type = OA_SEC_UNKNOWN;
@@ -73,14 +61,11 @@ cdd_c_error_t parse_security_schemes(const JSON_Object *components,
       const char *type = json_object_get_string(sec_obj, "type");
       if (type && strcmp(type, "basic") == 0) {
         out->security_schemes[i].type = OA_SEC_HTTP;
-        out->security_schemes[i].scheme =
-            (c_cdd_strdup("basic", &_ast_strdup_210), _ast_strdup_210);
+        c_cdd_strdup("basic", &out->security_schemes[i].scheme);
         if (!out->security_schemes[i].scheme)
           return CDD_C_ERROR_MEMORY;
       } else {
-        out->security_schemes[i].type =
-            (parse_security_type(type, &_ast_parse_security_type_51),
-             _ast_parse_security_type_51);
+        parse_security_type(type, &out->security_schemes[i].type);
         if (out->security_schemes[i].type == OA_SEC_UNKNOWN)
           return CDD_C_ERROR_INVALID_ARGUMENT;
       }
@@ -89,8 +74,7 @@ cdd_c_error_t parse_security_schemes(const JSON_Object *components,
     {
       const char *desc = json_object_get_string(sec_obj, "description");
       if (desc) {
-        out->security_schemes[i].description =
-            (c_cdd_strdup(desc, &_ast_strdup_210), _ast_strdup_210);
+        c_cdd_strdup(desc, &out->security_schemes[i].description);
         if (!out->security_schemes[i].description)
           return CDD_C_ERROR_MEMORY;
       }
@@ -100,24 +84,18 @@ cdd_c_error_t parse_security_schemes(const JSON_Object *components,
       out->security_schemes[i].deprecated =
           json_object_get_boolean(sec_obj, "deprecated") == 1;
     }
-    {
-      cdd_c_error_t _rc = collect_extensions(
-          sec_obj, &out->security_schemes[i].extensions_json);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    rc = collect_extensions(sec_obj, &out->security_schemes[i].extensions_json);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
 
     if (out->security_schemes[i].type == OA_SEC_APIKEY) {
       const char *in = json_object_get_string(sec_obj, "in");
       const char *key_name = json_object_get_string(sec_obj, "name");
-      out->security_schemes[i].in =
-          (parse_security_in(in, &_ast_parse_security_in_52),
-           _ast_parse_security_in_52);
+      parse_security_in(in, &out->security_schemes[i].in);
       if (!key_name || !*key_name ||
           out->security_schemes[i].in == OA_SEC_IN_UNKNOWN)
         return CDD_C_ERROR_INVALID_ARGUMENT;
-      out->security_schemes[i].key_name =
-          (c_cdd_strdup(key_name, &_ast_strdup_211), _ast_strdup_211);
+      c_cdd_strdup(key_name, &out->security_schemes[i].key_name);
       if (!out->security_schemes[i].key_name)
         return CDD_C_ERROR_MEMORY;
     } else if (out->security_schemes[i].type == OA_SEC_HTTP) {
@@ -127,13 +105,11 @@ cdd_c_error_t parse_security_schemes(const JSON_Object *components,
             json_object_get_string(sec_obj, "bearerFormat");
         if (!scheme || !*scheme)
           return CDD_C_ERROR_INVALID_ARGUMENT;
-        out->security_schemes[i].scheme =
-            (c_cdd_strdup(scheme, &_ast_strdup_212), _ast_strdup_212);
+        c_cdd_strdup(scheme, &out->security_schemes[i].scheme);
         if (!out->security_schemes[i].scheme)
           return CDD_C_ERROR_MEMORY;
         if (bearer_format) {
-          out->security_schemes[i].bearer_format =
-              (c_cdd_strdup(bearer_format, &_ast_strdup_213), _ast_strdup_213);
+          c_cdd_strdup(bearer_format, &out->security_schemes[i].bearer_format);
           if (!out->security_schemes[i].bearer_format)
             return CDD_C_ERROR_MEMORY;
         }
@@ -142,8 +118,7 @@ cdd_c_error_t parse_security_schemes(const JSON_Object *components,
       const char *oid_url = json_object_get_string(sec_obj, "openIdConnectUrl");
       if (!oid_url || !*oid_url)
         return CDD_C_ERROR_INVALID_ARGUMENT;
-      out->security_schemes[i].open_id_connect_url =
-          (c_cdd_strdup(oid_url, &_ast_strdup_214), _ast_strdup_214);
+      c_cdd_strdup(oid_url, &out->security_schemes[i].open_id_connect_url);
       if (!out->security_schemes[i].open_id_connect_url)
         return CDD_C_ERROR_MEMORY;
     } else if (out->security_schemes[i].type == OA_SEC_OAUTH2) {
@@ -152,8 +127,7 @@ cdd_c_error_t parse_security_schemes(const JSON_Object *components,
           json_object_get_string(sec_obj, "oauth2MetadataUrl");
       const JSON_Object *flows_obj = json_object_get_object(sec_obj, "flows");
       if (meta_url) {
-        out->security_schemes[i].oauth2_metadata_url =
-            (c_cdd_strdup(meta_url, &_ast_strdup_215), _ast_strdup_215);
+        c_cdd_strdup(meta_url, &out->security_schemes[i].oauth2_metadata_url);
         if (!out->security_schemes[i].oauth2_metadata_url)
           return CDD_C_ERROR_MEMORY;
       }
@@ -171,14 +145,23 @@ cdd_c_error_t parse_security_schemes(const JSON_Object *components,
 }
 
 /**
+ * @brief Parses security schemes from the given input.
+ */
+cdd_c_error_t parse_security_schemes(const JSON_Object *components,
+                                     struct OpenAPI_Spec *out) {
+  cdd_c_error_t rc = parse_security_schemes_inner(components, out);
+  if (rc != CDD_C_SUCCESS && out)
+    openapi_spec_free(out);
+  return rc;
+}
+
+/**
  * @brief Parses security requirements from the given input.
  */
 cdd_c_error_t
 parse_security_requirements(const JSON_Array *arr,
                             struct OpenAPI_SecurityRequirementSet **out,
                             size_t *out_count) {
-  char *_ast_strdup_178 = NULL;
-  char *_ast_strdup_179 = NULL;
   size_t i, count;
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
@@ -242,7 +225,7 @@ parse_security_requirements(const JSON_Array *arr,
           continue;
         req = &set->requirements[req_idx++];
 
-        req->scheme = (c_cdd_strdup(scheme, &_ast_strdup_178), _ast_strdup_178);
+        c_cdd_strdup(scheme, &req->scheme);
         if (!req->scheme) {
           rc = CDD_C_ERROR_MEMORY;
           goto fail;
@@ -266,8 +249,7 @@ parse_security_requirements(const JSON_Array *arr,
 
         for (k = 0; k < n_scopes; ++k) {
           const char *scope = json_array_get_string(scopes_arr, k);
-          req->scopes[k] = (c_cdd_strdup(scope ? scope : "", &_ast_strdup_179),
-                            _ast_strdup_179);
+          c_cdd_strdup(scope ? scope : "", &req->scopes[k]);
           if (!req->scopes[k]) {
             rc = CDD_C_ERROR_MEMORY;
             goto fail;

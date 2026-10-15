@@ -1,3 +1,7 @@
+/**
+ * @file cdd_cst_mutate.c
+ * @brief Concrete Syntax Tree (CST) mutate implementation and utilities.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 

@@ -1,6 +1,7 @@
 /**
  * @file test_weaver.h
- * @brief Executes the unit tests for weaver operation.
+ * @brief Core Registers and runs unit tests for the C code weaver definitions
+ * and implementation.
  */
 
 #ifndef TEST_WEAVER_H
@@ -31,11 +32,11 @@ extern C_CDD_EXPORT int g_cdd_fail_token_matches_string;
 TEST test_weaver_wrap_ifdef_basic(void) {
   struct PatchList patches;
   struct TokenList *tokens = NULL;
-  const char *src = (char *)(size_t)(size_t) "int a = 5;";
+  const char *src = cdd_test_mut_str("int a = 5;");
   int res;
   char *out_code = NULL;
 
-  res = tokenize(az_span_create_from_str((char *)(size_t)(size_t)src), &tokens);
+  res = tokenize(az_span_create_from_str(src), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&patches);
@@ -63,11 +64,11 @@ TEST test_weaver_wrap_ifdef_basic(void) {
 TEST test_weaver_wrap_ifdef_else(void) {
   struct PatchList patches;
   struct TokenList *tokens = NULL;
-  const char *src = (char *)(size_t)(size_t) "int a = 5;";
+  const char *src = cdd_test_mut_str("int a = 5;");
   int res;
   char *out_code = NULL;
 
-  res = tokenize(az_span_create_from_str((char *)(size_t)(size_t)src), &tokens);
+  res = tokenize(az_span_create_from_str(src), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&patches);
@@ -125,7 +126,7 @@ TEST test_weaver_inject_msvc_headers(void) {
   int res;
   char *out_code = NULL;
 
-  res = tokenize(az_span_create_from_str((char *)(size_t)(size_t)src), &tokens);
+  res = tokenize(az_span_create_from_str(src), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&patches);
@@ -183,7 +184,7 @@ TEST test_weaver_vla_to_alloca(void) {
   size_t end_idx = 0;
   size_t i;
 
-  res = tokenize(az_span_create_from_str((char *)(size_t)(size_t)src), &tokens);
+  res = tokenize(az_span_create_from_str(src), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&patches);
@@ -432,7 +433,7 @@ TEST test_weaver_translate_gcc_attributes(void) {
 TEST test_weaver_oom(void) {
   struct PatchList patches;
   struct TokenList *tl = NULL;
-  const char *src = (char *)(size_t)(size_t) "int a;";
+  const char *src = cdd_test_mut_str("int a;");
 #ifdef CDD_BUILD_TESTS
   /*  (moved to global) */
   int r1, r2, r3, r6, r8;
@@ -557,9 +558,8 @@ TEST test_weaver_cov(void) {
   char *out_code = NULL;
 
   /* Test # include with spaces and no trailing newline */
-  const char *src1 = (char *)(size_t)(size_t) "#    include <stdio.h>";
-  res =
-      tokenize(az_span_create_from_str((char *)(size_t)(size_t)src1), &tokens);
+  const char *src1 = cdd_test_mut_str("#    include <stdio.h>");
+  res = tokenize(az_span_create_from_str(src1), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&patches);
@@ -577,9 +577,8 @@ TEST test_weaver_cov(void) {
 
   /* Test #ident that is not include */
   {
-    const char *src2 = (char *)(size_t)(size_t) "#define X 1";
-    res = tokenize(az_span_create_from_str((char *)(size_t)(size_t)src2),
-                   &tokens);
+    const char *src2 = cdd_test_mut_str("#define X 1");
+    res = tokenize(az_span_create_from_str(src2), &tokens);
     ASSERT_EQ(0, res);
 
     res = patch_list_init(&patches);
@@ -597,9 +596,8 @@ TEST test_weaver_cov(void) {
 
     /* Test vla_to_alloca edge cases */
     {
-      const char *src3 = (char *)(size_t)(size_t) "int a[5];";
-      res = tokenize(az_span_create_from_str((char *)(size_t)(size_t)src3),
-                     &tokens);
+      const char *src3 = cdd_test_mut_str("int a[5];");
+      res = tokenize(az_span_create_from_str(src3), &tokens);
       ASSERT_EQ(0, res);
 
       res = patch_list_init(&patches);
@@ -631,9 +629,8 @@ TEST test_weaver_cov_more(void) {
   char *out_code = NULL;
 
   /* Test # at the end of file (covers j == tokens->size) */
-  const char *src1 = (char *)(size_t)(size_t) "#";
-  res =
-      tokenize(az_span_create_from_str((char *)(size_t)(size_t)src1), &tokens);
+  const char *src1 = cdd_test_mut_str("#");
+  res = tokenize(az_span_create_from_str(src1), &tokens);
   (void)out_code;
   ASSERT_EQ(0, res);
 
@@ -647,8 +644,7 @@ TEST test_weaver_cov_more(void) {
   free_token_list(tokens);
 
   /* Test start_idx >= end_idx for vla_to_alloca */
-  res = tokenize(az_span_create_from_str((char *)(size_t)(size_t) "int a[5];"),
-                 &tokens);
+  res = tokenize(az_span_create_from_str("int a[5];"), &tokens);
   patch_list_init(&patches);
   res = weaver_vla_to_alloca(&patches, tokens, 1, 1, "int", "a", "5", 0);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, res);
@@ -669,9 +665,8 @@ TEST test_weaver_cov_even_more(void) {
   int res;
 
   /* Test # followed by non-identifier */
-  const char *src1 = (char *)(size_t)(size_t) "# 123";
-  res =
-      tokenize(az_span_create_from_str((char *)(size_t)(size_t)src1), &tokens);
+  const char *src1 = cdd_test_mut_str("# 123");
+  res = tokenize(az_span_create_from_str(src1), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&patches);
@@ -688,7 +683,7 @@ TEST test_weaver_cov_even_more(void) {
 TEST test_weaver_interactive(void) {
   struct PatchList patches;
   struct TokenList *tl = NULL;
-  const char *src = (char *)(size_t)(size_t) "int a[n];";
+  const char *src = cdd_test_mut_str("int a[n];");
   int res;
   FILE *fake_stdin;
   char tmp_name[32];

@@ -23,7 +23,7 @@ TEST test_dsl_parser_namespace(void) {
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
 
   ASSERT_STR_EQ("MySpace", ir->module_name);
-  ASSERT_EQ_FMT((size_t)1, ir->nodes_count, "%zu");
+  ASSERT_EQ((size_t)1, ir->nodes_count);
   ASSERT_STR_EQ("test", ir->nodes[0].name);
 
   cdd_dsl_token_list_free(&list);

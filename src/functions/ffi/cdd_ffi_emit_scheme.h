@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_scheme.h
+ * @brief FFI binding emitter for Scheme.
+ */
 #ifndef CDD_FFI_EMIT_SCHEME_H
 #define CDD_FFI_EMIT_SCHEME_H
 

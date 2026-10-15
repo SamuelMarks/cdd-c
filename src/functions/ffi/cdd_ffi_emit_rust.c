@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_rust.c
+ * @brief FFI binding emitter for Rust.
+ */
 #ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
 #endif
@@ -13,48 +17,65 @@ extern volatile int g_fail_io_after;
 #include <string.h>
 /* clang-format on */
 
-static const char *get_rust_primitive(cdd_ffi_primitive_kind_t kind) {
+static cdd_c_error_t get_rust_primitive(cdd_ffi_primitive_kind_t kind,
+                                        const char **out_type) {
   switch (kind) {
   case CDD_FFI_KIND_BOOL:
-    return "bool";
+    *out_type = "bool";
+    break;
   case CDD_FFI_KIND_INT8:
-    return "i8";
+    *out_type = "i8";
+    break;
   case CDD_FFI_KIND_UINT8:
-    return "u8";
+    *out_type = "u8";
+    break;
   case CDD_FFI_KIND_INT16:
-    return "i16";
+    *out_type = "i16";
+    break;
   case CDD_FFI_KIND_UINT16:
-    return "u16";
+    *out_type = "u16";
+    break;
   case CDD_FFI_KIND_INT32:
-    return "i32";
+    *out_type = "i32";
+    break;
   case CDD_FFI_KIND_UINT32:
-    return "u32";
+    *out_type = "u32";
+    break;
   case CDD_FFI_KIND_INT64:
-    return "i64";
+    *out_type = "i64";
+    break;
   case CDD_FFI_KIND_UINT64:
-    return "u64";
+    *out_type = "u64";
+    break;
   case CDD_FFI_KIND_FLOAT32:
-    return "f32";
+    *out_type = "f32";
+    break;
   case CDD_FFI_KIND_FLOAT64:
-    return "f64";
+    *out_type = "f64";
+    break;
   case CDD_FFI_KIND_OPAQUE_PTR:
-    return "std::ffi::c_void";
+    *out_type = "std::ffi::c_void";
+    break;
   case CDD_FFI_KIND_FUNCTION_PTR:
-    return "std::ffi::c_void";
+    *out_type = "std::ffi::c_void";
+    break;
   default:
-    return "std::ffi::c_void";
+    *out_type = "std::ffi::c_void";
+    break;
   }
+  return CDD_C_SUCCESS;
 }
 
-static void emit_rust_sys_type(FILE *f, const cdd_ffi_type_t *type,
-                               int is_return) {
+static cdd_c_error_t emit_rust_sys_type(FILE *f, const cdd_ffi_type_t *type,
+                                        int is_return) {
+  const char *prim = NULL;
   if (type->kind == CDD_FFI_KIND_VOID && type->pointer_depth == 0) {
     if (is_return) {
       fprintf(f, "()");
     } else {
       fprintf(f, "std::ffi::c_void");
     }
-    return;
+    return CDD_C_SUCCESS;
   }
 
   if (type->pointer_depth > 0) {
@@ -71,15 +92,17 @@ static void emit_rust_sys_type(FILE *f, const cdd_ffi_type_t *type,
     sub_type.pointer_depth = 0;
     sub_type.is_const = 0;
     emit_rust_sys_type(f, &sub_type, 0);
-    return;
+    return CDD_C_SUCCESS;
   }
 
   if (type->ref_name) {
     fprintf(f, "%s", type->ref_name);
-    return;
+    return CDD_C_SUCCESS;
   }
 
-  fprintf(f, "%s", get_rust_primitive(type->kind));
+  get_rust_primitive(type->kind, &prim);
+  fprintf(f, "%s", prim);
+  return CDD_C_SUCCESS;
 }
 
 static cdd_c_error_t emit_sys_rs(cdd_ffi_ir_t *ir, const char *dir_path) {

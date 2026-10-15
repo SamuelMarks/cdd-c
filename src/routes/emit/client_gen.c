@@ -25,13 +25,12 @@ C_CDD_EXPORT int g_client_gen_fail = 0;
 #endif
 
 /**
- * @brief Executes the openapi client generate operation.
+ * @brief Generates C client SDK headers, sources, models, and build files from
+ * an OpenAPI spec.
  */
 cdd_c_error_t
 openapi_client_generate(const struct OpenAPI_Spec *spec,
                         const struct OpenApiClientConfig *config) {
-  char *_ast_generate_guard_10 = NULL;
-  char *_ast_derive_model_header_11 = NULL;
   FILE *hfile = NULL, *cfile = NULL, *mhfile = NULL, *mcfile = NULL;
   char *h_name = NULL, *c_name = NULL, *mh_name = NULL, *mc_name = NULL;
   char *guard = NULL, *model_h = NULL, *model_guard = NULL;
@@ -60,8 +59,11 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
     _rc = get_basename(config->filename_base, &base_name);
 #ifdef CDD_BUILD_TESTS
-    if (g_client_gen_fail == 25)
+    if (g_client_gen_fail == 25) {
+      free(base_name);
+      base_name = NULL;
       _rc = CDD_C_ERROR_INVALID_ARGUMENT;
+    }
 #endif
     if (_rc != CDD_C_SUCCESS) {
       free(dir_name);
@@ -77,21 +79,22 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
       src_dir = NULL;
     }
 #endif
-    if (!src_dir)
+    if (!src_dir) {
+      free(dir_name);
+      free(base_name);
       return CDD_C_ERROR_MEMORY;
+    }
     CDD_SNPRINTF(src_dir, 512, "%s/src", dir_name);
-    {
-      cdd_c_error_t rc_cg = makedirs(src_dir);
+    rc = makedirs(src_dir);
 #ifdef CDD_BUILD_TESTS
-      if (g_client_gen_fail == 62)
-        rc_cg = CDD_C_ERROR_IO;
+    if (g_client_gen_fail == 62)
+      rc = CDD_C_ERROR_IO;
 #endif
-      if (rc_cg != CDD_C_SUCCESS) {
-        free(src_dir);
-        free(dir_name);
-        free(base_name);
-        return rc_cg;
-      }
+    if (rc != CDD_C_SUCCESS) {
+      free(src_dir);
+      free(dir_name);
+      free(base_name);
+      return rc;
     }
     actual_base = malloc(strlen(src_dir) + strlen(base_name) + 2);
 #ifdef CDD_BUILD_TESTS
@@ -115,8 +118,11 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
       actual_base = NULL;
     }
 #endif
-    if (!actual_base)
+    if (!actual_base) {
+      free(dir_name);
+      free(base_name);
       return CDD_C_ERROR_MEMORY;
+    }
   }
 
   /* Prepare filenames */
@@ -229,14 +235,12 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   if (config->header_guard)
     guard = strdup(config->header_guard);
   else
-    guard = (generate_guard(config->filename_base, &_ast_generate_guard_10),
-             _ast_generate_guard_10);
+    generate_guard(config->filename_base, &guard);
 
   if (config->model_header)
     model_h = strdup(config->model_header);
   else
-    model_h = (derive_model_header(base_name, &_ast_derive_model_header_11),
-               _ast_derive_model_header_11);
+    derive_model_header(base_name, &model_h);
 
   if (config->func_prefix)
     prefix = config->func_prefix;
@@ -304,16 +308,16 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
 
   {
     char *base = NULL;
-    {
-      cdd_c_error_t rc_cg = get_basename(h_name, &base);
+    rc = get_basename(h_name, &base);
 #ifdef CDD_BUILD_TESTS
-      if (g_client_gen_fail == 53)
-        rc_cg = CDD_C_ERROR_INVALID_ARGUMENT;
+    if (g_client_gen_fail == 53) {
+      free(base);
+      base = NULL;
+      rc = CDD_C_ERROR_INVALID_ARGUMENT;
+    }
 #endif
-      if (rc_cg != CDD_C_SUCCESS) {
-        rc = rc_cg;
-        goto cleanup;
-      }
+    if (rc != CDD_C_SUCCESS) {
+      goto cleanup;
     }
 #ifdef CDD_BUILD_TESTS
     if (g_client_gen_fail == 22)

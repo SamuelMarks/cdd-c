@@ -28,7 +28,7 @@ extern "C" {
 TEST test_register_single_struct(void) {
   struct OpenAPI_Spec spec;
   struct TypeDefList types;
-  char *header_file = (char *)(size_t)(size_t) "test_reg_single.h";
+  char *header_file = cdd_test_mut_str("test_reg_single.h");
   int rc = 0;
 
   /* Setup */
@@ -67,7 +67,7 @@ TEST test_register_single_struct(void) {
 TEST test_register_deduplication(void) {
   struct OpenAPI_Spec spec;
   struct TypeDefList types;
-  char *header_file = (char *)(size_t)(size_t) "test_reg_dedup.h";
+  char *header_file = cdd_test_mut_str("test_reg_dedup.h");
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   type_def_list_init(&types);
@@ -98,7 +98,7 @@ TEST test_register_multiple_structs(void) {
   struct StructFields *_ast_openapi_spec_find_schema_1;
   struct OpenAPI_Spec spec;
   struct TypeDefList types;
-  char *header_file = (char *)(size_t)(size_t) "test_reg_multi.h";
+  char *header_file = cdd_test_mut_str("test_reg_multi.h");
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   type_def_list_init(&types);
@@ -158,7 +158,7 @@ TEST test_register_enum_schema(void) {
   struct StructFields *_ast_openapi_spec_find_schema_2;
   struct OpenAPI_Spec spec;
   struct TypeDefList types;
-  char *header_file = (char *)(size_t)(size_t) "test_reg_enum.h";
+  char *header_file = cdd_test_mut_str("test_reg_enum.h");
   int rc = 0;
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
@@ -197,9 +197,10 @@ TEST test_register_type_union_copy(void) {
   struct OpenAPI_Spec spec;
   struct TypeDefList types;
   int rc = 0;
-  char *types_arr[] = {(char *)(size_t)(size_t) "string",
-                       (char *)(size_t)(size_t) "integer"};
+  char *types_arr[2];
 
+  types_arr[0] = cdd_test_mut_str("string");
+  types_arr[1] = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   type_def_list_init(&types);
 
@@ -207,7 +208,7 @@ TEST test_register_type_union_copy(void) {
   types.items = calloc(1, sizeof(struct TypeDefinition));
   types.size = 1;
   types.capacity = 1;
-  types.items[0].name = (char *)(size_t)(size_t) "TestUnion";
+  types.items[0].name = cdd_test_mut_str("TestUnion");
   types.items[0].kind = KIND_STRUCT;
   types.items[0].details.struct_fields = calloc(1, sizeof(struct StructFields));
 

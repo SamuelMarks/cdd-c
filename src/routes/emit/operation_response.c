@@ -28,9 +28,7 @@
 #define realloc(ptr, sz) C_CDD_REALLOC(ptr, sz)
 #undef calloc
 #define calloc(n, sz) C_CDD_CALLOC(n, sz)
-extern C_CDD_EXPORT int g_cdd_fail_schema_ref_has_data;
 extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
-extern C_CDD_EXPORT int g_cdd_fail_apply_format;
 #endif
 
 /**
@@ -193,12 +191,8 @@ cdd_c_error_t apply_example_to_response(struct OpenAPI_Response *resp,
       return rc;
     if (content_type) {
       struct OpenAPI_MediaType *mt = NULL;
-      rc = find_media_type_op(resp->content_media_types,
-                              resp->n_content_media_types, content_type, &mt);
-      if (rc != CDD_C_SUCCESS) {
-        free_any_value_local(&parsed);
-        return rc;
-      }
+      find_media_type_op(resp->content_media_types, resp->n_content_media_types,
+                         content_type, &mt);
       if (mt && !mt->example_set) {
         rc = copy_any_value_local(&mt->example, &parsed);
         if (rc != CDD_C_SUCCESS) {
@@ -235,7 +229,8 @@ cdd_c_error_t apply_example_to_response(struct OpenAPI_Response *resp,
 }
 
 /**
- * @brief Executes the ensure response for code operation.
+ * @brief Finds or creates an OpenAPI_Response entry for a given HTTP status
+ * code.
  */
 cdd_c_error_t ensure_response_for_code(struct OpenAPI_Operation *op,
                                        const char *code,
@@ -245,19 +240,6 @@ cdd_c_error_t ensure_response_for_code(struct OpenAPI_Operation *op,
   struct OpenAPI_Response *resp = NULL;
   struct OpenAPI_Response *new_resps;
   cdd_c_error_t rc;
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_op_fail_ensure_response_for_code;
-  extern C_CDD_EXPORT int g_op_fail_ensure_response_null;
-  if (g_op_fail_ensure_response_for_code) {
-    g_op_fail_ensure_response_for_code = 0;
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
-  if (g_op_fail_ensure_response_null) {
-    g_op_fail_ensure_response_null = 0;
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
-  }
-#endif
 
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -609,7 +591,8 @@ cdd_c_error_t add_link_to_response(struct OpenAPI_Response *resp,
     link->request_body_set = 1;
   }
   if (dl->server_url) {
-    link->server = (struct OpenAPI_Server *)calloc(1, sizeof(*link->server));
+    link->server =
+        (struct OpenAPI_Server *)C_CDD_CALLOC(1, sizeof(*link->server));
     if (!link->server) {
       cleanup_link_fields(link);
       return CDD_C_ERROR_MEMORY;
@@ -641,7 +624,8 @@ cdd_c_error_t add_link_to_response(struct OpenAPI_Response *resp,
 }
 
 /**
- * @brief Executes the response has media type operation.
+ * @brief Checks whether an OpenAPI_Response already contains a given media type
+ * name.
  */
 cdd_c_error_t response_has_media_type(const struct OpenAPI_Response *resp,
                                       const char *name, int *out_has) {
@@ -671,7 +655,7 @@ cdd_c_error_t response_has_media_type(const struct OpenAPI_Response *resp,
 }
 
 /**
- * @brief Executes the init media type from response operation.
+ * @brief Initializes a single MediaType entry from legacy Response fields.
  */
 cdd_c_error_t init_media_type_from_response(struct OpenAPI_MediaType *mt,
                                             const char *name,
@@ -685,12 +669,7 @@ cdd_c_error_t init_media_type_from_response(struct OpenAPI_MediaType *mt,
   rc = c_cdd_strdup(name, &mt->name);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  rc = schema_ref_has_data_basic(&resp->schema, &has_data);
-  if (rc != CDD_C_SUCCESS) {
-    free(mt->name);
-    mt->name = NULL;
-    return rc;
-  }
+  schema_ref_has_data_basic(&resp->schema, &has_data);
   if (has_data) {
     if (is_item_schema) {
       rc = copy_schema_ref_basic(&mt->item_schema, &resp->schema);

@@ -50,7 +50,7 @@ TEST test_client_gen_find_server_variable(void) {
   srv.n_variables = 1;
   srv.variables =
       (struct OpenAPI_ServerVariable *)calloc(1, sizeof(*srv.variables));
-  srv.variables[0].name = (char *)(size_t)(size_t) "test";
+  srv.variables[0].name = cdd_test_mut_str("test");
 
   ASSERT_EQ(0, find_server_variable(&srv, "test", &out));
   ASSERT(out == &srv.variables[0]);
@@ -82,21 +82,21 @@ TEST test_client_gen_render_server_url_default(void) {
   ASSERT_EQ(0, render_server_url_default(NULL, &out));
   ASSERT(out == NULL);
 
-  srv.url = (char *)(size_t)(size_t) "http://test";
+  srv.url = cdd_test_mut_str("http://test");
   ASSERT_EQ(0, render_server_url_default(&srv, &out));
   ASSERT_STR_EQ("http://test", out);
   free(out);
   out = NULL;
 
   /* With variables */
-  srv.url = (char *)(size_t)(size_t) "http://{domain}:{port}/v1";
+  srv.url = cdd_test_mut_str("http://{domain}:{port}/v1");
   srv.n_variables = 2;
   srv.variables =
       (struct OpenAPI_ServerVariable *)calloc(2, sizeof(*srv.variables));
-  srv.variables[0].name = (char *)(size_t)(size_t) "domain";
-  srv.variables[0].default_value = (char *)(size_t)(size_t) "localhost";
-  srv.variables[1].name = (char *)(size_t)(size_t) "port";
-  srv.variables[1].default_value = (char *)(size_t)(size_t) "8080";
+  srv.variables[0].name = cdd_test_mut_str("domain");
+  srv.variables[0].default_value = cdd_test_mut_str("localhost");
+  srv.variables[1].name = cdd_test_mut_str("port");
+  srv.variables[1].default_value = cdd_test_mut_str("8080");
 
   ASSERT_EQ(0, render_server_url_default(&srv, &out));
   ASSERT_STR_EQ("http://localhost:8080/v1", out);
@@ -104,28 +104,28 @@ TEST test_client_gen_render_server_url_default(void) {
   out = NULL;
 
   /* Unmatched variable */
-  srv.url = (char *)(size_t)(size_t) "http://{missing}/test";
+  srv.url = cdd_test_mut_str("http://{missing}/test");
   ASSERT_EQ(0, render_server_url_default(&srv, &out));
   ASSERT(out == NULL);
 
   /* Missing closing brace */
-  srv.url = (char *)(size_t)(size_t) "http://{missing/test";
+  srv.url = cdd_test_mut_str("http://{missing/test");
   ASSERT_EQ(0, render_server_url_default(&srv, &out));
   ASSERT(out == NULL);
 
   /* Empty braces */
-  srv.url = (char *)(size_t)(size_t) "http://{}/test";
+  srv.url = cdd_test_mut_str("http://{}/test");
   ASSERT_EQ(0, render_server_url_default(&srv, &out));
   ASSERT(out == NULL);
 
   /* Valid var but missing default */
   if (srv.variables)
     free(srv.variables);
-  srv.url = (char *)(size_t)(size_t) "http://{noval}/test";
+  srv.url = cdd_test_mut_str("http://{noval}/test");
   srv.n_variables = 1;
   srv.variables =
       (struct OpenAPI_ServerVariable *)calloc(1, sizeof(*srv.variables));
-  srv.variables[0].name = (char *)(size_t)(size_t) "noval";
+  srv.variables[0].name = cdd_test_mut_str("noval");
   ASSERT_EQ(0, render_server_url_default(&srv, &out));
   ASSERT(out == NULL);
 
@@ -252,13 +252,13 @@ TEST test_client_gen_param_keys_match(void) {
   ASSERT_EQ(0, param_keys_match(NULL, NULL));
   ASSERT_EQ(0, param_keys_match(&a, &b));
 
-  a.name = (char *)(size_t)(size_t) "test";
+  a.name = cdd_test_mut_str("test");
   ASSERT_EQ(0, param_keys_match(&a, &b));
 
-  b.name = (char *)(size_t)(size_t) "test2";
+  b.name = cdd_test_mut_str("test2");
   ASSERT_EQ(0, param_keys_match(&a, &b));
 
-  b.name = (char *)(size_t)(size_t) "test";
+  b.name = cdd_test_mut_str("test");
   a.in = OA_PARAM_IN_HEADER;
   b.in = OA_PARAM_IN_PATH;
   ASSERT_EQ(0, param_keys_match(&a, &b));
@@ -291,7 +291,7 @@ TEST test_client_gen_build_effective_parameters(void) {
   path.n_parameters = 1;
   path.parameters =
       (struct OpenAPI_Parameter *)calloc(1, sizeof(*path.parameters));
-  path.parameters[0].name = (char *)(size_t)(size_t) "p1";
+  path.parameters[0].name = cdd_test_mut_str("p1");
   path.parameters[0].in = OA_PARAM_IN_PATH;
 
   ASSERT_EQ(0, build_effective_parameters(&path, NULL, &out, &count));
@@ -303,10 +303,10 @@ TEST test_client_gen_build_effective_parameters(void) {
   /* Op params overrides */
   op.n_parameters = 2;
   op.parameters = (struct OpenAPI_Parameter *)calloc(2, sizeof(*op.parameters));
-  op.parameters[0].name = (char *)(size_t)(size_t) "p1";
+  op.parameters[0].name = cdd_test_mut_str("p1");
   op.parameters[0].in = OA_PARAM_IN_PATH;
-  op.parameters[0].description = (char *)(size_t)(size_t) "overridden";
-  op.parameters[1].name = (char *)(size_t)(size_t) "p2";
+  op.parameters[0].description = cdd_test_mut_str("overridden");
+  op.parameters[1].name = cdd_test_mut_str("p2");
   op.parameters[1].in = OA_PARAM_IN_QUERY;
 
   ASSERT_EQ(0, build_effective_parameters(&path, &op, &out, &count));
@@ -323,7 +323,7 @@ TEST test_client_gen_build_effective_parameters(void) {
 }
 
 TEST test_client_gen_verb_to_string(void) {
-  char *out = NULL;
+  const char *out = NULL;
 
   ASSERT_EQ(0, verb_to_string(OA_VERB_GET, &out));
   ASSERT_STR_EQ("GET", out);
@@ -379,12 +379,12 @@ TEST test_client_gen_write_docblock(void) {
   ASSERT_EQ(0, write_docblock(fp, NULL, &op));
 
   /* Various branch hits */
-  op.summary = (char *)(size_t)(size_t) "sum";
-  op.operation_id = (char *)(size_t)(size_t) "opId";
-  op.description = (char *)(size_t)(size_t) "desc";
-  path.route = (char *)(size_t)(size_t) "/test";
+  op.summary = cdd_test_mut_str("sum");
+  op.operation_id = cdd_test_mut_str("opId");
+  op.description = cdd_test_mut_str("desc");
+  path.route = cdd_test_mut_str("/test");
   op.verb = OA_VERB_POST;
-  op.external_docs.url = (char *)(size_t)(size_t) "http://doc";
+  op.external_docs.url = cdd_test_mut_str("http://doc");
   op.callbacks =
       (struct OpenAPI_Callback *)calloc(1, sizeof(struct OpenAPI_Callback));
   op.n_responses = 1;
@@ -400,8 +400,8 @@ TEST test_client_gen_write_docblock(void) {
 
   op.n_parameters = 1;
   op.parameters = (struct OpenAPI_Parameter *)calloc(1, sizeof(*op.parameters));
-  op.parameters[0].name = (char *)(size_t)(size_t) "p";
-  op.parameters[0].description = (char *)(size_t)(size_t) "desc p";
+  op.parameters[0].name = cdd_test_mut_str("p");
+  op.parameters[0].description = cdd_test_mut_str("desc p");
   op.parameters[0].allow_empty_value = 1;
   op.parameters[0].allow_reserved = 1;
   op.deprecated = 1;
@@ -410,19 +410,19 @@ TEST test_client_gen_write_docblock(void) {
   op.parameters = (struct OpenAPI_Parameter *)realloc(
       op.parameters, 6 * sizeof(*op.parameters));
   memset(&op.parameters[1], 0, sizeof(*op.parameters));
-  op.parameters[1].name = (char *)(size_t)(size_t) "cookiep";
+  op.parameters[1].name = cdd_test_mut_str("cookiep");
   op.parameters[1].in = OA_PARAM_IN_COOKIE;
   memset(&op.parameters[2], 0, sizeof(*op.parameters));
-  op.parameters[2].name = (char *)(size_t)(size_t) "unkp";
+  op.parameters[2].name = cdd_test_mut_str("unkp");
   op.parameters[2].in = OA_PARAM_IN_UNKNOWN;
   memset(&op.parameters[3], 0, sizeof(*op.parameters));
-  op.parameters[3].name = (char *)(size_t)(size_t) "queryp";
+  op.parameters[3].name = cdd_test_mut_str("queryp");
   op.parameters[3].in = OA_PARAM_IN_QUERY;
   memset(&op.parameters[4], 0, sizeof(*op.parameters));
-  op.parameters[4].name = (char *)(size_t)(size_t) "qsp";
+  op.parameters[4].name = cdd_test_mut_str("qsp");
   op.parameters[4].in = OA_PARAM_IN_QUERYSTRING;
   memset(&op.parameters[5], 0, sizeof(*op.parameters));
-  op.parameters[5].name = (char *)(size_t)(size_t) "hdrp";
+  op.parameters[5].name = cdd_test_mut_str("hdrp");
   op.parameters[5].in = OA_PARAM_IN_HEADER;
 
   /* we will just execute all branches */
@@ -463,17 +463,17 @@ TEST test_client_gen_emit_operation(void) {
   memset(&config, 0, sizeof(config));
   memset(&srv, 0, sizeof(srv));
 
-  path.route = (char *)(size_t)(size_t) "/users/{id}";
-  op.operation_id = (char *)(size_t)(size_t) "getUser";
-  tags[0] = (char *)(size_t)(size_t) "users_tag";
+  path.route = cdd_test_mut_str("/users/{id}");
+  op.operation_id = cdd_test_mut_str("getUser");
+  tags[0] = cdd_test_mut_str("users_tag");
   op.tags = tags;
   op.n_tags = 1;
 
-  srv.url = (char *)(size_t)(size_t) "https://server.example.com";
+  srv.url = cdd_test_mut_str("https://server.example.com");
   op.servers = &srv;
   op.n_servers = 1;
 
-  config.namespace_prefix = (char *)(size_t)(size_t) "NS";
+  config.namespace_prefix = cdd_test_mut_str("NS");
 
   hfile = tmpfile();
   cfile = tmpfile();
@@ -490,7 +490,7 @@ TEST test_client_gen_emit_operation(void) {
 
   /* And test with namespace but no tag */
   op.n_tags = 0;
-  config.namespace_prefix = (char *)(size_t)(size_t) "OnlyNS";
+  config.namespace_prefix = cdd_test_mut_str("OnlyNS");
   ASSERT_EQ(0,
             emit_operation(hfile, cfile, &path, &op, &spec, &config, "api_"));
 

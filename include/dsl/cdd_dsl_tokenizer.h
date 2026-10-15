@@ -1,3 +1,7 @@
+/**
+ * @file cdd_dsl_tokenizer.h
+ * @brief CDD FFI Domain-Specific Language (DSL) tokenizer.
+ */
 #ifndef CDD_DSL_TOKENIZER_H
 #define CDD_DSL_TOKENIZER_H
 
@@ -13,7 +17,6 @@ extern "C" {
 /* clang-format on */
 
 /**
- * @struct cdd_dsl_token_list_t
  * @brief An array of parsed tokens.
  */
 typedef struct cdd_dsl_token_list_t {

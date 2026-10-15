@@ -54,9 +54,9 @@ TEST test_c2o_cli_source_file_checks(void) {
   {
     char *argv[3]; /* ... */
 
-    argv[0] = (char *)(size_t)(size_t) "c2openapi";
-    argv[1] = (char *)(size_t)src_dir;
-    argv[2] = (char *)(size_t)out_json;
+    argv[0] = cdd_test_mut_str("c2openapi");
+    argv[1] = cdd_test_mut_str(src_dir);
+    argv[2] = cdd_test_mut_str(out_json);
     rc = c2openapi_cli_main(3, argv);
     ASSERT_EQ(0, rc);
 
@@ -65,12 +65,12 @@ TEST test_c2o_cli_source_file_checks(void) {
     remove(no_ext_file);
     remove(out_json);
     rmdir(src_dir);
-    free((void *)(size_t)c_file);
+    free(c_file);
     free(txt_file);
     free(no_ext_file);
-    free((void *)(size_t)out_json);
-    free((void *)(size_t)src_dir);
-    free((void *)(size_t)tmp_dir);
+    free(out_json);
+    free(src_dir);
+    free(tmp_dir);
     g_fail_io_after = -1;
 
     rc += 0;
@@ -138,15 +138,15 @@ TEST test_c2o_cli_doc_sec_unset(void) {
       asprintf((char **)&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C,
                (unsigned long)i);
       write_to_file(c_file, snippets[i]);
-      free((void *)(size_t)c_file);
+      free(c_file);
     }
 
     {
       char *argv[3]; /* ... */
 
-      argv[0] = (char *)(size_t)(size_t) "c2openapi";
-      argv[1] = (char *)(size_t)src_dir;
-      argv[2] = (char *)(size_t)out_json;
+      argv[0] = cdd_test_mut_str("c2openapi");
+      argv[1] = cdd_test_mut_str(src_dir);
+      argv[2] = cdd_test_mut_str(out_json);
       rc = c2openapi_cli_main(3, argv);
       ASSERT_EQ(0, rc);
 
@@ -155,13 +155,13 @@ TEST test_c2o_cli_doc_sec_unset(void) {
         asprintf((char **)&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C,
                  (unsigned long)i);
         remove(c_file);
-        free((void *)(size_t)c_file);
+        free(c_file);
       }
       remove(out_json);
       rmdir(src_dir);
-      free((void *)(size_t)out_json);
-      free((void *)(size_t)src_dir);
-      free((void *)(size_t)tmp_dir);
+      free(out_json);
+      free(src_dir);
+      free(tmp_dir);
       g_fail_io_after = -1;
 
       rc += 0;
@@ -196,19 +196,19 @@ TEST test_c2o_cli_spec_has_tag_nulls(void) {
   {
     char *argv[3]; /* ... */
 
-    argv[0] = (char *)(size_t)(size_t) "c2openapi";
-    argv[1] = (char *)(size_t)src_dir;
-    argv[2] = (char *)(size_t)out_json;
+    argv[0] = cdd_test_mut_str("c2openapi");
+    argv[1] = cdd_test_mut_str(src_dir);
+    argv[2] = cdd_test_mut_str(out_json);
     rc = c2openapi_cli_main(3, argv);
     ASSERT_EQ(0, rc);
 
     remove(c_file);
     remove(out_json);
     rmdir(src_dir);
-    free((void *)(size_t)c_file);
-    free((void *)(size_t)out_json);
-    free((void *)(size_t)src_dir);
-    free((void *)(size_t)tmp_dir);
+    free(c_file);
+    free(out_json);
+    free(src_dir);
+    free(tmp_dir);
     g_fail_io_after = -1;
 
     rc += 0;
@@ -265,19 +265,19 @@ TEST test_c2o_cli_mappings_errors_find(void) {
   {
     char *argv[3]; /* ... */
 
-    argv[0] = (char *)(size_t)(size_t) "c2openapi";
-    argv[1] = (char *)(size_t)src_dir;
-    argv[2] = (char *)(size_t)out_json;
+    argv[0] = cdd_test_mut_str("c2openapi");
+    argv[1] = cdd_test_mut_str(src_dir);
+    argv[2] = cdd_test_mut_str(out_json);
     rc = c2openapi_cli_main(3, argv);
     ASSERT_EQ(0, rc);
 
     remove(c_file);
     remove(out_json);
     rmdir(src_dir);
-    free((void *)(size_t)c_file);
-    free((void *)(size_t)out_json);
-    free((void *)(size_t)src_dir);
-    free((void *)(size_t)tmp_dir);
+    free(c_file);
+    free(out_json);
+    free(src_dir);
+    free(tmp_dir);
     g_fail_io_after = -1;
 
     rc += 0;
@@ -311,19 +311,19 @@ TEST test_c2o_cli_set_str_mismatch(void) {
   {
     char *argv[3]; /* ... */
 
-    argv[0] = (char *)(size_t)(size_t) "c2openapi";
-    argv[1] = (char *)(size_t)src_dir;
-    argv[2] = (char *)(size_t)out_json;
+    argv[0] = cdd_test_mut_str("c2openapi");
+    argv[1] = cdd_test_mut_str(src_dir);
+    argv[2] = cdd_test_mut_str(out_json);
     rc = c2openapi_cli_main(3, argv);
     ASSERT_EQ(0, rc);
 
     remove(c_file);
     remove(out_json);
     rmdir(src_dir);
-    free((void *)(size_t)c_file);
-    free((void *)(size_t)out_json);
-    free((void *)(size_t)src_dir);
-    free((void *)(size_t)tmp_dir);
+    free(c_file);
+    free(out_json);
+    free(src_dir);
+    free(tmp_dir);
     g_fail_io_after = -1;
 
     rc += 0;
@@ -359,19 +359,19 @@ TEST test_c2o_cli_server_variables(void) {
   {
     char *argv[3]; /* ... */
 
-    argv[0] = (char *)(size_t)(size_t) "c2openapi";
-    argv[1] = (char *)(size_t)src_dir;
-    argv[2] = (char *)(size_t)out_json;
+    argv[0] = cdd_test_mut_str("c2openapi");
+    argv[1] = cdd_test_mut_str(src_dir);
+    argv[2] = cdd_test_mut_str(out_json);
     rc = c2openapi_cli_main(3, argv);
     ASSERT_EQ(0, rc);
 
     remove(c_file);
     remove(out_json);
     rmdir(src_dir);
-    free((void *)(size_t)c_file);
-    free((void *)(size_t)out_json);
-    free((void *)(size_t)src_dir);
-    free((void *)(size_t)tmp_dir);
+    free(c_file);
+    free(out_json);
+    free(src_dir);
+    free(tmp_dir);
     g_fail_io_after = -1;
 
     rc += 0;
@@ -408,19 +408,19 @@ TEST test_c2o_cli_server_variables_validation(void) {
   {
     char *argv[3]; /* ... */
 
-    argv[0] = (char *)(size_t)(size_t) "c2openapi";
-    argv[1] = (char *)(size_t)src_dir;
-    argv[2] = (char *)(size_t)out_json;
+    argv[0] = cdd_test_mut_str("c2openapi");
+    argv[1] = cdd_test_mut_str(src_dir);
+    argv[2] = cdd_test_mut_str(out_json);
     rc = c2openapi_cli_main(3, argv);
     ASSERT_EQ(0, rc);
 
     remove(c_file);
     remove(out_json);
     rmdir(src_dir);
-    free((void *)(size_t)c_file);
-    free((void *)(size_t)out_json);
-    free((void *)(size_t)src_dir);
-    free((void *)(size_t)tmp_dir);
+    free(c_file);
+    free(out_json);
+    free(src_dir);
+    free(tmp_dir);
     g_fail_io_after = -1;
 
     rc += 0;
@@ -476,19 +476,19 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
   {
     char *argv[3]; /* ... */
 
-    argv[0] = (char *)(size_t)(size_t) "c2openapi";
-    argv[1] = (char *)(size_t)src_dir;
-    argv[2] = (char *)(size_t)out_json;
+    argv[0] = cdd_test_mut_str("c2openapi");
+    argv[1] = cdd_test_mut_str(src_dir);
+    argv[2] = cdd_test_mut_str(out_json);
     rc = c2openapi_cli_main(3, argv);
     ASSERT_EQ(0, rc);
 
     remove(c_file);
     remove(out_json);
     rmdir(src_dir);
-    free((void *)(size_t)c_file);
-    free((void *)(size_t)out_json);
-    free((void *)(size_t)src_dir);
-    free((void *)(size_t)tmp_dir);
+    free(c_file);
+    free(out_json);
+    free(src_dir);
+    free(tmp_dir);
     g_fail_io_after = -1;
 
     rc += 0;
@@ -535,15 +535,15 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
       asprintf((char **)&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C,
                (unsigned long)i);
       write_to_file(c_file, snippets[i]);
-      free((void *)(size_t)c_file);
+      free(c_file);
     }
 
     {
       char *argv[3]; /* ... */
 
-      argv[0] = (char *)(size_t)(size_t) "c2openapi";
-      argv[1] = (char *)(size_t)src_dir;
-      argv[2] = (char *)(size_t)out_json;
+      argv[0] = cdd_test_mut_str("c2openapi");
+      argv[1] = cdd_test_mut_str(src_dir);
+      argv[2] = cdd_test_mut_str(out_json);
       rc = c2openapi_cli_main(3, argv);
       ASSERT_EQ(0, rc);
 
@@ -552,13 +552,13 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
         asprintf((char **)&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C,
                  (unsigned long)i);
         remove(c_file);
-        free((void *)(size_t)c_file);
+        free(c_file);
       }
       remove(out_json);
       rmdir(src_dir);
-      free((void *)(size_t)out_json);
-      free((void *)(size_t)src_dir);
-      free((void *)(size_t)tmp_dir);
+      free(out_json);
+      free(src_dir);
+      free(tmp_dir);
       g_fail_io_after = -1;
 
       rc += 0;
@@ -613,15 +613,15 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
       asprintf((char **)&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C,
                (unsigned long)i);
       write_to_file(c_file, snippets[i]);
-      free((void *)(size_t)c_file);
+      free(c_file);
     }
 
     {
       char *argv[3]; /* ... */
 
-      argv[0] = (char *)(size_t)(size_t) "c2openapi";
-      argv[1] = (char *)(size_t)src_dir;
-      argv[2] = (char *)(size_t)out_json;
+      argv[0] = cdd_test_mut_str("c2openapi");
+      argv[1] = cdd_test_mut_str(src_dir);
+      argv[2] = cdd_test_mut_str(out_json);
       rc = c2openapi_cli_main(3, argv);
       ASSERT_EQ(0, rc);
 
@@ -630,13 +630,13 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
         asprintf((char **)&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C,
                  (unsigned long)i);
         remove(c_file);
-        free((void *)(size_t)c_file);
+        free(c_file);
       }
       remove(out_json);
       rmdir(src_dir);
-      free((void *)(size_t)out_json);
-      free((void *)(size_t)src_dir);
-      free((void *)(size_t)tmp_dir);
+      free(out_json);
+      free(src_dir);
+      free(tmp_dir);
       g_fail_io_after = -1;
 
       rc += 0;

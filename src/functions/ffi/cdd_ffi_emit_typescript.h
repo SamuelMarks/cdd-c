@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_typescript.h
+ * @brief FFI binding emitter for Typescript.
+ */
 #ifndef CDD_FFI_EMIT_TYPESCRIPT_H
 #define CDD_FFI_EMIT_TYPESCRIPT_H
 

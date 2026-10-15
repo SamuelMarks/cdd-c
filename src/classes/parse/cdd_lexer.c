@@ -1,3 +1,7 @@
+/**
+ * @file cdd_lexer.c
+ * @brief Core cdd lexer definitions and implementation.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 

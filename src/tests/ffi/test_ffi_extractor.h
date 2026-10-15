@@ -34,7 +34,7 @@
 TEST test_ffi_ir_extract_mock_failures(void) {
   const char *filename = "dummy_header.h";
   const char *code = "struct Base { int a; };\n"
-                     "void func(int a);\n";
+                     "void func(int a) {}\n";
   cdd_ffi_ir_t *ir = NULL;
   cdd_generate_bindings_config_t config = {0};
   cdd_c_error_t rc;

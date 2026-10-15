@@ -25,7 +25,7 @@ extern "C" {
 /* clang-format on */
 
 #ifndef C_CDD_STR_LIT
-#define C_CDD_STR_LIT(s) ((char *)(size_t)(size_t)(s))
+#define C_CDD_STR_LIT(s) cdd_test_mut_str(s)
 #endif
 
 extern C_CDD_EXPORT int g_io_calls;

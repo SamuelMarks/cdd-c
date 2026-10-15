@@ -139,12 +139,7 @@ extern C_CDD_EXPORT cdd_c_error_t c_cdd_ref_is_type(const char *ref,
  *
  * @param[in,out] str The string to modify.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the c cdd str trim trailing whitespace
-                     * operation.
-                     */
-    cdd_c_error_t
-    c_cdd_str_trim_trailing_whitespace(char *str);
+extern C_CDD_EXPORT cdd_c_error_t c_cdd_str_trim_trailing_whitespace(char *str);
 
 /**
  * @brief Decode a string literal token for _Pragma usage.

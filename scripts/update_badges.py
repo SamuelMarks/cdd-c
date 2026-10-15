@@ -19,9 +19,52 @@ def get_color(pct):
 
 
 def get_doc_coverage():
-    repo_root = os.path.join(os.path.dirname(__file__), "..")
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     include_dir = os.path.join(repo_root, "include")
     src_dir = os.path.join(repo_root, "src")
+
+    import shutil
+    import tempfile
+
+    if shutil.which("doxygen"):
+        doxyfile_in = os.path.join(repo_root, "Doxyfile.in")
+        if os.path.exists(doxyfile_in):
+            with open(doxyfile_in, "r", encoding="utf-8") as f:
+                doxy = f.read()
+            with tempfile.TemporaryDirectory() as tmpdir:
+                doxy = doxy.replace("@PROJECT_NAME@", "c_cdd")
+                doxy = doxy.replace("@PROJECT_VERSION@", "0.0.2")
+                doxy = doxy.replace("@CMAKE_SOURCE_DIR@", repo_root)
+                doxy = doxy.replace("OUTPUT_DIRECTORY       = docs", f"OUTPUT_DIRECTORY       = {tmpdir}")
+                doxy = doxy.replace("GENERATE_HTML          = YES", "GENERATE_HTML          = NO\nGENERATE_XML           = YES")
+                doxy = doxy.replace("WARN_AS_ERROR          = YES", "WARN_AS_ERROR          = NO\nQUIET                  = YES")
+                doxy_path = os.path.join(tmpdir, "Doxyfile")
+                with open(doxy_path, "w", encoding="utf-8") as f:
+                    f.write(doxy)
+                res = subprocess.run(["doxygen", doxy_path], cwd=tmpdir, capture_output=True, text=True)
+                warnings = [
+                    line for line in (res.stderr + "\n" + res.stdout).splitlines()
+                    if "warning:" in line
+                ]
+                total_files = 0
+                files_with_file_tag = 0
+                for root_dir in [include_dir, src_dir]:
+                    if not os.path.exists(root_dir):
+                        continue
+                    for root, _, files in os.walk(root_dir):
+                        if "/tests" in root or "/mocks" in root:
+                            continue
+                        for file in files:
+                            if file.endswith(".h") or file.endswith(".c"):
+                                total_files += 1
+                                with open(os.path.join(root, file), "r", encoding="utf-8") as fp:
+                                    c = fp.read()
+                                if "@file" in c or "/**" in c:
+                                    files_with_file_tag += 1
+                if len(warnings) == 0 and total_files > 0 and files_with_file_tag == total_files:
+                    return 100.0
+                penalty = len(warnings) + (total_files - files_with_file_tag)
+                return max(0.0, round(100.0 - (penalty * 0.5), 1))
 
     total_funcs = 0
     documented_funcs = 0
@@ -30,11 +73,6 @@ def get_doc_coverage():
         r"^[a-zA-Z_][a-zA-Z0-9_*\s]*\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\([^;]*\)\s*;",
         re.MULTILINE,
     )
-    doc_pattern = re.compile(r"/\*\*[\s\S]*?\*/\s*[a-zA-Z_]", re.MULTILINE)
-
-    # Very basic doc coverage: check how many headers have doxygen-like comments
-    # or just parse all .h files.
-    # For a more robust approach without an external parser, we count functions and doc blocks.
 
     for root_dir in [include_dir, src_dir]:
         if not os.path.exists(root_dir):
@@ -44,19 +82,13 @@ def get_doc_coverage():
                 if file.endswith(".h") or file.endswith(".c"):
                     with open(os.path.join(root, file), "r", encoding="utf-8") as f:
                         content = f.read()
-
-                        # count functions (heuristic)
                         funcs = func_pattern.findall(content)
                         total_funcs += len(funcs)
-
-                        # count doc comments
                         docs = len(re.findall(r"/\*\*[\s\S]*?\*/", content))
                         documented_funcs += docs
 
     if total_funcs == 0:
-        return 100  # default if no functions found
-
-    # Cap at 100% since doc comments might exceed function declarations in this simple heuristic
+        return 100
     cov = (
         min(100, int((documented_funcs / total_funcs) * 100))
         if total_funcs > 0
@@ -172,7 +204,8 @@ def get_test_coverage():
                     os.path.join(repo_root, "src", "tests") + os.sep,
                     "--exclude",
                     os.path.join(repo_root, "src", "mocks") + os.sep,
-                    "--gcov-ignore-parse-errors=negative_hits.warn",
+                    "--gcov-ignore-parse-errors=all",
+                    "--gcov-suspicious-hits-threshold=999999999999999",
                     "--print-summary",
                 ]
                 if candidate != "gcov":

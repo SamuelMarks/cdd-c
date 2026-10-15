@@ -97,7 +97,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_expr_skip_ws(&s);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1 + 2"), &tl);
+  rc = tokenize(az_span_create_from_str("1 + 2"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -153,8 +153,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_handle_has_include_embed(&s, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
-  rc =
-      tokenize(az_span_create_from_str((char *)(size_t) "( \"file.h\" )"), &tl);
+  rc = tokenize(az_span_create_from_str("( \"file.h\" )"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -216,8 +215,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_handle_has_c_attribute(&s, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
-  rc =
-      tokenize(az_span_create_from_str((char *)(size_t) "( deprecated )"), &tl);
+  rc = tokenize(az_span_create_from_str("( deprecated )"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -279,7 +277,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "( const )"), &tl);
+  rc = tokenize(az_span_create_from_str("( const )"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -293,7 +291,7 @@ TEST test_pp_100_percent_coverage(void) {
   tl = NULL;
 
   /* Empty parens, keyword as attr, scoped attr edge cases */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "( )"), &tl);
+  rc = tokenize(az_span_create_from_str("( )"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -305,7 +303,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "( const )"), &tl);
+  rc = tokenize(az_span_create_from_str("( const )"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -316,8 +314,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc =
-      tokenize(az_span_create_from_str((char *)(size_t) "( gnu :: 123 )"), &tl);
+  rc = tokenize(az_span_create_from_str("( gnu :: 123 )"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -328,8 +325,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "( gnu :: pure )"),
-                &tl);
+  rc = tokenize(az_span_create_from_str("( gnu :: pure )"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -362,7 +358,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_primary(&s, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1"), &tl);
+  rc = tokenize(az_span_create_from_str("1"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -375,7 +371,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "0b1011"), &tl);
+  rc = tokenize(az_span_create_from_str("0b1011"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -387,7 +383,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "( 1 )"), &tl);
+  rc = tokenize(az_span_create_from_str("( 1 )"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -408,9 +404,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "__has_include ( \"a.h\" )"),
-      &tl);
+  rc = tokenize(az_span_create_from_str("__has_include ( \"a.h\" )"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -423,9 +417,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "__has_embed ( \"a.bin\" )"),
-      &tl);
+  rc = tokenize(az_span_create_from_str("__has_embed ( \"a.bin\" )"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -438,9 +430,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "__has_c_attribute ( dep )"),
-      &tl);
+  rc = tokenize(az_span_create_from_str("__has_c_attribute ( dep )"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -453,7 +443,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "MACRO0"), &tl);
+  rc = tokenize(az_span_create_from_str("MACRO0"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -473,7 +463,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_unary(&s, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "! 1"), &tl);
+  rc = tokenize(az_span_create_from_str("! 1"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -493,7 +483,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "~ 1"), &tl);
+  rc = tokenize(az_span_create_from_str("~ 1"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -506,7 +496,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "- 1"), &tl);
+  rc = tokenize(az_span_create_from_str("- 1"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -519,7 +509,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "+ 1"), &tl);
+  rc = tokenize(az_span_create_from_str("+ 1"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -532,8 +522,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "defined ( MACRO0 )"),
-                &tl);
+  rc = tokenize(az_span_create_from_str("defined ( MACRO0 )"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -600,7 +589,7 @@ TEST test_pp_100_percent_coverage(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   rc = pp_parse_multiplicative(&s, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1 * 2"), &tl);
+  rc = tokenize(az_span_create_from_str("1 * 2"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   for (i = 1; i <= 8; i++) {
@@ -625,7 +614,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1 / 2"), &tl);
+  rc = tokenize(az_span_create_from_str("1 / 2"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   for (i = 1; i <= 8; i++) {
@@ -644,7 +633,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1 % 2"), &tl);
+  rc = tokenize(az_span_create_from_str("1 % 2"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   for (i = 1; i <= 8; i++) {
@@ -667,7 +656,7 @@ TEST test_pp_100_percent_coverage(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   rc = pp_parse_additive(&s, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1 + 2"), &tl);
+  rc = tokenize(az_span_create_from_str("1 + 2"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   for (i = 1; i <= 10; i++) {
@@ -692,7 +681,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1 - 2"), &tl);
+  rc = tokenize(az_span_create_from_str("1 - 2"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   for (i = 1; i <= 10; i++) {
@@ -709,7 +698,7 @@ TEST test_pp_100_percent_coverage(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   rc = pp_parse_shift(&s, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1 << 2"), &tl);
+  rc = tokenize(az_span_create_from_str("1 << 2"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   for (i = 1; i <= 12; i++) {
@@ -734,7 +723,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1 >> 2"), &tl);
+  rc = tokenize(az_span_create_from_str("1 >> 2"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   for (i = 1; i <= 12; i++) {
@@ -751,7 +740,7 @@ TEST test_pp_100_percent_coverage(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   rc = pp_parse_relational(&s, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1 <= 2"), &tl);
+  rc = tokenize(az_span_create_from_str("1 <= 2"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   for (i = 1; i <= 14; i++) {
@@ -776,7 +765,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1 >= 2"), &tl);
+  rc = tokenize(az_span_create_from_str("1 >= 2"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   for (i = 1; i <= 14; i++) {
@@ -795,7 +784,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1 < 2"), &tl);
+  rc = tokenize(az_span_create_from_str("1 < 2"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   for (i = 1; i <= 14; i++) {
@@ -814,7 +803,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1 > 2"), &tl);
+  rc = tokenize(az_span_create_from_str("1 > 2"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   for (i = 1; i <= 14; i++) {
@@ -837,7 +826,7 @@ TEST test_pp_100_percent_coverage(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   rc = pp_parse_equality(&s, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1 == 2"), &tl);
+  rc = tokenize(az_span_create_from_str("1 == 2"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   for (i = 1; i <= 14; i++) {
@@ -862,7 +851,7 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1 != 2"), &tl);
+  rc = tokenize(az_span_create_from_str("1 != 2"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   for (i = 1; i <= 14; i++) {
@@ -879,7 +868,7 @@ TEST test_pp_100_percent_coverage(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   rc = pp_parse_logic_and(&s, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1 && 2"), &tl);
+  rc = tokenize(az_span_create_from_str("1 && 2"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   for (i = 1; i <= 15; i++) {
@@ -902,7 +891,7 @@ TEST test_pp_100_percent_coverage(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   rc = pp_parse_logic_or(&s, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1 || 2"), &tl);
+  rc = tokenize(az_span_create_from_str("1 || 2"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   for (i = 1; i <= 16; i++) {

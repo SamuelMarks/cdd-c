@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_common_lisp.h
+ * @brief FFI binding emitter for Common Lisp.
+ */
 #ifndef CDD_FFI_EMIT_COMMON_LISP_H
 #define CDD_FFI_EMIT_COMMON_LISP_H
 

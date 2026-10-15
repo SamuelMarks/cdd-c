@@ -182,8 +182,8 @@ cdd_c_error_t gnu_standardize_ranges(cdd_cst_tree_t *tree) {
             if (is_neg_start) {
               tree->base_tokens->tokens[i - 2].length = 0;
             }
-            pooled = pool_string_safe(tree, heap_buf);
-            if (!pooled) {
+            if (cdd_pool_string_safe(tree, heap_buf, &pooled) !=
+                CDD_C_SUCCESS) {
               free(heap_buf);
               return CDD_C_ERROR_MEMORY;
             }
@@ -254,8 +254,8 @@ cdd_c_error_t gnu_standardize_ranges(cdd_cst_tree_t *tree) {
               }
               *p = '\0';
 
-              pooled = pool_string_safe(tree, heap_buf);
-              if (!pooled) {
+              if (cdd_pool_string_safe(tree, heap_buf, &pooled) !=
+                  CDD_C_SUCCESS) {
                 free(heap_buf);
                 return CDD_C_ERROR_MEMORY;
               }

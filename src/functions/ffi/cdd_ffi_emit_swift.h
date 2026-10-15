@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_swift.h
+ * @brief FFI binding emitter for Swift.
+ */
 #ifndef CDD_FFI_EMIT_SWIFT_H
 #define CDD_FFI_EMIT_SWIFT_H
 

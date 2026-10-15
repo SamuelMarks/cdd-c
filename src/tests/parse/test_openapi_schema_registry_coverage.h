@@ -13,7 +13,6 @@ extern "C" {
 
 /* clang-format off */
 #include "parse/test_openapi_loader_common.h"
-#include "openapi/parse/openapi_test_helpers.h"
 /* clang-format on */
 
 /**
@@ -31,22 +30,22 @@ TEST test_openapi_registry_apply_schema_ref(void) {
   memset(&sr, 0, sizeof(sr));
 
   /* 1. NULL checks */
-  rc = cdd_test_apply_schema_ref_to_param(NULL, NULL);
+  rc = apply_schema_ref_to_param(NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_apply_schema_ref_to_param(&p, NULL);
+  rc = apply_schema_ref_to_param(&p, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_apply_schema_ref_to_param(NULL, &sr);
+  rc = apply_schema_ref_to_param(NULL, &sr);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_apply_schema_ref_to_param(&p, &sr);
+  rc = apply_schema_ref_to_param(&p, &sr);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-  rc = cdd_test_apply_schema_ref_to_header(NULL, NULL);
+  rc = apply_schema_ref_to_header(NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_apply_schema_ref_to_header(&h, NULL);
+  rc = apply_schema_ref_to_header(&h, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_apply_schema_ref_to_header(NULL, &sr);
+  rc = apply_schema_ref_to_header(NULL, &sr);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_apply_schema_ref_to_header(&h, &sr);
+  rc = apply_schema_ref_to_header(&h, &sr);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* 2. Existing types freed */
@@ -59,14 +58,14 @@ TEST test_openapi_registry_apply_schema_ref(void) {
   rc = c_cdd_strdup("old_items", &h.items_type);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-  sr.inline_type = (char *)(size_t) "integer";
-  rc = cdd_test_apply_schema_ref_to_param(&p, &sr);
+  sr.inline_type = cdd_test_mut_str("integer");
+  rc = apply_schema_ref_to_param(&p, &sr);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("integer", p.type);
   ASSERT(p.items_type == NULL);
   ASSERT_EQ(0, p.is_array);
 
-  rc = cdd_test_apply_schema_ref_to_header(&h, &sr);
+  rc = apply_schema_ref_to_header(&h, &sr);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("integer", h.type);
   ASSERT(h.items_type == NULL);
@@ -74,26 +73,26 @@ TEST test_openapi_registry_apply_schema_ref(void) {
 
   /* 3. Non-array with ref_name */
   sr.inline_type = NULL;
-  sr.ref_name = (char *)(size_t) "UserRef";
-  rc = cdd_test_apply_schema_ref_to_param(&p, &sr);
+  sr.ref_name = cdd_test_mut_str("UserRef");
+  rc = apply_schema_ref_to_param(&p, &sr);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("UserRef", p.type);
 
-  rc = cdd_test_apply_schema_ref_to_header(&h, &sr);
+  rc = apply_schema_ref_to_header(&h, &sr);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("UserRef", h.type);
 
   /* 4. Array with inline_type */
   sr.is_array = 1;
-  sr.inline_type = (char *)(size_t) "string";
+  sr.inline_type = cdd_test_mut_str("string");
   sr.ref_name = NULL;
-  rc = cdd_test_apply_schema_ref_to_param(&p, &sr);
+  rc = apply_schema_ref_to_param(&p, &sr);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, p.is_array);
   ASSERT_STR_EQ("array", p.type);
   ASSERT_STR_EQ("string", p.items_type);
 
-  rc = cdd_test_apply_schema_ref_to_header(&h, &sr);
+  rc = apply_schema_ref_to_header(&h, &sr);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, h.is_array);
   ASSERT_STR_EQ("array", h.type);
@@ -101,23 +100,23 @@ TEST test_openapi_registry_apply_schema_ref(void) {
 
   /* 5. Array with ref_name */
   sr.inline_type = NULL;
-  sr.ref_name = (char *)(size_t) "PetRef";
-  rc = cdd_test_apply_schema_ref_to_param(&p, &sr);
+  sr.ref_name = cdd_test_mut_str("PetRef");
+  rc = apply_schema_ref_to_param(&p, &sr);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("PetRef", p.items_type);
 
-  rc = cdd_test_apply_schema_ref_to_header(&h, &sr);
+  rc = apply_schema_ref_to_header(&h, &sr);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("PetRef", h.items_type);
 
   /* 6. Array with both inline_type and ref_name */
-  sr.inline_type = (char *)(size_t) "object";
-  sr.ref_name = (char *)(size_t) "OverrideRef";
-  rc = cdd_test_apply_schema_ref_to_param(&p, &sr);
+  sr.inline_type = cdd_test_mut_str("object");
+  sr.ref_name = cdd_test_mut_str("OverrideRef");
+  rc = apply_schema_ref_to_param(&p, &sr);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("OverrideRef", p.items_type);
 
-  rc = cdd_test_apply_schema_ref_to_header(&h, &sr);
+  rc = apply_schema_ref_to_header(&h, &sr);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("OverrideRef", h.items_type);
 
@@ -125,13 +124,13 @@ TEST test_openapi_registry_apply_schema_ref(void) {
   sr.is_array = 1;
   sr.inline_type = NULL;
   sr.ref_name = NULL;
-  rc = cdd_test_apply_schema_ref_to_param(&p, &sr);
+  rc = apply_schema_ref_to_param(&p, &sr);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, p.is_array);
   ASSERT_STR_EQ("array", p.type);
   ASSERT(p.items_type == NULL);
 
-  rc = cdd_test_apply_schema_ref_to_header(&h, &sr);
+  rc = apply_schema_ref_to_header(&h, &sr);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, h.is_array);
   ASSERT_STR_EQ("array", h.type);
@@ -139,61 +138,61 @@ TEST test_openapi_registry_apply_schema_ref(void) {
 
   /* 7. OOM paths for param */
   sr.is_array = 1;
-  sr.inline_type = (char *)(size_t) "object";
-  sr.ref_name = (char *)(size_t) "OverrideRef";
+  sr.inline_type = cdd_test_mut_str("object");
+  sr.ref_name = cdd_test_mut_str("OverrideRef");
   g_cdd_strdup_fail = 1;
-  rc = cdd_test_apply_schema_ref_to_param(&p, &sr);
+  rc = apply_schema_ref_to_param(&p, &sr);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 2;
-  rc = cdd_test_apply_schema_ref_to_param(&p, &sr);
+  rc = apply_schema_ref_to_param(&p, &sr);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 3;
-  rc = cdd_test_apply_schema_ref_to_param(&p, &sr);
+  rc = apply_schema_ref_to_param(&p, &sr);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
 
   sr.is_array = 0;
-  sr.inline_type = (char *)(size_t) "int";
+  sr.inline_type = cdd_test_mut_str("int");
   sr.ref_name = NULL;
   g_cdd_strdup_fail = 1;
-  rc = cdd_test_apply_schema_ref_to_param(&p, &sr);
+  rc = apply_schema_ref_to_param(&p, &sr);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
 
   sr.inline_type = NULL;
-  sr.ref_name = (char *)(size_t) "ref";
+  sr.ref_name = cdd_test_mut_str("ref");
   g_cdd_strdup_fail = 1;
-  rc = cdd_test_apply_schema_ref_to_param(&p, &sr);
+  rc = apply_schema_ref_to_param(&p, &sr);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
 
   /* 8. OOM paths for header */
   sr.is_array = 1;
-  sr.inline_type = (char *)(size_t) "object";
-  sr.ref_name = (char *)(size_t) "OverrideRef";
+  sr.inline_type = cdd_test_mut_str("object");
+  sr.ref_name = cdd_test_mut_str("OverrideRef");
   g_cdd_strdup_fail = 1;
-  rc = cdd_test_apply_schema_ref_to_header(&h, &sr);
+  rc = apply_schema_ref_to_header(&h, &sr);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 2;
-  rc = cdd_test_apply_schema_ref_to_header(&h, &sr);
+  rc = apply_schema_ref_to_header(&h, &sr);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 3;
-  rc = cdd_test_apply_schema_ref_to_header(&h, &sr);
+  rc = apply_schema_ref_to_header(&h, &sr);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
 
   sr.is_array = 0;
-  sr.inline_type = (char *)(size_t) "int";
+  sr.inline_type = cdd_test_mut_str("int");
   sr.ref_name = NULL;
   g_cdd_strdup_fail = 1;
-  rc = cdd_test_apply_schema_ref_to_header(&h, &sr);
+  rc = apply_schema_ref_to_header(&h, &sr);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
 
   sr.inline_type = NULL;
-  sr.ref_name = (char *)(size_t) "ref";
+  sr.ref_name = cdd_test_mut_str("ref");
   g_cdd_strdup_fail = 1;
-  rc = cdd_test_apply_schema_ref_to_header(&h, &sr);
+  rc = apply_schema_ref_to_header(&h, &sr);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
 
@@ -220,30 +219,30 @@ TEST test_openapi_registry_names_and_sanitize(void) {
   memset(&spec, 0, sizeof(spec));
 
   /* 1. sanitize_component_name NULL checks */
-  rc = cdd_test_sanitize_component_name(NULL, NULL);
+  rc = sanitize_component_name(NULL, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
-  rc = cdd_test_sanitize_component_name(NULL, &out_name);
+  rc = sanitize_component_name(NULL, &out_name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("InlineSchema", out_name);
   free(out_name);
   out_name = NULL;
 
-  rc = cdd_test_sanitize_component_name("", &out_name);
+  rc = sanitize_component_name("", &out_name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("InlineSchema", out_name);
   free(out_name);
   out_name = NULL;
 
   /* 2. sanitize with special chars replaced by _ */
-  rc = cdd_test_sanitize_component_name("Hello@World!123.test-ok_v", &out_name);
+  rc = sanitize_component_name("Hello@World!123.test-ok_v", &out_name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("Hello_World_123.test-ok_v", out_name);
   free(out_name);
   out_name = NULL;
 
   /* 3. sanitize with all invalid characters */
-  rc = cdd_test_sanitize_component_name("@@@", &out_name);
+  rc = sanitize_component_name("@@@", &out_name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("___", out_name);
   free(out_name);
@@ -251,44 +250,44 @@ TEST test_openapi_registry_names_and_sanitize(void) {
 
   /* 4. sanitize OOM on calloc */
   g_cdd_alloc_fail = 1;
-  rc = cdd_test_sanitize_component_name("ValidName", &out_name);
+  rc = sanitize_component_name("ValidName", &out_name);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   ASSERT(out_name == NULL);
   g_cdd_alloc_fail = 0;
 
   /* 5. sanitize OOM on fallback strdup */
   g_cdd_strdup_fail = 1;
-  rc = cdd_test_sanitize_component_name(NULL, &out_name);
+  rc = sanitize_component_name(NULL, &out_name);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
 
   /* 6. schema_name_in_use tests */
-  rc = cdd_test_schema_name_in_use(NULL, NULL);
+  rc = schema_name_in_use(NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_schema_name_in_use(&spec, NULL);
+  rc = schema_name_in_use(&spec, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_schema_name_in_use(&spec, "Test");
+  rc = schema_name_in_use(&spec, "Test");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-  def_names[0] = (char *)(size_t) "User";
-  def_names[1] = (char *)(size_t) "Order";
+  def_names[0] = cdd_test_mut_str("User");
+  def_names[1] = cdd_test_mut_str("Order");
   spec.defined_schema_names = def_names;
   spec.n_defined_schemas = 2;
 
-  raw_names[0] = (char *)(size_t) "Raw1";
-  raw_names[1] = (char *)(size_t) "Raw2";
+  raw_names[0] = cdd_test_mut_str("Raw1");
+  raw_names[1] = cdd_test_mut_str("Raw2");
   spec.raw_schema_names = raw_names;
   spec.n_raw_schemas = 2;
 
-  rc = cdd_test_schema_name_in_use(&spec, "User");
+  rc = schema_name_in_use(&spec, "User");
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  rc = cdd_test_schema_name_in_use(&spec, "Order");
+  rc = schema_name_in_use(&spec, "Order");
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  rc = cdd_test_schema_name_in_use(&spec, "Raw1");
+  rc = schema_name_in_use(&spec, "Raw1");
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  rc = cdd_test_schema_name_in_use(&spec, "Raw2");
+  rc = schema_name_in_use(&spec, "Raw2");
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  rc = cdd_test_schema_name_in_use(&spec, "NotFound");
+  rc = schema_name_in_use(&spec, "NotFound");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* NULL arrays or NULL elements inside spec */
@@ -301,33 +300,33 @@ TEST test_openapi_registry_names_and_sanitize(void) {
     spec_nulls.defined_schema_names = NULL;
     spec_nulls.n_raw_schemas = 1;
     spec_nulls.raw_schema_names = NULL;
-    rc = cdd_test_schema_name_in_use(&spec_nulls, "Any");
+    rc = schema_name_in_use(&spec_nulls, "Any");
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    rc = cdd_test_raw_schema_name_exists(&spec_nulls, "Any");
+    rc = raw_schema_name_exists(&spec_nulls, "Any");
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
     spec_nulls.defined_schema_names = null_arr;
     spec_nulls.raw_schema_names = null_arr;
-    rc = cdd_test_schema_name_in_use(&spec_nulls, "Any");
+    rc = schema_name_in_use(&spec_nulls, "Any");
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    rc = cdd_test_raw_schema_name_exists(&spec_nulls, "Any");
+    rc = raw_schema_name_exists(&spec_nulls, "Any");
     ASSERT_EQ(CDD_C_SUCCESS, rc);
   }
 
   /* 7. make_unique_schema_name tests */
-  rc = cdd_test_make_unique_schema_name(NULL, NULL, NULL);
+  rc = make_unique_schema_name(NULL, NULL, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = cdd_test_make_unique_schema_name(&spec, NULL, &out_name);
+  rc = make_unique_schema_name(&spec, NULL, &out_name);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
-  rc = cdd_test_make_unique_schema_name(&spec, "NewModel", &out_name);
+  rc = make_unique_schema_name(&spec, "NewModel", &out_name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("NewModel", out_name);
   free(out_name);
   out_name = NULL;
 
   /* Base in use -> generates NewModel_1 */
-  rc = cdd_test_make_unique_schema_name(&spec, "User", &out_name);
+  rc = make_unique_schema_name(&spec, "User", &out_name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("User_1", out_name);
   free(out_name);
@@ -335,27 +334,27 @@ TEST test_openapi_registry_names_and_sanitize(void) {
 
   /* OOM on make_unique_schema_name */
   g_cdd_strdup_fail = 1;
-  rc = cdd_test_make_unique_schema_name(&spec, "NewModel", &out_name);
+  rc = make_unique_schema_name(&spec, "NewModel", &out_name);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
 
   g_cdd_strdup_fail = 1;
-  rc = cdd_test_make_unique_schema_name(&spec, "User", &out_name);
+  rc = make_unique_schema_name(&spec, "User", &out_name);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
 
   /* Exhausted attempts -> returns CDD_C_ERROR_NOT_FOUND */
   {
     char *exhausted_names[5];
-    exhausted_names[0] = (char *)(size_t) "Busy";
-    exhausted_names[1] = (char *)(size_t) "Busy_1";
-    exhausted_names[2] = (char *)(size_t) "Busy_2";
-    exhausted_names[3] = (char *)(size_t) "Busy_3";
-    exhausted_names[4] = (char *)(size_t) "Busy_4";
+    exhausted_names[0] = cdd_test_mut_str("Busy");
+    exhausted_names[1] = cdd_test_mut_str("Busy_1");
+    exhausted_names[2] = cdd_test_mut_str("Busy_2");
+    exhausted_names[3] = cdd_test_mut_str("Busy_3");
+    exhausted_names[4] = cdd_test_mut_str("Busy_4");
     spec.defined_schema_names = exhausted_names;
     spec.n_defined_schemas = 5;
     out_name = NULL;
-    rc = cdd_test_make_unique_schema_name(&spec, "Busy", &out_name);
+    rc = make_unique_schema_name(&spec, "Busy", &out_name);
     ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
     ASSERT(out_name == NULL);
   }
@@ -374,69 +373,69 @@ TEST test_openapi_registry_object_like(void) {
   cdd_c_error_t rc = 0;
 
   /* 1. schema_type_array_includes NULL checks */
-  rc = cdd_test_schema_type_array_includes(NULL, NULL);
+  rc = schema_type_array_includes(NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_schema_type_array_includes(NULL, "object");
+  rc = schema_type_array_includes(NULL, "object");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   jv = json_parse_string("[\"string\", 123, \"object\", null]");
   ja = json_value_get_array(jv);
-  rc = cdd_test_schema_type_array_includes(ja, NULL);
+  rc = schema_type_array_includes(ja, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_schema_type_array_includes(ja, "object");
+  rc = schema_type_array_includes(ja, "object");
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  rc = cdd_test_schema_type_array_includes(ja, "integer");
+  rc = schema_type_array_includes(ja, "integer");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   json_value_free(jv);
 
   /* 2. schema_object_is_object_like NULL check */
-  rc = cdd_test_schema_object_is_object_like(NULL);
+  rc = schema_object_is_object_like(NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* 3. type == "object" */
   jv = json_parse_string("{\"type\": \"object\"}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_schema_object_is_object_like(jo);
+  rc = schema_object_is_object_like(jo);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   json_value_free(jv);
 
   /* 4. type array containing "object" */
   jv = json_parse_string("{\"type\": [\"null\", \"object\"]}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_schema_object_is_object_like(jo);
+  rc = schema_object_is_object_like(jo);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   json_value_free(jv);
 
   /* 5. properties */
   jv = json_parse_string("{\"properties\": {}}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_schema_object_is_object_like(jo);
+  rc = schema_object_is_object_like(jo);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   json_value_free(jv);
 
   /* 6. allOf / anyOf / oneOf */
   jv = json_parse_string("{\"allOf\": []}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_schema_object_is_object_like(jo);
+  rc = schema_object_is_object_like(jo);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   json_value_free(jv);
 
   jv = json_parse_string("{\"anyOf\": []}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_schema_object_is_object_like(jo);
+  rc = schema_object_is_object_like(jo);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   json_value_free(jv);
 
   jv = json_parse_string("{\"oneOf\": []}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_schema_object_is_object_like(jo);
+  rc = schema_object_is_object_like(jo);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   json_value_free(jv);
 
   /* 7. Scalar type (not object-like) */
   jv = json_parse_string("{\"type\": \"string\"}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_schema_object_is_object_like(jo);
+  rc = schema_object_is_object_like(jo);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   json_value_free(jv);
 
@@ -463,68 +462,68 @@ TEST test_openapi_registry_raw_and_defined_schemas(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* 1. raw_schema_name_exists NULL checks */
-  rc = cdd_test_raw_schema_name_exists(NULL, NULL);
+  rc = raw_schema_name_exists(NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_raw_schema_name_exists(&spec, NULL);
+  rc = raw_schema_name_exists(&spec, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_raw_schema_name_exists(&spec, "Test");
+  rc = raw_schema_name_exists(&spec, "Test");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* 2. append_raw_schema NULL checks */
   jv = json_parse_string("{\"title\": \"RawSchema\"}");
-  rc = cdd_test_append_raw_schema(NULL, NULL, NULL);
+  rc = append_raw_schema(NULL, NULL, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = cdd_test_append_raw_schema(&spec, NULL, jv);
+  rc = append_raw_schema(&spec, NULL, jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = cdd_test_append_raw_schema(&spec, "RawSchema", NULL);
+  rc = append_raw_schema(&spec, "RawSchema", NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   /* 3. append_raw_schema success */
-  rc = cdd_test_append_raw_schema(&spec, "RawSchema", jv);
+  rc = append_raw_schema(&spec, "RawSchema", jv);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, spec.n_raw_schemas);
   ASSERT_STR_EQ("RawSchema", spec.raw_schema_names[0]);
 
   /* 4. append_raw_schema duplicate -> succeeds early */
-  rc = cdd_test_append_raw_schema(&spec, "RawSchema", jv);
+  rc = append_raw_schema(&spec, "RawSchema", jv);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, spec.n_raw_schemas);
 
   /* 5. append_raw_schema second item */
-  rc = cdd_test_append_raw_schema(&spec, "RawSchema2", jv);
+  rc = append_raw_schema(&spec, "RawSchema2", jv);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(2, spec.n_raw_schemas);
 
   /* 6. append_raw_schema OOM */
   g_cdd_strdup_fail = 1;
-  rc = cdd_test_append_raw_schema(&spec, "OOMSchema", jv);
+  rc = append_raw_schema(&spec, "OOMSchema", jv);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
 
   g_cdd_strdup_fail = 2;
-  rc = cdd_test_append_raw_schema(&spec, "OOMSchema2", jv);
+  rc = append_raw_schema(&spec, "OOMSchema2", jv);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
 
   g_cdd_alloc_fail = 1;
-  rc = cdd_test_append_raw_schema(&spec, "OOMSchema3", jv);
+  rc = append_raw_schema(&spec, "OOMSchema3", jv);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_alloc_fail = 0;
 
   g_cdd_alloc_fail = 2;
-  rc = cdd_test_append_raw_schema(&spec, "OOMSchema3b", jv);
+  rc = append_raw_schema(&spec, "OOMSchema3b", jv);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_alloc_fail = 0;
 
   {
     extern C_CDD_EXPORT int g_cdd_fail_raw_schema_serialize;
     g_cdd_fail_raw_schema_serialize = 1;
-    rc = cdd_test_append_raw_schema(&spec, "OOMSchema4", jv);
+    rc = append_raw_schema(&spec, "OOMSchema4", jv);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     g_cdd_fail_raw_schema_serialize = 0;
 
     g_cdd_fail_raw_schema_serialize = 2;
-    rc = cdd_test_append_raw_schema(&spec, "OOMSchema5", jv);
+    rc = append_raw_schema(&spec, "OOMSchema5", jv);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     g_cdd_fail_raw_schema_serialize = 0;
   }
@@ -532,17 +531,17 @@ TEST test_openapi_registry_raw_and_defined_schemas(void) {
   json_value_free(jv);
 
   /* 7. append_defined_schema NULL checks */
-  rc = cdd_test_append_defined_schema(NULL, NULL, NULL);
+  rc = append_defined_schema(NULL, NULL, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = cdd_test_append_defined_schema(&spec, NULL, &sf1);
+  rc = append_defined_schema(&spec, NULL, &sf1);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   rc = c_cdd_strdup("DefSchema", &name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_append_defined_schema(&spec, name, NULL);
+  rc = append_defined_schema(&spec, name, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   /* 8. append_defined_schema success */
-  rc = cdd_test_append_defined_schema(&spec, name, &sf1);
+  rc = append_defined_schema(&spec, name, &sf1);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, spec.n_defined_schemas);
   ASSERT_STR_EQ("DefSchema", spec.defined_schema_names[0]);
@@ -550,7 +549,7 @@ TEST test_openapi_registry_raw_and_defined_schemas(void) {
   /* 9. append_defined_schema second item */
   rc = c_cdd_strdup("DefSchema2", &name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_append_defined_schema(&spec, name, &sf2);
+  rc = append_defined_schema(&spec, name, &sf2);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(2, spec.n_defined_schemas);
 
@@ -558,7 +557,7 @@ TEST test_openapi_registry_raw_and_defined_schemas(void) {
   rc = c_cdd_strdup("DefSchema3", &name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   g_cdd_alloc_fail = 1;
-  rc = cdd_test_append_defined_schema(&spec, name, &sf2);
+  rc = append_defined_schema(&spec, name, &sf2);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_alloc_fail = 0;
   free(name);
@@ -580,7 +579,7 @@ TEST test_openapi_registry_raw_and_defined_schemas(void) {
 
     rc = c_cdd_strdup("ExtraModel", &name_extra);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    rc = cdd_test_append_defined_schema(&spec_extra, name_extra, &sf_extra1);
+    rc = append_defined_schema(&spec_extra, name_extra, &sf_extra1);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
     rc = c_cdd_strdup("id1", &id_extra);
@@ -597,7 +596,7 @@ TEST test_openapi_registry_raw_and_defined_schemas(void) {
 
     rc = c_cdd_strdup("ExtraModel2", &name_extra);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    rc = cdd_test_append_defined_schema(&spec_extra, name_extra, &sf_extra2);
+    rc = append_defined_schema(&spec_extra, name_extra, &sf_extra2);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
     openapi_spec_free(&spec_extra);
@@ -611,7 +610,7 @@ TEST test_openapi_registry_raw_and_defined_schemas(void) {
     spec_raw.n_raw_schemas = 1;
     spec_raw.raw_schema_names = NULL;
     spec_raw.raw_schema_json = NULL;
-    rc = cdd_test_append_raw_schema(&spec_raw, "NewRaw", jv_raw);
+    rc = append_raw_schema(&spec_raw, "NewRaw", jv_raw);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     openapi_spec_free(&spec_raw);
     json_value_free(jv_raw);
@@ -637,38 +636,38 @@ TEST test_openapi_registry_register_inline(void) {
   memset(&sr, 0, sizeof(sr));
 
   /* 1. assign_schema_ref_name NULL checks */
-  rc = cdd_test_assign_schema_ref_name(NULL, NULL);
+  rc = assign_schema_ref_name(NULL, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = cdd_test_assign_schema_ref_name(&sr, NULL);
+  rc = assign_schema_ref_name(&sr, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = cdd_test_assign_schema_ref_name(NULL, "Name");
+  rc = assign_schema_ref_name(NULL, "Name");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   /* 2. assign_schema_ref_name success */
-  rc = cdd_test_assign_schema_ref_name(&sr, "FirstRef");
+  rc = assign_schema_ref_name(&sr, "FirstRef");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("FirstRef", sr.ref_name);
 
   /* 3. assign_schema_ref_name replacement */
-  rc = cdd_test_assign_schema_ref_name(&sr, "SecondRef");
+  rc = assign_schema_ref_name(&sr, "SecondRef");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("SecondRef", sr.ref_name);
 
   /* 4. assign_schema_ref_name OOM */
   g_cdd_strdup_fail = 1;
-  rc = cdd_test_assign_schema_ref_name(&sr, "ThirdRef");
+  rc = assign_schema_ref_name(&sr, "ThirdRef");
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
 
   {
     extern C_CDD_EXPORT int g_cdd_fail_assign_ref_name;
     g_cdd_fail_assign_ref_name = 1;
-    rc = cdd_test_assign_schema_ref_name(&sr, "HookRef");
+    rc = assign_schema_ref_name(&sr, "HookRef");
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     g_cdd_fail_assign_ref_name = 0;
 
     g_cdd_fail_assign_ref_name = 2;
-    rc = cdd_test_assign_schema_ref_name(&sr, "HookRef2");
+    rc = assign_schema_ref_name(&sr, "HookRef2");
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     g_cdd_fail_assign_ref_name = 0;
   }
@@ -681,22 +680,22 @@ TEST test_openapi_registry_register_inline(void) {
       "\"integer\"}}}");
   jo = json_value_get_object(jv);
 
-  rc = cdd_test_register_inline_schema(NULL, "Base", jo, jv, &out_name);
+  rc = register_inline_schema(NULL, "Base", jo, jv, &out_name);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = cdd_test_register_inline_schema(&spec, "Base", NULL, jv, &out_name);
+  rc = register_inline_schema(&spec, "Base", NULL, jv, &out_name);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = cdd_test_register_inline_schema(&spec, "Base", jo, jv, NULL);
+  rc = register_inline_schema(&spec, "Base", jo, jv, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   /* 6. register_inline_schema success */
-  rc = cdd_test_register_inline_schema(&spec, "UserPayload", jo, jv, &out_name);
+  rc = register_inline_schema(&spec, "UserPayload", jo, jv, &out_name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("UserPayload", out_name);
   ASSERT_EQ(1, spec.n_defined_schemas);
 
   /* 7. register duplicate inline schema creates unique suffix */
   out_name = NULL;
-  rc = cdd_test_register_inline_schema(&spec, "UserPayload", jo, jv, &out_name);
+  rc = register_inline_schema(&spec, "UserPayload", jo, jv, &out_name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("UserPayload_1", out_name);
   ASSERT_EQ(2, spec.n_defined_schemas);
@@ -706,8 +705,7 @@ TEST test_openapi_registry_register_inline(void) {
   jv = json_parse_string("{\"allOf\": [{\"type\": \"object\"}]}");
   jo = json_value_get_object(jv);
   out_name = NULL;
-  rc = cdd_test_register_inline_schema(&spec, "CompositeSchema", jo, jv,
-                                       &out_name);
+  rc = register_inline_schema(&spec, "CompositeSchema", jo, jv, &out_name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("CompositeSchema", out_name);
   ASSERT(spec.n_raw_schemas >= 1);
@@ -717,20 +715,18 @@ TEST test_openapi_registry_register_inline(void) {
     extern C_CDD_EXPORT int g_cdd_fail_raw_schema_serialize;
     g_cdd_fail_raw_schema_serialize = 1;
     out_name = NULL;
-    rc = cdd_test_register_inline_schema(&spec, "CompositeFail", jo, jv,
-                                         &out_name);
+    rc = register_inline_schema(&spec, "CompositeFail", jo, jv, &out_name);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     g_cdd_fail_raw_schema_serialize = 0;
   }
 
   /* 8c. register inline schema struct_fields_init failure */
   {
-    extern C_CDD_EXPORT int g_struct_fields_init_fail;
-    g_struct_fields_init_fail = 1;
+    g_cdd_alloc_fail = 6;
     out_name = NULL;
-    rc = cdd_test_register_inline_schema(&spec, "InitFail", jo, jv, &out_name);
+    rc = register_inline_schema(&spec, "InitFail", jo, jv, &out_name);
     ASSERT_NEQ(CDD_C_SUCCESS, rc);
-    g_struct_fields_init_fail = 0;
+    g_cdd_alloc_fail = 0;
   }
 
   /* 8d. register inline schema with json_object_to_struct_fields_ex failure */
@@ -738,7 +734,7 @@ TEST test_openapi_registry_register_inline(void) {
     extern C_CDD_EXPORT int g_json_object_to_struct_fields_fail;
     g_json_object_to_struct_fields_fail = 1;
     out_name = NULL;
-    rc = cdd_test_register_inline_schema(&spec, "BadSchema", jo, jv, &out_name);
+    rc = register_inline_schema(&spec, "BadSchema", jo, jv, &out_name);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     g_json_object_to_struct_fields_fail = 0;
 
@@ -747,8 +743,7 @@ TEST test_openapi_registry_register_inline(void) {
     {
       JSON_Value *s_jv = json_parse_string("{\"type\": \"string\"}");
       JSON_Object *s_jo = json_value_get_object(s_jv);
-      rc = cdd_test_register_inline_schema(&spec, "BadSchema2", s_jo, s_jv,
-                                           &out_name);
+      rc = register_inline_schema(&spec, "BadSchema2", s_jo, s_jv, &out_name);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
       json_value_free(s_jv);
     }
@@ -758,8 +753,7 @@ TEST test_openapi_registry_register_inline(void) {
   /* 8e. register inline schema with composition and NULL schema_val */
   {
     out_name = NULL;
-    rc = cdd_test_register_inline_schema(&spec, "CompNoVal", jo, NULL,
-                                         &out_name);
+    rc = register_inline_schema(&spec, "CompNoVal", jo, NULL, &out_name);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_STR_EQ("CompNoVal", out_name);
   }
@@ -767,13 +761,13 @@ TEST test_openapi_registry_register_inline(void) {
   /* 9. register inline schema OOM */
   g_cdd_alloc_fail = 1;
   out_name = NULL;
-  rc = cdd_test_register_inline_schema(&spec, "OOMFail", jo, jv, &out_name);
+  rc = register_inline_schema(&spec, "OOMFail", jo, jv, &out_name);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
   g_cdd_alloc_fail = 0;
 
   g_cdd_strdup_fail = 1;
   out_name = NULL;
-  rc = cdd_test_register_inline_schema(&spec, "OOMFail2", jo, jv, &out_name);
+  rc = register_inline_schema(&spec, "OOMFail2", jo, jv, &out_name);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
   g_cdd_strdup_fail = 0;
 
@@ -792,29 +786,29 @@ TEST test_openapi_registry_build_inline_names(void) {
   cdd_c_error_t rc = 0;
 
   /* 1. build_inline_request_name NULL check */
-  rc = cdd_test_build_inline_request_name("op", 0, NULL);
+  rc = build_inline_request_name("op", 0, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   /* 2. build_inline_request_name variations */
-  rc = cdd_test_build_inline_request_name("getUser", 0, &name);
+  rc = build_inline_request_name("getUser", 0, &name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("Inline_getUser_Request", name);
   free(name);
   name = NULL;
 
-  rc = cdd_test_build_inline_request_name("getUser", 1, &name);
+  rc = build_inline_request_name("getUser", 1, &name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("Inline_getUser_Request_Item", name);
   free(name);
   name = NULL;
 
-  rc = cdd_test_build_inline_request_name(NULL, 0, &name);
+  rc = build_inline_request_name(NULL, 0, &name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("Inline_unnamed_Request", name);
   free(name);
   name = NULL;
 
-  rc = cdd_test_build_inline_request_name("", 0, &name);
+  rc = build_inline_request_name("", 0, &name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("Inline_unnamed_Request", name);
   free(name);
@@ -822,35 +816,35 @@ TEST test_openapi_registry_build_inline_names(void) {
 
   /* 3. build_inline_request_name OOM */
   g_cdd_alloc_fail = 1;
-  rc = cdd_test_build_inline_request_name("op", 0, &name);
+  rc = build_inline_request_name("op", 0, &name);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   ASSERT(name == NULL);
   g_cdd_alloc_fail = 0;
 
   /* 4. build_inline_response_name NULL check */
-  rc = cdd_test_build_inline_response_name("op", "200", 0, NULL);
+  rc = build_inline_response_name("op", "200", 0, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   /* 5. build_inline_response_name variations */
-  rc = cdd_test_build_inline_response_name("getUser", "200", 0, &name);
+  rc = build_inline_response_name("getUser", "200", 0, &name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("Inline_getUser_Response_200", name);
   free(name);
   name = NULL;
 
-  rc = cdd_test_build_inline_response_name("getUser", "200", 1, &name);
+  rc = build_inline_response_name("getUser", "200", 1, &name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("Inline_getUser_Response_200_Item", name);
   free(name);
   name = NULL;
 
-  rc = cdd_test_build_inline_response_name(NULL, NULL, 0, &name);
+  rc = build_inline_response_name(NULL, NULL, 0, &name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("Inline_unnamed_Response_default", name);
   free(name);
   name = NULL;
 
-  rc = cdd_test_build_inline_response_name("", "", 1, &name);
+  rc = build_inline_response_name("", "", 1, &name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("Inline_unnamed_Response_default_Item", name);
   free(name);
@@ -858,29 +852,29 @@ TEST test_openapi_registry_build_inline_names(void) {
 
   /* 6. build_inline_response_name OOM */
   g_cdd_alloc_fail = 1;
-  rc = cdd_test_build_inline_response_name("op", "200", 0, &name);
+  rc = build_inline_response_name("op", "200", 0, &name);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   ASSERT(name == NULL);
   g_cdd_alloc_fail = 0;
 
   /* 7. build_inline_param_name NULL check */
-  rc = cdd_test_build_inline_param_name("param", NULL);
+  rc = build_inline_param_name("param", NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   /* 8. build_inline_param_name variations */
-  rc = cdd_test_build_inline_param_name("userId", &name);
+  rc = build_inline_param_name("userId", &name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("Inline_Querystring_userId", name);
   free(name);
   name = NULL;
 
-  rc = cdd_test_build_inline_param_name(NULL, &name);
+  rc = build_inline_param_name(NULL, &name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("Inline_Querystring_param", name);
   free(name);
   name = NULL;
 
-  rc = cdd_test_build_inline_param_name("", &name);
+  rc = build_inline_param_name("", &name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("Inline_Querystring_param", name);
   free(name);
@@ -888,7 +882,7 @@ TEST test_openapi_registry_build_inline_names(void) {
 
   /* 9. build_inline_param_name OOM */
   g_cdd_alloc_fail = 1;
-  rc = cdd_test_build_inline_param_name("param", &name);
+  rc = build_inline_param_name("param", &name);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   ASSERT(name == NULL);
   g_cdd_alloc_fail = 0;

@@ -57,10 +57,10 @@ TEST test_url_primitive_and_object_predicates(void) {
   p.type = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, param_is_object_kv_url(&p));
 
-  p.type = (char *)(size_t) "string";
+  p.type = cdd_test_mut_str("string");
   ASSERT_EQ(0, param_is_object_kv_url(&p) != 0);
 
-  p.type = (char *)(size_t) "object";
+  p.type = cdd_test_mut_str("object");
   ASSERT_EQ(1, param_is_object_kv_url(&p) != 0);
 
   PASS();
@@ -112,22 +112,22 @@ TEST test_url_media_type_and_param_predicates(void) {
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_form_object(&p));
 
   p.in = OA_PARAM_IN_QUERYSTRING;
-  p.content_type = (char *)(size_t) "application/json";
+  p.content_type = cdd_test_mut_str("application/json");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_form_object(&p));
 
-  p.content_type = (char *)(size_t) "application/x-www-form-urlencoded";
-  p.schema.ref_name = (char *)(size_t) "MyModel";
+  p.content_type = cdd_test_mut_str("application/x-www-form-urlencoded");
+  p.schema.ref_name = cdd_test_mut_str("MyModel");
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, querystring_param_is_form_object(&p));
 
   p.schema.ref_name = NULL;
-  p.schema.inline_type = (char *)(size_t) "object";
+  p.schema.inline_type = cdd_test_mut_str("object");
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, querystring_param_is_form_object(&p));
 
   p.schema.inline_type = NULL;
-  p.type = (char *)(size_t) "object";
+  p.type = cdd_test_mut_str("object");
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, querystring_param_is_form_object(&p));
 
-  p.type = (char *)(size_t) "string";
+  p.type = cdd_test_mut_str("string");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_form_object(&p));
 
   /* querystring_param_is_json_ref */
@@ -137,19 +137,19 @@ TEST test_url_media_type_and_param_predicates(void) {
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_json_ref(&p));
 
   p.in = OA_PARAM_IN_QUERYSTRING;
-  p.content_type = (char *)(size_t) "text/plain";
+  p.content_type = cdd_test_mut_str("text/plain");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_json_ref(&p));
 
-  p.content_type = (char *)(size_t) "application/json";
+  p.content_type = cdd_test_mut_str("application/json");
   p.schema.is_array = 1;
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_json_ref(&p));
 
   p.schema.is_array = 0;
-  p.type = (char *)(size_t) "array";
+  p.type = cdd_test_mut_str("array");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_json_ref(&p));
 
   p.type = NULL;
-  p.schema.ref_name = (char *)(size_t) "Model";
+  p.schema.ref_name = cdd_test_mut_str("Model");
   ASSERT_EQ(1, querystring_param_is_json_ref(&p));
 
   p.schema.ref_name = NULL;
@@ -166,17 +166,17 @@ TEST test_url_media_type_and_param_predicates(void) {
   ASSERT_EQ(NULL, out_val);
 
   p.in = OA_PARAM_IN_QUERYSTRING;
-  p.content_type = (char *)(size_t) "text/plain";
+  p.content_type = cdd_test_mut_str("text/plain");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_json_primitive_type(&p, &out_val));
   ASSERT_EQ(NULL, out_val);
 
-  p.content_type = (char *)(size_t) "application/json";
+  p.content_type = cdd_test_mut_str("application/json");
   p.schema.is_array = 1;
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_json_primitive_type(&p, &out_val));
   ASSERT_EQ(NULL, out_val);
 
   p.schema.is_array = 0;
-  p.type = (char *)(size_t) "array";
+  p.type = cdd_test_mut_str("array");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_json_primitive_type(&p, &out_val));
   ASSERT_EQ(NULL, out_val);
 
@@ -185,23 +185,23 @@ TEST test_url_media_type_and_param_predicates(void) {
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_json_primitive_type(&p, &out_val));
   ASSERT_EQ(NULL, out_val);
 
-  p.type = (char *)(size_t) "string";
+  p.type = cdd_test_mut_str("string");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_json_primitive_type(&p, &out_val));
   ASSERT_STR_EQ("string", out_val);
 
-  p.type = (char *)(size_t) "integer";
+  p.type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_json_primitive_type(&p, &out_val));
   ASSERT_STR_EQ("integer", out_val);
 
-  p.type = (char *)(size_t) "number";
+  p.type = cdd_test_mut_str("number");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_json_primitive_type(&p, &out_val));
   ASSERT_STR_EQ("number", out_val);
 
-  p.type = (char *)(size_t) "boolean";
+  p.type = cdd_test_mut_str("boolean");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_json_primitive_type(&p, &out_val));
   ASSERT_STR_EQ("boolean", out_val);
 
-  p.type = (char *)(size_t) "custom_object";
+  p.type = cdd_test_mut_str("custom_object");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_json_primitive_type(&p, &out_val));
   ASSERT_EQ(NULL, out_val);
 
@@ -217,12 +217,12 @@ TEST test_url_media_type_and_param_predicates(void) {
   ASSERT_EQ(NULL, out_val);
 
   p.in = OA_PARAM_IN_QUERYSTRING;
-  p.content_type = (char *)(size_t) "text/plain";
+  p.content_type = cdd_test_mut_str("text/plain");
   ASSERT_EQ(CDD_C_SUCCESS,
             querystring_param_json_array_item_type(&p, &out_val));
   ASSERT_EQ(NULL, out_val);
 
-  p.content_type = (char *)(size_t) "application/json";
+  p.content_type = cdd_test_mut_str("application/json");
   ASSERT_EQ(CDD_C_SUCCESS,
             querystring_param_json_array_item_type(&p, &out_val));
   ASSERT_EQ(NULL, out_val);
@@ -232,28 +232,28 @@ TEST test_url_media_type_and_param_predicates(void) {
             querystring_param_json_array_item_type(&p, &out_val));
   ASSERT_EQ(NULL, out_val);
 
-  p.schema.inline_type = (char *)(size_t) "string";
+  p.schema.inline_type = cdd_test_mut_str("string");
   ASSERT_EQ(CDD_C_SUCCESS,
             querystring_param_json_array_item_type(&p, &out_val));
   ASSERT_STR_EQ("string", out_val);
 
   p.schema.inline_type = NULL;
-  p.items_type = (char *)(size_t) "integer";
+  p.items_type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS,
             querystring_param_json_array_item_type(&p, &out_val));
   ASSERT_STR_EQ("integer", out_val);
 
-  p.items_type = (char *)(size_t) "number";
+  p.items_type = cdd_test_mut_str("number");
   ASSERT_EQ(CDD_C_SUCCESS,
             querystring_param_json_array_item_type(&p, &out_val));
   ASSERT_STR_EQ("number", out_val);
 
-  p.items_type = (char *)(size_t) "boolean";
+  p.items_type = cdd_test_mut_str("boolean");
   ASSERT_EQ(CDD_C_SUCCESS,
             querystring_param_json_array_item_type(&p, &out_val));
   ASSERT_STR_EQ("boolean", out_val);
 
-  p.items_type = (char *)(size_t) "other_type";
+  p.items_type = cdd_test_mut_str("other_type");
   ASSERT_EQ(CDD_C_SUCCESS,
             querystring_param_json_array_item_type(&p, &out_val));
   ASSERT_EQ(NULL, out_val);
@@ -269,11 +269,11 @@ TEST test_url_media_type_and_param_predicates(void) {
   ASSERT_EQ(NULL, out_val);
 
   p.in = OA_PARAM_IN_QUERYSTRING;
-  p.content_type = (char *)(size_t) "text/plain";
+  p.content_type = cdd_test_mut_str("text/plain");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_json_array_item_ref(&p, &out_val));
   ASSERT_EQ(NULL, out_val);
 
-  p.content_type = (char *)(size_t) "application/json";
+  p.content_type = cdd_test_mut_str("application/json");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_json_array_item_ref(&p, &out_val));
   ASSERT_EQ(NULL, out_val);
 
@@ -281,15 +281,15 @@ TEST test_url_media_type_and_param_predicates(void) {
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_json_array_item_ref(&p, &out_val));
   ASSERT_EQ(NULL, out_val);
 
-  p.schema.inline_type = (char *)(size_t) "string";
+  p.schema.inline_type = cdd_test_mut_str("string");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_json_array_item_ref(&p, &out_val));
   ASSERT_EQ(NULL, out_val);
 
-  p.schema.inline_type = (char *)(size_t) "object";
+  p.schema.inline_type = cdd_test_mut_str("object");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_json_array_item_ref(&p, &out_val));
   ASSERT_EQ(NULL, out_val);
 
-  p.schema.inline_type = (char *)(size_t) "MyModelRef";
+  p.schema.inline_type = cdd_test_mut_str("MyModelRef");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_json_array_item_ref(&p, &out_val));
   ASSERT_STR_EQ("MyModelRef", out_val);
 
@@ -307,33 +307,33 @@ TEST test_url_media_type_and_param_predicates(void) {
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_raw_primitive_type(&p, &out_val));
   ASSERT_EQ(NULL, out_val);
 
-  p.content_type = (char *)(size_t) "application/json";
+  p.content_type = cdd_test_mut_str("application/json");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_raw_primitive_type(&p, &out_val));
   ASSERT_EQ(NULL, out_val);
 
-  p.content_type = (char *)(size_t) "application/x-www-form-urlencoded";
+  p.content_type = cdd_test_mut_str("application/x-www-form-urlencoded");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_raw_primitive_type(&p, &out_val));
   ASSERT_EQ(NULL, out_val);
 
-  p.content_type = (char *)(size_t) "text/plain";
+  p.content_type = cdd_test_mut_str("text/plain");
   p.schema.inline_type = NULL;
   p.type = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_raw_primitive_type(&p, &out_val));
   ASSERT_STR_EQ("string", out_val);
 
-  p.type = (char *)(size_t) "integer";
+  p.type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_raw_primitive_type(&p, &out_val));
   ASSERT_STR_EQ("integer", out_val);
 
-  p.type = (char *)(size_t) "number";
+  p.type = cdd_test_mut_str("number");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_raw_primitive_type(&p, &out_val));
   ASSERT_STR_EQ("number", out_val);
 
-  p.type = (char *)(size_t) "boolean";
+  p.type = cdd_test_mut_str("boolean");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_raw_primitive_type(&p, &out_val));
   ASSERT_STR_EQ("boolean", out_val);
 
-  p.type = (char *)(size_t) "other_custom";
+  p.type = cdd_test_mut_str("other_custom");
   ASSERT_EQ(CDD_C_SUCCESS, querystring_param_raw_primitive_type(&p, &out_val));
   ASSERT_STR_EQ("string", out_val);
 
@@ -353,68 +353,68 @@ TEST test_url_write_query_json_param_all_types(void) {
   memset(&p, 0, sizeof(p));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_query_json_param(fp, &p));
 
-  p.content_type = (char *)(size_t) "text/plain";
+  p.content_type = cdd_test_mut_str("text/plain");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_query_json_param(fp, &p));
 
-  p.content_type = (char *)(size_t) "application/json";
+  p.content_type = cdd_test_mut_str("application/json");
 
   /* Array with NULL item_type */
-  p.name = (char *)(size_t) "tags";
+  p.name = cdd_test_mut_str("tags");
   p.is_array = 1;
   p.items_type = NULL;
   p.schema.inline_type = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, write_query_json_param(fp, &p));
 
   /* Array with primitive item types */
-  p.items_type = (char *)(size_t) "string";
+  p.items_type = cdd_test_mut_str("string");
   ASSERT_EQ(CDD_C_SUCCESS, write_query_json_param(fp, &p));
 
-  p.items_type = (char *)(size_t) "integer";
+  p.items_type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS, write_query_json_param(fp, &p));
 
-  p.items_type = (char *)(size_t) "number";
+  p.items_type = cdd_test_mut_str("number");
   ASSERT_EQ(CDD_C_SUCCESS, write_query_json_param(fp, &p));
 
-  p.items_type = (char *)(size_t) "boolean";
+  p.items_type = cdd_test_mut_str("boolean");
   ASSERT_EQ(CDD_C_SUCCESS, write_query_json_param(fp, &p));
 
   /* Array with item_type object */
-  p.items_type = (char *)(size_t) "object";
+  p.items_type = cdd_test_mut_str("object");
   ASSERT_EQ(CDD_C_SUCCESS, write_query_json_param(fp, &p));
 
   /* Array with custom model ref */
-  p.items_type = (char *)(size_t) "UserTag";
+  p.items_type = cdd_test_mut_str("UserTag");
   ASSERT_EQ(CDD_C_SUCCESS, write_query_json_param(fp, &p));
 
   /* Non-array with schema.ref_name */
   p.is_array = 0;
   p.items_type = NULL;
-  p.schema.ref_name = (char *)(size_t) "UserFilter";
+  p.schema.ref_name = cdd_test_mut_str("UserFilter");
   ASSERT_EQ(CDD_C_SUCCESS, write_query_json_param(fp, &p));
 
   /* Non-array with object type */
   p.schema.ref_name = NULL;
-  p.type = (char *)(size_t) "object";
+  p.type = cdd_test_mut_str("object");
   ASSERT_EQ(CDD_C_SUCCESS, write_query_json_param(fp, &p));
 
   /* Non-array with string primitive */
-  p.type = (char *)(size_t) "string";
+  p.type = cdd_test_mut_str("string");
   ASSERT_EQ(CDD_C_SUCCESS, write_query_json_param(fp, &p));
 
   /* Non-array with integer primitive */
-  p.type = (char *)(size_t) "integer";
+  p.type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS, write_query_json_param(fp, &p));
 
   /* Non-array with number primitive */
-  p.type = (char *)(size_t) "number";
+  p.type = cdd_test_mut_str("number");
   ASSERT_EQ(CDD_C_SUCCESS, write_query_json_param(fp, &p));
 
   /* Non-array with boolean primitive */
-  p.type = (char *)(size_t) "boolean";
+  p.type = cdd_test_mut_str("boolean");
   ASSERT_EQ(CDD_C_SUCCESS, write_query_json_param(fp, &p));
 
   /* Non-array with unsupported type */
-  p.type = (char *)(size_t) "unsupported_type";
+  p.type = cdd_test_mut_str("unsupported_type");
   ASSERT_EQ(CDD_C_SUCCESS, write_query_json_param(fp, &p));
 
   fclose(fp);
@@ -431,7 +431,7 @@ TEST test_url_write_query_and_path_object_serialization(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_query_object_param(fp, NULL));
 
   memset(&p, 0, sizeof(p));
-  p.name = (char *)(size_t) "filter";
+  p.name = cdd_test_mut_str("filter");
 
   /* Form style with explode=1 and allow_reserved=0 */
   p.style = OA_STYLE_FORM;
@@ -536,7 +536,7 @@ TEST test_url_write_query_and_path_object_serialization(void) {
 
   /* Path object with cookie style and default explode */
   memset(&p, 0, sizeof(p));
-  p.name = (char *)(size_t) "cookie_obj";
+  p.name = cdd_test_mut_str("cookie_obj");
   p.style = OA_STYLE_COOKIE;
   p.explode_set = 0;
   ASSERT_EQ(CDD_C_SUCCESS, write_path_object_serialization(fp, &p));
@@ -572,10 +572,10 @@ TEST test_url_write_path_array_and_joined_array(void) {
             write_path_array_serialization(fp, &p, "", NULL));
 
   memset(&p, 0, sizeof(p));
-  p.name = (char *)(size_t) "arr";
+  p.name = cdd_test_mut_str("arr");
 
   /* String array with allow_reserved=0 */
-  p.items_type = (char *)(size_t) "string";
+  p.items_type = cdd_test_mut_str("string");
   p.allow_reserved = 0;
   p.allow_reserved_set = 0;
   ASSERT_EQ(CDD_C_SUCCESS, write_path_array_serialization(fp, &p, ".", ","));
@@ -586,19 +586,19 @@ TEST test_url_write_path_array_and_joined_array(void) {
   ASSERT_EQ(CDD_C_SUCCESS, write_path_array_serialization(fp, &p, ".", ","));
 
   /* Integer array */
-  p.items_type = (char *)(size_t) "integer";
+  p.items_type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS, write_path_array_serialization(fp, &p, ".", ","));
 
   /* Number array */
-  p.items_type = (char *)(size_t) "number";
+  p.items_type = cdd_test_mut_str("number");
   ASSERT_EQ(CDD_C_SUCCESS, write_path_array_serialization(fp, &p, ".", ","));
 
   /* Boolean array */
-  p.items_type = (char *)(size_t) "boolean";
+  p.items_type = cdd_test_mut_str("boolean");
   ASSERT_EQ(CDD_C_SUCCESS, write_path_array_serialization(fp, &p, ".", ","));
 
   /* Other items_type */
-  p.items_type = (char *)(size_t) "custom";
+  p.items_type = cdd_test_mut_str("custom");
   ASSERT_EQ(CDD_C_SUCCESS, write_path_array_serialization(fp, &p, ".", ","));
 
   /* write_joined_query_array invalid args */
@@ -607,7 +607,7 @@ TEST test_url_write_path_array_and_joined_array(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             write_joined_query_array(fp, NULL, ',', NULL, 0));
 
-  p.items_type = (char *)(size_t) "string";
+  p.items_type = cdd_test_mut_str("string");
   ASSERT_EQ(CDD_C_SUCCESS,
             write_joined_query_array(fp, &p, ',', "url_encode", 1));
   ASSERT_EQ(CDD_C_SUCCESS, write_joined_query_array(fp, &p, ' ', NULL, 0));
@@ -624,22 +624,22 @@ TEST test_url_write_path_array_and_joined_array(void) {
             write_joined_query_array_encoded_delim(fp, &p, "%20", NULL));
 
   /* Integer */
-  p.items_type = (char *)(size_t) "integer";
+  p.items_type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS, write_joined_query_array_encoded_delim(
                                fp, &p, "%20", "url_encode"));
 
   /* Number */
-  p.items_type = (char *)(size_t) "number";
+  p.items_type = cdd_test_mut_str("number");
   ASSERT_EQ(CDD_C_SUCCESS, write_joined_query_array_encoded_delim(
                                fp, &p, "%20", "url_encode"));
 
   /* Boolean */
-  p.items_type = (char *)(size_t) "boolean";
+  p.items_type = cdd_test_mut_str("boolean");
   ASSERT_EQ(CDD_C_SUCCESS, write_joined_query_array_encoded_delim(
                                fp, &p, "%20", "url_encode"));
 
   /* String/Default */
-  p.items_type = (char *)(size_t) "string";
+  p.items_type = cdd_test_mut_str("string");
   ASSERT_EQ(CDD_C_SUCCESS, write_joined_query_array_encoded_delim(
                                fp, &p, "%20", "url_encode"));
 
@@ -696,7 +696,15 @@ TEST test_url_segments_and_find_param(void) {
     struct UrlSegment *fail_segs = NULL;
     size_t fail_count = 0;
     g_cdd_fail_url_segment_alloc = (int)i;
-    parse_segments("/api/{param}/test", &fail_segs, &fail_count);
+    if (parse_segments("/api/{param}/test", &fail_segs, &fail_count) ==
+        CDD_C_SUCCESS) {
+      size_t k;
+      for (k = 0; k < fail_count; ++k)
+        free(fail_segs[k].text);
+      free(fail_segs);
+      g_cdd_fail_url_segment_alloc = 0;
+      break;
+    }
     g_cdd_fail_url_segment_alloc = 0;
   }
 
@@ -704,7 +712,15 @@ TEST test_url_segments_and_find_param(void) {
     struct UrlSegment *fail_segs = NULL;
     size_t fail_count = 0;
     g_cdd_fail_url_segment_alloc = (int)i;
-    parse_segments("{a}{b}{c}{d}{e}{f}{g}{h}{i}{j}", &fail_segs, &fail_count);
+    if (parse_segments("{a}{b}{c}{d}{e}{f}{g}{h}{i}{j}", &fail_segs,
+                       &fail_count) == CDD_C_SUCCESS) {
+      size_t k;
+      for (k = 0; k < fail_count; ++k)
+        free(fail_segs[k].text);
+      free(fail_segs);
+      g_cdd_fail_url_segment_alloc = 0;
+      break;
+    }
     g_cdd_fail_url_segment_alloc = 0;
   }
 
@@ -712,7 +728,15 @@ TEST test_url_segments_and_find_param(void) {
     struct UrlSegment *fail_segs = NULL;
     size_t fail_count = 0;
     g_cdd_fail_url_segment_alloc = (int)i;
-    parse_segments("{a}{b}{c}{d}{e}{f}{g}{h}tail", &fail_segs, &fail_count);
+    if (parse_segments("{a}{b}{c}{d}{e}{f}{g}{h}tail", &fail_segs,
+                       &fail_count) == CDD_C_SUCCESS) {
+      size_t k;
+      for (k = 0; k < fail_count; ++k)
+        free(fail_segs[k].text);
+      free(fail_segs);
+      g_cdd_fail_url_segment_alloc = 0;
+      break;
+    }
     g_cdd_fail_url_segment_alloc = 0;
   }
 
@@ -720,16 +744,23 @@ TEST test_url_segments_and_find_param(void) {
     struct UrlSegment *fail_segs = NULL;
     size_t fail_count = 0;
     g_cdd_fail_url_segment_alloc = (int)i;
-    parse_segments("s1{v1}s2{v2}s3{v3}s4{v4}s5{v5}s6{v6}", &fail_segs,
-                   &fail_count);
+    if (parse_segments("s1{v1}s2{v2}s3{v3}s4{v4}s5{v5}s6{v6}", &fail_segs,
+                       &fail_count) == CDD_C_SUCCESS) {
+      size_t k;
+      for (k = 0; k < fail_count; ++k)
+        free(fail_segs[k].text);
+      free(fail_segs);
+      g_cdd_fail_url_segment_alloc = 0;
+      break;
+    }
     g_cdd_fail_url_segment_alloc = 0;
   }
 
   /* find_param */
   memset(params, 0, sizeof(params));
-  params[0].name = (char *)(size_t) "user_id";
+  params[0].name = cdd_test_mut_str("user_id");
   params[0].in = OA_PARAM_IN_QUERY;
-  params[1].name = (char *)(size_t) "id";
+  params[1].name = cdd_test_mut_str("id");
   params[1].in = OA_PARAM_IN_PATH;
 
   ASSERT_EQ(CDD_C_SUCCESS, find_param("user_id", params, 2, &found));

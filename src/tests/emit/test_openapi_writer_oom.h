@@ -45,7 +45,7 @@ TEST test_openapi_writer_extras_and_edge_branches(void) {
   /* 2. write_multipart_schema with f->type == NULL and f->is_binary == 0 */
   memset(&ref, 0, sizeof(ref));
   memset(mp_fields, 0, sizeof(mp_fields));
-  mp_fields[0].name = (char *)(size_t) "untyped_field";
+  mp_fields[0].name = cdd_test_mut_str("untyped_field");
   mp_fields[0].type = NULL;
   mp_fields[0].is_binary = 0;
   ref.multipart_fields = mp_fields;
@@ -55,12 +55,12 @@ TEST test_openapi_writer_extras_and_edge_branches(void) {
   /* 3. write_schema_ref array with primitive ref_name and custom ref_name */
   memset(&ref, 0, sizeof(ref));
   ref.is_array = 1;
-  ref.ref_name = (char *)(size_t) "integer";
+  ref.ref_name = cdd_test_mut_str("integer");
   write_schema_ref(obj, "arr_prim", &ref);
 
   memset(&ref, 0, sizeof(ref));
   ref.is_array = 1;
-  ref.ref_name = (char *)(size_t) "CustomEntity";
+  ref.ref_name = cdd_test_mut_str("CustomEntity");
   write_schema_ref(obj, "arr_custom", &ref);
 
   /* 4. write_schema_ref minProperties and maxProperties */
@@ -74,30 +74,30 @@ TEST test_openapi_writer_extras_and_edge_branches(void) {
   /* 5. write_parameter_object with in=QUERYSTRING and custom content_type */
   memset(&p, 0, sizeof(p));
   p.in = OA_PARAM_IN_QUERYSTRING;
-  p.content_type = (char *)(size_t) "application/x-custom-qs";
+  p.content_type = cdd_test_mut_str("application/x-custom-qs");
   write_parameter_object(obj, &p);
 
   /* 6. write_header_object with content_type == NULL and schema_set = 1 */
   memset(&h, 0, sizeof(h));
   h.content_type = NULL;
   h.schema_set = 1;
-  h.schema.ref_name = (char *)(size_t) "HeaderType";
+  h.schema.ref_name = cdd_test_mut_str("HeaderType");
   write_header_object(obj, &h);
 
   /* 7. write_response_object with summary and no ref */
   memset(&resp, 0, sizeof(resp));
   resp.ref = NULL;
-  resp.summary = (char *)(size_t) "Summary for response";
-  resp.description = (char *)(size_t) "Description";
+  resp.summary = cdd_test_mut_str("Summary for response");
+  resp.description = cdd_test_mut_str("Description");
   write_response_object(obj, &resp);
 
   /* 8. write_component_path_items with component_path_item_names == NULL */
   memset(&spec, 0, sizeof(spec));
-  spec.openapi_version = (char *)(size_t) "3.2.0";
-  spec.info.title = (char *)(size_t) "Path Items API";
-  spec.info.version = (char *)(size_t) "1.0.0";
+  spec.openapi_version = cdd_test_mut_str("3.2.0");
+  spec.info.title = cdd_test_mut_str("Path Items API");
+  spec.info.version = cdd_test_mut_str("1.0.0");
   memset(c_paths, 0, sizeof(c_paths));
-  c_paths[0].route = (char *)(size_t) "/routed_component_path";
+  c_paths[0].route = cdd_test_mut_str("/routed_component_path");
   spec.component_path_items = c_paths;
   spec.component_path_item_names = NULL;
   spec.n_component_path_items = 1;
@@ -148,8 +148,8 @@ TEST test_openapi_writer_direct_oom(void) {
   json_set_allocation_functions(malloc, free);
 
   /* 4. write_schema_type_union OOM */
-  types[0] = (char *)(size_t) "string";
-  types[1] = (char *)(size_t) "integer";
+  types[0] = cdd_test_mut_str("string");
+  types[1] = cdd_test_mut_str("integer");
   json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
   g_parson_oom_fail_at = 0;
   write_schema_type_union(obj, "string", 1, types, 2);
@@ -166,7 +166,7 @@ TEST test_openapi_writer_direct_oom(void) {
 
   /* 6. write_examples_object OOM */
   memset(exs, 0, sizeof(exs));
-  exs[0].name = (char *)(size_t) "ex1";
+  exs[0].name = cdd_test_mut_str("ex1");
   json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
   g_parson_oom_fail_at = 0;
   write_examples_object(obj, "examples", exs, 1);
@@ -175,7 +175,7 @@ TEST test_openapi_writer_direct_oom(void) {
   /* 7. write_encoding_object OOM branches */
   memset(&enc_item, 0, sizeof(enc_item));
   memset(enc_arr, 0, sizeof(enc_arr));
-  enc_arr[0].name = (char *)(size_t) "sub";
+  enc_arr[0].name = cdd_test_mut_str("sub");
   enc_item.encoding = enc_arr;
   enc_item.n_encoding = 1;
   enc_item.prefix_encoding = enc_arr;
@@ -218,7 +218,7 @@ TEST test_openapi_writer_direct_oom(void) {
 
   /* 10. write_request_body_object OOM branches */
   memset(&rb, 0, sizeof(rb));
-  rb.content_ref = (char *)(size_t) "#/components/media/Ref";
+  rb.content_ref = cdd_test_mut_str("#/components/media/Ref");
   json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
   g_parson_oom_fail_at = 0;
   write_request_body_object(obj, &rb);
@@ -286,7 +286,7 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
   {
     struct OpenAPI_Example exs[1];
     memset(exs, 0, sizeof(exs));
-    exs[0].name = (char *)(size_t) "ex";
+    exs[0].name = cdd_test_mut_str("ex");
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = 0;
     write_example_fields(obj, NULL, 0, exs, 1);
@@ -325,7 +325,7 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
     struct OpenAPI_Encoding item_enc;
     memset(&enc_item, 0, sizeof(enc_item));
     memset(&item_enc, 0, sizeof(item_enc));
-    item_enc.name = (char *)(size_t) "sub";
+    item_enc.name = cdd_test_mut_str("sub");
     enc_item.item_encoding = &item_enc;
     enc_item.item_encoding_set = 1;
     enc_item.prefix_encoding = &item_enc;
@@ -347,7 +347,7 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
     struct OpenAPI_Encoding item_enc;
     memset(&mt_item, 0, sizeof(mt_item));
     memset(&item_enc, 0, sizeof(item_enc));
-    mt_item.name = (char *)(size_t) "application/json";
+    mt_item.name = cdd_test_mut_str("application/json");
     mt_item.item_encoding = &item_enc;
     mt_item.item_encoding_set = 1;
     mt_item.prefix_encoding = &item_enc;
@@ -405,7 +405,7 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
   {
     struct OpenAPI_RequestBody rb_fail;
     memset(&rb_fail, 0, sizeof(rb_fail));
-    rb_fail.content_ref = (char *)(size_t) "#/components/media/Ref";
+    rb_fail.content_ref = cdd_test_mut_str("#/components/media/Ref");
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = 1;
     write_request_body_object(obj, &rb_fail);
@@ -422,11 +422,11 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
     memset(cb_fail_path, 0, sizeof(cb_fail_path));
     memset(cb_fail_op, 0, sizeof(cb_fail_op));
     memset(cb_fail_p, 0, sizeof(cb_fail_p));
-    cb_fail_p[0].name = (char *)(size_t) "q";
+    cb_fail_p[0].name = cdd_test_mut_str("q");
     cb_fail_op[0].verb = OA_VERB_GET;
     cb_fail_op[0].parameters = cb_fail_p;
     cb_fail_op[0].n_parameters = 1;
-    cb_fail_path[0].route = (char *)(size_t) "/cb";
+    cb_fail_path[0].route = cdd_test_mut_str("/cb");
     cb_fail_path[0].operations = cb_fail_op;
     cb_fail_path[0].n_operations = 1;
     cb_fail.paths = cb_fail_path;
@@ -442,16 +442,16 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
 
   /* 11. Build full self-contained spec for all component and root returns */
   memset(&spec, 0, sizeof(spec));
-  spec.openapi_version = (char *)(size_t) "3.2.0";
-  spec.info.title = (char *)(size_t) "Complete Coverage API";
-  spec.info.version = (char *)(size_t) "1.0.0";
+  spec.openapi_version = cdd_test_mut_str("3.2.0");
+  spec.info.title = cdd_test_mut_str("Complete Coverage API");
+  spec.info.version = cdd_test_mut_str("1.0.0");
 
   memset(&srv, 0, sizeof(srv));
-  srv.url = (char *)(size_t) "https://srv.example.com";
+  srv.url = cdd_test_mut_str("https://srv.example.com");
 
   memset(&sec_req, 0, sizeof(sec_req));
-  sec_req.scheme = (char *)(size_t) "bearer";
-  scopes[0] = (char *)(size_t) "read";
+  sec_req.scheme = cdd_test_mut_str("bearer");
+  scopes[0] = cdd_test_mut_str("read");
   sec_req.scopes = scopes;
   sec_req.n_scopes = 1;
   memset(&sec_set, 0, sizeof(sec_set));
@@ -459,21 +459,21 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
   sec_set.n_requirements = 1;
 
   memset(&cb, 0, sizeof(cb));
-  cb.name = (char *)(size_t) "callMe";
+  cb.name = cdd_test_mut_str("callMe");
 
   memset(&link, 0, sizeof(link));
-  link.name = (char *)(size_t) "linkMe";
+  link.name = cdd_test_mut_str("linkMe");
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t) "200";
-  resp.description = (char *)(size_t) "OK";
+  resp.code = cdd_test_mut_str("200");
+  resp.description = cdd_test_mut_str("OK");
 
   memset(&param, 0, sizeof(param));
-  param.name = (char *)(size_t) "p";
+  param.name = cdd_test_mut_str("p");
   param.in = OA_PARAM_IN_QUERY;
 
   memset(&rb, 0, sizeof(rb));
-  rb.description = (char *)(size_t) "RB";
+  rb.description = cdd_test_mut_str("RB");
 
   memset(&op, 0, sizeof(op));
   op.verb = OA_VERB_GET;
@@ -488,10 +488,10 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
   op.n_servers = 1;
   op.callbacks = &cb;
   op.n_callbacks = 1;
-  op.req_body.ref_name = (char *)(size_t) "BodyModel";
+  op.req_body.ref_name = cdd_test_mut_str("BodyModel");
 
   memset(&path, 0, sizeof(path));
-  path.route = (char *)(size_t) "/items";
+  path.route = cdd_test_mut_str("/items");
   path.operations = &op;
   path.n_operations = 1;
   path.additional_operations = &op;
@@ -501,9 +501,9 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
   path.servers = &srv;
   path.n_servers = 1;
 
-  names[0] = (char *)(size_t) "elem";
+  names[0] = cdd_test_mut_str("elem");
   memset(&mt, 0, sizeof(mt));
-  mt.name = (char *)(size_t) "application/json";
+  mt.name = cdd_test_mut_str("application/json");
 
   spec.paths = &path;
   spec.n_paths = 1;

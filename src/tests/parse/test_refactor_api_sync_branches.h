@@ -59,15 +59,15 @@ TEST test_sync_remaining_branches(void) {
   memset(&cst, 0, sizeof(cst));
   memset(&patches, 0, sizeof(patches));
 
-  param.name = (char *)(size_t) "my_param";
+  param.name = cdd_test_mut_str("my_param");
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t) "string";
+  param.type = cdd_test_mut_str("string");
 
-  op.operation_id = (char *)(size_t) "api_test_op";
+  op.operation_id = cdd_test_mut_str("api_test_op");
   op.parameters = &param;
   op.n_parameters = 1;
 
-  path.route = (char *)(size_t) "/test";
+  path.route = cdd_test_mut_str("/test");
   path.operations = &op;
   path.n_operations = 1;
 
@@ -92,7 +92,7 @@ TEST test_sync_remaining_branches(void) {
   param.name = NULL;
   rc = cdd_test_sync_generate_expected_header_line(&param, &str_out);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  param.name = (char *)(size_t) "hdr";
+  param.name = cdd_test_mut_str("hdr");
   param.type = NULL;
   rc = cdd_test_sync_generate_expected_header_line(&param, &str_out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -101,9 +101,8 @@ TEST test_sync_remaining_branches(void) {
   str_out = NULL;
 
   /* 4. extract_current_sig with out_end_idx == NULL */
-  rc = tokenize(az_span_create_from_str(
-                    (char *)(size_t) "int api_test_op(int a) { return 0; }\n"),
-                &tl);
+  rc = tokenize(
+      az_span_create_from_str("int api_test_op(int a) { return 0; }\n"), &tl);
   ASSERT_EQ(0, rc);
   rc = parse_tokens(tl, &cst);
   ASSERT_EQ(0, rc);
@@ -123,9 +122,8 @@ TEST test_sync_remaining_branches(void) {
 
   /* 5. find_function_node with non-function node and non-identifier before
    * paren */
-  rc = tokenize(az_span_create_from_str(
-                    (char *)(size_t) "struct S { int x; }; int (*fp)(void);\n"),
-                &tl);
+  rc = tokenize(
+      az_span_create_from_str("struct S { int x; }; int (*fp)(void);\n"), &tl);
   ASSERT_EQ(0, rc);
   rc = parse_tokens(tl, &cst);
   ASSERT_EQ(0, rc);
@@ -144,7 +142,7 @@ TEST test_sync_remaining_branches(void) {
                          "  url_query_build(&qp, &query);\n"
                          "  return 0;\n"
                          "}\n";
-    rc = tokenize(az_span_create_from_str((char *)(size_t)q_code), &tl);
+    rc = tokenize(az_span_create_from_str(q_code), &tl);
     ASSERT_EQ(0, rc);
     rc = parse_tokens(tl, &cst);
     ASSERT_EQ(0, rc);
@@ -196,13 +194,13 @@ TEST test_sync_remaining_branches(void) {
     memset(hdr_params, 0, sizeof(hdr_params));
     hdr_params[0].name = NULL;
     hdr_params[0].in = OA_PARAM_IN_HEADER;
-    hdr_params[1].name = (char *)(size_t) "my_param";
+    hdr_params[1].name = cdd_test_mut_str("my_param");
     hdr_params[1].in = OA_PARAM_IN_HEADER;
-    hdr_params[1].type = (char *)(size_t) "string";
+    hdr_params[1].type = cdd_test_mut_str("string");
     op.parameters = hdr_params;
     op.n_parameters = 2;
 
-    rc = tokenize(az_span_create_from_str((char *)(size_t)h_code), &tl);
+    rc = tokenize(az_span_create_from_str(h_code), &tl);
     ASSERT_EQ(0, rc);
     rc = parse_tokens(tl, &cst);
     ASSERT_EQ(0, rc);
@@ -235,8 +233,8 @@ TEST test_sync_remaining_branches(void) {
     rc = cdd_test_sync_apply_header_sync(&op, tl, node, &patches);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-    param.name = (char *)(size_t) "my_param";
-    param.type = (char *)(size_t) "string";
+    param.name = cdd_test_mut_str("my_param");
+    param.type = cdd_test_mut_str("string");
     op.parameters = &param;
     op.n_parameters = 1;
 
@@ -254,7 +252,7 @@ TEST test_sync_remaining_branches(void) {
                            "  snprintf(url, 64, \"/test\");\n"
                            "  return 0;\n"
                            "}\n";
-    rc = tokenize(az_span_create_from_str((char *)(size_t)snp_code), &tl);
+    rc = tokenize(az_span_create_from_str(snp_code), &tl);
     ASSERT_EQ(0, rc);
     rc = parse_tokens(tl, &cst);
     ASSERT_EQ(0, rc);
@@ -303,7 +301,7 @@ TEST test_sync_remaining_branches(void) {
                                  "  asprintf(&other_var, \"/test\");\n"
                                  "  return 0;\n"
                                  "}\n";
-    rc = tokenize(az_span_create_from_str((char *)(size_t)non_match_code), &tl);
+    rc = tokenize(az_span_create_from_str(non_match_code), &tl);
     ASSERT_EQ(0, rc);
     rc = parse_tokens(tl, &cst);
     ASSERT_EQ(0, rc);
@@ -319,7 +317,7 @@ TEST test_sync_remaining_branches(void) {
   /* Forward declaration in apply_updates (body_start == 0) */
   {
     const char *fwd_code = "int api_test_op(int a);\n";
-    rc = tokenize(az_span_create_from_str((char *)(size_t)fwd_code), &tl);
+    rc = tokenize(az_span_create_from_str(fwd_code), &tl);
     ASSERT_EQ(0, rc);
     rc = parse_tokens(tl, &cst);
     ASSERT_EQ(0, rc);
@@ -340,8 +338,7 @@ TEST test_sync_remaining_branches(void) {
         "int api_test_op(struct HttpClient *ctx, const char *my_param, "
         "struct ApiError **api_error) {\n  return 0;\n}\n";
     memset(&cst_match, 0, sizeof(cst_match));
-    rc = tokenize(az_span_create_from_str((char *)(size_t)match_code),
-                  &tl_match);
+    rc = tokenize(az_span_create_from_str(match_code), &tl_match);
     ASSERT_EQ(0, rc);
     rc = parse_tokens(tl_match, &cst_match);
     ASSERT_EQ(0, rc);
@@ -358,9 +355,7 @@ TEST test_sync_remaining_branches(void) {
     struct CstNodeList cst_nob;
     struct CstNode fake_fn;
     memset(&cst_nob, 0, sizeof(cst_nob));
-    rc = tokenize(
-        az_span_create_from_str((char *)(size_t) "int api_test_op(int a);"),
-        &tl_nob);
+    rc = tokenize(az_span_create_from_str("int api_test_op(int a);"), &tl_nob);
     ASSERT_EQ(0, rc);
     memset(&fake_fn, 0, sizeof(fake_fn));
     fake_fn.kind = CST_NODE_FUNCTION;
@@ -380,10 +375,9 @@ TEST test_sync_remaining_branches(void) {
     struct CstNodeList cst_nosemi;
     struct CstNode fake_fn2;
     memset(&cst_nosemi, 0, sizeof(cst_nosemi));
-    rc = tokenize(
-        az_span_create_from_str((char *)(size_t) "int api_test_op(int a) { "
-                                                 "snprintf(url, 64, \"/\") }"),
-        &tl_nosemi);
+    rc = tokenize(az_span_create_from_str("int api_test_op(int a) { "
+                                          "snprintf(url, 64, \"/\") }"),
+                  &tl_nosemi);
     ASSERT_EQ(0, rc);
     memset(&fake_fn2, 0, sizeof(fake_fn2));
     fake_fn2.kind = CST_NODE_FUNCTION;
@@ -406,8 +400,7 @@ TEST test_sync_remaining_branches(void) {
     struct CstNodeList cst_empty;
     memset(&empty_fn, 0, sizeof(empty_fn));
     memset(&cst_empty, 0, sizeof(cst_empty));
-    rc = tokenize(az_span_create_from_str((char *)(size_t) "int a = 1;\n"),
-                  &tl_empty);
+    rc = tokenize(az_span_create_from_str("int a = 1;\n"), &tl_empty);
     ASSERT_EQ(0, rc);
     empty_fn.kind = CST_NODE_FUNCTION;
     empty_fn.start_token = 0;
@@ -430,9 +423,8 @@ TEST test_sync_remaining_branches(void) {
     struct TokenList *tl_paren = NULL;
     struct CstNode bad_paren_node;
     memset(&bad_paren_node, 0, sizeof(bad_paren_node));
-    rc = tokenize(
-        az_span_create_from_str((char *)(size_t) ") ( int a ) { return 0; }\n"),
-        &tl_paren);
+    rc = tokenize(az_span_create_from_str(") ( int a ) { return 0; }\n"),
+                  &tl_paren);
     ASSERT_EQ(0, rc);
     bad_paren_node.kind = CST_NODE_FUNCTION;
     bad_paren_node.start_token = 0;
@@ -453,7 +445,7 @@ TEST test_sync_remaining_branches(void) {
     const char *imm_code = "int api_test_op(int a) {url_query_init(&qp); "
                            "url_query_build(&qp, &query)}";
     memset(&cst_imm, 0, sizeof(cst_imm));
-    rc = tokenize(az_span_create_from_str((char *)(size_t)imm_code), &tl_imm);
+    rc = tokenize(az_span_create_from_str(imm_code), &tl_imm);
     ASSERT_EQ(0, rc);
     rc = parse_tokens(tl_imm, &cst_imm);
     ASSERT_EQ(0, rc);
@@ -479,7 +471,7 @@ TEST test_sync_remaining_branches(void) {
         "int api_test_op(int a) { int x = 0; url_query_init(&qp); "
         "url_query_build(&qp, &query); }";
     memset(&cst_semi, 0, sizeof(cst_semi));
-    rc = tokenize(az_span_create_from_str((char *)(size_t)semi_code), &tl_semi);
+    rc = tokenize(az_span_create_from_str(semi_code), &tl_semi);
     ASSERT_EQ(0, rc);
     rc = parse_tokens(tl_semi, &cst_semi);
     ASSERT_EQ(0, rc);
@@ -501,8 +493,7 @@ TEST test_sync_remaining_branches(void) {
   {
     struct TokenList *tl_star = NULL;
     struct CstNode fake_star;
-    rc = tokenize(az_span_create_from_str(
-                      (char *)(size_t) "int * (void) { return 0; }\n"),
+    rc = tokenize(az_span_create_from_str("int * (void) { return 0; }\n"),
                   &tl_star);
     ASSERT_EQ(0, rc);
     memset(&fake_star, 0, sizeof(fake_star));
@@ -527,8 +518,7 @@ TEST test_sync_remaining_branches(void) {
     struct TokenList *tl_noparen = NULL;
     struct CstNode fake_noparen;
     struct CstNodeList cst_noparen;
-    rc = tokenize(az_span_create_from_str(
-                      (char *)(size_t) "int api_test_op { return 0; }\n"),
+    rc = tokenize(az_span_create_from_str("int api_test_op { return 0; }\n"),
                   &tl_noparen);
     ASSERT_EQ(0, rc);
     memset(&fake_noparen, 0, sizeof(fake_noparen));
@@ -550,9 +540,7 @@ TEST test_sync_remaining_branches(void) {
     struct TokenList *tl_lpar = NULL;
     struct CstNode fake_lpar;
     struct CstNodeList cst_lpar;
-    rc = tokenize(
-        az_span_create_from_str((char *)(size_t) "(void) { return 0; }\n"),
-        &tl_lpar);
+    rc = tokenize(az_span_create_from_str("(void) { return 0; }\n"), &tl_lpar);
     ASSERT_EQ(0, rc);
     memset(&fake_lpar, 0, sizeof(fake_lpar));
     fake_lpar.kind = CST_NODE_FUNCTION;
@@ -568,9 +556,8 @@ TEST test_sync_remaining_branches(void) {
     free_token_list(tl_lpar);
 
     /* Test k > node->start_token but id_idx == node->start_token */
-    rc = tokenize(
-        az_span_create_from_str((char *)(size_t) "int (void) { return 0; }\n"),
-        &tl_lpar);
+    rc = tokenize(az_span_create_from_str("int (void) { return 0; }\n"),
+                  &tl_lpar);
     ASSERT_EQ(0, rc);
     fake_lpar.end_token = tl_lpar->size;
     cst_lpar.nodes = &fake_lpar;
@@ -586,9 +573,9 @@ TEST test_sync_remaining_branches(void) {
     struct TokenList *tl_unclosed = NULL;
     struct CstNode fake_unclosed;
     struct CstNodeList cst_unclosed;
-    rc = tokenize(az_span_create_from_str(
-                      (char *)(size_t) "int api_test_op(int a { return 0; }\n"),
-                  &tl_unclosed);
+    rc = tokenize(
+        az_span_create_from_str("int api_test_op(int a { return 0; }\n"),
+        &tl_unclosed);
     ASSERT_EQ(0, rc);
     memset(&fake_unclosed, 0, sizeof(fake_unclosed));
     fake_unclosed.kind = CST_NODE_FUNCTION;
@@ -609,7 +596,7 @@ TEST test_sync_remaining_branches(void) {
                            "  snprintf(url, 64, \"/test\");\n"
                            "  return 0;\n"
                            "}\n";
-    rc = tokenize(az_span_create_from_str((char *)(size_t)snp_code), &tl);
+    rc = tokenize(az_span_create_from_str(snp_code), &tl);
     ASSERT_EQ(0, rc);
     rc = parse_tokens(tl, &cst);
     ASSERT_EQ(0, rc);

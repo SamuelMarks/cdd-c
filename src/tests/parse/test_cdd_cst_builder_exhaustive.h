@@ -385,7 +385,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
   cdd_cst_node_t *new_node = NULL;
   int rc = 0;
 
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t) "int x;"), &tree);
+  cdd_cst_parse(az_span_create_from_str("int x;"), &tree);
   node = tree->root;
   cdd_cst_builder_init(&b, tree, node);
 
@@ -524,7 +524,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     cdd_cst_tree_t *empty_tree = NULL;
     cdd_cst_node_t *empty_root = NULL;
     cdd_cst_builder_t empty_b;
-    cdd_cst_parse(az_span_create_from_str((char *)(size_t) ""), &empty_tree);
+    cdd_cst_parse(az_span_create_from_str(""), &empty_tree);
     cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &empty_root);
     cdd_cst_builder_init(&empty_b, empty_tree, empty_root);
 
@@ -599,7 +599,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
   /* Replace node preserve trivia */
   cdd_cst_tree_free(tree);
   tree = NULL;
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t) "int y;"), &tree);
+  cdd_cst_parse(az_span_create_from_str("int y;"), &tree);
   cdd_cst_builder_init(&b, tree, tree->root->children[0].val.node);
   node = tree->root->children[0].val.node;
   new_node = tree->root->children[0].val.node;
@@ -622,7 +622,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     cdd_cst_node_t *new_n2 = NULL;
     cdd_cst_tree_free(tree);
     tree = NULL;
-    cdd_cst_parse(az_span_create_from_str((char *)(size_t) "int y;"), &tree);
+    cdd_cst_parse(az_span_create_from_str("int y;"), &tree);
     cdd_cst_builder_init(&b, tree, tree->root);
 
     cdd_cst_alloc_node(CDD_CST_STATEMENT, &n1);
@@ -667,7 +667,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     cdd_cst_bld_snippet(&b, "/* just trivia */");
 
     {
-      char *giant_trivia = (char *)(size_t)malloc(4500);
+      char *giant_trivia = (char *)malloc(4500);
       memset(giant_trivia, ' ', 4499);
       giant_trivia[0] = '/';
       giant_trivia[1] = '*';
@@ -703,7 +703,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
   {
     /* Test giant snippet format string to hit buffer limits */
     cdd_cst_node_t *quote_node = NULL;
-    char *giant_format = (char *)(size_t)malloc(3000);
+    char *giant_format = (char *)malloc(3000);
     memset(giant_format, 'a', 2999);
     giant_format[2500] = '%';
     giant_format[2501] = '%';

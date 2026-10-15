@@ -334,22 +334,23 @@ TEST test_code2schema_main_bad_args(void) {
 
   /* code2schema expects 2 args: in out */
 
-  char *argv[] = {(char *)(size_t)(size_t) "bad"};
+  char *argv[1];
 
   /* Passing 1 args */
 
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, code2schema_main(1, argv));
+  argv[0] = cdd_test_mut_str("bad");
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, code2schema_main(1, argv));
   g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_code2schema_parsing_details(void) {
-  char *argv[] = {(char *)(size_t)(size_t) "test_details.h",
-                  (char *)(size_t)(size_t) "test_details.json"};
+  char *argv[2];
   const char *header_content = "enum Color {RED,GREEN=5,BLUE,};\n"
-
                                "struct Point {};\n"
                                "struct Line { struct Point p1; };\n";
+  argv[0] = cdd_test_mut_str("test_details.h");
+  argv[1] = cdd_test_mut_str("test_details.json");
   ASSERT_EQ(0, write_to_file(argv[0], header_content)); /* Write to in-file */
 
   ASSERT_EQ(CDD_C_SUCCESS,
@@ -363,19 +364,21 @@ TEST test_code2schema_parsing_details(void) {
 }
 
 TEST test_code2schema_parse_struct_and_enum(void) {
-  char *argv[] = {(char *)(size_t)(size_t) "test1.h",
-                  (char *)(size_t)(size_t) "test1.schema.json"};
-  const char *const filename = argv[0];
-  char *json = argv[1];
-
+  char *argv[2];
+  const char *filename;
+  char *json;
   int out_val;
-
   char trim_buf[32] = "hello   ";
   char trim_buf2[32] = "hello ; ";
-  int rc = write_to_file(filename,
+  int rc;
 
-                         "enum Colors { RED, GREEN = 5, BLUE };\n"
-                         "struct Point { double x; double y; int used; };\n");
+  argv[0] = cdd_test_mut_str("test1.h");
+  argv[1] = cdd_test_mut_str("test1.schema.json");
+  filename = argv[0];
+  json = argv[1];
+  rc = write_to_file(filename,
+                     "enum Colors { RED, GREEN = 5, BLUE };\n"
+                     "struct Point { double x; double y; int used; };\n");
 
   ASSERT_EQ(0, rc);
 
@@ -405,9 +408,11 @@ TEST test_code2schema_parse_struct_and_enum(void) {
 }
 
 TEST test_code2schema_file_not_found(void) {
-  char *argv[] = {(char *)(size_t)(size_t) "no_such_file.h",
-                  (char *)(size_t)(size_t) "out.json"};
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, code2schema_main(2, argv));
+  char *argv[2];
+
+  argv[0] = cdd_test_mut_str("no_such_file.h");
+  argv[1] = cdd_test_mut_str("out.json");
+  ASSERT_EQ(CDD_C_ERROR_IO, code2schema_main(2, argv));
   g_fail_io_after = -1;
   PASS();
 }

@@ -1,3 +1,7 @@
+/**
+ * @file cdd_cst_node.h
+ * @brief Concrete Syntax Tree (CST) node implementation and utilities.
+ */
 #ifndef CDD_CST_NODE_H
 #define CDD_CST_NODE_H
 
@@ -47,12 +51,14 @@ enum cdd_cst_node_kind_t {
   CDD_CST_UNKNOWN /* fallback */
 };
 
+/** @brief Forward declaration for a Concrete Syntax Tree node */
 typedef struct cdd_cst_node_t cdd_cst_node_t;
 
 /**
  * @brief Represents a child of a CST node (either a Token or another Node).
  */
 typedef struct cdd_cst_child_t cdd_cst_child_t;
+/** @brief Discriminator for CST node child union */
 enum cdd_cst_child_kind_t { CDD_CST_CHILD_TOKEN, CDD_CST_CHILD_NODE };
 
 /** @brief Struct definition */

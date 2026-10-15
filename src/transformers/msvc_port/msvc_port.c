@@ -28,8 +28,13 @@
  *
  * @param[in,out] tree The CST tree.
  * @param[in,out] node The current node to process.
+ * @param[in,out] prev_token Pointer to previous token seen in traversal.
+ * @param[in,out] prev_prev_token Pointer to token before previous token.
+ * @param[out] needs_basetsd Set to 1 if BaseTsd.h (SSIZE_T) is needed.
+ * @param[out] needs_expect Set to 1 if __builtin_expect macro polyfill is
+ * needed.
+ * @return CDD_C_SUCCESS on success or error code.
  */
-
 static cdd_c_error_t replace_msvc_identifiers(
     cdd_cst_tree_t *tree, cdd_cst_node_t *node, cdd_token_t **prev_token,
     cdd_token_t **prev_prev_token, int *needs_basetsd, int *needs_expect) {
@@ -192,18 +197,18 @@ static cdd_c_error_t replace_msvc_identifiers(
   return CDD_C_SUCCESS;
 }
 
-/**
- * @brief Executes the MSVC port transformer on a CST tree.
- *
- * @param[in,out] tree The CST tree.
- * @param[in] config The transformer configuration.
- * @return 0 on success, or an error code on failure.
- */
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_msvc_port_bld_fail = 0;
 C_CDD_EXPORT int g_msvc_port_find_fail = 0;
 #endif
 
+/**
+ * @brief Ports POSIX/GNU specific syntax to MSVC equivalents.
+ *
+ * @param tree The CST tree.
+ * @param config Optional configuration for trivia generation.
+ * @return 0 on success, or an error code.
+ */
 cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
                                  const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
@@ -222,6 +227,8 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
   rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_PREPROC_DIRECTIVE, &res);
 #ifdef CDD_BUILD_TESTS
   if (g_msvc_port_find_fail == 1) {
+    C_CDD_FREE(res.nodes);
+    res.nodes = NULL;
     rc = CDD_C_ERROR_MEMORY;
   }
 #endif
@@ -251,8 +258,6 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
           }
         }
 
-        printf("FOUND PREPROC_INCLUDE! len=%zu str=%.*s\n", tok->length,
-               (int)tok->length, tok->start);
         if (has_unistd) {
           inc_str = "unistd.h";
         } else if (has_sys_time) {
@@ -285,10 +290,7 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
           cdd_cst_bld_endif(&bld);
 
 #ifdef CDD_BUILD_TESTS
-          printf("REACHED bld_fail CHECK! g_msvc_port_bld_fail=%d\n",
-                 g_msvc_port_bld_fail);
           if (g_msvc_port_bld_fail) {
-            printf("SETTING bld.error_state = 1!\n");
             bld.error_state = 1;
           }
 #endif
@@ -315,7 +317,6 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
     rc = replace_msvc_identifiers(tree, tree->root, &prev, &prev_prev,
                                   &needs_basetsd, &needs_expect);
     if (rc != CDD_C_SUCCESS) {
-      printf("Line 219 taken! rc=%d\n", rc);
       return rc;
     }
 
@@ -350,7 +351,6 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
           rc = cdd_cst_insert_child_node_at(tree->root, 0, deps_node);
 #endif
           if (rc != CDD_C_SUCCESS) {
-            printf("Line 219 taken! rc=%d\n", rc);
             C_CDD_FREE(deps_node->children);
             C_CDD_FREE(deps_node);
             cdd_cst_builder_free(&bld);

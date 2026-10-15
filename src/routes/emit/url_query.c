@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/code_writer.h"
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
 #include "functions/parse/str.h"
@@ -19,25 +20,7 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
-#include <stdarg.h>
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)))
-#endif
-    ;
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  int ret;
-  va_list args;
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  va_start(args, format);
-  ret = vfprintf(stream, format, args);
-  va_end(args);
-  return ret;
-}
-#define fprintf test_cdd_fprintf_hook
+#define fprintf cdd_io_fprintf_hook
 #endif
 
 /** @brief CHECK_IO definition */
@@ -57,10 +40,6 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
 cdd_c_error_t codegen_url_write_query_params(FILE *fp,
                                              const struct OpenAPI_Operation *op,
                                              int qp_tracking) {
-  const char *_ast_querystring_param_json_array_item_type_6 = NULL;
-  const char *_ast_querystring_param_json_array_item_ref_7 = NULL;
-  const char *_ast_querystring_param_json_primitive_type_8 = NULL;
-  const char *_ast_querystring_param_raw_primitive_type_9 = NULL;
   size_t i;
   int has_query = 0;
   const struct OpenAPI_Parameter *querystring_param = NULL;
@@ -78,18 +57,12 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
   if (querystring_param) {
     const char *qs_name =
         querystring_param->name ? querystring_param->name : "querystring";
-    const char *qs_json_item =
-        (querystring_param_json_array_item_type(
-             querystring_param, &_ast_querystring_param_json_array_item_type_6),
-         _ast_querystring_param_json_array_item_type_6);
-    const char *qs_json_obj =
-        (querystring_param_json_array_item_ref(
-             querystring_param, &_ast_querystring_param_json_array_item_ref_7),
-         _ast_querystring_param_json_array_item_ref_7);
-    const char *qs_json_prim =
-        (querystring_param_json_primitive_type(
-             querystring_param, &_ast_querystring_param_json_primitive_type_8),
-         _ast_querystring_param_json_primitive_type_8);
+    const char *qs_json_item = NULL;
+    const char *qs_json_obj = NULL;
+    const char *qs_json_prim = NULL;
+    querystring_param_json_array_item_type(querystring_param, &qs_json_item);
+    querystring_param_json_array_item_ref(querystring_param, &qs_json_obj);
+    querystring_param_json_primitive_type(querystring_param, &qs_json_prim);
     if (querystring_param_is_form_object(querystring_param)) {
       CHECK_IO(fprintf(fp, "  /* Querystring Parameter (form object): %s */\n",
                        qs_name));
@@ -359,10 +332,8 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
       return CDD_C_SUCCESS;
     }
     {
-      const char *qs_raw =
-          (querystring_param_raw_primitive_type(
-               querystring_param, &_ast_querystring_param_raw_primitive_type_9),
-           _ast_querystring_param_raw_primitive_type_9);
+      const char *qs_raw = NULL;
+      querystring_param_raw_primitive_type(querystring_param, &qs_raw);
       if (qs_raw) {
         CHECK_IO(
             fprintf(fp, "  /* Querystring Parameter (raw): %s */\n", qs_name));

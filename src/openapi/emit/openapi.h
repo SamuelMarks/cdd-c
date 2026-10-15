@@ -186,9 +186,11 @@ any_to_json_value(const struct OpenAPI_Any *val, JSON_Value **_out_val);
  * @param[in,out] obj The JSON object to populate.
  * @param[in] type The type name string.
  * @param[in] nullable Non-zero if the type is nullable.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void write_schema_type(JSON_Object *obj, const char *type,
-                                           int nullable);
+extern C_CDD_EXPORT cdd_c_error_t write_schema_type(JSON_Object *obj,
+                                                    const char *type,
+                                                    int nullable);
 
 /**
  * @brief Checks if a type union contains a specific string value.
@@ -210,11 +212,13 @@ extern C_CDD_EXPORT cdd_c_error_t type_union_contains(char **types,
  * @param[in] nullable Non-zero if the type is nullable.
  * @param[in] type_union Array of union type strings.
  * @param[in] n_type_union Number of elements in type_union array.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void write_schema_type_union(JSON_Object *obj,
-                                                 const char *type, int nullable,
-                                                 char **type_union,
-                                                 size_t n_type_union);
+extern C_CDD_EXPORT cdd_c_error_t write_schema_type_union(JSON_Object *obj,
+                                                          const char *type,
+                                                          int nullable,
+                                                          char **type_union,
+                                                          size_t n_type_union);
 
 /**
  * @brief Writes enum any values array to JSON object.
@@ -223,11 +227,11 @@ extern C_CDD_EXPORT void write_schema_type_union(JSON_Object *obj,
  * @param[in] key The JSON key name.
  * @param[in] values Array of any values.
  * @param[in] n_values Number of values.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void write_enum_any_values(JSON_Object *obj,
-                                               const char *key,
-                                               const struct OpenAPI_Any *values,
-                                               size_t n_values);
+extern C_CDD_EXPORT cdd_c_error_t
+write_enum_any_values(JSON_Object *obj, const char *key,
+                      const struct OpenAPI_Any *values, size_t n_values);
 
 /**
  * @brief Writes any array values to JSON object.
@@ -236,8 +240,9 @@ extern C_CDD_EXPORT void write_enum_any_values(JSON_Object *obj,
  * @param[in] key The JSON key name.
  * @param[in] values Array of any values.
  * @param[in] n_values Number of values.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void
+extern C_CDD_EXPORT cdd_c_error_t
 write_any_array_values(JSON_Object *obj, const char *key,
                        const struct OpenAPI_Any *values, size_t n_values);
 
@@ -246,9 +251,10 @@ write_any_array_values(JSON_Object *obj, const char *key,
  *
  * @param[in,out] ex_obj The JSON object to populate.
  * @param[in] ex The example structure to write.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void write_example_object(JSON_Object *ex_obj,
-                                              const struct OpenAPI_Example *ex);
+extern C_CDD_EXPORT cdd_c_error_t
+write_example_object(JSON_Object *ex_obj, const struct OpenAPI_Example *ex);
 
 /**
  * @brief Writes an examples dictionary to parent JSON object.
@@ -271,11 +277,11 @@ extern C_CDD_EXPORT cdd_c_error_t write_examples_object(
  * @param[in] example_set Non-zero if single example is set.
  * @param[in] examples Array of multiple examples.
  * @param[in] n_examples Count of multiple examples.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void
-write_example_fields(JSON_Object *parent, const struct OpenAPI_Any *example,
-                     int example_set, const struct OpenAPI_Example *examples,
-                     size_t n_examples);
+extern C_CDD_EXPORT cdd_c_error_t write_example_fields(
+    JSON_Object *parent, const struct OpenAPI_Any *example, int example_set,
+    const struct OpenAPI_Example *examples, size_t n_examples);
 
 /**
  * @brief Writes external documentation object to parent JSON object.
@@ -283,8 +289,9 @@ write_example_fields(JSON_Object *parent, const struct OpenAPI_Any *example,
  * @param[in,out] parent The parent JSON object.
  * @param[in] key The property key name.
  * @param[in] docs The external documentation structure.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void
+extern C_CDD_EXPORT cdd_c_error_t
 write_external_docs(JSON_Object *parent, const char *key,
                     const struct OpenAPI_ExternalDocs *docs);
 
@@ -294,11 +301,11 @@ write_external_docs(JSON_Object *parent, const char *key,
  * @param[in,out] parent The parent JSON object.
  * @param[in] disc The discriminator structure.
  * @param[in] disc_set Non-zero if discriminator is set.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void
-write_discriminator_object(JSON_Object *parent,
-                           const struct OpenAPI_Discriminator *disc,
-                           int disc_set);
+extern C_CDD_EXPORT cdd_c_error_t write_discriminator_object(
+    JSON_Object *parent, const struct OpenAPI_Discriminator *disc,
+    int disc_set);
 
 /**
  * @brief Writes XML object to parent JSON object.
@@ -306,28 +313,30 @@ write_discriminator_object(JSON_Object *parent,
  * @param[in,out] parent The parent JSON object.
  * @param[in] xml The XML structure.
  * @param[in] xml_set Non-zero if XML structure is set.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void write_xml_object(JSON_Object *parent,
-                                          const struct OpenAPI_Xml *xml,
-                                          int xml_set);
+extern C_CDD_EXPORT cdd_c_error_t write_xml_object(
+    JSON_Object *parent, const struct OpenAPI_Xml *xml, int xml_set);
 
 /**
  * @brief Writes info metadata object to root specification object.
  *
  * @param[in,out] root_obj The root JSON object.
  * @param[in] spec The OpenAPI specification structure.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void write_info(JSON_Object *root_obj,
-                                    const struct OpenAPI_Spec *spec);
+extern C_CDD_EXPORT cdd_c_error_t write_info(JSON_Object *root_obj,
+                                             const struct OpenAPI_Spec *spec);
 
 /**
  * @brief Writes server object fields to JSON object.
  *
  * @param[in,out] srv_obj The server JSON object.
  * @param[in] srv The OpenAPI server structure.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void write_server_object(JSON_Object *srv_obj,
-                                             const struct OpenAPI_Server *srv);
+extern C_CDD_EXPORT cdd_c_error_t
+write_server_object(JSON_Object *srv_obj, const struct OpenAPI_Server *srv);
 
 /**
  * @brief Writes numeric constraint fields to a JSON schema object.
@@ -339,12 +348,11 @@ extern C_CDD_EXPORT void write_server_object(JSON_Object *srv_obj,
  * @param[in] has_max Non-zero if maximum is set.
  * @param[in] max_val Maximum numeric value.
  * @param[in] exclusive_max Non-zero if maximum is exclusive.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void write_numeric_constraints(JSON_Object *obj,
-                                                   int has_min, double min_val,
-                                                   int exclusive_min,
-                                                   int has_max, double max_val,
-                                                   int exclusive_max);
+extern C_CDD_EXPORT cdd_c_error_t write_numeric_constraints(
+    JSON_Object *obj, int has_min, double min_val, int exclusive_min,
+    int has_max, double max_val, int exclusive_max);
 
 /**
  * @brief Writes string constraint fields to a JSON schema object.
@@ -355,8 +363,9 @@ extern C_CDD_EXPORT void write_numeric_constraints(JSON_Object *obj,
  * @param[in] has_max_len Non-zero if maxLength is set.
  * @param[in] max_len Maximum string length.
  * @param[in] pattern Optional regex pattern string.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void
+extern C_CDD_EXPORT cdd_c_error_t
 write_string_constraints(JSON_Object *obj, int has_min_len, size_t min_len,
                          int has_max_len, size_t max_len, const char *pattern);
 
@@ -369,8 +378,9 @@ write_string_constraints(JSON_Object *obj, int has_min_len, size_t min_len,
  * @param[in] has_max_items Non-zero if maxItems is set.
  * @param[in] max_items Maximum item count.
  * @param[in] unique_items Non-zero if uniqueItems is true.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void
+extern C_CDD_EXPORT cdd_c_error_t
 write_array_constraints(JSON_Object *obj, int has_min_items, size_t min_items,
                         int has_max_items, size_t max_items, int unique_items);
 
@@ -379,10 +389,10 @@ write_array_constraints(JSON_Object *obj, int has_min_items, size_t min_items,
  *
  * @param[in,out] item_obj The items JSON schema object.
  * @param[in] ref The OpenAPI schema reference holding item constraints.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void
-write_items_schema_fields(JSON_Object *item_obj,
-                          const struct OpenAPI_SchemaRef *ref);
+extern C_CDD_EXPORT cdd_c_error_t write_items_schema_fields(
+    JSON_Object *item_obj, const struct OpenAPI_SchemaRef *ref);
 
 /**
  * @brief Writes schema reference or inline definition to parent object.
@@ -390,9 +400,10 @@ write_items_schema_fields(JSON_Object *item_obj,
  * @param[in,out] parent The parent JSON object.
  * @param[in] key Property key name.
  * @param[in] ref The schema reference structure.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void write_schema_ref(JSON_Object *parent, const char *key,
-                                          const struct OpenAPI_SchemaRef *ref);
+extern C_CDD_EXPORT cdd_c_error_t write_schema_ref(
+    JSON_Object *parent, const char *key, const struct OpenAPI_SchemaRef *ref);
 
 /**
  * @brief Constructs and writes schema from simple type and items type strings.
@@ -402,20 +413,20 @@ extern C_CDD_EXPORT void write_schema_ref(JSON_Object *parent, const char *key,
  * @param[in] type Type name string.
  * @param[in] is_array Non-zero if array type.
  * @param[in] items_type Items type string for arrays.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void write_schema_from_type_fields(JSON_Object *parent,
-                                                       const char *key,
-                                                       const char *type,
-                                                       int is_array,
-                                                       const char *items_type);
+extern C_CDD_EXPORT cdd_c_error_t write_schema_from_type_fields(
+    JSON_Object *parent, const char *key, const char *type, int is_array,
+    const char *items_type);
 
 /**
  * @brief Writes an OpenAPI parameter object.
  *
  * @param[in,out] p_obj The parameter JSON object.
  * @param[in] p The parameter structure.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void
+extern C_CDD_EXPORT cdd_c_error_t
 write_parameter_object(JSON_Object *p_obj, const struct OpenAPI_Parameter *p);
 
 /**
@@ -423,9 +434,10 @@ write_parameter_object(JSON_Object *p_obj, const struct OpenAPI_Parameter *p);
  *
  * @param[in,out] h_obj The header JSON object.
  * @param[in] h The header structure.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void write_header_object(JSON_Object *h_obj,
-                                             const struct OpenAPI_Header *h);
+extern C_CDD_EXPORT cdd_c_error_t
+write_header_object(JSON_Object *h_obj, const struct OpenAPI_Header *h);
 
 /**
  * @brief Writes an encoding object.
@@ -454,17 +466,19 @@ write_encoding_map(JSON_Object *media_obj,
  *
  * @param[in,out] l_obj The link JSON object.
  * @param[in] link The link structure.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void write_link_object(JSON_Object *l_obj,
-                                           const struct OpenAPI_Link *link);
+extern C_CDD_EXPORT cdd_c_error_t
+write_link_object(JSON_Object *l_obj, const struct OpenAPI_Link *link);
 
 /**
  * @brief Writes an OpenAPI response object.
  *
  * @param[in,out] r_obj The response JSON object.
  * @param[in] resp The response structure.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void
+extern C_CDD_EXPORT cdd_c_error_t
 write_response_object(JSON_Object *r_obj, const struct OpenAPI_Response *resp);
 
 /**
@@ -482,8 +496,9 @@ extern C_CDD_EXPORT cdd_c_error_t write_request_body_object(
  *
  * @param[in,out] cb_obj The callback JSON object.
  * @param[in] cb The callback structure.
+ * @return CDD_C_SUCCESS on success.
  */
-extern C_CDD_EXPORT void
+extern C_CDD_EXPORT cdd_c_error_t
 write_callback_object(JSON_Object *cb_obj, const struct OpenAPI_Callback *cb);
 
 /**

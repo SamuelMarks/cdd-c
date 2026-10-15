@@ -36,19 +36,19 @@ TEST test_client_gen_extra_cases(void) {
 
   /* 1. Unclosed brace */
   memset(&srv, 0, sizeof(srv));
-  srv.url = (char *)(size_t)(size_t) "http://api.com/{unclosed";
+  srv.url = cdd_test_mut_str("http://api.com/{unclosed");
   rc = render_server_url_default(&srv, &out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(out == NULL);
 
   /* 2. Empty variable */
-  srv.url = (char *)(size_t)(size_t) "http://api.com/{}";
+  srv.url = cdd_test_mut_str("http://api.com/{}");
   rc = render_server_url_default(&srv, &out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(out == NULL);
 
   /* 3. Missing variable */
-  srv.url = (char *)(size_t)(size_t) "http://api.com/{missing}";
+  srv.url = cdd_test_mut_str("http://api.com/{missing}");
   rc = render_server_url_default(&srv, &out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(out == NULL);
@@ -71,7 +71,7 @@ TEST test_client_gen_extra_cases(void) {
     struct OpenAPI_Server *res_srv = NULL;
     memset(&p, 0, sizeof(p));
     memset(&p_srv, 0, sizeof(p_srv));
-    p_srv.url = (char *)(size_t)(size_t) "http://path-server.com";
+    p_srv.url = cdd_test_mut_str("http://path-server.com");
     p.servers = &p_srv;
     p.n_servers = 1;
     rc = select_operation_server(&p, NULL, &res_srv);
@@ -95,11 +95,11 @@ TEST test_client_gen_extra_cases(void) {
     memset(ops_extra, 0, sizeof(ops_extra));
     memset(&cfg_extra, 0, sizeof(cfg_extra));
     memset(&resp_extra, 0, sizeof(resp_extra));
-    resp_extra.code = (char *)(size_t) "200";
+    resp_extra.code = cdd_test_mut_str("200");
 
     /* op 0: operation_id != NULL, description == NULL, summary == NULL */
     ops_extra[0].verb = OA_VERB_GET;
-    ops_extra[0].operation_id = (char *)(size_t) "op_no_desc_no_sum";
+    ops_extra[0].operation_id = cdd_test_mut_str("op_no_desc_no_sum");
     ops_extra[0].description = NULL;
     ops_extra[0].summary = NULL;
     ops_extra[0].responses = &resp_extra;
@@ -107,20 +107,20 @@ TEST test_client_gen_extra_cases(void) {
 
     /* op 1: description == NULL, summary != NULL */
     ops_extra[1].verb = OA_VERB_POST;
-    ops_extra[1].operation_id = (char *)(size_t) "op_summary_only";
-    ops_extra[1].summary = (char *)(size_t) "Only summary";
+    ops_extra[1].operation_id = cdd_test_mut_str("op_summary_only");
+    ops_extra[1].summary = cdd_test_mut_str("Only summary");
     ops_extra[1].description = NULL;
     ops_extra[1].responses = &resp_extra;
     ops_extra[1].n_responses = 1;
 
-    p_extra.route = (char *)(size_t) "/extra/valid";
+    p_extra.route = cdd_test_mut_str("/extra/valid");
     p_extra.operations = ops_extra;
     p_extra.n_operations = 2;
 
     s_extra.paths = &p_extra;
     s_extra.n_paths = 1;
 
-    cfg_extra.filename_base = (char *)(size_t) "build/test_out/test_extra_ops";
+    cfg_extra.filename_base = cdd_test_mut_str("build/test_out/test_extra_ops");
     cfg_extra.no_installable_package = 1;
 
     rc = openapi_client_generate(&s_extra, &cfg_extra);
@@ -155,27 +155,27 @@ TEST test_client_gen_create_tests_mocks_expanded(void) {
   memset(servers, 0, sizeof(servers));
   memset(&req_media, 0, sizeof(req_media));
 
-  path.route = (char *)(size_t)(size_t) "/items/{id}";
-  params[0].name = (char *)(size_t)(size_t) "p1";
+  path.route = cdd_test_mut_str("/items/{id}");
+  params[0].name = cdd_test_mut_str("p1");
   params[0].in = OA_PARAM_IN_QUERY;
-  params[1].name = (char *)(size_t)(size_t) "p2";
+  params[1].name = cdd_test_mut_str("p2");
   params[1].in = OA_PARAM_IN_QUERYSTRING;
 
-  op.operation_id = (char *)(size_t)(size_t) "doExpanded";
+  op.operation_id = cdd_test_mut_str("doExpanded");
   op.verb = OA_VERB_POST;
   op.parameters = params;
   op.n_parameters = 2;
 
   /* First response 200 with schema ref, second default */
-  resps[0].code = (char *)(size_t)(size_t) "200";
-  resps[0].schema.ref_name = (char *)(size_t)(size_t) "ItemResponse";
+  resps[0].code = cdd_test_mut_str("200");
+  resps[0].schema.ref_name = cdd_test_mut_str("ItemResponse");
   resps[0].schema.is_array = 0;
-  resps[1].code = (char *)(size_t)(size_t) "default";
+  resps[1].code = cdd_test_mut_str("default");
   op.responses = resps;
   op.n_responses = 2;
 
   /* Custom req body media type */
-  req_media.name = (char *)(size_t)(size_t) "application/xml";
+  req_media.name = cdd_test_mut_str("application/xml");
   op.req_body_media_types = &req_media;
   op.n_req_body_media_types = 1;
 
@@ -185,12 +185,12 @@ TEST test_client_gen_create_tests_mocks_expanded(void) {
   spec.n_paths = 1;
 
   /* Server 1: http://api.com/v1 (has :// with path) */
-  servers[0].url = (char *)(size_t)(size_t) "http://api.com/v1";
+  servers[0].url = cdd_test_mut_str("http://api.com/v1");
   spec.servers = servers;
   spec.n_servers = 1;
 
   config.filename_base =
-      (char *)(size_t)(size_t) "build/test_out/test_client_sdk_exp1";
+      cdd_test_mut_str("build/test_out/test_client_sdk_exp1");
   config.create_tests_and_mocks = 1;
   config.no_installable_package = 0; /* test generate_cmake_project */
 
@@ -205,9 +205,9 @@ TEST test_client_gen_create_tests_mocks_expanded(void) {
   remove("build/test_out/CMakeLists.txt");
 
   /* Server 2: http://api.com (no path after hostname) */
-  servers[0].url = (char *)(size_t)(size_t) "http://api.com";
+  servers[0].url = cdd_test_mut_str("http://api.com");
   config.filename_base =
-      (char *)(size_t)(size_t) "build/test_out/test_client_sdk_exp2";
+      cdd_test_mut_str("build/test_out/test_client_sdk_exp2");
   config.no_installable_package = 1;
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -219,9 +219,9 @@ TEST test_client_gen_create_tests_mocks_expanded(void) {
   remove("build/test_out/src/test_client_sdk_exp2.c");
 
   /* Server 3: /v1 (no ://) */
-  servers[0].url = (char *)(size_t)(size_t) "/v1";
+  servers[0].url = cdd_test_mut_str("/v1");
   config.filename_base =
-      (char *)(size_t)(size_t) "build/test_out/test_client_sdk_exp3";
+      cdd_test_mut_str("build/test_out/test_client_sdk_exp3");
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
@@ -234,9 +234,9 @@ TEST test_client_gen_create_tests_mocks_expanded(void) {
   /* Swagger 2.0 basePath: "/" */
   spec.servers = NULL;
   spec.n_servers = 0;
-  spec.basePath = (char *)(size_t)(size_t) "/";
+  spec.basePath = cdd_test_mut_str("/");
   config.filename_base =
-      (char *)(size_t)(size_t) "build/test_out/test_client_sdk_exp4";
+      cdd_test_mut_str("build/test_out/test_client_sdk_exp4");
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
@@ -249,10 +249,10 @@ TEST test_client_gen_create_tests_mocks_expanded(void) {
   /* Swagger 2.0 basePath: "/v2" and is_array = 1 */
   spec.servers = NULL;
   spec.n_servers = 0;
-  spec.basePath = (char *)(size_t)(size_t) "/v2";
+  spec.basePath = cdd_test_mut_str("/v2");
   resps[0].schema.is_array = 1;
   config.filename_base =
-      (char *)(size_t)(size_t) "build/test_out/test_client_sdk_exp5";
+      cdd_test_mut_str("build/test_out/test_client_sdk_exp5");
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
@@ -278,7 +278,7 @@ TEST test_client_gen_create_tests_mocks_expanded(void) {
     long_path.n_operations = 1;
     spec.paths = &long_path;
     config.filename_base =
-        (char *)(size_t)(size_t) "build/test_out/test_client_sdk_exp_long";
+        cdd_test_mut_str("build/test_out/test_client_sdk_exp_long");
     rc = openapi_client_generate(&spec, &config);
     ASSERT_EQ(0, rc);
 
@@ -294,7 +294,7 @@ TEST test_client_gen_create_tests_mocks_expanded(void) {
   {
     struct OpenAPI_Response def_resp;
     memset(&def_resp, 0, sizeof(def_resp));
-    def_resp.code = (char *)(size_t)(size_t) "default";
+    def_resp.code = cdd_test_mut_str("default");
     def_resp.schema.ref_name = NULL;
 
     op.responses = &def_resp;
@@ -304,9 +304,9 @@ TEST test_client_gen_create_tests_mocks_expanded(void) {
     spec.servers = NULL;
     spec.n_servers = 0;
     spec.basePath = NULL;
-    path.route = (char *)(size_t)(size_t) "/items";
+    path.route = cdd_test_mut_str("/items");
     config.filename_base =
-        (char *)(size_t)(size_t) "build/test_out/test_client_sdk_exp6";
+        cdd_test_mut_str("build/test_out/test_client_sdk_exp6");
     rc = openapi_client_generate(&spec, &config);
     ASSERT_EQ(0, rc);
 
@@ -321,8 +321,8 @@ TEST test_client_gen_create_tests_mocks_expanded(void) {
   {
     struct OpenAPI_Response arr_resp;
     memset(&arr_resp, 0, sizeof(arr_resp));
-    arr_resp.code = (char *)(size_t)(size_t) "200";
-    arr_resp.schema.ref_name = (char *)(size_t)(size_t) "Item";
+    arr_resp.code = cdd_test_mut_str("200");
+    arr_resp.schema.ref_name = cdd_test_mut_str("Item");
     arr_resp.schema.is_array = 1;
 
     op.responses = &arr_resp;
@@ -332,7 +332,7 @@ TEST test_client_gen_create_tests_mocks_expanded(void) {
     spec.servers = NULL;
     spec.n_servers = 0;
     config.filename_base =
-        (char *)(size_t)(size_t) "build/test_out/test_client_sdk_exp7";
+        cdd_test_mut_str("build/test_out/test_client_sdk_exp7");
     rc = openapi_client_generate(&spec, &config);
     ASSERT_EQ(0, rc);
 
@@ -358,7 +358,7 @@ TEST test_client_gen_create_tests_mocks_expanded(void) {
     spec.n_servers = 1;
     spec.basePath = NULL;
     config.filename_base =
-        (char *)(size_t)(size_t) "build/test_out/test_client_sdk_exp8";
+        cdd_test_mut_str("build/test_out/test_client_sdk_exp8");
     rc = openapi_client_generate(&spec, &config);
     ASSERT_EQ(0, rc);
 
@@ -376,9 +376,9 @@ TEST test_client_gen_create_tests_mocks_expanded(void) {
     memset(&hdr_param, 0, sizeof(hdr_param));
     memset(&nocode_resp, 0, sizeof(nocode_resp));
 
-    hdr_param.name = (char *)(size_t)(size_t) "X-Header";
+    hdr_param.name = cdd_test_mut_str("X-Header");
     hdr_param.in = OA_PARAM_IN_HEADER;
-    hdr_param.type = (char *)(size_t)(size_t) "string";
+    hdr_param.type = cdd_test_mut_str("string");
 
     nocode_resp.code = NULL;
 
@@ -392,7 +392,7 @@ TEST test_client_gen_create_tests_mocks_expanded(void) {
     spec.n_servers = 0;
     spec.basePath = NULL;
     config.filename_base =
-        (char *)(size_t)(size_t) "build/test_out/test_client_sdk_exp9";
+        cdd_test_mut_str("build/test_out/test_client_sdk_exp9");
     rc = openapi_client_generate(&spec, &config);
     ASSERT_EQ(0, rc);
 
@@ -423,30 +423,30 @@ TEST test_client_gen_io_failures(void) {
   memset(&op, 0, sizeof(op));
   ASSERT_EQ(CDD_C_SUCCESS, setup_minimal_spec(&spec, &op));
   memset(&p_io, 0, sizeof(p_io));
-  p_io.name = (char *)(size_t)(size_t) "param1";
+  p_io.name = cdd_test_mut_str("param1");
   p_io.in = OA_PARAM_IN_QUERY;
-  p_io.type = (char *)(size_t)(size_t) "string";
+  p_io.type = cdd_test_mut_str("string");
   op.parameters = &p_io;
   op.n_parameters = 1;
-  op.description = (char *)(size_t)(size_t) "Operation description";
-  op.summary = (char *)(size_t)(size_t) "Operation summary";
+  op.description = cdd_test_mut_str("Operation description");
+  op.summary = cdd_test_mut_str("Operation summary");
   memset(&cb, 0, sizeof(cb));
   memset(&link, 0, sizeof(link));
   memset(&sec, 0, sizeof(sec));
-  op.external_docs.url = (char *)(size_t)(size_t) "http://example.com";
+  op.external_docs.url = cdd_test_mut_str("http://example.com");
   op.callbacks = &cb;
   op.responses[0].links = &link;
   op.security = &sec;
   op.deprecated = 1;
 
   memset(sf, 0, sizeof(sf));
-  snames[0] = (char *)(size_t)(size_t) "SampleSchema";
+  snames[0] = cdd_test_mut_str("SampleSchema");
   spec.defined_schemas = sf;
   spec.defined_schema_names = snames;
   spec.n_defined_schemas = 1;
 
   memset(&config, 0, sizeof(config));
-  config.filename_base = (char *)(size_t)(size_t) "build/test_out/test_cg_io";
+  config.filename_base = cdd_test_mut_str("build/test_out/test_cg_io");
   config.no_installable_package = 1;
 
   for (i = 0; i <= 450; ++i) {

@@ -23,23 +23,22 @@ TEST test_sig_multipart_encoding_headers(void) {
   struct OpenAPI_Header headers[3] = {{0}};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "upload";
+  op.operation_id = cdd_test_mut_str("upload");
 
-  op.req_body.ref_name = (char *)(size_t)(size_t)(size_t)(size_t) "Upload";
-  op.req_body.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "multipart/form-data";
+  op.req_body.ref_name = cdd_test_mut_str("Upload");
+  op.req_body.content_type = cdd_test_mut_str("multipart/form-data");
 
-  headers[0].name = (char *)(size_t)(size_t)(size_t)(size_t) "X-Trace";
-  headers[0].type = (char *)(size_t)(size_t)(size_t)(size_t) "string";
-  headers[1].name = (char *)(size_t)(size_t)(size_t)(size_t) "X-Ids";
-  headers[1].type = (char *)(size_t)(size_t)(size_t)(size_t) "array";
+  headers[0].name = cdd_test_mut_str("X-Trace");
+  headers[0].type = cdd_test_mut_str("string");
+  headers[1].name = cdd_test_mut_str("X-Ids");
+  headers[1].type = cdd_test_mut_str("array");
   headers[1].is_array = 1;
-  headers[1].items_type = (char *)(size_t)(size_t)(size_t)(size_t) "integer";
-  headers[2].name = (char *)(size_t)(size_t)(size_t)(size_t) "Content-Type";
-  headers[2].type = (char *)(size_t)(size_t)(size_t)(size_t) "string";
+  headers[1].items_type = cdd_test_mut_str("integer");
+  headers[2].name = cdd_test_mut_str("Content-Type");
+  headers[2].type = cdd_test_mut_str("string");
 
-  mt.name = (char *)(size_t)(size_t)(size_t)(size_t) "multipart/form-data";
-  enc.name = (char *)(size_t)(size_t)(size_t)(size_t) "file";
+  mt.name = cdd_test_mut_str("multipart/form-data");
+  enc.name = cdd_test_mut_str("file");
   enc.headers = headers;
   enc.n_headers = 3;
   mt.encoding = &enc;
@@ -96,10 +95,9 @@ TEST test_sig_text_plain_request_body(void) {
   struct OpenAPI_Operation op = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "postText";
-  op.req_body.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "text/plain";
-  op.req_body.inline_type = (char *)(size_t)(size_t)(size_t)(size_t) "string";
+  op.operation_id = cdd_test_mut_str("postText");
+  op.req_body.content_type = cdd_test_mut_str("text/plain");
+  op.req_body.inline_type = cdd_test_mut_str("string");
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_10), _ast_gen_sig_10);
   ASSERT(code);
@@ -147,9 +145,8 @@ TEST test_sig_textual_request_body_xml(void) {
   struct OpenAPI_Operation op = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "postXml";
-  op.req_body.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "application/xml";
+  op.operation_id = cdd_test_mut_str("postXml");
+  op.req_body.content_type = cdd_test_mut_str("application/xml");
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_11), _ast_gen_sig_11);
   ASSERT(code);
@@ -197,9 +194,8 @@ TEST test_sig_octet_stream_request_body(void) {
   struct OpenAPI_Operation op = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "postBinary";
-  op.req_body.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "application/octet-stream";
+  op.operation_id = cdd_test_mut_str("postBinary");
+  op.req_body.content_type = cdd_test_mut_str("application/octet-stream");
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_12), _ast_gen_sig_12);
   ASSERT(code);
@@ -247,9 +243,8 @@ TEST test_sig_binary_request_body_pdf(void) {
   struct OpenAPI_Operation op = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "postPdf";
-  op.req_body.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "application/pdf";
+  op.operation_id = cdd_test_mut_str("postPdf");
+  op.req_body.content_type = cdd_test_mut_str("application/pdf");
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_13), _ast_gen_sig_13);
   ASSERT(code);
@@ -298,10 +293,9 @@ TEST test_sig_octet_stream_response_body(void) {
   struct OpenAPI_Response resp = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "download";
-  resp.code = (char *)(size_t)(size_t)(size_t)(size_t) "200";
-  resp.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "application/octet-stream";
+  op.operation_id = cdd_test_mut_str("download");
+  resp.code = cdd_test_mut_str("200");
+  resp.content_type = cdd_test_mut_str("application/octet-stream");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -352,10 +346,9 @@ TEST test_sig_binary_response_body_pdf(void) {
   struct OpenAPI_Response resp = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "downloadPdf";
-  resp.code = (char *)(size_t)(size_t)(size_t)(size_t) "200";
-  resp.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "application/pdf";
+  op.operation_id = cdd_test_mut_str("downloadPdf");
+  resp.code = cdd_test_mut_str("200");
+  resp.content_type = cdd_test_mut_str("application/pdf");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -406,15 +399,14 @@ TEST test_sig_querystring_form_object(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "search";
+  op.operation_id = cdd_test_mut_str("search");
 
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "qs";
+  param.name = cdd_test_mut_str("qs");
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "object";
-  param.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "application/"
-                                               "x-www-form-urlencoded";
-  param.schema.inline_type = (char *)(size_t)(size_t)(size_t)(size_t) "object";
+  param.type = cdd_test_mut_str("object");
+  param.content_type = cdd_test_mut_str("application/"
+                                        "x-www-form-urlencoded");
+  param.schema.inline_type = cdd_test_mut_str("object");
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -466,14 +458,13 @@ TEST test_sig_querystring_json_ref(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "searchJson";
+  op.operation_id = cdd_test_mut_str("searchJson");
 
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "qs";
+  param.name = cdd_test_mut_str("qs");
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "object";
-  param.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "application/json";
-  param.schema.ref_name = (char *)(size_t)(size_t)(size_t)(size_t) "Pet";
+  param.type = cdd_test_mut_str("object");
+  param.content_type = cdd_test_mut_str("application/json");
+  param.schema.ref_name = cdd_test_mut_str("Pet");
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -525,14 +516,13 @@ TEST test_sig_querystring_json_primitive(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "searchJsonInt";
+  op.operation_id = cdd_test_mut_str("searchJsonInt");
 
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "qs";
+  param.name = cdd_test_mut_str("qs");
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "integer";
-  param.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "application/json";
-  param.schema.inline_type = (char *)(size_t)(size_t)(size_t)(size_t) "integer";
+  param.type = cdd_test_mut_str("integer");
+  param.content_type = cdd_test_mut_str("application/json");
+  param.schema.inline_type = cdd_test_mut_str("integer");
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -584,15 +574,14 @@ TEST test_sig_querystring_json_array(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "searchJsonTags";
+  op.operation_id = cdd_test_mut_str("searchJsonTags");
 
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "qs";
+  param.name = cdd_test_mut_str("qs");
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "array";
-  param.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "application/json";
+  param.type = cdd_test_mut_str("array");
+  param.content_type = cdd_test_mut_str("application/json");
   param.schema.is_array = 1;
-  param.schema.inline_type = (char *)(size_t)(size_t)(size_t)(size_t) "string";
+  param.schema.inline_type = cdd_test_mut_str("string");
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -647,15 +636,14 @@ TEST test_sig_querystring_json_array_object(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "searchJsonPets";
+  op.operation_id = cdd_test_mut_str("searchJsonPets");
 
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "qs";
+  param.name = cdd_test_mut_str("qs");
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "array";
-  param.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "application/json";
+  param.type = cdd_test_mut_str("array");
+  param.content_type = cdd_test_mut_str("application/json");
   param.schema.is_array = 1;
-  param.items_type = (char *)(size_t)(size_t)(size_t)(size_t) "Pet";
+  param.items_type = cdd_test_mut_str("Pet");
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -710,13 +698,13 @@ TEST test_sig_querystring_raw_string(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "searchRaw";
+  op.operation_id = cdd_test_mut_str("searchRaw");
 
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "qs";
+  param.name = cdd_test_mut_str("qs");
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "string";
-  param.content_type = (char *)(size_t)(size_t)(size_t)(size_t) "text/plain";
-  param.schema.inline_type = (char *)(size_t)(size_t)(size_t)(size_t) "string";
+  param.type = cdd_test_mut_str("string");
+  param.content_type = cdd_test_mut_str("text/plain");
+  param.schema.inline_type = cdd_test_mut_str("string");
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -768,14 +756,13 @@ TEST test_sig_querystring_raw_integer(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "searchRawInt";
+  op.operation_id = cdd_test_mut_str("searchRawInt");
 
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "qs";
+  param.name = cdd_test_mut_str("qs");
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "integer";
-  param.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "application/jsonpath";
-  param.schema.inline_type = (char *)(size_t)(size_t)(size_t)(size_t) "integer";
+  param.type = cdd_test_mut_str("integer");
+  param.content_type = cdd_test_mut_str("application/jsonpath");
+  param.schema.inline_type = cdd_test_mut_str("integer");
 
   op.parameters = &param;
   op.n_parameters = 1;

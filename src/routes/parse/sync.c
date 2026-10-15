@@ -77,7 +77,7 @@ static cdd_c_error_t find_function_node(struct CstNodeList *cst,
       for (k = node->start_token; k < node->end_token; ++k) {
         if (tokens->tokens[k].kind == TOKEN_LPAREN) {
           if (k > node->start_token) {
-            int _ast_token_matches_string_0 = 0;
+            int matched = 0;
             size_t id_idx = k - 1;
             cdd_c_error_t rc;
             while (id_idx > node->start_token &&
@@ -85,10 +85,10 @@ static cdd_c_error_t find_function_node(struct CstNodeList *cst,
               id_idx--;
             if (tokens->tokens[id_idx].kind == TOKEN_IDENTIFIER) {
               rc = token_matches_string(&tokens->tokens[id_idx], func_name,
-                                        &_ast_token_matches_string_0);
+                                        &matched);
               if (rc != CDD_C_SUCCESS)
                 return rc;
-              if (_ast_token_matches_string_0) {
+              if (matched) {
                 *_out_val = node;
                 return CDD_C_SUCCESS;
               }
@@ -216,21 +216,21 @@ static cdd_c_error_t apply_query_sync(const struct OpenAPI_Operation *op,
   for (k = body_start; k < node->end_token; k++) {
     if (tokens->tokens[k].kind == TOKEN_IDENTIFIER) {
       if (!init_idx) {
-        int _ast_token_matches_string_1 = 0;
+        int matched = 0;
         rc = token_matches_string(&tokens->tokens[k], "url_query_init",
-                                  &_ast_token_matches_string_1);
+                                  &matched);
         if (rc != CDD_C_SUCCESS)
           return rc;
-        if (_ast_token_matches_string_1)
+        if (matched)
           init_idx = k;
       }
       if (!build_idx) {
-        int _ast_token_matches_string_2 = 0;
+        int matched = 0;
         rc = token_matches_string(&tokens->tokens[k], "url_query_build",
-                                  &_ast_token_matches_string_2);
+                                  &matched);
         if (rc != CDD_C_SUCCESS)
           return rc;
-        if (_ast_token_matches_string_2)
+        if (matched)
           build_idx = k;
       }
     }
@@ -309,12 +309,11 @@ static cdd_c_error_t apply_header_sync(const struct OpenAPI_Operation *op,
 
       for (k = node->start_token; k < node->end_token; ++k) {
         if (tokens->tokens[k].kind == TOKEN_COMMENT) {
-          int _ast_token_matches_string_4 = 0;
-          rc = token_matches_string(&tokens->tokens[k], comment_text,
-                                    &_ast_token_matches_string_4);
+          int matched = 0;
+          rc = token_matches_string(&tokens->tokens[k], comment_text, &matched);
           if (rc != CDD_C_SUCCESS)
             return rc;
-          if (_ast_token_matches_string_4) {
+          if (matched) {
             found_idx = k;
             break;
           }
@@ -437,8 +436,8 @@ static cdd_c_error_t apply_updates(const char *filename,
 
         if (actual_sig) {
           if (strcmp(expected_sig, actual_sig) != 0) {
-            char *_ast_strdup_0 = NULL;
-            rc = c_cdd_strdup(expected_sig, &_ast_strdup_0);
+            char *sig_copy = NULL;
+            rc = c_cdd_strdup(expected_sig, &sig_copy);
             if (rc != CDD_C_SUCCESS) {
               free(expected_sig);
               free(actual_sig);
@@ -446,7 +445,7 @@ static cdd_c_error_t apply_updates(const char *filename,
               return rc;
             }
             rc = patch_list_add(&patches, node->start_token, sig_end_idx,
-                                _ast_strdup_0);
+                                sig_copy);
             if (rc != CDD_C_SUCCESS) {
               free(expected_sig);
               free(actual_sig);
@@ -478,21 +477,21 @@ static cdd_c_error_t apply_updates(const char *filename,
 
           for (k = body_start; k < node->end_token; ++k) {
             if (tokens->tokens[k].kind == TOKEN_IDENTIFIER) {
-              int _ast_token_matches_string_9 = 0;
-              int _ast_token_matches_string_10 = 0;
+              int match_asprintf = 0;
+              int match_snprintf = 0;
               rc = token_matches_string(&tokens->tokens[k], "asprintf",
-                                        &_ast_token_matches_string_9);
+                                        &match_asprintf);
               if (rc != CDD_C_SUCCESS) {
                 patch_list_free(&patches);
                 return rc;
               }
               rc = token_matches_string(&tokens->tokens[k], "snprintf",
-                                        &_ast_token_matches_string_10);
+                                        &match_snprintf);
               if (rc != CDD_C_SUCCESS) {
                 patch_list_free(&patches);
                 return rc;
               }
-              if (_ast_token_matches_string_9 || _ast_token_matches_string_10) {
+              if (match_asprintf || match_snprintf) {
                 asprintf_idx = k;
                 while (k < node->end_token &&
                        tokens->tokens[k].kind != TOKEN_SEMICOLON)
@@ -507,14 +506,13 @@ static cdd_c_error_t apply_updates(const char *filename,
             int matches_var = 0;
             size_t m;
             for (m = asprintf_idx; m < stmt_end_idx; ++m) {
-              int _ast_token_matches_string_11 = 0;
-              rc = token_matches_string(&tokens->tokens[m], var,
-                                        &_ast_token_matches_string_11);
+              int matched = 0;
+              rc = token_matches_string(&tokens->tokens[m], var, &matched);
               if (rc != CDD_C_SUCCESS) {
                 patch_list_free(&patches);
                 return rc;
               }
-              if (_ast_token_matches_string_11) {
+              if (matched) {
                 matches_var = 1;
                 break;
               }

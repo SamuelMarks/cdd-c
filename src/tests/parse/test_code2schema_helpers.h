@@ -392,8 +392,8 @@ TEST test_code2schema_utils(void) {
   PASS();
 }
 TEST test_code2schema_union(void) {
-  const char *test_file = (char *)(size_t)(size_t) "test_union.h";
-  const char *out_file = (char *)(size_t)(size_t) "test_union_out.json";
+  const char *test_file = cdd_test_mut_str("test_union.h");
+  const char *out_file = cdd_test_mut_str("test_union_out.json");
   FILE *f;
 #if defined(_MSC_VER)
   if (fopen_s(&f, test_file, "w") != 0)

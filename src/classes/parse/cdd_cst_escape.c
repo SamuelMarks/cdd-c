@@ -1,3 +1,7 @@
+/**
+ * @file cdd_cst_escape.c
+ * @brief Concrete Syntax Tree (CST) escape implementation and utilities.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 

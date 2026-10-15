@@ -1,3 +1,7 @@
+/**
+ * @file cdd_cst_cfg.h
+ * @brief Concrete Syntax Tree (CST) cfg implementation and utilities.
+ */
 #ifndef CDD_CST_CFG_H
 #define CDD_CST_CFG_H
 
@@ -21,7 +25,9 @@ enum cdd_cst_cfg_block_kind_t {
   CDD_CST_CFG_BLOCK_EXIT
 };
 
+/** @brief Control Flow Graph directed edge typedef */
 typedef struct cdd_cst_cfg_edge_t cdd_cst_cfg_edge_t;
+/** @brief Control Flow Graph basic block typedef */
 typedef struct cdd_cst_cfg_block_t cdd_cst_cfg_block_t;
 
 /** @brief Struct definition */

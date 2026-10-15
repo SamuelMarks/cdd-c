@@ -65,7 +65,7 @@ cdd_c_error_t doc_parse_param_line(const char *line, const char *end,
       /* Extract content inside [] */
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)(size_t)C_CDD_MALLOC(inner_len + 1);
+      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -202,7 +202,7 @@ cdd_c_error_t doc_parse_return_line(const char *line, const char *end,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)(size_t)C_CDD_MALLOC(inner_len + 1);
+      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -227,7 +227,7 @@ cdd_c_error_t doc_parse_return_line(const char *line, const char *end,
         } else if (strncmp(attr, "summary:", 8) == 0 ||
                    strncmp(attr, "summary=", 8) == 0) {
           char *val = NULL;
-          rc = doc_trim_segment((char *)(size_t)(attr + 8), &val);
+          rc = doc_trim_segment(attr + 8, &val);
           if (rc != CDD_C_SUCCESS) {
             C_CDD_FREE(attr);
             return rc;
@@ -316,7 +316,7 @@ cdd_c_error_t doc_parse_response_header_line(const char *line, const char *end,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)(size_t)C_CDD_MALLOC(inner_len + 1);
+      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -366,7 +366,7 @@ cdd_c_error_t doc_parse_response_header_line(const char *line, const char *end,
         } else if (strncmp(attr, "content:", 8) == 0 ||
                    strncmp(attr, "content=", 8) == 0) {
           char *val = NULL;
-          rc = doc_trim_segment((char *)(size_t)(attr + 8), &val);
+          rc = doc_trim_segment(attr + 8, &val);
           if (rc != CDD_C_SUCCESS) {
             C_CDD_FREE(attr);
             return rc;
@@ -441,6 +441,7 @@ cdd_c_error_t doc_parse_link_line(const char *line, const char *end,
     link->code = NULL;
     return CDD_C_SUCCESS;
   }
+  out->n_links++;
 
   rc = doc_skip_ws(cur, &cur);
   if (rc != CDD_C_SUCCESS)
@@ -454,7 +455,7 @@ cdd_c_error_t doc_parse_link_line(const char *line, const char *end,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)(size_t)C_CDD_MALLOC(inner_len + 1);
+      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -530,7 +531,7 @@ cdd_c_error_t doc_parse_link_line(const char *line, const char *end,
         } else if (strncmp(attr, "summary:", 8) == 0 ||
                    strncmp(attr, "summary=", 8) == 0) {
           char *val = NULL;
-          rc = doc_trim_segment((char *)(size_t)(attr + 8), &val);
+          rc = doc_trim_segment(attr + 8, &val);
           if (rc != CDD_C_SUCCESS) {
             C_CDD_FREE(attr);
             return rc;
@@ -631,7 +632,6 @@ cdd_c_error_t doc_parse_link_line(const char *line, const char *end,
       return rc;
   }
 
-  out->n_links++;
   return CDD_C_SUCCESS;
 }
 
@@ -661,7 +661,7 @@ cdd_c_error_t doc_parse_request_body_line(const char *line, const char *end,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)(size_t)C_CDD_MALLOC(inner_len + 1);
+      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -670,6 +670,8 @@ cdd_c_error_t doc_parse_request_body_line(const char *line, const char *end,
                                               &required_val);
         if (rc_opt == CDD_C_ERROR_MEMORY) {
           C_CDD_FREE(attr);
+          C_CDD_FREE(content_type);
+          C_CDD_FREE(example);
           return rc_opt;
         }
         if (strncmp(attr, "contentType:", 12) == 0 ||
@@ -678,8 +680,8 @@ cdd_c_error_t doc_parse_request_body_line(const char *line, const char *end,
           rc = doc_trim_segment(attr + 12, &val);
           if (rc != CDD_C_SUCCESS) {
             C_CDD_FREE(attr);
-            if (content_type)
-              C_CDD_FREE(content_type);
+            C_CDD_FREE(content_type);
+            C_CDD_FREE(example);
             return rc;
           }
           if (*val) {
@@ -688,17 +690,18 @@ cdd_c_error_t doc_parse_request_body_line(const char *line, const char *end,
             rc = c_cdd_strdup(val, &content_type);
             if (rc != CDD_C_SUCCESS) {
               C_CDD_FREE(attr);
+              C_CDD_FREE(example);
               return rc;
             }
           }
         } else if (strncmp(attr, "content:", 8) == 0 ||
                    strncmp(attr, "content=", 8) == 0) {
           char *val = NULL;
-          rc = doc_trim_segment((char *)(size_t)(attr + 8), &val);
+          rc = doc_trim_segment(attr + 8, &val);
           if (rc != CDD_C_SUCCESS) {
             C_CDD_FREE(attr);
-            if (content_type)
-              C_CDD_FREE(content_type);
+            C_CDD_FREE(content_type);
+            C_CDD_FREE(example);
             return rc;
           }
           if (*val) {
@@ -707,6 +710,7 @@ cdd_c_error_t doc_parse_request_body_line(const char *line, const char *end,
             rc = c_cdd_strdup(val, &content_type);
             if (rc != CDD_C_SUCCESS) {
               C_CDD_FREE(attr);
+              C_CDD_FREE(example);
               return rc;
             }
           }
@@ -717,8 +721,8 @@ cdd_c_error_t doc_parse_request_body_line(const char *line, const char *end,
         } else if (doc_parse_optional_example_attr(attr, &example) ==
                    CDD_C_ERROR_MEMORY) {
           C_CDD_FREE(attr);
-          if (content_type)
-            C_CDD_FREE(content_type);
+          C_CDD_FREE(content_type);
+          C_CDD_FREE(example);
           return CDD_C_ERROR_MEMORY;
         }
 

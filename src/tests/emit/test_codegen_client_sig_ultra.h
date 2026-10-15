@@ -43,7 +43,7 @@ TEST test_sig_ultra_coverage(void) {
     const struct OpenAPI_MediaType *found = NULL;
     memset(mts, 0, sizeof(mts));
     mts[0].name = NULL;
-    mts[1].name = (char *)(size_t)(size_t) "text/plain";
+    mts[1].name = cdd_test_mut_str("text/plain");
     ASSERT_EQ(CDD_C_SUCCESS,
               cdd_test_sig_find_media_type(mts, 2, "text/plain", &found));
     ASSERT(found == &mts[1]);
@@ -67,13 +67,13 @@ TEST test_sig_ultra_coverage(void) {
   /* querystring_param_json_array_item_ref with "number" and "boolean" */
   memset(&param, 0, sizeof(param));
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.content_type = (char *)(size_t)(size_t) "application/json";
+  param.content_type = cdd_test_mut_str("application/json");
   param.is_array = 1;
-  param.items_type = (char *)(size_t)(size_t) "number";
+  param.items_type = cdd_test_mut_str("number");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_querystring_param_json_array_item_ref(
                                &param, &out_schema_str));
   ASSERT(out_schema_str == NULL);
-  param.items_type = (char *)(size_t)(size_t) "boolean";
+  param.items_type = cdd_test_mut_str("boolean");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_querystring_param_json_array_item_ref(
                                &param, &out_schema_str));
   ASSERT(out_schema_str == NULL);
@@ -84,8 +84,8 @@ TEST test_sig_ultra_coverage(void) {
   memset(resp, 0, sizeof(resp));
   op.responses = resp;
   op.n_responses = 2;
-  resp[0].code = (char *)(size_t)(size_t) "20X";
-  resp[1].code = (char *)(size_t)(size_t) "2XY";
+  resp[0].code = cdd_test_mut_str("20X");
+  resp[1].code = cdd_test_mut_str("2XY");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_schema(&op, &out_schema));
   {
     const struct OpenAPI_Response *r_out = NULL;
@@ -94,8 +94,8 @@ TEST test_sig_ultra_coverage(void) {
   }
 
   /* schema_has_inline and is_array branches in get_success_schema */
-  resp[0].code = (char *)(size_t)(size_t) "200";
-  resp[0].schema.inline_type = (char *)(size_t)(size_t) "string";
+  resp[0].code = cdd_test_mut_str("200");
+  resp[0].schema.inline_type = cdd_test_mut_str("string");
   resp[0].schema.is_array = 0;
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_schema(&op, &out_schema));
   ASSERT(out_schema == &resp[0].schema);
@@ -106,8 +106,8 @@ TEST test_sig_ultra_coverage(void) {
   ASSERT(out_schema == &resp[0].schema);
 
   /* default_resp with inline_type, and with is_array */
-  resp[0].code = (char *)(size_t)(size_t) "default";
-  resp[0].schema.inline_type = (char *)(size_t)(size_t) "string";
+  resp[0].code = cdd_test_mut_str("default");
+  resp[0].schema.inline_type = cdd_test_mut_str("string");
   resp[0].schema.is_array = 0;
   op.n_responses = 1;
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_schema(&op, &out_schema));
@@ -121,17 +121,17 @@ TEST test_sig_ultra_coverage(void) {
   /* header JSON param variations */
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
-  op.operation_id = (char *)(size_t)(size_t) "testVariations";
+  op.operation_id = cdd_test_mut_str("testVariations");
   op.n_parameters = 1;
   op.parameters = &param;
-  param.name = (char *)(size_t)(size_t) "p";
+  param.name = cdd_test_mut_str("p");
   param.in = OA_PARAM_IN_HEADER;
-  param.content_type = (char *)(size_t)(size_t) "application/json";
+  param.content_type = cdd_test_mut_str("application/json");
 
   /* items_type NULL, inline_type set */
   param.is_array = 1;
   param.items_type = NULL;
-  param.schema.inline_type = (char *)(size_t)(size_t) "integer";
+  param.schema.inline_type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   free(code);
@@ -147,7 +147,7 @@ TEST test_sig_ultra_coverage(void) {
   /* is_array = 0, p.type NULL, schema.inline_type set */
   param.is_array = 0;
   param.type = NULL;
-  param.schema.inline_type = (char *)(size_t)(size_t) "integer";
+  param.schema.inline_type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   free(code);
@@ -177,7 +177,7 @@ TEST test_sig_ultra_coverage(void) {
   {
     struct OpenAPI_Operation op_no_resp;
     memset(&op_no_resp, 0, sizeof(op_no_resp));
-    op_no_resp.operation_id = (char *)(size_t)(size_t) "noResp";
+    op_no_resp.operation_id = cdd_test_mut_str("noResp");
     op_no_resp.req_body.is_array = 1;
     ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_no_resp, NULL, &code));
     ASSERT(code != NULL);
@@ -196,16 +196,15 @@ TEST test_sig_ultra_coverage(void) {
     memset(&mt_mp, 0, sizeof(mt_mp));
     memset(enc_mp, 0, sizeof(enc_mp));
     memset(&hdr_mp, 0, sizeof(hdr_mp));
-    op_mp.operation_id = (char *)(size_t)(size_t) "mpEdge";
-    op_mp.req_body.content_type =
-        (char *)(size_t)(size_t) "multipart/form-data";
+    op_mp.operation_id = cdd_test_mut_str("mpEdge");
+    op_mp.req_body.content_type = cdd_test_mut_str("multipart/form-data");
     op_mp.n_req_body_media_types = 1;
     op_mp.req_body_media_types = &mt_mp;
-    mt_mp.name = (char *)(size_t)(size_t) "multipart/form-data";
+    mt_mp.name = cdd_test_mut_str("multipart/form-data");
     mt_mp.n_encoding = 2;
     mt_mp.encoding = enc_mp;
     enc_mp[0].name = NULL; /* enc->name == NULL branch */
-    enc_mp[1].name = (char *)(size_t)(size_t) "part";
+    enc_mp[1].name = cdd_test_mut_str("part");
     enc_mp[1].headers = &hdr_mp;
     enc_mp[1].n_headers = 0; /* enc->n_headers == 0 branch */
     ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_mp, NULL, &code));
@@ -215,7 +214,7 @@ TEST test_sig_ultra_coverage(void) {
 
     /* hdr.items_type == NULL in array */
     enc_mp[1].n_headers = 1;
-    hdr_mp.name = (char *)(size_t)(size_t) "X-Arr-Def";
+    hdr_mp.name = cdd_test_mut_str("X-Arr-Def");
     hdr_mp.is_array = 1;
     hdr_mp.items_type = NULL;
     ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_mp, NULL, &code));
@@ -263,8 +262,8 @@ TEST test_sig_ultra_coverage(void) {
     memset(&resp_201, 0, sizeof(resp_201));
     op_201.n_responses = 1;
     op_201.responses = &resp_201;
-    resp_201.code = (char *)(size_t)(size_t) "201";
-    resp_201.schema.ref_name = (char *)(size_t)(size_t) "Item";
+    resp_201.code = cdd_test_mut_str("201");
+    resp_201.schema.ref_name = cdd_test_mut_str("Item");
     ASSERT_EQ(CDD_C_SUCCESS,
               cdd_test_sig_get_success_response(&op_201, &r_out));
     ASSERT(r_out == &resp_201);
@@ -272,7 +271,7 @@ TEST test_sig_ultra_coverage(void) {
     ASSERT(s_out == &resp_201.schema);
 
     /* 2XX with no ref_name, no inline, no is_array (continue branch of 2XX) */
-    resp_201.code = (char *)(size_t)(size_t) "2XX";
+    resp_201.code = cdd_test_mut_str("2XX");
     resp_201.schema.ref_name = NULL;
     s_out = NULL;
     ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_schema(&op_201, &s_out));
@@ -280,7 +279,7 @@ TEST test_sig_ultra_coverage(void) {
 
     /* 201 with no ref_name, no inline, no is_array (false branch of if(ref_name
      * || inline || is_array) for c[0]=='2') */
-    resp_201.code = (char *)(size_t)(size_t) "201";
+    resp_201.code = cdd_test_mut_str("201");
     s_out = NULL;
     ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_schema(&op_201, &s_out));
     ASSERT(s_out == &op_201.req_body);
@@ -295,8 +294,8 @@ TEST test_sig_ultra_coverage(void) {
     memset(&resp_2, 0, sizeof(resp_2));
     op_2.n_responses = 1;
     op_2.responses = &resp_2;
-    resp_2.code = (char *)(size_t)(size_t) "2";
-    resp_2.schema.ref_name = (char *)(size_t)(size_t) "Item";
+    resp_2.code = cdd_test_mut_str("2");
+    resp_2.schema.ref_name = cdd_test_mut_str("Item");
     ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_schema(&op_2, &s_out));
     ASSERT(s_out == &resp_2.schema);
   }
@@ -308,7 +307,7 @@ TEST test_sig_ultra_coverage(void) {
     const char *raw_type = NULL;
     memset(&param_hdr, 0, sizeof(param_hdr));
     param_hdr.in = OA_PARAM_IN_HEADER;
-    param_hdr.content_type = (char *)(size_t)(size_t) "application/json";
+    param_hdr.content_type = cdd_test_mut_str("application/json");
     ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_querystring_param_raw_primitive_type(
                                  &param_hdr, &raw_type));
     ASSERT(raw_type == NULL);
@@ -321,7 +320,7 @@ TEST test_sig_ultra_coverage(void) {
     struct CodegenSigConfig cfg_ctx;
     memset(&op_ctx, 0, sizeof(op_ctx));
     memset(&cfg_ctx, 0, sizeof(cfg_ctx));
-    op_ctx.operation_id = (char *)(size_t)(size_t) "testDefaultCtx";
+    op_ctx.operation_id = cdd_test_mut_str("testDefaultCtx");
     cfg_ctx.ctx_type = NULL;
     cfg_ctx.prefix = "api_";
     ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_ctx, &cfg_ctx, &code));
@@ -334,8 +333,8 @@ TEST test_sig_ultra_coverage(void) {
   {
     struct OpenAPI_Operation op_mixed;
     memset(&op_mixed, 0, sizeof(op_mixed));
-    op_mixed.operation_id = (char *)(size_t)(size_t) "testMixed";
-    op_mixed.req_body.content_type = (char *)(size_t)(size_t) "multipart/mixed";
+    op_mixed.operation_id = cdd_test_mut_str("testMixed");
+    op_mixed.req_body.content_type = cdd_test_mut_str("multipart/mixed");
     ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_mixed, NULL, &code));
     ASSERT(code != NULL);
     free(code);
@@ -353,21 +352,20 @@ TEST test_sig_ultra_coverage(void) {
     memset(&mt_hdr, 0, sizeof(mt_hdr));
     memset(&enc_hdr, 0, sizeof(enc_hdr));
     memset(&h_hdr, 0, sizeof(h_hdr));
-    op_mp_hdr.operation_id = (char *)(size_t)(size_t) "testMpHdrTypeArray";
-    op_mp_hdr.req_body.content_type =
-        (char *)(size_t)(size_t) "multipart/form-data";
+    op_mp_hdr.operation_id = cdd_test_mut_str("testMpHdrTypeArray");
+    op_mp_hdr.req_body.content_type = cdd_test_mut_str("multipart/form-data");
     op_mp_hdr.n_req_body_media_types = 1;
     op_mp_hdr.req_body_media_types = &mt_hdr;
-    mt_hdr.name = (char *)(size_t)(size_t) "multipart/form-data";
+    mt_hdr.name = cdd_test_mut_str("multipart/form-data");
     mt_hdr.n_encoding = 1;
     mt_hdr.encoding = &enc_hdr;
-    enc_hdr.name = (char *)(size_t)(size_t) "part";
+    enc_hdr.name = cdd_test_mut_str("part");
     enc_hdr.n_headers = 1;
     enc_hdr.headers = &h_hdr;
-    h_hdr.name = (char *)(size_t)(size_t) "X-Arr-Hdr";
-    h_hdr.type = (char *)(size_t)(size_t) "array";
+    h_hdr.name = cdd_test_mut_str("X-Arr-Hdr");
+    h_hdr.type = cdd_test_mut_str("array");
     h_hdr.is_array = 0; /* is_array == 0 but type == "array" */
-    h_hdr.items_type = (char *)(size_t)(size_t) "string";
+    h_hdr.items_type = cdd_test_mut_str("string");
     ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_mp_hdr, NULL, &code));
     ASSERT(code != NULL);
     free(code);
@@ -404,11 +402,11 @@ TEST test_sig_ultra_coverage(void) {
     struct OpenAPI_Response resp_inl;
     memset(&op_inl, 0, sizeof(op_inl));
     memset(&resp_inl, 0, sizeof(resp_inl));
-    op_inl.operation_id = (char *)(size_t)(size_t) "testInlineResp";
+    op_inl.operation_id = cdd_test_mut_str("testInlineResp");
     op_inl.n_responses = 1;
     op_inl.responses = &resp_inl;
-    resp_inl.code = (char *)(size_t)(size_t) "200";
-    resp_inl.schema.inline_type = (char *)(size_t)(size_t) "integer";
+    resp_inl.code = cdd_test_mut_str("200");
+    resp_inl.schema.inline_type = cdd_test_mut_str("integer");
     resp_inl.schema.is_array = 1;
     resp_inl.schema.ref_name = NULL;
     ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_inl, NULL, &code));
@@ -429,12 +427,11 @@ TEST test_sig_ultra_coverage(void) {
     struct OpenAPI_Response resp_bin;
     memset(&op_bin_resp, 0, sizeof(op_bin_resp));
     memset(&resp_bin, 0, sizeof(resp_bin));
-    op_bin_resp.operation_id =
-        (char *)(size_t)(size_t) "testBinaryRespNoSchema";
+    op_bin_resp.operation_id = cdd_test_mut_str("testBinaryRespNoSchema");
     op_bin_resp.n_responses = 1;
     op_bin_resp.responses = &resp_bin;
-    resp_bin.code = (char *)(size_t)(size_t) "200";
-    resp_bin.content_type = (char *)(size_t)(size_t) "application/octet-stream";
+    resp_bin.code = cdd_test_mut_str("200");
+    resp_bin.content_type = cdd_test_mut_str("application/octet-stream");
     /* Clear req_body schema so fallback schema has no ref_name, no inline, no
      * is_array */
     memset(&op_bin_resp.req_body, 0, sizeof(op_bin_resp.req_body));
@@ -455,8 +452,8 @@ TEST test_sig_ultra_coverage(void) {
     memset(&resp_2xx_inl, 0, sizeof(resp_2xx_inl));
     op_2xx_inl.n_responses = 1;
     op_2xx_inl.responses = &resp_2xx_inl;
-    resp_2xx_inl.code = (char *)(size_t)(size_t) "2XX";
-    resp_2xx_inl.schema.inline_type = (char *)(size_t)(size_t) "integer";
+    resp_2xx_inl.code = cdd_test_mut_str("2XX");
+    resp_2xx_inl.schema.inline_type = cdd_test_mut_str("integer");
     resp_2xx_inl.schema.ref_name = NULL;
     resp_2xx_inl.schema.is_array = 0;
     ASSERT_EQ(CDD_C_SUCCESS,
@@ -482,7 +479,7 @@ TEST test_sig_ultra_coverage(void) {
     memset(&resp_2x0, 0, sizeof(resp_2x0));
     op_2x0.n_responses = 1;
     op_2x0.responses = &resp_2x0;
-    resp_2x0.code = (char *)(size_t)(size_t) "2X0";
+    resp_2x0.code = cdd_test_mut_str("2X0");
     ASSERT_EQ(CDD_C_SUCCESS,
               cdd_test_sig_get_success_response(&op_2x0, &r_out));
     ASSERT(r_out == &resp_2x0);
@@ -497,7 +494,7 @@ TEST test_sig_ultra_coverage(void) {
     memset(&resp_len2, 0, sizeof(resp_len2));
     op_len2.n_responses = 1;
     op_len2.responses = &resp_len2;
-    resp_len2.code = (char *)(size_t)(size_t) "2";
+    resp_len2.code = cdd_test_mut_str("2");
     ASSERT_EQ(CDD_C_SUCCESS,
               cdd_test_sig_get_success_response(&op_len2, &r_out));
     ASSERT(r_out == &resp_len2);
@@ -513,8 +510,8 @@ TEST test_sig_ultra_coverage(void) {
     memset(&resp_200, 0, sizeof(resp_200));
     op_200.n_responses = 1;
     op_200.responses = &resp_200;
-    resp_200.code = (char *)(size_t)(size_t) "200";
-    resp_200.schema.ref_name = (char *)(size_t)(size_t) "Item";
+    resp_200.code = cdd_test_mut_str("200");
+    resp_200.schema.ref_name = cdd_test_mut_str("Item");
     ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_schema(&op_200, &s_out));
     ASSERT(s_out == &resp_200.schema);
   }
@@ -528,8 +525,8 @@ TEST test_sig_ultra_coverage(void) {
     memset(&resp_2x0s, 0, sizeof(resp_2x0s));
     op_2x0s.n_responses = 1;
     op_2x0s.responses = &resp_2x0s;
-    resp_2x0s.code = (char *)(size_t)(size_t) "2X0";
-    resp_2x0s.schema.ref_name = (char *)(size_t)(size_t) "Item";
+    resp_2x0s.code = cdd_test_mut_str("2X0");
+    resp_2x0s.schema.ref_name = cdd_test_mut_str("Item");
     ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_schema(&op_2x0s, &s_out));
     ASSERT(s_out == &resp_2x0s.schema);
   }
@@ -540,7 +537,7 @@ TEST test_sig_ultra_coverage(void) {
     struct CodegenSigConfig cfg_ctx2;
     memset(&op_ctx2, 0, sizeof(op_ctx2));
     memset(&cfg_ctx2, 0, sizeof(cfg_ctx2));
-    op_ctx2.operation_id = (char *)(size_t)(size_t) "testCustomCtx";
+    op_ctx2.operation_id = cdd_test_mut_str("testCustomCtx");
     cfg_ctx2.ctx_type = "void *";
     ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_ctx2, &cfg_ctx2, &code));
     ASSERT(code != NULL);

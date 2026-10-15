@@ -1,3 +1,7 @@
+/**
+ * @file query_projection.h
+ * @brief Core query projection definitions and implementation.
+ */
 #ifndef C_CDD_QUERY_PROJECTION_H
 #define C_CDD_QUERY_PROJECTION_H
 

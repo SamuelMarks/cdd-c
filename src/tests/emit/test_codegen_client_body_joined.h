@@ -31,9 +31,9 @@ TEST test_client_body_form_object_style_form_explode(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)(size_t) "post";
+  op.method = cdd_test_mut_str("post");
   op.verb = OA_VERB_POST;
-  op.operation_id = (char *)(size_t)(size_t) "testFormObjStyle";
+  op.operation_id = cdd_test_mut_str("testFormObjStyle");
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
@@ -76,17 +76,17 @@ TEST test_client_body_form_object_style_form_explode(void) {
 #endif
 #endif /* self-ref for test */
 
-  op.req_body.ref_name = (char *)(size_t)(size_t) "MockSchemaFormObj";
+  op.req_body.ref_name = cdd_test_mut_str("MockSchemaFormObj");
 
   op.req_body.content_type =
-      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+      cdd_test_mut_str("application/x-www-form-urlencoded");
   op.n_req_body_media_types = 1;
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name =
-      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+      cdd_test_mut_str("application/x-www-form-urlencoded");
 
   memset(&enc, 0, sizeof(enc));
-  enc.name = (char *)(size_t)(size_t) "obj_prop";
+  enc.name = cdd_test_mut_str("obj_prop");
   enc.style_set = 1;
   enc.style = OA_STYLE_FORM;
   enc.explode_set = 1;
@@ -124,15 +124,15 @@ TEST test_client_body_cookie_object_style_form_explode(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)(size_t) "get";
+  op.method = cdd_test_mut_str("get");
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)(size_t) "testCookieObjStyle";
+  op.operation_id = cdd_test_mut_str("testCookieObjStyle");
 
   op.n_parameters = 1;
   op.parameters = calloc(1, sizeof(*op.parameters));
-  op.parameters[0].name = (char *)(size_t)(size_t) "cookie_obj";
+  op.parameters[0].name = cdd_test_mut_str("cookie_obj");
   op.parameters[0].in = OA_PARAM_IN_COOKIE;
-  op.parameters[0].type = (char *)(size_t)(size_t) "object";
+  op.parameters[0].type = cdd_test_mut_str("object");
   op.parameters[0].style = OA_STYLE_FORM;
   op.parameters[0].explode_set = 1;
   op.parameters[0].explode = 1;
@@ -162,20 +162,19 @@ TEST test_client_body_response_is_textual_string_indirect(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)(size_t) "get";
+  op.method = cdd_test_mut_str("get");
   op.verb = OA_VERB_GET;
-  op.operation_id =
-      (char *)(size_t)(size_t) "testResponseIsTextualStringIndirect";
+  op.operation_id = cdd_test_mut_str("testResponseIsTextualStringIndirect");
 
   op.n_responses = 1;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
 
   /* Set up content type directly on the response to trigger */
   /* `response_is_textual_string` */
-  resp.content_type = (char *)(size_t)(size_t) "text/plain";
-  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
+  resp.content_type = cdd_test_mut_str("text/plain");
+  resp.schema.inline_type = cdd_test_mut_str("string");
   resp.schema.is_array = 0;
 
   /* Also we need to make sure the media_types don't override it in the new */
@@ -185,8 +184,8 @@ TEST test_client_body_response_is_textual_string_indirect(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* Also hit schema_has_inline missing branches */
-  resp.content_type = (char *)(size_t)(size_t) "text/plain";
-  resp.schema.inline_type = (char *)(size_t)(size_t) "integer"; /* not string */
+  resp.content_type = cdd_test_mut_str("text/plain");
+  resp.schema.inline_type = cdd_test_mut_str("integer"); /* not string */
   resp.schema.is_array = 0;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
@@ -212,16 +211,16 @@ TEST test_client_body_response_is_textual_string_success(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)(size_t) "get";
+  op.method = cdd_test_mut_str("get");
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)(size_t) "testResponseTextualSuccess";
+  op.operation_id = cdd_test_mut_str("testResponseTextualSuccess");
 
   op.n_responses = 1;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.content_type = (char *)(size_t)(size_t) "text/plain";
-  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
+  resp.code = cdd_test_mut_str("200");
+  resp.content_type = cdd_test_mut_str("text/plain");
+  resp.schema.inline_type = cdd_test_mut_str("string");
   resp.schema.is_array = 0;
 
   op.responses = &resp;
@@ -250,24 +249,22 @@ TEST test_client_body_write_text_plain_success_indirect(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)(size_t) "get";
+  op.method = cdd_test_mut_str("get");
   op.verb = OA_VERB_GET;
-  op.operation_id =
-      (char *)(size_t)(size_t) "testResponseTextualSuccessIndirect";
+  op.operation_id = cdd_test_mut_str("testResponseTextualSuccessIndirect");
 
   op.n_responses = 1;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.content_type = (char *)(size_t)(size_t) "text/plain";
-  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
+  resp.code = cdd_test_mut_str("200");
+  resp.content_type = cdd_test_mut_str("text/plain");
+  resp.schema.inline_type = cdd_test_mut_str("string");
   resp.schema.is_array = 0;
 
   resp.n_content_media_types = 1;
   resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
-  resp.content_media_types[0].name = (char *)(size_t)(size_t) "text/plain";
-  resp.content_media_types[0].schema.inline_type =
-      (char *)(size_t)(size_t) "string";
+  resp.content_media_types[0].name = cdd_test_mut_str("text/plain");
+  resp.content_media_types[0].schema.inline_type = cdd_test_mut_str("string");
   resp.content_media_types[0].schema.is_array = 0;
 
   op.responses = &resp;
@@ -297,16 +294,15 @@ TEST test_client_body_write_binary_success_indirect_real(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)(size_t) "get";
+  op.method = cdd_test_mut_str("get");
   op.verb = OA_VERB_GET;
-  op.operation_id =
-      (char *)(size_t)(size_t) "testResponseBinarySuccessIndirectReal";
+  op.operation_id = cdd_test_mut_str("testResponseBinarySuccessIndirectReal");
 
   op.n_responses = 1;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.content_type = (char *)(size_t)(size_t) "image/png"; /* Binary! */
+  resp.code = cdd_test_mut_str("200");
+  resp.content_type = cdd_test_mut_str("image/png"); /* Binary! */
 
   op.responses = &resp;
 
@@ -334,17 +330,17 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)(size_t) "get";
+  op.method = cdd_test_mut_str("get");
   op.verb = OA_VERB_GET;
   op.operation_id =
-      (char *)(size_t)(size_t) "testResponseTextualSuccessIndirectRealFixed";
+      cdd_test_mut_str("testResponseTextualSuccessIndirectRealFixed");
 
   op.n_responses = 1;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.content_type = (char *)(size_t)(size_t) "text/plain";
-  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
+  resp.code = cdd_test_mut_str("200");
+  resp.content_type = cdd_test_mut_str("text/plain");
+  resp.schema.inline_type = cdd_test_mut_str("string");
   resp.schema.is_array = 0;
 
   /* Make sure it DOES NOT have a ref_name */
@@ -376,28 +372,27 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed4(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)(size_t) "get";
+  op.method = cdd_test_mut_str("get");
   op.verb = OA_VERB_GET;
   op.operation_id =
-      (char *)(size_t)(size_t) "testResponseTextualSuccessIndirectRealFixed4";
+      cdd_test_mut_str("testResponseTextualSuccessIndirectRealFixed4");
 
   op.n_responses = 1;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
 
   /* Set up content type in the media_types map instead! */
   resp.n_content_media_types = 1;
   resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
-  resp.content_media_types[0].name = (char *)(size_t)(size_t) "text/plain";
-  resp.content_media_types[0].schema.inline_type =
-      (char *)(size_t)(size_t) "string";
+  resp.content_media_types[0].name = cdd_test_mut_str("text/plain");
+  resp.content_media_types[0].schema.inline_type = cdd_test_mut_str("string");
   resp.content_media_types[0].schema.is_array = 0;
 
   /* Make sure to populate the root content_type so `response_is_textual_string`
    */
   /* works! */
-  resp.content_type = (char *)(size_t)(size_t) "text/plain";
+  resp.content_type = cdd_test_mut_str("text/plain");
 
   op.responses = &resp;
 
@@ -426,47 +421,46 @@ TEST test_client_body_write_inline_json_parse_types_indirect_string(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)(size_t) "get";
+  op.method = cdd_test_mut_str("get");
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)(size_t) "testInlineParseTypesString";
+  op.operation_id = cdd_test_mut_str("testInlineParseTypesString");
 
   op.n_responses = 1;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
 
   resp.n_content_media_types = 1;
   resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
-  resp.content_media_types[0].name =
-      (char *)(size_t)(size_t) "application/json";
+  resp.content_media_types[0].name = cdd_test_mut_str("application/json");
   op.responses = &resp;
 
   /* Make sure it doesn't get blocked by success_schema_name! */
   resp.schema.ref_name = NULL;
 
   /* array of string */
-  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
+  resp.schema.inline_type = cdd_test_mut_str("string");
   resp.schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of integer */
-  resp.schema.inline_type = (char *)(size_t)(size_t) "integer";
+  resp.schema.inline_type = cdd_test_mut_str("integer");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of number */
-  resp.schema.inline_type = (char *)(size_t)(size_t) "number";
+  resp.schema.inline_type = cdd_test_mut_str("number");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of boolean */
-  resp.schema.inline_type = (char *)(size_t)(size_t) "boolean";
+  resp.schema.inline_type = cdd_test_mut_str("boolean");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of fallback */
-  resp.schema.inline_type = (char *)(size_t)(size_t) "unknown_type";
+  resp.schema.inline_type = cdd_test_mut_str("unknown_type");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* not an array boolean */
-  resp.schema.inline_type = (char *)(size_t)(size_t) "boolean";
+  resp.schema.inline_type = cdd_test_mut_str("boolean");
   resp.schema.is_array = 0;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
@@ -530,15 +524,15 @@ TEST test_client_body_write_joined_form_array_direct(void) {
     spec.defined_schema_names[0] = strdup("MyStruct");
     spec.n_defined_schemas = 1;
     op.verb = OA_VERB_POST;
-    op.req_body.ref_name = (char *)(size_t)(size_t) "MyStruct";
+    op.req_body.ref_name = cdd_test_mut_str("MyStruct");
     op.req_body.content_type =
-        (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
-    enc.name = (char *)(size_t)(size_t) "arr";
+        cdd_test_mut_str("application/x-www-form-urlencoded");
+    enc.name = cdd_test_mut_str("arr");
     enc.style = OA_STYLE_FORM;
     enc.style_set = 1;
     enc.explode = 0;
     enc.explode_set = 1;
-    mt.name = (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+    mt.name = cdd_test_mut_str("application/x-www-form-urlencoded");
     mt.encoding = calloc(1, sizeof(struct OpenAPI_Encoding));
     mt.encoding[0] = enc;
     mt.n_encoding = 1;
@@ -693,15 +687,15 @@ TEST test_client_body_write_joined_form_array_direct_io(void) {
       spec.defined_schema_names[0] = strdup("MyStruct");
       spec.n_defined_schemas = 1;
       op.verb = OA_VERB_POST;
-      op.req_body.ref_name = (char *)(size_t)(size_t) "MyStruct";
+      op.req_body.ref_name = cdd_test_mut_str("MyStruct");
       op.req_body.content_type =
-          (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
-      enc.name = (char *)(size_t)(size_t) "arr";
+          cdd_test_mut_str("application/x-www-form-urlencoded");
+      enc.name = cdd_test_mut_str("arr");
       enc.style = OA_STYLE_FORM;
       enc.style_set = 1;
       enc.explode = 0;
       enc.explode_set = 1;
-      mt.name = (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+      mt.name = cdd_test_mut_str("application/x-www-form-urlencoded");
       mt.encoding = calloc(1, sizeof(struct OpenAPI_Encoding));
       mt.encoding[0] = enc;
       mt.n_encoding = 1;
@@ -828,34 +822,34 @@ TEST test_client_body_write_joined_form_array(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)(size_t) "get";
+  op.method = cdd_test_mut_str("get");
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)(size_t) "testJoinedFormArray";
+  op.operation_id = cdd_test_mut_str("testJoinedFormArray");
 
   op.n_parameters = 1;
   op.parameters = calloc(1, sizeof(*op.parameters));
-  op.parameters[0].name = (char *)(size_t)(size_t) "query_arr";
+  op.parameters[0].name = cdd_test_mut_str("query_arr");
   op.parameters[0].in = OA_PARAM_IN_QUERY;
-  op.parameters[0].type = (char *)(size_t)(size_t) "array";
-  op.parameters[0].items_type = (char *)(size_t)(size_t) "object";
+  op.parameters[0].type = cdd_test_mut_str("array");
+  op.parameters[0].items_type = cdd_test_mut_str("object");
   op.parameters[0].style = OA_STYLE_FORM;
   op.parameters[0].explode_set = 1;
   op.parameters[0].explode = 0;
 
   /* Set array of strings basically via mock */
-  op.parameters[0].items_type = (char *)(size_t)(size_t) "string";
+  op.parameters[0].items_type = cdd_test_mut_str("string");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.parameters[0].items_type = (char *)(size_t)(size_t) "integer";
+  op.parameters[0].items_type = cdd_test_mut_str("integer");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.parameters[0].items_type = (char *)(size_t)(size_t) "number";
+  op.parameters[0].items_type = cdd_test_mut_str("number");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.parameters[0].items_type = (char *)(size_t)(size_t) "boolean";
+  op.parameters[0].items_type = cdd_test_mut_str("boolean");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.parameters[0].items_type = (char *)(size_t)(size_t) "unsupported";
+  op.parameters[0].items_type = cdd_test_mut_str("unsupported");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* Also try different delim via pipedd */
@@ -889,17 +883,17 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed3(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)(size_t) "get";
+  op.method = cdd_test_mut_str("get");
   op.verb = OA_VERB_GET;
   op.operation_id =
-      (char *)(size_t)(size_t) "testResponseTextualSuccessIndirectRealFixed3";
+      cdd_test_mut_str("testResponseTextualSuccessIndirectRealFixed3");
 
   op.n_responses = 1;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.content_type = (char *)(size_t)(size_t) "text/plain";
-  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
+  resp.code = cdd_test_mut_str("200");
+  resp.content_type = cdd_test_mut_str("text/plain");
+  resp.schema.inline_type = cdd_test_mut_str("string");
   resp.schema.is_array = 0;
 
   op.responses = &resp;

@@ -23,12 +23,23 @@ extern "C" {
 
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
+#include "../../cdd_api.h"
 #include "docstrings/parse/doc.h"
 #include "openapi/emit/openapi.h"
 #include "routes/emit/operation.h"
 /* clang-format on */
 
 struct TypeDefList;
+
+/**
+ * @brief Generates an OpenAPI specification from C source code using a typed
+ * configuration struct.
+ *
+ * @param[in] config Configuration struct.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+c2openapi_generate(const cdd_to_openapi_config_t *config);
 
 /**
  * @brief Registers parsed C types into an OpenAPI specification schemas list.

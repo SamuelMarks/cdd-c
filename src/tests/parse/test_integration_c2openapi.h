@@ -129,10 +129,10 @@ TEST test_c2openapi_full_flow(void) {
     /* C90 compliant initialization */
     char *argv[5]; /* ... */
 
-    argv[0] = (char *)(size_t)(size_t) "c2openapi";
-    argv[1] = (char *)(size_t)(size_t) "--dialect";
-    argv[2] = (char *)(size_t)(size_t) "https://spec.openapis.org/oas/3.1/"
-                                       "dialect/base";
+    argv[0] = cdd_test_mut_str("c2openapi");
+    argv[1] = cdd_test_mut_str("--dialect");
+    argv[2] = cdd_test_mut_str("https://spec.openapis.org/oas/3.1/"
+                               "dialect/base");
     argv[3] = src_dir;
     argv[4] = out_json;
 
@@ -290,11 +290,11 @@ TEST test_c2openapi_full_flow(void) {
   remove(h_file);
   remove(out_json);
   rmdir(src_dir);
-  free((void *)(size_t)c_file);
-  free((void *)(size_t)h_file);
-  free((void *)(size_t)out_json);
-  free((void *)(size_t)src_dir);
-  free((void *)(size_t)tmp_dir);
+  free(c_file);
+  free(h_file);
+  free(out_json);
+  free(src_dir);
+  free(tmp_dir);
   g_fail_io_after = -1;
 
   rc += 0;
@@ -385,8 +385,8 @@ TEST test_c2openapi_with_base_spec(void) {
   {
     char *argv[5]; /* ... */
 
-    argv[0] = (char *)(size_t)(size_t) "c2openapi";
-    argv[1] = (char *)(size_t)(size_t) "--base";
+    argv[0] = cdd_test_mut_str("c2openapi");
+    argv[1] = cdd_test_mut_str("--base");
     argv[2] = base_json;
     argv[3] = src_dir;
     argv[4] = out_json;
@@ -435,12 +435,12 @@ TEST test_c2openapi_with_base_spec(void) {
   remove(out_json);
   remove(base_json);
   rmdir(src_dir);
-  free((void *)(size_t)c_file);
-  free((void *)(size_t)h_file);
-  free((void *)(size_t)out_json);
-  free((void *)(size_t)base_json);
-  free((void *)(size_t)src_dir);
-  free((void *)(size_t)tmp_dir);
+  free(c_file);
+  free(h_file);
+  free(out_json);
+  free(base_json);
+  free(src_dir);
+  free(tmp_dir);
   g_fail_io_after = -1;
 
   rc += 0;
@@ -476,9 +476,9 @@ TEST test_c2openapi_with_self_uri(void) {
   {
     char *argv[5]; /* ... */
 
-    argv[0] = (char *)(size_t)(size_t) "c2openapi";
-    argv[1] = (char *)(size_t)(size_t) "--self";
-    argv[2] = (char *)(size_t)(size_t) "https://example.com/override.json";
+    argv[0] = cdd_test_mut_str("c2openapi");
+    argv[1] = cdd_test_mut_str("--self");
+    argv[2] = cdd_test_mut_str("https://example.com/override.json");
     argv[3] = src_dir;
     argv[4] = out_json;
     rc = c2openapi_cli_main(5, argv);
@@ -499,11 +499,11 @@ TEST test_c2openapi_with_self_uri(void) {
   remove(h_file);
   remove(out_json);
   rmdir(src_dir);
-  free((void *)(size_t)c_file);
-  free((void *)(size_t)h_file);
-  free((void *)(size_t)out_json);
-  free((void *)(size_t)src_dir);
-  free((void *)(size_t)tmp_dir);
+  free(c_file);
+  free(h_file);
+  free(out_json);
+  free(src_dir);
+  free(tmp_dir);
   g_fail_io_after = -1;
 
   rc += 0;
@@ -554,7 +554,7 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
   {
     char *argv[3]; /* ... */
 
-    argv[0] = (char *)(size_t)(size_t) "c2openapi";
+    argv[0] = cdd_test_mut_str("c2openapi");
     argv[1] = src_dir;
     argv[2] = out_json;
     rc = c2openapi_cli_main(3, argv);
@@ -605,10 +605,10 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
   remove(c_file);
   remove(out_json);
   rmdir(src_dir);
-  free((void *)(size_t)c_file);
-  free((void *)(size_t)out_json);
-  free((void *)(size_t)src_dir);
-  free((void *)(size_t)tmp_dir);
+  free(c_file);
+  free(out_json);
+  free(src_dir);
+  free(tmp_dir);
   g_fail_io_after = -1;
 
   rc += 0;

@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_php.c
+ * @brief FFI binding emitter for Php.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -7,72 +11,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
+static cdd_c_error_t get_cdef_type(cdd_ffi_type_t type, const char **out_type) {
+  static const cdd_ffi_type_map_table_t k_php_types = {
+      "void",     "bool",    "int8_t",   "uint8_t", "int16_t",
+      "uint16_t", "int32_t", "uint32_t", "int64_t", "uint64_t",
+      "float",    "double",  "char*",    "void*",   NULL,
+      "int",      1,         0,          1};
+  return cdd_ffi_map_type_from_table(&k_php_types, type, out_type);
 }
 
-static const char *get_cdef_type(cdd_ffi_type_t type) {
-  if (type.pointer_depth > 0) {
-    if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
-      return "char*";
-    }
-    return "void*";
-  }
-
-  switch (type.kind) {
-  case CDD_FFI_KIND_VOID:
-    return "void";
-  case CDD_FFI_KIND_BOOL:
-    return "bool";
-  case CDD_FFI_KIND_INT8:
-    return "int8_t";
-  case CDD_FFI_KIND_UINT8:
-    return "uint8_t";
-  case CDD_FFI_KIND_INT16:
-    return "int16_t";
-  case CDD_FFI_KIND_UINT16:
-    return "uint16_t";
-  case CDD_FFI_KIND_INT32:
-    return "int32_t";
-  case CDD_FFI_KIND_UINT32:
-    return "uint32_t";
-  case CDD_FFI_KIND_INT64:
-    return "int64_t";
-  case CDD_FFI_KIND_UINT64:
-    return "uint64_t";
-  case CDD_FFI_KIND_FLOAT32:
-    return "float";
-  case CDD_FFI_KIND_FLOAT64:
-    return "double";
-  case CDD_FFI_KIND_FUNCTION_PTR:
-    return "void*";
-  case CDD_FFI_KIND_STRUCT_REF:
-    return type.ref_name ? type.ref_name : "void*";
-  case CDD_FFI_KIND_ENUM_REF:
-    return "int";
-  case CDD_FFI_KIND_TYPEDEF_REF:
-    return type.ref_name ? type.ref_name : "void*";
-  case CDD_FFI_KIND_OPAQUE_PTR:
-    return "void*";
-  default:
-    return "void*";
-  }
-}
-
-static void to_camel_case(const char *snake, char *out, size_t out_size) {
+static cdd_c_error_t to_camel_case(const char *snake, char *out,
+                                   size_t out_size) {
   size_t i, j = 0;
   int up = 1;
   for (i = 0; i < strlen(snake) && j < out_size - 1; i++) {
@@ -88,6 +40,7 @@ static void to_camel_case(const char *snake, char *out, size_t out_size) {
     }
   }
   out[j] = '\0';
+  return CDD_C_SUCCESS;
 }
 
 static cdd_c_error_t
@@ -135,12 +88,13 @@ emit_php_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "            struct %s {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
-        const char *ftype = get_cdef_type(node->fields[j].type);
+        const char *ftype = NULL;
+        get_cdef_type(node->fields[j].type, &ftype);
         if (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF) {
           fprintf(f, "                struct %s %s;\n", ftype, fname);
         } else {
@@ -149,11 +103,14 @@ emit_php_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       }
       fprintf(f, "            };\n");
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
-      fprintf(f, "            %s %s(", get_cdef_type(node->return_or_base_type),
-              node->name);
+      const char *ret_ct = NULL;
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      get_cdef_type(node->return_or_base_type, &ret_ct);
+      fprintf(f, "            %s %s(", ret_ct, node->name);
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "%s %s", get_cdef_type(node->fields[j].type),
+        const char *ct = NULL;
+        get_cdef_type(node->fields[j].type, &ct);
+        fprintf(f, "%s %s", ct,
                 node->fields[j].name ? node->fields[j].name : "arg");
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
@@ -170,7 +127,7 @@ emit_php_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "    /**\n     * %s\n     */\n", node->doc);
       fprintf(f, "    public function %s(", node->name);

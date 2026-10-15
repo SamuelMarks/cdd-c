@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_napi.h
+ * @brief FFI binding emitter for Napi.
+ */
 #ifndef CDD_FFI_EMIT_NAPI_H
 #define CDD_FFI_EMIT_NAPI_H
 

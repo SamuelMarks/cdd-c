@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_objc.c
+ * @brief FFI binding emitter for Objc.
+ */
 #ifdef CDD_BUILD_TESTS
 #ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
@@ -17,63 +21,85 @@ extern volatile int g_fail_io_after;
 #include <string.h>
 /* clang-format on */
 
-static const char *map_objc_type(cdd_ffi_type_t *t, int is_return) {
+static cdd_c_error_t map_objc_type(cdd_ffi_type_t *t, int is_return,
+                                   const char **out_type) {
   if (t->pointer_depth > 0) {
     if (t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) {
       if (t->is_const) {
-        return is_return ? "NSString *" : "NSString * _Nonnull";
+        *out_type = is_return ? "NSString *" : "NSString * _Nonnull";
+        return CDD_C_SUCCESS;
       }
-      return "char *";
+      *out_type = "char *";
+      return CDD_C_SUCCESS;
     }
     if (t->kind == CDD_FFI_KIND_STRUCT_REF ||
         t->kind == CDD_FFI_KIND_TYPEDEF_REF ||
         t->kind == CDD_FFI_KIND_ENUM_REF) {
       if (t->ref_name) {
-        return t->ref_name; /* assume it maps to an ObjC class pointer, usually
-                               needs '*' added later */
+        *out_type = t->ref_name; /* assume it maps to an ObjC class pointer,
+                                    usually needs '*' added later */
+        return CDD_C_SUCCESS;
       }
     }
-    return "void *";
+    *out_type = "void *";
+    return CDD_C_SUCCESS;
   }
   switch (t->kind) {
   case CDD_FFI_KIND_VOID:
-    return "void";
+    *out_type = "void";
+    break;
   case CDD_FFI_KIND_BOOL:
-    return "BOOL";
+    *out_type = "BOOL";
+    break;
   case CDD_FFI_KIND_INT8:
-    return "int8_t";
+    *out_type = "int8_t";
+    break;
   case CDD_FFI_KIND_UINT8:
-    return "uint8_t";
+    *out_type = "uint8_t";
+    break;
   case CDD_FFI_KIND_INT16:
-    return "int16_t";
+    *out_type = "int16_t";
+    break;
   case CDD_FFI_KIND_UINT16:
-    return "uint16_t";
+    *out_type = "uint16_t";
+    break;
   case CDD_FFI_KIND_INT32:
-    return "int32_t";
+    *out_type = "int32_t";
+    break;
   case CDD_FFI_KIND_UINT32:
-    return "uint32_t";
+    *out_type = "uint32_t";
+    break;
   case CDD_FFI_KIND_INT64:
-    return "int64_t";
+    *out_type = "int64_t";
+    break;
   case CDD_FFI_KIND_UINT64:
-    return "uint64_t";
+    *out_type = "uint64_t";
+    break;
   case CDD_FFI_KIND_FLOAT32:
-    return "float";
+    *out_type = "float";
+    break;
   case CDD_FFI_KIND_FLOAT64:
-    return "double";
+    *out_type = "double";
+    break;
   case CDD_FFI_KIND_STRUCT_REF:
   case CDD_FFI_KIND_ENUM_REF:
   case CDD_FFI_KIND_TYPEDEF_REF:
     if (t->ref_name) {
-      return t->ref_name;
+      *out_type = t->ref_name;
+    } else {
+      *out_type = "void *";
     }
-    return "void *";
+    break;
   default:
-    return "void *";
+    *out_type = "void *";
+    break;
   }
+  return CDD_C_SUCCESS;
 }
 
-static void capitalize_first(char *str) {
+static cdd_c_error_t capitalize_first(char *str) {
   str[0] = (char)toupper((unsigned char)str[0]);
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
@@ -171,10 +197,12 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
     if (node->kind == CDD_FFI_NODE_STRUCT) {
       fprintf(h_file, "@interface %s : NSObject\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *t_str = map_objc_type(&node->fields[j].type, 1);
+        const char *t_str = NULL;
+        int is_obj;
+        map_objc_type(&node->fields[j].type, 1, &t_str);
         /* simplistic pointer handling for class refs */
-        int is_obj = (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF ||
-                      strstr(t_str, "NSString") != NULL);
+        is_obj = (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF ||
+                  strstr(t_str, "NSString") != NULL);
         fprintf(h_file, "@property (nonatomic%s) %s%s%s;\n",
                 is_obj ? ", strong" : ", assign", t_str,
                 is_obj && !strstr(t_str, "*") ? " *" : " ",
@@ -189,24 +217,25 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      const char *ret_type = map_objc_type(&node->return_or_base_type, 1);
-      int ret_is_obj =
-          (node->return_or_base_type.kind == CDD_FFI_KIND_STRUCT_REF ||
-           strstr(ret_type, "NSString") != NULL);
+      const char *ret_type = NULL;
+      int ret_is_obj;
+      map_objc_type(&node->return_or_base_type, 1, &ret_type);
+      ret_is_obj = (node->return_or_base_type.kind == CDD_FFI_KIND_STRUCT_REF ||
+                    strstr(ret_type, "NSString") != NULL);
 
       fprintf(h_file, "+ (%s%s)%s", ret_type,
               ret_is_obj && !strstr(ret_type, "*") ? " *" : "", node->name);
 
       if (node->fields_count > 0) {
         for (j = 0; j < node->fields_count; j++) {
-          const char *arg_type = map_objc_type(&node->fields[j].type, 0);
-          int arg_is_obj =
-              (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF ||
-               strstr(arg_type, "NSString") != NULL);
-
+          const char *arg_type = NULL;
+          int arg_is_obj;
           const char *arg_name =
               node->fields[j].name ? node->fields[j].name : "arg";
           char arg_name_cap[256];
+          map_objc_type(&node->fields[j].type, 0, &arg_type);
+          arg_is_obj = (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF ||
+                        strstr(arg_type, "NSString") != NULL);
           CDD_STRNCPY(arg_name_cap, sizeof(arg_name_cap), arg_name,
                       sizeof(arg_name_cap) - 1);
           arg_name_cap[sizeof(arg_name_cap) - 1] = '\0';
@@ -252,24 +281,25 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      const char *ret_type = map_objc_type(&node->return_or_base_type, 1);
-      int ret_is_obj =
-          (node->return_or_base_type.kind == CDD_FFI_KIND_STRUCT_REF ||
-           strstr(ret_type, "NSString") != NULL);
+      const char *ret_type = NULL;
+      int ret_is_obj;
+      map_objc_type(&node->return_or_base_type, 1, &ret_type);
+      ret_is_obj = (node->return_or_base_type.kind == CDD_FFI_KIND_STRUCT_REF ||
+                    strstr(ret_type, "NSString") != NULL);
 
       fprintf(m_file, "+ (%s%s)%s", ret_type,
               ret_is_obj && !strstr(ret_type, "*") ? " *" : "", node->name);
 
       if (node->fields_count > 0) {
         for (j = 0; j < node->fields_count; j++) {
-          const char *arg_type = map_objc_type(&node->fields[j].type, 0);
-          int arg_is_obj =
-              (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF ||
-               strstr(arg_type, "NSString") != NULL);
-
+          const char *arg_type = NULL;
+          int arg_is_obj;
           const char *arg_name =
               node->fields[j].name ? node->fields[j].name : "arg";
           char arg_name_cap[256];
+          map_objc_type(&node->fields[j].type, 0, &arg_type);
+          arg_is_obj = (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF ||
+                        strstr(arg_type, "NSString") != NULL);
           CDD_STRNCPY(arg_name_cap, sizeof(arg_name_cap), arg_name,
                       sizeof(arg_name_cap) - 1);
           arg_name_cap[sizeof(arg_name_cap) - 1] = '\0';
@@ -290,7 +320,8 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
 
       /* Argument marshaling */
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_type = map_objc_type(&node->fields[j].type, 0);
+        const char *arg_type = NULL;
+        map_objc_type(&node->fields[j].type, 0, &arg_type);
         if (strstr(arg_type, "NSString") != NULL) {
           fprintf(m_file, "    const char * _c_%s = [%s UTF8String];\n",
                   node->fields[j].name, node->fields[j].name);
@@ -311,7 +342,8 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
 
       fprintf(m_file, "%s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_type = map_objc_type(&node->fields[j].type, 0);
+        const char *arg_type = NULL;
+        map_objc_type(&node->fields[j].type, 0, &arg_type);
         if (j > 0)
           fprintf(m_file, ", ");
 

@@ -1,3 +1,7 @@
+/**
+ * @file cdd_lexer.h
+ * @brief Core cdd lexer definitions and implementation.
+ */
 #ifndef CDD_LEXER_H
 #define CDD_LEXER_H
 

@@ -19,19 +19,9 @@ extern "C" {
 #include "routes/emit/operation.h"
 /* clang-format on */
 
-extern C_CDD_EXPORT int g_cdd_fail_schema_ref_has_data;
 extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
-extern C_CDD_EXPORT int g_cdd_fail_apply_format;
 extern C_CDD_EXPORT int g_cdd_fail_stricmp;
-extern C_CDD_EXPORT int g_op_fail_find_media_type_op;
-extern C_CDD_EXPORT int g_op_fail_oa_type_is_primitive;
 extern C_CDD_EXPORT int g_mapping_fail_init;
-extern C_CDD_EXPORT int g_op_fail_find_doc_param;
-extern C_CDD_EXPORT int g_op_fail_is_path_param;
-extern C_CDD_EXPORT int g_op_fail_is_struct_pointer;
-extern C_CDD_EXPORT int g_op_fail_doc_style_to_openapi;
-extern C_CDD_EXPORT int g_op_fail_ensure_response_null;
-extern C_CDD_EXPORT int g_op_fail_ensure_response_for_code;
 
 static void reset_operation_test(struct OpenAPI_Operation *op) {
   size_t i;

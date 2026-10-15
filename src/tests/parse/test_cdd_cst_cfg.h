@@ -31,9 +31,9 @@ TEST test_cdd_cst_cfg_basic(void) {
   cdd_cst_node_t *func = NULL;
   cdd_cst_cfg_t *cfg = NULL;
   int rc = 0;
-  const char *src = (char *)(size_t)(size_t) "int main() { return 0; }";
+  const char *src = cdd_test_mut_str("int main() { return 0; }");
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str(src), &tree);
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree->root->num_children; i++) {
@@ -80,9 +80,9 @@ TEST test_cdd_cst_cfg_oom(void) {
   cdd_cst_node_t *func = NULL;
   cdd_cst_cfg_t *cfg = NULL;
   int rc = 0;
-  const char *src = (char *)(size_t)(size_t) "int main() { return 0; }";
+  const char *src = cdd_test_mut_str("int main() { return 0; }");
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str(src), &tree);
   ASSERT_EQ(0, rc);
   func = tree->root;
 
@@ -103,7 +103,7 @@ TEST test_cdd_cst_cfg_oom(void) {
         "if(1){} if(1){} if(1){} if(1){} if(1){} }";
     cdd_cst_tree_t *t2 = NULL;
     cdd_cst_cfg_t *cfg2 = NULL;
-    rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)long_src), &t2);
+    rc = cdd_cst_parse(az_span_create_from_str(long_src), &t2);
     ASSERT_EQ(0, rc);
     rc = cdd_cst_cfg_build(t2->root->children[0].val.node, &cfg2);
     ASSERT_EQ(0, rc);
@@ -113,10 +113,10 @@ TEST test_cdd_cst_cfg_oom(void) {
   {
     /* extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail; (moved to global) */
     int i;
-    const char *ret_src = (char *)(size_t)(size_t) "int f() { return 0; }";
+    const char *ret_src = cdd_test_mut_str("int f() { return 0; }");
     cdd_cst_tree_t *ret_t = NULL;
     cdd_cst_cfg_t *ret_cfg = NULL;
-    cdd_cst_parse(az_span_create_from_str((char *)(size_t)ret_src), &ret_t);
+    cdd_cst_parse(az_span_create_from_str(ret_src), &ret_t);
     for (i = 1; i < 50; ++i) {
       g_cdd_cfg_alloc_fail = i;
       rc = cdd_cst_cfg_build(ret_t->root->children[0].val.node, &ret_cfg);
@@ -132,7 +132,7 @@ TEST test_cdd_cst_cfg_oom(void) {
       const char *if_src = "int f() { if(1){} else{} }";
       cdd_cst_tree_t *if_t = NULL;
       cdd_cst_cfg_t *if_cfg = NULL;
-      cdd_cst_parse(az_span_create_from_str((char *)(size_t)if_src), &if_t);
+      cdd_cst_parse(az_span_create_from_str(if_src), &if_t);
       for (i = 1; i < 150; ++i) {
         g_cdd_cfg_alloc_fail = i;
         rc = cdd_cst_cfg_build(if_t->root->children[0].val.node, &if_cfg);
@@ -150,7 +150,7 @@ TEST test_cdd_cst_cfg_oom(void) {
       const char *if2_src = "int f() { if(1){} }";
       cdd_cst_tree_t *if2_t = NULL;
       cdd_cst_cfg_t *if2_cfg = NULL;
-      cdd_cst_parse(az_span_create_from_str((char *)(size_t)if2_src), &if2_t);
+      cdd_cst_parse(az_span_create_from_str(if2_src), &if2_t);
       for (i = 1; i < 150; ++i) {
         g_cdd_cfg_alloc_fail = i;
         rc = cdd_cst_cfg_build(if2_t->root->children[0].val.node, &if2_cfg);
@@ -194,9 +194,9 @@ TEST test_cdd_cst_cfg_empty(void) {
   size_t i;
   cdd_cst_node_t *func = NULL;
   int rc = 0;
-  const char *src = (char *)(size_t)(size_t) "void main() { }";
+  const char *src = cdd_test_mut_str("void main() { }");
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str(src), &tree);
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree->root->num_children; i++) {
@@ -238,9 +238,9 @@ TEST test_cdd_cst_cfg_no_return(void) {
   size_t i;
   cdd_cst_node_t *func = NULL;
   int rc = 0;
-  const char *src = (char *)(size_t)(size_t) "void main() { int a = 5; }";
+  const char *src = cdd_test_mut_str("void main() { int a = 5; }");
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str(src), &tree);
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree->root->num_children; i++) {
@@ -280,11 +280,10 @@ TEST test_cdd_cst_cfg_extra(void) {
   cdd_cst_node_t *func = NULL;
   cdd_cst_cfg_t *cfg = NULL;
   int rc = 0;
-  const char *src =
-      (char *)(size_t)(size_t) "int main() { if (1) { return 0; } "
-                               "else { return 1; } }";
+  const char *src = cdd_test_mut_str("int main() { if (1) { return 0; } "
+                                     "else { return 1; } }");
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str(src), &tree);
   ASSERT_EQ(0, rc);
   func = tree->root->children[0].val.node; /* get function node */
 
@@ -320,7 +319,7 @@ TEST test_cdd_cst_cfg_extra(void) {
         "if(1){} if(1){} if(1){} if(1){} if(1){} }";
     cdd_cst_tree_t *t2 = NULL;
     cdd_cst_cfg_t *cfg2 = NULL;
-    rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)long_src), &t2);
+    rc = cdd_cst_parse(az_span_create_from_str(long_src), &t2);
     ASSERT_EQ(0, rc);
     rc = cdd_cst_cfg_build(t2->root->children[0].val.node, &cfg2);
     ASSERT_EQ(0, rc);
@@ -330,10 +329,10 @@ TEST test_cdd_cst_cfg_extra(void) {
   {
     /* extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail; (moved to global) */
     int i;
-    const char *ret_src = (char *)(size_t)(size_t) "int f() { return 0; }";
+    const char *ret_src = cdd_test_mut_str("int f() { return 0; }");
     cdd_cst_tree_t *ret_t = NULL;
     cdd_cst_cfg_t *ret_cfg = NULL;
-    cdd_cst_parse(az_span_create_from_str((char *)(size_t)ret_src), &ret_t);
+    cdd_cst_parse(az_span_create_from_str(ret_src), &ret_t);
     for (i = 1; i < 50; ++i) {
       g_cdd_cfg_alloc_fail = i;
       rc = cdd_cst_cfg_build(ret_t->root->children[0].val.node, &ret_cfg);
@@ -349,7 +348,7 @@ TEST test_cdd_cst_cfg_extra(void) {
       const char *if_src = "int f() { if(1){} else{} }";
       cdd_cst_tree_t *if_t = NULL;
       cdd_cst_cfg_t *if_cfg = NULL;
-      cdd_cst_parse(az_span_create_from_str((char *)(size_t)if_src), &if_t);
+      cdd_cst_parse(az_span_create_from_str(if_src), &if_t);
       for (i = 1; i < 150; ++i) {
         g_cdd_cfg_alloc_fail = i;
         rc = cdd_cst_cfg_build(if_t->root->children[0].val.node, &if_cfg);
@@ -367,7 +366,7 @@ TEST test_cdd_cst_cfg_extra(void) {
       const char *if2_src = "int f() { if(1){} }";
       cdd_cst_tree_t *if2_t = NULL;
       cdd_cst_cfg_t *if2_cfg = NULL;
-      cdd_cst_parse(az_span_create_from_str((char *)(size_t)if2_src), &if2_t);
+      cdd_cst_parse(az_span_create_from_str(if2_src), &if2_t);
       for (i = 1; i < 150; ++i) {
         g_cdd_cfg_alloc_fail = i;
         rc = cdd_cst_cfg_build(if2_t->root->children[0].val.node, &if2_cfg);
@@ -395,7 +394,8 @@ TEST test_cdd_cst_cfg_extra(void) {
 TEST test_cdd_cst_cfg_if_else(void) {
   cdd_c_error_t rc;
   cdd_cst_cfg_t *cfg = NULL;
-  cdd_cst_node_t *func, *blk, *stmt, *then_stmt, *else_stmt, *extra_stmt;
+  cdd_cst_node_t *func = NULL, *blk = NULL, *stmt = NULL, *then_stmt = NULL,
+                 *else_stmt = NULL, *extra_stmt = NULL;
   cdd_token_t ret_tok;
   cdd_cst_child_t child_tok;
 
@@ -438,23 +438,12 @@ TEST test_cdd_cst_cfg_if_else(void) {
       if (cfg) {
         cdd_cst_cfg_free(cfg);
         cfg = NULL;
-        cfg = NULL;
       }
       if (rc == CDD_C_SUCCESS)
         break;
     }
     g_cdd_cfg_alloc_fail = 0;
   }
-#endif
-#ifdef CDD_BUILD_TESTS
-  {
-    int i;
-    for (i = 1; i < 60; i++) {
-      g_cdd_cfg_alloc_fail = i;
-      cdd_cst_cfg_build(func, &cfg);
-    }
-  }
-  g_cdd_cfg_alloc_fail = 0;
 #endif
   then_stmt->num_children = 0;
   then_stmt->children = NULL;
@@ -468,7 +457,7 @@ TEST test_cdd_cst_cfg_if_else(void) {
 TEST test_cdd_cst_cfg_if_only(void) {
   cdd_c_error_t rc;
   cdd_cst_cfg_t *cfg = NULL;
-  cdd_cst_node_t *func, *blk, *stmt, *then_stmt;
+  cdd_cst_node_t *func = NULL, *blk = NULL, *stmt = NULL, *then_stmt = NULL;
   cdd_cst_alloc_node(CDD_CST_FUNCTION_DEFINITION, &func);
   cdd_cst_alloc_node(CDD_CST_BLOCK, &blk);
   cdd_cst_alloc_node(CDD_CST_STATEMENT, &stmt);
@@ -490,7 +479,6 @@ TEST test_cdd_cst_cfg_if_only(void) {
       if (cfg) {
         cdd_cst_cfg_free(cfg);
         cfg = NULL;
-        cfg = NULL;
       }
       if (rc == CDD_C_SUCCESS)
         break;
@@ -508,10 +496,9 @@ TEST test_cdd_cst_cfg_dead_code(void) {
   cdd_cst_node_t *func = NULL;
   cdd_cst_cfg_t *cfg = NULL;
   int rc = 0;
-  const char *src =
-      (char *)(size_t)(size_t) "int main() { return 0; int dead = 1; }";
+  const char *src = cdd_test_mut_str("int main() { return 0; int dead = 1; }");
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str(src), &tree);
   ASSERT_EQ(0, rc);
   func = tree->root->children[0].val.node;
 
@@ -533,7 +520,7 @@ TEST test_cdd_cst_cfg_if_returns(void) {
   size_t i;
   const char *src = "int f() { if (1) { return 1; } else { return 0; } }";
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str(src), &tree);
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree->root->num_children; i++) {
@@ -561,7 +548,6 @@ TEST test_cdd_cst_cfg_if_returns(void) {
       if (cfg) {
         cdd_cst_cfg_free(cfg);
         cfg = NULL;
-        cfg = NULL;
       }
       if (rc == CDD_C_SUCCESS)
         break;
@@ -576,7 +562,8 @@ TEST test_cdd_cst_cfg_if_returns(void) {
 TEST test_cdd_cst_cfg_if_returns_manual(void) {
   cdd_c_error_t rc;
   cdd_cst_cfg_t *cfg = NULL;
-  cdd_cst_node_t *func, *blk, *stmt, *then_stmt, *else_stmt;
+  cdd_cst_node_t *func = NULL, *blk = NULL, *stmt = NULL, *then_stmt = NULL,
+                 *else_stmt = NULL;
   cdd_token_t ret_tok;
 
   memset(&ret_tok, 0, sizeof(ret_tok));
@@ -613,7 +600,6 @@ TEST test_cdd_cst_cfg_if_returns_manual(void) {
       if (cfg) {
         cdd_cst_cfg_free(cfg);
         cfg = NULL;
-        cfg = NULL;
       }
       if (rc == CDD_C_SUCCESS)
         break;
@@ -632,15 +618,12 @@ TEST test_cdd_cst_cfg_if_returns_manual(void) {
 TEST test_cdd_cst_cfg_loop(void) {
   cdd_c_error_t rc;
   cdd_cst_cfg_t *cfg = NULL;
-  cdd_cst_node_t *func, *blk, *stmt, *cond, *body;
+  cdd_cst_node_t *func = NULL, *blk = NULL, *stmt = NULL, *cond = NULL,
+                 *body = NULL;
   cdd_token_t for_tok;
-  cdd_cst_child_t child_tok;
 
   memset(&for_tok, 0, sizeof(for_tok));
   for_tok.kind = CDD_TOKEN_KEYWORD_GOTO;
-
-  child_tok.kind = CDD_CST_CHILD_TOKEN;
-  child_tok.val.token = &for_tok;
 
   cdd_cst_alloc_node(CDD_CST_FUNCTION_DEFINITION, &func);
   cdd_cst_alloc_node(CDD_CST_BLOCK, &blk);

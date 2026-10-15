@@ -13,7 +13,6 @@ extern "C" {
 
 /* clang-format off */
 #include "parse/test_openapi_loader_common.h"
-#include "openapi/parse/openapi_test_helpers.h"
 /* clang-format on */
 
 /**
@@ -34,66 +33,65 @@ TEST test_openapi_schema_ref_all_branches(void) {
   memset(&out, 0, sizeof(out));
 
   /* 1. NULL checks */
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_parse_schema_ref(NULL, NULL, NULL));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(NULL, &out, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_schema_ref(NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, parse_schema_ref(NULL, &out, NULL));
 
   /* 2. Type array errors */
   jv = json_parse_string("{\"type\": [\"string\"]}");
   jo = json_value_get_object(jv);
   g_cdd_alloc_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_alloc_fail = 0;
   json_value_free(jv);
 
   /* 3. allOf / anyOf / oneOf errors */
   jv = json_parse_string("{\"allOf\": 123}");
   jo = json_value_get_object(jv);
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   json_value_free(jv);
 
   jv = json_parse_string("{\"anyOf\": 123}");
   jo = json_value_get_object(jv);
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   json_value_free(jv);
 
   jv = json_parse_string("{\"oneOf\": 123}");
   jo = json_value_get_object(jv);
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   json_value_free(jv);
 
   /* 4. not / if / then / else non-object error */
   jv = json_parse_string("{\"not\": 123}");
   jo = json_value_get_object(jv);
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   json_value_free(jv);
 
   jv = json_parse_string("{\"if\": 123}");
   jo = json_value_get_object(jv);
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   json_value_free(jv);
 
   jv = json_parse_string("{\"then\": 123}");
   jo = json_value_get_object(jv);
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   json_value_free(jv);
 
   jv = json_parse_string("{\"else\": 123}");
   jo = json_value_get_object(jv);
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   json_value_free(jv);
 
   /* 5. contentSchema error */
   jv = json_parse_string("{\"contentSchema\": {\"allOf\": 123}}");
   jo = json_value_get_object(jv);
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   json_value_free(jv);
 
   /* 6. default field strdup fail */
   jv = json_parse_string("{\"default\": \"sample\"}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -101,7 +99,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
   jv = json_parse_string("{\"pattern\": \"^[a-z]+$\"}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -109,7 +107,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
   jv = json_parse_string("{\"enum\": [\"a\"]}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -117,7 +115,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
   jv = json_parse_string("{\"format\": \"int32\"}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -125,7 +123,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
   jv = json_parse_string("{\"contentMediaType\": \"application/json\"}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -133,7 +131,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
   jv = json_parse_string("{\"contentEncoding\": \"base64\"}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -142,7 +140,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
       "{\"$ref\": \"#/components/schemas/Foo\", \"summary\": \"Sum\"}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -150,7 +148,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
   jv = json_parse_string("{\"description\": \"Desc\"}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -159,7 +157,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
       "{\"externalDocs\": {\"url\": \"http://example.com\"}}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -167,7 +165,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
   jv = json_parse_string("{\"discriminator\": {\"propertyName\": \"type\"}}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -175,7 +173,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
   jv = json_parse_string("{\"xml\": {\"name\": \"Pet\"}}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -183,7 +181,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
   jv = json_parse_string("{\"const\": \"val\"}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -191,18 +189,18 @@ TEST test_openapi_schema_ref_all_branches(void) {
   jv = json_parse_string("{\"examples\": [\"ex\"]}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
   /* 19. External/relative ref with resolved.resolved_ref free */
-  spec.document_uri = (char *)(size_t) "http://example.com/base/spec.json";
+  spec.document_uri = cdd_test_mut_str("http://example.com/base/spec.json");
   jv = json_parse_string(
       "{\"$ref\": \"../other.json#/components/schemas/Foo\"}");
   jo = json_value_get_object(jv);
   memset(&out, 0, sizeof(out));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
-  cdd_test_free_schema_ref_content(&out);
+  ASSERT_EQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
+  free_schema_ref_content(&out);
   json_value_free(jv);
 
   /* 20. Dynamic ref with resolved.resolved_ref */
@@ -210,8 +208,8 @@ TEST test_openapi_schema_ref_all_branches(void) {
       "{\"$dynamicRef\": \"../other.json#/components/schemas/Foo\"}");
   jo = json_value_get_object(jv);
   memset(&out, 0, sizeof(out));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
-  cdd_test_free_schema_ref_content(&out);
+  ASSERT_EQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
+  free_schema_ref_content(&out);
   json_value_free(jv);
 
   /* 21. ref strdup fail */
@@ -219,7 +217,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
       "{\"$ref\": \"../other.json#/components/schemas/Foo\"}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -227,7 +225,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
   jv = json_parse_string("{\"$ref\": \"#/components/schemas/Foo\"}");
   jo = json_value_get_object(jv);
   g_cdd_alloc_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_schema_ref(jo, &out, &spec));
   g_cdd_alloc_fail = 0;
   json_value_free(jv);
 
@@ -236,7 +234,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
       "{\"type\": \"array\", \"items\": {\"pattern\": \"abc\"}}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -245,7 +243,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
       "{\"type\": \"array\", \"items\": {\"type\": [\"str\"]}}");
   jo = json_value_get_object(jv);
   g_cdd_alloc_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_alloc_fail = 0;
   json_value_free(jv);
 
@@ -254,7 +252,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
       "{\"type\": \"array\", \"items\": {\"format\": \"int\"}}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -264,7 +262,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
       "\"text/plain\"}}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -273,7 +271,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
       "{\"type\": \"array\", \"items\": {\"contentEncoding\": \"base64\"}}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -282,7 +280,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
       "{\"type\": \"array\", \"items\": {\"enum\": [\"a\"]}}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -291,7 +289,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
       "{\"type\": \"array\", \"items\": {\"examples\": [\"ex\"]}}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -300,7 +298,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
       "{\"type\": \"array\", \"items\": {\"const\": \"val\"}}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -309,7 +307,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
       "{\"type\": \"array\", \"items\": {\"default\": \"val\"}}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -317,21 +315,21 @@ TEST test_openapi_schema_ref_all_branches(void) {
   jv = json_parse_string("{\"type\": \"array\", \"items\": {\"contentSchema\": "
                          "{\"allOf\": 123}}}");
   jo = json_value_get_object(jv);
-  ASSERT_NEQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
   json_value_free(jv);
 
   /* 33. items $ref with resolved_ref */
-  spec.document_uri = (char *)(size_t) "http://example.com/base/spec.json";
+  spec.document_uri = cdd_test_mut_str("http://example.com/base/spec.json");
   jv = json_parse_string("{\"type\": \"array\", \"items\": {\"$ref\": "
                          "\"../other.json#/components/schemas/Bar\"}}");
   jo = json_value_get_object(jv);
   memset(&out, 0, sizeof(out));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
-  cdd_test_free_schema_ref_content(&out);
+  ASSERT_EQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
+  free_schema_ref_content(&out);
 
   /* 34. items_ref strdup fail */
   g_cdd_strdup_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -340,7 +338,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
                           "\"#/components/schemas/Bar\"}}");
   jo2 = json_value_get_object(jv2);
   g_cdd_alloc_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_test_parse_schema_ref(jo2, &out, &spec));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_schema_ref(jo2, &out, &spec));
   g_cdd_alloc_fail = 0;
   json_value_free(jv2);
 
@@ -349,8 +347,8 @@ TEST test_openapi_schema_ref_all_branches(void) {
                          "\"#/components/schemas/Bar\"}}");
   jo = json_value_get_object(jv);
   memset(&out, 0, sizeof(out));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
-  cdd_test_free_schema_ref_content(&out);
+  ASSERT_EQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
+  free_schema_ref_content(&out);
   json_value_free(jv);
 
   /* 37. items inline_type strdup fail */
@@ -358,7 +356,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
       "{\"type\": \"array\", \"items\": {\"type\": \"integer\"}}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -366,7 +364,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
   jv = json_parse_string("{\"type\": \"integer\"}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -374,12 +372,12 @@ TEST test_openapi_schema_ref_all_branches(void) {
   jv = json_parse_string("{}");
   jo = json_value_get_object(jv);
   memset(&out, 0, sizeof(out));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
-  cdd_test_free_schema_ref_content(&out);
+  ASSERT_EQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
+  free_schema_ref_content(&out);
   json_value_free(jv);
 
   /* 40. external ref with name_dec unescape fail (line 503) */
-  spec.document_uri = (char *)(size_t) "http://example.com/other.json";
+  spec.document_uri = cdd_test_mut_str("http://example.com/other.json");
   spec.self_uri = NULL;
   jv =
       json_parse_string("{\"$ref\": \"./other.json#/components/schemas/Foo\"}");
@@ -387,14 +385,14 @@ TEST test_openapi_schema_ref_all_branches(void) {
   for (k = 1; k <= 15; ++k) {
     g_cdd_alloc_fail = (int)k;
     memset(&out, 0, sizeof(out));
-    cdd_test_parse_schema_ref(jo, &out, &spec);
-    cdd_test_free_schema_ref_content(&out);
+    parse_schema_ref(jo, &out, &spec);
+    free_schema_ref_content(&out);
     g_cdd_alloc_fail = 0;
   }
   json_value_free(jv);
 
   /* 41. external items ref with name_dec unescape fail (line 676) */
-  spec.document_uri = (char *)(size_t) "http://example.com/other.json";
+  spec.document_uri = cdd_test_mut_str("http://example.com/other.json");
   spec.self_uri = NULL;
   jv = json_parse_string("{\"type\": \"array\", \"items\": {\"$ref\": "
                          "\"./other.json#/components/schemas/Bar\"}}");
@@ -402,31 +400,31 @@ TEST test_openapi_schema_ref_all_branches(void) {
   for (k = 1; k <= 15; ++k) {
     g_cdd_alloc_fail = (int)k;
     memset(&out, 0, sizeof(out));
-    cdd_test_parse_schema_ref(jo, &out, &spec);
-    cdd_test_free_schema_ref_content(&out);
+    parse_schema_ref(jo, &out, &spec);
+    free_schema_ref_content(&out);
     g_cdd_alloc_fail = 0;
   }
   json_value_free(jv);
 
   /* 42. external ref with out->ref strdup fail (line 493) */
-  spec.document_uri = (char *)(size_t) "http://example.com/base/spec.json";
-  spec.self_uri = (char *)(size_t) "http://example.com/other.json";
+  spec.document_uri = cdd_test_mut_str("http://example.com/base/spec.json");
+  spec.self_uri = cdd_test_mut_str("http://example.com/other.json");
   jv = json_parse_string(
       "{\"$ref\": \"../other.json#/components/schemas/Foo\"}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
   /* 43. external items ref with out->items_ref strdup fail (line 666) */
-  spec.document_uri = (char *)(size_t) "http://example.com/base/spec.json";
-  spec.self_uri = (char *)(size_t) "http://example.com/other.json";
+  spec.document_uri = cdd_test_mut_str("http://example.com/base/spec.json");
+  spec.self_uri = cdd_test_mut_str("http://example.com/other.json");
   jv = json_parse_string("{\"type\": \"array\", \"items\": {\"$ref\": "
                          "\"../other.json#/components/schemas/Bar\"}}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -434,24 +432,24 @@ TEST test_openapi_schema_ref_all_branches(void) {
   jv = json_parse_string("{\"allOf\": [{}]}");
   jo = json_value_get_object(jv);
   memset(&out, 0, sizeof(out));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
-  cdd_test_free_schema_ref_content(&out);
+  ASSERT_EQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
+  free_schema_ref_content(&out);
   json_value_free(jv);
 
   /* 45. anyOf success branch (line 276) */
   jv = json_parse_string("{\"anyOf\": [{}]}");
   jo = json_value_get_object(jv);
   memset(&out, 0, sizeof(out));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
-  cdd_test_free_schema_ref_content(&out);
+  ASSERT_EQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
+  free_schema_ref_content(&out);
   json_value_free(jv);
 
   /* 46. contentSchema non-object branch (line 312) */
   jv = json_parse_string("{\"contentSchema\": 123}");
   jo = json_value_get_object(jv);
   memset(&out, 0, sizeof(out));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
-  cdd_test_free_schema_ref_content(&out);
+  ASSERT_EQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
+  free_schema_ref_content(&out);
   json_value_free(jv);
 
   /* 47. items contentSchema non-object branch (line 639) */
@@ -459,8 +457,8 @@ TEST test_openapi_schema_ref_all_branches(void) {
       "{\"type\": \"array\", \"items\": {\"contentSchema\": 123}}");
   jo = json_value_get_object(jv);
   memset(&out, 0, sizeof(out));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
-  cdd_test_free_schema_ref_content(&out);
+  ASSERT_EQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
+  free_schema_ref_content(&out);
   json_value_free(jv);
 
   /* 48. items local ref out->items_ref fail (line 665) */
@@ -468,7 +466,7 @@ TEST test_openapi_schema_ref_all_branches(void) {
                          "\"#/components/schemas/Bar\"}}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_test_parse_schema_ref(jo, &out, &spec));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_schema_ref(jo, &out, &spec));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -477,8 +475,8 @@ TEST test_openapi_schema_ref_all_branches(void) {
       "{\"type\": \"array\", \"items\": {\"description\": \"no_type\"}}");
   jo = json_value_get_object(jv);
   memset(&out, 0, sizeof(out));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_schema_ref(jo, &out, &spec));
-  cdd_test_free_schema_ref_content(&out);
+  ASSERT_EQ(CDD_C_SUCCESS, parse_schema_ref(jo, &out, &spec));
+  free_schema_ref_content(&out);
   json_value_free(jv);
 
   spec.document_uri = NULL;

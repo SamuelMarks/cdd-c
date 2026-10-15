@@ -48,14 +48,9 @@ extern C_CDD_EXPORT void refactor_context_free(struct RefactorContext *ctx);
  * needed for temp var generation. Can be NULL if void.
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the refactor context add function
-                     * operation.
-                     */
-    cdd_c_error_t
-    refactor_context_add_function(struct RefactorContext *ctx, const char *name,
-                                  enum RefactorType type,
-                                  const char *return_type);
+extern C_CDD_EXPORT cdd_c_error_t
+refactor_context_add_function(struct RefactorContext *ctx, const char *name,
+                              enum RefactorType type, const char *return_type);
 
 /**
  * @brief Apply refactoring logic to a single source string.
@@ -67,12 +62,9 @@ extern C_CDD_EXPORT /**
  * @param[out] out_code Pointer to char* where resulting code is stored.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Applies refactoring to string.
-                     */
-    cdd_c_error_t
-    apply_refactoring_to_string(const struct RefactorContext *ctx,
-                                const char *source_code, char **out_code);
+extern C_CDD_EXPORT cdd_c_error_t
+apply_refactoring_to_string(const struct RefactorContext *ctx,
+                            const char *source_code, char **out_code);
 
 #ifdef __cplusplus
 }

@@ -25,15 +25,8 @@ extern "C" {
 #include <parson.h>
 /* clang-format on */
 
-extern C_CDD_EXPORT volatile int g_c2s_helper_fail;
-extern C_CDD_EXPORT volatile int g_cdd_fail_c2s_collect_schema_extras;
 extern C_CDD_EXPORT volatile int g_cdd_fail_json_set_value;
 extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
-extern C_CDD_EXPORT volatile int g_cdd_fail_struct_fields_get;
-extern C_CDD_EXPORT volatile int g_cdd_fail_struct_fields_add;
-extern C_CDD_EXPORT int g_struct_fields_init_fail;
-extern C_CDD_EXPORT int g_enum_members_init_fail;
-extern C_CDD_EXPORT int g_enum_members_add_strdup_fail;
 
 /**
  * @brief Tests remaining branches in code2schema part 1.
@@ -387,7 +380,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
     g_cdd_alloc_fail = 1;
     rc = sanitize_identifier("foo", &out_val);
     g_cdd_alloc_fail = 0;
-    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     ASSERT_EQ(NULL, out_val);
     g_cdd_strdup_fail = 1;
     rc = sanitize_identifier("", &out_val);

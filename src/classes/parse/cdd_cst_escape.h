@@ -1,3 +1,7 @@
+/**
+ * @file cdd_cst_escape.h
+ * @brief Concrete Syntax Tree (CST) escape implementation and utilities.
+ */
 #ifndef CDD_CST_ESCAPE_H
 #define CDD_CST_ESCAPE_H
 

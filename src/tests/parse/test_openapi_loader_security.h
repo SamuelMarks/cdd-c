@@ -857,11 +857,9 @@ TEST test_openapi_loader_security_branches(void) {
   }
 
   /* 11. NULL checks on test helpers */
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_security_schemes(NULL, NULL));
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_parse_security_field(NULL, NULL, NULL, NULL, NULL));
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_parse_security_requirements(NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, parse_security_schemes(NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, parse_security_field(NULL, NULL, NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, parse_security_requirements(NULL, NULL, NULL));
 
   /* 11b. Empty securitySchemes, null scheme, and empty security array */
   {
@@ -900,19 +898,19 @@ TEST test_openapi_loader_security_branches(void) {
       /* calloc failure (line 51) */
       memset(&spec, 0, sizeof(spec));
       g_cdd_alloc_fail = 1;
-      ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_test_parse_security_schemes(jo, &spec));
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_security_schemes(jo, &spec));
       g_cdd_alloc_fail = 0;
 
       /* name strdup failure (line 64) */
       memset(&spec, 0, sizeof(spec));
       g_cdd_strdup_fail = 1;
-      ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_test_parse_security_schemes(jo, &spec));
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_security_schemes(jo, &spec));
       g_cdd_strdup_fail = 0;
 
       /* key_name strdup failure (line 107) */
       memset(&spec, 0, sizeof(spec));
       g_cdd_strdup_fail = 2;
-      ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_test_parse_security_schemes(jo, &spec));
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_security_schemes(jo, &spec));
       g_cdd_strdup_fail = 0;
 
       json_value_free(jv_api);
@@ -926,8 +924,7 @@ TEST test_openapi_loader_security_branches(void) {
         cdd_c_error_t rc_ext;
         memset(&spec, 0, sizeof(spec));
         g_cdd_strdup_fail = 2;
-        rc_ext = cdd_test_parse_security_schemes(json_value_get_object(jv_ext),
-                                                 &spec);
+        rc_ext = parse_security_schemes(json_value_get_object(jv_ext), &spec);
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_ext);
         g_cdd_strdup_fail = 0;
         json_value_free(jv_ext);
@@ -941,8 +938,7 @@ TEST test_openapi_loader_security_branches(void) {
       memset(&spec, 0, sizeof(spec));
       spec.swagger_version = strdup("2.0");
       g_cdd_strdup_fail = 2;
-      ASSERT_EQ(CDD_C_ERROR_MEMORY,
-                cdd_test_parse_security_schemes(jo_sw2, &spec));
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_security_schemes(jo_sw2, &spec));
       g_cdd_strdup_fail = 0;
       free(spec.swagger_version);
 
@@ -962,16 +958,16 @@ TEST test_openapi_loader_security_branches(void) {
 
       /* calloc failure (line 192) */
       g_cdd_alloc_fail = 1;
-      ASSERT_EQ(CDD_C_ERROR_MEMORY,
-                cdd_test_parse_security_field(jo, "security", &out_reqs,
-                                              &out_cnt, &set_flg));
+      ASSERT_EQ(
+          CDD_C_ERROR_MEMORY,
+          parse_security_field(jo, "security", &out_reqs, &out_cnt, &set_flg));
       g_cdd_alloc_fail = 0;
 
       /* collect_extensions failure (lines 196-198) */
       g_cdd_alloc_fail = 2;
-      ASSERT_EQ(CDD_C_ERROR_MEMORY,
-                cdd_test_parse_security_field(jo, "security", &out_reqs,
-                                              &out_cnt, &set_flg));
+      ASSERT_EQ(
+          CDD_C_ERROR_MEMORY,
+          parse_security_field(jo, "security", &out_reqs, &out_cnt, &set_flg));
       g_cdd_alloc_fail = 0;
 
       json_value_free(jv_sec);
@@ -993,8 +989,8 @@ TEST test_openapi_loader_security_branches(void) {
       memset(&spec_sw2, 0, sizeof(spec_sw2));
       spec_sw2.swagger_version = strdup("2.0");
       ASSERT_EQ(CDD_C_SUCCESS,
-                cdd_test_parse_security_schemes(
-                    json_value_get_object(jv_sw2_noflow), &spec_sw2));
+                parse_security_schemes(json_value_get_object(jv_sw2_noflow),
+                                       &spec_sw2));
       openapi_spec_free(&spec_sw2);
       json_value_free(jv_sw2_noflow);
     }
@@ -1002,11 +998,11 @@ TEST test_openapi_loader_security_branches(void) {
     if (jv_notype) {
       struct OpenAPI_Spec spec_nt;
       memset(&spec_nt, 0, sizeof(spec_nt));
-      ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_security_schemes(
-                                   json_value_get_object(jv_notype), NULL));
-      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-                cdd_test_parse_security_schemes(
-                    json_value_get_object(jv_notype), &spec_nt));
+      ASSERT_EQ(CDD_C_SUCCESS,
+                parse_security_schemes(json_value_get_object(jv_notype), NULL));
+      ASSERT_EQ(
+          CDD_C_ERROR_INVALID_ARGUMENT,
+          parse_security_schemes(json_value_get_object(jv_notype), &spec_nt));
       openapi_spec_free(&spec_nt);
       json_value_free(jv_notype);
     }
@@ -1015,16 +1011,13 @@ TEST test_openapi_loader_security_branches(void) {
       JSON_Array *ja = json_value_get_array(jv_reqs);
       struct OpenAPI_SecurityRequirementSet *out_s = NULL;
       size_t out_c = 0;
-      ASSERT_EQ(CDD_C_SUCCESS,
-                cdd_test_parse_security_requirements(ja, NULL, &out_c));
-      ASSERT_EQ(CDD_C_SUCCESS,
-                cdd_test_parse_security_requirements(ja, &out_s, NULL));
-      ASSERT_EQ(CDD_C_SUCCESS,
-                cdd_test_parse_security_requirements(ja, &out_s, &out_c));
+      ASSERT_EQ(CDD_C_SUCCESS, parse_security_requirements(ja, NULL, &out_c));
+      ASSERT_EQ(CDD_C_SUCCESS, parse_security_requirements(ja, &out_s, NULL));
+      ASSERT_EQ(CDD_C_SUCCESS, parse_security_requirements(ja, &out_s, &out_c));
       if (out_s) {
         size_t idx;
         for (idx = 0; idx < out_c; ++idx)
-          cdd_test_free_security_requirement_set(&out_s[idx]);
+          free_security_requirement_set(&out_s[idx]);
         free(out_s);
       }
       json_value_free(jv_reqs);
@@ -1047,8 +1040,8 @@ TEST test_openapi_loader_security_branches(void) {
       if (jv_empty_key) {
         memset(&s_dummy, 0, sizeof(s_dummy));
         ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-                  cdd_test_parse_security_schemes(
-                      json_value_get_object(jv_empty_key), &s_dummy));
+                  parse_security_schemes(json_value_get_object(jv_empty_key),
+                                         &s_dummy));
         openapi_spec_free(&s_dummy);
         json_value_free(jv_empty_key);
       }
@@ -1056,8 +1049,8 @@ TEST test_openapi_loader_security_branches(void) {
       if (jv_empty_sch) {
         memset(&s_dummy, 0, sizeof(s_dummy));
         ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-                  cdd_test_parse_security_schemes(
-                      json_value_get_object(jv_empty_sch), &s_dummy));
+                  parse_security_schemes(json_value_get_object(jv_empty_sch),
+                                         &s_dummy));
         openapi_spec_free(&s_dummy);
         json_value_free(jv_empty_sch);
       }
@@ -1065,8 +1058,8 @@ TEST test_openapi_loader_security_branches(void) {
       if (jv_empty_oid) {
         memset(&s_dummy, 0, sizeof(s_dummy));
         ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-                  cdd_test_parse_security_schemes(
-                      json_value_get_object(jv_empty_oid), &s_dummy));
+                  parse_security_schemes(json_value_get_object(jv_empty_oid),
+                                         &s_dummy));
         openapi_spec_free(&s_dummy);
         json_value_free(jv_empty_oid);
       }
@@ -1075,12 +1068,12 @@ TEST test_openapi_loader_security_branches(void) {
         struct OpenAPI_SecurityRequirementSet *out_s = NULL;
         size_t out_c = 0;
         ASSERT_EQ(CDD_C_SUCCESS,
-                  cdd_test_parse_security_requirements(
-                      json_value_get_array(jv_non_obj), &out_s, &out_c));
+                  parse_security_requirements(json_value_get_array(jv_non_obj),
+                                              &out_s, &out_c));
         if (out_s) {
           size_t idx;
           for (idx = 0; idx < out_c; ++idx)
-            cdd_test_free_security_requirement_set(&out_s[idx]);
+            free_security_requirement_set(&out_s[idx]);
           free(out_s);
         }
         json_value_free(jv_non_obj);
@@ -1092,16 +1085,16 @@ TEST test_openapi_loader_security_branches(void) {
       struct OpenAPI_SecurityRequirementSet *out_s = NULL;
       size_t out_c = 0;
       int set_f = 0;
-      ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_security_field(
-                                   NULL, "sec", &out_s, &out_c, &set_f));
-      ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_security_field(jo, NULL, &out_s,
-                                                             &out_c, &set_f));
       ASSERT_EQ(CDD_C_SUCCESS,
-                cdd_test_parse_security_field(jo, "sec", NULL, &out_c, &set_f));
+                parse_security_field(NULL, "sec", &out_s, &out_c, &set_f));
       ASSERT_EQ(CDD_C_SUCCESS,
-                cdd_test_parse_security_field(jo, "sec", &out_s, NULL, &set_f));
+                parse_security_field(jo, NULL, &out_s, &out_c, &set_f));
       ASSERT_EQ(CDD_C_SUCCESS,
-                cdd_test_parse_security_field(jo, "sec", &out_s, &out_c, NULL));
+                parse_security_field(jo, "sec", NULL, &out_c, &set_f));
+      ASSERT_EQ(CDD_C_SUCCESS,
+                parse_security_field(jo, "sec", &out_s, NULL, &set_f));
+      ASSERT_EQ(CDD_C_SUCCESS,
+                parse_security_field(jo, "sec", &out_s, &out_c, NULL));
       json_value_free(jv_obj);
     }
   }

@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_erlang.h
+ * @brief FFI binding emitter for Erlang.
+ */
 #ifndef CDD_FFI_EMIT_ERLANG_H
 #define CDD_FFI_EMIT_ERLANG_H
 

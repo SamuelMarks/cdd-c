@@ -24,7 +24,7 @@ TEST test_dsl_parser_macros(void) {
   rc = cdd_dsl_parse(&list, &ir);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
 
-  ASSERT_EQ_FMT((size_t)3, ir->nodes_count, "%zu");
+  ASSERT_EQ((size_t)3, ir->nodes_count);
 
   ASSERT_EQ_FMT(CDD_FFI_NODE_MACRO, ir->nodes[0].kind, "%d");
   ASSERT_STR_EQ("MAX_BUF", ir->nodes[0].name);

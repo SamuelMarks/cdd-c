@@ -30,7 +30,7 @@ TEST test_cdd_cst_builder_long_token(void) {
   char long_tok[2055];
   memset(long_tok, 'a', sizeof(long_tok) - 1);
   long_tok[sizeof(long_tok) - 1] = '\0';
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t) ""), &tree);
+  cdd_cst_parse(az_span_create_from_str(""), &tree);
   node = tree->root;
   cdd_cst_builder_init(&b, tree, node);
   ASSERT_EQ(0, cdd_cst_bld_snippet(&b, long_tok));
@@ -49,7 +49,7 @@ TEST test_cdd_cst_builder_branches(void) {
   cdd_cst_node_t *node = NULL;
 
   int fail_i;
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t) ""), &tree);
+  cdd_cst_parse(az_span_create_from_str(""), &tree);
   node = tree->root;
   cdd_cst_builder_init(&b, tree, node);
 

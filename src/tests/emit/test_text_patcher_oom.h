@@ -82,7 +82,7 @@ TEST test_patcher_oom(void) {
 
     /* also test patch with text = NULL in free */
     if (list.patches[0].text)
-      free((void *)list.patches[0].text);
+      free(list.patches[0].text);
     list.patches[0].text = NULL;
     patch_list_free(&list);
 
@@ -93,9 +93,7 @@ TEST test_patcher_oom(void) {
       patch_list_init(&p_oom);
       {
         struct TokenList *tl_alloc = NULL;
-        tokenize(
-            az_span_create_from_str((char *)(size_t)(size_t) "int main(){}"),
-            &tl_alloc);
+        tokenize(az_span_create_from_str("int main(){}"), &tl_alloc);
 
         {
           char huge_oom[3000];

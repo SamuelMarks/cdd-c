@@ -21,14 +21,16 @@ TEST test_writer_schema_items_type_union(void) {
   char *json;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *types[] = {(char *)(size_t)(size_t) "string",
-                   (char *)(size_t)(size_t) "integer"};
+  char *types[2];
+
+  types[0] = cdd_test_mut_str("string");
+  types[1] = cdd_test_mut_str("integer");
   json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
   param.schema.is_array = 1;
-  param.schema.inline_type = (char *)(size_t)(size_t) "string";
+  param.schema.inline_type = cdd_test_mut_str("string");
   param.schema.items_type_union = types;
   param.schema.n_items_type_union = 2;
 
@@ -119,7 +121,7 @@ TEST test_writer_schema_numeric_enum(void) {
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
-  param.schema.inline_type = (char *)(size_t)(size_t) "integer";
+  param.schema.inline_type = cdd_test_mut_str("integer");
   enum_vals[0].type = OA_ANY_NUMBER;
   enum_vals[0].number = 1.0;
   enum_vals[1].type = OA_ANY_NUMBER;
@@ -171,11 +173,11 @@ TEST test_writer_schema_items_examples(void) {
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
   param.schema.is_array = 1;
-  param.schema.inline_type = (char *)(size_t)(size_t) "string";
+  param.schema.inline_type = cdd_test_mut_str("string");
   item_examples[0].type = OA_ANY_STRING;
-  item_examples[0].string = (char *)(size_t)(size_t) "a";
+  item_examples[0].string = cdd_test_mut_str("a");
   item_examples[1].type = OA_ANY_STRING;
-  item_examples[1].string = (char *)(size_t)(size_t) "b";
+  item_examples[1].string = cdd_test_mut_str("b");
   param.schema.items_examples = item_examples;
   param.schema.n_items_examples = 2;
 
@@ -268,7 +270,7 @@ TEST test_writer_schema_example_and_numeric_constraints(void) {
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
-  param.schema.inline_type = (char *)(size_t)(size_t) "number";
+  param.schema.inline_type = cdd_test_mut_str("number");
   param.schema.has_min = 1;
   param.schema.min_val = 1;
   param.schema.has_max = 1;
@@ -318,7 +320,7 @@ TEST test_writer_schema_array_constraints_and_items_example(void) {
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
   param.schema.is_array = 1;
-  param.schema.inline_type = (char *)(size_t)(size_t) "string";
+  param.schema.inline_type = cdd_test_mut_str("string");
   param.schema.has_min_items = 1;
   param.schema.min_items = 1;
   param.schema.has_max_items = 1;
@@ -328,10 +330,10 @@ TEST test_writer_schema_array_constraints_and_items_example(void) {
   param.schema.items_min_len = 2;
   param.schema.items_has_max_len = 1;
   param.schema.items_max_len = 5;
-  param.schema.items_pattern = (char *)(size_t)(size_t) "^[a-z]+$";
+  param.schema.items_pattern = cdd_test_mut_str("^[a-z]+$");
   param.schema.items_example_set = 1;
   param.schema.items_example.type = OA_ANY_STRING;
-  param.schema.items_example.string = (char *)(size_t)(size_t) "ab";
+  param.schema.items_example.string = cdd_test_mut_str("ab");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -459,30 +461,28 @@ TEST test_writer_extensions_non_schema(void) {
 
   setup_test_spec(&spec, &path, &op, &param, &resp);
 
-  spec.extensions_json = (char *)(size_t)(size_t) "{\"x-root\":1}";
-  spec.info.title = (char *)(size_t)(size_t) "Spec";
-  spec.info.version = (char *)(size_t)(size_t) "1";
-  spec.info.extensions_json = (char *)(size_t)(size_t) "{\"x-info\":\"info\"}";
-  spec.info.contact.name = (char *)(size_t)(size_t) "Support";
-  spec.info.contact.extensions_json =
-      (char *)(size_t)(size_t) "{\"x-contact\":true}";
-  spec.info.license.name = (char *)(size_t)(size_t) "MIT";
+  spec.extensions_json = cdd_test_mut_str("{\"x-root\":1}");
+  spec.info.title = cdd_test_mut_str("Spec");
+  spec.info.version = cdd_test_mut_str("1");
+  spec.info.extensions_json = cdd_test_mut_str("{\"x-info\":\"info\"}");
+  spec.info.contact.name = cdd_test_mut_str("Support");
+  spec.info.contact.extensions_json = cdd_test_mut_str("{\"x-contact\":true}");
+  spec.info.license.name = cdd_test_mut_str("MIT");
   spec.info.license.extensions_json =
-      (char *)(size_t)(size_t) "{\"x-license\":\"lic\"}";
-  spec.external_docs.url = (char *)(size_t)(size_t) "https://example.com";
-  spec.external_docs.extensions_json =
-      (char *)(size_t)(size_t) "{\"x-ext\":\"ext\"}";
+      cdd_test_mut_str("{\"x-license\":\"lic\"}");
+  spec.external_docs.url = cdd_test_mut_str("https://example.com");
+  spec.external_docs.extensions_json = cdd_test_mut_str("{\"x-ext\":\"ext\"}");
 
-  path.extensions_json = (char *)(size_t)(size_t) "{\"x-path\":6}";
-  op.extensions_json = (char *)(size_t)(size_t) "{\"x-op\":7}";
-  op.responses_extensions_json = (char *)(size_t)(size_t) "{\"x-responses\":1}";
-  op.req_body.inline_type = (char *)(size_t)(size_t) "string";
-  op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
+  path.extensions_json = cdd_test_mut_str("{\"x-path\":6}");
+  op.extensions_json = cdd_test_mut_str("{\"x-op\":7}");
+  op.responses_extensions_json = cdd_test_mut_str("{\"x-responses\":1}");
+  op.req_body.inline_type = cdd_test_mut_str("string");
+  op.req_body.content_type = cdd_test_mut_str("application/json");
   op.req_body_required_set = 1;
   op.req_body_required = 1;
-  op.req_body_extensions_json = (char *)(size_t)(size_t) "{\"x-rb-op\":true}";
-  param.extensions_json = (char *)(size_t)(size_t) "{\"x-param\":\"param\"}";
-  resp.extensions_json = (char *)(size_t)(size_t) "{\"x-resp\":true}";
+  op.req_body_extensions_json = cdd_test_mut_str("{\"x-rb-op\":true}");
+  param.extensions_json = cdd_test_mut_str("{\"x-param\":\"param\"}");
+  resp.extensions_json = cdd_test_mut_str("{\"x-resp\":true}");
 
   memset(&cb, 0, sizeof(cb));
   memset(&cb_path, 0, sizeof(cb_path));
@@ -490,58 +490,58 @@ TEST test_writer_extensions_non_schema(void) {
   memset(&cb_resp, 0, sizeof(cb_resp));
   op.callbacks = &cb;
   op.n_callbacks = 1;
-  cb.name = (char *)(size_t)(size_t) "onEvent";
-  cb.extensions_json = (char *)(size_t)(size_t) "{\"x-cb\":\"cb\"}";
+  cb.name = cdd_test_mut_str("onEvent");
+  cb.extensions_json = cdd_test_mut_str("{\"x-cb\":\"cb\"}");
   cb.paths = &cb_path;
   cb.n_paths = 1;
-  cb_path.route = (char *)(size_t)(size_t) "{$request.body#/url}";
+  cb_path.route = cdd_test_mut_str("{$request.body#/url}");
   cb_path.operations = &cb_op;
   cb_path.n_operations = 1;
   cb_op.verb = OA_VERB_POST;
   cb_op.responses = &cb_resp;
   cb_op.n_responses = 1;
-  cb_resp.code = (char *)(size_t)(size_t) "200";
-  cb_resp.description = (char *)(size_t)(size_t) "ok";
+  cb_resp.code = cdd_test_mut_str("200");
+  cb_resp.description = cdd_test_mut_str("ok");
 
   memset(&tag, 0, sizeof(tag));
-  tag.name = (char *)(size_t)(size_t) "pet";
-  tag.extensions_json = (char *)(size_t)(size_t) "{\"x-tag\":\"tag\"}";
+  tag.name = cdd_test_mut_str("pet");
+  tag.extensions_json = cdd_test_mut_str("{\"x-tag\":\"tag\"}");
   spec.tags = &tag;
   spec.n_tags = 1;
 
   memset(&scheme, 0, sizeof(scheme));
   memset(&flow, 0, sizeof(flow));
   memset(&scope, 0, sizeof(scope));
-  scope.name = (char *)(size_t)(size_t) "read";
-  scope.description = (char *)(size_t)(size_t) "Read";
+  scope.name = cdd_test_mut_str("read");
+  scope.description = cdd_test_mut_str("Read");
   flow.type = OA_OAUTH_FLOW_PASSWORD;
-  flow.token_url = (char *)(size_t)(size_t) "https://token.example.com";
+  flow.token_url = cdd_test_mut_str("https://token.example.com");
   flow.scopes = &scope;
   flow.n_scopes = 1;
-  flow.extensions_json = (char *)(size_t)(size_t) "{\"x-flow\":1}";
-  scheme.name = (char *)(size_t)(size_t) "oauth";
+  flow.extensions_json = cdd_test_mut_str("{\"x-flow\":1}");
+  scheme.name = cdd_test_mut_str("oauth");
   scheme.type = OA_SEC_OAUTH2;
   scheme.flows = &flow;
   scheme.n_flows = 1;
-  scheme.extensions_json = (char *)(size_t)(size_t) "{\"x-sec\":1}";
+  scheme.extensions_json = cdd_test_mut_str("{\"x-sec\":1}");
   spec.security_schemes = &scheme;
   spec.n_security_schemes = 1;
 
   memset(&sec_req, 0, sizeof(sec_req));
   memset(&sec_set, 0, sizeof(sec_set));
-  sec_req.scheme = (char *)(size_t)(size_t) "oauth";
+  sec_req.scheme = cdd_test_mut_str("oauth");
   sec_set.requirements = &sec_req;
   sec_set.n_requirements = 1;
-  sec_set.extensions_json = (char *)(size_t)(size_t) "{\"x-sec-req\":1}";
+  sec_set.extensions_json = cdd_test_mut_str("{\"x-sec-req\":1}");
   spec.security = &sec_set;
   spec.n_security = 1;
   spec.security_set = 1;
 
   memset(&comp_rb, 0, sizeof(comp_rb));
-  rb_names[0] = (char *)(size_t)(size_t) "CompRB";
-  comp_rb.description = (char *)(size_t)(size_t) "desc";
-  comp_rb.schema.inline_type = (char *)(size_t)(size_t) "string";
-  comp_rb.extensions_json = (char *)(size_t)(size_t) "{\"x-rb\":1}";
+  rb_names[0] = cdd_test_mut_str("CompRB");
+  comp_rb.description = cdd_test_mut_str("desc");
+  comp_rb.schema.inline_type = cdd_test_mut_str("string");
+  comp_rb.extensions_json = cdd_test_mut_str("{\"x-rb\":1}");
   spec.component_request_bodies = &comp_rb;
   spec.component_request_body_names = rb_names;
   spec.n_component_request_bodies = 1;

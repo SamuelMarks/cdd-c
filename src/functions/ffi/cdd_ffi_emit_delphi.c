@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_delphi.c
+ * @brief FFI binding emitter for Delphi.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -9,32 +13,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
-}
-
-static void map_delphi_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz) {
+static cdd_c_error_t map_delphi_type(cdd_ffi_type_t *t, char *out_type,
+                                     size_t out_sz) {
   if (t->pointer_depth > 0) {
     if ((t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) &&
         t->is_const) {
       CDD_SNPRINTF(out_type, out_sz, "PAnsiChar");
-      return;
+      return CDD_C_SUCCESS;
     }
     CDD_SNPRINTF(out_type, out_sz, "Pointer");
-    return;
+    return CDD_C_SUCCESS;
   }
   switch (t->kind) {
   case CDD_FFI_KIND_VOID:
@@ -86,6 +77,7 @@ static void map_delphi_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz) {
     CDD_SNPRINTF(out_type, out_sz, "Pointer");
     break;
   }
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t
@@ -162,7 +154,7 @@ cdd_ffi_emit_delphi(cdd_ffi_ir_t *ir,
       }
       fprintf(f, "  end;\n\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "  %s = (\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
@@ -180,7 +172,7 @@ cdd_ffi_emit_delphi(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       is_void = (node->return_or_base_type.kind == CDD_FFI_KIND_VOID &&
                  node->return_or_base_type.pointer_depth == 0);
       if (is_void) {

@@ -89,16 +89,19 @@ extern int g_io_calls;
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+/** @brief Platform stat function alias */
 #define c_stat_func _stat32
+/** @brief Checks if stat mode corresponds to a directory */
 #define IS_DIR(mode) (((mode) & _S_IFMT) == _S_IFDIR)
 #else
+/** @brief Platform stat function alias */
 #define c_stat_func stat
 /** @brief IS_DIR definition */
 #define IS_DIR(mode) S_ISDIR(mode)
 #endif
 
 /**
- * @brief Executes the maybe mkdir operation.
+ * @brief Creates a single directory if it does not already exist.
  */
 static cdd_c_error_t maybe_mkdir(const char *path) {
   c_stat st;
@@ -149,11 +152,11 @@ static cdd_c_error_t maybe_mkdir(const char *path) {
 }
 
 /**
- * @brief Executes the makedirs operation.
+ * @brief Recursively creates a directory path and all missing parent
+ * directories.
  */
 cdd_c_error_t makedirs(const char *path) {
-  char *_ast_strdup_4 = NULL;
-  char *dup_path, *p;
+  char *dup_path = NULL, *p;
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (path == NULL || *path == '\0') {
@@ -174,7 +177,7 @@ cdd_c_error_t makedirs(const char *path) {
     return CDD_C_SUCCESS;
 #endif
 
-  dup_path = (c_cdd_strdup(path, &_ast_strdup_4), _ast_strdup_4);
+  c_cdd_strdup(path, &dup_path);
   if (dup_path == NULL) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -209,7 +212,7 @@ cdd_c_error_t makedirs(const char *path) {
 }
 
 /**
- * @brief Executes the makedir operation.
+ * @brief Creates a single directory at the specified path.
  */
 cdd_c_error_t makedir(const char *path) {
   if (path == NULL || *path == '\0')
@@ -228,10 +231,9 @@ cdd_c_error_t makedir(const char *path) {
 }
 
 /**
- * @brief Executes the tempdir operation.
+ * @brief Obtains the system temporary directory path.
  */
 cdd_c_error_t tempdir(char **out_path) {
-  char *_ast_strdup_5 = NULL;
   const char *env;
 
   if (!out_path)
@@ -243,7 +245,7 @@ cdd_c_error_t tempdir(char **out_path) {
   if (!env || *env == '\0')
     env = getenv("TEMP");
   if (env && *env != '\0') {
-    *out_path = (c_cdd_strdup(env, &_ast_strdup_5), _ast_strdup_5);
+    c_cdd_strdup(env, out_path);
     return *out_path ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   }
 
@@ -274,9 +276,9 @@ cdd_c_error_t tempdir(char **out_path) {
 #else
   {
 #ifdef P_tmpdir
-    *out_path = (c_cdd_strdup(P_tmpdir, &_ast_strdup_5), _ast_strdup_5);
+    c_cdd_strdup(P_tmpdir, out_path);
 #else
-    *out_path = (c_cdd_strdup("/tmp", &_ast_strdup_5), _ast_strdup_5);
+    c_cdd_strdup("/tmp", out_path);
 #endif
     return *out_path ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   }
@@ -284,7 +286,8 @@ cdd_c_error_t tempdir(char **out_path) {
 }
 
 /**
- * @brief Executes the FilenameAndPtr cleanup operation.
+ * @brief Closes the file handle and frees the filename in a FilenameAndPtr
+ * struct.
  */
 cdd_c_error_t FilenameAndPtr_cleanup(struct FilenameAndPtr *file) {
   if (!file)
@@ -301,7 +304,8 @@ cdd_c_error_t FilenameAndPtr_cleanup(struct FilenameAndPtr *file) {
 }
 
 /**
- * @brief Executes the FilenameAndPtr delete and cleanup operation.
+ * @brief Closes the file handle, deletes the file from disk, and frees the
+ * filename.
  */
 cdd_c_error_t FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file) {
   if (!file)
@@ -314,7 +318,8 @@ cdd_c_error_t FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file) {
 }
 
 /**
- * @brief Executes the mktmpfilegetnameandfile operation.
+ * @brief Creates a unique temporary file and returns both its path and open
+ * FILE stream.
  */
 cdd_c_error_t mktmpfilegetnameandfile(const char *prefix, const char *suffix,
                                       const char *mode,
@@ -413,7 +418,7 @@ cdd_c_error_t mktmpfilegetnameandfile(const char *prefix, const char *suffix,
 
 #ifdef _MSC_VER
 /**
- * @brief Executes the path is unc operation.
+ * @brief Checks whether a path string uses Windows UNC prefix syntax.
  */
 cdd_c_error_t path_is_unc(const char *path, int *out_is_unc) {
   if (!out_is_unc)
@@ -430,7 +435,8 @@ cdd_c_error_t path_is_unc(const char *path, int *out_is_unc) {
 /* --- Directory Walking Implementation --- */
 
 /**
- * @brief Executes the walk directory operation.
+ * @brief Recursively traverses a directory tree and invokes a callback for each
+ * entry.
  */
 cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
   char *full_path = NULL;

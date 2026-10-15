@@ -9,7 +9,8 @@
 /* clang-format on */
 
 /**
- * @brief Executes the scan querystring usage operation.
+ * @brief Scans a parameter list for OA_PARAM_IN_QUERYSTRING parameters and
+ * conflicts.
  */
 cdd_c_error_t scan_querystring_usage(const struct OpenAPI_Parameter *params,
                                      size_t n_params, size_t *qs_count,
@@ -29,7 +30,8 @@ cdd_c_error_t scan_querystring_usage(const struct OpenAPI_Parameter *params,
 }
 
 /**
- * @brief Executes the validate querystring usage operation.
+ * @brief Validates querystring parameter constraints across all operations in a
+ * path list.
  */
 cdd_c_error_t validate_querystring_usage(const struct OpenAPI_Path *paths,
                                          size_t n_paths) {
@@ -94,7 +96,8 @@ cdd_c_error_t validate_querystring_usage(const struct OpenAPI_Path *paths,
 }
 
 /**
- * @brief Executes the validate querystring usage in callbacks operation.
+ * @brief Validates querystring parameter constraints across all callback
+ * definitions.
  */
 cdd_c_error_t validate_querystring_usage_in_callbacks(
     const struct OpenAPI_Callback *callbacks, size_t n_callbacks) {
@@ -113,8 +116,7 @@ cdd_c_error_t validate_querystring_usage_in_callbacks(
 }
 
 /**
- * @brief Executes the validate querystring usage in operations
- * operation.
+ * @brief Performs validate querystring usage in operations.
  */
 cdd_c_error_t
 validate_querystring_usage_in_operations(const struct OpenAPI_Operation *ops,
@@ -132,8 +134,7 @@ validate_querystring_usage_in_operations(const struct OpenAPI_Operation *ops,
 }
 
 /**
- * @brief Executes the validate querystring usage in paths callbacks
- * operation.
+ * @brief Performs validate querystring usage in paths callbacks.
  */
 cdd_c_error_t
 validate_querystring_usage_in_paths_callbacks(const struct OpenAPI_Path *paths,
@@ -155,8 +156,7 @@ validate_querystring_usage_in_paths_callbacks(const struct OpenAPI_Path *paths,
 }
 
 /**
- * @brief Executes the validate querystring usage in component callbacks
- * operation.
+ * @brief Performs validate querystring usage in component callbacks.
  */
 cdd_c_error_t validate_querystring_usage_in_component_callbacks(
     const struct OpenAPI_Spec *spec) {
@@ -179,7 +179,6 @@ cdd_c_error_t validate_querystring_usage_in_component_callbacks(
  */
 cdd_c_error_t add_unique_operation_id(char ***ids, size_t *count, size_t *cap,
                                       const char *op_id) {
-  char *_ast_strdup_292 = NULL;
   size_t i;
   char **tmp;
   if (!op_id || !*op_id)
@@ -197,7 +196,7 @@ cdd_c_error_t add_unique_operation_id(char ***ids, size_t *count, size_t *cap,
     *ids = tmp;
     *cap = new_cap;
   }
-  (*ids)[*count] = (c_cdd_strdup(op_id, &_ast_strdup_292), _ast_strdup_292);
+  c_cdd_strdup(op_id, &(*ids)[*count]);
   if (!(*ids)[*count])
     return CDD_C_ERROR_MEMORY;
   (*count)++;
@@ -234,25 +233,21 @@ cdd_c_error_t collect_operation_ids(const struct OpenAPI_Path *paths,
 }
 
 /**
- * @brief Executes the path item ref matches component operation.
+ * @brief Checks whether a PathItem $ref points to a specific named component
+ * pathItem.
  */
 cdd_c_error_t path_item_ref_matches_component(const struct OpenAPI_Spec *spec,
                                               const char *ref,
                                               const char *name) {
-  char *_ast_ref_name_from_prefix_85 = NULL;
-  char *_ast_json_pointer_unescape_86 = NULL;
-  const char *name_enc;
-  char *name_dec;
+  const char *name_enc = NULL;
+  char *name_dec = NULL;
   int match = 0;
   if (!ref || !name)
     return CDD_C_SUCCESS;
-  name_enc = (ref_name_from_prefix(spec, ref, "#/components/pathItems/",
-                                   &_ast_ref_name_from_prefix_85),
-              _ast_ref_name_from_prefix_85);
+  ref_name_from_prefix(spec, ref, "#/components/pathItems/", &name_enc);
   if (!name_enc)
     return CDD_C_SUCCESS;
-  name_dec = (json_pointer_unescape(name_enc, &_ast_json_pointer_unescape_86),
-              _ast_json_pointer_unescape_86);
+  json_pointer_unescape(name_enc, &name_dec);
   if (!name_dec)
     return CDD_C_SUCCESS;
   match = (strcmp(name_dec, name) == 0);
@@ -261,7 +256,8 @@ cdd_c_error_t path_item_ref_matches_component(const struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Executes the component path item is referenced operation.
+ * @brief Checks whether a component PathItem is referenced anywhere in the
+ * spec.
  */
 cdd_c_error_t component_path_item_is_referenced(const struct OpenAPI_Spec *spec,
                                                 const char *name) {
@@ -282,25 +278,21 @@ cdd_c_error_t component_path_item_is_referenced(const struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Executes the callback ref matches component operation.
+ * @brief Checks whether a Callback $ref points to a specific named component
+ * callback.
  */
 cdd_c_error_t callback_ref_matches_component(const struct OpenAPI_Spec *spec,
                                              const char *ref,
                                              const char *name) {
-  char *_ast_ref_name_from_prefix_87 = NULL;
-  char *_ast_json_pointer_unescape_88 = NULL;
-  const char *name_enc;
-  char *name_dec;
+  const char *name_enc = NULL;
+  char *name_dec = NULL;
   int match = 0;
   if (!ref || !name)
     return CDD_C_SUCCESS;
-  name_enc = (ref_name_from_prefix(spec, ref, "#/components/callbacks/",
-                                   &_ast_ref_name_from_prefix_87),
-              _ast_ref_name_from_prefix_87);
+  ref_name_from_prefix(spec, ref, "#/components/callbacks/", &name_enc);
   if (!name_enc)
     return CDD_C_SUCCESS;
-  name_dec = (json_pointer_unescape(name_enc, &_ast_json_pointer_unescape_88),
-              _ast_json_pointer_unescape_88);
+  json_pointer_unescape(name_enc, &name_dec);
   if (!name_dec)
     return CDD_C_SUCCESS;
   match = (strcmp(name_dec, name) == 0);
@@ -309,7 +301,8 @@ cdd_c_error_t callback_ref_matches_component(const struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Executes the component callback is referenced in ops operation.
+ * @brief Checks whether a component Callback is referenced by any operation in
+ * a path list.
  */
 cdd_c_error_t component_callback_is_referenced_in_ops(
     const struct OpenAPI_Operation *ops, size_t n_ops,
@@ -329,7 +322,8 @@ cdd_c_error_t component_callback_is_referenced_in_ops(
 }
 
 /**
- * @brief Executes the component callback is referenced operation.
+ * @brief Checks whether a component Callback is referenced anywhere in the
+ * spec.
  */
 cdd_c_error_t component_callback_is_referenced(const struct OpenAPI_Spec *spec,
                                                const char *name) {
@@ -442,7 +436,8 @@ collect_callback_operation_ids_from_paths(const struct OpenAPI_Path *paths,
 }
 
 /**
- * @brief Executes the validate unique operation ids operation.
+ * @brief Verifies that all operationId values across the OpenAPI spec are
+ * unique.
  */
 cdd_c_error_t validate_unique_operation_ids(const struct OpenAPI_Spec *spec) {
   char **ids = NULL;

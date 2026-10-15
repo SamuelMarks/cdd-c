@@ -79,8 +79,11 @@ typedef struct {
   int needs_wgetenv_ptr; /**< Non-zero if __wgetenv_ptr is needed */
 } emit_ctx_t;
 
+/** @brief Global MSC emission context pointer */
 extern emit_ctx_t *g_msc_ctx;
+/** @brief Current CST tree being transformed by Safe CRT pass */
 extern cdd_cst_tree_t *safe_crt_current_tree;
+/** @brief Alias for safe_crt_current_tree */
 #define current_tree safe_crt_current_tree
 
 #ifdef CDD_BUILD_TESTS
@@ -135,9 +138,10 @@ C_CDD_EXPORT cdd_c_error_t check_unsupported_calls(expr_t *head);
  * @brief Infers buffer size metadata for a given expression node.
  *
  * @param[in] node Target expression node.
- * @return Inferred size metadata structure.
+ * @param[out] out_size Pointer to receive inferred size metadata structure.
+ * @return CDD_C_SUCCESS on success.
  */
-inferred_size_t infer_buffer_size(expr_t *node);
+cdd_c_error_t infer_buffer_size(expr_t *node, inferred_size_t *out_size);
 
 /**
  * @brief Checks if any call in the expression tree requires safe CRT
@@ -162,10 +166,12 @@ C_CDD_EXPORT cdd_c_error_t expr_is_null_or_zero(expr_t *node);
  *
  * @param[in,out] tree Target CST tree.
  * @param[in] str String to duplicate and pool.
- * @return Pointer to pooled string, or NULL on failure.
+ * @param[out] out_pooled Pointer to receive pooled string, or NULL on failure.
+ * @return CDD_C_SUCCESS on success or error code.
  */
-C_CDD_EXPORT const char *safe_crt_pool_string_safe(cdd_cst_tree_t *tree,
-                                                   const char *str);
+C_CDD_EXPORT cdd_c_error_t safe_crt_pool_string_safe(cdd_cst_tree_t *tree,
+                                                     const char *str,
+                                                     const char **out_pooled);
 
 /**
  * @brief Clones a linked list of trivia nodes.
@@ -227,7 +233,9 @@ C_CDD_EXPORT cdd_c_error_t emit_inferred_size(cdd_cst_builder_t *bld,
  * @param[in] node Expression node.
  * @param[in,out] bld CST builder.
  * @param[in] is_msc Non-zero if targeting MSC Safe CRT.
- * @return Number of safe CRT changes emitted.
+ * @param[out] out_changes Pointer to receive number of safe CRT changes
+ * emitted.
+ * @return CDD_C_SUCCESS on success or error code.
  */
 cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
                            int *out_changes);
@@ -238,8 +246,10 @@ cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
  * @param[in] tok Target token.
  * @param[out] out_indent Buffer of at least 64 bytes to receive indentation
  * string.
+ * @return CDD_C_SUCCESS on success.
  */
-C_CDD_EXPORT void get_indent_string(cdd_token_t *tok, char *out_indent);
+C_CDD_EXPORT cdd_c_error_t get_indent_string(cdd_token_t *tok,
+                                             char *out_indent);
 
 #ifdef __cplusplus
 }

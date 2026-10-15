@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_go.c
+ * @brief FFI binding emitter for Go.
+ */
 #ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
 #endif
@@ -11,117 +15,39 @@ extern volatile int g_fail_io_after;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
+static cdd_c_error_t get_go_type(cdd_ffi_type_t type, const char **out_type) {
+  static const cdd_ffi_type_map_table_t k_go_types = {
+      "",        "bool",           "int8",  "uint8",  "int16",   "uint16",
+      "int32",   "uint32",         "int64", "uint64", "float32", "float64",
+      "*C.char", "unsafe.Pointer", NULL,    "int32",  1,         0,
+      1};
+  return cdd_ffi_map_type_from_table(&k_go_types, type, out_type);
 }
 
-static const char *get_go_type(cdd_ffi_type_t type) {
-  if (type.pointer_depth > 0) {
-    if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
-      return "*C.char";
-    }
-    return "unsafe.Pointer";
-  }
-
-  switch (type.kind) {
-  case CDD_FFI_KIND_VOID:
-    return ""; /* Go uses no return type for void */
-  case CDD_FFI_KIND_BOOL:
-    return "bool";
-  case CDD_FFI_KIND_INT8:
-    return "int8";
-  case CDD_FFI_KIND_UINT8:
-    return "uint8";
-  case CDD_FFI_KIND_INT16:
-    return "int16";
-  case CDD_FFI_KIND_UINT16:
-    return "uint16";
-  case CDD_FFI_KIND_INT32:
-    return "int32";
-  case CDD_FFI_KIND_UINT32:
-    return "uint32";
-  case CDD_FFI_KIND_INT64:
-    return "int64";
-  case CDD_FFI_KIND_UINT64:
-    return "uint64";
-  case CDD_FFI_KIND_FLOAT32:
-    return "float32";
-  case CDD_FFI_KIND_FLOAT64:
-    return "float64";
-  case CDD_FFI_KIND_FUNCTION_PTR:
-    return "unsafe.Pointer";
-  case CDD_FFI_KIND_STRUCT_REF:
-    return type.ref_name ? type.ref_name : "unsafe.Pointer";
-  case CDD_FFI_KIND_ENUM_REF:
-    return "int32"; /* Default C enum size in Go */
-  case CDD_FFI_KIND_TYPEDEF_REF:
-    return type.ref_name ? type.ref_name : "unsafe.Pointer";
-  case CDD_FFI_KIND_OPAQUE_PTR:
-    return "unsafe.Pointer";
-  default:
-    return "unsafe.Pointer";
-  }
-}
-
-static const char *get_go_c_type(cdd_ffi_type_t type) {
-  if (type.pointer_depth > 0) {
-    if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
-      return "*C.char";
-    }
-    return "unsafe.Pointer";
-  }
-
-  switch (type.kind) {
-  case CDD_FFI_KIND_VOID:
-    return "";
-  case CDD_FFI_KIND_BOOL:
-    return "C.bool";
-  case CDD_FFI_KIND_INT8:
-    return "C.int8_t";
-  case CDD_FFI_KIND_UINT8:
-    return "C.uint8_t";
-  case CDD_FFI_KIND_INT16:
-    return "C.int16_t";
-  case CDD_FFI_KIND_UINT16:
-    return "C.uint16_t";
-  case CDD_FFI_KIND_INT32:
-    return "C.int32_t";
-  case CDD_FFI_KIND_UINT32:
-    return "C.uint32_t";
-  case CDD_FFI_KIND_INT64:
-    return "C.int64_t";
-  case CDD_FFI_KIND_UINT64:
-    return "C.uint64_t";
-  case CDD_FFI_KIND_FLOAT32:
-    return "C.float";
-  case CDD_FFI_KIND_FLOAT64:
-    return "C.double";
-  case CDD_FFI_KIND_FUNCTION_PTR:
-    return "unsafe.Pointer";
-  case CDD_FFI_KIND_STRUCT_REF:
-    return type.ref_name ? type.ref_name : "unsafe.Pointer";
-  case CDD_FFI_KIND_ENUM_REF:
-    return "C.int";
-  case CDD_FFI_KIND_TYPEDEF_REF:
-    return type.ref_name ? type.ref_name : "unsafe.Pointer";
-  case CDD_FFI_KIND_OPAQUE_PTR:
-    return "unsafe.Pointer";
-  default:
-    return "unsafe.Pointer";
-  }
+static cdd_c_error_t get_go_c_type(cdd_ffi_type_t type, const char **out_type) {
+  static const cdd_ffi_type_map_table_t k_go_c_types = {"",
+                                                        "C.bool",
+                                                        "C.int8_t",
+                                                        "C.uint8_t",
+                                                        "C.int16_t",
+                                                        "C.uint16_t",
+                                                        "C.int32_t",
+                                                        "C.uint32_t",
+                                                        "C.int64_t",
+                                                        "C.uint64_t",
+                                                        "C.float",
+                                                        "C.double",
+                                                        "*C.char",
+                                                        "unsafe.Pointer",
+                                                        NULL,
+                                                        "C.int",
+                                                        1,
+                                                        0,
+                                                        1};
+  return cdd_ffi_map_type_from_table(&k_go_c_types, type, out_type);
 }
 
 static cdd_c_error_t
@@ -188,7 +114,7 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "// %s\n", node->doc);
       fprintf(f, "type %s int32\n", node->name);
@@ -212,7 +138,7 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "// %s\n", node->doc);
       fprintf(f, "type %s struct {\n", node->name);
@@ -223,7 +149,8 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       for (j = 0; j < node->fields_count; j++) {
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
-        const char *gtype = get_go_type(node->fields[j].type);
+        const char *gtype = NULL;
+        get_go_type(node->fields[j].type, &gtype);
         fprintf(f, "func (s *%s) Get%s() %s {\n", node->name, fname, gtype);
         fprintf(f, "    return (%s)(s.inner.%s)\n", gtype, fname);
         fprintf(f, "}\n\n");
@@ -235,36 +162,42 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
+      const char *ret_gtype = NULL;
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "// %s\n", node->doc);
       fprintf(f, "func %s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *arg_name =
             node->fields[j].name ? node->fields[j].name : "arg";
+        const char *gt = NULL;
         if (strcmp(arg_name, "type") == 0)
           arg_name = "type_";
         if (strcmp(arg_name, "func") == 0)
           arg_name = "func_";
-        fprintf(f, "%s %s", arg_name, get_go_type(node->fields[j].type));
+        get_go_type(node->fields[j].type, &gt);
+        fprintf(f, "%s %s", arg_name, gt);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
       }
-      fprintf(f, ") %s {\n", get_go_type(node->return_or_base_type));
+      get_go_type(node->return_or_base_type, &ret_gtype);
+      fprintf(f, ") %s {\n", ret_gtype);
 
       fprintf(f, "    ");
       if (node->return_or_base_type.kind != CDD_FFI_KIND_VOID) {
-        fprintf(f, "return (%s)(", get_go_type(node->return_or_base_type));
+        fprintf(f, "return (%s)(", ret_gtype);
       }
       fprintf(f, "C.%s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *arg_name =
             node->fields[j].name ? node->fields[j].name : "arg";
+        const char *gct = NULL;
         if (strcmp(arg_name, "type") == 0)
           arg_name = "type_";
         if (strcmp(arg_name, "func") == 0)
           arg_name = "func_";
-        fprintf(f, "(%s)(%s)", get_go_c_type(node->fields[j].type), arg_name);
+        get_go_c_type(node->fields[j].type, &gct);
+        fprintf(f, "(%s)(%s)", gct, arg_name);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
       }

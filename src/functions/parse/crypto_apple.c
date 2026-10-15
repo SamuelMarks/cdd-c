@@ -50,7 +50,7 @@ cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
 }
 
 /**
- * @brief Executes the crypto hmac sha256 operation.
+ * @brief Computes a 32-byte HMAC-SHA256 digest over a data buffer.
  *
  * bytes).
  */
@@ -83,7 +83,7 @@ cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
 /* Non-Apple stub implementation */
 
 /**
- * @brief Executes the crypto sha256 operation (stub).
+ * @brief Performs crypto sha256 operation (stub).
  *
  */
 cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
@@ -95,7 +95,7 @@ cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
 }
 
 /**
- * @brief Executes the crypto hmac sha256 operation (stub).
+ * @brief Performs crypto hmac sha256 operation (stub).
  *
  */
 cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,

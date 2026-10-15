@@ -9,30 +9,8 @@
 #include "functions/emit/client_body_internal.h"
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
-#include <stdarg.h>
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)))
-#endif
-    ;
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  int ret;
-  va_list args;
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  va_start(args, format);
-  ret = vfprintf(stream, format, args);
-  va_end(args);
-  return ret;
-}
-#define fprintf test_cdd_fprintf_hook
-#endif
-
 /**
- * @brief Generates C code for write cookie param logic.
+ * @brief Emits C source code for cookie param logic.
  */
 cdd_c_error_t
 client_body_write_cookie_param_logic(FILE *fp,
@@ -126,9 +104,9 @@ client_body_write_cookie_param_logic(FILE *fp,
             CHECK_IO(fprintf(fp,
                              "          size_t extra = name_len + 1 + val_len "
                              "+ (cookie_len ? 2 : 0);\n"));
-            CHECK_IO(fprintf(
-                fp, "          char *tmp = (char *)(size_t)realloc(cookie_str, "
-                    "cookie_len + extra + 1);\n"));
+            CHECK_IO(
+                fprintf(fp, "          char *tmp = (char *)realloc(cookie_str, "
+                            "cookie_len + extra + 1);\n"));
             CHECK_IO(fprintf(
                 fp,
                 "          if (!tmp) { free(key_enc); if (val_enc) "
@@ -164,11 +142,10 @@ client_body_write_cookie_param_logic(FILE *fp,
                              "        size_t extra = name_len + 1 + val_len + "
                              "(cookie_len ? 2 : 0);\n"));
 
-            CHECK_IO(fprintf(
-                fp,
+            CHECK_IO(fprintf(fp,
 
-                "        char *tmp = (char *)(size_t)realloc(cookie_str, "
-                "cookie_len + extra + 1);\n"));
+                             "        char *tmp = (char *)realloc(cookie_str, "
+                             "cookie_len + extra + 1);\n"));
 
             CHECK_IO(fprintf(fp, "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; "
 
@@ -291,11 +268,10 @@ client_body_write_cookie_param_logic(FILE *fp,
                              "          size_t extra = key_len + val_len + 2 + "
                              "(joined_len ? 1 : 0);\n"));
 
-            CHECK_IO(
-                fprintf(fp,
+            CHECK_IO(fprintf(fp,
 
-                        "          char *tmp = (char *)(size_t)realloc(joined, "
-                        "joined_len + extra + 1);\n"));
+                             "          char *tmp = (char *)realloc(joined, "
+                             "joined_len + extra + 1);\n"));
 
             CHECK_IO(fprintf(fp, "          if (!tmp) { free(key_enc); if "
 
@@ -337,10 +313,9 @@ client_body_write_cookie_param_logic(FILE *fp,
                              "        size_t extra = key_len + val_len + 2 + "
                              "(joined_len ? 1 : 0);\n"));
 
-            CHECK_IO(fprintf(
-                fp, "        char *tmp = (char *)(size_t)realloc(joined, "
+            CHECK_IO(fprintf(fp, "        char *tmp = (char *)realloc(joined, "
 
-                    "joined_len + extra + 1);\n"));
+                                 "joined_len + extra + 1);\n"));
 
             CHECK_IO(fprintf(fp, "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; "
 
@@ -378,10 +353,9 @@ client_body_write_cookie_param_logic(FILE *fp,
 
                                "(cookie_len ? 2 : 0);\n"));
 
-          CHECK_IO(fprintf(
-              fp, "      char *tmp = (char *)(size_t)realloc(cookie_str, "
+          CHECK_IO(fprintf(fp, "      char *tmp = (char *)realloc(cookie_str, "
 
-                  "cookie_len + extra + 1);\n"));
+                               "cookie_len + extra + 1);\n"));
 
           CHECK_IO(fprintf(
 
@@ -476,9 +450,9 @@ client_body_write_cookie_param_logic(FILE *fp,
           CHECK_IO(fprintf(fp,
                            "        size_t extra = name_len + 1 + val_len + "
                            "(cookie_len ? 2 : 0);\n"));
-          CHECK_IO(fprintf(
-              fp, "        char *tmp = (char *)(size_t)realloc(cookie_str, "
-                  "cookie_len + extra + 1);\n"));
+          CHECK_IO(fprintf(fp,
+                           "        char *tmp = (char *)realloc(cookie_str, "
+                           "cookie_len + extra + 1);\n"));
           CHECK_IO(fprintf(fp, "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; "
                                "goto cleanup; }\n"));
           CHECK_IO(fprintf(fp, "        cookie_str = tmp;\n"));
@@ -557,9 +531,8 @@ client_body_write_cookie_param_logic(FILE *fp,
           CHECK_IO(fprintf(
               fp,
               "        size_t extra = val_len + (joined_len > 0 ? 1 : 0);\n"));
-          CHECK_IO(
-              fprintf(fp, "        char *tmp = (char *)(size_t)realloc(joined, "
-                          "joined_len + extra + 1);\n"));
+          CHECK_IO(fprintf(fp, "        char *tmp = (char *)realloc(joined, "
+                               "joined_len + extra + 1);\n"));
           CHECK_IO(fprintf(fp, "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; "
                                "goto cleanup; }\n"));
           CHECK_IO(fprintf(fp, "        joined = tmp;\n"));
@@ -580,9 +553,8 @@ client_body_write_cookie_param_logic(FILE *fp,
           CHECK_IO(fprintf(fp, "      size_t val_len = strlen(joined);\n"));
           CHECK_IO(fprintf(fp, "      size_t extra = name_len + 1 + val_len + "
                                "(cookie_len ? 2 : 0);\n"));
-          CHECK_IO(fprintf(
-              fp, "      char *tmp = (char *)(size_t)realloc(cookie_str, "
-                  "cookie_len + extra + 1);\n"));
+          CHECK_IO(fprintf(fp, "      char *tmp = (char *)realloc(cookie_str, "
+                               "cookie_len + extra + 1);\n"));
           CHECK_IO(fprintf(
               fp,
               "      if (!tmp) { free(joined); rc = CDD_C_ERROR_MEMORY; goto "
@@ -616,9 +588,8 @@ client_body_write_cookie_param_logic(FILE *fp,
           CHECK_IO(fprintf(fp, "    size_t val_len = strlen(cookie_val);\n"));
           CHECK_IO(fprintf(fp, "    size_t extra = name_len + 1 + val_len + "
                                "(cookie_len ? 2 : 0);\n"));
-          CHECK_IO(
-              fprintf(fp, "    char *tmp = (char *)(size_t)realloc(cookie_str, "
-                          "cookie_len + extra + 1);\n"));
+          CHECK_IO(fprintf(fp, "    char *tmp = (char *)realloc(cookie_str, "
+                               "cookie_len + extra + 1);\n"));
           CHECK_IO(fprintf(
               fp,
               "    if (!tmp) { free(cookie_val); rc = CDD_C_ERROR_MEMORY; goto "
@@ -652,10 +623,9 @@ client_body_write_cookie_param_logic(FILE *fp,
 
                                "(cookie_len ? 2 : 0);\n"));
 
-          CHECK_IO(
-              fprintf(fp, "    char *tmp = (char *)(size_t)realloc(cookie_str, "
+          CHECK_IO(fprintf(fp, "    char *tmp = (char *)realloc(cookie_str, "
 
-                          "cookie_len + extra + 1);\n"));
+                               "cookie_len + extra + 1);\n"));
 
           CHECK_IO(fprintf(
 
@@ -700,10 +670,9 @@ client_body_write_cookie_param_logic(FILE *fp,
 
                              "(cookie_len ? 2 : 0);\n"));
 
-        CHECK_IO(fprintf(fp,
-                         "    char *tmp = (char *)(size_t)realloc(cookie_str, "
+        CHECK_IO(fprintf(fp, "    char *tmp = (char *)realloc(cookie_str, "
 
-                         "cookie_len + extra + 1);\n"));
+                             "cookie_len + extra + 1);\n"));
 
         CHECK_IO(fprintf(
 
@@ -743,10 +712,9 @@ client_body_write_cookie_param_logic(FILE *fp,
 
                              "(cookie_len ? 2 : 0);\n"));
 
-        CHECK_IO(fprintf(fp,
-                         "    char *tmp = (char *)(size_t)realloc(cookie_str, "
+        CHECK_IO(fprintf(fp, "    char *tmp = (char *)realloc(cookie_str, "
 
-                         "cookie_len + extra + 1);\n"));
+                             "cookie_len + extra + 1);\n"));
 
         CHECK_IO(fprintf(
 
@@ -787,10 +755,9 @@ client_body_write_cookie_param_logic(FILE *fp,
 
                              "(cookie_len ? 2 : 0);\n"));
 
-        CHECK_IO(fprintf(fp,
-                         "    char *tmp = (char *)(size_t)realloc(cookie_str, "
+        CHECK_IO(fprintf(fp, "    char *tmp = (char *)realloc(cookie_str, "
 
-                         "cookie_len + extra + 1);\n"));
+                             "cookie_len + extra + 1);\n"));
 
         CHECK_IO(fprintf(
 

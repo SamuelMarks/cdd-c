@@ -19,46 +19,16 @@ extern "C" {
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/emit/cdd_cst_emit.h"
 #include "c_str_span.h"
+#include "../../../transformers/safe_crt/safe_crt_internal.h"
 /* clang-format on */
 
 extern C_CDD_EXPORT int g_safe_crt_malloc_fail;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
 extern C_CDD_EXPORT int g_cdd_query_err_fail;
-
-#ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT cdd_c_error_t arena_alloc(size_t len, void **out_ptr);
-extern C_CDD_EXPORT cdd_c_error_t parse_expr_ast(void *stmt, size_t *idx,
-                                                 int stop_at_comma,
-                                                 void *out_ast);
-extern C_CDD_EXPORT cdd_c_error_t find_and_mark_fopen(void *head,
-                                                      int *out_found);
-extern C_CDD_EXPORT cdd_c_error_t check_unsupported_calls(void *head);
-extern C_CDD_EXPORT cdd_c_error_t check_needs_transform(void *head);
-extern C_CDD_EXPORT cdd_c_error_t expr_is_null_or_zero(void *node);
-extern C_CDD_EXPORT cdd_c_error_t clone_trivia(void *head, void **out_trivia);
-extern C_CDD_EXPORT cdd_c_error_t clone_token(void *tree, void *tok,
-                                              void **out_tok);
-extern C_CDD_EXPORT void emit_inferred_size(cdd_cst_builder_t *bld, void *dest);
-extern C_CDD_EXPORT const char *safe_crt_pool_string_safe(void *tree,
-                                                          const char *str);
-#ifndef SAFE_CRT_EXPR_TEST_DEF
-#define SAFE_CRT_EXPR_TEST_DEF
-struct safe_crt_expr_test {
-  int type;
-  cdd_token_t *tok;
-  cdd_token_t *close_tok;
-  void *args[16];
-  size_t num_args;
-  void *next;
-};
-#endif
-extern C_CDD_EXPORT cdd_c_error_t emit_ast_bld_strip(void *node,
-                                                     cdd_cst_builder_t *bld,
-                                                     int is_msc);
-extern C_CDD_EXPORT cdd_c_error_t
-emit_ast_bld_strip_ampersand(void *node, cdd_cst_builder_t *bld, int is_msc);
-extern C_CDD_EXPORT void get_indent_string(cdd_token_t *tok, char *out_indent);
 extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
+
+#ifndef safe_crt_expr_test
+#define safe_crt_expr_test expr_t
 #endif
 
 TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
@@ -129,31 +99,31 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
       pat_children[1].val.token = &t_type_id;
       stmt_node->children = pat_children;
       stmt_node->num_children = 2;
-      emit_inferred_size(&bld_pat, (void *)&n_buf_dest);
+      emit_inferred_size(&bld_pat, &n_buf_dest);
 
       /* Case 2: j + 1 < stmt->num_children is false (j is last child) */
       pat_children[0].val.token = &t_type_id;
       pat_children[1].val.token = &t_buf_id;
       stmt_node->num_children = 2;
-      emit_inferred_size(&bld_pat, (void *)&n_buf_dest);
+      emit_inferred_size(&bld_pat, &n_buf_dest);
 
       /* Case 3: children[j + 1].kind != CDD_CST_CHILD_TOKEN */
       pat_children[2].kind = CDD_CST_CHILD_NODE;
       pat_children[2].val.node = dummy_child_node;
       stmt_node->num_children = 3;
-      emit_inferred_size(&bld_pat, (void *)&n_buf_dest);
+      emit_inferred_size(&bld_pat, &n_buf_dest);
 
       /* Case 4: children[j - 1].kind != CDD_CST_CHILD_TOKEN */
       pat_children[0].kind = CDD_CST_CHILD_NODE;
       pat_children[0].val.node = dummy_child_node;
       pat_children[2].kind = CDD_CST_CHILD_TOKEN;
       pat_children[2].val.token = &t_lbrk_tok;
-      emit_inferred_size(&bld_pat, (void *)&n_buf_dest);
+      emit_inferred_size(&bld_pat, &n_buf_dest);
 
       /* Case 5: children[j - 1].val.token->kind != CDD_TOKEN_IDENTIFIER */
       pat_children[0].kind = CDD_CST_CHILD_TOKEN;
       pat_children[0].val.token = &t_other_tok;
-      emit_inferred_size(&bld_pat, (void *)&n_buf_dest);
+      emit_inferred_size(&bld_pat, &n_buf_dest);
 
       /* Case 6: Pattern 2: children[j + 1] is node */
       pat_children[0].val.token = &t_buf_id;
@@ -162,19 +132,19 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
       pat_children[2].kind = CDD_CST_CHILD_TOKEN;
       pat_children[2].val.token = &t_other_tok;
       stmt_node->num_children = 3;
-      emit_inferred_size(&bld_pat, (void *)&n_buf_dest);
+      emit_inferred_size(&bld_pat, &n_buf_dest);
 
       /* Case 7: Pattern 2: children[j + 1] is token, but not ASSIGN */
       pat_children[1].kind = CDD_CST_CHILD_TOKEN;
       pat_children[1].val.token = &t_other_tok;
-      emit_inferred_size(&bld_pat, (void *)&n_buf_dest);
+      emit_inferred_size(&bld_pat, &n_buf_dest);
 
       /* Case 7b: Pattern 2: children[j + 1] is ASSIGN, children[j + 2] is node
        */
       pat_children[1].val.token = &t_assign_tok;
       pat_children[2].kind = CDD_CST_CHILD_NODE;
       pat_children[2].val.node = dummy_child_node;
-      emit_inferred_size(&bld_pat, (void *)&n_buf_dest);
+      emit_inferred_size(&bld_pat, &n_buf_dest);
 
       /* Case 8: Pattern 2: children[j + 1] is ASSIGN, children[j + 2] is not
        * identifier */
@@ -183,32 +153,32 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
       pat_children[3].kind = CDD_CST_CHILD_TOKEN;
       pat_children[3].val.token = &t_other_tok;
       stmt_node->num_children = 4;
-      emit_inferred_size(&bld_pat, (void *)&n_buf_dest);
+      emit_inferred_size(&bld_pat, &n_buf_dest);
 
       /* Case 9: m_tok->length < 6 */
       t_other_tok.kind = CDD_TOKEN_IDENTIFIER;
       t_other_tok.start = (const uint8_t *)"f";
       t_other_tok.length = 1;
-      emit_inferred_size(&bld_pat, (void *)&n_buf_dest);
+      emit_inferred_size(&bld_pat, &n_buf_dest);
 
       /* Case 10: m_tok->length >= 6 but name is foobar */
       t_other_tok.start = (const uint8_t *)"foobar";
       t_other_tok.length = 6;
-      emit_inferred_size(&bld_pat, (void *)&n_buf_dest);
+      emit_inferred_size(&bld_pat, &n_buf_dest);
 
       /* Case 11: m_expr with type != 1 */
       pat_children[2].val.token = &t_malloc_tok;
-      emit_inferred_size(&bld_pat, (void *)&n_buf_dest);
+      emit_inferred_size(&bld_pat, &n_buf_dest);
 
       /* Case 12: calloc with num_args != 2 */
       t_malloc_tok.start = (const uint8_t *)"calloc";
       t_malloc_tok.length = 6;
-      emit_inferred_size(&bld_pat, (void *)&n_buf_dest);
+      emit_inferred_size(&bld_pat, &n_buf_dest);
 
       /* Case 13: realloc with num_args != 2 */
       t_malloc_tok.start = (const uint8_t *)"realloc";
       t_malloc_tok.length = 7;
-      emit_inferred_size(&bld_pat, (void *)&n_buf_dest);
+      emit_inferred_size(&bld_pat, &n_buf_dest);
 
       /* Case 14: Pattern 2: malloc with 2 args -> malloc(1, 2) */
       t_malloc_tok.start = (const uint8_t *)"malloc";
@@ -229,7 +199,7 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
       pat_children[7].kind = CDD_CST_CHILD_TOKEN;
       pat_children[7].val.token = &t_rpar;
       stmt_node->num_children = 8;
-      emit_inferred_size(&bld_pat, (void *)&n_buf_dest);
+      emit_inferred_size(&bld_pat, &n_buf_dest);
 
       /* Case 15: Pattern 2: calloc with 3 args -> calloc(1, 2, 3) */
       t_malloc_tok.start = (const uint8_t *)"calloc";
@@ -240,18 +210,42 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
       pat_children[9].kind = CDD_CST_CHILD_TOKEN;
       pat_children[9].val.token = &t_rpar;
       stmt_node->num_children = 10;
-      emit_inferred_size(&bld_pat, (void *)&n_buf_dest);
+      emit_inferred_size(&bld_pat, &n_buf_dest);
 
       /* Case 16: Pattern 2: realloc with 3 args -> realloc(1, 2, 3) */
       t_malloc_tok.start = (const uint8_t *)"realloc";
       t_malloc_tok.length = 7;
-      emit_inferred_size(&bld_pat, (void *)&n_buf_dest);
+      emit_inferred_size(&bld_pat, &n_buf_dest);
 
       stmt_node->num_children = 0;
       stmt_node->children = NULL;
       free(dummy_child_node);
       free(stmt_node);
-      free(root_node);
+      cdd_cst_builder_free(&bld_pat);
+      cdd_cst_free_node_only(root_node);
+      {
+        size_t s_i;
+        for (s_i = 0; s_i < tree_pat.num_synthesized; s_i++) {
+          cdd_token_t *st = tree_pat.synthesized_tokens[s_i];
+          cdd_trivia_t *tr = st->leading_trivia;
+          while (tr) {
+            cdd_trivia_t *nxt = tr->next;
+            free(tr);
+            tr = nxt;
+          }
+          tr = st->trailing_trivia;
+          while (tr) {
+            cdd_trivia_t *nxt = tr->next;
+            free(tr);
+            tr = nxt;
+          }
+          free(st);
+        }
+        free(tree_pat.synthesized_tokens);
+        for (s_i = 0; s_i < tree_pat.num_strings; s_i++)
+          free(tree_pat.string_pool[s_i]);
+        free(tree_pat.string_pool);
+      }
     }
   }
 
@@ -270,10 +264,10 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
 
         n_null_tok.type = 0;
         n_null_tok.tok = NULL;
-        emit_inferred_size(&dummy_bld, (void *)&n_null_tok);
+        emit_inferred_size(&dummy_bld, &n_null_tok);
 
         n_null_tok.type = 1;
-        emit_inferred_size(&dummy_bld, (void *)&n_null_tok);
+        emit_inferred_size(&dummy_bld, &n_null_tok);
 
         /* node->type == 1 with tok->kind != CDD_TOKEN_IDENTIFIER */
         {
@@ -283,8 +277,10 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
           t_num.start = (const uint8_t *)"1";
           t_num.length = 1;
           n_null_tok.tok = &t_num;
-          emit_inferred_size(&dummy_bld, (void *)&n_null_tok);
+          emit_inferred_size(&dummy_bld, &n_null_tok);
         }
+        cdd_cst_builder_free(&dummy_bld);
+        cdd_cst_free_node(dummy_node);
       }
       cdd_cst_tree_free(dummy_tree);
     }
@@ -319,35 +315,35 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
 
         /* Case 0: str_node == NULL */
         n_putenv.args[0] = NULL;
-        emit_ast_bld_strip((void *)&n_putenv, &dummy_bld, 1);
+        emit_ast_bld_strip(&n_putenv, &dummy_bld, 1);
         n_putenv.args[0] = &n_str;
 
         /* Case 1: str_node->type != 0 */
         n_str.type = 2;
-        emit_ast_bld_strip((void *)&n_putenv, &dummy_bld, 1);
+        emit_ast_bld_strip(&n_putenv, &dummy_bld, 1);
 
         /* Case 2: str_node->tok == NULL */
         n_str.type = 0;
         n_str.tok = NULL;
-        emit_ast_bld_strip((void *)&n_putenv, &dummy_bld, 1);
+        emit_ast_bld_strip(&n_putenv, &dummy_bld, 1);
 
         /* Case 3: str_node->tok->length == 2 */
         n_str.tok = &t_str;
         t_str.kind = CDD_TOKEN_IDENTIFIER;
         t_str.start = (const uint8_t *)"LL";
         t_str.length = 2;
-        emit_ast_bld_strip((void *)&n_putenv, &dummy_bld, 1);
+        emit_ast_bld_strip(&n_putenv, &dummy_bld, 1);
 
         /* Case 4: str_node->tok->start[0] != 'L' */
         t_str.start = (const uint8_t *)"M";
         t_str.length = 1;
-        emit_ast_bld_strip((void *)&n_putenv, &dummy_bld, 1);
+        emit_ast_bld_strip(&n_putenv, &dummy_bld, 1);
 
         /* Case 4b: str_node->tok->start[0] == 'L' but next is NULL */
         t_str.start = (const uint8_t *)"L";
         t_str.length = 1;
         n_str.next = NULL;
-        emit_ast_bld_strip((void *)&n_putenv, &dummy_bld, 1);
+        emit_ast_bld_strip(&n_putenv, &dummy_bld, 1);
 
         /* Case 4c: str_node->tok->start[0] == 'L', next has type != 0 */
         {
@@ -355,13 +351,13 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
           memset(&n_next_str, 0, sizeof(n_next_str));
           n_str.next = &n_next_str;
           n_next_str.type = 2;
-          emit_ast_bld_strip((void *)&n_putenv, &dummy_bld, 1);
+          emit_ast_bld_strip(&n_putenv, &dummy_bld, 1);
 
           /* Case 4d: str_node->tok->start[0] == 'L', next has type == 0 and tok
            * == NULL */
           n_next_str.type = 0;
           n_next_str.tok = NULL;
-          emit_ast_bld_strip((void *)&n_putenv, &dummy_bld, 1);
+          emit_ast_bld_strip(&n_putenv, &dummy_bld, 1);
           n_str.next = NULL;
         }
 
@@ -369,29 +365,31 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
         t_str.kind = CDD_TOKEN_STRING;
         t_str.start = (const uint8_t *)"L\"A=B\"";
         t_str.length = 6;
-        emit_ast_bld_strip((void *)&n_putenv, &dummy_bld, 1);
+        emit_ast_bld_strip(&n_putenv, &dummy_bld, 1);
 
         /* Case 6: string starting with = */
         t_str.start = (const uint8_t *)"\"=B\"";
         t_str.length = 4;
-        emit_ast_bld_strip((void *)&n_putenv, &dummy_bld, 1);
+        emit_ast_bld_strip(&n_putenv, &dummy_bld, 1);
 
         /* Case 7: _wputenv with L\"A=B\" */
         t_putenv.start = (const uint8_t *)"_wputenv";
         t_putenv.length = 8;
         t_str.start = (const uint8_t *)"L\"A=B\"";
         t_str.length = 6;
-        emit_ast_bld_strip((void *)&n_putenv, &dummy_bld, 1);
+        emit_ast_bld_strip(&n_putenv, &dummy_bld, 1);
 
         /* Case 8: string starting with ' */
         t_str.start = (const uint8_t *)"'A=B'";
         t_str.length = 5;
-        emit_ast_bld_strip((void *)&n_putenv, &dummy_bld, 1);
+        emit_ast_bld_strip(&n_putenv, &dummy_bld, 1);
 
         /* Case 9: string starting with LX=Y */
         t_str.start = (const uint8_t *)"LX=Y";
         t_str.length = 4;
-        emit_ast_bld_strip((void *)&n_putenv, &dummy_bld, 1);
+        emit_ast_bld_strip(&n_putenv, &dummy_bld, 1);
+        cdd_cst_builder_free(&dummy_bld);
+        cdd_cst_free_node(dummy_node);
       }
       cdd_cst_tree_free(dummy_tree);
     }
@@ -426,17 +424,19 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
         cdd_cst_builder_init(&dummy_bld, dummy_tree, dummy_node);
 
         /* args[format_idx] is NULL */
-        emit_ast_bld_strip((void *)&n_scanf, &dummy_bld, 1);
+        emit_ast_bld_strip(&n_scanf, &dummy_bld, 1);
 
         /* args[format_idx]->type != 0 */
         n_scanf.args[1] = &n_fmt;
         n_fmt.type = 2;
-        emit_ast_bld_strip((void *)&n_scanf, &dummy_bld, 1);
+        emit_ast_bld_strip(&n_scanf, &dummy_bld, 1);
 
         /* args[format_idx]->type == 0, tok == NULL */
         n_fmt.type = 0;
         n_fmt.tok = NULL;
-        emit_ast_bld_strip((void *)&n_scanf, &dummy_bld, 1);
+        emit_ast_bld_strip(&n_scanf, &dummy_bld, 1);
+        cdd_cst_builder_free(&dummy_bld);
+        cdd_cst_free_node(dummy_node);
       }
       cdd_cst_tree_free(dummy_tree);
     }
@@ -468,8 +468,10 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
         cdd_cst_builder_init(&dummy_bld, dummy_tree, dummy_node);
 
         g_safe_crt_malloc_fail = 1;
-        emit_ast_bld_strip((void *)&n_paren, &dummy_bld, 0);
+        emit_ast_bld_strip(&n_paren, &dummy_bld, 0);
         g_safe_crt_malloc_fail = 0;
+        cdd_cst_builder_free(&dummy_bld);
+        cdd_cst_free_node(dummy_node);
       }
       cdd_cst_tree_free(dummy_tree);
     }
@@ -507,8 +509,8 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
         0) {
       if (cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node) == 0) {
         cdd_cst_builder_init(&dummy_bld, dummy_tree, dummy_node);
-        emit_ast_bld_strip((void *)&n_type3, &dummy_bld, 1);
-        emit_ast_bld_strip((void *)&n_type3, &dummy_bld, 0);
+        emit_ast_bld_strip(&n_type3, &dummy_bld, 1);
+        emit_ast_bld_strip(&n_type3, &dummy_bld, 0);
 
         /* call with name length >= 127 */
         {
@@ -524,8 +526,10 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
           memset(&n_long_call, 0, sizeof(n_long_call));
           n_long_call.type = 1;
           n_long_call.tok = &t_long;
-          emit_ast_bld_strip((void *)&n_long_call, &dummy_bld, 0);
+          emit_ast_bld_strip(&n_long_call, &dummy_bld, 0);
         }
+        cdd_cst_builder_free(&dummy_bld);
+        cdd_cst_free_node(dummy_node);
       }
       cdd_cst_tree_free(dummy_tree);
     }
@@ -552,8 +556,10 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
         cdd_cst_builder_init(&dummy_bld, dummy_tree, dummy_node);
         /* sizeof (1st), ( (2nd), clone_token (3rd) */
         g_cdd_cst_alloc_token_fail = 3;
-        emit_inferred_size(&dummy_bld, (void *)&n_char_arr);
+        emit_inferred_size(&dummy_bld, &n_char_arr);
         g_cdd_cst_alloc_token_fail = 0;
+        cdd_cst_builder_free(&dummy_bld);
+        cdd_cst_free_node(dummy_node);
       }
       cdd_cst_tree_free(dummy_tree);
     }
@@ -632,39 +638,43 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
     if (cdd_cst_parse(az_span_create_from_str("void f() {}"), &dummy_tree) ==
         0) {
       if (cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node) == 0) {
-        cdd_cst_builder_init(&dummy_bld, dummy_tree, dummy_node);
-
         /* Fail on strcpy (is_safe = 1, line 984) */
         cdd_cst_builder_init(&dummy_bld, dummy_tree, dummy_node);
         g_cdd_cst_alloc_token_fail = 1;
-        emit_ast_bld_strip((void *)&n_strcpy, &dummy_bld, 1);
+        emit_ast_bld_strip(&n_strcpy, &dummy_bld, 1);
         g_cdd_cst_alloc_token_fail = 0;
+        cdd_cst_builder_free(&dummy_bld);
 
         /* Fail on close_tok (line 1470) */
         cdd_cst_builder_init(&dummy_bld, dummy_tree, dummy_node);
         g_cdd_cst_alloc_token_fail = 3;
-        emit_ast_bld_strip((void *)&n_strcpy, &dummy_bld, 1);
+        emit_ast_bld_strip(&n_strcpy, &dummy_bld, 1);
         g_cdd_cst_alloc_token_fail = 0;
+        cdd_cst_builder_free(&dummy_bld);
 
         /* Fail on type 2 close_tok (line 879) */
         cdd_cst_builder_init(&dummy_bld, dummy_tree, dummy_node);
         g_cdd_cst_alloc_token_fail = 2;
-        emit_ast_bld_strip((void *)&n_paren, &dummy_bld, 0);
+        emit_ast_bld_strip(&n_paren, &dummy_bld, 0);
         g_cdd_cst_alloc_token_fail = 0;
+        cdd_cst_builder_free(&dummy_bld);
 
         /* Fail on getenv (line 1012) */
         cdd_cst_builder_init(&dummy_bld, dummy_tree, dummy_node);
         g_cdd_cst_alloc_token_fail = 1;
-        emit_ast_bld_strip((void *)&n_func, &dummy_bld, 1);
+        emit_ast_bld_strip(&n_func, &dummy_bld, 1);
         g_cdd_cst_alloc_token_fail = 0;
+        cdd_cst_builder_free(&dummy_bld);
 
         /* Fail on node->type == 3 tokens */
         for (k = 1; k <= 10; k++) {
           cdd_cst_builder_init(&dummy_bld, dummy_tree, dummy_node);
           g_cdd_cst_alloc_token_fail = k;
-          emit_ast_bld_strip((void *)&n_assign_test, &dummy_bld, 1);
+          emit_ast_bld_strip(&n_assign_test, &dummy_bld, 1);
           g_cdd_cst_alloc_token_fail = 0;
+          cdd_cst_builder_free(&dummy_bld);
         }
+        cdd_cst_free_node(dummy_node);
       }
       cdd_cst_tree_free(dummy_tree);
     }
@@ -716,6 +726,8 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
 
         /* node.type = 0, length = 1, start[0] = '&' */
         emit_ast_bld_strip_ampersand(&n_amp, &dummy_bld, 0);
+        cdd_cst_builder_free(&dummy_bld);
+        cdd_cst_free_node(dummy_node);
       }
       cdd_cst_tree_free(dummy_tree);
     }
@@ -778,21 +790,26 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
         cdd_cst_builder_init(&dummy_bld, dummy_tree, dummy_node);
 
         g_safe_crt_malloc_fail = 2;
-        emit_ast_bld_strip((void *)&n_call_close, &dummy_bld, 0);
+        emit_ast_bld_strip(&n_call_close, &dummy_bld, 0);
         g_safe_crt_malloc_fail = 0;
+        cdd_cst_builder_free(&dummy_bld);
+        cdd_cst_free_node(dummy_node);
       }
       cdd_cst_tree_free(dummy_tree);
+    }
+  }
+  {
+    cdd_cst_tree_t *flush_tree = NULL;
+    if (cdd_cst_parse(az_span_create_from_str("void f(void) {}"),
+                      &flush_tree) == 0 &&
+        flush_tree) {
+      cdd_transform_safe_crt(flush_tree, NULL);
+      cdd_cst_tree_free(flush_tree);
     }
   }
 
   PASS();
 }
-
-#ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT cdd_c_error_t emit_ast_bld_strip(void *node,
-                                                     cdd_cst_builder_t *bld,
-                                                     int is_msc);
-#endif
 
 TEST test_cdd_transform_safe_crt_manual_lines(void) {
   cdd_cst_tree_t *tree = NULL;
@@ -828,7 +845,7 @@ TEST test_cdd_transform_safe_crt_manual_lines(void) {
 
   for (fail_idx = 1; fail_idx <= 10; fail_idx++) {
     g_mock_safe_crt_rules_fail = fail_idx;
-    emit_ast_bld_strip((void *)&call_expr, &bld, 1);
+    emit_ast_bld_strip(&call_expr, &bld, 1);
   }
   g_mock_safe_crt_rules_fail = 0;
 
@@ -840,18 +857,18 @@ TEST test_cdd_transform_safe_crt_manual_lines(void) {
 
   for (fail_idx = 1; fail_idx <= 10; fail_idx++) {
     g_mock_safe_crt_rules_fail = fail_idx;
-    emit_ast_bld_strip((void *)&fop_expr, &bld, 1);
+    emit_ast_bld_strip(&fop_expr, &bld, 1);
   }
   g_mock_safe_crt_rules_fail = 0;
 
   for (fail_idx = 1; fail_idx <= 10; fail_idx++) {
     g_mock_safe_crt_rules_fail = fail_idx;
-    emit_ast_bld_strip((void *)&fop_expr, &bld, 0);
+    emit_ast_bld_strip(&fop_expr, &bld, 0);
   }
   g_mock_safe_crt_rules_fail = 0;
 
   cdd_cst_builder_free(&bld);
-  cdd_cst_free_node_only(node);
+  cdd_cst_free_node(node);
   cdd_cst_tree_free(tree);
   PASS();
 }

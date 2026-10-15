@@ -25,10 +25,6 @@ extern C_CDD_EXPORT volatile int g_gnu_replace_fail;
 extern C_CDD_EXPORT volatile int g_gnu_bld_fail;
 extern C_CDD_EXPORT volatile int g_gnu_malloc_fail;
 extern C_CDD_EXPORT volatile int g_gnu_find_fail;
-extern C_CDD_EXPORT const char *pool_string_safe(cdd_cst_tree_t *tree,
-                                                 const char *str);
-extern C_CDD_EXPORT const char *
-pool_string_safe_len(cdd_cst_tree_t *tree, const char *str, size_t len);
 
 TEST test_gnu_pool_string_safe(void) {
   cdd_cst_tree_t tree;
@@ -554,6 +550,17 @@ TEST test_gnu_asm_and_visitors(void) {
     g_gnu_standardizer_fail = 33;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_magic_visitor(&mnode, &mctx));
     g_gnu_standardizer_fail = 0;
+    {
+      size_t mi;
+      for (mi = 0; mi < mtree.num_strings; mi++) {
+        free(mtree.string_pool[mi]);
+      }
+      free(mtree.string_pool);
+      for (mi = 0; mi < mtree.num_synthesized; mi++) {
+        free(mtree.synthesized_tokens[mi]);
+      }
+      free(mtree.synthesized_tokens);
+    }
   }
 
   memset(&node, 0, sizeof(node));
@@ -688,6 +695,13 @@ TEST test_gnu_asm_and_visitors(void) {
       mtree.string_pool = NULL;
       mtree.num_strings = 0;
       mtree.string_capacity = 0;
+      for (mi = 0; mi < mtree.num_synthesized; mi++) {
+        free(mtree.synthesized_tokens[mi]);
+      }
+      free(mtree.synthesized_tokens);
+      mtree.synthesized_tokens = NULL;
+      mtree.num_synthesized = 0;
+      mtree.synthesized_capacity = 0;
     }
 
     /* Magic visitor fail mock (pooled == NULL) */
@@ -716,30 +730,6 @@ TEST test_gnu_asm_and_visitors(void) {
   PASS();
 }
 
-TEST test_gnu_pool_helpers(void) {
-  cdd_cst_tree_t tree;
-  const char *res = NULL;
-  size_t i;
-  memset(&tree, 0, sizeof(tree));
-
-  ASSERT(pool_string_safe(NULL, NULL) == NULL);
-  ASSERT(pool_string_safe_len(NULL, NULL, 0) == NULL);
-
-  res = pool_string_safe(&tree, "pooled_str");
-  ASSERT(res != NULL);
-  ASSERT_STR_EQ("pooled_str", res);
-
-  res = pool_string_safe_len(&tree, "len_str_abc", 7);
-  ASSERT(res != NULL);
-  ASSERT_STR_EQ("len_str", res);
-
-  for (i = 0; i < tree.num_strings; i++) {
-    free(tree.string_pool[i]);
-  }
-  free(tree.string_pool);
-  PASS();
-}
-
 SUITE(transformer_gnu_standardizer_internals_suite) {
   RUN_TEST(test_gnu_pool_string_safe);
   RUN_TEST(test_gnu_pool_string_safe_len);
@@ -748,7 +738,6 @@ SUITE(transformer_gnu_standardizer_internals_suite) {
   RUN_TEST(test_gnu_parse_hex_128_literal);
   RUN_TEST(test_gnu_infer_type);
   RUN_TEST(test_gnu_asm_and_visitors);
-  RUN_TEST(test_gnu_pool_helpers);
 }
 
 #ifdef __cplusplus

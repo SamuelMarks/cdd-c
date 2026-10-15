@@ -24,14 +24,14 @@ TEST test_writer_paths_webhooks_components_extensions(void) {
   json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
-  spec.info.title = (char *)(size_t)(size_t) "Spec";
-  spec.info.version = (char *)(size_t)(size_t) "1";
-  resp.description = (char *)(size_t)(size_t) "ok";
+  spec.info.title = cdd_test_mut_str("Spec");
+  spec.info.version = cdd_test_mut_str("1");
+  resp.description = cdd_test_mut_str("ok");
 
-  spec.paths_extensions_json = (char *)(size_t)(size_t) "{\"x-paths\":true}";
-  spec.webhooks_extensions_json = (char *)(size_t)(size_t) "{\"x-hooks\":1}";
+  spec.paths_extensions_json = cdd_test_mut_str("{\"x-paths\":true}");
+  spec.webhooks_extensions_json = cdd_test_mut_str("{\"x-hooks\":1}");
   spec.components_extensions_json =
-      (char *)(size_t)(size_t) "{\"x-comps\":{\"meta\":\"yes\"}}";
+      cdd_test_mut_str("{\"x-comps\":{\"meta\":\"yes\"}}");
   spec.webhooks = NULL;
   spec.n_webhooks = 0;
 
@@ -94,27 +94,27 @@ TEST test_writer_methods_and_styles(void) {
   /* Test parameter styles */
   path.operations[0].n_parameters = 6;
   path.operations[0].parameters = calloc(6, sizeof(struct OpenAPI_Parameter));
-  path.operations[0].parameters[0].name = (char *)(size_t)(size_t) "p1";
+  path.operations[0].parameters[0].name = cdd_test_mut_str("p1");
   path.operations[0].parameters[0].in = OA_PARAM_IN_COOKIE;
   path.operations[0].parameters[0].style = OA_STYLE_COOKIE;
 
-  path.operations[0].parameters[1].name = (char *)(size_t)(size_t) "p2";
+  path.operations[0].parameters[1].name = cdd_test_mut_str("p2");
   path.operations[0].parameters[1].in = OA_PARAM_IN_QUERY;
   path.operations[0].parameters[1].style = OA_STYLE_LABEL;
 
-  path.operations[0].parameters[2].name = (char *)(size_t)(size_t) "p3";
+  path.operations[0].parameters[2].name = cdd_test_mut_str("p3");
   path.operations[0].parameters[2].in = OA_PARAM_IN_QUERY;
   path.operations[0].parameters[2].style = OA_STYLE_SPACE_DELIMITED;
 
-  path.operations[0].parameters[3].name = (char *)(size_t)(size_t) "p4";
+  path.operations[0].parameters[3].name = cdd_test_mut_str("p4");
   path.operations[0].parameters[3].in = OA_PARAM_IN_QUERY;
   path.operations[0].parameters[3].style = OA_STYLE_PIPE_DELIMITED;
 
-  path.operations[0].parameters[4].name = (char *)(size_t)(size_t) "p5";
+  path.operations[0].parameters[4].name = cdd_test_mut_str("p5");
   path.operations[0].parameters[4].in = OA_PARAM_IN_QUERY;
   path.operations[0].parameters[4].style = OA_STYLE_DEEP_OBJECT;
 
-  path.operations[0].parameters[5].name = (char *)(size_t)(size_t) "p6";
+  path.operations[0].parameters[5].name = cdd_test_mut_str("p6");
   path.operations[0].parameters[5].in = OA_PARAM_IN_QUERYSTRING;
 
   rc = openapi_write_spec_to_json(&spec, &json);
@@ -135,28 +135,26 @@ TEST test_writer_xml_and_oauth(void) {
   json = NULL;
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
-  spec.openapi_version = (char *)(size_t)(size_t) "3.2.0";
-  spec.info.title = (char *)(size_t)(size_t) "test";
-  spec.info.version = (char *)(size_t)(size_t) "1";
+  spec.openapi_version = cdd_test_mut_str("3.2.0");
+  spec.info.title = cdd_test_mut_str("test");
+  spec.info.version = cdd_test_mut_str("1");
 
   spec.n_security_schemes = 1;
   spec.security_schemes = calloc(1, sizeof(struct OpenAPI_SecurityScheme));
-  spec.security_schemes[0].name = (char *)(size_t)(size_t) "oauth2_all";
+  spec.security_schemes[0].name = cdd_test_mut_str("oauth2_all");
   spec.security_schemes[0].type = OA_SEC_OAUTH2;
 
   spec.security_schemes[0].n_flows = 3;
   spec.security_schemes[0].flows = calloc(3, sizeof(struct OpenAPI_OAuthFlow));
   spec.security_schemes[0].flows[0].type = OA_OAUTH_FLOW_CLIENT_CREDENTIALS;
-  spec.security_schemes[0].flows[0].token_url =
-      (char *)(size_t)(size_t) "https://a.b";
+  spec.security_schemes[0].flows[0].token_url = cdd_test_mut_str("https://a.b");
   spec.security_schemes[0].flows[1].type = OA_OAUTH_FLOW_AUTHORIZATION_CODE;
-  spec.security_schemes[0].flows[1].token_url =
-      (char *)(size_t)(size_t) "https://a.b";
+  spec.security_schemes[0].flows[1].token_url = cdd_test_mut_str("https://a.b");
   spec.security_schemes[0].flows[1].authorization_url =
-      (char *)(size_t)(size_t) "https://a.b";
+      cdd_test_mut_str("https://a.b");
   spec.security_schemes[0].flows[2].type = OA_OAUTH_FLOW_DEVICE_AUTHORIZATION;
   spec.security_schemes[0].flows[2].device_authorization_url =
-      (char *)(size_t)(size_t) "https://a.b";
+      cdd_test_mut_str("https://a.b");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -179,43 +177,41 @@ TEST test_writer_xml_types(void) {
   json = NULL;
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
-  spec.openapi_version = (char *)(size_t)(size_t) "3.2.0";
-  spec.info.title = (char *)(size_t)(size_t) "test";
-  spec.info.version = (char *)(size_t)(size_t) "1";
+  spec.openapi_version = cdd_test_mut_str("3.2.0");
+  spec.info.title = cdd_test_mut_str("test");
+  spec.info.version = cdd_test_mut_str("1");
 
   spec.n_paths = 1;
   spec.paths = &path;
-  path.route = (char *)(size_t)(size_t) "/xml";
+  path.route = cdd_test_mut_str("/xml");
   path.n_operations = 1;
   path.operations = &op;
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)(size_t) "xmlOp";
+  op.operation_id = cdd_test_mut_str("xmlOp");
 
   op.n_responses = 1;
   op.responses = &resp;
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.description = (char *)(size_t)(size_t) "OK";
+  resp.code = cdd_test_mut_str("200");
+  resp.description = cdd_test_mut_str("OK");
   resp.n_content_media_types = 4;
   resp.content_media_types = calloc(4, sizeof(struct OpenAPI_MediaType));
 
-  resp.content_media_types[0].name = (char *)(size_t)(size_t) "application/xml";
+  resp.content_media_types[0].name = cdd_test_mut_str("application/xml");
   resp.content_media_types[0].schema_set = 1;
   resp.content_media_types[0].schema.xml.node_type_set = 1;
   resp.content_media_types[0].schema.xml.node_type = OA_XML_NODE_ELEMENT;
 
-  resp.content_media_types[1].name = (char *)(size_t)(size_t) "text/xml";
+  resp.content_media_types[1].name = cdd_test_mut_str("text/xml");
   resp.content_media_types[1].schema_set = 1;
   resp.content_media_types[1].schema.xml.node_type_set = 1;
   resp.content_media_types[1].schema.xml.node_type = OA_XML_NODE_TEXT;
 
-  resp.content_media_types[2].name =
-      (char *)(size_t)(size_t) "application/cdata";
+  resp.content_media_types[2].name = cdd_test_mut_str("application/cdata");
   resp.content_media_types[2].schema_set = 1;
   resp.content_media_types[2].schema.xml.node_type_set = 1;
   resp.content_media_types[2].schema.xml.node_type = OA_XML_NODE_CDATA;
 
-  resp.content_media_types[3].name =
-      (char *)(size_t)(size_t) "application/none";
+  resp.content_media_types[3].name = cdd_test_mut_str("application/none");
   resp.content_media_types[3].schema_set = 1;
   resp.content_media_types[3].schema.xml.node_type_set = 1;
   resp.content_media_types[3].schema.xml.node_type = OA_XML_NODE_NONE;
@@ -258,38 +254,38 @@ TEST test_openapi_utils(void) {
   memset(&p, 0, sizeof(p));
   ASSERT_EQ(0, param_is_reserved_header_openapi(NULL));
   p.in = OA_PARAM_IN_HEADER;
-  p.name = (char *)(size_t)(size_t) "Accept";
+  p.name = cdd_test_mut_str("Accept");
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
 
   ASSERT_EQ(0, param_is_reserved_header_openapi(NULL));
   p.in = OA_PARAM_IN_HEADER;
-  p.name = (char *)(size_t)(size_t) "Accept";
+  p.name = cdd_test_mut_str("Accept");
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = (char *)(size_t)(size_t) "Content-Type";
+  p.name = cdd_test_mut_str("Content-Type");
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = (char *)(size_t)(size_t) "Authorization";
+  p.name = cdd_test_mut_str("Authorization");
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = (char *)(size_t)(size_t) "Content-Type";
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-
-  ASSERT_EQ(0, param_is_reserved_header_openapi(NULL));
-  p.in = OA_PARAM_IN_HEADER;
-  p.name = (char *)(size_t)(size_t) "Accept";
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = (char *)(size_t)(size_t) "Content-Type";
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = (char *)(size_t)(size_t) "Authorization";
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = (char *)(size_t)(size_t) "Authorization";
+  p.name = cdd_test_mut_str("Content-Type");
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
 
   ASSERT_EQ(0, param_is_reserved_header_openapi(NULL));
   p.in = OA_PARAM_IN_HEADER;
-  p.name = (char *)(size_t)(size_t) "Accept";
+  p.name = cdd_test_mut_str("Accept");
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = (char *)(size_t)(size_t) "Content-Type";
+  p.name = cdd_test_mut_str("Content-Type");
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = (char *)(size_t)(size_t) "Authorization";
+  p.name = cdd_test_mut_str("Authorization");
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+  p.name = cdd_test_mut_str("Authorization");
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+
+  ASSERT_EQ(0, param_is_reserved_header_openapi(NULL));
+  p.in = OA_PARAM_IN_HEADER;
+  p.name = cdd_test_mut_str("Accept");
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+  p.name = cdd_test_mut_str("Content-Type");
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+  p.name = cdd_test_mut_str("Authorization");
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
 
   /* OAuth Flow string conversion */
@@ -341,8 +337,8 @@ TEST test_writer_extended_coverage(void) {
   memset(&enc, 0, sizeof(enc));
 
   /* Component Header with content_ref, required, deprecated, style, explode */
-  hdr.name = (char *)(size_t)(size_t) "X-Custom-Hdr";
-  hdr.description = (char *)(size_t)(size_t) "Custom header description";
+  hdr.name = cdd_test_mut_str("X-Custom-Hdr");
+  hdr.description = cdd_test_mut_str("Custom header description");
   hdr.required = 1;
   hdr.deprecated_set = 1;
   hdr.deprecated = 1;
@@ -350,25 +346,25 @@ TEST test_writer_extended_coverage(void) {
   hdr.style = OA_STYLE_SIMPLE;
   hdr.explode_set = 1;
   hdr.explode = 0;
-  hdr.content_ref = (char *)(size_t)(size_t) "#/components/headers/OtherHdr";
+  hdr.content_ref = cdd_test_mut_str("#/components/headers/OtherHdr");
 
   spec.component_headers = &hdr;
   spec.component_header_names = (char **)(size_t)(size_t)&hdr.name;
   spec.n_component_headers = 1;
 
   /* Component Link with ref */
-  link.name = (char *)(size_t)(size_t) "LinkRef";
-  link.ref = (char *)(size_t)(size_t) "#/components/links/TargetLink";
-  link.summary = (char *)(size_t)(size_t) "Link summary";
-  link.description = (char *)(size_t)(size_t) "Link desc";
+  link.name = cdd_test_mut_str("LinkRef");
+  link.ref = cdd_test_mut_str("#/components/links/TargetLink");
+  link.summary = cdd_test_mut_str("Link summary");
+  link.description = cdd_test_mut_str("Link desc");
 
   spec.component_links = &link;
   spec.n_component_links = 1;
 
   /* Component Media Types with prefixEncoding and itemEncoding */
-  mt.name = (char *)(size_t)(size_t) "application/octet-stream";
-  enc.name = (char *)(size_t)(size_t) "itemEnc";
-  enc.content_type = (char *)(size_t)(size_t) "text/plain";
+  mt.name = cdd_test_mut_str("application/octet-stream");
+  enc.name = cdd_test_mut_str("itemEnc");
+  enc.content_type = cdd_test_mut_str("text/plain");
   mt.item_encoding = &enc;
   mt.item_encoding_set = 1;
   mt.prefix_encoding = &enc;
@@ -389,18 +385,18 @@ TEST test_writer_extended_coverage(void) {
     memset(&cb_op, 0, sizeof(cb_op));
     memset(&cb_resp, 0, sizeof(cb_resp));
 
-    cb.name = (char *)(size_t)(size_t) "compCallback";
+    cb.name = cdd_test_mut_str("compCallback");
     cb.paths = &cb_path;
     cb.n_paths = 1;
-    cb_path.route = (char *)(size_t)(size_t) "{$request.query.queryUrl}";
+    cb_path.route = cdd_test_mut_str("{$request.query.queryUrl}");
     cb_path.operations = &cb_op;
     cb_path.n_operations = 1;
     cb_op.verb = OA_VERB_POST;
-    cb_op.operation_id = (char *)(size_t)(size_t) "compCbPost";
+    cb_op.operation_id = cdd_test_mut_str("compCbPost");
     cb_op.responses = &cb_resp;
     cb_op.n_responses = 1;
-    cb_resp.code = (char *)(size_t)(size_t) "200";
-    cb_resp.description = (char *)(size_t)(size_t) "ok";
+    cb_resp.code = cdd_test_mut_str("200");
+    cb_resp.description = cdd_test_mut_str("ok");
 
     spec.component_callbacks = &cb;
     spec.n_component_callbacks = 1;
@@ -439,15 +435,15 @@ TEST test_writer_extended_coverage(void) {
     memset(&else_s, 0, sizeof(else_s));
     memset(&content_s, 0, sizeof(content_s));
 
-    sub_refs[0].ref_name = (char *)(size_t)(size_t) "string";
-    sub_refs[1].ref_name = (char *)(size_t)(size_t) "integer";
-    sub_refs[2].ref = (char *)(size_t)(size_t) "#/components/schemas/External";
+    sub_refs[0].ref_name = cdd_test_mut_str("string");
+    sub_refs[1].ref_name = cdd_test_mut_str("integer");
+    sub_refs[2].ref = cdd_test_mut_str("#/components/schemas/External");
 
-    not_s.ref_name = (char *)(size_t)(size_t) "boolean";
-    if_s.ref_name = (char *)(size_t)(size_t) "string";
-    then_s.ref_name = (char *)(size_t)(size_t) "number";
-    else_s.ref_name = (char *)(size_t)(size_t) "null";
-    content_s.ref_name = (char *)(size_t)(size_t) "object";
+    not_s.ref_name = cdd_test_mut_str("boolean");
+    if_s.ref_name = cdd_test_mut_str("string");
+    then_s.ref_name = cdd_test_mut_str("number");
+    else_s.ref_name = cdd_test_mut_str("null");
+    content_s.ref_name = cdd_test_mut_str("object");
 
     root_ref.all_of = sub_refs;
     root_ref.n_all_of = 3;
@@ -460,18 +456,18 @@ TEST test_writer_extended_coverage(void) {
     root_ref.then_schema = &then_s;
     root_ref.else_schema = &else_s;
     root_ref.content_schema = &content_s;
-    root_ref.content_media_type = (char *)(size_t)(size_t) "application/json";
-    root_ref.content_encoding = (char *)(size_t)(size_t) "base64";
+    root_ref.content_media_type = cdd_test_mut_str("application/json");
+    root_ref.content_encoding = cdd_test_mut_str("base64");
 
-    comp_path.route = (char *)(size_t)(size_t) "/composition";
+    comp_path.route = cdd_test_mut_str("/composition");
     comp_path.operations = &comp_op;
     comp_path.n_operations = 1;
     comp_op.verb = OA_VERB_GET;
-    comp_op.operation_id = (char *)(size_t)(size_t) "getComposition";
+    comp_op.operation_id = cdd_test_mut_str("getComposition");
     comp_op.responses = &comp_resp;
     comp_op.n_responses = 1;
-    comp_resp.code = (char *)(size_t)(size_t) "200";
-    comp_resp.description = (char *)(size_t)(size_t) "ok";
+    comp_resp.code = cdd_test_mut_str("200");
+    comp_resp.description = cdd_test_mut_str("ok");
     comp_resp.schema = root_ref;
     comp_resp.schema_set = 1;
 
@@ -500,40 +496,40 @@ TEST test_writer_extended_coverage(void) {
     memset(params, 0, sizeof(params));
 
     /* param 0: content_ref */
-    params[0].name = (char *)(size_t)(size_t) "p_ref";
+    params[0].name = cdd_test_mut_str("p_ref");
     params[0].in = OA_PARAM_IN_HEADER;
     params[0].content_ref =
-        (char *)(size_t)(size_t) "#/components/headers/CustomHeader";
+        cdd_test_mut_str("#/components/headers/CustomHeader");
 
     /* param 1: content_type with item_schema_set */
-    params[1].name = (char *)(size_t)(size_t) "p_items";
+    params[1].name = cdd_test_mut_str("p_items");
     params[1].in = OA_PARAM_IN_QUERY;
-    params[1].content_type = (char *)(size_t)(size_t) "application/json";
+    params[1].content_type = cdd_test_mut_str("application/json");
     params[1].item_schema_set = 1;
-    params[1].type = (char *)(size_t)(size_t) "array";
+    params[1].type = cdd_test_mut_str("array");
     params[1].is_array = 1;
-    params[1].items_type = (char *)(size_t)(size_t) "string";
+    params[1].items_type = cdd_test_mut_str("string");
     params[1].example_location = OA_EXAMPLE_LOC_MEDIA;
     params[1].example_set = 1;
     params[1].example.type = OA_ANY_STRING;
-    params[1].example.string = (char *)(size_t)(size_t) "itemExample";
+    params[1].example.string = cdd_test_mut_str("itemExample");
 
     /* param 2: OA_PARAM_IN_QUERYSTRING fallback */
-    params[2].name = (char *)(size_t)(size_t) "p_qs";
+    params[2].name = cdd_test_mut_str("p_qs");
     params[2].in = OA_PARAM_IN_QUERYSTRING;
-    params[2].type = (char *)(size_t)(size_t) "string";
+    params[2].type = cdd_test_mut_str("string");
 
-    p_path.route = (char *)(size_t)(size_t) "/params_coverage";
+    p_path.route = cdd_test_mut_str("/params_coverage");
     p_path.operations = &p_op;
     p_path.n_operations = 1;
     p_op.verb = OA_VERB_GET;
-    p_op.operation_id = (char *)(size_t)(size_t) "getParamsCoverage";
+    p_op.operation_id = cdd_test_mut_str("getParamsCoverage");
     p_op.parameters = params;
     p_op.n_parameters = 3;
     p_op.responses = &p_resp;
     p_op.n_responses = 1;
-    p_resp.code = (char *)(size_t)(size_t) "200";
-    p_resp.description = (char *)(size_t)(size_t) "ok";
+    p_resp.code = cdd_test_mut_str("200");
+    p_resp.description = cdd_test_mut_str("ok");
 
     spec.paths = &p_path;
     spec.n_paths = 1;

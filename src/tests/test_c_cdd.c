@@ -1,9 +1,3 @@
-#if defined(__clang__)
-
-#endif
-#if defined(__GNUC__) || defined(__clang__)
-#endif
-
 /**
  * @file test_c_cdd.c
  * @brief Main test runner.
@@ -123,6 +117,10 @@ extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
 
 #include "cdd_test_helpers_export.h"
 CDD_TEST_HELPERS_EXPORT FILE* cdd_test_tmpfile_global(void);
+CDD_TEST_HELPERS_EXPORT char* cdd_test_mut_str(const char *str);
+#ifndef C_CDD_STR_LIT
+#define C_CDD_STR_LIT(s) cdd_test_mut_str(s)
+#endif
 
 
 #include "c_cdd/test_int128.h"
@@ -368,8 +366,6 @@ static FILE *mock_tmpfile_fuzzer(void) {
 
 GREATEST_MAIN_DEFS();
 
-extern cdd_c_error_t dummy_client(void);
-
 TEST test_cdd_helpers(void) {
   cdd_precondition_failed();
   printf("write_to_file(NULL, NULL) = %d\\n", write_to_file(NULL, NULL));
@@ -382,8 +378,6 @@ TEST test_cdd_helpers(void) {
 
   /* Moved extern declarations for C89 compliance */
   {
-    extern C_CDD_EXPORT int g_struct_fields_add_fail;
-
     extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
     extern C_CDD_EXPORT int g_cdd_query_err_fail;
     extern C_CDD_EXPORT int g_schema_realloc_fail;
@@ -396,16 +390,12 @@ TEST test_cdd_helpers(void) {
     extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail;
     extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail;
 
-    extern C_CDD_EXPORT int g_enum_members_init_fail;
-
     extern C_CDD_EXPORT int g_cdd_lexer_id_fail;
     extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail;
 
     extern C_CDD_EXPORT int g_err_perc_fail;
     extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
     extern C_CDD_EXPORT int g_fail_io_after;
-    extern C_CDD_EXPORT int g_struct_fields_init_fail;
-    extern C_CDD_EXPORT int g_enum_members_add_strdup_fail;
     extern C_CDD_EXPORT int g_cdd_ffi_ir_toposort_fail;
 
     extern C_CDD_EXPORT int g_cdd_semantic_leave_fail;
@@ -417,8 +407,6 @@ TEST test_cdd_helpers(void) {
     extern C_CDD_EXPORT int g_schema_strdup_fail;
 
     extern C_CDD_EXPORT int g_cdd_helpers_fopen_err;
-
-    extern C_CDD_EXPORT int g_enum_members_add_fail;
 
     extern C_CDD_EXPORT int g_cdd_lexer_id2_fail;
 
@@ -461,11 +449,6 @@ TEST test_cdd_helpers(void) {
     g_fail_io_after = -1; /* Success case where both FPUTS and FCLOSE succeed */
     ASSERT_EQ(CDD_C_SUCCESS, write_to_file("test_helpers.txt", "abc"));
     remove("test_helpers.txt");
-
-    {
-      cdd_c_error_t dummy_rc = dummy_client();
-      ASSERT_EQ(CDD_C_SUCCESS, dummy_rc);
-    }
 
     g_fail_io_after = -1;
     PASS();
@@ -645,13 +628,6 @@ static void reset_mocks(void) {
   g_cdd_strdup_fail = 0;
   /* extern C_CDD_EXPORT int g_cdd_type_eval_ptr_fail; (moved to global) */
   g_cdd_type_eval_ptr_fail = 0;
-  /* extern C_CDD_EXPORT int g_enum_members_add_fail; (moved to global) */
-  g_enum_members_add_fail = 0;
-  /* extern C_CDD_EXPORT int g_enum_members_add_strdup_fail; (moved to global)
-   */
-  g_enum_members_add_strdup_fail = 0;
-  /* extern C_CDD_EXPORT int g_enum_members_init_fail; (moved to global) */
-  g_enum_members_init_fail = 0;
   /* extern C_CDD_EXPORT int g_err_perc_fail; (moved to global) */
   g_err_perc_fail = 0;
   {
@@ -706,12 +682,6 @@ static void reset_mocks(void) {
           /* extern C_CDD_EXPORT int g_str_unquote_malloc_fail; (moved to
            * global) */
           g_str_unquote_malloc_fail = 0;
-          /* extern C_CDD_EXPORT int g_struct_fields_add_fail; (moved to global)
-           */
-          g_struct_fields_add_fail = 0;
-          /* extern C_CDD_EXPORT int g_struct_fields_init_fail; (moved to
-           * global) */
-          g_struct_fields_init_fail = 0;
           /* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
           g_io_calls = 0;
         }
@@ -733,6 +703,7 @@ static void test_teardown_cb(void *udata) {
 
 int main(int argc, char **argv) {
   setvbuf(stdout, NULL, _IONBF, 0);
+  atexit(cdd_test_tmpfile_cleanup);
   GREATEST_MAIN_BEGIN();
 
   test_teardown_cb(NULL);
@@ -812,8 +783,7 @@ int main(int argc, char **argv) {
         'a',  'i',  'n', '(',  ')',  ' ',  '{',  ' ',  'a',  's',  'm',  '(',
         '"',  'n',  'o', 'p',  '"',  ')',  ';',  ' ',  'r',  'e',  't',  'u',
         'r',  'n',  ' ', '0',  ';',  ' ',  '}',  '\n', '\0'};
-    cdd_c_error_t rc =
-        cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippet), &tree);
+    cdd_c_error_t rc = cdd_cst_parse(az_span_create_from_str(snippet), &tree);
     printf("PARSE RC = %d, num_children = %lu, capacity = %lu\n", rc,
            (unsigned long)tree->root->num_children,
            (unsigned long)tree->root->capacity);
@@ -1016,13 +986,12 @@ int main(int argc, char **argv) {
   RUN_SUITE_RESET(transformer_gnu_standardizer_internals_coverage_suite);
   RUN_SUITE_RESET(cdd_c_error_suite);
   reset_mocks();
+  cdd_test_tmpfile_cleanup();
 
 #endif
   GREATEST_MAIN_END();
 }
 
-#if defined(__GNUC__) || defined(__clang__)
-#endif
 #ifndef CDD_BUILD_TESTS
 #error "CDD_BUILD_TESTS IS NOT DEFINED!"
 #endif

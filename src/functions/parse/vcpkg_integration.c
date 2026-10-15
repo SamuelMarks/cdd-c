@@ -29,7 +29,7 @@ static cdd_c_error_t my_strdup(const char *s, char **out_val) {
   if (!s)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   len = strlen(s) + 1;
-  d = (char *)(size_t)C_CDD_MALLOC(len);
+  d = (char *)C_CDD_MALLOC(len);
   if (!d)
     return CDD_C_ERROR_MEMORY;
   memcpy(d, s, len);
@@ -38,7 +38,7 @@ static cdd_c_error_t my_strdup(const char *s, char **out_val) {
 }
 
 /**
- * @brief Executes the vcpkg builder init operation.
+ * @brief Initializes a vcpkg manifest builder context.
  */
 cdd_c_error_t vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
                                  const char *project_name,
@@ -94,7 +94,7 @@ cdd_c_error_t vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
 }
 
 /**
- * @brief Executes the vcpkg builder free operation.
+ * @brief Releases memory held by a vcpkg manifest builder context.
  */
 void vcpkg_builder_free(struct VcpkgManifestBuilder *builder) {
   size_t i;
@@ -118,7 +118,7 @@ void vcpkg_builder_free(struct VcpkgManifestBuilder *builder) {
 }
 
 /**
- * @brief Executes the vcpkg builder add dep operation.
+ * @brief Adds a package dependency to a vcpkg manifest builder.
  */
 cdd_c_error_t vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
                                     const char *dep_name) {
@@ -158,7 +158,7 @@ cdd_c_error_t vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
 }
 
 /**
- * @brief Executes the vcpkg builder scan source operation.
+ * @brief Scans C source includes to infer required vcpkg dependencies.
  */
 cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
                                         const char *file_content) {
@@ -169,8 +169,7 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
   if (!builder || !file_content)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  res =
-      tokenize(az_span_create_from_str((char *)(size_t)file_content), &tokens);
+  res = tokenize(az_span_create_from_str(file_content), &tokens);
   if (res != 0)
     return res;
 
@@ -209,7 +208,7 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
                   (const char *)tokens->tokens[end_inc - 1].start +
                   tokens->tokens[end_inc - 1].length;
               size_t inc_len = (size_t)(inc_end - inc_start);
-              char *inc_str = (char *)(size_t)C_CDD_MALLOC(inc_len + 1);
+              char *inc_str = (char *)C_CDD_MALLOC(inc_len + 1);
               if (!inc_str) {
                 free_token_list(tokens);
                 return CDD_C_ERROR_MEMORY;
@@ -254,7 +253,7 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
 }
 
 /**
- * @brief Executes the vcpkg builder generate operation.
+ * @brief Serializes a vcpkg.json manifest file from collected dependencies.
  */
 cdd_c_error_t vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
                                      char **out_json) {
@@ -266,7 +265,7 @@ cdd_c_error_t vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
   if (!builder || !out_json)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  json = (char *)(size_t)C_CDD_MALLOC(cap);
+  json = (char *)C_CDD_MALLOC(cap);
   if (!json) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;

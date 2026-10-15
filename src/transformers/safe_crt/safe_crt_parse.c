@@ -223,9 +223,10 @@ C_CDD_EXPORT cdd_c_error_t check_unsupported_calls(expr_t *head) {
  * @brief Infers buffer size metadata for a given expression node.
  *
  * @param[in] node Target expression node.
- * @return Inferred size metadata structure.
+ * @param[out] out_size Pointer to receive inferred size metadata structure.
+ * @return CDD_C_SUCCESS on success.
  */
-inferred_size_t infer_buffer_size(expr_t *node) {
+cdd_c_error_t infer_buffer_size(expr_t *node, inferred_size_t *out_size) {
   inferred_size_t res;
   cdd_cst_query_result_t stmts;
   size_t i, j;
@@ -235,8 +236,10 @@ inferred_size_t infer_buffer_size(expr_t *node) {
   memset(&res, 0, sizeof(res));
   memset(&stmts, 0, sizeof(stmts));
 
-  if (!current_tree || !current_tree->root || !node)
-    return res;
+  if (!current_tree || !current_tree->root || !node) {
+    *out_size = res;
+    return CDD_C_SUCCESS;
+  }
 
   /* Parse offset patterns */
   if (node->type == 0 && node->tok && node->tok->length == 1 &&
@@ -283,15 +286,20 @@ inferred_size_t infer_buffer_size(expr_t *node) {
       res.is_malloc = 1;
       res.malloc_size_expr = node->args[1];
     }
-    return res;
+    *out_size = res;
+    return CDD_C_SUCCESS;
   }
 
-  if (!name)
-    return res;
+  if (!name) {
+    *out_size = res;
+    return CDD_C_SUCCESS;
+  }
 
   if (cdd_cst_find_nodes_by_type(current_tree->root, CDD_CST_UNKNOWN, &stmts) !=
-      0)
-    return res;
+      0) {
+    *out_size = res;
+    return CDD_C_SUCCESS;
+  }
 
   for (i = 0; i < stmts.size; i++) {
     cdd_cst_node_t *stmt = stmts.nodes[i];
@@ -309,7 +317,8 @@ inferred_size_t infer_buffer_size(expr_t *node) {
               stmt->children[j - 1].val.token->kind == CDD_TOKEN_IDENTIFIER) {
             res.valid = 1;
             free(stmts.nodes);
-            return res;
+            *out_size = res;
+            return CDD_C_SUCCESS;
           }
 
           /* Pattern 2: malloc/calloc/realloc assignment -> buf = malloc(...) OR
@@ -357,7 +366,8 @@ inferred_size_t infer_buffer_size(expr_t *node) {
       break;
   }
   free(stmts.nodes);
-  return res;
+  *out_size = res;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -480,9 +490,11 @@ C_CDD_EXPORT cdd_c_error_t check_needs_transform(expr_t *head) {
             size_t a_idx = (size_t)arg_idx + k;
             if (a_idx < head->num_args) {
               expr_t *arg = head->args[a_idx];
+              inferred_size_t inf;
               if (expr_is_null_or_zero(arg) != CDD_C_SUCCESS)
                 continue;
-              if (!infer_buffer_size(arg).valid) {
+              infer_buffer_size(arg, &inf);
+              if (!inf.valid) {
                 /* let it proceed, emit_inferred_size will handle it */
               }
             }

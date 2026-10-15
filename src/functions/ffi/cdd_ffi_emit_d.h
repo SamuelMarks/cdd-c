@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_d.h
+ * @brief FFI binding emitter for D.
+ */
 #ifndef CDD_FFI_EMIT_D_H
 #define CDD_FFI_EMIT_D_H
 

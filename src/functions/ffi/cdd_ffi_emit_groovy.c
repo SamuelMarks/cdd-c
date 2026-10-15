@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_groovy.c
+ * @brief FFI binding emitter for Groovy.
+ */
 #ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
 #endif
@@ -12,63 +16,64 @@ extern volatile int g_fail_io_after;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
-}
-
-static const char *map_groovy_jna_type(cdd_ffi_type_t *t) {
+static cdd_c_error_t map_groovy_jna_type(cdd_ffi_type_t *t,
+                                         const char **out_type) {
   if (t->pointer_depth > 0) {
     if (t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) {
       if (t->is_const) {
-        return "String";
+        *out_type = "String";
+        return CDD_C_SUCCESS;
       }
     }
-    return "Pointer";
+    *out_type = "Pointer";
+    return CDD_C_SUCCESS;
   }
   switch (t->kind) {
   case CDD_FFI_KIND_VOID:
-    return "void";
+    *out_type = "void";
+    break;
   case CDD_FFI_KIND_BOOL:
-    return "boolean";
+    *out_type = "boolean";
+    break;
   case CDD_FFI_KIND_INT8:
   case CDD_FFI_KIND_UINT8:
-    return "byte";
+    *out_type = "byte";
+    break;
   case CDD_FFI_KIND_INT16:
   case CDD_FFI_KIND_UINT16:
-    return "short";
+    *out_type = "short";
+    break;
   case CDD_FFI_KIND_INT32:
   case CDD_FFI_KIND_UINT32:
-    return "int";
+    *out_type = "int";
+    break;
   case CDD_FFI_KIND_INT64:
   case CDD_FFI_KIND_UINT64:
-    return "long";
+    *out_type = "long";
+    break;
   case CDD_FFI_KIND_FLOAT32:
-    return "float";
+    *out_type = "float";
+    break;
   case CDD_FFI_KIND_FLOAT64:
-    return "double";
+    *out_type = "double";
+    break;
   case CDD_FFI_KIND_STRUCT_REF:
   case CDD_FFI_KIND_ENUM_REF:
   case CDD_FFI_KIND_TYPEDEF_REF:
     if (t->ref_name) {
-      return t->ref_name;
+      *out_type = t->ref_name;
+    } else {
+      *out_type = "Pointer";
     }
-    return "Pointer";
+    break;
   default:
-    return "Pointer";
+    *out_type = "Pointer";
+    break;
   }
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t
@@ -142,12 +147,12 @@ cdd_ffi_emit_groovy(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "class %s extends Structure {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "    public %s %s\n",
-                map_groovy_jna_type(&node->fields[j].type),
-                node->fields[j].name);
+        const char *gt = NULL;
+        map_groovy_jna_type(&node->fields[j].type, &gt);
+        fprintf(f, "    public %s %s\n", gt, node->fields[j].name);
       }
       fprintf(f, "\n    @Override\n");
       fprintf(f, "    protected List<String> getFieldOrder() {\n");
@@ -168,13 +173,14 @@ cdd_ffi_emit_groovy(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
-      fprintf(f, "    %s %s(", map_groovy_jna_type(&node->return_or_base_type),
-              node->name);
+      const char *ret_gt = NULL;
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      map_groovy_jna_type(&node->return_or_base_type, &ret_gt);
+      fprintf(f, "    %s %s(", ret_gt, node->name);
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "%s%s %s", j > 0 ? ", " : "",
-                map_groovy_jna_type(&node->fields[j].type),
-                node->fields[j].name);
+        const char *gt = NULL;
+        map_groovy_jna_type(&node->fields[j].type, &gt);
+        fprintf(f, "%s%s %s", j > 0 ? ", " : "", gt, node->fields[j].name);
       }
       fprintf(f, ")\n");
     }

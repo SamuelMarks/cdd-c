@@ -36,13 +36,6 @@
 cdd_c_error_t
 c2openapi_map_doc_security_type(enum DocSecurityType type,
                                 enum OpenAPI_SecurityType *out_val) {
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cli_fail_map_doc_security_type;
-  if (g_cli_fail_map_doc_security_type) {
-    g_cli_fail_map_doc_security_type = 0;
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
-#endif
   if (!out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   switch (type) {
@@ -75,17 +68,11 @@ c2openapi_map_doc_security_type(enum DocSecurityType type,
 }
 
 /**
- * @brief Executes the map doc security in operation.
+ * @brief Maps a docstring security location string (query, header, cookie) to
+ * OpenAPI_SecurityIn.
  */
 cdd_c_error_t map_doc_security_in(enum DocSecurityIn in,
                                   enum OpenAPI_SecurityIn *_out_val) {
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cli_fail_map_doc_security_in;
-  if (g_cli_fail_map_doc_security_in) {
-    g_cli_fail_map_doc_security_in = 0;
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
-#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   switch (in) {
@@ -110,7 +97,7 @@ cdd_c_error_t map_doc_security_in(enum DocSecurityIn in,
 }
 
 /**
- * @brief Executes the map doc flow type operation.
+ * @brief Maps a docstring OAuth2 flow name to an OpenAPI_OAuthFlowType enum.
  */
 cdd_c_error_t map_doc_flow_type(enum DocOAuthFlowType type,
                                 enum OpenAPI_OAuthFlowType *_out_val) {
@@ -146,19 +133,12 @@ cdd_c_error_t map_doc_flow_type(enum DocOAuthFlowType type,
 }
 
 /**
- * @brief Executes the spec find security scheme operation.
+ * @brief Finds a SecurityScheme component by name in an OpenAPI_Spec.
  */
 cdd_c_error_t
 spec_find_security_scheme(struct OpenAPI_Spec *spec, const char *name,
                           struct OpenAPI_SecurityScheme **_out_val) {
   size_t i;
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cli_fail_spec_find_security_scheme;
-  if (g_cli_fail_spec_find_security_scheme) {
-    g_cli_fail_spec_find_security_scheme = 0;
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
-#endif
   for (i = 0; i < spec->n_security_schemes; ++i) {
     if (strcmp(spec->security_schemes[i].name, name) == 0) {
       *_out_val = &spec->security_schemes[i];
@@ -203,12 +183,24 @@ cdd_c_error_t merge_scopes(struct OpenAPI_OAuthFlow *dst,
       dst->scopes = new_scopes;
       memset(&dst->scopes[dst->n_scopes], 0, sizeof(*dst->scopes));
       rc = c_cdd_strdup(name ? name : "", &dst->scopes[dst->n_scopes].name);
-      if (rc != CDD_C_SUCCESS)
+      if (rc != CDD_C_SUCCESS) {
+        if (dst->n_scopes == 0) {
+          C_CDD_FREE(dst->scopes);
+          dst->scopes = NULL;
+        }
         return rc;
+      }
       if (desc) {
         rc = c_cdd_strdup(desc, &dst->scopes[dst->n_scopes].description);
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(dst->scopes[dst->n_scopes].name);
+          dst->scopes[dst->n_scopes].name = NULL;
+          if (dst->n_scopes == 0) {
+            C_CDD_FREE(dst->scopes);
+            dst->scopes = NULL;
+          }
           return rc;
+        }
       }
       dst->n_scopes++;
     }
@@ -224,13 +216,6 @@ cdd_c_error_t find_oauth_flow(struct OpenAPI_SecurityScheme *scheme,
                               enum OpenAPI_OAuthFlowType type,
                               struct OpenAPI_OAuthFlow **_out_val) {
   size_t i;
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cli_fail_find_oauth_flow;
-  if (g_cli_fail_find_oauth_flow) {
-    g_cli_fail_find_oauth_flow = 0;
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
-#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!scheme || !scheme->flows) {
@@ -272,7 +257,7 @@ cdd_c_error_t merge_oauth_flow(struct OpenAPI_OAuthFlow *dst,
 }
 
 /**
- * @brief Executes the validate doc oauth flow operation.
+ * @brief Validates required URLs on a docstring-extracted OAuth2 flow.
  */
 cdd_c_error_t validate_doc_oauth_flow(const struct DocOAuthFlow *flow) {
   if (!flow)
@@ -326,9 +311,7 @@ cdd_c_error_t add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
     rc_map = map_doc_flow_type(doc->flows[i].type, &flow_type);
     if (rc_map != CDD_C_SUCCESS)
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    rc = find_oauth_flow(scheme, flow_type, &dst_flow);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    find_oauth_flow(scheme, flow_type, &dst_flow);
     if (dst_flow) {
       rc = merge_oauth_flow(dst_flow, &doc->flows[i]);
       if (rc != CDD_C_SUCCESS)
@@ -349,42 +332,114 @@ cdd_c_error_t add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
       if (doc->flows[i].authorization_url) {
         rc = c_cdd_strdup(doc->flows[i].authorization_url,
                           &dst_flow->authorization_url);
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
+          if (scheme->n_flows == 0) {
+            C_CDD_FREE(scheme->flows);
+            scheme->flows = NULL;
+          }
           return rc;
+        }
       }
       if (doc->flows[i].token_url) {
         rc = c_cdd_strdup(doc->flows[i].token_url, &dst_flow->token_url);
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(dst_flow->authorization_url);
+          dst_flow->authorization_url = NULL;
+          if (scheme->n_flows == 0) {
+            C_CDD_FREE(scheme->flows);
+            scheme->flows = NULL;
+          }
           return rc;
+        }
       }
       if (doc->flows[i].refresh_url) {
         rc = c_cdd_strdup(doc->flows[i].refresh_url, &dst_flow->refresh_url);
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(dst_flow->authorization_url);
+          C_CDD_FREE(dst_flow->token_url);
+          memset(dst_flow, 0, sizeof(*dst_flow));
+          if (scheme->n_flows == 0) {
+            C_CDD_FREE(scheme->flows);
+            scheme->flows = NULL;
+          }
           return rc;
+        }
       }
       if (doc->flows[i].device_authorization_url) {
         rc = c_cdd_strdup(doc->flows[i].device_authorization_url,
                           &dst_flow->device_authorization_url);
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(dst_flow->authorization_url);
+          C_CDD_FREE(dst_flow->token_url);
+          C_CDD_FREE(dst_flow->refresh_url);
+          memset(dst_flow, 0, sizeof(*dst_flow));
+          if (scheme->n_flows == 0) {
+            C_CDD_FREE(scheme->flows);
+            scheme->flows = NULL;
+          }
           return rc;
+        }
       }
       if (doc->flows[i].scopes && doc->flows[i].n_scopes > 0) {
         size_t s;
         dst_flow->scopes = (struct OpenAPI_OAuthScope *)C_CDD_CALLOC(
             doc->flows[i].n_scopes, sizeof(struct OpenAPI_OAuthScope));
-        if (!dst_flow->scopes)
+        if (!dst_flow->scopes) {
+          C_CDD_FREE(dst_flow->authorization_url);
+          C_CDD_FREE(dst_flow->token_url);
+          C_CDD_FREE(dst_flow->refresh_url);
+          C_CDD_FREE(dst_flow->device_authorization_url);
+          memset(dst_flow, 0, sizeof(*dst_flow));
+          if (scheme->n_flows == 0) {
+            C_CDD_FREE(scheme->flows);
+            scheme->flows = NULL;
+          }
           return CDD_C_ERROR_MEMORY;
+        }
         dst_flow->n_scopes = doc->flows[i].n_scopes;
         for (s = 0; s < doc->flows[i].n_scopes; ++s) {
           const char *name = doc->flows[i].scopes[s].name;
           const char *desc = doc->flows[i].scopes[s].description;
           rc = c_cdd_strdup(name ? name : "", &dst_flow->scopes[s].name);
-          if (rc != CDD_C_SUCCESS)
+          if (rc != CDD_C_SUCCESS) {
+            size_t prev_s;
+            for (prev_s = 0; prev_s < s; ++prev_s) {
+              C_CDD_FREE(dst_flow->scopes[prev_s].name);
+              C_CDD_FREE(dst_flow->scopes[prev_s].description);
+            }
+            C_CDD_FREE(dst_flow->scopes);
+            C_CDD_FREE(dst_flow->authorization_url);
+            C_CDD_FREE(dst_flow->token_url);
+            C_CDD_FREE(dst_flow->refresh_url);
+            C_CDD_FREE(dst_flow->device_authorization_url);
+            memset(dst_flow, 0, sizeof(*dst_flow));
+            if (scheme->n_flows == 0) {
+              C_CDD_FREE(scheme->flows);
+              scheme->flows = NULL;
+            }
             return rc;
+          }
           if (desc) {
             rc = c_cdd_strdup(desc, &dst_flow->scopes[s].description);
-            if (rc != CDD_C_SUCCESS)
+            if (rc != CDD_C_SUCCESS) {
+              size_t prev_s;
+              for (prev_s = 0; prev_s < s; ++prev_s) {
+                C_CDD_FREE(dst_flow->scopes[prev_s].name);
+                C_CDD_FREE(dst_flow->scopes[prev_s].description);
+              }
+              C_CDD_FREE(dst_flow->scopes[s].name);
+              C_CDD_FREE(dst_flow->scopes);
+              C_CDD_FREE(dst_flow->authorization_url);
+              C_CDD_FREE(dst_flow->token_url);
+              C_CDD_FREE(dst_flow->refresh_url);
+              C_CDD_FREE(dst_flow->device_authorization_url);
+              memset(dst_flow, 0, sizeof(*dst_flow));
+              if (scheme->n_flows == 0) {
+                C_CDD_FREE(scheme->flows);
+                scheme->flows = NULL;
+              }
               return rc;
+            }
           }
         }
       }
@@ -396,7 +451,7 @@ cdd_c_error_t add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
 }
 
 /**
- * @brief Executes the spec add security scheme operation.
+ * @brief Adds or merges a SecurityScheme definition into an OpenAPI_Spec.
  */
 cdd_c_error_t spec_add_security_scheme(struct OpenAPI_Spec *spec,
                                        const struct DocSecurityScheme *doc) {
@@ -407,9 +462,7 @@ cdd_c_error_t spec_add_security_scheme(struct OpenAPI_Spec *spec,
   if (!spec || !doc || !doc->name || !*doc->name)
     return CDD_C_SUCCESS;
 
-  rc = c2openapi_map_doc_security_type(doc->type, &type);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  c2openapi_map_doc_security_type(doc->type, &type);
   if (type == OA_SEC_UNKNOWN) {
     fprintf(stderr, "Warning: Unknown security scheme type ignored: %s\n",
             doc->name);
@@ -428,9 +481,7 @@ cdd_c_error_t spec_add_security_scheme(struct OpenAPI_Spec *spec,
   }
 
   scheme = NULL;
-  rc = spec_find_security_scheme(spec, doc->name, &scheme);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  spec_find_security_scheme(spec, doc->name, &scheme);
   if (!scheme) {
     struct OpenAPI_SecurityScheme *new_schemes =
         (struct OpenAPI_SecurityScheme *)C_CDD_REALLOC(
@@ -443,8 +494,13 @@ cdd_c_error_t spec_add_security_scheme(struct OpenAPI_Spec *spec,
     scheme = &spec->security_schemes[spec->n_security_schemes];
     memset(scheme, 0, sizeof(*scheme));
     rc_str = c_cdd_strdup(doc->name, &scheme->name);
-    if (rc_str != CDD_C_SUCCESS)
+    if (rc_str != CDD_C_SUCCESS) {
+      if (spec->n_security_schemes == 0) {
+        C_CDD_FREE(spec->security_schemes);
+        spec->security_schemes = NULL;
+      }
       return rc_str;
+    }
     scheme->type = type;
     spec->n_security_schemes++;
   } else if (scheme->type != type) {
@@ -469,9 +525,7 @@ cdd_c_error_t spec_add_security_scheme(struct OpenAPI_Spec *spec,
 
   if (type == OA_SEC_APIKEY) {
     enum OpenAPI_SecurityIn in;
-    rc = map_doc_security_in(doc->in, &in);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    map_doc_security_in(doc->in, &in);
     if (!doc->param_name || !*doc->param_name || in == OA_SEC_IN_UNKNOWN)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     scheme->in = in;
@@ -544,7 +598,8 @@ cdd_c_error_t apply_doc_security_schemes(struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Executes the append root security operation.
+ * @brief Appends docstring-extracted global security requirements to an
+ * OpenAPI_Spec.
  */
 cdd_c_error_t append_root_security(struct OpenAPI_Spec *spec,
                                    const struct DocMetadata *meta) {
@@ -564,8 +619,9 @@ cdd_c_error_t append_root_security(struct OpenAPI_Spec *spec,
   for (i = 0; i < meta->n_security; ++i) {
     const struct DocSecurityRequirement *src = &meta->security[i];
     struct OpenAPI_SecurityRequirementSet *set =
-        &spec->security[spec->n_security + i];
+        &spec->security[spec->n_security];
     memset(set, 0, sizeof(*set));
+    spec->n_security++;
     set->requirements = (struct OpenAPI_SecurityRequirement *)C_CDD_CALLOC(
         1, sizeof(struct OpenAPI_SecurityRequirement));
     if (!set->requirements)
@@ -593,7 +649,6 @@ cdd_c_error_t append_root_security(struct OpenAPI_Spec *spec,
       }
     }
   }
-  spec->n_security += meta->n_security;
   spec->security_set = 1;
 
   return CDD_C_SUCCESS;

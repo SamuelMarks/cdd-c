@@ -1,3 +1,7 @@
+/**
+ * @file cdd_dsl_parser.c
+ * @brief CDD FFI Domain-Specific Language (DSL) parser.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -11,10 +15,13 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Internal state for the CDD DSL recursive-descent parser.
+ */
 typedef struct {
-  const cdd_dsl_token_list_t *tokens;
-  size_t current;
-  cdd_ffi_trivia_t *pending_trivia;
+  const cdd_dsl_token_list_t *tokens; /**< Input token stream */
+  size_t current;                     /**< Current token index */
+  cdd_ffi_trivia_t *pending_trivia;   /**< Accumulated leading trivia list */
 } parser_state_t;
 
 static cdd_c_error_t peek_raw(const parser_state_t *state,
@@ -326,104 +333,122 @@ static cdd_c_error_t parse_field(parser_state_t *state,
   /* Attributes */
   rc = match(state, CDD_DSL_TOKEN_LBRACKET, &is_match);
   if (rc != CDD_C_SUCCESS)
-    return rc;
+    goto cleanup;
 
   if (is_match) {
     while (1) {
       rc = match(state, CDD_DSL_TOKEN_RBRACKET, &is_match);
       if (rc != CDD_C_SUCCESS)
-        return rc;
+        goto cleanup;
       if (is_match)
         break;
 
       rc = peek(state, &tok);
       if (rc != CDD_C_SUCCESS)
-        return rc;
+        goto cleanup;
       if (tok.kind == CDD_DSL_TOKEN_EOF)
         break;
 
       rc = match(state, CDD_DSL_TOKEN_KW_IN, &is_match);
       if (rc != CDD_C_SUCCESS)
-        return rc;
+        goto cleanup;
       if (is_match) {
         out_field->intent = CDD_FFI_INTENT_IN;
       } else {
         rc = match(state, CDD_DSL_TOKEN_KW_OUT, &is_match);
         if (rc != CDD_C_SUCCESS)
-          return rc;
+          goto cleanup;
         if (is_match) {
           out_field->intent = CDD_FFI_INTENT_OUT;
         } else {
           rc = match(state, CDD_DSL_TOKEN_KW_INOUT, &is_match);
           if (rc != CDD_C_SUCCESS)
-            return rc;
+            goto cleanup;
           if (is_match) {
             out_field->intent = CDD_FFI_INTENT_INOUT;
           } else {
             rc = match(state, CDD_DSL_TOKEN_KW_LEN, &is_match);
             if (rc != CDD_C_SUCCESS)
-              return rc;
+              goto cleanup;
             if (is_match) {
               rc = match(state, CDD_DSL_TOKEN_EQUALS, &is_match);
               if (rc != CDD_C_SUCCESS)
-                return rc;
-              if (!is_match)
-                return CDD_C_ERROR_PARSE;
+                goto cleanup;
+              if (!is_match) {
+                rc = CDD_C_ERROR_PARSE;
+                goto cleanup;
+              }
 
               rc = peek(state, &tok);
               if (rc != CDD_C_SUCCESS)
-                return rc;
+                goto cleanup;
               if (tok.kind == CDD_DSL_TOKEN_IDENTIFIER) {
                 rc = advance(state, &tok);
                 if (rc != CDD_C_SUCCESS)
-                  return rc;
+                  goto cleanup;
+                free(out_field->array_length_ref);
                 out_field->array_length_ref = CDD_STRDUP(tok.text_copy);
-                if (!out_field->array_length_ref)
-                  return CDD_C_ERROR_MEMORY;
+                if (!out_field->array_length_ref) {
+                  rc = CDD_C_ERROR_MEMORY;
+                  goto cleanup;
+                }
               }
             } else {
               rc = advance_raw(state, &tok); /* skip unknown attr */
               if (rc != CDD_C_SUCCESS)
-                return rc;
+                goto cleanup;
             }
           }
         }
       }
       rc = match(state, CDD_DSL_TOKEN_COMMA, &is_match);
       if (rc != CDD_C_SUCCESS)
-        return rc;
+        goto cleanup;
     }
   }
 
   rc = parse_type(state, &out_field->type);
   if (rc != CDD_C_SUCCESS)
-    return rc;
+    goto cleanup;
 
   rc = peek(state, &tok);
   if (rc != CDD_C_SUCCESS)
-    return rc;
+    goto cleanup;
   if (tok.kind == CDD_DSL_TOKEN_IDENTIFIER) {
     rc = advance(state, &tok);
     if (rc != CDD_C_SUCCESS)
-      return rc;
+      goto cleanup;
     out_field->name = CDD_STRDUP(tok.text_copy);
-    if (!out_field->name)
-      return CDD_C_ERROR_MEMORY;
+    if (!out_field->name) {
+      rc = CDD_C_ERROR_MEMORY;
+      goto cleanup;
+    }
   }
 
-  if (!out_field->name)
-    return CDD_C_ERROR_PARSE;
+  if (!out_field->name) {
+    rc = CDD_C_ERROR_PARSE;
+    goto cleanup;
+  }
 
   rc = match(state, CDD_DSL_TOKEN_SEMICOLON, &is_match);
   if (rc != CDD_C_SUCCESS)
-    return rc;
+    goto cleanup;
   if (!is_match) {
     rc = match(state, CDD_DSL_TOKEN_COMMA, &is_match);
     if (rc != CDD_C_SUCCESS)
-      return rc;
+      goto cleanup;
   }
 
   return CDD_C_SUCCESS;
+
+cleanup:
+  free(out_field->array_length_ref);
+  out_field->array_length_ref = NULL;
+  free(out_field->type.ref_name);
+  out_field->type.ref_name = NULL;
+  free(out_field->name);
+  out_field->name = NULL;
+  return rc;
 }
 
 static cdd_c_error_t parse_func_decl(parser_state_t *state, cdd_ffi_ir_t *ir);
@@ -641,6 +666,10 @@ static cdd_c_error_t parse_enum_decl(parser_state_t *state, cdd_ffi_ir_t *ir) {
           (node->variants_count + 1) * sizeof(cdd_ffi_enum_variant_t));
       if (!nv) {
         free(variant.name);
+        if (variant.number_details) {
+          free(variant.number_details->raw_spelling);
+          free(variant.number_details);
+        }
         rc = CDD_C_ERROR_MEMORY;
         goto cleanup;
       }
@@ -865,8 +894,12 @@ static cdd_c_error_t parse_func_decl(parser_state_t *state, cdd_ffi_ir_t *ir) {
     {
       cdd_ffi_field_t *nf = (cdd_ffi_field_t *)CDD_REALLOC(
           node->fields, (node->fields_count + 1) * sizeof(cdd_ffi_field_t));
-      if (!nf)
+      if (!nf) {
+        free(field.name);
+        free(field.array_length_ref);
+        free(field.type.ref_name);
         return CDD_C_ERROR_MEMORY;
+      }
       node->fields = nf;
     }
     node->fields[node->fields_count++] = field;
@@ -920,6 +953,7 @@ static cdd_c_error_t parse_func_decl(parser_state_t *state, cdd_ffi_ir_t *ir) {
             rc = advance(state, &tok);
             if (rc != CDD_C_SUCCESS)
               return rc;
+            free(node->raw_body);
             node->raw_body = CDD_STRDUP(tok.text_copy);
             if (!node->raw_body)
               return CDD_C_ERROR_MEMORY;
@@ -1002,6 +1036,13 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_parse(const cdd_dsl_token_list_t *tokens,
       if (rc != CDD_C_SUCCESS)
         break;
     }
+  }
+
+  while (state.pending_trivia) {
+    cdd_ffi_trivia_t *next = state.pending_trivia->next;
+    free(state.pending_trivia->text);
+    free(state.pending_trivia);
+    state.pending_trivia = next;
   }
 
   if (rc != CDD_C_SUCCESS) {

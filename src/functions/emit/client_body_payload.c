@@ -10,38 +10,15 @@
 #include "functions/emit/client_body_internal.h"
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
-#include <stdarg.h>
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)))
-#endif
-    ;
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  int ret;
-  va_list args;
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  va_start(args, format);
-  ret = vfprintf(stream, format, args);
-  va_end(args);
-  return ret;
-}
-#define fprintf test_cdd_fprintf_hook
-#endif
-
 /**
- * @brief Generates C code for write text plain success.
+ * @brief Emits C source code for text plain success.
  */
 cdd_c_error_t write_text_plain_success(FILE *fp) {
   if (!fp)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   CHECK_IO(fprintf(fp, "      if (res->body && out) {\n"));
   CHECK_IO(fprintf(fp, "        size_t body_len = res->body_len;\n"));
-  CHECK_IO(fprintf(
-      fp, "        char *tmp = (char *)(size_t)malloc(body_len + 1);\n"));
+  CHECK_IO(fprintf(fp, "        char *tmp = (char *)malloc(body_len + 1);\n"));
   CHECK_IO(fprintf(fp, "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; }\n"));
   CHECK_IO(fprintf(fp, "        else {\n"));
   CHECK_IO(fprintf(fp, "          memcpy(tmp, res->body, body_len);\n"));
@@ -53,7 +30,7 @@ cdd_c_error_t write_text_plain_success(FILE *fp) {
 }
 
 /**
- * @brief Generates C code for write binary success.
+ * @brief Emits C source code for binary success.
  */
 cdd_c_error_t write_binary_success(FILE *fp) {
   if (!fp)
@@ -75,7 +52,7 @@ cdd_c_error_t write_binary_success(FILE *fp) {
 }
 
 /**
- * @brief Generates C code for write inline json parse.
+ * @brief Emits C source code for inline json parse.
  */
 cdd_c_error_t write_inline_json_parse(FILE *fp,
                                       const struct OpenAPI_SchemaRef *schema) {
@@ -250,7 +227,7 @@ cdd_c_error_t write_inline_json_parse(FILE *fp,
 }
 
 /**
- * @brief Generates C code for write joined form array.
+ * @brief Emits C source code for joined form array.
  */
 cdd_c_error_t write_joined_form_array(FILE *fp, const char *field,
                                       const char *len_field,
@@ -290,7 +267,7 @@ cdd_c_error_t write_joined_form_array(FILE *fp, const char *field,
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)(size_t)realloc(joined, joined_len "
+          "        char *tmp = (char *)realloc(joined, joined_len "
           "+ extra + 1);\n"
           "        if (!tmp) { free(raw); free(enc); rc = CDD_C_ERROR_MEMORY; "
           "goto cleanup; }\n"
@@ -313,7 +290,7 @@ cdd_c_error_t write_joined_form_array(FILE *fp, const char *field,
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)(size_t)realloc(joined, joined_len + "
+          "        char *tmp = (char *)realloc(joined, joined_len + "
           "extra + "
           "1);\n"
           "        if (!tmp) { free(raw); rc = CDD_C_ERROR_MEMORY; goto "
@@ -352,7 +329,7 @@ cdd_c_error_t write_joined_form_array(FILE *fp, const char *field,
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)(size_t)realloc(joined, joined_len + "
+          "        char *tmp = (char *)realloc(joined, joined_len + "
           "extra + "
           "1);\n"
           "        if (!tmp) { free(enc); rc = CDD_C_ERROR_MEMORY; goto "
@@ -375,7 +352,7 @@ cdd_c_error_t write_joined_form_array(FILE *fp, const char *field,
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)(size_t)realloc(joined, joined_len "
+          "        char *tmp = (char *)realloc(joined, joined_len "
           "+ extra + 1);\n"
           "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
           "        joined = tmp;\n"
@@ -410,7 +387,7 @@ cdd_c_error_t write_joined_form_array(FILE *fp, const char *field,
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)(size_t)realloc(joined, joined_len + "
+          "        char *tmp = (char *)realloc(joined, joined_len + "
           "extra + "
           "1);\n"
           "        if (!tmp) { free(enc); rc = CDD_C_ERROR_MEMORY; goto "
@@ -433,7 +410,7 @@ cdd_c_error_t write_joined_form_array(FILE *fp, const char *field,
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)(size_t)realloc(joined, joined_len "
+          "        char *tmp = (char *)realloc(joined, joined_len "
           "+ extra + 1);\n"
           "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
           "        joined = tmp;\n"
@@ -464,7 +441,7 @@ cdd_c_error_t write_joined_form_array(FILE *fp, const char *field,
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)(size_t)realloc(joined, joined_len + "
+          "        char *tmp = (char *)realloc(joined, joined_len + "
           "extra + "
           "1);\n"
           "        if (!tmp) { free(enc); rc = CDD_C_ERROR_MEMORY; goto "
@@ -487,7 +464,7 @@ cdd_c_error_t write_joined_form_array(FILE *fp, const char *field,
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)(size_t)realloc(joined, joined_len "
+          "        char *tmp = (char *)realloc(joined, joined_len "
           "+ extra + 1);\n"
           "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
           "        joined = tmp;\n"
@@ -515,7 +492,7 @@ cdd_c_error_t write_joined_form_array(FILE *fp, const char *field,
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)(size_t)realloc(joined, joined_len + "
+          "        char *tmp = (char *)realloc(joined, joined_len + "
           "extra + "
           "1);\n"
           "        if (!tmp) { free(enc); rc = CDD_C_ERROR_MEMORY; goto "
@@ -538,7 +515,7 @@ cdd_c_error_t write_joined_form_array(FILE *fp, const char *field,
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)(size_t)realloc(joined, joined_len "
+          "        char *tmp = (char *)realloc(joined, joined_len "
           "+ extra + 1);\n"
           "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
           "        joined = tmp;\n"

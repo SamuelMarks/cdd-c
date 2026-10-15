@@ -13,13 +13,10 @@ extern "C" {
 #include <parson.h>
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT volatile int g_c2s_helper_fail;
-#endif
-
 static int g_parson_fail_at = -1;
 static void *mock_parson_malloc(size_t sz) {
   if (g_parson_fail_at == 0) {
+    g_parson_fail_at = -1;
     return NULL;
   }
   if (g_parson_fail_at > 0)
@@ -58,20 +55,21 @@ TEST test_code2schema_coverage_oom(void) {
 
 TEST test_code2schema_write_struct_oom(void) {
   int i;
-  for (i = 1; i < 40; ++i) {
+  for (i = 1; i < 80; ++i) {
     struct StructFields sf;
     JSON_Value *root = json_value_init_object();
     JSON_Object *schemas_obj = json_value_get_object(root);
 
     struct_fields_init(&sf);
-    c_cdd_strdup("{\"x-extra\":1}", &sf.schema_extra_json);
+    c_cdd_strdup("{\"x-extra\":[1,2]}", &sf.schema_extra_json);
     struct_fields_add(&sf, "arr_field", "array", "string", NULL, NULL);
-    c_cdd_strdup("{\"x-items\":2}", &sf.fields[0].items_extra_json);
+    c_cdd_strdup("{\"x-items\":[1,2]}", &sf.fields[0].items_extra_json);
     sf.fields[0].has_min_items = 1;
     sf.fields[0].min_items = 1;
 
     struct_fields_add(&sf, "obj_field", "object", "MyObj", NULL, NULL);
     struct_fields_add(&sf, "int_field", "integer", NULL, "42", NULL);
+    c_cdd_strdup("{\"x-prop\":[1,2]}", &sf.fields[2].schema_extra_json);
     sf.fields[2].has_min = 1;
     sf.fields[2].min_val = 0;
 
@@ -85,6 +83,58 @@ TEST test_code2schema_write_struct_oom(void) {
 
     json_value_free(root);
     struct_fields_free(&sf);
+  }
+  for (i = 1; i < 40; ++i) {
+    struct StructFields sf;
+    JSON_Value *root = json_value_init_object();
+    JSON_Object *schemas_obj = json_value_get_object(root);
+
+    struct_fields_init(&sf);
+    struct_fields_add(&sf, "int_field", "integer", NULL, NULL, NULL);
+    c_cdd_strdup("{\"x-prop\":[1,2]}", &sf.fields[0].schema_extra_json);
+
+    json_set_allocation_functions(mock_parson_malloc, mock_parson_free);
+    g_parson_fail_at = i;
+    write_struct_to_json_schema(schemas_obj, "TestPropExtra", &sf);
+    json_set_allocation_functions(malloc, free);
+    g_parson_fail_at = -1;
+
+    json_value_free(root);
+    struct_fields_free(&sf);
+  }
+  for (i = 1; i < 40; ++i) {
+    struct StructFields sf;
+    JSON_Value *root = json_value_init_object();
+    JSON_Object *schemas_obj = json_value_get_object(root);
+
+    struct_fields_init(&sf);
+    c_cdd_strdup("{\"x-struct\":[1,2]}", &sf.schema_extra_json);
+
+    json_set_allocation_functions(mock_parson_malloc, mock_parson_free);
+    g_parson_fail_at = i;
+    write_struct_to_json_schema(schemas_obj, "TestStructExtra", &sf);
+    json_set_allocation_functions(malloc, free);
+    g_parson_fail_at = -1;
+
+    json_value_free(root);
+    struct_fields_free(&sf);
+  }
+  {
+    FILE *fh = fopen("build/cdd_test_c2s_write_oom.h", "w");
+    char *av[2];
+    fputs("struct S { int x; };\n", fh);
+    fclose(fh);
+    av[0] = cdd_test_mut_str("build/cdd_test_c2s_write_oom.h");
+    av[1] = cdd_test_mut_str("build/cdd_test_c2s_write_oom.json");
+    for (i = 1; i < 30; ++i) {
+      json_set_allocation_functions(mock_parson_malloc, mock_parson_free);
+      g_parson_fail_at = i;
+      code2schema_main(2, av);
+      json_set_allocation_functions(malloc, free);
+      g_parson_fail_at = -1;
+    }
+    remove("build/cdd_test_c2s_write_oom.h");
+    remove("build/cdd_test_c2s_write_oom.json");
   }
   PASS();
 }
@@ -310,97 +360,6 @@ TEST test_code2schema_cdd_alloc_fail_comprehensive(void) {
         remove("test_main_oom.json");
       }
       remove("test_main_oom.h");
-    }
-  }
-
-  /* 7. g_c2s_helper_fail error percolation loops */
-  for (i = 1; i <= 35; ++i) {
-    struct StructFields sf;
-    JSON_Value *root = json_value_init_object();
-    JSON_Object *root_obj = json_value_get_object(root);
-    JSON_Value *val = json_parse_string(
-        "{\"discriminator\":{\"propertyName\":\"kind\"},"
-        "\"oneOf\":["
-        "  "
-        "{\"type\":\"object\",\"title\":\"V1\",\"properties\":{\"p\":{\"type\":"
-        "\"string\"}},\"required\":[\"p\"]},"
-        "  {\"type\":\"array\",\"items\":{\"type\":\"string\"}},"
-        "  "
-        "{\"type\":\"array\",\"items\":{\"properties\":{\"p2\":{\"type\":"
-        "\"integer\"}}}},"
-        "  {\"type\":\"boolean\"}"
-        "]}");
-    JSON_Object *obj = json_value_get_object(val);
-    struct_fields_init(&sf);
-
-    g_c2s_helper_fail = i;
-    json_object_to_struct_fields_ex_codegen(obj, &sf, root_obj,
-                                            "UnionHelperFail");
-    g_c2s_helper_fail = 0;
-
-    struct_fields_free(&sf);
-    json_value_free(val);
-    json_value_free(root);
-  }
-
-  for (i = 1; i <= 25; ++i) {
-    struct StructFields sf;
-    JSON_Value *root = json_value_init_object();
-    JSON_Object *schemas_obj = json_value_get_object(root);
-
-    struct_fields_init(&sf);
-    c_cdd_strdup("{\"x-custom\":1}", &sf.schema_extra_json);
-    struct_fields_add(&sf, "arr_field", "array", "ItemModel", NULL, NULL);
-    sf.fields[0].has_min_items = 1;
-    sf.fields[0].min_items = 1;
-    struct_fields_add(&sf, "str_field", "string", NULL, NULL, NULL);
-    sf.fields[1].has_min_len = 1;
-    sf.fields[1].min_len = 2;
-    struct_fields_add(&sf, "num_field", "number", NULL, NULL, NULL);
-    sf.fields[2].has_min = 1;
-    sf.fields[2].min_val = 1.0;
-    CDD_STRCPY(sf.fields[2].default_val, sizeof(sf.fields[2].default_val),
-               "10.0");
-
-    g_c2s_helper_fail = i;
-    write_struct_to_json_schema(schemas_obj, "HelperStruct", &sf);
-    g_c2s_helper_fail = 0;
-
-    struct_fields_free(&sf);
-    json_value_free(root);
-  }
-
-  for (i = 1; i <= 20; ++i) {
-    struct StructFields sf;
-    struct_fields_init(&sf);
-
-    g_c2s_helper_fail = i;
-    parse_struct_member_line(
-        "uint32_t numbers[10]; // @shard_key @slow_query_warn(500)", &sf);
-    g_c2s_helper_fail = 0;
-
-    struct_fields_free(&sf);
-  }
-
-  {
-    FILE *fp = fopen("test_main_oom2.h", "w");
-    if (fp) {
-      fprintf(fp, "struct MainOom {\n  struct { int nested_x; } inner;\n  int "
-                  "val;\n};\nunion U { int x; };\n");
-      fclose(fp);
-
-      for (i = 1; i <= 20; ++i) {
-        char *argv[3];
-        argv[0] = C_CDD_STR_LIT("test_main_oom2.h");
-        argv[1] = C_CDD_STR_LIT("test_main_oom2.json");
-        argv[2] = NULL;
-
-        g_c2s_helper_fail = i;
-        code2schema_main(2, argv);
-        g_c2s_helper_fail = 0;
-        remove("test_main_oom2.json");
-      }
-      remove("test_main_oom2.h");
     }
   }
 

@@ -13,7 +13,6 @@ extern "C" {
 
 /* clang-format off */
 #include "parse/test_openapi_loader_common.h"
-#include "openapi/parse/openapi_test_helpers.h"
 #include "openapi/parse/openapi_internal_components.h"
 /* clang-format on */
 
@@ -116,18 +115,18 @@ TEST test_openapi_metadata_parse_info_branches(void) {
 
   /* NULL root_obj and NULL out branches */
   memset(&spec, 0, sizeof(spec));
-  rc = cdd_test_parse_info(NULL, &spec);
+  rc = parse_info(NULL, &spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_parse_info(NULL, NULL);
+  rc = parse_info(NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   jv = json_parse_string("{\"not_info\": 123}");
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
-  rc = cdd_test_parse_info(jo, NULL);
+  rc = parse_info(jo, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   /* info missing */
-  rc = cdd_test_parse_info(jo, &spec);
+  rc = parse_info(jo, &spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   json_value_free(jv);
 
@@ -159,7 +158,7 @@ TEST test_openapi_metadata_parse_info_branches(void) {
 
   /* Test license with url */
   memset(&spec, 0, sizeof(spec));
-  rc = cdd_test_parse_info(jo, &spec);
+  rc = parse_info(jo, &spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("My API", spec.info.title);
   ASSERT_STR_EQ("API Summary", spec.info.summary);
@@ -180,7 +179,7 @@ TEST test_openapi_metadata_parse_info_branches(void) {
                           "{\"name\": \"MIT\", \"identifier\": \"MIT\"}}}");
     JSON_Object *jo_lic = json_value_get_object(jv_lic);
     memset(&spec, 0, sizeof(spec));
-    rc = cdd_test_parse_info(jo_lic, &spec);
+    rc = parse_info(jo_lic, &spec);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_STR_EQ("MIT", spec.info.license.identifier);
     openapi_spec_free(&spec);
@@ -192,7 +191,7 @@ TEST test_openapi_metadata_parse_info_branches(void) {
     JSON_Value *jv_err = json_parse_string("{\"info\": {\"license\": {}}}");
     JSON_Object *jo_err = json_value_get_object(jv_err);
     memset(&spec, 0, sizeof(spec));
-    rc = cdd_test_parse_info(jo_err, &spec);
+    rc = parse_info(jo_err, &spec);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
     json_value_free(jv_err);
 
@@ -201,7 +200,7 @@ TEST test_openapi_metadata_parse_info_branches(void) {
         "\"url\": \"http://example.com\"}}}");
     jo_err = json_value_get_object(jv_err);
     memset(&spec, 0, sizeof(spec));
-    rc = cdd_test_parse_info(jo_err, &spec);
+    rc = parse_info(jo_err, &spec);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
     json_value_free(jv_err);
   }
@@ -212,7 +211,7 @@ TEST test_openapi_metadata_parse_info_branches(void) {
     for (fail_idx = 1; fail_idx <= 12; ++fail_idx) {
       g_cdd_strdup_fail = fail_idx;
       memset(&spec, 0, sizeof(spec));
-      rc = cdd_test_parse_info(jo, &spec);
+      rc = parse_info(jo, &spec);
       g_cdd_strdup_fail = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       openapi_spec_free(&spec);
@@ -223,7 +222,7 @@ TEST test_openapi_metadata_parse_info_branches(void) {
   {
     g_cdd_fail_extensions_init = 1;
     memset(&spec, 0, sizeof(spec));
-    rc = cdd_test_parse_info(jo, &spec);
+    rc = parse_info(jo, &spec);
     g_cdd_fail_extensions_init = 0;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     openapi_spec_free(&spec);
@@ -231,7 +230,7 @@ TEST test_openapi_metadata_parse_info_branches(void) {
     /* Fail at 2nd call (contact) */
     g_cdd_fail_extensions_init = 2;
     memset(&spec, 0, sizeof(spec));
-    rc = cdd_test_parse_info(jo, &spec);
+    rc = parse_info(jo, &spec);
     g_cdd_fail_extensions_init = 0;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     openapi_spec_free(&spec);
@@ -239,7 +238,7 @@ TEST test_openapi_metadata_parse_info_branches(void) {
     /* Fail at 3rd call (license) */
     g_cdd_fail_extensions_init = 3;
     memset(&spec, 0, sizeof(spec));
-    rc = cdd_test_parse_info(jo, &spec);
+    rc = parse_info(jo, &spec);
     g_cdd_fail_extensions_init = 0;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     openapi_spec_free(&spec);
@@ -260,23 +259,23 @@ TEST test_openapi_metadata_parse_external_docs_branches(void) {
 
   /* NULL obj or NULL out */
   memset(&docs, 0, sizeof(docs));
-  rc = cdd_test_parse_external_docs(NULL, &docs);
+  rc = parse_external_docs(NULL, &docs);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_parse_external_docs(NULL, NULL);
+  rc = parse_external_docs(NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Missing / empty url */
   jv = json_parse_string("{\"description\": \"desc only\"}");
   jo = json_value_get_object(jv);
   memset(&docs, 0, sizeof(docs));
-  rc = cdd_test_parse_external_docs(jo, &docs);
+  rc = parse_external_docs(jo, &docs);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   json_value_free(jv);
 
   jv = json_parse_string("{\"url\": \"\"}");
   jo = json_value_get_object(jv);
   memset(&docs, 0, sizeof(docs));
-  rc = cdd_test_parse_external_docs(jo, &docs);
+  rc = parse_external_docs(jo, &docs);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   json_value_free(jv);
 
@@ -285,7 +284,7 @@ TEST test_openapi_metadata_parse_external_docs_branches(void) {
                          "\"http://example.com\", \"x-ext\": 1}");
   jo = json_value_get_object(jv);
   memset(&docs, 0, sizeof(docs));
-  rc = cdd_test_parse_external_docs(jo, &docs);
+  rc = parse_external_docs(jo, &docs);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("docs", docs.description);
   ASSERT_STR_EQ("http://example.com", docs.url);
@@ -294,14 +293,14 @@ TEST test_openapi_metadata_parse_external_docs_branches(void) {
   /* OOM branches on description and url */
   g_cdd_strdup_fail = 1;
   memset(&docs, 0, sizeof(docs));
-  rc = cdd_test_parse_external_docs(jo, &docs);
+  rc = parse_external_docs(jo, &docs);
   g_cdd_strdup_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   test_meta_free_external_docs(&docs);
 
   g_cdd_strdup_fail = 2;
   memset(&docs, 0, sizeof(docs));
-  rc = cdd_test_parse_external_docs(jo, &docs);
+  rc = parse_external_docs(jo, &docs);
   g_cdd_strdup_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   test_meta_free_external_docs(&docs);
@@ -309,7 +308,7 @@ TEST test_openapi_metadata_parse_external_docs_branches(void) {
   /* Fail extensions */
   g_cdd_fail_extensions_init = 1;
   memset(&docs, 0, sizeof(docs));
-  rc = cdd_test_parse_external_docs(jo, &docs);
+  rc = parse_external_docs(jo, &docs);
   g_cdd_fail_extensions_init = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   test_meta_free_external_docs(&docs);
@@ -329,9 +328,9 @@ TEST test_openapi_metadata_parse_discriminator_branches(void) {
 
   /* NULL obj or NULL out */
   memset(&disc, 0, sizeof(disc));
-  rc = cdd_test_parse_discriminator_object(NULL, &disc);
+  rc = parse_discriminator_object(NULL, &disc);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_parse_discriminator_object(NULL, NULL);
+  rc = parse_discriminator_object(NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Valid with propertyName, defaultMapping, mapping with x- extension to skip
@@ -350,7 +349,7 @@ TEST test_openapi_metadata_parse_discriminator_branches(void) {
   jo = json_value_get_object(jv);
 
   memset(&disc, 0, sizeof(disc));
-  rc = cdd_test_parse_discriminator_object(jo, &disc);
+  rc = parse_discriminator_object(jo, &disc);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("petType", disc.property_name);
   ASSERT_STR_EQ("#/components/schemas/Pet", disc.default_mapping);
@@ -363,7 +362,7 @@ TEST test_openapi_metadata_parse_discriminator_branches(void) {
     for (fail_idx = 1; fail_idx <= 6; ++fail_idx) {
       g_cdd_strdup_fail = fail_idx;
       memset(&disc, 0, sizeof(disc));
-      rc = cdd_test_parse_discriminator_object(jo, &disc);
+      rc = parse_discriminator_object(jo, &disc);
       g_cdd_strdup_fail = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       test_meta_free_discriminator(&disc);
@@ -373,7 +372,7 @@ TEST test_openapi_metadata_parse_discriminator_branches(void) {
   /* Extensions failure */
   g_cdd_fail_extensions_init = 1;
   memset(&disc, 0, sizeof(disc));
-  rc = cdd_test_parse_discriminator_object(jo, &disc);
+  rc = parse_discriminator_object(jo, &disc);
   g_cdd_fail_extensions_init = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   test_meta_free_discriminator(&disc);
@@ -383,7 +382,7 @@ TEST test_openapi_metadata_parse_discriminator_branches(void) {
     JSON_Value *jv_nonstr = json_parse_string("{\"mapping\": {\"dog\": 123}}");
     JSON_Object *jo_nonstr = json_value_get_object(jv_nonstr);
     memset(&disc, 0, sizeof(disc));
-    rc = cdd_test_parse_discriminator_object(jo_nonstr, &disc);
+    rc = parse_discriminator_object(jo_nonstr, &disc);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     test_meta_free_discriminator(&disc);
     json_value_free(jv_nonstr);
@@ -404,9 +403,9 @@ TEST test_openapi_metadata_parse_xml_branches(void) {
 
   /* NULL obj or NULL out */
   memset(&xml, 0, sizeof(xml));
-  rc = cdd_test_parse_xml_object(NULL, &xml);
+  rc = parse_xml_object(NULL, &xml);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_parse_xml_object(NULL, NULL);
+  rc = parse_xml_object(NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Valid XML object with attribute, wrapped, namespace, prefix, name, nodeType
@@ -424,7 +423,7 @@ TEST test_openapi_metadata_parse_xml_branches(void) {
   jo = json_value_get_object(jv);
 
   memset(&xml, 0, sizeof(xml));
-  rc = cdd_test_parse_xml_object(jo, &xml);
+  rc = parse_xml_object(jo, &xml);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("item", xml.name);
   ASSERT_STR_EQ("http://example.com/schema", xml.namespace_uri);
@@ -439,21 +438,21 @@ TEST test_openapi_metadata_parse_xml_branches(void) {
   /* OOM on name, namespace, prefix */
   g_cdd_strdup_fail = 1;
   memset(&xml, 0, sizeof(xml));
-  rc = cdd_test_parse_xml_object(jo, &xml);
+  rc = parse_xml_object(jo, &xml);
   g_cdd_strdup_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   test_meta_free_xml(&xml);
 
   g_cdd_strdup_fail = 2;
   memset(&xml, 0, sizeof(xml));
-  rc = cdd_test_parse_xml_object(jo, &xml);
+  rc = parse_xml_object(jo, &xml);
   g_cdd_strdup_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   test_meta_free_xml(&xml);
 
   g_cdd_strdup_fail = 3;
   memset(&xml, 0, sizeof(xml));
-  rc = cdd_test_parse_xml_object(jo, &xml);
+  rc = parse_xml_object(jo, &xml);
   g_cdd_strdup_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   test_meta_free_xml(&xml);
@@ -461,7 +460,7 @@ TEST test_openapi_metadata_parse_xml_branches(void) {
   /* Fail extensions */
   g_cdd_fail_extensions_init = 1;
   memset(&xml, 0, sizeof(xml));
-  rc = cdd_test_parse_xml_object(jo, &xml);
+  rc = parse_xml_object(jo, &xml);
   g_cdd_fail_extensions_init = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   test_meta_free_xml(&xml);
@@ -481,29 +480,29 @@ TEST test_openapi_metadata_parse_tags_branches(void) {
 
   /* NULL root_obj or NULL out */
   memset(&spec, 0, sizeof(spec));
-  rc = cdd_test_parse_tags(NULL, &spec);
+  rc = parse_tags(NULL, &spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_parse_tags(NULL, NULL);
+  rc = parse_tags(NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* tags missing */
   jv = json_parse_string("{}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_parse_tags(jo, &spec);
+  rc = parse_tags(jo, &spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   json_value_free(jv);
 
   /* tags empty */
   jv = json_parse_string("{\"tags\": []}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_parse_tags(jo, &spec);
+  rc = parse_tags(jo, &spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   json_value_free(jv);
 
   /* tags with invalid name (empty string) */
   jv = json_parse_string("{\"tags\": [{\"name\": \"\"}]}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_parse_tags(jo, &spec);
+  rc = parse_tags(jo, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   json_value_free(jv);
 
@@ -512,7 +511,7 @@ TEST test_openapi_metadata_parse_tags_branches(void) {
       "{\"tags\": [{\"name\": \"tag1\"}, {\"name\": \"tag1\"}]}");
   jo = json_value_get_object(jv);
   memset(&spec, 0, sizeof(spec));
-  rc = cdd_test_parse_tags(jo, &spec);
+  rc = parse_tags(jo, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   json_value_free(jv);
@@ -539,14 +538,14 @@ TEST test_openapi_metadata_parse_tags_branches(void) {
   jo = json_value_get_object(jv);
 
   memset(&spec, 0, sizeof(spec));
-  rc = cdd_test_parse_tags(jo, &spec);
+  rc = parse_tags(jo, &spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(2, spec.n_tags);
   ASSERT_STR_EQ("parentTag", spec.tags[0].name);
   ASSERT_STR_EQ("childTag", spec.tags[1].name);
 
   /* Validate tag parents succeeds */
-  rc = cdd_test_validate_tag_parents(&spec);
+  rc = validate_tag_parents(&spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   openapi_spec_free(&spec);
 
@@ -561,9 +560,9 @@ TEST test_openapi_metadata_parse_tags_branches(void) {
                           "}");
     JSON_Object *jo_cycle = json_value_get_object(jv_cycle);
     memset(&spec, 0, sizeof(spec));
-    rc = cdd_test_parse_tags(jo_cycle, &spec);
+    rc = parse_tags(jo_cycle, &spec);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    rc = cdd_test_validate_tag_parents(&spec);
+    rc = validate_tag_parents(&spec);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
     openapi_spec_free(&spec);
     json_value_free(jv_cycle);
@@ -573,15 +572,15 @@ TEST test_openapi_metadata_parse_tags_branches(void) {
    * state == 2 */
   {
     int state[2] = {0, 0};
-    rc = cdd_test_detect_tag_cycle(NULL, 0, state);
+    rc = detect_tag_cycle(NULL, 0, state);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    rc = cdd_test_detect_tag_cycle(&spec, 0, NULL);
+    rc = detect_tag_cycle(&spec, 0, NULL);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    rc = cdd_test_detect_tag_cycle(&spec, 100, state);
+    rc = detect_tag_cycle(&spec, 100, state);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     state[0] = 2;
     spec.n_tags = 1;
-    rc = cdd_test_detect_tag_cycle(&spec, 0, state);
+    rc = detect_tag_cycle(&spec, 0, state);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     spec.n_tags = 0;
   }
@@ -592,7 +591,7 @@ TEST test_openapi_metadata_parse_tags_branches(void) {
     for (fail_idx = 1; fail_idx <= 6; ++fail_idx) {
       g_cdd_strdup_fail = fail_idx;
       memset(&spec, 0, sizeof(spec));
-      rc = cdd_test_parse_tags(jo, &spec);
+      rc = parse_tags(jo, &spec);
       g_cdd_strdup_fail = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       openapi_spec_free(&spec);
@@ -605,7 +604,7 @@ TEST test_openapi_metadata_parse_tags_branches(void) {
         "{\"tags\": [{\"name\": \"T\", \"externalDocs\": {\"url\": \"\"}}]}");
     JSON_Object *jo_bad_ext = json_value_get_object(jv_bad_ext);
     memset(&spec, 0, sizeof(spec));
-    rc = cdd_test_parse_tags(jo_bad_ext, &spec);
+    rc = parse_tags(jo_bad_ext, &spec);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
     openapi_spec_free(&spec);
     json_value_free(jv_bad_ext);
@@ -615,7 +614,7 @@ TEST test_openapi_metadata_parse_tags_branches(void) {
   {
     g_cdd_fail_extensions_init = 1;
     memset(&spec, 0, sizeof(spec));
-    rc = cdd_test_parse_tags(jo, &spec);
+    rc = parse_tags(jo, &spec);
     g_cdd_fail_extensions_init = 0;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     openapi_spec_free(&spec);
@@ -638,20 +637,20 @@ TEST test_openapi_metadata_server_branches(void) {
 
   /* NULL checks */
   memset(&srv, 0, sizeof(srv));
-  rc = cdd_test_parse_server_object(NULL, &srv);
+  rc = parse_server_object(NULL, &srv);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_parse_server_object(NULL, NULL);
+  rc = parse_server_object(NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-  rc = cdd_test_parse_servers_array(NULL, "servers", &srvs, &srv_count);
+  rc = parse_servers_array(NULL, "servers", &srvs, &srv_count);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_parse_servers_array(NULL, NULL, NULL, NULL);
+  rc = parse_servers_array(NULL, NULL, NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Missing / empty servers array */
   jv = json_parse_string("{\"servers\": []}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_parse_servers_array(jo, "servers", &srvs, &srv_count);
+  rc = parse_servers_array(jo, "servers", &srvs, &srv_count);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, srv_count);
   ASSERT_EQ(NULL, srvs);
@@ -661,14 +660,14 @@ TEST test_openapi_metadata_server_branches(void) {
   jv = json_parse_string("{}");
   jo = json_value_get_object(jv);
   memset(&srv, 0, sizeof(srv));
-  rc = cdd_test_parse_server_object(jo, &srv);
+  rc = parse_server_object(jo, &srv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   json_value_free(jv);
 
   jv = json_parse_string("{\"url\": \"\"}");
   jo = json_value_get_object(jv);
   memset(&srv, 0, sizeof(srv));
-  rc = cdd_test_parse_server_object(jo, &srv);
+  rc = parse_server_object(jo, &srv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   json_value_free(jv);
 
@@ -676,7 +675,7 @@ TEST test_openapi_metadata_server_branches(void) {
   jv = json_parse_string("{\"url\": \"https://example.com/api?foo=bar\"}");
   jo = json_value_get_object(jv);
   memset(&srv, 0, sizeof(srv));
-  rc = cdd_test_parse_server_object(jo, &srv);
+  rc = parse_server_object(jo, &srv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   json_value_free(jv);
 
@@ -702,7 +701,7 @@ TEST test_openapi_metadata_server_branches(void) {
   jo = json_value_get_object(jv);
 
   memset(&srv, 0, sizeof(srv));
-  rc = cdd_test_parse_server_object(jo, &srv);
+  rc = parse_server_object(jo, &srv);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("https://{env}.example.com:{port}/v1", srv.url);
   ASSERT_STR_EQ("prod-server", srv.name);
@@ -719,7 +718,7 @@ TEST test_openapi_metadata_server_branches(void) {
                           "}");
     JSON_Object *jo_dup = json_value_get_object(jv_dup);
     memset(&srv, 0, sizeof(srv));
-    rc = cdd_test_parse_server_object(jo_dup, &srv);
+    rc = parse_server_object(jo_dup, &srv);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
     test_meta_free_server(&srv);
     json_value_free(jv_dup);
@@ -733,24 +732,24 @@ TEST test_openapi_metadata_server_branches(void) {
     struct OpenAPI_Server test_srv;
     memset(&test_srv, 0, sizeof(test_srv));
     test_srv.url = u1;
-    rc = cdd_test_validate_server_url_variables(&test_srv);
+    rc = validate_server_url_variables(&test_srv);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
     /* Empty variable name '{}' */
     test_srv.url = u2;
-    rc = cdd_test_validate_server_url_variables(&test_srv);
+    rc = validate_server_url_variables(&test_srv);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
     /* Stray '}' */
     test_srv.url = u3;
-    rc = cdd_test_validate_server_url_variables(&test_srv);
+    rc = validate_server_url_variables(&test_srv);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
     /* NULL srv or NULL url */
-    rc = cdd_test_validate_server_url_variables(NULL);
+    rc = validate_server_url_variables(NULL);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     test_srv.url = NULL;
-    rc = cdd_test_validate_server_url_variables(&test_srv);
+    rc = validate_server_url_variables(&test_srv);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
   }
 
@@ -760,7 +759,7 @@ TEST test_openapi_metadata_server_branches(void) {
         "{\"url\": \"https://{v}.com\", \"variables\": {\"v\": {}}}");
     JSON_Object *jo_bad = json_value_get_object(jv_bad);
     memset(&srv, 0, sizeof(srv));
-    rc = cdd_test_parse_server_object(jo_bad, &srv);
+    rc = parse_server_object(jo_bad, &srv);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
     test_meta_free_server(&srv);
     json_value_free(jv_bad);
@@ -769,7 +768,7 @@ TEST test_openapi_metadata_server_branches(void) {
                                "{\"v\": {\"default\": \"\"}}}");
     jo_bad = json_value_get_object(jv_bad);
     memset(&srv, 0, sizeof(srv));
-    rc = cdd_test_parse_server_object(jo_bad, &srv);
+    rc = parse_server_object(jo_bad, &srv);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
     test_meta_free_server(&srv);
     json_value_free(jv_bad);
@@ -778,7 +777,7 @@ TEST test_openapi_metadata_server_branches(void) {
                                "{\"v\": {\"default\": \"a\", \"enum\": []}}}");
     jo_bad = json_value_get_object(jv_bad);
     memset(&srv, 0, sizeof(srv));
-    rc = cdd_test_parse_server_object(jo_bad, &srv);
+    rc = parse_server_object(jo_bad, &srv);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
     test_meta_free_server(&srv);
     json_value_free(jv_bad);
@@ -788,7 +787,7 @@ TEST test_openapi_metadata_server_branches(void) {
         "\"a\", \"enum\": [\"b\", \"c\"]}}}");
     jo_bad = json_value_get_object(jv_bad);
     memset(&srv, 0, sizeof(srv));
-    rc = cdd_test_parse_server_object(jo_bad, &srv);
+    rc = parse_server_object(jo_bad, &srv);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
     test_meta_free_server(&srv);
     json_value_free(jv_bad);
@@ -806,7 +805,7 @@ TEST test_openapi_metadata_server_branches(void) {
     JSON_Object *jo_arr = json_value_get_object(jv_arr);
     srvs = NULL;
     srv_count = 0;
-    rc = cdd_test_parse_servers_array(jo_arr, "servers", &srvs, &srv_count);
+    rc = parse_servers_array(jo_arr, "servers", &srvs, &srv_count);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
     if (srvs) {
       openapi_free_servers_array(srvs, srv_count);
@@ -827,7 +826,7 @@ TEST test_openapi_metadata_server_branches(void) {
     JSON_Object *jo_arr = json_value_get_object(jv_arr);
     srvs = NULL;
     srv_count = 0;
-    rc = cdd_test_parse_servers_array(jo_arr, "servers", &srvs, &srv_count);
+    rc = parse_servers_array(jo_arr, "servers", &srvs, &srv_count);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_EQ(2, srv_count);
     if (srvs) {
@@ -843,7 +842,7 @@ TEST test_openapi_metadata_server_branches(void) {
     for (fail_idx = 1; fail_idx <= 8; ++fail_idx) {
       g_cdd_strdup_fail = fail_idx;
       memset(&srv, 0, sizeof(srv));
-      rc = cdd_test_parse_server_object(jo, &srv);
+      rc = parse_server_object(jo, &srv);
       g_cdd_strdup_fail = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       test_meta_free_server(&srv);
@@ -853,14 +852,14 @@ TEST test_openapi_metadata_server_branches(void) {
   /* Extensions failure in server and server variable */
   g_cdd_fail_extensions_init = 1;
   memset(&srv, 0, sizeof(srv));
-  rc = cdd_test_parse_server_object(jo, &srv);
+  rc = parse_server_object(jo, &srv);
   g_cdd_fail_extensions_init = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   test_meta_free_server(&srv);
 
   g_cdd_fail_extensions_init = 2;
   memset(&srv, 0, sizeof(srv));
-  rc = cdd_test_parse_server_object(jo, &srv);
+  rc = parse_server_object(jo, &srv);
   g_cdd_fail_extensions_init = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   test_meta_free_server(&srv);
@@ -888,27 +887,27 @@ TEST test_openapi_metadata_extra_branches(void) {
 
   /* 1. tag_index_by_name branches */
   memset(&spec, 0, sizeof(spec));
-  rc = cdd_test_tag_index_by_name(NULL, "tag", &tag_idx);
+  rc = tag_index_by_name(NULL, "tag", &tag_idx);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = cdd_test_tag_index_by_name(&spec, NULL, &tag_idx);
+  rc = tag_index_by_name(&spec, NULL, &tag_idx);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = cdd_test_tag_index_by_name(&spec, "tag", NULL);
+  rc = tag_index_by_name(&spec, "tag", NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = cdd_test_tag_index_by_name(&spec, "tag", &tag_idx);
+  rc = tag_index_by_name(&spec, "tag", &tag_idx);
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
 
   /* 2. server_variable_defined and server_variable_seen branches */
   memset(&srv, 0, sizeof(srv));
-  rc = cdd_test_server_variable_defined(NULL, "var");
+  rc = server_variable_defined(NULL, "var");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_server_variable_defined(&srv, NULL);
+  rc = server_variable_defined(&srv, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_server_variable_defined(&srv, "var");
+  rc = server_variable_defined(&srv, "var");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-  rc = cdd_test_server_variable_seen(NULL, 0, "var");
+  rc = server_variable_seen(NULL, 0, "var");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_server_variable_seen(NULL, 0, NULL);
+  rc = server_variable_seen(NULL, 0, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   {
     char *seen[2];
@@ -916,17 +915,17 @@ TEST test_openapi_metadata_extra_branches(void) {
     char s2[] = "seen2";
     seen[0] = s1;
     seen[1] = s2;
-    rc = cdd_test_server_variable_seen(seen, 2, "not_seen");
+    rc = server_variable_seen(seen, 2, "not_seen");
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    rc = cdd_test_server_variable_seen(seen, 2, "seen1");
+    rc = server_variable_seen(seen, 2, "seen1");
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   }
 
   /* 3. validate_tag_parents branches */
-  rc = cdd_test_validate_tag_parents(NULL);
+  rc = validate_tag_parents(NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   memset(&spec, 0, sizeof(spec));
-  rc = cdd_test_validate_tag_parents(&spec);
+  rc = validate_tag_parents(&spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Tag with parent without name */
@@ -935,7 +934,7 @@ TEST test_openapi_metadata_extra_branches(void) {
     memset(tags, 0, sizeof(tags));
     spec.tags = tags;
     spec.n_tags = 1;
-    rc = cdd_test_validate_tag_parents(&spec);
+    rc = validate_tag_parents(&spec);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     spec.tags = NULL;
     spec.n_tags = 0;
@@ -948,7 +947,7 @@ TEST test_openapi_metadata_extra_branches(void) {
     spec.tags = tags;
     spec.n_tags = 1;
     g_cdd_alloc_fail = 1;
-    rc = cdd_test_validate_tag_parents(&spec);
+    rc = validate_tag_parents(&spec);
     g_cdd_alloc_fail = 0;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     spec.tags = NULL;
@@ -960,7 +959,7 @@ TEST test_openapi_metadata_extra_branches(void) {
       json_parse_string("{\"info\": {\"title\": \"T\", \"version\": \"1.0\"}}");
   jo = json_value_get_object(jv);
   memset(&spec, 0, sizeof(spec));
-  rc = cdd_test_parse_info(jo, &spec);
+  rc = parse_info(jo, &spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   openapi_spec_free(&spec);
   json_value_free(jv);
@@ -972,7 +971,7 @@ TEST test_openapi_metadata_extra_branches(void) {
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 4;
   memset(&spec, 0, sizeof(spec));
-  rc = cdd_test_parse_info(jo, &spec);
+  rc = parse_info(jo, &spec);
   g_cdd_strdup_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   openapi_spec_free(&spec);
@@ -983,7 +982,7 @@ TEST test_openapi_metadata_extra_branches(void) {
   jo = json_value_get_object(jv);
   g_cdd_alloc_fail = 1;
   memset(&disc, 0, sizeof(disc));
-  rc = cdd_test_parse_discriminator_object(jo, &disc);
+  rc = parse_discriminator_object(jo, &disc);
   g_cdd_alloc_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   test_meta_free_discriminator(&disc);
@@ -993,7 +992,7 @@ TEST test_openapi_metadata_extra_branches(void) {
   jv = json_parse_string("{}");
   jo = json_value_get_object(jv);
   memset(&disc, 0, sizeof(disc));
-  rc = cdd_test_parse_discriminator_object(jo, &disc);
+  rc = parse_discriminator_object(jo, &disc);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   test_meta_free_discriminator(&disc);
   json_value_free(jv);
@@ -1002,7 +1001,7 @@ TEST test_openapi_metadata_extra_branches(void) {
   jv = json_parse_string("{}");
   jo = json_value_get_object(jv);
   memset(&xml, 0, sizeof(xml));
-  rc = cdd_test_parse_xml_object(jo, &xml);
+  rc = parse_xml_object(jo, &xml);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   test_meta_free_xml(&xml);
   json_value_free(jv);
@@ -1012,7 +1011,7 @@ TEST test_openapi_metadata_extra_branches(void) {
   jo = json_value_get_object(jv);
   g_cdd_alloc_fail = 1;
   memset(&spec, 0, sizeof(spec));
-  rc = cdd_test_parse_tags(jo, &spec);
+  rc = parse_tags(jo, &spec);
   g_cdd_alloc_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   openapi_spec_free(&spec);
@@ -1041,7 +1040,7 @@ TEST test_openapi_metadata_extra_branches(void) {
 
     /* Fail malloc of name */
     g_cdd_alloc_fail = 1;
-    rc = cdd_test_validate_server_url_variables(&s);
+    rc = validate_server_url_variables(&s);
     g_cdd_alloc_fail = 0;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
 
@@ -1050,7 +1049,7 @@ TEST test_openapi_metadata_extra_branches(void) {
       int af;
       for (af = 1; af <= 8; ++af) {
         g_cdd_alloc_fail = af;
-        rc = cdd_test_validate_server_url_variables(&s);
+        rc = validate_server_url_variables(&s);
         if (g_cdd_alloc_fail != 0) {
           /* Did not consume alloc fail */
           g_cdd_alloc_fail = 0;
@@ -1062,7 +1061,7 @@ TEST test_openapi_metadata_extra_branches(void) {
     }
 
     /* Normal success of validate_server_url_variables with 5 variables */
-    rc = cdd_test_validate_server_url_variables(&s);
+    rc = validate_server_url_variables(&s);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
   }
 
@@ -1073,7 +1072,7 @@ TEST test_openapi_metadata_extra_branches(void) {
     jo = json_value_get_object(jv);
     srvs = NULL;
     srv_count = 0;
-    rc = cdd_test_parse_servers_array(jo, "servers", &srvs, &srv_count);
+    rc = parse_servers_array(jo, "servers", &srvs, &srv_count);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     json_value_free(jv);
 
@@ -1087,7 +1086,7 @@ TEST test_openapi_metadata_extra_branches(void) {
     jo = json_value_get_object(jv);
     srvs = NULL;
     srv_count = 0;
-    rc = cdd_test_parse_servers_array(jo, "servers", &srvs, &srv_count);
+    rc = parse_servers_array(jo, "servers", &srvs, &srv_count);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_EQ(4, srv_count);
     if (srvs) {
@@ -1101,7 +1100,7 @@ TEST test_openapi_metadata_extra_branches(void) {
     jo = json_value_get_object(jv);
     srvs = NULL;
     srv_count = 0;
-    rc = cdd_test_parse_servers_array(jo, "servers", &srvs, &srv_count);
+    rc = parse_servers_array(jo, "servers", &srvs, &srv_count);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     if (srvs) {
       openapi_free_servers_array(srvs, srv_count);
@@ -1132,7 +1131,7 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
                          "\"contact\": {\"name\": \"Alice\"} }}");
   jo = json_value_get_object(jv);
   memset(&spec, 0, sizeof(spec));
-  rc = cdd_test_parse_info(jo, &spec);
+  rc = parse_info(jo, &spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   openapi_spec_free(&spec);
   json_value_free(jv);
@@ -1142,7 +1141,7 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
                          "\"license\": {\"name\": \"\"} }}");
   jo = json_value_get_object(jv);
   memset(&spec, 0, sizeof(spec));
-  rc = cdd_test_parse_info(jo, &spec);
+  rc = parse_info(jo, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   json_value_free(jv);
@@ -1150,15 +1149,15 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
   /* Line 159, 197, 278, 342, 605: NULL out with non-NULL obj */
   jv = json_parse_string("{}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_parse_external_docs(jo, NULL);
+  rc = parse_external_docs(jo, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_parse_discriminator_object(jo, NULL);
+  rc = parse_discriminator_object(jo, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_parse_xml_object(jo, NULL);
+  rc = parse_xml_object(jo, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_parse_tags(jo, NULL);
+  rc = parse_tags(jo, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_parse_server_object(jo, NULL);
+  rc = parse_server_object(jo, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   json_value_free(jv);
 
@@ -1167,7 +1166,7 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
   jv = json_parse_string("{\"mapping\": {\"x-only\": \"#/schemas/Ignored\"}}");
   jo = json_value_get_object(jv);
   memset(&disc, 0, sizeof(disc));
-  rc = cdd_test_parse_discriminator_object(jo, &disc);
+  rc = parse_discriminator_object(jo, &disc);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, disc.n_mapping);
   test_meta_free_discriminator(&disc);
@@ -1178,7 +1177,7 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
       "{\"tags\": [{\"name\": \"tagA\"}, {\"name\": \"tagB\"}]}");
   jo = json_value_get_object(jv);
   memset(&spec, 0, sizeof(spec));
-  rc = cdd_test_parse_tags(jo, &spec);
+  rc = parse_tags(jo, &spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   openapi_spec_free(&spec);
   json_value_free(jv);
@@ -1195,7 +1194,7 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
     two_tags[1].name = t2;
     spec.tags = two_tags;
     spec.n_tags = 2;
-    rc = cdd_test_tag_index_by_name(&spec, "t2", &out_idx);
+    rc = tag_index_by_name(&spec, "t2", &out_idx);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_EQ(1, out_idx);
     spec.tags = NULL;
@@ -1213,7 +1212,7 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
     tag_empty_parent[0].parent = empty_parent;
     spec.tags = tag_empty_parent;
     spec.n_tags = 1;
-    rc = cdd_test_validate_tag_parents(&spec);
+    rc = validate_tag_parents(&spec);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     spec.tags = NULL;
     spec.n_tags = 0;
@@ -1225,7 +1224,7 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
     memset(&spec, 0, sizeof(spec));
     spec.tags = dummy_tag;
     spec.n_tags = 0;
-    rc = cdd_test_validate_tag_parents(&spec);
+    rc = validate_tag_parents(&spec);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     spec.tags = NULL;
   }
@@ -1242,7 +1241,7 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
     two_vars[1].name = v2;
     test_srv.variables = two_vars;
     test_srv.n_variables = 2;
-    rc = cdd_test_server_variable_defined(&test_srv, "v2");
+    rc = server_variable_defined(&test_srv, "v2");
     ASSERT_NEQ(CDD_C_SUCCESS, rc);
   }
 
@@ -1251,7 +1250,7 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
     char *seen[1];
     char s[] = "s";
     seen[0] = s;
-    rc = cdd_test_server_variable_seen(seen, 1, NULL);
+    rc = server_variable_seen(seen, 1, NULL);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
   }
 
@@ -1262,7 +1261,7 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
     char s2[] = "s2";
     seen[0] = s1;
     seen[1] = s2;
-    rc = cdd_test_server_variable_seen(seen, 2, "s2");
+    rc = server_variable_seen(seen, 2, "s2");
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   }
 
@@ -1270,7 +1269,7 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
   jv = json_parse_string("{\"url\": \"https://example.com/clean/path\"}");
   jo = json_value_get_object(jv);
   memset(&srv, 0, sizeof(srv));
-  rc = cdd_test_parse_server_object(jo, &srv);
+  rc = parse_server_object(jo, &srv);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   test_meta_free_server(&srv);
   json_value_free(jv);
@@ -1280,7 +1279,7 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
       "{\"url\": \"https://example.com\", \"variables\": {}}");
   jo = json_value_get_object(jv);
   memset(&srv, 0, sizeof(srv));
-  rc = cdd_test_parse_server_object(jo, &srv);
+  rc = parse_server_object(jo, &srv);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, srv.n_variables);
   test_meta_free_server(&srv);
@@ -1289,11 +1288,11 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
   /* Line 733: parse_servers_array combinations of NULL arguments */
   jv = json_parse_string("{\"servers\": []}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_parse_servers_array(jo, NULL, &srvs, &srv_count);
+  rc = parse_servers_array(jo, NULL, &srvs, &srv_count);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_parse_servers_array(jo, "servers", NULL, &srv_count);
+  rc = parse_servers_array(jo, "servers", NULL, &srv_count);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = cdd_test_parse_servers_array(jo, "servers", &srvs, NULL);
+  rc = parse_servers_array(jo, "servers", &srvs, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   json_value_free(jv);
 
@@ -1307,7 +1306,7 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
   jo = json_value_get_object(jv);
   srvs = NULL;
   srv_count = 0;
-  rc = cdd_test_parse_servers_array(jo, "servers", &srvs, &srv_count);
+  rc = parse_servers_array(jo, "servers", &srvs, &srv_count);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(4, srv_count);
   if (srvs) {
@@ -1334,7 +1333,7 @@ TEST test_openapi_metadata_final_branches(void) {
                          "\"contact\": {\"url\": \"http://example.com\"} }}");
   jo = json_value_get_object(jv);
   memset(&spec, 0, sizeof(spec));
-  rc = cdd_test_parse_info(jo, &spec);
+  rc = parse_info(jo, &spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(NULL, spec.info.contact.name);
   ASSERT_STR_EQ("http://example.com", spec.info.contact.url);
@@ -1346,7 +1345,7 @@ TEST test_openapi_metadata_final_branches(void) {
       "{\"url\": \"https://example.com\", \"variables\": {\"var1\": 123}}");
   jo = json_value_get_object(jv);
   memset(&srv, 0, sizeof(srv));
-  rc = cdd_test_parse_server_object(jo, &srv);
+  rc = parse_server_object(jo, &srv);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   test_meta_free_server(&srv);
   json_value_free(jv);
@@ -1356,7 +1355,7 @@ TEST test_openapi_metadata_final_branches(void) {
                          "{\"var1\": {\"description\": \"no default\"} }}");
   jo = json_value_get_object(jv);
   memset(&srv, 0, sizeof(srv));
-  rc = cdd_test_parse_server_object(jo, &srv);
+  rc = parse_server_object(jo, &srv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   test_meta_free_server(&srv);
   json_value_free(jv);
@@ -1366,7 +1365,7 @@ TEST test_openapi_metadata_final_branches(void) {
                          "{\"var1\": {\"default\": \"v1\"} }}");
   jo = json_value_get_object(jv);
   memset(&srv, 0, sizeof(srv));
-  rc = cdd_test_parse_server_object(jo, &srv);
+  rc = parse_server_object(jo, &srv);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   test_meta_free_server(&srv);
   json_value_free(jv);
@@ -1377,7 +1376,7 @@ TEST test_openapi_metadata_final_branches(void) {
       "{\"default\": \"v1\", \"enum\": [123, \"v1\"]} }}");
   jo = json_value_get_object(jv);
   memset(&srv, 0, sizeof(srv));
-  rc = cdd_test_parse_server_object(jo, &srv);
+  rc = parse_server_object(jo, &srv);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   test_meta_free_server(&srv);
   json_value_free(jv);

@@ -31,7 +31,7 @@ TEST test_body_basic_get(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -71,7 +71,7 @@ TEST test_body_base_url_override(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -102,7 +102,7 @@ TEST test_body_options_verb(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_OPTIONS;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -131,7 +131,7 @@ TEST test_body_trace_verb(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_TRACE;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -160,7 +160,7 @@ TEST test_body_query_verb(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_QUERY;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -190,8 +190,8 @@ TEST test_body_additional_connect_method(void) {
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_UNKNOWN;
   op.is_additional = 1;
-  op.method = (char *)(size_t)(size_t) "CONNECT";
-  resp.code = (char *)(size_t)(size_t) "200";
+  op.method = cdd_test_mut_str("CONNECT");
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -224,13 +224,13 @@ TEST test_body_querystring_param(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)(size_t) "qs";
+  param.name = cdd_test_mut_str("qs");
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = (char *)(size_t)(size_t) "string";
+  param.type = cdd_test_mut_str("string");
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -243,31 +243,31 @@ TEST test_body_querystring_param(void) {
 
   /* Test primitive arrays */
   param.is_array = 1;
-  param.items_type = (char *)(size_t)(size_t) "string";
+  param.items_type = cdd_test_mut_str("string");
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)(size_t) "integer";
+  param.items_type = cdd_test_mut_str("integer");
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)(size_t) "number";
+  param.items_type = cdd_test_mut_str("number");
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)(size_t) "boolean";
+  param.items_type = cdd_test_mut_str("boolean");
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)(size_t) "unsupported";
+  param.items_type = cdd_test_mut_str("unsupported");
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   ASSERT(code);
@@ -293,8 +293,8 @@ TEST test_body_inline_response_string(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
+  resp.code = cdd_test_mut_str("200");
+  resp.schema.inline_type = cdd_test_mut_str("string");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -324,9 +324,9 @@ TEST test_body_inline_response_array_number(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   resp.schema.is_array = 1;
-  resp.schema.inline_type = (char *)(size_t)(size_t) "number";
+  resp.schema.inline_type = cdd_test_mut_str("number");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -356,9 +356,9 @@ TEST test_body_inline_request_body_string(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_POST;
-  op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
-  op.req_body.inline_type = (char *)(size_t)(size_t) "string";
-  resp.code = (char *)(size_t)(size_t) "200";
+  op.req_body.content_type = cdd_test_mut_str("application/json");
+  op.req_body.inline_type = cdd_test_mut_str("string");
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -390,9 +390,9 @@ TEST test_body_inline_request_body_string_json_params(void) {
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_POST;
   op.req_body.content_type =
-      (char *)(size_t)(size_t) "Application/JSON; charset=utf-8";
-  op.req_body.inline_type = (char *)(size_t)(size_t) "string";
-  resp.code = (char *)(size_t)(size_t) "200";
+      cdd_test_mut_str("Application/JSON; charset=utf-8");
+  op.req_body.inline_type = cdd_test_mut_str("string");
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -422,10 +422,10 @@ TEST test_body_inline_request_body_array(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_POST;
-  op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
+  op.req_body.content_type = cdd_test_mut_str("application/json");
   op.req_body.is_array = 1;
-  op.req_body.inline_type = (char *)(size_t)(size_t) "integer";
-  resp.code = (char *)(size_t)(size_t) "200";
+  op.req_body.inline_type = cdd_test_mut_str("integer");
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -451,13 +451,13 @@ TEST test_body_textual_request_body_xml(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_POST;
-  op.req_body.content_type = (char *)(size_t)(size_t) "application/xml";
-  op.req_body.ref_name = (char *)(size_t)(size_t) "Pet";
+  op.req_body.content_type = cdd_test_mut_str("application/xml");
+  op.req_body.ref_name = cdd_test_mut_str("Pet");
 
   code = (gen_body(&op, &spec, "/pets", NULL, &_ast_gen_body_12),
           _ast_gen_body_12);
   ASSERT(code);
-  ASSERT(strstr(code, "req.body = (void *)req_body") != NULL);
+  ASSERT(strstr(code, "req.body = req_body") != NULL);
   ASSERT(strstr(code, "\"Content-Type\", \"application/xml\"") != NULL);
   ASSERT(strstr(code, "Pet_to_json") == NULL);
 
@@ -478,13 +478,13 @@ TEST test_body_binary_request_body_pdf(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_POST;
-  op.req_body.content_type = (char *)(size_t)(size_t) "application/pdf";
-  op.req_body.ref_name = (char *)(size_t)(size_t) "Pet";
+  op.req_body.content_type = cdd_test_mut_str("application/pdf");
+  op.req_body.ref_name = cdd_test_mut_str("Pet");
 
   code =
       (gen_body(&op, &spec, "/pdf", NULL, &_ast_gen_body_13), _ast_gen_body_13);
   ASSERT(code);
-  ASSERT(strstr(code, "req.body = (void *)body") != NULL);
+  ASSERT(strstr(code, "req.body = body") != NULL);
   ASSERT(strstr(code, "\"Content-Type\", \"application/pdf\"") != NULL);
   ASSERT(strstr(code, "Pet_to_json") == NULL);
 

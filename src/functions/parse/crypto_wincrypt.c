@@ -87,7 +87,7 @@ static cdd_c_error_t acquire_context(HCRYPTPROV *hProv) {
 }
 
 /**
- * @brief Executes the crypto sha256 operation.
+ * @brief Computes a 32-byte SHA-256 digest over a data buffer.
  */
 cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
                             unsigned char *out_digest) {
@@ -158,7 +158,7 @@ cleanup:
 }
 
 /**
- * @brief Executes the crypto hmac sha256 operation.
+ * @brief Computes a 32-byte HMAC-SHA256 digest over a data buffer.
  */
 cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
                                  const void *data, size_t data_len,
@@ -264,7 +264,7 @@ cleanup:
 #else /* Non-Windows Support Stub */
 
 /**
- * @brief Executes the crypto sha256 operation.
+ * @brief Computes a 32-byte SHA-256 digest over a data buffer.
  */
 cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
                             unsigned char *out_digest) {
@@ -275,7 +275,7 @@ cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
 }
 
 /**
- * @brief Executes the crypto hmac sha256 operation.
+ * @brief Computes a 32-byte HMAC-SHA256 digest over a data buffer.
  */
 cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
                                  const void *data, size_t data_len,

@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_ruby.c
+ * @brief FFI binding emitter for Ruby.
+ */
 #ifdef CDD_BUILD_TESTS
 #ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
@@ -9,63 +13,39 @@ extern volatile int g_fail_io_after;
 #include "cdd_ffi_emit_ruby.h"
 #include "c_cdd/format_specifiers.h"
 #include "c_cdd/safe_crt.h"
+#include "cdd_ffi_emit_common.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
 
-static const char *get_ruby_type(cdd_ffi_type_t type) {
-  if (type.pointer_depth > 0) {
-    if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
-      return "Fiddle::TYPE_VOIDP"; /* Usually treated as string or ptr in fiddle
-                                    */
-    }
-    return "Fiddle::TYPE_VOIDP";
-  }
-
-  switch (type.kind) {
-  case CDD_FFI_KIND_VOID:
-    return "Fiddle::TYPE_VOID";
-  case CDD_FFI_KIND_BOOL:
-    return "Fiddle::TYPE_CHAR"; /* Ruby usually treats bool as char/int */
-  case CDD_FFI_KIND_INT8:
-    return "Fiddle::TYPE_CHAR";
-  case CDD_FFI_KIND_UINT8:
-    return "-Fiddle::TYPE_CHAR";
-  case CDD_FFI_KIND_INT16:
-    return "Fiddle::TYPE_SHORT";
-  case CDD_FFI_KIND_UINT16:
-    return "-Fiddle::TYPE_SHORT";
-  case CDD_FFI_KIND_INT32:
-    return "Fiddle::TYPE_INT";
-  case CDD_FFI_KIND_UINT32:
-    return "-Fiddle::TYPE_INT";
-  case CDD_FFI_KIND_INT64:
-    return "Fiddle::TYPE_LONG_LONG";
-  case CDD_FFI_KIND_UINT64:
-    return "-Fiddle::TYPE_LONG_LONG";
-  case CDD_FFI_KIND_FLOAT32:
-    return "Fiddle::TYPE_FLOAT";
-  case CDD_FFI_KIND_FLOAT64:
-    return "Fiddle::TYPE_DOUBLE";
-  case CDD_FFI_KIND_FUNCTION_PTR:
-    return "Fiddle::TYPE_VOIDP";
-  case CDD_FFI_KIND_STRUCT_REF:
-    return "Fiddle::TYPE_VOIDP"; /* Structs by value are complex in Fiddle,
-                                    fallback to ptr for now */
-  case CDD_FFI_KIND_ENUM_REF:
-    return "Fiddle::TYPE_INT";
-  case CDD_FFI_KIND_TYPEDEF_REF:
-    return "Fiddle::TYPE_VOIDP";
-  case CDD_FFI_KIND_OPAQUE_PTR:
-    return "Fiddle::TYPE_VOIDP";
-  default:
-    return "Fiddle::TYPE_VOIDP";
-  }
+static cdd_c_error_t get_ruby_type(cdd_ffi_type_t type, const char **out_type) {
+  static const cdd_ffi_type_map_table_t k_ruby_types = {
+      "Fiddle::TYPE_VOID",
+      "Fiddle::TYPE_CHAR",
+      "Fiddle::TYPE_CHAR",
+      "-Fiddle::TYPE_CHAR",
+      "Fiddle::TYPE_SHORT",
+      "-Fiddle::TYPE_SHORT",
+      "Fiddle::TYPE_INT",
+      "-Fiddle::TYPE_INT",
+      "Fiddle::TYPE_LONG_LONG",
+      "-Fiddle::TYPE_LONG_LONG",
+      "Fiddle::TYPE_FLOAT",
+      "Fiddle::TYPE_DOUBLE",
+      "Fiddle::TYPE_VOIDP",
+      "Fiddle::TYPE_VOIDP",
+      NULL,
+      "Fiddle::TYPE_INT",
+      0,
+      0,
+      0};
+  return cdd_ffi_map_type_from_table(&k_ruby_types, type, out_type);
 }
 
-static void to_camel_case(const char *snake, char *out, size_t out_size) {
+static cdd_c_error_t to_camel_case(const char *snake, char *out,
+                                   size_t out_size) {
   size_t i, j = 0;
   int up = 1;
   for (i = 0; i < strlen(snake) && j < out_size - 1; i++) {
@@ -81,6 +61,7 @@ static void to_camel_case(const char *snake, char *out, size_t out_size) {
     }
   }
   out[j] = '\0';
+  return CDD_C_SUCCESS;
 }
 
 static cdd_c_error_t
@@ -144,7 +125,8 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       for (j = 0; j < node->fields_count; j++) {
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
-        const char *ftype = get_ruby_type(node->fields[j].type);
+        const char *ftype = NULL;
+        get_ruby_type(node->fields[j].type, &ftype);
         fprintf(f, "    \"%s %s\"", ftype, fname);
         if (j < node->fields_count - 1)
           fprintf(f, ",");
@@ -179,13 +161,16 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      const char *ret_rt = NULL;
       if (node->doc)
         fprintf(f, "  # %s\n", node->doc);
-      fprintf(f, "  extern '%s %s(", get_ruby_type(node->return_or_base_type),
-              node->name);
+      get_ruby_type(node->return_or_base_type, &ret_rt);
+      fprintf(f, "  extern '%s %s(", ret_rt, node->name);
 
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "%s", get_ruby_type(node->fields[j].type));
+        const char *rt = NULL;
+        get_ruby_type(node->fields[j].type, &rt);
+        fprintf(f, "%s", rt);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
       }

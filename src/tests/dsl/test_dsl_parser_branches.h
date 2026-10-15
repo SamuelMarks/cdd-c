@@ -27,6 +27,11 @@ TEST test_dsl_parser_oom(void) {
   g_fail_io_after = 1;
   rc = cdd_dsl_parse(&list, &ir);
   g_fail_io_after = 0;
+  if (ir) {
+    cdd_ffi_ir_free(ir);
+    free(ir);
+    ir = NULL;
+  }
 
   /* ASSERT_EQ_FMT(CDD_C_ERROR_MEMORY, rc, "%d"); */
 
@@ -56,6 +61,7 @@ TEST test_dsl_parser_exhaustive_oom(void) {
       cdd_ffi_ir_free(ir);
       free(ir);
       ir = NULL;
+      break;
     }
   }
   g_ffi_extractor_alloc_fail = 0;
@@ -668,9 +674,9 @@ TEST test_dsl_parser_manual_branches(void) {
 
   memset(toks, 0, sizeof(toks));
   toks[0].kind = CDD_DSL_TOKEN_ESCAPE_WS;
-  toks[0].text_copy = (char *)(size_t) "///";
+  toks[0].text_copy = cdd_test_mut_str("///");
   toks[1].kind = CDD_DSL_TOKEN_IDENTIFIER;
-  toks[1].text_copy = (char *)(size_t) "not_string";
+  toks[1].text_copy = cdd_test_mut_str("not_string");
   toks[2].kind = CDD_DSL_TOKEN_EOF;
 
   list.count = 3;
@@ -684,7 +690,7 @@ TEST test_dsl_parser_manual_branches(void) {
   }
 
   toks[1].kind = CDD_DSL_TOKEN_STRING;
-  toks[1].text_copy = (char *)(size_t) "\"";
+  toks[1].text_copy = cdd_test_mut_str("\"");
   toks[1].length = 1;
 
   rc = cdd_dsl_parse(&list, &ir);
@@ -699,9 +705,9 @@ TEST test_dsl_parser_manual_branches(void) {
 
   memset(toks, 0, sizeof(toks));
   toks[0].kind = CDD_DSL_TOKEN_ESCAPE_COMMENT;
-  toks[0].text_copy = (char *)(size_t) "///";
+  toks[0].text_copy = cdd_test_mut_str("///");
   toks[1].kind = CDD_DSL_TOKEN_IDENTIFIER;
-  toks[1].text_copy = (char *)(size_t) "not_string";
+  toks[1].text_copy = cdd_test_mut_str("not_string");
   toks[2].kind = CDD_DSL_TOKEN_EOF;
   list.count = 3;
   list.tokens = toks;
@@ -713,7 +719,7 @@ TEST test_dsl_parser_manual_branches(void) {
   }
 
   toks[1].kind = CDD_DSL_TOKEN_STRING;
-  toks[1].text_copy = (char *)(size_t) "\"";
+  toks[1].text_copy = cdd_test_mut_str("\"");
   toks[1].length = 1;
   rc = cdd_dsl_parse(&list, &ir);
   if (ir) {

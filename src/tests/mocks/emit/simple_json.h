@@ -65,7 +65,7 @@ extern SIMPLE_MOCKS_EXPORT cdd_c_error_t Tank_from_str(const char *,
 
 /** \brief mock */
 struct HazE {
-  const char *bzr;
+  char *bzr;
   enum Tank tank;
 };
 
@@ -95,7 +95,7 @@ extern SIMPLE_MOCKS_EXPORT cdd_c_error_t
 HazE_from_jsonObject(const JSON_Object *, struct HazE **);
 
 struct FooE {
-  const char *bar;
+  char *bar;
   int can;
   struct HazE *haz;
 };

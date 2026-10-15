@@ -25,15 +25,8 @@ extern "C" {
 #include <parson.h>
 /* clang-format on */
 
-extern C_CDD_EXPORT volatile int g_c2s_helper_fail;
-extern C_CDD_EXPORT volatile int g_cdd_fail_c2s_collect_schema_extras;
 extern C_CDD_EXPORT volatile int g_cdd_fail_json_set_value;
 extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
-extern C_CDD_EXPORT volatile int g_cdd_fail_struct_fields_get;
-extern C_CDD_EXPORT volatile int g_cdd_fail_struct_fields_add;
-extern C_CDD_EXPORT int g_struct_fields_init_fail;
-extern C_CDD_EXPORT int g_enum_members_init_fail;
-extern C_CDD_EXPORT int g_enum_members_add_strdup_fail;
 
 /**
  * @brief Tests c2s_json_object_to_struct_fields_internal comprehensively.
@@ -84,10 +77,16 @@ TEST test_code2schema_json_object_to_struct_fields_full(void) {
         "\"minItems\":1,\"maxItems\":5,\"uniqueItems\":true}}");
     JSON_Object *props_obj;
     JSON_Value *props_val = json_value_init_object();
+    char *s1 = json_serialize_to_string(p1);
+    char *s2 = json_serialize_to_string(p2);
+    char *s3 = json_serialize_to_string(p3);
     props_obj = json_value_get_object(props_val);
-    c2s_merge_schema_extras_object(props_obj, json_serialize_to_string(p1));
-    c2s_merge_schema_extras_object(props_obj, json_serialize_to_string(p2));
-    c2s_merge_schema_extras_object(props_obj, json_serialize_to_string(p3));
+    c2s_merge_schema_extras_object(props_obj, s1);
+    c2s_merge_schema_extras_object(props_obj, s2);
+    c2s_merge_schema_extras_object(props_obj, s3);
+    json_free_serialized_string(s1);
+    json_free_serialized_string(s2);
+    json_free_serialized_string(s3);
     json_object_set_value(schema_obj, "properties", props_val);
     json_value_free(p1);
     json_value_free(p2);
@@ -172,13 +171,13 @@ TEST test_code2schema_main_full_suite(void) {
 
   /* Wrong argc */
   rc = code2schema_main(1, NULL);
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   /* Nonexistent input file */
-  argv[0] = (char *)(size_t) "code2schema";
-  argv[1] = (char *)(size_t) "/nonexistent/missing_file.h";
+  argv[0] = cdd_test_mut_str("code2schema");
+  argv[1] = cdd_test_mut_str("/nonexistent/missing_file.h");
   rc = code2schema_main(2, argv);
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+  ASSERT_EQ(CDD_C_ERROR_IO, rc);
 
   /* Create temporary C header file */
   CDD_SNPRINTF(test_h, sizeof(test_h), "c2s_tmp_%u.h", (unsigned)rand());
@@ -218,7 +217,7 @@ TEST test_code2schema_main_full_suite(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Unwritable output path */
-  argv[1] = (char *)(size_t) "/proc/nonexistent_dir/out.json";
+  argv[1] = cdd_test_mut_str("/proc/nonexistent_dir/out.json");
   rc = code2schema_main(2, argv);
   ASSERT(rc != CDD_C_SUCCESS);
 
@@ -332,8 +331,8 @@ TEST test_code2schema_merge_struct_fields_enums_and_extras(void) {
   char *u2[1];
   cdd_c_error_t rc = 0;
 
-  u1[0] = (char *)(size_t) "string";
-  u2[0] = (char *)(size_t) "null";
+  u1[0] = cdd_test_mut_str("string");
+  u2[0] = cdd_test_mut_str("null");
 
   /* src is_enum */
   rc = struct_fields_init(&src_sf);
@@ -503,8 +502,8 @@ TEST test_code2schema_alloc_failures(void) {
   struct StructFields sf2;
   cdd_c_error_t rc = 0;
 
-  src_arr[0] = (char *)(size_t) "alpha";
-  src_arr[1] = (char *)(size_t) "beta";
+  src_arr[0] = cdd_test_mut_str("alpha");
+  src_arr[1] = cdd_test_mut_str("beta");
 
   /* copy_string_array_code2schema OOM */
   g_cdd_alloc_fail = 1;
@@ -569,7 +568,7 @@ TEST test_code2schema_alloc_failures(void) {
   g_cdd_alloc_fail = 1;
   rc = sanitize_identifier("my_var", &str_out);
   g_cdd_alloc_fail = 0;
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   ASSERT_EQ(NULL, str_out);
 
   g_cdd_strdup_fail = 1;
@@ -625,7 +624,7 @@ TEST test_code2schema_empty_refs_and_defaults(void) {
   JSON_Object *root = json_value_get_object(root_val);
   JSON_Value *val = json_value_init_object();
   JSON_Object *obj = json_value_get_object(val);
-  JSON_Object *res = NULL;
+  const JSON_Object *res = NULL;
   struct StructField f;
   char *name = NULL;
   int is_enum = 0;

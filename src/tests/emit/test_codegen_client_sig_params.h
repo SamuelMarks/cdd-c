@@ -21,10 +21,10 @@ TEST test_sig_query_object_param_kv(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "list";
+  op.operation_id = cdd_test_mut_str("list");
 
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "filter";
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "object";
+  param.name = cdd_test_mut_str("filter");
+  param.type = cdd_test_mut_str("object");
   param.in = OA_PARAM_IN_QUERY;
 
   op.parameters = &param;
@@ -78,10 +78,10 @@ TEST test_sig_path_object_param_kv(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "byPath";
+  op.operation_id = cdd_test_mut_str("byPath");
 
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "filter";
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "object";
+  param.name = cdd_test_mut_str("filter");
+  param.type = cdd_test_mut_str("object");
   param.in = OA_PARAM_IN_PATH;
 
   op.parameters = &param;
@@ -135,10 +135,10 @@ TEST test_sig_header_object_param_kv(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "byHeader";
+  op.operation_id = cdd_test_mut_str("byHeader");
 
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "filter";
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "object";
+  param.name = cdd_test_mut_str("filter");
+  param.type = cdd_test_mut_str("object");
   param.in = OA_PARAM_IN_HEADER;
 
   op.parameters = &param;
@@ -192,10 +192,10 @@ TEST test_sig_cookie_object_param_kv(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "byCookie";
+  op.operation_id = cdd_test_mut_str("byCookie");
 
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "prefs";
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "object";
+  param.name = cdd_test_mut_str("prefs");
+  param.type = cdd_test_mut_str("object");
   param.in = OA_PARAM_IN_COOKIE;
 
   op.parameters = &param;
@@ -249,14 +249,13 @@ TEST test_sig_json_content_query_ref(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "list";
+  op.operation_id = cdd_test_mut_str("list");
 
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "filter";
+  param.name = cdd_test_mut_str("filter");
   param.in = OA_PARAM_IN_QUERY;
-  param.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "application/json";
-  param.schema.ref_name = (char *)(size_t)(size_t)(size_t)(size_t) "Filter";
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "Filter";
+  param.content_type = cdd_test_mut_str("application/json");
+  param.schema.ref_name = cdd_test_mut_str("Filter");
+  param.type = cdd_test_mut_str("Filter");
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -311,13 +310,13 @@ TEST test_sig_header_param_boolean(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "X-Bool";
+  param.name = cdd_test_mut_str("X-Bool");
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "boolean";
+  param.type = cdd_test_mut_str("boolean");
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -372,13 +371,13 @@ TEST test_sig_header_param_number(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "X-Num";
+  param.name = cdd_test_mut_str("X-Num");
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "number";
+  param.type = cdd_test_mut_str("number");
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -433,13 +432,13 @@ TEST test_sig_header_param_integer(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "X-Int";
+  param.name = cdd_test_mut_str("X-Int");
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "integer";
+  param.type = cdd_test_mut_str("integer");
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -494,13 +493,13 @@ TEST test_sig_header_param_string(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "X-String";
+  param.name = cdd_test_mut_str("X-String");
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "string";
+  param.type = cdd_test_mut_str("string");
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -553,33 +552,32 @@ TEST test_sig_header_param_json(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "testHeaderJson";
+  op.operation_id = cdd_test_mut_str("testHeaderJson");
   op.n_parameters = 1;
   op.parameters = &param;
 
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "X-MyHeader";
+  param.name = cdd_test_mut_str("X-MyHeader");
   param.in = OA_PARAM_IN_HEADER;
-  param.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "application/json";
+  param.content_type = cdd_test_mut_str("application/json");
 
   /* Test primitive JSON type */
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "integer";
+  param.type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   free(code);
   code = NULL;
 
   /* Test primitive JSON array */
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "array";
+  param.type = cdd_test_mut_str("array");
   param.is_array = 1;
-  param.items_type = (char *)(size_t)(size_t)(size_t)(size_t) "integer";
+  param.items_type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   free(code);
   code = NULL;
 
   /* Test non-primitive object */
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "object";
+  param.type = cdd_test_mut_str("object");
   param.is_array = 0;
   param.items_type = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
@@ -588,9 +586,9 @@ TEST test_sig_header_param_json(void) {
   code = NULL;
 
   /* Test non-primitive array */
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "array";
+  param.type = cdd_test_mut_str("array");
   param.is_array = 1;
-  param.items_type = (char *)(size_t)(size_t)(size_t)(size_t) "MyType";
+  param.items_type = cdd_test_mut_str("MyType");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   free(code);
@@ -599,17 +597,17 @@ TEST test_sig_header_param_json(void) {
   /* Test ref */
   param.type = NULL;
   param.is_array = 0;
-  param.schema.ref_name = (char *)(size_t)(size_t)(size_t)(size_t) "MyType";
+  param.schema.ref_name = cdd_test_mut_str("MyType");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   free(code);
   code = NULL;
 
   /* Test inline object array */
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "array";
+  param.type = cdd_test_mut_str("array");
   param.is_array = 1;
   param.schema.ref_name = NULL;
-  param.items_type = (char *)(size_t)(size_t)(size_t)(size_t) "object";
+  param.items_type = cdd_test_mut_str("object");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   free(code);
@@ -628,51 +626,47 @@ TEST test_sig_media_type_branches(void) {
   memset(&param, 0, sizeof(param));
   memset(&mt, 0, sizeof(mt));
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "testMediaTypes";
+  op.operation_id = cdd_test_mut_str("testMediaTypes");
   op.n_parameters = 1;
   op.parameters = &param;
 
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "myParam";
+  param.name = cdd_test_mut_str("myParam");
   param.in = OA_PARAM_IN_QUERY;
 
   /* upper case testing */
-  param.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "APPLICATION/JSON";
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "object";
+  param.content_type = cdd_test_mut_str("APPLICATION/JSON");
+  param.type = cdd_test_mut_str("object");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   free(code);
   code = NULL;
 
   /* text/plain */
-  param.content_type = (char *)(size_t)(size_t)(size_t)(size_t) "TEXT/PLAIN";
+  param.content_type = cdd_test_mut_str("TEXT/PLAIN");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   free(code);
   code = NULL;
 
   /* application/xml */
-  param.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "APPLICATION/XML";
+  param.content_type = cdd_test_mut_str("APPLICATION/XML");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   free(code);
   code = NULL;
 
   /* multipart/form-data */
-  param.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "MULTIPART/FORM-DATA";
+  param.content_type = cdd_test_mut_str("MULTIPART/FORM-DATA");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   free(code);
   code = NULL;
 
   /* application/x-www-form-urlencoded */
-  param.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "APPLICATION/"
-                                               "X-WWW-FORM-URLENCODED";
+  param.content_type = cdd_test_mut_str("APPLICATION/"
+                                        "X-WWW-FORM-URLENCODED");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   free(code);
   code = NULL;
 
   /* default fallback */
-  param.content_type = (char *)(size_t)(size_t)(size_t)(size_t) "UNKNOWN/TYPE";
+  param.content_type = cdd_test_mut_str("UNKNOWN/TYPE");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   free(code);
   code = NULL;
@@ -685,10 +679,10 @@ TEST test_sig_response_array_string_ref(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   char *code;
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "getArrStr";
-  resp.code = (char *)(size_t)(size_t)(size_t)(size_t) "200";
+  op.operation_id = cdd_test_mut_str("getArrStr");
+  resp.code = cdd_test_mut_str("200");
   resp.schema.is_array = 1;
-  resp.schema.ref_name = (char *)(size_t)(size_t)(size_t)(size_t) "string";
+  resp.schema.ref_name = cdd_test_mut_str("string");
   op.responses = &resp;
   op.n_responses = 1;
   gen_sig(&op, NULL, &code);
@@ -736,10 +730,10 @@ TEST test_sig_response_array_integer_ref(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   char *code;
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "getArrInt";
-  resp.code = (char *)(size_t)(size_t)(size_t)(size_t) "200";
+  op.operation_id = cdd_test_mut_str("getArrInt");
+  resp.code = cdd_test_mut_str("200");
   resp.schema.is_array = 1;
-  resp.schema.ref_name = (char *)(size_t)(size_t)(size_t)(size_t) "integer";
+  resp.schema.ref_name = cdd_test_mut_str("integer");
   op.responses = &resp;
   op.n_responses = 1;
   gen_sig(&op, NULL, &code);
@@ -787,10 +781,10 @@ TEST test_sig_response_array_struct_ref(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   char *code;
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "getArrStruct";
-  resp.code = (char *)(size_t)(size_t)(size_t)(size_t) "200";
+  op.operation_id = cdd_test_mut_str("getArrStruct");
+  resp.code = cdd_test_mut_str("200");
   resp.schema.is_array = 1;
-  resp.schema.ref_name = (char *)(size_t)(size_t)(size_t)(size_t) "Pet";
+  resp.schema.ref_name = cdd_test_mut_str("Pet");
   op.responses = &resp;
   op.n_responses = 1;
   gen_sig(&op, NULL, &code);
@@ -852,18 +846,18 @@ TEST test_sig_io_errors(void) {
   struct OpenAPI_Parameter param = {0};
   char *code = NULL;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "getAllBranches";
+  op.operation_id = cdd_test_mut_str("getAllBranches");
   op.n_responses = 1;
   op.responses = &resp;
-  resp.code = (char *)(size_t)(size_t)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   resp.schema.is_array = 1;
-  resp.schema.ref_name = (char *)(size_t)(size_t)(size_t)(size_t) "Pet";
+  resp.schema.ref_name = cdd_test_mut_str("Pet");
 
   op.n_parameters = 1;
   op.parameters = &param;
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "myParam";
+  param.name = cdd_test_mut_str("myParam");
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.schema.inline_type = (char *)(size_t)(size_t)(size_t)(size_t) "string";
+  param.schema.inline_type = cdd_test_mut_str("string");
 
   for (i = 0; i < 2; ++i) {
     g_io_calls = 0;
@@ -885,14 +879,13 @@ TEST test_sig_unsupported_prefix(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "prefixTest";
+  op.operation_id = cdd_test_mut_str("prefixTest");
   op.n_parameters = 1;
   op.parameters = &param;
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "myParam";
+  param.name = cdd_test_mut_str("myParam");
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "string";
-  param.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "unsupported/type";
+  param.type = cdd_test_mut_str("string");
+  param.content_type = cdd_test_mut_str("unsupported/type");
   gen_sig(&op, NULL, &code);
   ASSERT(code);
   free(code);

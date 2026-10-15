@@ -176,7 +176,7 @@ TEST test_json_exhaustive_io(void) {
   sf.fields[sf.size - 1].exclusive_min = 0;
   sf.fields[sf.size - 1].exclusive_max = 1;
 
-  config.guard_macro = (char *)(size_t)(size_t) "JSON_ENABLED";
+  config.guard_macro = cdd_test_mut_str("JSON_ENABLED");
 
   for (i = 0; i < 50; ++i) {
     FILE *tmp;

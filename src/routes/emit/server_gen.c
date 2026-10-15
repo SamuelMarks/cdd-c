@@ -7,6 +7,7 @@
 #include "c_cdd/safe_crt_msvc.h"
 
 #include "server_gen.h"
+#include "c_cdd/code_writer.h"
 #include "c_cdd/memory.h"
 #include "c_cdd/safe_crt.h"
 #include "functions/parse/fs.h"
@@ -28,13 +29,15 @@ extern C_CDD_EXPORT int g_cdd_fail_server_apply;
 #endif
 
 /**
- * @brief Executes the openapi server generate operation.
+ * @brief Generates a C HTTP server implementation and test stub from an OpenAPI
+ * specification.
  */
 cdd_c_error_t
 openapi_server_generate(const struct OpenAPI_Spec *spec,
                         const struct OpenApiClientConfig *config) {
   char path[1024];
   FILE *fp = NULL;
+  cdd_code_writer_t w;
   size_t i, j, k;
 
   if (!spec || !config || !config->filename_base)
@@ -43,7 +46,7 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
   {
     cdd_c_error_t rc;
     char *dir_name = NULL, *base_name = NULL;
-    char *src_dir = (char *)(size_t)C_CDD_MALLOC(512);
+    char *src_dir = (char *)C_CDD_MALLOC(512);
     if (!src_dir)
       return CDD_C_ERROR_MEMORY;
     rc = get_dirname(config->filename_base, &dir_name);
@@ -62,14 +65,12 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
 #else
     CDD_SNPRINTF(src_dir, 512, "%s/src", dir_name);
 #endif
-    {
-      cdd_c_error_t rc_sg = makedirs(src_dir);
-      if (rc_sg != CDD_C_SUCCESS) {
-        C_CDD_FREE(src_dir);
-        C_CDD_FREE(dir_name);
-        C_CDD_FREE(base_name);
-        return rc_sg;
-      }
+    rc = makedirs(src_dir);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(src_dir);
+      C_CDD_FREE(dir_name);
+      C_CDD_FREE(base_name);
+      return rc;
     }
     CDD_SNPRINTF(path, 1024, "%s/%s_server.c", src_dir, base_name);
     C_CDD_FREE(src_dir);
@@ -80,60 +81,57 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
   if (fopen_s(&fp, path, "w") != 0)
     fp = NULL;
 #else
-#if defined(_MSC_VER)
-  fopen_s(&fp, path, "w");
-#else
-#if defined(_MSC_VER)
-  if (fopen_s(&fp, path, "w") != 0)
-    fp = NULL;
-#else
   fp = fopen(path, "w");
-#endif
-#endif
 #endif
   if (!fp) {
     return CDD_C_ERROR_IO;
   }
 
-  fprintf(fp, "/* Generated Server from OpenAPI Specification */\n\n");
-  fprintf(fp, "#include <stdio.h>\n");
-  fprintf(fp, "#include <stdlib.h>\n");
-  fprintf(fp, "#include <string.h>\n");
-  fprintf(fp, "#include \"cdd_c_error.h\"\n");
-  fprintf(fp, "#include <c_rest_request.h>\n");
-  fprintf(fp, "#include <c_rest_response.h>\n");
-  fprintf(fp, "#include <c_rest_router.h>\n\n");
+  cdd_code_writer_init_stream(&w, fp);
+
+  cdd_code_writer_write(
+      &w, "/* Generated Server from OpenAPI Specification */\n\n");
+  cdd_code_writer_write(&w, "#include <stdio.h>\n");
+  cdd_code_writer_write(&w, "#include <stdlib.h>\n");
+  cdd_code_writer_write(&w, "#include <string.h>\n");
+  cdd_code_writer_write(&w, "#include \"cdd_c_error.h\"\n");
+  cdd_code_writer_write(&w, "#include <c_rest_request.h>\n");
+  cdd_code_writer_write(&w, "#include <c_rest_response.h>\n");
+  cdd_code_writer_write(&w, "#include <c_rest_router.h>\n\n");
 
   /* Print Server info for documentation */
-  fprintf(fp, "/* API Title: %s */\n",
-          spec->info.title ? spec->info.title : "API");
-  fprintf(fp, "/* API Version: %s */\n",
-          spec->info.version ? spec->info.version : "1.0");
+  cdd_code_writer_printf(&w, "/* API Title: %s */\n",
+                         spec->info.title ? spec->info.title : "API");
+  cdd_code_writer_printf(&w, "/* API Version: %s */\n",
+                         spec->info.version ? spec->info.version : "1.0");
   if (spec->info.description)
-    fprintf(fp, "/* Description: %s */\n", spec->info.description);
+    cdd_code_writer_printf(&w, "/* Description: %s */\n",
+                           spec->info.description);
   if (spec->info.contact.name)
-    fprintf(fp, "/* Contact: %s */\n", spec->info.contact.name);
+    cdd_code_writer_printf(&w, "/* Contact: %s */\n", spec->info.contact.name);
   if (spec->info.license.name)
-    fprintf(fp, "/* License: %s */\n", spec->info.license.name);
+    cdd_code_writer_printf(&w, "/* License: %s */\n", spec->info.license.name);
 
   if (spec->n_servers > 0) {
-    fprintf(fp, "/* Base URL: %s */\n",
-            spec->servers[0].url ? spec->servers[0].url : "");
+    cdd_code_writer_printf(&w, "/* Base URL: %s */\n",
+                           spec->servers[0].url ? spec->servers[0].url : "");
   }
 
   /* c-orm Database integration */
-  fprintf(fp, "#include \"c_orm_db.h\"\n");
-  fprintf(fp, "#include \"c_orm_api.h\"\n");
-  fprintf(fp, "static c_orm_db_t *db_conn = NULL;\n");
-  fprintf(fp, "/**\n"
-              " * @brief Auto-generated code from OpenAPI specification\n"
-              " */\n"
-              "static cdd_c_error_t init_db(void) {\n");
-  fprintf(fp, "    /* Initialize your c-orm database connection here */\n");
-  fprintf(
-      fp,
+  cdd_code_writer_write(&w, "#include \"c_orm_db.h\"\n");
+  cdd_code_writer_write(&w, "#include \"c_orm_api.h\"\n");
+  cdd_code_writer_write(&w, "static c_orm_db_t *db_conn = NULL;\n");
+  cdd_code_writer_write(
+      &w, "/**\n"
+          " * @brief Auto-generated code from OpenAPI specification\n"
+          " */\n"
+          "static cdd_c_error_t init_db(void) {\n");
+  cdd_code_writer_write(
+      &w, "    /* Initialize your c-orm database connection here */\n");
+  cdd_code_writer_write(
+      &w,
       "    db_conn = NULL; /* c_orm_sqlite_open(\"oauth.db\", &db_conn); */\n");
-  fprintf(fp, "    return CDD_C_SUCCESS;\n}\n\n");
+  cdd_code_writer_write(&w, "    return CDD_C_SUCCESS;\n}\n\n");
 
   /* Route handlers */
   for (i = 0; i < spec->n_paths; i++) {
@@ -141,42 +139,45 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
       const struct OpenAPI_Operation *op = &spec->paths[i].operations[j];
       const char *opId = op->operation_id;
       if (opId) {
-        fprintf(fp, "/**\n");
-        fprintf(fp, " * @brief %s handler\n", op->summary ? op->summary : opId);
+        cdd_code_writer_write(&w, "/**\n");
+        cdd_code_writer_printf(&w, " * @brief %s handler\n",
+                               op->summary ? op->summary : opId);
         if (op->description)
-          fprintf(fp, " * %s\n", op->description);
+          cdd_code_writer_printf(&w, " * %s\n", op->description);
 
         for (k = 0; k < op->n_parameters; k++) {
-          fprintf(fp, " * @param %s (%s) %s\n", op->parameters[k].name,
-                  op->parameters[k].in == OA_PARAM_IN_QUERY ? "query"
-                                                            : "header",
-                  op->parameters[k].description ? op->parameters[k].description
-                                                : "");
+          cdd_code_writer_printf(
+              &w, " * @param %s (%s) %s\n", op->parameters[k].name,
+              op->parameters[k].in == OA_PARAM_IN_QUERY ? "query" : "header",
+              op->parameters[k].description ? op->parameters[k].description
+                                            : "");
         }
 
-        fprintf(fp, " * \\return HTTP Status Code\n");
-        fprintf(fp, " */\n");
-        fprintf(
-            fp,
+        cdd_code_writer_write(&w, " * \\return HTTP Status Code\n");
+        cdd_code_writer_write(&w, " */\n");
+        cdd_code_writer_printf(
+            &w,
             "static cdd_c_error_t handle_%s(struct c_rest_request *req, struct "
             "c_rest_response *res, void "
             "*user_data) {\n",
             opId);
-        fprintf(
-            fp,
+        cdd_code_writer_printf(
+            &w,
             "    const char *resp = \"{\\\"status\\\": \\\"%s called\\\"}\";\n",
             opId);
-        fprintf(fp, "    (void)user_data;\n");
-        fprintf(fp, "    (void)req;\n");
-        fprintf(fp, "    (void)res;\n");
+        cdd_code_writer_write(&w, "    (void)user_data;\n");
+        cdd_code_writer_write(&w, "    (void)req;\n");
+        cdd_code_writer_write(&w, "    (void)res;\n");
 
         if (op->deprecated) {
-          fprintf(fp, "    /* Note: Operation is deprecated */\n");
+          cdd_code_writer_write(&w,
+                                "    /* Note: Operation is deprecated */\n");
         }
 
         if (op->req_body.content_schema) {
-          fprintf(fp, "    /* Expecting requestBody schema: %s */\n",
-                  op->req_body.ref ? op->req_body.ref : "inline");
+          cdd_code_writer_printf(
+              &w, "    /* Expecting requestBody schema: %s */\n",
+              op->req_body.ref ? op->req_body.ref : "inline");
         }
 
         if (op->n_req_body_media_types > 0) {
@@ -185,142 +186,154 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
             if (op->req_body_media_types[m].name &&
                 strcmp(op->req_body_media_types[m].name,
                        "application/x-www-form-urlencoded") == 0) {
-              fprintf(fp, "    /* Parse form-urlencoded request body */\n");
-              fprintf(fp, "    {\n");
-              fprintf(
-                  fp,
+              cdd_code_writer_write(
+                  &w, "    /* Parse form-urlencoded request body */\n");
+              cdd_code_writer_write(&w, "    {\n");
+              cdd_code_writer_write(
+                  &w,
                   "        struct c_rest_urlencoded_data urlencoded_data;\n");
               if (op->req_body.ref_name) {
-                fprintf(fp, "        struct %s req_struct;\n",
-                        op->req_body.ref_name);
-                fprintf(
-                    fp,
+                cdd_code_writer_printf(&w, "        struct %s req_struct;\n",
+                                       op->req_body.ref_name);
+                cdd_code_writer_write(
+                    &w,
                     "        memset(&req_struct, 0, sizeof(req_struct));\n");
               }
-              fprintf(fp, "        /* if (c_rest_request_parse_urlencoded(req, "
-                          "&urlencoded_data) == 0) { ... } */\n");
-              fprintf(fp, "    }\n");
+              cdd_code_writer_write(
+                  &w, "        /* if (c_rest_request_parse_urlencoded(req, "
+                      "&urlencoded_data) == 0) { ... } */\n");
+              cdd_code_writer_write(&w, "    }\n");
               break;
             }
           }
         }
 
         if (op->n_responses > 0) {
-          fprintf(fp, "    /* Responses configured: %lu */\n",
-                  (unsigned long)op->n_responses);
+          cdd_code_writer_printf(&w, "    /* Responses configured: %lu */\n",
+                                 (unsigned long)op->n_responses);
         }
 
         if (op->n_callbacks > 0) {
-          fprintf(fp, "    /* Callbacks configured: %lu */\n",
-                  (unsigned long)op->n_callbacks);
+          cdd_code_writer_printf(&w, "    /* Callbacks configured: %lu */\n",
+                                 (unsigned long)op->n_callbacks);
         }
         {
-          cdd_c_error_t rc_sg;
+          cdd_c_error_t rc;
 #ifdef CDD_BUILD_TESTS
           if (g_cdd_fail_server_apply && --g_cdd_fail_server_apply == 0)
-            rc_sg = CDD_C_ERROR_SYSTEM;
+            rc = CDD_C_ERROR_SYSTEM;
           else
 #endif
-            rc_sg = codegen_security_write_server_apply(fp, op, spec);
-          if (rc_sg != CDD_C_SUCCESS) {
+            rc = codegen_security_write_server_apply(fp, op, spec);
+          if (rc != CDD_C_SUCCESS) {
+            cdd_code_writer_free(&w);
             fclose(fp);
-            return rc_sg;
+            return rc;
           }
         }
 
-        fprintf(fp, "    /* c_rest_response_set_status(res, 200); */\n");
-        fprintf(
-            fp,
+        cdd_code_writer_write(
+            &w, "    /* c_rest_response_set_status(res, 200); */\n");
+        cdd_code_writer_write(
+            &w,
             "    /* c_rest_response_set_body(res, resp, strlen(resp)); */\n");
-        fprintf(fp, "    return CDD_C_SUCCESS;\n}\n\n");
+        cdd_code_writer_write(&w, "    return CDD_C_SUCCESS;\n}\n\n");
       }
     }
   }
 
-  fprintf(fp, "/**\n"
-              " * @brief Auto-generated code from OpenAPI specification\n"
-              " */\n"
-              "int main(int argc, char **argv) {\n");
-  fprintf(fp, "    const char *options[15];\n");
-  fprintf(fp, "    struct c_rest_context *ctx = NULL;\n");
-  fprintf(fp, "    int i;\n");
-  fprintf(fp, "    const char *port_str = \"8080\";\n");
-  fprintf(fp, "    const char *db_path = \"oauth.db\";\n");
-  fprintf(fp, "    const char *cert_path = NULL;\n");
-  fprintf(fp, "    const char *key_path = NULL;\n");
-  fprintf(fp, "    const char *threads_str = \"4\";\n");
-  fprintf(fp, "    int opt_idx = 0;\n\n");
-  fprintf(fp, "    for (i = 1; i < argc; i++) {\n");
-  fprintf(fp,
-          "        if (strcmp(argv[i], \"--port\") == 0 && i + 1 < argc) {\n");
-  fprintf(fp, "            port_str = argv[++i];\n");
-  fprintf(fp, "        } else if (strcmp(argv[i], \"--db-path\") == 0 && i + 1 "
-              "< argc) {\n");
-  fprintf(fp, "            db_path = argv[++i];\n");
-  fprintf(fp, "        } else if (strcmp(argv[i], \"--cert\") == 0 && i + 1 < "
-              "argc) {\n");
-  fprintf(fp, "            cert_path = argv[++i];\n");
-  fprintf(fp, "        } else if (strcmp(argv[i], \"--key\") == 0 && i + 1 < "
-              "argc) {\n");
-  fprintf(fp, "            key_path = argv[++i];\n");
-  fprintf(fp, "        } else if (strcmp(argv[i], \"--threads\") == 0 && i + 1 "
-              "< argc) {\n");
-  fprintf(fp, "            threads_str = argv[++i];\n");
-  fprintf(fp, "        }\n");
-  fprintf(fp, "    }\n\n");
-  fprintf(fp, "    (void)db_path; /* Will be used in init_db() */\n\n");
-  fprintf(fp, "    options[opt_idx++] = \"document_root\";\n");
-  fprintf(fp, "    options[opt_idx++] = \".\";\n");
-  fprintf(fp, "    options[opt_idx++] = \"listening_ports\";\n");
-  fprintf(fp, "    options[opt_idx++] = port_str;\n");
-  fprintf(fp, "    options[opt_idx++] = \"num_threads\";\n");
-  fprintf(fp, "    options[opt_idx++] = threads_str;\n");
-  fprintf(fp, "    if (cert_path && key_path) {\n");
-  fprintf(fp, "        options[opt_idx++] = \"ssl_certificate\";\n");
-  fprintf(fp, "        options[opt_idx++] = cert_path;\n");
-  fprintf(fp, "    }\n");
-  fprintf(fp, "    options[opt_idx] = 0;\n\n");
+  cdd_code_writer_write(
+      &w, "/**\n"
+          " * @brief Auto-generated code from OpenAPI specification\n"
+          " */\n"
+          "int main(int argc, char **argv) {\n");
+  cdd_code_writer_write(&w, "    const char *options[15];\n");
+  cdd_code_writer_write(&w, "    struct c_rest_context *ctx = NULL;\n");
+  cdd_code_writer_write(&w, "    int i;\n");
+  cdd_code_writer_write(&w, "    const char *port_str = \"8080\";\n");
+  cdd_code_writer_write(&w, "    const char *db_path = \"oauth.db\";\n");
+  cdd_code_writer_write(&w, "    const char *cert_path = NULL;\n");
+  cdd_code_writer_write(&w, "    const char *key_path = NULL;\n");
+  cdd_code_writer_write(&w, "    const char *threads_str = \"4\";\n");
+  cdd_code_writer_write(&w, "    int opt_idx = 0;\n\n");
+  cdd_code_writer_write(&w, "    for (i = 1; i < argc; i++) {\n");
+  cdd_code_writer_write(
+      &w, "        if (strcmp(argv[i], \"--port\") == 0 && i + 1 < argc) {\n");
+  cdd_code_writer_write(&w, "            port_str = argv[++i];\n");
+  cdd_code_writer_write(
+      &w, "        } else if (strcmp(argv[i], \"--db-path\") == 0 "
+          "&& i + 1 < argc) {\n");
+  cdd_code_writer_write(&w, "            db_path = argv[++i];\n");
+  cdd_code_writer_write(&w, "        } else if (strcmp(argv[i], \"--cert\") == "
+                            "0 && i + 1 < argc) {\n");
+  cdd_code_writer_write(&w, "            cert_path = argv[++i];\n");
+  cdd_code_writer_write(&w, "        } else if (strcmp(argv[i], \"--key\") == "
+                            "0 && i + 1 < argc) {\n");
+  cdd_code_writer_write(&w, "            key_path = argv[++i];\n");
+  cdd_code_writer_write(&w, "        } else if (strcmp(argv[i], \"--threads\") "
+                            "== 0 && i + 1 < argc) {\n");
+  cdd_code_writer_write(&w, "            threads_str = argv[++i];\n");
+  cdd_code_writer_write(&w, "        }\n");
+  cdd_code_writer_write(&w, "    }\n\n");
+  cdd_code_writer_write(
+      &w, "    (void)db_path; /* Will be used in init_db() */\n\n");
+  cdd_code_writer_write(&w, "    options[opt_idx++] = \"document_root\";\n");
+  cdd_code_writer_write(&w, "    options[opt_idx++] = \".\";\n");
+  cdd_code_writer_write(&w, "    options[opt_idx++] = \"listening_ports\";\n");
+  cdd_code_writer_write(&w, "    options[opt_idx++] = port_str;\n");
+  cdd_code_writer_write(&w, "    options[opt_idx++] = \"num_threads\";\n");
+  cdd_code_writer_write(&w, "    options[opt_idx++] = threads_str;\n");
+  cdd_code_writer_write(&w, "    if (cert_path && key_path) {\n");
+  cdd_code_writer_write(&w,
+                        "        options[opt_idx++] = \"ssl_certificate\";\n");
+  cdd_code_writer_write(&w, "        options[opt_idx++] = cert_path;\n");
+  cdd_code_writer_write(&w, "    }\n");
+  cdd_code_writer_write(&w, "    options[opt_idx] = 0;\n\n");
 
-  fprintf(fp, "    { cdd_c_error_t rc = init_db(); if(rc != CDD_C_SUCCESS) "
-              "return rc; }\n\n");
+  cdd_code_writer_write(&w, "    { cdd_c_error_t rc = init_db(); if(rc != "
+                            "CDD_C_SUCCESS) return rc; }\n\n");
 
-  fprintf(fp, "    cdd_c_error_t rc;\n");
-  fprintf(fp, "    rc = c_rest_init(C_REST_MODALITY_SYNC, &ctx);\n");
-  fprintf(fp, "    if (rc != CDD_C_SUCCESS) {\n");
-  fprintf(fp,
-          "        fprintf(stderr, \"Failed to start c-rest server.\\n\");\n");
-  fprintf(fp, "        return rc;\n");
-  fprintf(fp, "    }\n\n");
+  cdd_code_writer_write(&w, "    cdd_c_error_t rc;\n");
+  cdd_code_writer_write(&w,
+                        "    rc = c_rest_init(C_REST_MODALITY_SYNC, &ctx);\n");
+  cdd_code_writer_write(&w, "    if (rc != CDD_C_SUCCESS) {\n");
+  cdd_code_writer_write(
+      &w, "        fprintf(stderr, \"Failed to start c-rest server.\\n\");\n");
+  cdd_code_writer_write(&w, "        return rc;\n");
+  cdd_code_writer_write(&w, "    }\n\n");
 
-  fprintf(fp, "    {\n");
-  fprintf(fp, "        c_rest_router *router = NULL;\n");
-  fprintf(fp, "        rc = c_rest_router_init(&router);\n");
-  fprintf(fp, "        if (rc == CDD_C_SUCCESS) {\n");
+  cdd_code_writer_write(&w, "    {\n");
+  cdd_code_writer_write(&w, "        c_rest_router *router = NULL;\n");
+  cdd_code_writer_write(&w, "        rc = c_rest_router_init(&router);\n");
+  cdd_code_writer_write(&w, "        if (rc == CDD_C_SUCCESS) {\n");
 
   /* Register MCP endpoints */
-  fprintf(fp, "    /* MCP Transports: Server-Sent Events (sse) */\n");
-  fprintf(
-      fp,
+  cdd_code_writer_write(&w,
+                        "    /* MCP Transports: Server-Sent Events (sse) */\n");
+  cdd_code_writer_write(
+      &w,
       "static cdd_c_error_t handle_mcp_sse(struct c_rest_request *req, struct "
       "c_rest_response *res, void *user_data) {\n");
-  fprintf(fp, "    (void)req;\n");
-  fprintf(fp, "    (void)user_data;\n");
-  fprintf(fp, "    res->status_code = 200;\n");
-  fprintf(fp, "    /* c_rest_response_add_header is pseudo; just printing "
-              "headers manually or using standard HTTP framework */\n");
-  fprintf(fp, "    return CDD_C_SUCCESS;\n}\n\n");
-  fprintf(fp,
-          "static cdd_c_error_t handle_mcp_message(struct c_rest_request *req, "
+  cdd_code_writer_write(&w, "    (void)req;\n");
+  cdd_code_writer_write(&w, "    (void)user_data;\n");
+  cdd_code_writer_write(&w, "    res->status_code = 200;\n");
+  cdd_code_writer_write(&w, "    /* c_rest_response_add_header is pseudo; just "
+                            "printing headers manually or using standard HTTP "
+                            "framework */\n");
+  cdd_code_writer_write(&w, "    return CDD_C_SUCCESS;\n}\n\n");
+  cdd_code_writer_write(
+      &w, "static cdd_c_error_t handle_mcp_message(struct c_rest_request *req, "
           "struct c_rest_response *res, void *user_data) {\n");
-  fprintf(fp, "    (void)req;\n");
-  fprintf(fp, "    (void)user_data;\n");
-  fprintf(fp, "    res->status_code = 202;\n");
-  fprintf(fp, "    return CDD_C_SUCCESS;\n}\n\n");
-  fprintf(fp, "            /* MCP SSE Endpoint Registration */\n");
-  fprintf(fp, "            c_rest_router_add(router, \"GET\", \"/mcp/sse\", "
-              "NULL, NULL);  \n");
-  fprintf(fp,
-          "            c_rest_router_add(router, \"POST\", \"/mcp/message\", "
+  cdd_code_writer_write(&w, "    (void)req;\n");
+  cdd_code_writer_write(&w, "    (void)user_data;\n");
+  cdd_code_writer_write(&w, "    res->status_code = 202;\n");
+  cdd_code_writer_write(&w, "    return CDD_C_SUCCESS;\n}\n\n");
+  cdd_code_writer_write(&w,
+                        "            /* MCP SSE Endpoint Registration */\n");
+  cdd_code_writer_write(&w, "            c_rest_router_add(router, \"GET\", "
+                            "\"/mcp/sse\", NULL, NULL);  \n");
+  cdd_code_writer_write(
+      &w, "            c_rest_router_add(router, \"POST\", \"/mcp/message\", "
           "NULL, NULL);  \n\n");
 
   /* Register handlers */
@@ -344,31 +357,36 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
           method = "PATCH";
         else if (op->verb == OA_VERB_TRACE)
           method = "TRACE";
-        fprintf(fp,
-                "            c_rest_router_add(router, \"%s\", \"%s\", "
-                "handle_%s, NULL);\n",
-                method, spec->paths[i].route, opId);
+        cdd_code_writer_printf(&w,
+                               "            c_rest_router_add(router, \"%s\", "
+                               "\"%s\", handle_%s, NULL);\n",
+                               method, spec->paths[i].route, opId);
       }
     }
   }
 
-  fprintf(fp, "            /* Bind Router to c-rest-framework */\n");
-  fprintf(fp, "            rc = c_rest_set_router(ctx, router);\n");
-  fprintf(fp, "            if (rc != CDD_C_SUCCESS) return rc;\n");
-  fprintf(fp, "        }\n");
-  fprintf(fp, "    }\n\n");
+  cdd_code_writer_write(&w,
+                        "            /* Bind Router to c-rest-framework */\n");
+  cdd_code_writer_write(&w,
+                        "            rc = c_rest_set_router(ctx, router);\n");
+  cdd_code_writer_write(&w,
+                        "            if (rc != CDD_C_SUCCESS) return rc;\n");
+  cdd_code_writer_write(&w, "        }\n");
+  cdd_code_writer_write(&w, "    }\n\n");
 
-  fprintf(fp, "    printf(\"Server listening... Press enter to exit.\\n\");\n");
-  fprintf(fp, "    rc = c_rest_run(ctx);\n");
-  fprintf(fp, "    if (rc != CDD_C_SUCCESS) return rc;\n");
-  fprintf(fp, "    getchar();\n");
-  fprintf(fp, "    rc = c_rest_stop(ctx);\n");
-  fprintf(fp, "    if (rc != CDD_C_SUCCESS) return rc;\n");
-  fprintf(fp, "    rc = c_rest_destroy(ctx);\n");
-  fprintf(fp, "    if (rc != CDD_C_SUCCESS) return rc;\n");
-  fprintf(fp, "    return CDD_C_SUCCESS;\n");
-  fprintf(fp, "}\n");
+  cdd_code_writer_write(
+      &w, "    printf(\"Server listening... Press enter to exit.\\n\");\n");
+  cdd_code_writer_write(&w, "    rc = c_rest_run(ctx);\n");
+  cdd_code_writer_write(&w, "    if (rc != CDD_C_SUCCESS) return rc;\n");
+  cdd_code_writer_write(&w, "    getchar();\n");
+  cdd_code_writer_write(&w, "    rc = c_rest_stop(ctx);\n");
+  cdd_code_writer_write(&w, "    if (rc != CDD_C_SUCCESS) return rc;\n");
+  cdd_code_writer_write(&w, "    rc = c_rest_destroy(ctx);\n");
+  cdd_code_writer_write(&w, "    if (rc != CDD_C_SUCCESS) return rc;\n");
+  cdd_code_writer_write(&w, "    return CDD_C_SUCCESS;\n");
+  cdd_code_writer_write(&w, "}\n");
 
+  cdd_code_writer_free(&w);
   fclose(fp);
 
   /* Test Stub Generation */
@@ -381,241 +399,55 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
     if (fopen_s(&fp_test, test_path, "w") != 0)
       fp_test = NULL;
 #else
-#if defined(_MSC_VER)
-    fopen_s(&fp_test, test_path, "w");
-#else
-#if defined(_MSC_VER)
-    if (fopen_s(&fp_test, test_path, "w") != 0)
-      fp_test = NULL;
-#else
     fp_test = fopen(test_path, "w");
 #endif
-#endif
-#endif
     if (fp_test) {
-      fprintf(
-          fp_test,
+      cdd_code_writer_t tw;
+      cdd_code_writer_init_stream(&tw, fp_test);
+      cdd_code_writer_write(
+          &tw,
           "/* Auto-generated greatest.h test stub for server endpoints */\n\n");
-      fprintf(fp_test, "#include <stdlib.h>\n");
-      fprintf(fp_test, "#include <string.h>\n");
-      fprintf(fp_test, "#include <greatest.h>\n");
-      fprintf(fp_test, "#include <c_rest_request.h>\n");
-      fprintf(fp_test, "#include <c_rest_response.h>\n\n ");
+      cdd_code_writer_write(&tw, "#include <stdlib.h>\n");
+      cdd_code_writer_write(&tw, "#include <string.h>\n");
+      cdd_code_writer_write(&tw, "#include <greatest.h>\n");
+      cdd_code_writer_write(&tw, "#include <c_rest_request.h>\n");
+      cdd_code_writer_write(&tw, "#include <c_rest_response.h>\n\n ");
 
       for (i = 0; i < spec->n_paths; i++) {
         for (j = 0; j < spec->paths[i].n_operations; j++) {
           const struct OpenAPI_Operation *op = &spec->paths[i].operations[j];
           const char *opId = op->operation_id;
           if (opId) {
-            fprintf(fp_test, "TEST test_server_handle_%s(void) {\n", opId);
-            fprintf(fp_test, "  struct c_rest_request req;\n");
-            fprintf(fp_test, "  struct c_rest_response res;\n");
-            fprintf(fp_test, "  cdd_c_error_t status;\n");
-            fprintf(fp_test, "  memset(&req, 0, sizeof(req));\n");
-            fprintf(fp_test, "  memset(&res, 0, sizeof(res));\n");
-            fprintf(fp_test, "  status = handle_%s(&req, &res, NULL);\n", opId);
-            fprintf(fp_test, "  ASSERT_EQ(CDD_C_SUCCESS, status);\n");
-            fprintf(fp_test, "  PASS();\n");
-            fprintf(fp_test, "}\n\n");
+            cdd_code_writer_printf(&tw, "TEST test_server_handle_%s(void) {\n",
+                                   opId);
+            cdd_code_writer_write(&tw, "  struct c_rest_request req;\n");
+            cdd_code_writer_write(&tw, "  struct c_rest_response res;\n");
+            cdd_code_writer_write(&tw, "  cdd_c_error_t status;\n");
+            cdd_code_writer_write(&tw, "  memset(&req, 0, sizeof(req));\n");
+            cdd_code_writer_write(&tw, "  memset(&res, 0, sizeof(res));\n");
+            cdd_code_writer_printf(
+                &tw, "  status = handle_%s(&req, &res, NULL);\n", opId);
+            cdd_code_writer_write(&tw, "  ASSERT_EQ(CDD_C_SUCCESS, status);\n");
+            cdd_code_writer_write(&tw, "  PASS();\n");
+            cdd_code_writer_write(&tw, "}\n\n");
           }
         }
       }
 
-      fprintf(fp_test, "SUITE(server_endpoints_suite) {\n");
+      cdd_code_writer_write(&tw, "SUITE(server_endpoints_suite) {\n");
       for (i = 0; i < spec->n_paths; i++) {
         for (j = 0; j < spec->paths[i].n_operations; j++) {
           if (spec->paths[i].operations[j].operation_id) {
-            fprintf(fp_test, "  RUN_TEST(test_server_handle_%s);\n",
-                    spec->paths[i].operations[j].operation_id);
+            cdd_code_writer_printf(&tw, "  RUN_TEST(test_server_handle_%s);\n",
+                                   spec->paths[i].operations[j].operation_id);
           }
         }
       }
-      fprintf(fp_test, "}\n");
+      cdd_code_writer_write(&tw, "}\n");
+      cdd_code_writer_free(&tw);
       fclose(fp_test);
     }
   }
-
-  /* OpenAPI 3.2.0 coverage expansion:
-   *
-   * @authorizationUrl implicit password clientCredentials authorizationCode
-   * deviceAuthorization
-   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
-   * @Security Requirement Object {name}
-   * @XML Object nodeType namespace prefix attribute wrapped
-   * @Link Object operationRef operationId parameters requestBody server
-   * @Callback Object {expression}
-   * @Example Object dataValue serializedValue externalValue
-   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding
-   * style explode allowReserved
-   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
-   * @Discriminator Object defaultMapping
-   * @Components Object requestBodies securitySchemes links callbacks pathItems
-   * mediaTypes
-   * @Server Variable Object enum default
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 2:
-   *
-   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
-   * @termsOfService url email identifier
-   * @get put options head patch trace additionalOperations
-   * @externalDocs operationId
-   * @allowEmptyValue examples in required
-   * @contentType discriminator propertyName mapping
-   * @Responses default
-   * @Response Object
-   * @Example Object
-   * @Link Object
-   * @Callback Object
-   * @Encoding Object
-   * @Media Type Object
-   * @Discriminator Object
-   * @Components Object
-   * @Server Variable Object
-   * @OAuth Flows Object
-   * @OAuth Flow Object
-   * @Security Requirement Object
-   * @XML Object
-   * @Contact Object
-   * @License Object
-   * @Server Object
-   * @Paths Object
-   * @Path Item Object
-   * @Operation Object
-   * @External Documentation Object
-   * @Parameter Object
-   * @Request Body Object
-   * @Header Object
-   * @Tag Object
-   * @Reference Object
-   * @Schema Object
-   * @Security Scheme Object
-   * @OpenAPI Object
-   * @Info Object
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 3:
-   *
-   * @version @contact @license @server @url @name
-   * @get @put @post @delete @options @head @patch @trace
-   * @additionalOperations @operationId @requestBody @responses
-   * @allowEmptyValue @allowReserved @example @examples @schema @items
-   * @itemSchema @encoding @prefixEncoding @itemEncoding
-   * @contentType @headers @style @explode
-   * @default @HTTP Status Code @summary @description @links
-   * @dataValue @serializedValue @externalValue @value @operationRef
-   * @server @required @deprecated @schemas @parameters
-   * @securitySchemes @pathItems @mediaTypes
-   * @parent @kind @$ref @discriminator @propertyName @mapping
-   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
-   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
-   * @oauth2MetadataUrl @implicit @password @clientCredentials
-   * @authorizationCode
-   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
-   * @refreshUrl @scopes @{name} @{expression} @XML Object
-   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
-   * @Security Scheme Object @Reference Object @Tag Object @Header Object
-   * @Link Object @Example Object @Callback Object @Response Object @Responses
-   * Object
-   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
-   * @External Documentation Object @Operation Object @Path Item Object @Paths
-   * Object
-   * @Components Object @Server Variable Object @Server Object @License Object
-   * @Contact Object @Info Object @OpenAPI Object
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 4:
-   *
-   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue
-   * @value @operationRef @server
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 5:
-   *
-   * @version
-   * @get @put @options @head @patch @trace @additionalOperations @operationId
-   * @responses
-   * @allowEmptyValue
-   * @content
-   * @encoding @prefixEncoding @itemEncoding
-   * @contentType
-   * @HTTP Status Code
-   * @dataValue @serializedValue @externalValue @value
-   * @operationRef @server
-   * @required
-   * @schemas @parameters
-   * @securitySchemes @pathItems @mediaTypes
-   * @parent @kind
-   * @propertyName @mapping @defaultMapping
-   * @nodeType @namespace @prefix @attribute @wrapped
-   * @type @in @scheme @bearerFormat @flows
-   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
-   * @authorizationCode
-   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
-   * @refreshUrl @scopes
-   * @{name} @{expression}
-   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow
-   * Object
-   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link
-   * Object
-   * @Example Object @Callback Object @Response Object @Responses Object
-   * @Encoding Object
-   * @Media Type Object @Request Body Object @Parameter Object @External
-   * Documentation Object
-   * @Operation Object @Path Item Object @Paths Object @Components Object
-   * @Server Variable Object
-   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 6:
-   *
-   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML
-   * Object
-   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object
-   * (`parameters`)
-   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object
-   * (`server`)
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 7:
-   *
-   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML
-   * Object
-   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object
-   * (`parameters`)
-   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object
-   * (`server`)
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 8:
-   *
-   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head
-   * @patch @trace @query @additionalOperations
-   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated
-   * @security @servers
-   * @in @allowEmptyValue @example @examples @style @explode @allowReserved
-   * @schema @content @required @itemSchema
-   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default
-   * @HTTP Status Code @summary @description @links
-   * @{expression} @dataValue @serializedValue @externalValue @value
-   * @operationRef @parameters @server @name @parent
-   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml
-   * @nodeType @namespace @prefix @attribute
-   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl
-   * @oauth2MetadataUrl @implicit @password @clientCredentials
-   * @authorizationCode @deviceAuthorization @authorizationUrl
-   * @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
-   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object
-   * @License Object @Server Object @Server Variable Object
-   * @Components Object @Paths Object @Path Item Object @Operation Object
-   * @External Documentation Object @Parameter Object
-   * @Request Body Object @Media Type Object @Encoding Object @Responses Object
-   * @Response Object @Callback Object @Example Object
-   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object
-   * @Discriminator Object @XML Object
-   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security
-   * Requirement Object
-   */
 
   return CDD_C_SUCCESS;
 }

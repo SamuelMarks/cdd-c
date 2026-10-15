@@ -172,7 +172,7 @@ cdd_c_error_t parse_param_style(const char *s, enum OpenAPI_Style *_out_val) {
 }
 
 /**
- * @brief Executes the param type is primitive operation.
+ * @brief Checks whether an OpenAPI parameter type name is a scalar primitive.
  */
 cdd_c_error_t param_type_is_primitive(const char *type) {
   if (!type)
@@ -182,7 +182,8 @@ cdd_c_error_t param_type_is_primitive(const char *type) {
 }
 
 /**
- * @brief Executes the param type is object like operation.
+ * @brief Checks whether an OpenAPI parameter represents an object or map
+ * structure.
  */
 cdd_c_error_t param_type_is_object_like(const struct OpenAPI_Parameter *p) {
   if (!p || !p->type)
@@ -193,7 +194,8 @@ cdd_c_error_t param_type_is_object_like(const struct OpenAPI_Parameter *p) {
 }
 
 /**
- * @brief Executes the validate parameter style operation.
+ * @brief Validates that an OpenAPI parameter style is compatible with its
+ * location and type.
  */
 cdd_c_error_t validate_parameter_style(const struct OpenAPI_Parameter *p,
                                        int has_content) {
@@ -243,7 +245,8 @@ cdd_c_error_t validate_parameter_style(const struct OpenAPI_Parameter *p,
 }
 
 /**
- * @brief Executes the component key is valid operation.
+ * @brief Checks whether a component map key conforms to OpenAPI identifier
+ * regex rules.
  */
 cdd_c_error_t component_key_is_valid(const char *name) {
   size_t i;
@@ -274,7 +277,8 @@ cdd_c_error_t media_type_key_is_valid(const char *name) {
 }
 
 /**
- * @brief Executes the validate component key map operation.
+ * @brief Validates all keys in a components sub-object against OpenAPI naming
+ * rules.
  */
 cdd_c_error_t validate_component_key_map(const JSON_Object *obj) {
   size_t i, count;
@@ -306,7 +310,7 @@ cdd_c_error_t validate_media_type_key_map(const JSON_Object *obj) {
 }
 
 /**
- * @brief Executes the header name is content type operation.
+ * @brief Checks case-insensitively whether a header name is Content-Type.
  */
 cdd_c_error_t header_name_is_content_type(const char *name) {
   int eq = 0;
@@ -322,7 +326,8 @@ cdd_c_error_t header_name_is_content_type(const char *name) {
 }
 
 /**
- * @brief Executes the header param is reserved operation.
+ * @brief Checks whether an HTTP header name is reserved by OpenAPI (Accept,
+ * Content-Type, Authorization).
  */
 cdd_c_error_t header_param_is_reserved(const struct OpenAPI_Parameter *param) {
   size_t i;
@@ -587,7 +592,7 @@ cdd_c_error_t parse_any_array(const JSON_Array *arr, struct OpenAPI_Any **out,
 }
 
 /**
- * @brief Executes the key in list operation.
+ * @brief Checks whether a string key already exists in a list of strings.
  */
 cdd_c_error_t key_in_list(const char *key, const char **list, size_t count) {
   size_t i;
@@ -609,7 +614,7 @@ cdd_c_error_t is_extension_key(const char *key) {
 }
 
 /**
- * @brief Executes the clone json value operation.
+ * @brief Deep-copies a Parson JSON_Value via serialization round-trip.
  */
 cdd_c_error_t clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
   char *serialized;
@@ -629,10 +634,10 @@ cdd_c_error_t clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
         --g_cdd_fail_clone_json_serialize == 0)
       serialized = NULL;
     else
-      serialized = json_serialize_to_string((JSON_Value *)val);
+      serialized = json_serialize_to_string(val);
   }
 #else
-  serialized = json_serialize_to_string((JSON_Value *)val);
+  serialized = json_serialize_to_string(val);
 #endif
   if (!serialized) {
     *_out_val = NULL;
@@ -827,7 +832,8 @@ cdd_c_error_t collect_extensions(const JSON_Object *obj, char **out_json) {
 }
 
 /**
- * @brief Executes the url has query or fragment operation.
+ * @brief Checks whether a URL string contains a query (?) or fragment (#)
+ * component.
  */
 cdd_c_error_t url_has_query_or_fragment(const char *url) {
   if (!url)
@@ -838,7 +844,7 @@ cdd_c_error_t url_has_query_or_fragment(const char *url) {
 }
 
 /**
- * @brief Executes the openapi version supported operation.
+ * @brief Checks whether an openapi version string is a supported 3.x version.
  */
 cdd_c_error_t openapi_version_supported(const char *version) {
   if (!version || !*version)
@@ -850,7 +856,8 @@ cdd_c_error_t openapi_version_supported(const char *version) {
 }
 
 /**
- * @brief Executes the example fields valid operation.
+ * @brief Validates mutual exclusivity of value, dataValue, serializedValue, and
+ * externalValue in an Example.
  */
 cdd_c_error_t example_fields_valid(const struct OpenAPI_Example *ex) {
   if (!ex)
@@ -865,7 +872,8 @@ cdd_c_error_t example_fields_valid(const struct OpenAPI_Example *ex) {
 }
 
 /**
- * @brief Executes the object has example and examples operation.
+ * @brief Checks whether a JSON object illegally specifies both example and
+ * examples.
  */
 cdd_c_error_t object_has_example_and_examples(const JSON_Object *obj) {
   if (!obj)

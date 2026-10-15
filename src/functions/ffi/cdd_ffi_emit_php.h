@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_php.h
+ * @brief FFI binding emitter for Php.
+ */
 #ifndef CDD_FFI_EMIT_PHP_H
 #define CDD_FFI_EMIT_PHP_H
 

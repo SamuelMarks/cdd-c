@@ -45,14 +45,9 @@ struct CodegenUrlConfig {
  * @param[in] config Configuration options (can be NULL for defaults).
  * @return 0 on success, error code (EINVAL/ENOMEM) on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for codegen url write builder.
-                     */
-    cdd_c_error_t
-    codegen_url_write_builder(FILE *fp, const char *path_template,
-                              const struct OpenAPI_Parameter *params,
-                              size_t n_params,
-                              const struct CodegenUrlConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t codegen_url_write_builder(
+    FILE *fp, const char *path_template, const struct OpenAPI_Parameter *params,
+    size_t n_params, const struct CodegenUrlConfig *config);
 
 /**
  * @brief Generate C code for adding query parameters to the URL builder.
@@ -71,13 +66,8 @@ extern C_CDD_EXPORT /**
  * @param[in] qp_tracking Non-zero if `qp_initialized` is available in scope.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates C code for codegen url write query
-                     * params.
-                     */
-    cdd_c_error_t
-    codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
-                                   int qp_tracking);
+extern C_CDD_EXPORT cdd_c_error_t codegen_url_write_query_params(
+    FILE *fp, const struct OpenAPI_Operation *op, int qp_tracking);
 
 extern C_CDD_EXPORT cdd_c_error_t is_primitive_type_url(const char *type);
 extern C_CDD_EXPORT cdd_c_error_t

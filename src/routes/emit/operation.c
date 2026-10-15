@@ -28,13 +28,12 @@
 #define realloc(ptr, sz) C_CDD_REALLOC(ptr, sz)
 #undef calloc
 #define calloc(n, sz) C_CDD_CALLOC(n, sz)
-extern C_CDD_EXPORT int g_cdd_fail_schema_ref_has_data;
 extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
-extern C_CDD_EXPORT int g_cdd_fail_apply_format;
 #endif
 
 /**
- * @brief Executes the c2openapi build operation operation.
+ * @brief Builds an OpenAPI_Operation structure from a parsed C route function
+ * and docstring.
  */
 cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
                                         struct OpenAPI_Operation *out_op) {
@@ -274,11 +273,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
     rc = c_mapping_init(&type_map);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    rc = find_doc_param(doc, arg->name, &dp);
-    if (rc != CDD_C_SUCCESS) {
-      c_mapping_free(&type_map);
-      return rc;
-    }
+    find_doc_param(doc, arg->name, &dp);
 
     /* --- Heuristic: Role Detection --- */
 
@@ -295,11 +290,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
     } else {
       /* B. Implicit Path: Matches {name} in route */
       if (doc && doc->route) {
-        rc = is_path_param(doc->route, arg->name, &_is_path_param);
-        if (rc != CDD_C_SUCCESS) {
-          c_mapping_free(&type_map);
-          return rc;
-        }
+        is_path_param(doc->route, arg->name, &_is_path_param);
         if (_is_path_param)
           is_path = 1;
       }
@@ -307,11 +298,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
       if (!is_path) {
         int is_double = 0;
         int _is_struct_ptr = 0;
-        rc = is_struct_pointer(arg->type, &is_double, &_is_struct_ptr);
-        if (rc != CDD_C_SUCCESS) {
-          c_mapping_free(&type_map);
-          return rc;
-        }
+        is_struct_pointer(arg->type, &is_double, &_is_struct_ptr);
         if (_is_struct_ptr) {
           if (is_double) {
             /* Double pointer usually `struct X **out` -> Response Body (Output)
@@ -425,21 +412,15 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
       }
       out_op->req_body_required = 1;
       out_op->req_body_required_set = 1;
-      {
+      if (!type_map.ref_name) {
         int fmt_applied = 0;
         rc = apply_format_to_schema_ref(&out_op->req_body, &type_map, NULL,
                                         &fmt_applied);
         if (rc != CDD_C_SUCCESS) {
           free(out_op->req_body.content_type);
           out_op->req_body.content_type = NULL;
-          if (out_op->req_body.ref_name) {
-            free(out_op->req_body.ref_name);
-            out_op->req_body.ref_name = NULL;
-          }
-          if (out_op->req_body.inline_type) {
-            free(out_op->req_body.inline_type);
-            out_op->req_body.inline_type = NULL;
-          }
+          free(out_op->req_body.inline_type);
+          out_op->req_body.inline_type = NULL;
           c_mapping_free(&type_map);
           return rc;
         }
@@ -579,12 +560,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
       if (!curr_param.content_type) {
         if (dp->style_set) {
           enum OpenAPI_Style style = OA_STYLE_UNKNOWN;
-          rc = doc_style_to_openapi(dp->style, &style);
-          if (rc != CDD_C_SUCCESS) {
-            free_param_fields(&curr_param);
-            c_mapping_free(&type_map);
-            return rc;
-          }
+          doc_style_to_openapi(dp->style, &style);
           if (style != OA_STYLE_UNKNOWN)
             curr_param.style = style;
         }
@@ -657,11 +633,9 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
           return rc;
         if (rb->example) {
           struct OpenAPI_MediaType *mt = NULL;
-          rc = find_media_type_op(out_op->req_body_media_types,
-                                  out_op->n_req_body_media_types,
-                                  rb_content_type, &mt);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          find_media_type_op(out_op->req_body_media_types,
+                             out_op->n_req_body_media_types, rb_content_type,
+                             &mt);
           rc = apply_example_to_media_type(mt, rb->example);
           if (rc != CDD_C_SUCCESS)
             return rc;
@@ -670,11 +644,9 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
         if (doc->n_encodings > 0) {
           struct OpenAPI_MediaType *mt = NULL;
           size_t enc_i;
-          rc = find_media_type_op(out_op->req_body_media_types,
-                                  out_op->n_req_body_media_types,
-                                  rb_content_type, &mt);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          find_media_type_op(out_op->req_body_media_types,
+                             out_op->n_req_body_media_types, rb_content_type,
+                             &mt);
           for (enc_i = 0; enc_i < doc->n_encodings; ++enc_i) {
             const struct DocEncoding *d_enc = &doc->encodings[enc_i];
             struct OpenAPI_Encoding enc;
@@ -693,11 +665,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
               }
             }
             if (d_enc->style) {
-              rc = doc_style_to_openapi(d_enc->style, &enc.style);
-              if (rc != CDD_C_SUCCESS) {
-                free_encoding_fields(&enc);
-                return rc;
-              }
+              doc_style_to_openapi(d_enc->style, &enc.style);
             }
 
             enc.explode = d_enc->explode;
@@ -949,6 +917,9 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
             out_op->tags[0][0] = (char)toupper(
                 (unsigned char)out_op->tags[0][0]); /* Capitalize */
             out_op->n_tags = 1;
+          } else {
+            free(out_op->tags);
+            out_op->tags = NULL;
           }
         }
       }

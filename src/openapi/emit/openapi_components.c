@@ -19,12 +19,26 @@
 #include "openapi/emit/openapi.h"
 /* clang-format on */
 
+/** @brief Safely sets a JSON object property and frees the value on failure */
+#define json_object_set_value(obj, name, val)                                  \
+  do {                                                                         \
+    JSON_Value *_cdd_jv = (val);                                               \
+    if ((json_object_set_value)((obj), (name), _cdd_jv) != JSONSuccess)        \
+      json_value_free(_cdd_jv);                                                \
+  } while (0)
+/** @brief Safely appends a JSON array element and frees the value on failure */
+#define json_array_append_value(arr, val)                                      \
+  do {                                                                         \
+    JSON_Value *_cdd_jv = (val);                                               \
+    if ((json_array_append_value)((arr), _cdd_jv) != JSONSuccess)              \
+      json_value_free(_cdd_jv);                                                \
+  } while (0)
+
 /**
  * @brief Write security schemes to components.
  */
 C_CDD_EXPORT cdd_c_error_t write_security_schemes(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
-  char *_ast_oauth_flow_type_to_str_22 = NULL;
   JSON_Value *sec_val;
   JSON_Object *sec_obj;
   size_t i;
@@ -92,15 +106,13 @@ C_CDD_EXPORT cdd_c_error_t write_security_schemes(
         size_t f;
         for (f = 0; f < s->n_flows; ++f) {
           const struct OpenAPI_OAuthFlow *flow = &s->flows[f];
-          const char *flow_key =
-              (oauth_flow_type_to_str_openapi(flow->type,
-                                              &_ast_oauth_flow_type_to_str_22),
-               _ast_oauth_flow_type_to_str_22);
+          char *flow_key = NULL;
           JSON_Value *flow_val;
           JSON_Object *flow_obj;
           JSON_Value *scopes_val;
           JSON_Object *scopes_obj;
           size_t sc;
+          oauth_flow_type_to_str_openapi(flow->type, &flow_key);
           if (!flow_key)
             continue;
           flow_val = json_value_init_object();
@@ -158,7 +170,8 @@ C_CDD_EXPORT cdd_c_error_t write_security_schemes(
 }
 
 /**
- * @brief Generates C code for write component parameters.
+ * @brief Serializes the OpenAPI component parameters into the target JSON
+ * object.
  */
 C_CDD_EXPORT cdd_c_error_t write_component_parameters(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
@@ -194,7 +207,8 @@ C_CDD_EXPORT cdd_c_error_t write_component_parameters(
 }
 
 /**
- * @brief Generates C code for write component responses.
+ * @brief Serializes the OpenAPI component responses into the target JSON
+ * object.
  */
 C_CDD_EXPORT cdd_c_error_t write_component_responses(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
@@ -230,7 +244,7 @@ C_CDD_EXPORT cdd_c_error_t write_component_responses(
 }
 
 /**
- * @brief Generates C code for write component headers.
+ * @brief Serializes the OpenAPI component headers into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t write_component_headers(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
@@ -266,7 +280,8 @@ C_CDD_EXPORT cdd_c_error_t write_component_headers(
 }
 
 /**
- * @brief Generates C code for write component media types.
+ * @brief Serializes the OpenAPI component media types into the target JSON
+ * object.
  */
 C_CDD_EXPORT cdd_c_error_t write_component_media_types(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
@@ -296,6 +311,7 @@ C_CDD_EXPORT cdd_c_error_t write_component_media_types(
     }
     if (write_media_type_object(mt_obj, mt) != 0) {
       json_value_free(mt_val);
+      json_value_free(media_val);
       return CDD_C_ERROR_MEMORY;
     }
 
@@ -307,7 +323,7 @@ C_CDD_EXPORT cdd_c_error_t write_component_media_types(
 }
 
 /**
- * @brief Generates C code for write component examples.
+ * @brief Serializes the OpenAPI component examples into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t write_component_examples(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
@@ -343,7 +359,7 @@ C_CDD_EXPORT cdd_c_error_t write_component_examples(
 }
 
 /**
- * @brief Generates C code for write component links.
+ * @brief Serializes the OpenAPI component links into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t write_component_links(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
@@ -376,7 +392,8 @@ C_CDD_EXPORT cdd_c_error_t write_component_links(
 }
 
 /**
- * @brief Generates C code for write component callbacks.
+ * @brief Serializes the OpenAPI component callbacks into the target JSON
+ * object.
  */
 C_CDD_EXPORT cdd_c_error_t write_component_callbacks(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
@@ -409,7 +426,8 @@ C_CDD_EXPORT cdd_c_error_t write_component_callbacks(
 }
 
 /**
- * @brief Generates C code for write component path items.
+ * @brief Serializes the OpenAPI component path items into the target JSON
+ * object.
  */
 C_CDD_EXPORT cdd_c_error_t write_component_path_items(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
@@ -456,7 +474,8 @@ C_CDD_EXPORT cdd_c_error_t write_component_path_items(
 }
 
 /**
- * @brief Generates C code for write component request bodies.
+ * @brief Serializes the OpenAPI component request bodies into the target JSON
+ * object.
  */
 C_CDD_EXPORT cdd_c_error_t write_component_request_bodies(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
@@ -500,7 +519,7 @@ C_CDD_EXPORT cdd_c_error_t write_component_request_bodies(
 }
 
 /**
- * @brief Generates C code for write components.
+ * @brief Serializes the OpenAPI components into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t write_components(JSON_Object *root_obj,
                                             const struct OpenAPI_Spec *spec) {

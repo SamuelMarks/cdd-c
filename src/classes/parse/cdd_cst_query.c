@@ -1,3 +1,7 @@
+/**
+ * @file cdd_cst_query.c
+ * @brief Concrete Syntax Tree (CST) query implementation and utilities.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 

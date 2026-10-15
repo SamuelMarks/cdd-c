@@ -42,11 +42,7 @@ cdd_c_error_t parse_struct_member_line(const char *line,
   strncpy(buf, line, sizeof(buf) - 1);
 #endif
   buf[sizeof(buf) - 1] = '\0';
-  {
-    cdd_c_error_t rc_c2s = trim_trailing(buf);
-    if (rc_c2s != CDD_C_SUCCESS)
-      return rc_c2s;
-  }
+  trim_trailing(buf);
 
   {
     char *cmt = strstr(buf, "//");
@@ -70,11 +66,7 @@ cdd_c_error_t parse_struct_member_line(const char *line,
       }
 
       *cmt = '\0';
-      {
-        cdd_c_error_t rc_c2s = trim_trailing(buf);
-        if (rc_c2s != CDD_C_SUCCESS)
-          return rc_c2s;
-      }
+      trim_trailing(buf);
     }
   }
 
@@ -91,11 +83,7 @@ cdd_c_error_t parse_struct_member_line(const char *line,
       strncpy(bit_width, w, sizeof(bit_width) - 1);
 #endif
       *colon_ptr = '\0';
-      {
-        cdd_c_error_t rc_c2s = trim_trailing(buf);
-        if (rc_c2s != CDD_C_SUCCESS)
-          return rc_c2s;
-      }
+      trim_trailing(buf);
     }
   }
 
@@ -126,34 +114,10 @@ cdd_c_error_t parse_struct_member_line(const char *line,
       is_ptr = 1;
       n++;
     }
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    strncpy_s(name, 63 + 1, n, 63);
-#else
-#if defined(_MSC_VER)
-    strncpy_s(name, 63 + 1, n, 63);
-#else
-#if defined(_MSC_VER)
-    strncpy_s(name, 63 + 1, n, 63);
-#else
-#if defined(_MSC_VER)
-    strncpy_s(name, 63 + 1, n, 63);
-#else
-#if defined(_MSC_VER)
-    strncpy_s(name, 63 + 1, n, 63);
-#else
-#if defined(_MSC_VER)
-    strncpy_s(name, 63 + 1, n, 63);
-#else
 #if defined(_MSC_VER)
     strncpy_s(name, 63 + 1, n, 63);
 #else
     strncpy(name, n, 63);
-#endif
-#endif
-#endif
-#endif
-#endif
-#endif
 #endif
 
     /* Check FAM */
@@ -253,8 +217,10 @@ cdd_c_error_t parse_struct_member_line(const char *line,
         {
           cdd_c_error_t rc_c2s = c2s_merge_schema_extras_strings(
               &field->schema_extra_json, cdd_json);
-          if (rc_c2s != CDD_C_SUCCESS)
+          if (rc_c2s != CDD_C_SUCCESS) {
+            c_mapping_free(&mapping);
             return rc_c2s;
+          }
         }
       }
 
@@ -287,288 +253,142 @@ cdd_c_error_t parse_struct_member_line(const char *line,
 }
 
 /**
- * @brief Parses a union definition and writes it to a JSON Schema
- * object.
+ * @brief Parses union member tokens from a TokenList starting after '{' and
+ * writes the resulting oneOf schema to schemas_obj.
  */
-cdd_c_error_t c2s_parse_union_and_write(FILE *fp, JSON_Object *schemas_obj,
-                                        const char *union_name) {
-  /* (Implementation preserved from previous code2schema.c) */
-  char line[512];
-  int has_line = 0;
-  cdd_c_error_t rc_rl;
+cdd_c_error_t c2s_parse_union_tokens_and_write(const struct TokenList *tl,
+                                               size_t *idx,
+                                               JSON_Object *schemas_obj,
+                                               const char *union_name) {
   JSON_Value *union_val = json_value_init_object();
   JSON_Object *union_obj = json_value_get_object(union_val);
   JSON_Value *oneof_val = json_value_init_array();
   JSON_Array *oneof_arr = json_value_get_array(oneof_val);
-  char *p;
-#ifdef CDD_BUILD_TESTS
-  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0) {
-    json_value_free(union_val);
-    json_value_free(oneof_val);
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
-#endif
-  if (!fp || !schemas_obj || !union_name) {
-    json_value_free(union_val);
-    json_value_free(oneof_val);
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
-  while ((rc_rl = c2s_read_line(fp, line, sizeof(line), &has_line)) ==
-             CDD_C_SUCCESS &&
-         has_line) {
-    p = line;
-    while (isspace((unsigned char)*p))
-      p++;
-    if (*p == '}')
+  size_t i = *idx;
+
+  while (i < tl->size) {
+    size_t stmt_start;
+    size_t stmt_end;
+    const struct Token *first_tok = NULL;
+    const struct Token *last_ident = NULL;
+    size_t k;
+
+    while (i < tl->size && (tl->tokens[i].kind == TOKEN_WHITESPACE ||
+                            tl->tokens[i].kind == TOKEN_COMMENT ||
+                            tl->tokens[i].kind == TOKEN_SEMICOLON)) {
+      i++;
+    }
+    if (i >= tl->size)
       break;
-    if (!*p)
-      continue;
-    {
+    if (tl->tokens[i].kind == TOKEN_RBRACE) {
+      i++;
+      break;
+    }
+
+    stmt_start = i;
+    while (i < tl->size && tl->tokens[i].kind != TOKEN_SEMICOLON &&
+           tl->tokens[i].kind != TOKEN_RBRACE) {
+      i++;
+    }
+    stmt_end = i;
+    if (i < tl->size && tl->tokens[i].kind == TOKEN_SEMICOLON) {
+      i++;
+    }
+
+    for (k = stmt_start; k < stmt_end; k++) {
+      if (tl->tokens[k].kind == TOKEN_WHITESPACE ||
+          tl->tokens[k].kind == TOKEN_COMMENT)
+        continue;
+      if (!first_tok)
+        first_tok = &tl->tokens[k];
+      if (tl->tokens[k].kind == TOKEN_IDENTIFIER)
+        last_ident = &tl->tokens[k];
+    }
+
+    if (first_tok && last_ident && first_tok != last_ident) {
       char typebuf[64] = {0};
       char namebuf[64] = {0};
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-      if (sscanf_s(p, "%63s %63[^;]", typebuf, (unsigned)sizeof(typebuf),
-                   namebuf, (unsigned)sizeof(namebuf)) == 2) {
-#else
-      if (sscanf(p, "%63s %63[^;]", typebuf, namebuf) == 2) {
-#endif
-        char *n = namebuf;
-        char *t = typebuf;
-        if (n[0] == '*')
-          n++;
-        {
-          JSON_Value *option_val = json_value_init_object();
-          JSON_Object *option_obj = json_value_get_object(option_val);
-          JSON_Value *props_val = json_value_init_object();
-          JSON_Object *props_obj = json_value_get_object(props_val);
-          JSON_Value *field_val = json_value_init_object();
-          JSON_Object *field_obj = json_value_get_object(field_val);
+      size_t tlen = first_tok->length < 63 ? first_tok->length : 63;
+      size_t nlen = last_ident->length < 63 ? last_ident->length : 63;
+      JSON_Value *option_val = json_value_init_object();
+      JSON_Object *option_obj = json_value_get_object(option_val);
+      JSON_Value *props_val = json_value_init_object();
+      JSON_Object *props_obj = json_value_get_object(props_val);
+      JSON_Value *field_val = json_value_init_object();
+      JSON_Object *field_obj = json_value_get_object(field_val);
 
-          if (strcmp(t, "int") == 0)
-            json_object_set_string(field_obj, "type", "integer");
-          else if (strcmp(t, "char") == 0)
-            json_object_set_string(field_obj, "type", "string");
-          else if (strcmp(t, "float") == 0)
-            json_object_set_string(field_obj, "type", "number");
-          else
-            json_object_set_string(field_obj, "type", "object");
+      memcpy(typebuf, first_tok->start, tlen);
+      typebuf[tlen] = '\0';
+      memcpy(namebuf, last_ident->start, nlen);
+      namebuf[nlen] = '\0';
 
-          json_object_set_value(props_obj, n, field_val);
-          json_object_set_string(option_obj, "type", "object");
-          json_object_set_value(option_obj, "properties", props_val);
-          json_object_set_string(option_obj, "title", n);
-          json_array_append_value(oneof_arr, option_val);
-        }
-      }
+      if (strcmp(typebuf, "int") == 0)
+        json_object_set_string(field_obj, "type", "integer");
+      else if (strcmp(typebuf, "char") == 0)
+        json_object_set_string(field_obj, "type", "string");
+      else if (strcmp(typebuf, "float") == 0)
+        json_object_set_string(field_obj, "type", "number");
+      else
+        json_object_set_string(field_obj, "type", "object");
+
+      json_object_set_value(props_obj, namebuf, field_val);
+      json_object_set_string(option_obj, "type", "object");
+      json_object_set_value(option_obj, "properties", props_val);
+      json_object_set_string(option_obj, "title", namebuf);
+      json_array_append_value(oneof_arr, option_val);
     }
   }
 
+  *idx = i;
   json_object_set_value(union_obj, "oneOf", oneof_val);
   json_object_set_string(union_obj, "type", "object");
   json_object_set_value(schemas_obj, union_name, union_val);
-
-  /* OpenAPI 3.2.0 coverage expansion:
-   *
-   * @authorizationUrl implicit password clientCredentials authorizationCode
-   * deviceAuthorization
-   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
-   * @Security Requirement Object {name}
-   * @XML Object nodeType namespace prefix attribute wrapped
-   * @Link Object operationRef operationId parameters requestBody server
-   * @Callback Object {expression}
-   * @Example Object dataValue serializedValue externalValue
-   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding
-   * style explode allowReserved
-   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
-   * @Discriminator Object defaultMapping
-   * @Components Object requestBodies securitySchemes links callbacks pathItems
-   * mediaTypes
-   * @Server Variable Object enum default
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 2:
-   *
-   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
-   * @termsOfService url email identifier
-   * @get put options head patch trace additionalOperations
-   * @externalDocs operationId
-   * @allowEmptyValue examples in required
-   * @contentType discriminator propertyName mapping
-   * @Responses default
-   * @Response Object
-   * @Example Object
-   * @Link Object
-   * @Callback Object
-   * @Encoding Object
-   * @Media Type Object
-   * @Discriminator Object
-   * @Components Object
-   * @Server Variable Object
-   * @OAuth Flows Object
-   * @OAuth Flow Object
-   * @Security Requirement Object
-   * @XML Object
-   * @Contact Object
-   * @License Object
-   * @Server Object
-   * @Paths Object
-   * @Path Item Object
-   * @Operation Object
-   * @External Documentation Object
-   * @Parameter Object
-   * @Request Body Object
-   * @Header Object
-   * @Tag Object
-   * @Reference Object
-   * @Schema Object
-   * @Security Scheme Object
-   * @OpenAPI Object
-   * @Info Object
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 3:
-   *
-   * @version @contact @license @server @url @name
-   * @get @put @post @delete @options @head @patch @trace
-   * @additionalOperations @operationId @requestBody @responses
-   * @allowEmptyValue @allowReserved @example @examples @schema @items
-   * @itemSchema @encoding @prefixEncoding @itemEncoding
-   * @contentType @headers @style @explode
-   * @default @HTTP Status Code @summary @description @links
-   * @dataValue @serializedValue @externalValue @value @operationRef
-   * @server @required @deprecated @schemas @parameters
-   * @securitySchemes @pathItems @mediaTypes
-   * @parent @kind @$ref @discriminator @propertyName @mapping
-   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
-   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
-   * @oauth2MetadataUrl @implicit @password @clientCredentials
-   * @authorizationCode
-   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
-   * @refreshUrl @scopes @{name} @{expression} @XML Object
-   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
-   * @Security Scheme Object @Reference Object @Tag Object @Header Object
-   * @Link Object @Example Object @Callback Object @Response Object @Responses
-   * Object
-   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
-   * @External Documentation Object @Operation Object @Path Item Object @Paths
-   * Object
-   * @Components Object @Server Variable Object @Server Object @License Object
-   * @Contact Object @Info Object @OpenAPI Object
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 4:
-   *
-   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue
-   * @value @operationRef @server
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 5:
-   *
-   * @version
-   * @get @put @options @head @patch @trace @additionalOperations @operationId
-   * @responses
-   * @allowEmptyValue
-   * @content
-   * @encoding @prefixEncoding @itemEncoding
-   * @contentType
-   * @HTTP Status Code
-   * @dataValue @serializedValue @externalValue @value
-   * @operationRef @server
-   * @required
-   * @schemas @parameters
-   * @securitySchemes @pathItems @mediaTypes
-   * @parent @kind
-   * @propertyName @mapping @defaultMapping
-   * @nodeType @namespace @prefix @attribute @wrapped
-   * @type @in @scheme @bearerFormat @flows
-   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
-   * @authorizationCode
-   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
-   * @refreshUrl @scopes
-   * @{name} @{expression}
-   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow
-   * Object
-   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link
-   * Object
-   * @Example Object @Callback Object @Response Object @Responses Object
-   * @Encoding Object
-   * @Media Type Object @Request Body Object @Parameter Object @External
-   * Documentation Object
-   * @Operation Object @Path Item Object @Paths Object @Components Object
-   * @Server Variable Object
-   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 6:
-   *
-   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML
-   * Object
-   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object
-   * (`parameters`)
-   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object
-   * (`server`)
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 7:
-   *
-   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML
-   * Object
-   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object
-   * (`parameters`)
-   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object
-   * (`server`)
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 8:
-   *
-   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head
-   * @patch @trace @query @additionalOperations
-   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated
-   * @security @servers
-   * @in @allowEmptyValue @example @examples @style @explode @allowReserved
-   * @schema @content @required @itemSchema
-   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default
-   * @HTTP Status Code @summary @description @links
-   * @{expression} @dataValue @serializedValue @externalValue @value
-   * @operationRef @parameters @server @name @parent
-   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml
-   * @nodeType @namespace @prefix @attribute
-   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl
-   * @oauth2MetadataUrl @implicit @password @clientCredentials
-   * @authorizationCode @deviceAuthorization @authorizationUrl
-   * @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
-   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object
-   * @License Object @Server Object @Server Variable Object
-   * @Components Object @Paths Object @Path Item Object @Operation Object
-   * @External Documentation Object @Parameter Object
-   * @Request Body Object @Media Type Object @Encoding Object @Responses Object
-   * @Response Object @Callback Object @Example Object
-   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object
-   * @Discriminator Object @XML Object
-   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security
-   * Requirement Object
-   */
 
   return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Collapses array pairs in struct fields.
+ * @brief Parses a union definition and writes it to a JSON Schema
+ * object.
+ */
+cdd_c_error_t c2s_parse_union_and_write(FILE *fp, JSON_Object *schemas_obj,
+                                        const char *union_name) {
+  char *content = NULL;
+  size_t sz = 0;
+  struct TokenList *tl = NULL;
+  size_t idx = 0;
+  cdd_c_error_t rc;
+
+  if (!fp || !schemas_obj || !union_name) {
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+
+  rc = read_from_fh(fp, &content, &sz);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = tokenize(az_span_create((uint8_t *)content, sz), &tl);
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(content);
+    return rc;
+  }
+
+  rc = c2s_parse_union_tokens_and_write(tl, &idx, schemas_obj, union_name);
+  free_token_list(tl);
+  C_CDD_FREE(content);
+  return rc;
+}
+
+/**
+ * @brief Collapses pointer + length field pairs into array representations.
  *
- * @param[in,out] sf Struct fields to collapse.
+ * @param[in,out] sf The StructFields structure to modify.
  * @return CDD_C_SUCCESS on success, or error code.
  */
 cdd_c_error_t c2s_collapse_arrays(struct StructFields *sf) {
   size_t i, j;
-#ifdef CDD_BUILD_TESTS
-  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-#endif
   if (!sf)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  for (i = 0; i < sf->size; ++i) {
-    /* printf */
-  }
   for (i = 0; i < sf->size; ++i) {
     if (strncmp(sf->fields[i].name, "n_", 2) == 0) {
       const char *base_name = sf->fields[i].name + 2;

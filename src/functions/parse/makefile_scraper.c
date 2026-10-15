@@ -29,7 +29,7 @@ static cdd_c_error_t my_strdup(const char *s, char **out_val) {
   if (!s)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   len = strlen(s) + 1;
-  d = (char *)(size_t)C_CDD_MALLOC(len);
+  d = (char *)C_CDD_MALLOC(len);
   if (!d)
     return CDD_C_ERROR_MEMORY;
   memcpy(d, s, len);
@@ -38,7 +38,7 @@ static cdd_c_error_t my_strdup(const char *s, char **out_val) {
 }
 
 /**
- * @brief Executes the build info init operation.
+ * @brief Initializes a scraped build-system metadata structure.
  */
 cdd_c_error_t build_info_init(struct ExtractedBuildInfo *info) {
   if (!info)
@@ -53,7 +53,7 @@ cdd_c_error_t build_info_init(struct ExtractedBuildInfo *info) {
 }
 
 /**
- * @brief Executes the build info free operation.
+ * @brief Releases memory held by a scraped build-system metadata structure.
  */
 void build_info_free(struct ExtractedBuildInfo *info) {
   size_t i;
@@ -106,7 +106,7 @@ static cdd_c_error_t add_string_to_array(char ***arr, size_t *n,
 }
 
 /**
- * @brief Executes the process token operation.
+ * @brief Processes a single Makefile/autoconf token during build scraping.
  */
 static cdd_c_error_t process_token(struct ExtractedBuildInfo *info,
                                    const char *tok) {
@@ -146,7 +146,7 @@ static cdd_c_error_t process_token(struct ExtractedBuildInfo *info,
 }
 
 /**
- * @brief Executes the scrape makefile operation.
+ * @brief Extracts source files, include paths, and flags from a Makefile.
  */
 cdd_c_error_t scrape_makefile(struct ExtractedBuildInfo *info,
                               const char *makefile_content) {
@@ -187,7 +187,8 @@ cdd_c_error_t scrape_makefile(struct ExtractedBuildInfo *info,
 }
 
 /**
- * @brief Executes the scrape configure ac operation.
+ * @brief Extracts package metadata and checks from an Autoconf configure.ac
+ * file.
  */
 cdd_c_error_t scrape_configure_ac(
     struct ExtractedBuildInfo *info,
@@ -231,7 +232,8 @@ cdd_c_error_t scrape_configure_ac(
 }
 
 /**
- * @brief Executes the build info to cmake operation.
+ * @brief Generates a CMakeLists.txt file from scraped Makefile/Autoconf
+ * metadata.
  */
 cdd_c_error_t build_info_to_cmake(const struct ExtractedBuildInfo *info,
                                   const char *project_name, char **out_cmake) {
@@ -243,7 +245,7 @@ cdd_c_error_t build_info_to_cmake(const struct ExtractedBuildInfo *info,
   if (!info || !project_name || !out_cmake)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  buf = (char *)(size_t)C_CDD_MALLOC(cap);
+  buf = (char *)C_CDD_MALLOC(cap);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;

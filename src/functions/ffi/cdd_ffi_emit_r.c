@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_r.c
+ * @brief FFI binding emitter for R.
+ */
 #ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
 #endif
@@ -11,60 +15,16 @@ extern volatile int g_fail_io_after;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
-}
-
-static const char *get_r_type(cdd_ffi_type_t type) {
-  if (type.pointer_depth > 0) {
-    if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
-      return "character";
-    }
-    return "raw";
-  }
-
-  switch (type.kind) {
-  case CDD_FFI_KIND_VOID:
-    return "void";
-  case CDD_FFI_KIND_BOOL:
-    return "logical";
-  case CDD_FFI_KIND_INT8:
-  case CDD_FFI_KIND_UINT8:
-  case CDD_FFI_KIND_INT16:
-  case CDD_FFI_KIND_UINT16:
-  case CDD_FFI_KIND_INT32:
-  case CDD_FFI_KIND_UINT32:
-  case CDD_FFI_KIND_INT64:
-  case CDD_FFI_KIND_UINT64:
-  case CDD_FFI_KIND_ENUM_REF:
-    return "integer";
-  case CDD_FFI_KIND_FLOAT32:
-  case CDD_FFI_KIND_FLOAT64:
-    return "double";
-  case CDD_FFI_KIND_FUNCTION_PTR:
-    return "raw";
-  case CDD_FFI_KIND_STRUCT_REF:
-    return type.ref_name ? type.ref_name : "raw";
-  case CDD_FFI_KIND_TYPEDEF_REF:
-    return type.ref_name ? type.ref_name : "raw";
-  case CDD_FFI_KIND_OPAQUE_PTR:
-    return "raw";
-  default:
-    return "raw";
-  }
+static cdd_c_error_t get_r_type(cdd_ffi_type_t type, const char **out_type) {
+  static const cdd_ffi_type_map_table_t k_r_types = {
+      "void",    "logical", "integer",   "integer", "integer",
+      "integer", "integer", "integer",   "integer", "integer",
+      "double",  "double",  "character", "raw",     NULL,
+      "integer", 1,         0,           1};
+  return cdd_ffi_map_type_from_table(&k_r_types, type, out_type);
 }
 
 static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
@@ -126,7 +86,7 @@ static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "# %s\n", node->doc);
       fprintf(f, "%s <- list(\n", node->name);
@@ -149,7 +109,7 @@ static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "# %s\n", node->doc);
       fprintf(f, "%s <- function(", node->name);
@@ -171,12 +131,13 @@ static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
       for (j = 0; j < node->fields_count; j++) {
         const char *arg_name =
             node->fields[j].name ? node->fields[j].name : "arg";
+        const char *rt = NULL;
         if (strcmp(arg_name, "function") == 0)
           arg_name = "func";
         if (strcmp(arg_name, "in") == 0)
           arg_name = "in_arg";
-        fprintf(f, ", \n    as.%s(%s)", get_r_type(node->fields[j].type),
-                arg_name);
+        get_r_type(node->fields[j].type, &rt);
+        fprintf(f, ", \n    as.%s(%s)", rt, arg_name);
       }
       fprintf(f, "\n  )\n");
       fprintf(f, "}\n\n");

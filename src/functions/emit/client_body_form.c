@@ -9,55 +9,25 @@
 #include "functions/emit/client_body_internal.h"
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
-#include <stdarg.h>
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)))
-#endif
-    ;
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  int ret;
-  va_list args;
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  va_start(args, format);
-  ret = vfprintf(stream, format, args);
-  va_end(args);
-  return ret;
-}
-#define fprintf test_cdd_fprintf_hook
-#endif
-
 /**
- * @brief Generates C code for write form urlencoded body.
+ * @brief Emits C source code for form urlencoded body.
  */
 cdd_c_error_t
 client_body_write_form_urlencoded_body(FILE *fp,
                                        const struct OpenAPI_Operation *op,
                                        const struct OpenAPI_Spec *spec) {
-  const struct OpenAPI_MediaType *_ast_find_media_type_3;
-  struct StructFields *_ast_openapi_spec_find_schema_for_ref_4;
-  struct OpenAPI_Encoding *_ast_find_encoding_5;
-  struct StructFields *_ast_openapi_spec_find_schema_6;
-  const struct OpenAPI_MediaType *mt;
-  const struct StructFields *sf;
+  const struct OpenAPI_MediaType *mt = NULL;
+  struct StructFields *sf = NULL;
   size_t i;
 
   if (!fp || !op || !spec)
 
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  mt = (find_media_type(op->req_body_media_types, op->n_req_body_media_types,
-                        "application/x-www-form-urlencoded",
-                        &_ast_find_media_type_3),
-        _ast_find_media_type_3);
+  find_media_type(op->req_body_media_types, op->n_req_body_media_types,
+                  "application/x-www-form-urlencoded", &mt);
 
-  sf = (openapi_spec_find_schema_for_ref(
-            spec, &op->req_body, &_ast_openapi_spec_find_schema_for_ref_4),
-        _ast_openapi_spec_find_schema_for_ref_4);
+  openapi_spec_find_schema_for_ref(spec, &op->req_body, &sf);
   if (!sf) {
     CHECK_IO(fprintf(
         fp,
@@ -72,15 +42,15 @@ client_body_write_form_urlencoded_body(FILE *fp,
 
   for (i = 0; i < sf->size; ++i) {
     const struct StructField *f = &sf->fields[i];
-    const struct OpenAPI_Encoding *enc =
-        (find_encoding(mt, f->name, &_ast_find_encoding_5),
-         _ast_find_encoding_5);
-    enum OpenAPI_Style style =
-        (enc && enc->style_set) ? enc->style : OA_STYLE_FORM;
-    int explode = (enc && enc->explode_set) ? enc->explode
-                                            : (style == OA_STYLE_FORM ? 1 : 0);
-    int allow_reserved =
-        (enc && enc->allow_reserved_set) ? enc->allow_reserved : 0;
+    struct OpenAPI_Encoding *enc = NULL;
+    enum OpenAPI_Style style;
+    int explode;
+    int allow_reserved;
+    find_encoding(mt, f->name, &enc);
+    style = (enc && enc->style_set) ? enc->style : OA_STYLE_FORM;
+    explode = (enc && enc->explode_set) ? enc->explode
+                                        : (style == OA_STYLE_FORM ? 1 : 0);
+    allow_reserved = (enc && enc->allow_reserved_set) ? enc->allow_reserved : 0;
 
     if (strcmp(f->type, "array") == 0) {
       const char *items_type = f->ref[0] != '\0' ? f->ref : "string";
@@ -298,15 +268,13 @@ client_body_write_form_urlencoded_body(FILE *fp,
     } else if (strcmp(f->type, "object") == 0) {
       if (f->ref[0] != '\0') {
         int all_prim = 0;
-        const struct StructFields *obj_sf =
-            (openapi_spec_find_schema(spec, f->ref,
-                                      &_ast_openapi_spec_find_schema_6),
-             _ast_openapi_spec_find_schema_6);
+        struct StructFields *obj_sf = NULL;
         const struct OpenAPI_Encoding *obj_enc = enc;
         int style_based =
             obj_enc && (obj_enc->style_set || obj_enc->explode_set ||
                         obj_enc->allow_reserved_set);
 
+        openapi_spec_find_schema(spec, f->ref, &obj_sf);
         if (obj_sf) {
           struct_fields_all_primitive(obj_sf, &all_prim);
         }

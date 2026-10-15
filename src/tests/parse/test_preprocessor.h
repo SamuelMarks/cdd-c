@@ -91,7 +91,7 @@ static int eval(const char *expr, struct PreprocessorContext *ctx, long *out) {
   struct TokenList *tl = NULL;
   long res = 0;
   int rc;
-  rc = tokenize(az_span_create_from_str((char *)(size_t)expr), &tl);
+  rc = tokenize(az_span_create_from_str(expr), &tl);
   (void)rc;
   rc = pp_eval_expression(tl, 0, tl->size, ctx, &res);
   (void)rc;
@@ -492,12 +492,10 @@ TEST test_pp_include_next(void) {
   struct PreprocessorContext ctx;
   struct IncludeNextTestResult res;
   int rc;
-  const char *test_dir = (char *)(size_t)(size_t) "test_include_next_dir";
-  const char *test_file =
-      (char *)(size_t)(size_t) "test_include_next_dir/test.c";
-  const char *sys_dir = (char *)(size_t)(size_t) "test_include_next_sys";
-  const char *sys_file =
-      (char *)(size_t)(size_t) "test_include_next_sys/stdlib.h";
+  const char *test_dir = cdd_test_mut_str("test_include_next_dir");
+  const char *test_file = cdd_test_mut_str("test_include_next_dir/test.c");
+  const char *sys_dir = cdd_test_mut_str("test_include_next_sys");
+  const char *sys_file = cdd_test_mut_str("test_include_next_sys/stdlib.h");
 
   memset(&res, 0, sizeof(res));
   (void)rc;

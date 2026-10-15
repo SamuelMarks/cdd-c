@@ -1,3 +1,7 @@
+/**
+ * @file cdd_dsl_token.h
+ * @brief CDD FFI Domain-Specific Language (DSL) token.
+ */
 #ifndef CDD_DSL_TOKEN_H
 #define CDD_DSL_TOKEN_H
 
@@ -11,7 +15,6 @@ extern "C" {
 /* clang-format on */
 
 /**
- * @enum cdd_dsl_token_kind_t
  * @brief Represents the kind of a token in the Human IR DSL.
  */
 typedef enum cdd_dsl_token_kind_t {
@@ -118,9 +121,9 @@ typedef enum cdd_dsl_token_kind_t {
   CDD_DSL_TOKEN_EQUALS,
 
   /* Special Constructs */
-  /** @brief '@expr' macro invocation. */
+  /** @brief '\@expr' macro invocation. */
   CDD_DSL_TOKEN_MACRO_INVOKE_EXPR,
-  /** @brief '@stmt' macro invocation. */
+  /** @brief '\@stmt' macro invocation. */
   CDD_DSL_TOKEN_MACRO_INVOKE_STMT,
   /** @brief '#!ws' trivia escape. */
   CDD_DSL_TOKEN_ESCAPE_WS,
@@ -148,7 +151,6 @@ typedef enum cdd_dsl_token_kind_t {
 } cdd_dsl_token_kind_t;
 
 /**
- * @struct cdd_dsl_token_t
  * @brief Represents a single parsed token from the DSL.
  */
 typedef struct cdd_dsl_token_t {

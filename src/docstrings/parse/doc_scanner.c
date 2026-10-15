@@ -74,7 +74,7 @@ cdd_c_error_t doc_extract_word(const char *str, const char *end,
     return CDD_C_SUCCESS;
   }
 
-  res = (char *)(size_t)C_CDD_MALLOC(len + 1);
+  res = (char *)C_CDD_MALLOC(len + 1);
   if (!res) {
     *out_val = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -116,7 +116,7 @@ cdd_c_error_t doc_extract_rest(const char *str, const char *end,
     return CDD_C_SUCCESS;
   }
 
-  res = (char *)(size_t)C_CDD_MALLOC(len + 1);
+  res = (char *)C_CDD_MALLOC(len + 1);
   if (!res) {
     *out_val = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -282,7 +282,7 @@ cdd_c_error_t doc_parse_style_text(const char *s, enum DocParamStyle *out) {
   return CDD_C_ERROR_UNKNOWN;
 }
 
-cdd_c_error_t doc_parse_optional_bool_attr(const char *attr, const char *key,
+cdd_c_error_t doc_parse_optional_bool_attr(char *attr, const char *key,
                                            int *out_set, int *out_val) {
   size_t key_len;
   cdd_c_error_t parsed;
@@ -309,8 +309,7 @@ cdd_c_error_t doc_parse_optional_bool_attr(const char *attr, const char *key,
       (attr[key_len] == ':' || attr[key_len] == '=')) {
     int value = 0;
     char *val_trimmed = NULL;
-    cdd_c_error_t rc_trim =
-        doc_trim_segment((char *)(size_t)(attr + key_len + 1), &val_trimmed);
+    cdd_c_error_t rc_trim = doc_trim_segment(attr + key_len + 1, &val_trimmed);
     if (rc_trim != CDD_C_SUCCESS)
       return rc_trim;
     parsed = doc_parse_bool_text(val_trimmed, &value);
@@ -322,8 +321,7 @@ cdd_c_error_t doc_parse_optional_bool_attr(const char *attr, const char *key,
   return CDD_C_SUCCESS;
 }
 
-cdd_c_error_t doc_parse_optional_example_attr(const char *attr,
-                                              char **out_example) {
+cdd_c_error_t doc_parse_optional_example_attr(char *attr, char **out_example) {
   char *val = NULL;
   char *dup_val = NULL;
   cdd_c_error_t rc;
@@ -333,7 +331,7 @@ cdd_c_error_t doc_parse_optional_example_attr(const char *attr,
   if (strncmp(attr, "example:", 8) != 0 && strncmp(attr, "example=", 8) != 0)
     return CDD_C_SUCCESS;
 
-  rc = doc_trim_segment((char *)(size_t)(attr + 8), &val);
+  rc = doc_trim_segment(attr + 8, &val);
   if (rc != CDD_C_SUCCESS)
     return rc;
 

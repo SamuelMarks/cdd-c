@@ -54,19 +54,19 @@ TEST test_url_builder_and_query_branches(void) {
   memset(params, 0, sizeof(params));
 
   /* Path param: boolean */
-  params[0].name = (char *)(size_t) "flag";
+  params[0].name = cdd_test_mut_str("flag");
   params[0].in = OA_PARAM_IN_PATH;
-  params[0].type = (char *)(size_t) "boolean";
+  params[0].type = cdd_test_mut_str("boolean");
 
   /* Path param: number */
-  params[1].name = (char *)(size_t) "score";
+  params[1].name = cdd_test_mut_str("score");
   params[1].in = OA_PARAM_IN_PATH;
-  params[1].type = (char *)(size_t) "number";
+  params[1].type = cdd_test_mut_str("number");
 
   /* Path param: custom fallback */
-  params[2].name = (char *)(size_t) "custom";
+  params[2].name = cdd_test_mut_str("custom");
   params[2].in = OA_PARAM_IN_PATH;
-  params[2].type = (char *)(size_t) "custom_type";
+  params[2].type = cdd_test_mut_str("custom_type");
 
   ASSERT_EQ(CDD_C_SUCCESS, codegen_url_write_builder(
                                fp, "/api/{flag}/{score}/{custom}/{unmatched}",
@@ -83,52 +83,52 @@ TEST test_url_builder_and_query_branches(void) {
   memset(params, 0, sizeof(params));
 
   /* Querystring param with integer json_item */
-  params[0].name = (char *)(size_t) "qs";
+  params[0].name = cdd_test_mut_str("qs");
   params[0].in = OA_PARAM_IN_QUERYSTRING;
-  params[0].content_type = (char *)(size_t) "application/json";
+  params[0].content_type = cdd_test_mut_str("application/json");
   params[0].is_array = 1;
-  params[0].items_type = (char *)(size_t) "integer";
+  params[0].items_type = cdd_test_mut_str("integer");
   op.parameters = params;
   op.n_parameters = 1;
   ASSERT_EQ(CDD_C_SUCCESS, codegen_url_write_query_params(fp, &op, 0));
 
   /* Querystring param with number json_item */
-  params[0].items_type = (char *)(size_t) "number";
+  params[0].items_type = cdd_test_mut_str("number");
   ASSERT_EQ(CDD_C_SUCCESS, codegen_url_write_query_params(fp, &op, 0));
 
   /* Querystring param with boolean json_item */
-  params[0].items_type = (char *)(size_t) "boolean";
+  params[0].items_type = cdd_test_mut_str("boolean");
   ASSERT_EQ(CDD_C_SUCCESS, codegen_url_write_query_params(fp, &op, 0));
 
   /* Querystring param with other json_item */
-  params[0].items_type = (char *)(size_t) "other";
+  params[0].items_type = cdd_test_mut_str("other");
   ASSERT_EQ(CDD_C_SUCCESS, codegen_url_write_query_params(fp, &op, 0));
 
   /* Querystring primitive: integer */
   params[0].is_array = 0;
   params[0].items_type = NULL;
-  params[0].type = (char *)(size_t) "integer";
+  params[0].type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS, codegen_url_write_query_params(fp, &op, 0));
 
   /* Querystring primitive: number */
-  params[0].type = (char *)(size_t) "number";
+  params[0].type = cdd_test_mut_str("number");
   ASSERT_EQ(CDD_C_SUCCESS, codegen_url_write_query_params(fp, &op, 0));
 
   /* Querystring primitive: boolean */
-  params[0].type = (char *)(size_t) "boolean";
+  params[0].type = cdd_test_mut_str("boolean");
   ASSERT_EQ(CDD_C_SUCCESS, codegen_url_write_query_params(fp, &op, 0));
 
   /* Querystring raw: number */
-  params[0].content_type = (char *)(size_t) "text/plain";
-  params[0].type = (char *)(size_t) "number";
+  params[0].content_type = cdd_test_mut_str("text/plain");
+  params[0].type = cdd_test_mut_str("number");
   ASSERT_EQ(CDD_C_SUCCESS, codegen_url_write_query_params(fp, &op, 0));
 
   /* Querystring raw: boolean */
-  params[0].type = (char *)(size_t) "boolean";
+  params[0].type = cdd_test_mut_str("boolean");
   ASSERT_EQ(CDD_C_SUCCESS, codegen_url_write_query_params(fp, &op, 0));
 
   /* Querystring raw: unsupported */
-  params[0].type = (char *)(size_t) "unsupported";
+  params[0].type = cdd_test_mut_str("unsupported");
   ASSERT_EQ(CDD_C_SUCCESS, codegen_url_write_query_params(fp, &op, 0));
 
   /* Querystring raw with NULL name (fallback to "querystring") */
@@ -138,10 +138,10 @@ TEST test_url_builder_and_query_branches(void) {
 
   /* Query param array with pipeDelimited and allow_reserved=1 */
   memset(params, 0, sizeof(params));
-  params[0].name = (char *)(size_t) "pipe_arr";
+  params[0].name = cdd_test_mut_str("pipe_arr");
   params[0].in = OA_PARAM_IN_QUERY;
   params[0].is_array = 1;
-  params[0].items_type = (char *)(size_t) "string";
+  params[0].items_type = cdd_test_mut_str("string");
   params[0].style = OA_STYLE_PIPE_DELIMITED;
   params[0].allow_reserved = 1;
   params[0].allow_reserved_set = 1;
@@ -163,15 +163,15 @@ TEST test_url_builder_and_query_branches(void) {
   ASSERT_EQ(CDD_C_SUCCESS, codegen_url_write_query_params(fp, &op, 0));
 
   /* Query param array with fallback explode=true: integer */
-  params[0].items_type = (char *)(size_t) "integer";
+  params[0].items_type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS, codegen_url_write_query_params(fp, &op, 0));
 
   /* Query param array with fallback explode=true: number */
-  params[0].items_type = (char *)(size_t) "number";
+  params[0].items_type = cdd_test_mut_str("number");
   ASSERT_EQ(CDD_C_SUCCESS, codegen_url_write_query_params(fp, &op, 0));
 
   /* Query param array with fallback explode=true: boolean */
-  params[0].items_type = (char *)(size_t) "boolean";
+  params[0].items_type = cdd_test_mut_str("boolean");
   ASSERT_EQ(CDD_C_SUCCESS, codegen_url_write_query_params(fp, &op, 0));
 
   /* Query param array with fallback explode=false (unsupported) */
@@ -181,56 +181,56 @@ TEST test_url_builder_and_query_branches(void) {
   /* Query param scalar boolean */
   params[0].is_array = 0;
   params[0].items_type = NULL;
-  params[0].type = (char *)(size_t) "boolean";
+  params[0].type = cdd_test_mut_str("boolean");
   params[0].style = OA_STYLE_FORM;
   ASSERT_EQ(CDD_C_SUCCESS, codegen_url_write_query_params(fp, &op, 0));
 
   /* Query param scalar string with allow_reserved=1 */
-  params[0].type = (char *)(size_t) "string";
+  params[0].type = cdd_test_mut_str("string");
   params[0].allow_reserved = 1;
   params[0].allow_reserved_set = 1;
   ASSERT_EQ(CDD_C_SUCCESS, codegen_url_write_query_params(fp, &op, 0));
 
   /* Path param: array with OA_STYLE_MATRIX and explode=1 */
   memset(params, 0, sizeof(params));
-  params[0].name = (char *)(size_t) "arr_mat";
+  params[0].name = cdd_test_mut_str("arr_mat");
   params[0].in = OA_PARAM_IN_PATH;
   params[0].is_array = 1;
-  params[0].items_type = (char *)(size_t) "string";
+  params[0].items_type = cdd_test_mut_str("string");
   params[0].style = OA_STYLE_MATRIX;
   params[0].explode = 1;
   params[0].explode_set = 1;
 
   /* Path param: array with OA_STYLE_MATRIX and explode=0 */
-  params[1].name = (char *)(size_t) "arr_mat_noexp";
+  params[1].name = cdd_test_mut_str("arr_mat_noexp");
   params[1].in = OA_PARAM_IN_PATH;
   params[1].is_array = 1;
-  params[1].items_type = (char *)(size_t) "string";
+  params[1].items_type = cdd_test_mut_str("string");
   params[1].style = OA_STYLE_MATRIX;
   params[1].explode = 0;
   params[1].explode_set = 1;
 
   /* Path param: array with OA_STYLE_SIMPLE */
-  params[2].name = (char *)(size_t) "arr_simple";
+  params[2].name = cdd_test_mut_str("arr_simple");
   params[2].in = OA_PARAM_IN_PATH;
   params[2].is_array = 1;
-  params[2].items_type = (char *)(size_t) "string";
+  params[2].items_type = cdd_test_mut_str("string");
   params[2].style = OA_STYLE_SIMPLE;
 
   /* Path param: scalar string with OA_STYLE_LABEL */
-  params[3].name = (char *)(size_t) "scalar_lbl";
+  params[3].name = cdd_test_mut_str("scalar_lbl");
   params[3].in = OA_PARAM_IN_PATH;
-  params[3].type = (char *)(size_t) "string";
+  params[3].type = cdd_test_mut_str("string");
   params[3].style = OA_STYLE_LABEL;
   params[3].allow_reserved = 1;
   params[3].allow_reserved_set = 1;
 
   /* Path param: array of objects */
-  params[4].name = (char *)(size_t) "arr_obj";
+  params[4].name = cdd_test_mut_str("arr_obj");
   params[4].in = OA_PARAM_IN_PATH;
-  params[4].type = (char *)(size_t) "object";
+  params[4].type = cdd_test_mut_str("object");
   params[4].is_array = 1;
-  params[4].items_type = (char *)(size_t) "object";
+  params[4].items_type = cdd_test_mut_str("object");
 
   ASSERT_EQ(
       CDD_C_SUCCESS,
@@ -243,10 +243,10 @@ TEST test_url_builder_and_query_branches(void) {
   {
     struct OpenAPI_Parameter p_lbl;
     memset(&p_lbl, 0, sizeof(p_lbl));
-    p_lbl.name = (char *)(size_t) "arr_lbl_exp";
+    p_lbl.name = cdd_test_mut_str("arr_lbl_exp");
     p_lbl.in = OA_PARAM_IN_PATH;
     p_lbl.is_array = 1;
-    p_lbl.items_type = (char *)(size_t) "string";
+    p_lbl.items_type = cdd_test_mut_str("string");
     p_lbl.style = OA_STYLE_LABEL;
     p_lbl.explode = 1;
     p_lbl.explode_set = 1;
@@ -257,19 +257,19 @@ TEST test_url_builder_and_query_branches(void) {
   /* Querystring primitive: string */
   memset(&op, 0, sizeof(op));
   memset(params, 0, sizeof(params));
-  params[0].name = (char *)(size_t) "qstr";
+  params[0].name = cdd_test_mut_str("qstr");
   params[0].in = OA_PARAM_IN_QUERYSTRING;
-  params[0].content_type = (char *)(size_t) "application/json";
-  params[0].type = (char *)(size_t) "string";
+  params[0].content_type = cdd_test_mut_str("application/json");
+  params[0].type = cdd_test_mut_str("string");
   op.parameters = params;
   op.n_parameters = 1;
   ASSERT_EQ(CDD_C_SUCCESS, codegen_url_write_query_params(fp, &op, 0));
 
   /* Query param scalar string with allow_reserved=0 */
   memset(params, 0, sizeof(params));
-  params[0].name = (char *)(size_t) "plain_str";
+  params[0].name = cdd_test_mut_str("plain_str");
   params[0].in = OA_PARAM_IN_QUERY;
-  params[0].type = (char *)(size_t) "string";
+  params[0].type = cdd_test_mut_str("string");
   params[0].allow_reserved = 0;
   params[0].allow_reserved_set = 1;
   op.parameters = params;

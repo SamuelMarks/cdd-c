@@ -28,9 +28,7 @@
 #define realloc(ptr, sz) C_CDD_REALLOC(ptr, sz)
 #undef calloc
 #define calloc(n, sz) C_CDD_CALLOC(n, sz)
-extern C_CDD_EXPORT int g_cdd_fail_schema_ref_has_data;
 extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
-extern C_CDD_EXPORT int g_cdd_fail_apply_format;
 #endif
 
 /**
@@ -39,13 +37,6 @@ extern C_CDD_EXPORT int g_cdd_fail_apply_format;
 cdd_c_error_t find_doc_param(const struct DocMetadata *doc, const char *name,
                              struct DocParam **_out_val) {
   size_t i;
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_op_fail_find_doc_param;
-  if (g_op_fail_find_doc_param) {
-    g_op_fail_find_doc_param = 0;
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
-#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = NULL;
@@ -66,13 +57,6 @@ cdd_c_error_t find_doc_param(const struct DocMetadata *doc, const char *name,
 cdd_c_error_t is_path_param(const char *route, const char *name,
                             int *out_is_path) {
   char tmpl[128];
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_op_fail_is_path_param;
-  if (g_op_fail_is_path_param) {
-    g_op_fail_is_path_param = 0;
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
-#endif
   if (out_is_path)
     *out_is_path = 0;
   if (!route || !name || !out_is_path)
@@ -247,13 +231,6 @@ cdd_c_error_t set_querystring_schema_from_type_map(
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t oa_type_is_primitive(const char *type, int *out_is_primitive) {
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_op_fail_oa_type_is_primitive;
-  if (g_op_fail_oa_type_is_primitive) {
-    g_op_fail_oa_type_is_primitive = 0;
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
-#endif
   if (out_is_primitive)
     *out_is_primitive = 0;
   if (!type || !out_is_primitive)
@@ -282,12 +259,6 @@ cdd_c_error_t apply_format_to_schema_ref(struct OpenAPI_SchemaRef *schema,
 
   if (out_applied)
     *out_applied = 0;
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_fail_apply_format) {
-    g_cdd_fail_apply_format = 0;
-    return CDD_C_ERROR_MEMORY;
-  }
-#endif
   if (!schema || !map)
     return CDD_C_SUCCESS;
   fmt =
@@ -296,9 +267,7 @@ cdd_c_error_t apply_format_to_schema_ref(struct OpenAPI_SchemaRef *schema,
     return CDD_C_SUCCESS;
   if (!map->oa_type)
     return CDD_C_SUCCESS;
-  rc = oa_type_is_primitive(map->oa_type, &is_prim);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  oa_type_is_primitive(map->oa_type, &is_prim);
   if (!is_prim)
     return CDD_C_SUCCESS;
 
@@ -347,13 +316,6 @@ cdd_c_error_t apply_format_to_schema_ref(struct OpenAPI_SchemaRef *schema,
 cdd_c_error_t is_struct_pointer(const char *type, int *is_double_ptr,
                                 int *out_is_struct_ptr) {
   const char *p;
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_op_fail_is_struct_pointer;
-  if (g_op_fail_is_struct_pointer) {
-    g_op_fail_is_struct_pointer = 0;
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
-#endif
   if (out_is_struct_ptr)
     *out_is_struct_ptr = 0;
   if (!type)
@@ -374,17 +336,11 @@ cdd_c_error_t is_struct_pointer(const char *type, int *is_double_ptr,
 }
 
 /**
- * @brief Executes the doc style to openapi operation.
+ * @brief Maps a docstring parameter style string to an OpenAPI_Style enum
+ * value.
  */
 cdd_c_error_t doc_style_to_openapi(enum DocParamStyle style,
                                    enum OpenAPI_Style *_out_val) {
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_op_fail_doc_style_to_openapi;
-  if (g_op_fail_doc_style_to_openapi) {
-    g_op_fail_doc_style_to_openapi = 0;
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
-#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   switch (style) {

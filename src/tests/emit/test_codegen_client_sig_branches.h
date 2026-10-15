@@ -176,7 +176,7 @@ TEST test_sig_all_error_percolations_and_branches(void) {
 
   memset(&param, 0, sizeof(param));
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.content_type = (char *)(size_t)(size_t) "application/json";
+  param.content_type = cdd_test_mut_str("application/json");
   g_cdd_fail_media_type_is_json = 1;
   ASSERT_EQ(
       CDD_C_ERROR_UNKNOWN,
@@ -193,7 +193,7 @@ TEST test_sig_all_error_percolations_and_branches(void) {
   ASSERT_EQ(
       CDD_C_ERROR_UNKNOWN,
       cdd_test_sig_querystring_param_raw_primitive_type(&param, &str_val));
-  param.content_type = (char *)(size_t)(size_t) "text/plain";
+  param.content_type = cdd_test_mut_str("text/plain");
   g_cdd_fail_media_type_is_form = 1;
   ASSERT_EQ(
       CDD_C_ERROR_UNKNOWN,
@@ -206,7 +206,7 @@ TEST test_sig_all_error_percolations_and_branches(void) {
   {
     struct OpenAPI_Response r;
     memset(&r, 0, sizeof(r));
-    r.code = (char *)(size_t)(size_t) "200";
+    r.code = cdd_test_mut_str("200");
     op.responses = &r;
     op.n_responses = 1;
     g_cdd_fail_schema_has_inline = 1;
@@ -218,10 +218,10 @@ TEST test_sig_all_error_percolations_and_branches(void) {
   /* Now test each failure branch in codegen_client_write_signature */
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
-  op.operation_id = (char *)(size_t)(size_t) "failOp";
+  op.operation_id = cdd_test_mut_str("failOp");
   op.parameters = &param;
   op.n_parameters = 1;
-  param.name = (char *)(size_t)(size_t) "p";
+  param.name = cdd_test_mut_str("p");
   param.in = OA_PARAM_IN_QUERYSTRING;
 
   g_cdd_fail_qs_json_array_item_type = 1;
@@ -238,28 +238,28 @@ TEST test_sig_all_error_percolations_and_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
 
   /* qs_json_item array type map error */
-  param.content_type = (char *)(size_t)(size_t) "application/json";
+  param.content_type = cdd_test_mut_str("application/json");
   param.is_array = 1;
-  param.items_type = (char *)(size_t)(size_t) "integer";
+  param.items_type = cdd_test_mut_str("integer");
   g_cdd_fail_map_array_item_type = 1;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
 
   /* qs_json_prim map type error */
   param.is_array = 0;
   param.items_type = NULL;
-  param.type = (char *)(size_t)(size_t) "integer";
+  param.type = cdd_test_mut_str("integer");
   g_cdd_fail_map_type_to_c_arg = 1;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
 
   /* qs_raw map type error */
-  param.content_type = (char *)(size_t)(size_t) "text/plain";
-  param.type = (char *)(size_t)(size_t) "integer";
+  param.content_type = cdd_test_mut_str("text/plain");
+  param.type = cdd_test_mut_str("integer");
   g_cdd_fail_map_type_to_c_arg = 1;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
 
   /* non-querystring param failures */
   param.in = OA_PARAM_IN_HEADER;
-  param.content_type = (char *)(size_t)(size_t) "application/json";
+  param.content_type = cdd_test_mut_str("application/json");
   g_cdd_fail_media_type_is_json = 1;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
 
@@ -267,7 +267,7 @@ TEST test_sig_all_error_percolations_and_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
 
   param.is_array = 1;
-  param.items_type = (char *)(size_t)(size_t) "integer";
+  param.items_type = cdd_test_mut_str("integer");
   g_cdd_fail_is_primitive_type = 1;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
 
@@ -276,7 +276,7 @@ TEST test_sig_all_error_percolations_and_branches(void) {
 
   param.is_array = 0;
   param.items_type = NULL;
-  param.type = (char *)(size_t)(size_t) "string";
+  param.type = cdd_test_mut_str("string");
   g_cdd_fail_map_type_to_c_arg = 1;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
 
@@ -285,19 +285,19 @@ TEST test_sig_all_error_percolations_and_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
 
   param.is_array = 1;
-  param.items_type = (char *)(size_t)(size_t) "integer";
+  param.items_type = cdd_test_mut_str("integer");
   g_cdd_fail_map_array_item_type = 1;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
 
   param.is_array = 0;
   param.items_type = NULL;
-  param.type = (char *)(size_t)(size_t) "integer";
+  param.type = cdd_test_mut_str("integer");
   g_cdd_fail_map_type_to_c_arg = 1;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
 
   /* Request body failures */
   op.n_parameters = 0;
-  op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
+  op.req_body.content_type = cdd_test_mut_str("application/json");
   g_cdd_fail_media_type_is_binary = 1;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
 
@@ -310,7 +310,7 @@ TEST test_sig_all_error_percolations_and_branches(void) {
   g_cdd_fail_media_type_is_textual = 1;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
 
-  op.req_body.inline_type = (char *)(size_t)(size_t) "string";
+  op.req_body.inline_type = cdd_test_mut_str("string");
   op.req_body.is_array = 1;
   g_cdd_fail_map_array_item_type = 1;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
@@ -320,20 +320,20 @@ TEST test_sig_all_error_percolations_and_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
 
   /* Multipart per-part failures */
-  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
+  op.req_body.content_type = cdd_test_mut_str("multipart/form-data");
   op.req_body.inline_type = NULL;
   memset(&mt, 0, sizeof(mt));
   memset(&enc, 0, sizeof(enc));
   memset(&hdr, 0, sizeof(hdr));
   op.n_req_body_media_types = 1;
   op.req_body_media_types = &mt;
-  mt.name = (char *)(size_t)(size_t) "multipart/form-data";
+  mt.name = cdd_test_mut_str("multipart/form-data");
   mt.n_encoding = 1;
   mt.encoding = &enc;
-  enc.name = (char *)(size_t)(size_t) "field";
+  enc.name = cdd_test_mut_str("field");
   enc.n_headers = 1;
   enc.headers = &hdr;
-  hdr.name = (char *)(size_t)(size_t) "X-Header";
+  hdr.name = cdd_test_mut_str("X-Header");
 
   g_cdd_fail_media_type_is_multipart_form = 1;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
@@ -348,13 +348,13 @@ TEST test_sig_all_error_percolations_and_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
 
   hdr.is_array = 1;
-  hdr.items_type = (char *)(size_t)(size_t) "string";
+  hdr.items_type = cdd_test_mut_str("string");
   g_cdd_fail_map_array_item_type = 1;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
 
   hdr.is_array = 0;
   hdr.items_type = NULL;
-  hdr.type = (char *)(size_t)(size_t) "integer";
+  hdr.type = cdd_test_mut_str("integer");
   g_cdd_fail_map_type_to_c_arg = 1;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, gen_sig(&op, NULL, &code));
 
@@ -370,8 +370,8 @@ TEST test_sig_all_error_percolations_and_branches(void) {
   {
     struct OpenAPI_Response r;
     memset(&r, 0, sizeof(r));
-    r.code = (char *)(size_t)(size_t) "200";
-    r.schema.inline_type = (char *)(size_t)(size_t) "string";
+    r.code = cdd_test_mut_str("200");
+    r.schema.inline_type = cdd_test_mut_str("string");
     r.schema.is_array = 1;
     op.responses = &r;
     op.n_responses = 1;

@@ -35,15 +35,15 @@ TEST test_body_header_array_param(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)(size_t) "X-Ids";
+  param.name = cdd_test_mut_str("X-Ids");
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t)(size_t) "array";
+  param.type = cdd_test_mut_str("array");
   param.is_array = 1;
-  param.items_type = (char *)(size_t)(size_t) "integer";
+  param.items_type = cdd_test_mut_str("integer");
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -57,25 +57,25 @@ TEST test_body_header_array_param(void) {
   free(code);
 
   /* Test string array */
-  param.items_type = (char *)(size_t)(size_t) "string";
+  param.items_type = cdd_test_mut_str("string");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
   ASSERT(code);
   free(code);
 
   /* Test number array */
-  param.items_type = (char *)(size_t)(size_t) "number";
+  param.items_type = cdd_test_mut_str("number");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
   ASSERT(code);
   free(code);
 
   /* Test boolean array */
-  param.items_type = (char *)(size_t)(size_t) "boolean";
+  param.items_type = cdd_test_mut_str("boolean");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
   ASSERT(code);
   free(code);
 
   /* Test unsupported array */
-  param.items_type = (char *)(size_t)(size_t) "unsupported";
+  param.items_type = cdd_test_mut_str("unsupported");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
   ASSERT(code);
   free(code);
@@ -104,13 +104,13 @@ TEST test_body_header_object_param(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)(size_t) "X-Filter";
+  param.name = cdd_test_mut_str("X-Filter");
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t)(size_t) "object";
+  param.type = cdd_test_mut_str("object");
   param.style = OA_STYLE_SIMPLE;
   param.explode = 1;
   param.explode_set = 1;
@@ -150,15 +150,15 @@ TEST test_body_header_json_param_ref(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)(size_t) "X-Filter";
+  param.name = cdd_test_mut_str("X-Filter");
   param.in = OA_PARAM_IN_HEADER;
-  param.content_type = (char *)(size_t)(size_t) "application/json";
-  param.schema.ref_name = (char *)(size_t)(size_t) "Filter";
-  param.type = (char *)(size_t)(size_t) "Filter";
+  param.content_type = cdd_test_mut_str("application/json");
+  param.schema.ref_name = cdd_test_mut_str("Filter");
+  param.type = cdd_test_mut_str("Filter");
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -174,71 +174,71 @@ TEST test_body_header_json_param_ref(void) {
 
   /* Test primitive arrays */
   param.is_array = 1;
-  param.items_type = (char *)(size_t)(size_t) "string";
+  param.items_type = cdd_test_mut_str("string");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)(size_t) "integer";
+  param.items_type = cdd_test_mut_str("integer");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)(size_t) "number";
+  param.items_type = cdd_test_mut_str("number");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)(size_t) "boolean";
+  param.items_type = cdd_test_mut_str("boolean");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)(size_t) "unsupported";
+  param.items_type = cdd_test_mut_str("unsupported");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
   /* Test JSON object */
   param.is_array = 0;
-  param.type = (char *)(size_t)(size_t) "object";
+  param.type = cdd_test_mut_str("object");
   param.schema.ref_name = NULL;
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
   /* Test JSON array (no is_array flag) */
-  param.type = (char *)(size_t)(size_t) "array";
+  param.type = cdd_test_mut_str("array");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
   /* Test JSON primitive string */
-  param.type = (char *)(size_t)(size_t) "string";
+  param.type = cdd_test_mut_str("string");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
   /* Test JSON primitive integer */
-  param.type = (char *)(size_t)(size_t) "integer";
+  param.type = cdd_test_mut_str("integer");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
   /* Test JSON primitive number */
-  param.type = (char *)(size_t)(size_t) "number";
+  param.type = cdd_test_mut_str("number");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
   /* Test JSON primitive boolean */
-  param.type = (char *)(size_t)(size_t) "boolean";
+  param.type = cdd_test_mut_str("boolean");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
   /* Test JSON primitive unsupported */
-  param.type = (char *)(size_t)(size_t) "unsupported";
+  param.type = cdd_test_mut_str("unsupported");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
   free(code);
@@ -250,7 +250,7 @@ TEST test_body_header_json_param_ref(void) {
   free(code);
 
   /* Test JSON unknown type */
-  param.type = (char *)(size_t)(size_t) "unknown";
+  param.type = cdd_test_mut_str("unknown");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
   free(code);
@@ -279,13 +279,13 @@ TEST test_body_header_number_param(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)(size_t) "X-Rate";
+  param.name = cdd_test_mut_str("X-Rate");
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t)(size_t) "number";
+  param.type = cdd_test_mut_str("number");
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -322,13 +322,13 @@ TEST test_body_cookie_param(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)(size_t) "session";
+  param.name = cdd_test_mut_str("session");
   param.in = OA_PARAM_IN_COOKIE;
-  param.type = (char *)(size_t)(size_t) "string";
+  param.type = cdd_test_mut_str("string");
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -342,27 +342,27 @@ TEST test_body_cookie_param(void) {
 
   /* Test primitive arrays */
   param.is_array = 1;
-  param.items_type = (char *)(size_t)(size_t) "string";
+  param.items_type = cdd_test_mut_str("string");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)(size_t) "integer";
+  param.items_type = cdd_test_mut_str("integer");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)(size_t) "number";
+  param.items_type = cdd_test_mut_str("number");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)(size_t) "boolean";
+  param.items_type = cdd_test_mut_str("boolean");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)(size_t) "unsupported";
+  param.items_type = cdd_test_mut_str("unsupported");
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
   ASSERT(code);
   free(code);
@@ -391,15 +391,15 @@ TEST test_body_cookie_param_number_array(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)(size_t) "weights";
+  param.name = cdd_test_mut_str("weights");
   param.in = OA_PARAM_IN_COOKIE;
-  param.type = (char *)(size_t)(size_t) "array";
+  param.type = cdd_test_mut_str("array");
   param.is_array = 1;
-  param.items_type = (char *)(size_t)(size_t) "number";
+  param.items_type = cdd_test_mut_str("number");
   param.explode = 1;
   param.explode_set = 1;
   op.parameters = &param;
@@ -439,15 +439,15 @@ TEST test_body_cookie_param_array_explode_false(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)(size_t) "session";
+  param.name = cdd_test_mut_str("session");
   param.in = OA_PARAM_IN_COOKIE;
-  param.type = (char *)(size_t)(size_t) "array";
+  param.type = cdd_test_mut_str("array");
   param.is_array = 1;
-  param.items_type = (char *)(size_t)(size_t) "string";
+  param.items_type = cdd_test_mut_str("string");
   param.explode_set = 1;
   param.explode = 0;
   op.parameters = &param;
@@ -486,13 +486,13 @@ TEST test_body_cookie_param_object_form(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)(size_t) "prefs";
+  param.name = cdd_test_mut_str("prefs");
   param.in = OA_PARAM_IN_COOKIE;
-  param.type = (char *)(size_t)(size_t) "object";
+  param.type = cdd_test_mut_str("object");
   param.style = OA_STYLE_FORM;
   op.parameters = &param;
   op.n_parameters = 1;
@@ -530,13 +530,13 @@ TEST test_body_cookie_param_string_allow_reserved(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)(size_t) "session";
+  param.name = cdd_test_mut_str("session");
   param.in = OA_PARAM_IN_COOKIE;
-  param.type = (char *)(size_t)(size_t) "string";
+  param.type = cdd_test_mut_str("string");
   param.style = OA_STYLE_FORM;
   param.allow_reserved = 1;
   param.allow_reserved_set = 1;
@@ -577,19 +577,19 @@ TEST test_body_security_query_api_key(void) {
   memset(&sec_set, 0, sizeof(sec_set));
 
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  scheme.name = (char *)(size_t)(size_t) "QueryKey";
+  scheme.name = cdd_test_mut_str("QueryKey");
   scheme.type = OA_SEC_APIKEY;
   scheme.in = OA_SEC_IN_QUERY;
-  scheme.key_name = (char *)(size_t)(size_t) "api_key";
+  scheme.key_name = cdd_test_mut_str("api_key");
   spec.security_schemes = &scheme;
   spec.n_security_schemes = 1;
 
   /* Add global security requirement to activate the scheme */
-  req.scheme = (char *)(size_t)(size_t) "QueryKey";
+  req.scheme = cdd_test_mut_str("QueryKey");
 
   sec_set.requirements = &req;
   sec_set.n_requirements = 1;
@@ -629,19 +629,19 @@ TEST test_body_security_cookie_api_key(void) {
   memset(&scheme, 0, sizeof(scheme));
 
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   op.responses = &resp;
   op.n_responses = 1;
 
-  scheme.name = (char *)(size_t)(size_t) "CookieKey";
+  scheme.name = cdd_test_mut_str("CookieKey");
   scheme.type = OA_SEC_APIKEY;
   scheme.in = OA_SEC_IN_COOKIE;
-  scheme.key_name = (char *)(size_t)(size_t) "session_id";
+  scheme.key_name = cdd_test_mut_str("session_id");
   spec.security_schemes = &scheme;
   spec.n_security_schemes = 1;
 
   memset(&req, 0, sizeof(req));
-  req.scheme = (char *)(size_t)(size_t) "CookieKey";
+  req.scheme = cdd_test_mut_str("CookieKey");
 
   memset(&sec_set, 0, sizeof(sec_set));
   sec_set.requirements = &req;

@@ -41,8 +41,8 @@ TEST test_openapi_writer_nail_all_remaining(void) {
   char *json = NULL;
   int k;
 
-  names[0] = (char *)(size_t) "test";
-  def_names[0] = (char *)(size_t) "MyStruct";
+  names[0] = cdd_test_mut_str("test");
+  def_names[0] = cdd_test_mut_str("MyStruct");
 
   /* 1. Line 372-378 */
   for (k = 0; k < 50; ++k) {
@@ -50,7 +50,7 @@ TEST test_openapi_writer_nail_all_remaining(void) {
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
-    merge_schema_extras_object_openapi(obj, "{\"foo\": 123}");
+    ASSERT_WRITER_RC(merge_schema_extras_object_openapi(obj, "{\"foo\": 123}"));
     json_set_allocation_functions(malloc, free);
     json_value_free(val);
   }
@@ -59,7 +59,7 @@ TEST test_openapi_writer_nail_all_remaining(void) {
   val = json_value_init_object();
   obj = json_value_get_object(val);
   memset(&disc, 0, sizeof(disc));
-  disc.property_name = (char *)(size_t) "type";
+  disc.property_name = cdd_test_mut_str("type");
   json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
   g_parson_oom_fail_at = 0;
   write_discriminator_object(obj, &disc, 1);
@@ -87,31 +87,31 @@ TEST test_openapi_writer_nail_all_remaining(void) {
   val = json_value_init_object();
   obj = json_value_get_object(val);
   memset(&p, 0, sizeof(p));
-  p.content_ref = (char *)(size_t) "#/ref";
-  p.content_type = (char *)(size_t) "application/xml";
+  p.content_ref = cdd_test_mut_str("#/ref");
+  p.content_type = cdd_test_mut_str("application/xml");
   write_parameter_object(obj, &p);
   json_value_free(val);
 
   /* 5. Lines 1664, 1748, 1851, 1889 */
-  write_encoding_array(NULL, "k", NULL, 0);
-  write_media_type_map(NULL, "k", NULL, 0);
-  write_headers(NULL, NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, write_encoding_array(NULL, "k", NULL, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, write_media_type_map(NULL, "k", NULL, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, write_headers(NULL, NULL));
   val = json_value_init_object();
   obj = json_value_get_object(val);
   memset(&resp, 0, sizeof(resp));
-  write_headers(obj, &resp);
-  write_links(obj, &resp);
+  ASSERT_EQ(CDD_C_SUCCESS, write_headers(obj, &resp));
+  ASSERT_EQ(CDD_C_SUCCESS, write_links(obj, &resp));
   json_value_free(val);
 
   /* 6. Lines 1855-1856 */
   memset(h_arr, 0, sizeof(h_arr));
-  h_arr[0].name = (char *)(size_t) "X-H";
+  h_arr[0].name = cdd_test_mut_str("X-H");
   for (k = 0; k < 5; ++k) {
     val = json_value_init_object();
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
-    write_headers_map(obj, "headers", h_arr, 1, 0);
+    ASSERT_WRITER_RC(write_headers_map(obj, "headers", h_arr, 1, 0));
     json_set_allocation_functions(malloc, free);
     json_value_free(val);
   }
@@ -119,7 +119,7 @@ TEST test_openapi_writer_nail_all_remaining(void) {
   /* 7. Lines 1904, 1908-1909 */
   memset(&resp, 0, sizeof(resp));
   memset(link, 0, sizeof(link));
-  link[0].ref = (char *)(size_t) "#/ref";
+  link[0].ref = cdd_test_mut_str("#/ref");
   resp.links = link;
   resp.n_links = 1;
   for (k = 0; k < 5; ++k) {
@@ -127,27 +127,27 @@ TEST test_openapi_writer_nail_all_remaining(void) {
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
-    write_links(obj, &resp);
+    ASSERT_WRITER_RC(write_links(obj, &resp));
     json_set_allocation_functions(malloc, free);
     json_value_free(val);
   }
 
   /* 8. Lines 2051, 2063-2064 */
   memset(&rb_fail, 0, sizeof(rb_fail));
-  rb_fail.content_ref = (char *)(size_t) "#/ref";
+  rb_fail.content_ref = cdd_test_mut_str("#/ref");
   for (k = 0; k < 6; ++k) {
     val = json_value_init_object();
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
-    write_request_body_object(obj, &rb_fail);
+    ASSERT_WRITER_RC(write_request_body_object(obj, &rb_fail));
     json_set_allocation_functions(malloc, free);
     json_value_free(val);
   }
 
   memset(&rb_fail, 0, sizeof(rb_fail));
   memset(mt, 0, sizeof(mt));
-  mt[0].name = (char *)(size_t) "application/json";
+  mt[0].name = cdd_test_mut_str("application/json");
   rb_fail.content_media_types = mt;
   rb_fail.n_content_media_types = 1;
   for (k = 0; k < 6; ++k) {
@@ -155,32 +155,32 @@ TEST test_openapi_writer_nail_all_remaining(void) {
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
-    write_request_body_object(obj, &rb_fail);
+    ASSERT_WRITER_RC(write_request_body_object(obj, &rb_fail));
     json_set_allocation_functions(malloc, free);
     json_value_free(val);
   }
 
   /* 9. Lines 2127-2128, 2148-2149, 2163-2164 */
   memset(&op, 0, sizeof(op));
-  op.req_body_ref = (char *)(size_t) "#/ref";
+  op.req_body_ref = cdd_test_mut_str("#/ref");
   for (k = 0; k < 5; ++k) {
     val = json_value_init_object();
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
-    write_request_body(obj, &op);
+    ASSERT_WRITER_RC(write_request_body(obj, &op));
     json_set_allocation_functions(malloc, free);
     json_value_free(val);
   }
 
   memset(&op, 0, sizeof(op));
-  op.req_body.ref_name = (char *)(size_t) "BodyModel";
+  op.req_body.ref_name = cdd_test_mut_str("BodyModel");
   for (k = 0; k < 5; ++k) {
     val = json_value_init_object();
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
-    write_request_body(obj, &op);
+    ASSERT_WRITER_RC(write_request_body(obj, &op));
     json_set_allocation_functions(malloc, free);
     json_value_free(val);
   }
@@ -188,7 +188,7 @@ TEST test_openapi_writer_nail_all_remaining(void) {
   /* 10. Lines 2227-2228 */
   memset(&op, 0, sizeof(op));
   memset(cb, 0, sizeof(cb));
-  cb[0].name = (char *)(size_t) "cb";
+  cb[0].name = cdd_test_mut_str("cb");
   op.callbacks = cb;
   op.n_callbacks = 1;
   for (k = 0; k < 5; ++k) {
@@ -196,7 +196,7 @@ TEST test_openapi_writer_nail_all_remaining(void) {
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
-    write_callbacks(obj, &op);
+    ASSERT_WRITER_RC(write_callbacks(obj, &op));
     json_set_allocation_functions(malloc, free);
     json_value_free(val);
   }
@@ -205,14 +205,14 @@ TEST test_openapi_writer_nail_all_remaining(void) {
   memset(&op, 0, sizeof(op));
   op.verb = OA_VERB_GET;
   memset(resp_one, 0, sizeof(resp_one));
-  resp_one[0].code = (char *)(size_t) "200";
-  resp_one[0].description = (char *)(size_t) "OK";
+  resp_one[0].code = cdd_test_mut_str("200");
+  resp_one[0].description = cdd_test_mut_str("OK");
   op.responses = resp_one;
   op.n_responses = 1;
   op.callbacks = cb;
   op.n_callbacks = 1;
   memset(srv, 0, sizeof(srv));
-  srv[0].url = (char *)(size_t) "https://srv";
+  srv[0].url = cdd_test_mut_str("https://srv");
   op.servers = srv;
   op.n_servers = 1;
 
@@ -221,14 +221,14 @@ TEST test_openapi_writer_nail_all_remaining(void) {
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
-    write_operation_object(obj, &op);
+    ASSERT_WRITER_RC(write_operation_object(obj, &op));
     json_set_allocation_functions(malloc, free);
     json_value_free(val);
   }
 
   /* 12. Lines 2464, 2470 */
   memset(&path, 0, sizeof(path));
-  path.route = (char *)(size_t) "/items";
+  path.route = cdd_test_mut_str("/items");
   path.operations = &op;
   path.n_operations = 1;
   path.additional_operations = &op;
@@ -241,8 +241,8 @@ TEST test_openapi_writer_nail_all_remaining(void) {
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
-    write_operations(obj, &path);
-    write_path_item_object(obj, &path);
+    ASSERT_WRITER_RC(write_operations(obj, &path));
+    ASSERT_WRITER_RC(write_path_item_object(obj, &path));
     json_set_allocation_functions(malloc, free);
     json_value_free(val);
   }
@@ -256,7 +256,7 @@ TEST test_openapi_writer_nail_all_remaining(void) {
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
-    write_paths(obj, &spec);
+    ASSERT_WRITER_RC(write_paths(obj, &spec));
     json_set_allocation_functions(malloc, free);
     json_value_free(val);
   }
@@ -270,7 +270,7 @@ TEST test_openapi_writer_nail_all_remaining(void) {
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
-    write_webhooks(obj, &spec);
+    ASSERT_WRITER_RC(write_webhooks(obj, &spec));
     json_set_allocation_functions(malloc, free);
     json_value_free(val);
   }
@@ -285,14 +285,14 @@ TEST test_openapi_writer_nail_all_remaining(void) {
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
-    write_component_path_items(obj, &spec);
+    ASSERT_WRITER_RC(write_component_path_items(obj, &spec));
     json_set_allocation_functions(malloc, free);
     json_value_free(val);
   }
 
   /* 16. Lines 3267-3269 */
   memset(&spec, 0, sizeof(spec));
-  struct_fields_init(&defined_sch[0]);
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&defined_sch[0]));
   spec.defined_schemas = defined_sch;
   spec.defined_schema_names = def_names;
   spec.n_defined_schemas = 1;
@@ -301,15 +301,15 @@ TEST test_openapi_writer_nail_all_remaining(void) {
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
-    write_components(obj, &spec);
+    ASSERT_WRITER_RC(write_components(obj, &spec));
     json_set_allocation_functions(malloc, free);
     json_value_free(val);
   }
 
   /* 17. Lines 3419-3445 */
   memset(&sec_req, 0, sizeof(sec_req));
-  sec_req.scheme = (char *)(size_t) "bearer";
-  scopes[0] = (char *)(size_t) "read";
+  sec_req.scheme = cdd_test_mut_str("bearer");
+  scopes[0] = cdd_test_mut_str("read");
   sec_req.scopes = scopes;
   sec_req.n_scopes = 1;
   memset(&sec_set, 0, sizeof(sec_set));
@@ -317,7 +317,7 @@ TEST test_openapi_writer_nail_all_remaining(void) {
   sec_set.n_requirements = 1;
 
   memset(&spec, 0, sizeof(spec));
-  spec.openapi_version = (char *)(size_t) "3.2.0";
+  spec.openapi_version = cdd_test_mut_str("3.2.0");
   spec.security = &sec_set;
   spec.n_security = 1;
   spec.security_set = 1;
@@ -330,7 +330,7 @@ TEST test_openapi_writer_nail_all_remaining(void) {
   for (k = 0; k < 80; ++k) {
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
-    openapi_write_spec_to_json(&spec, &json);
+    ASSERT_WRITER_RC(openapi_write_spec_to_json(&spec, &json));
     if (json) {
       free(json);
       json = NULL;
@@ -340,7 +340,7 @@ TEST test_openapi_writer_nail_all_remaining(void) {
 
   /* Precise triggers for final 4 lines */
   /* Line 1851 */
-  write_headers_map(NULL, "k", NULL, 0, 0);
+  ASSERT_EQ(CDD_C_SUCCESS, write_headers_map(NULL, "k", NULL, 0, 0));
 
   /* Line 2335: write_operation_object callbacks failure (k up to 35) */
   {
@@ -354,7 +354,7 @@ TEST test_openapi_writer_nail_all_remaining(void) {
       json_set_allocation_functions(mock_parson_oom_malloc,
                                     mock_parson_oom_free);
       g_parson_oom_fail_at = k;
-      write_operation_object(obj, &op_cb);
+      ASSERT_WRITER_RC(write_operation_object(obj, &op_cb));
       json_set_allocation_functions(malloc, free);
       json_value_free(val);
     }
@@ -372,7 +372,7 @@ TEST test_openapi_writer_nail_all_remaining(void) {
       json_set_allocation_functions(mock_parson_oom_malloc,
                                     mock_parson_oom_free);
       g_parson_oom_fail_at = k;
-      write_operation_object(obj, &op_srv);
+      ASSERT_WRITER_RC(write_operation_object(obj, &op_srv));
       json_set_allocation_functions(malloc, free);
       json_value_free(val);
     }
@@ -396,7 +396,7 @@ TEST test_openapi_writer_nail_all_remaining(void) {
       json_set_allocation_functions(mock_parson_oom_malloc,
                                     mock_parson_oom_free);
       g_parson_oom_fail_at = k;
-      write_path_item_object(obj, &p_add_fail);
+      ASSERT_WRITER_RC(write_path_item_object(obj, &p_add_fail));
       json_set_allocation_functions(malloc, free);
       json_value_free(val);
     }
@@ -408,14 +408,14 @@ TEST test_openapi_writer_nail_all_remaining(void) {
     struct OpenAPI_Path p_item[1];
     memset(&spec_only_paths, 0, sizeof(spec_only_paths));
     memset(p_item, 0, sizeof(p_item));
-    p_item[0].route = (char *)(size_t) "/items";
+    p_item[0].route = cdd_test_mut_str("/items");
     spec_only_paths.paths = p_item;
     spec_only_paths.n_paths = 1;
     for (k = 10; k < 35; ++k) {
       json_set_allocation_functions(mock_parson_oom_malloc,
                                     mock_parson_oom_free);
       g_parson_oom_fail_at = k;
-      openapi_write_spec_to_json(&spec_only_paths, &json);
+      ASSERT_WRITER_RC(openapi_write_spec_to_json(&spec_only_paths, &json));
       if (json) {
         free(json);
         json = NULL;
@@ -428,12 +428,12 @@ TEST test_openapi_writer_nail_all_remaining(void) {
   {
     struct OpenAPI_Operation op_rb;
     memset(&op_rb, 0, sizeof(op_rb));
-    op_rb.req_body_ref = (char *)(size_t) "#/ref";
+    op_rb.req_body_ref = cdd_test_mut_str("#/ref");
     val = json_value_init_object();
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = 0;
-    write_operation_object(obj, &op_rb);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, write_operation_object(obj, &op_rb));
     json_set_allocation_functions(malloc, free);
     json_value_free(val);
   }
@@ -443,7 +443,7 @@ TEST test_openapi_writer_nail_all_remaining(void) {
     struct OpenAPI_Parameter param_item[1];
     memset(&p_param_fail, 0, sizeof(p_param_fail));
     memset(param_item, 0, sizeof(param_item));
-    param_item[0].name = (char *)(size_t) "p";
+    param_item[0].name = cdd_test_mut_str("p");
     param_item[0].in = OA_PARAM_IN_QUERY;
     p_param_fail.parameters = param_item;
     p_param_fail.n_parameters = 1;
@@ -451,7 +451,7 @@ TEST test_openapi_writer_nail_all_remaining(void) {
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = 0;
-    write_path_item_object(obj, &p_param_fail);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, write_path_item_object(obj, &p_param_fail));
     json_set_allocation_functions(malloc, free);
     json_value_free(val);
   }
@@ -463,9 +463,9 @@ TEST test_openapi_writer_nail_all_remaining(void) {
     memset(&s_p_fail, 0, sizeof(s_p_fail));
     memset(p_p_fail, 0, sizeof(p_p_fail));
     memset(param_item, 0, sizeof(param_item));
-    param_item[0].name = (char *)(size_t) "p";
+    param_item[0].name = cdd_test_mut_str("p");
     param_item[0].in = OA_PARAM_IN_QUERY;
-    p_p_fail[0].route = (char *)(size_t) "/items";
+    p_p_fail[0].route = cdd_test_mut_str("/items");
     p_p_fail[0].parameters = param_item;
     p_p_fail[0].n_parameters = 1;
     s_p_fail.paths = p_p_fail;
@@ -474,7 +474,7 @@ TEST test_openapi_writer_nail_all_remaining(void) {
       json_set_allocation_functions(mock_parson_oom_malloc,
                                     mock_parson_oom_free);
       g_parson_oom_fail_at = k;
-      openapi_write_spec_to_json(&s_p_fail, &json);
+      ASSERT_WRITER_RC(openapi_write_spec_to_json(&s_p_fail, &json));
       if (json) {
         free(json);
         json = NULL;

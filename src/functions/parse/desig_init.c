@@ -30,7 +30,7 @@ static cdd_c_error_t c_cdd_strndup(const char *s, size_t n, char **_out_val) {
   char *d = NULL;
   if (!s || !_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  d = (char *)(size_t)C_CDD_MALLOC(n + 1);
+  d = (char *)C_CDD_MALLOC(n + 1);
   if (!d) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -73,7 +73,7 @@ void desig_init_list_free(struct DesigInitList *list) {
 }
 
 /**
- * @brief Executes the scan for designated initializers operation.
+ * @brief Scans a token stream for C99 designated initializers.
  */
 cdd_c_error_t scan_for_designated_initializers(const struct TokenList *tokens,
                                                struct DesigInitList *list) {

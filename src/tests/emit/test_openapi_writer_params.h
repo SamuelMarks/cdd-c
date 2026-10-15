@@ -149,17 +149,17 @@ TEST test_writer_parameter_content_any(void) {
 
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = (char *)(size_t)(size_t) "/headers";
+  path.route = cdd_test_mut_str("/headers");
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)(size_t) "getHeader";
+  op.operation_id = cdd_test_mut_str("getHeader");
   op.parameters = &param;
   op.n_parameters = 1;
-  param.name = (char *)(size_t)(size_t) "X-Foo";
+  param.name = cdd_test_mut_str("X-Foo");
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t)(size_t) "string";
-  param.content_type = (char *)(size_t)(size_t) "text/plain";
+  param.type = cdd_test_mut_str("string");
+  param.content_type = cdd_test_mut_str("text/plain");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -212,25 +212,24 @@ TEST test_writer_parameter_and_header_content_media_type(void) {
 
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = (char *)(size_t)(size_t) "/content";
+  path.route = cdd_test_mut_str("/content");
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)(size_t) "getContent";
+  op.operation_id = cdd_test_mut_str("getContent");
   op.parameters = &param;
   op.n_parameters = 1;
-  param.name = (char *)(size_t)(size_t) "filter";
+  param.name = cdd_test_mut_str("filter");
   param.in = OA_PARAM_IN_QUERY;
   param.content_media_types = &param_media;
   param.n_content_media_types = 1;
-  param_media.name =
-      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+  param_media.name = cdd_test_mut_str("application/x-www-form-urlencoded");
   param_media.schema_set = 1;
-  param_media.schema.inline_type = (char *)(size_t)(size_t) "object";
+  param_media.schema.inline_type = cdd_test_mut_str("object");
   param_media.encoding = &enc;
   param_media.n_encoding = 1;
-  enc.name = (char *)(size_t)(size_t) "id";
-  enc.content_type = (char *)(size_t)(size_t) "text/plain";
+  enc.name = cdd_test_mut_str("id");
+  enc.content_type = cdd_test_mut_str("text/plain");
   enc.style = OA_STYLE_FORM;
   enc.style_set = 1;
   enc.explode = 1;
@@ -238,16 +237,16 @@ TEST test_writer_parameter_and_header_content_media_type(void) {
 
   op.responses = &resp;
   op.n_responses = 1;
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.description = (char *)(size_t)(size_t) "ok";
+  resp.code = cdd_test_mut_str("200");
+  resp.description = cdd_test_mut_str("ok");
   resp.headers = &header;
   resp.n_headers = 1;
-  header.name = (char *)(size_t)(size_t) "X-Rate";
+  header.name = cdd_test_mut_str("X-Rate");
   header.content_media_types = &header_media;
   header.n_content_media_types = 1;
-  header_media.name = (char *)(size_t)(size_t) "text/plain";
+  header_media.name = cdd_test_mut_str("text/plain");
   header_media.schema_set = 1;
-  header_media.schema.inline_type = (char *)(size_t)(size_t) "string";
+  header_media.schema.inline_type = cdd_test_mut_str("string");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -318,9 +317,9 @@ TEST test_writer_parameter_examples_object(void) {
 
   memset(&ex, 0, sizeof(ex));
   setup_test_spec(&spec, &path, &op, &param, NULL);
-  ex.name = (char *)(size_t)(size_t) "basic";
+  ex.name = cdd_test_mut_str("basic");
   ex.data_value.type = OA_ANY_STRING;
-  ex.data_value.string = (char *)(size_t)(size_t) "hello";
+  ex.data_value.string = cdd_test_mut_str("hello");
   ex.data_value_set = 1;
   param.examples = &ex;
   param.n_examples = 1;
@@ -368,9 +367,9 @@ TEST test_writer_parameter_examples_media(void) {
   json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
-  param.content_type = (char *)(size_t)(size_t) "application/json";
+  param.content_type = cdd_test_mut_str("application/json");
   param.example.type = OA_ANY_STRING;
-  param.example.string = (char *)(size_t)(size_t) "hi";
+  param.example.string = cdd_test_mut_str("hi");
   param.example_set = 1;
   param.example_location = OA_EXAMPLE_LOC_MEDIA;
 
@@ -414,13 +413,13 @@ TEST test_writer_component_examples(void) {
   json = NULL;
 
   memset(&ex, 0, sizeof(ex));
-  names[0] = (char *)(size_t)(size_t) "ex1";
+  names[0] = cdd_test_mut_str("ex1");
   spec.component_examples = &ex;
   spec.component_example_names = names;
   spec.n_component_examples = 1;
-  ex.summary = (char *)(size_t)(size_t) "Example";
+  ex.summary = cdd_test_mut_str("Example");
   ex.value.type = OA_ANY_STRING;
-  ex.value.string = (char *)(size_t)(size_t) "v";
+  ex.value.string = cdd_test_mut_str("v");
   ex.value_set = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
@@ -458,13 +457,13 @@ TEST test_writer_oauth2_flows(void) {
   memset(&flow, 0, sizeof(flow));
   memset(&scope, 0, sizeof(scope));
 
-  scope.name = (char *)(size_t)(size_t) "read";
-  scope.description = (char *)(size_t)(size_t) "Read";
+  scope.name = cdd_test_mut_str("read");
+  scope.description = cdd_test_mut_str("Read");
   flow.type = OA_OAUTH_FLOW_PASSWORD;
-  flow.token_url = (char *)(size_t)(size_t) "https://token.example.com";
+  flow.token_url = cdd_test_mut_str("https://token.example.com");
   flow.scopes = &scope;
   flow.n_scopes = 1;
-  scheme.name = (char *)(size_t)(size_t) "oauth";
+  scheme.name = cdd_test_mut_str("oauth");
   scheme.type = OA_SEC_OAUTH2;
   scheme.flows = &flow;
   scheme.n_flows = 1;
@@ -510,13 +509,13 @@ TEST test_writer_servers(void) {
   json = NULL;
 
   memset(servers, 0, sizeof(servers));
-  servers[0].url = (char *)(size_t)(size_t) "https://api.example.com";
-  servers[0].description = (char *)(size_t)(size_t) "Prod";
-  servers[0].name = (char *)(size_t)(size_t) "prod";
+  servers[0].url = cdd_test_mut_str("https://api.example.com");
+  servers[0].description = cdd_test_mut_str("Prod");
+  servers[0].name = cdd_test_mut_str("prod");
 
   spec.servers = servers;
   spec.n_servers = 1;
-  spec.openapi_version = (char *)(size_t)(size_t) "3.1.2";
+  spec.openapi_version = cdd_test_mut_str("3.1.2");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -555,18 +554,17 @@ TEST test_writer_querystring_param(void) {
 
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = (char *)(size_t)(size_t) "/search";
+  path.route = cdd_test_mut_str("/search");
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)(size_t) "search";
+  op.operation_id = cdd_test_mut_str("search");
   op.parameters = &param;
   op.n_parameters = 1;
-  param.name = (char *)(size_t)(size_t) "qs";
+  param.name = cdd_test_mut_str("qs");
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = (char *)(size_t)(size_t) "string";
-  param.content_type =
-      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+  param.type = cdd_test_mut_str("string");
+  param.content_type = cdd_test_mut_str("application/x-www-form-urlencoded");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -615,21 +613,21 @@ TEST test_writer_ignores_reserved_header_params(void) {
 
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = (char *)(size_t)(size_t) "/h";
+  path.route = cdd_test_mut_str("/h");
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)(size_t) "getH";
+  op.operation_id = cdd_test_mut_str("getH");
   op.parameters = params;
   op.n_parameters = 2;
 
-  params[0].name = (char *)(size_t)(size_t) "Accept";
+  params[0].name = cdd_test_mut_str("Accept");
   params[0].in = OA_PARAM_IN_HEADER;
-  params[0].type = (char *)(size_t)(size_t) "string";
+  params[0].type = cdd_test_mut_str("string");
 
-  params[1].name = (char *)(size_t)(size_t) "q";
+  params[1].name = cdd_test_mut_str("q");
   params[1].in = OA_PARAM_IN_QUERY;
-  params[1].type = (char *)(size_t)(size_t) "string";
+  params[1].type = cdd_test_mut_str("string");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);

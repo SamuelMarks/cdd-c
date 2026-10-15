@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_ada.h
+ * @brief FFI binding emitter for Ada.
+ */
 #ifndef CDD_FFI_EMIT_ADA_H
 #define CDD_FFI_EMIT_ADA_H
 

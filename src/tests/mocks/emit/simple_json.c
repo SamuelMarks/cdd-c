@@ -188,7 +188,7 @@ cdd_c_error_t HazE_cleanup(struct HazE *haz_e) {
   if (haz_e == NULL)
     return CDD_C_SUCCESS;
 
-  free((void *)(size_t)haz_e->bzr);
+  free(haz_e->bzr);
   free(haz_e);
   return CDD_C_SUCCESS;
 }
@@ -304,8 +304,10 @@ cdd_c_error_t HazE_to_json(const struct HazE *haz_e, char **json) {
   }
 
   c89stringutils_jasprintf(json, ",");
-  if (*json == NULL)
+  if (*json == NULL) {
+    rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
+  }
 
   {
     rc = Tank_to_str(haz_e->tank, &tank_str);
@@ -321,9 +323,14 @@ cdd_c_error_t HazE_to_json(const struct HazE *haz_e, char **json) {
 
   c89stringutils_jasprintf(json, "}");
   if (*json == NULL) {
+    rc = CDD_C_ERROR_MEMORY;
   }
 
 cleanup:
+  if (rc != CDD_C_SUCCESS && *json != NULL) {
+    free(*json);
+    *json = NULL;
+  }
   free(tank_str);
   return rc;
 }
@@ -389,7 +396,7 @@ cdd_c_error_t HazE_from_json(const char *json, struct HazE **haz_e) {
 cdd_c_error_t FooE_cleanup(struct FooE *foo_e) {
   if (foo_e == NULL)
     return CDD_C_SUCCESS;
-  free((void *)(size_t)foo_e->bar);
+  free(foo_e->bar);
   HazE_cleanup(foo_e->haz);
   free(foo_e);
   return CDD_C_SUCCESS;
@@ -540,7 +547,8 @@ cdd_c_error_t FooE_to_json(const struct FooE *foo_e, char **json) {
     goto cleanup;
   }
 
-  if (HazE_to_json(foo_e->haz, &haz_e_json) != 0) {
+  rc = HazE_to_json(foo_e->haz, &haz_e_json);
+  if (rc != 0) {
     goto cleanup;
   }
 
@@ -552,9 +560,14 @@ cdd_c_error_t FooE_to_json(const struct FooE *foo_e, char **json) {
 
   c89stringutils_jasprintf(json, "}");
   if (*json == NULL) {
+    rc = CDD_C_ERROR_MEMORY;
   }
 
 cleanup:
+  if (rc != CDD_C_SUCCESS && *json != NULL) {
+    free(*json);
+    *json = NULL;
+  }
   free(haz_e_json);
   return rc;
 }
@@ -632,16 +645,19 @@ cdd_c_error_t run_mocks_test(void) {
   struct HazE *haz_e0 = NULL;
   struct FooE *foo_e0 = NULL;
 
+  char bzr_buf[] = "some_bzr";
+  char bar_buf[] = "some_bar";
+
   static const char *const haz_e_mock0 =
       "{\"bzr\": \"some_bzr\",\"tank\": \"SMALL\"}";
   static const char *const foo_e_mock0 =
       "{\"bar\": \"some_bar\",\"can\": 5,\"haz\":{\"bzr\": "
       "\"some_bzr\",\"tank\": \"SMALL\"}}";
 
-  haz_e.bzr = "some_bzr";
+  haz_e.bzr = bzr_buf;
   haz_e.tank = Tank_SMALL;
 
-  foo_e.bar = "some_bar";
+  foo_e.bar = bar_buf;
   foo_e.can = 5;
   foo_e.haz = &haz_e;
 

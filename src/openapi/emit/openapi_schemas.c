@@ -19,15 +19,31 @@
 #include "openapi/emit/openapi.h"
 /* clang-format on */
 
+/** @brief Safely sets a JSON object property and frees the value on failure */
+#define json_object_set_value(obj, name, val)                                  \
+  do {                                                                         \
+    JSON_Value *_cdd_jv = (val);                                               \
+    if ((json_object_set_value)((obj), (name), _cdd_jv) != JSONSuccess)        \
+      json_value_free(_cdd_jv);                                                \
+  } while (0)
+/** @brief Safely appends a JSON array element and frees the value on failure */
+#define json_array_append_value(arr, val)                                      \
+  do {                                                                         \
+    JSON_Value *_cdd_jv = (val);                                               \
+    if ((json_array_append_value)((arr), _cdd_jv) != JSONSuccess)              \
+      json_value_free(_cdd_jv);                                                \
+  } while (0)
+
 /* --- Helper Prototypes --- */
-static void write_schema_example(JSON_Object *obj,
-                                 const struct OpenAPI_Any *example,
-                                 int example_set);
-static void write_multipart_schema(JSON_Object *parent, const char *key,
-                                   const struct OpenAPI_SchemaRef *ref);
+static cdd_c_error_t write_schema_example(JSON_Object *obj,
+                                          const struct OpenAPI_Any *example,
+                                          int example_set);
+static cdd_c_error_t
+write_multipart_schema(JSON_Object *parent, const char *key,
+                       const struct OpenAPI_SchemaRef *ref);
 
 /**
- * @brief Executes the schema ref has data operation.
+ * @brief Checks whether an OpenAPI_SchemaRef contains any serializable fields.
  */
 C_CDD_EXPORT cdd_c_error_t
 schema_ref_has_data(const struct OpenAPI_SchemaRef *ref) {
@@ -57,29 +73,31 @@ schema_ref_has_data(const struct OpenAPI_SchemaRef *ref) {
 }
 
 /**
- * @brief Generates C code for write schema type.
+ * @brief Serializes the OpenAPI schema type into the target JSON object.
  */
-C_CDD_EXPORT void write_schema_type(JSON_Object *obj, const char *type,
-                                    int nullable) {
+C_CDD_EXPORT cdd_c_error_t write_schema_type(JSON_Object *obj, const char *type,
+                                             int nullable) {
   if (!obj || !type)
-    return;
+    return CDD_C_SUCCESS;
   if (nullable && strcmp(type, "null") != 0) {
     JSON_Value *type_val = json_value_init_array();
     JSON_Array *type_arr = json_value_get_array(type_val);
     if (!type_arr) {
       json_value_free(type_val);
-      return;
+      return CDD_C_SUCCESS;
     }
     json_array_append_string(type_arr, type);
     json_array_append_string(type_arr, "null");
     json_object_set_value(obj, "type", type_val);
-    return;
+    return CDD_C_SUCCESS;
   }
   json_object_set_string(obj, "type", type);
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Executes the type union contains operation.
+ * @brief Checks whether a JSON Schema type union array includes a specific type
+ * name.
  */
 C_CDD_EXPORT cdd_c_error_t type_union_contains(char **types, size_t n_types,
                                                const char *value) {
@@ -94,20 +112,22 @@ C_CDD_EXPORT cdd_c_error_t type_union_contains(char **types, size_t n_types,
 }
 
 /**
- * @brief Generates C code for write schema type union.
+ * @brief Serializes the OpenAPI schema type union into the target JSON object.
  */
-C_CDD_EXPORT void write_schema_type_union(JSON_Object *obj, const char *type,
-                                          int nullable, char **type_union,
-                                          size_t n_type_union) {
+C_CDD_EXPORT cdd_c_error_t write_schema_type_union(JSON_Object *obj,
+                                                   const char *type,
+                                                   int nullable,
+                                                   char **type_union,
+                                                   size_t n_type_union) {
   size_t i;
   if (!obj)
-    return;
+    return CDD_C_SUCCESS;
   if (type_union && n_type_union > 0) {
     JSON_Value *type_val = json_value_init_array();
     JSON_Array *type_arr = json_value_get_array(type_val);
     if (!type_arr) {
       json_value_free(type_val);
-      return;
+      return CDD_C_SUCCESS;
     }
     for (i = 0; i < n_type_union; ++i) {
       if (type_union[i])
@@ -116,50 +136,51 @@ C_CDD_EXPORT void write_schema_type_union(JSON_Object *obj, const char *type,
     if (nullable && !type_union_contains(type_union, n_type_union, "null"))
       json_array_append_string(type_arr, "null");
     json_object_set_value(obj, "type", type_val);
-    return;
+    return CDD_C_SUCCESS;
   }
   if (type)
     write_schema_type(obj, type, nullable);
+  return CDD_C_SUCCESS;
 }
-C_CDD_EXPORT void write_enum_any_values(JSON_Object *obj, const char *key,
-                                        const struct OpenAPI_Any *values,
-                                        size_t n_values) {
-  JSON_Value *_ast_any_to_json_value_1;
+C_CDD_EXPORT cdd_c_error_t
+write_enum_any_values(JSON_Object *obj, const char *key,
+                      const struct OpenAPI_Any *values, size_t n_values) {
   JSON_Value *enum_val;
   JSON_Array *enum_arr;
   size_t i;
 
   if (!obj || !key || !values || n_values == 0)
-    return;
+    return CDD_C_SUCCESS;
 
   enum_val = json_value_init_array();
   enum_arr = json_value_get_array(enum_val);
   if (!enum_arr) {
     json_value_free(enum_val);
-    return;
+    return CDD_C_SUCCESS;
   }
 
   for (i = 0; i < n_values; ++i) {
-    JSON_Value *val = (any_to_json_value(&values[i], &_ast_any_to_json_value_1),
-                       _ast_any_to_json_value_1);
+    JSON_Value *val = NULL;
+    any_to_json_value(&values[i], &val);
     if (val)
       json_array_append_value(enum_arr, val);
   }
 
   json_object_set_value(obj, key, enum_val);
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Generates C code for write any array values.
+ * @brief Serializes the OpenAPI any array values into the target JSON object.
  */
-C_CDD_EXPORT void write_any_array_values(JSON_Object *obj, const char *key,
-                                         const struct OpenAPI_Any *values,
-                                         size_t n_values) {
-  write_enum_any_values(obj, key, values, n_values);
+C_CDD_EXPORT cdd_c_error_t
+write_any_array_values(JSON_Object *obj, const char *key,
+                       const struct OpenAPI_Any *values, size_t n_values) {
+  return write_enum_any_values(obj, key, values, n_values);
 }
 
 /**
- * @brief Executes the any to json value operation.
+ * @brief Converts a variant OpenAPI_Any value into a Parson JSON_Value.
  */
 C_CDD_EXPORT cdd_c_error_t any_to_json_value(const struct OpenAPI_Any *val,
                                              JSON_Value **_out_val) {
@@ -208,8 +229,9 @@ C_CDD_EXPORT cdd_c_error_t any_to_json_value(const struct OpenAPI_Any *val,
 /**
  * @brief Construct an inline schema definition for Multipart fields.
  */
-static void write_multipart_schema(JSON_Object *parent, const char *key,
-                                   const struct OpenAPI_SchemaRef *ref) {
+static cdd_c_error_t
+write_multipart_schema(JSON_Object *parent, const char *key,
+                       const struct OpenAPI_SchemaRef *ref) {
   JSON_Value *sch_val = json_value_init_object();
   JSON_Object *sch_obj = json_value_get_object(sch_val);
   JSON_Value *props_val = json_value_init_object();
@@ -237,33 +259,33 @@ static void write_multipart_schema(JSON_Object *parent, const char *key,
 
   json_object_set_value(sch_obj, "properties", props_val);
   json_object_set_value(parent, key, sch_val);
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Generates C code for write schema example.
+ * @brief Serializes the OpenAPI schema example into the target JSON object.
  */
-static void write_schema_example(JSON_Object *obj,
-                                 const struct OpenAPI_Any *example,
-                                 int example_set) {
-  JSON_Value *_ast_any_to_json_value_6;
-  JSON_Value *ex_val;
+static cdd_c_error_t write_schema_example(JSON_Object *obj,
+                                          const struct OpenAPI_Any *example,
+                                          int example_set) {
+  JSON_Value *ex_val = NULL;
   if (!obj || !example_set)
-    return;
-  ex_val = (any_to_json_value(example, &_ast_any_to_json_value_6),
-            _ast_any_to_json_value_6);
+    return CDD_C_SUCCESS;
+  any_to_json_value(example, &ex_val);
   if (ex_val)
     json_object_set_value(obj, "example", ex_val);
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Generates C code for write numeric constraints.
+ * @brief Serializes the OpenAPI numeric constraints into the target JSON
+ * object.
  */
-C_CDD_EXPORT void write_numeric_constraints(JSON_Object *obj, int has_min,
-                                            double min_val, int exclusive_min,
-                                            int has_max, double max_val,
-                                            int exclusive_max) {
+C_CDD_EXPORT cdd_c_error_t write_numeric_constraints(
+    JSON_Object *obj, int has_min, double min_val, int exclusive_min,
+    int has_max, double max_val, int exclusive_max) {
   if (!obj)
-    return;
+    return CDD_C_SUCCESS;
   if (has_min) {
     if (exclusive_min)
       json_object_set_number(obj, "exclusiveMinimum", min_val);
@@ -280,51 +302,51 @@ C_CDD_EXPORT void write_numeric_constraints(JSON_Object *obj, int has_min,
   } else if (exclusive_max) {
     json_object_set_boolean(obj, "exclusiveMaximum", 1);
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Generates C code for write string constraints.
+ * @brief Serializes the OpenAPI string constraints into the target JSON object.
  */
-C_CDD_EXPORT void write_string_constraints(JSON_Object *obj, int has_min_len,
-                                           size_t min_len, int has_max_len,
-                                           size_t max_len,
-                                           const char *pattern) {
+C_CDD_EXPORT cdd_c_error_t
+write_string_constraints(JSON_Object *obj, int has_min_len, size_t min_len,
+                         int has_max_len, size_t max_len, const char *pattern) {
   if (!obj)
-    return;
+    return CDD_C_SUCCESS;
   if (has_min_len)
     json_object_set_number(obj, "minLength", (double)min_len);
   if (has_max_len)
     json_object_set_number(obj, "maxLength", (double)max_len);
   if (pattern)
     json_object_set_string(obj, "pattern", pattern);
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Generates C code for write array constraints.
+ * @brief Serializes the OpenAPI array constraints into the target JSON object.
  */
-C_CDD_EXPORT void write_array_constraints(JSON_Object *obj, int has_min_items,
-                                          size_t min_items, int has_max_items,
-                                          size_t max_items, int unique_items) {
+C_CDD_EXPORT cdd_c_error_t
+write_array_constraints(JSON_Object *obj, int has_min_items, size_t min_items,
+                        int has_max_items, size_t max_items, int unique_items) {
   if (!obj)
-    return;
+    return CDD_C_SUCCESS;
   if (has_min_items)
     json_object_set_number(obj, "minItems", (double)min_items);
   if (has_max_items)
     json_object_set_number(obj, "maxItems", (double)max_items);
   if (unique_items)
     json_object_set_boolean(obj, "uniqueItems", 1);
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Generates C code for write items schema fields.
+ * @brief Serializes the OpenAPI items schema fields into the target JSON
+ * object.
  */
-C_CDD_EXPORT void
-write_items_schema_fields(JSON_Object *item_obj,
-                          const struct OpenAPI_SchemaRef *ref) {
-  JSON_Value *_ast_any_to_json_value_7;
-  JSON_Value *_ast_any_to_json_value_8;
+C_CDD_EXPORT cdd_c_error_t write_items_schema_fields(
+    JSON_Object *item_obj, const struct OpenAPI_SchemaRef *ref) {
   if (!item_obj || !ref)
-    return;
+    return CDD_C_SUCCESS;
 
   write_numeric_constraints(item_obj, ref->items_has_min, ref->items_min_val,
                             ref->items_exclusive_min, ref->items_has_max,
@@ -355,25 +377,24 @@ write_items_schema_fields(JSON_Object *item_obj,
     write_enum_any_values(item_obj, "enum", ref->items_enum_values,
                           ref->n_items_enum_values);
   if (ref->items_const_value_set) {
-    JSON_Value *const_val =
-        (any_to_json_value(&ref->items_const_value, &_ast_any_to_json_value_7),
-         _ast_any_to_json_value_7);
+    JSON_Value *const_val = NULL;
+    any_to_json_value(&ref->items_const_value, &const_val);
     if (const_val)
       json_object_set_value(item_obj, "const", const_val);
   }
   if (ref->items_default_value_set) {
-    JSON_Value *def_val = (any_to_json_value(&ref->items_default_value,
-                                             &_ast_any_to_json_value_8),
-                           _ast_any_to_json_value_8);
+    JSON_Value *def_val = NULL;
+    any_to_json_value(&ref->items_default_value, &def_val);
     if (def_val)
       json_object_set_value(item_obj, "default", def_val);
   }
   if (ref->items_extra_json)
     merge_schema_extras_object_openapi(item_obj, ref->items_extra_json);
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Executes the schema ref keyword operation.
+ * @brief Determines whether to emit $ref or $dynamicRef for a schema reference.
  */
 C_CDD_EXPORT cdd_c_error_t schema_ref_keyword(int is_dynamic, char **_out_val) {
   {
@@ -388,23 +409,18 @@ C_CDD_EXPORT cdd_c_error_t schema_ref_keyword(int is_dynamic, char **_out_val) {
  * Handles `$ref`, `type: array`, and basic types.
  * Populates `parent` at `key` (e.g. key="schema").
  */
-C_CDD_EXPORT void write_schema_ref(JSON_Object *parent, const char *key,
-                                   const struct OpenAPI_SchemaRef *ref) {
-  char *_ast_schema_ref_keyword_9 = NULL;
-  char *_ast_schema_ref_keyword_10 = NULL;
-  JSON_Value *_ast_any_to_json_value_11;
-  JSON_Value *_ast_any_to_json_value_12;
-  JSON_Value *_ast_any_to_json_value_13;
+C_CDD_EXPORT cdd_c_error_t write_schema_ref(
+    JSON_Object *parent, const char *key, const struct OpenAPI_SchemaRef *ref) {
   JSON_Value *sch_val;
   JSON_Object *sch_obj;
   char ref_path[256];
 
   if (!parent || !key || !ref)
-    return;
+    return CDD_C_SUCCESS;
 
   if (ref->schema_is_boolean) {
     json_object_set_boolean(parent, key, ref->schema_boolean_value ? 1 : 0);
-    return;
+    return CDD_C_SUCCESS;
   }
 
   sch_val = json_value_init_object();
@@ -414,7 +430,7 @@ C_CDD_EXPORT void write_schema_ref(JSON_Object *parent, const char *key,
   if (ref->n_multipart_fields > 0) {
     json_value_free(sch_val); /* Discard placeholder */
     write_multipart_schema(parent, key, ref);
-    return;
+    return CDD_C_SUCCESS;
   }
 
   /* Case 2: Array */
@@ -434,11 +450,9 @@ C_CDD_EXPORT void write_schema_ref(JSON_Object *parent, const char *key,
     } else if (ref->items_ref) {
       JSON_Value *item_val = json_value_init_object();
       JSON_Object *item_obj = json_value_get_object(item_val);
-      json_object_set_string(item_obj,
-                             (schema_ref_keyword(ref->items_ref_is_dynamic,
-                                                 &_ast_schema_ref_keyword_9),
-                              _ast_schema_ref_keyword_9),
-                             ref->items_ref);
+      char *kw = NULL;
+      schema_ref_keyword(ref->items_ref_is_dynamic, &kw);
+      json_object_set_string(item_obj, kw, ref->items_ref);
       write_items_schema_fields(item_obj, ref);
       json_object_set_value(sch_obj, "items", item_val);
     } else if (ref->ref_name) {
@@ -471,11 +485,9 @@ C_CDD_EXPORT void write_schema_ref(JSON_Object *parent, const char *key,
     write_schema_type_union(sch_obj, ref->inline_type, ref->nullable,
                             ref->type_union, ref->n_type_union);
   } else if (ref->ref) {
-    json_object_set_string(
-        sch_obj,
-        (schema_ref_keyword(ref->ref_is_dynamic, &_ast_schema_ref_keyword_10),
-         _ast_schema_ref_keyword_10),
-        ref->ref);
+    char *kw = NULL;
+    schema_ref_keyword(ref->ref_is_dynamic, &kw);
+    json_object_set_string(sch_obj, kw, ref->ref);
   } else if (ref->ref_name) {
     if (is_schema_primitive_openapi(ref->ref_name)) {
       write_schema_type_union(sch_obj, ref->ref_name, ref->nullable,
@@ -595,9 +607,8 @@ C_CDD_EXPORT void write_schema_ref(JSON_Object *parent, const char *key,
   if (ref->write_only_set)
     json_object_set_boolean(sch_obj, "writeOnly", ref->write_only ? 1 : 0);
   if (ref->const_value_set) {
-    JSON_Value *const_val =
-        (any_to_json_value(&ref->const_value, &_ast_any_to_json_value_11),
-         _ast_any_to_json_value_11);
+    JSON_Value *const_val = NULL;
+    any_to_json_value(&ref->const_value, &const_val);
     if (const_val)
       json_object_set_value(sch_obj, "const", const_val);
   }
@@ -608,9 +619,8 @@ C_CDD_EXPORT void write_schema_ref(JSON_Object *parent, const char *key,
     size_t i;
     if (examples_arr) {
       for (i = 0; i < ref->n_examples; ++i) {
-        JSON_Value *ex_val =
-            (any_to_json_value(&ref->examples[i], &_ast_any_to_json_value_12),
-             _ast_any_to_json_value_12);
+        JSON_Value *ex_val = NULL;
+        any_to_json_value(&ref->examples[i], &ex_val);
         if (ex_val)
           json_array_append_value(examples_arr, ex_val);
       }
@@ -623,9 +633,8 @@ C_CDD_EXPORT void write_schema_ref(JSON_Object *parent, const char *key,
     write_enum_any_values(sch_obj, "enum", ref->enum_values,
                           ref->n_enum_values);
   if (ref->default_value_set) {
-    JSON_Value *def_val =
-        (any_to_json_value(&ref->default_value, &_ast_any_to_json_value_13),
-         _ast_any_to_json_value_13);
+    JSON_Value *def_val = NULL;
+    any_to_json_value(&ref->default_value, &def_val);
     if (def_val)
       json_object_set_value(sch_obj, "default", def_val);
   }
@@ -633,15 +642,16 @@ C_CDD_EXPORT void write_schema_ref(JSON_Object *parent, const char *key,
     merge_schema_extras_object_openapi(sch_obj, ref->schema_extra_json);
 
   json_object_set_value(parent, key, sch_val);
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Generates C code for write schema from type fields.
+ * @brief Serializes the OpenAPI schema from type fields into the target JSON
+ * object.
  */
-C_CDD_EXPORT void write_schema_from_type_fields(JSON_Object *parent,
-                                                const char *key,
-                                                const char *type, int is_array,
-                                                const char *items_type) {
+C_CDD_EXPORT cdd_c_error_t write_schema_from_type_fields(
+    JSON_Object *parent, const char *key, const char *type, int is_array,
+    const char *items_type) {
   JSON_Value *sch_val = json_value_init_object();
   JSON_Object *sch_obj = json_value_get_object(sch_val);
   char ref_path[128];
@@ -666,7 +676,7 @@ C_CDD_EXPORT void write_schema_from_type_fields(JSON_Object *parent,
       json_object_set_value(sch_obj, "items", item_val);
     }
     json_object_set_value(parent, key, sch_val);
-    return;
+    return CDD_C_SUCCESS;
   }
 
   if (type &&
@@ -684,4 +694,5 @@ C_CDD_EXPORT void write_schema_from_type_fields(JSON_Object *parent,
   }
 
   json_object_set_value(parent, key, sch_val);
+  return CDD_C_SUCCESS;
 }

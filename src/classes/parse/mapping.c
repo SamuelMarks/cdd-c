@@ -19,7 +19,7 @@
 /* clang-format on */
 
 /**
- * @brief Executes the c mapping init operation.
+ * @brief Initializes a C-to-OpenAPI type mapping table.
  */
 cdd_c_error_t c_mapping_init(struct OpenApiTypeMapping *out) {
 #ifdef CDD_BUILD_TESTS
@@ -37,7 +37,7 @@ cdd_c_error_t c_mapping_init(struct OpenApiTypeMapping *out) {
 }
 
 /**
- * @brief Executes the c mapping free operation.
+ * @brief Releases memory held by a C-to-OpenAPI type mapping table.
  */
 void c_mapping_free(struct OpenApiTypeMapping *out) {
   if (out) {
@@ -109,7 +109,7 @@ static cdd_c_error_t skip_qualifiers(const char *type, const char **_out_val) {
 }
 
 /**
- * @brief Executes the clean type str operation.
+ * @brief Normalizes whitespace and qualifiers in a C type string.
  */
 static cdd_c_error_t clean_type_str(const char *in, char **_out_val) {
   char *p;
@@ -134,7 +134,8 @@ static cdd_c_error_t clean_type_str(const char *in, char **_out_val) {
 }
 
 /**
- * @brief Executes the c mapping map type operation.
+ * @brief Maps a C type declaration string to its corresponding OpenAPI type and
+ * format.
  */
 cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
                                  struct OpenApiTypeMapping *out) {
@@ -257,7 +258,18 @@ cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Internal self-test for mapping helper NULL-argument error paths.
+ *
+ * @return CDD_C_SUCCESS if all internal error checks succeed.
+ */
 C_CDD_EXPORT cdd_c_error_t test_mapping_internal_errors(void);
+
+/**
+ * @brief Internal self-test for mapping helper NULL-argument error paths.
+ *
+ * @return CDD_C_SUCCESS if all internal error checks succeed.
+ */
 C_CDD_EXPORT cdd_c_error_t test_mapping_internal_errors(void) {
   const char *out_str = NULL;
   char *out_buf = NULL;

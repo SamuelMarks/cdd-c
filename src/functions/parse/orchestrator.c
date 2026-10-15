@@ -107,7 +107,7 @@ C_CDD_EXPORT cdd_c_error_t find_token_in_range(const struct TokenList *tokens,
 
 /* Helper for token string comparison */
 /**
- * @brief Executes the token eq str operation.
+ * @brief Checks whether a token slice exactly matches a null-terminated string.
  */
 C_CDD_EXPORT cdd_c_error_t token_eq_str(const struct Token *tok, const char *s,
                                         int *out_eq) {
@@ -135,8 +135,7 @@ C_CDD_EXPORT cdd_c_error_t token_eq_str(const struct Token *tok, const char *s,
 C_CDD_EXPORT cdd_c_error_t extract_func_name(const struct TokenList *tokens,
                                              size_t start, size_t body_start,
                                              char **_out_val) {
-  size_t _ast_find_token_in_range_0 = 0;
-  size_t lparen;
+  size_t lparen = 0;
   size_t i;
 
 #ifdef CDD_BUILD_TESTS
@@ -152,9 +151,7 @@ C_CDD_EXPORT cdd_c_error_t extract_func_name(const struct TokenList *tokens,
   if (!tokens)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  find_token_in_range(tokens, start, body_start, TOKEN_LPAREN,
-                      &_ast_find_token_in_range_0);
-  lparen = _ast_find_token_in_range_0;
+  find_token_in_range(tokens, start, body_start, TOKEN_LPAREN, &lparen);
   if (lparen == body_start)
     return CDD_C_SUCCESS;
 
@@ -281,9 +278,8 @@ C_CDD_EXPORT cdd_c_error_t concat_strings(const char *s1, const char *delim,
 C_CDD_EXPORT cdd_c_error_t analyze_signature_tokens(
     const struct TokenList *tokens, size_t start, size_t body_start,
     int *is_ptr, int *is_void, char **type_str) {
-  size_t _ast_find_token_in_range_1 = 0;
   size_t i;
-  size_t lparen;
+  size_t lparen = 0;
   size_t name_end_idx = 0;
   cdd_c_error_t rc;
 
@@ -294,9 +290,7 @@ C_CDD_EXPORT cdd_c_error_t analyze_signature_tokens(
   *is_void = 0;
   *type_str = NULL;
 
-  find_token_in_range(tokens, start, body_start, TOKEN_LPAREN,
-                      &_ast_find_token_in_range_1);
-  lparen = _ast_find_token_in_range_1;
+  find_token_in_range(tokens, start, body_start, TOKEN_LPAREN, &lparen);
   if (lparen == body_start)
     return CDD_C_SUCCESS;
 
@@ -341,7 +335,7 @@ C_CDD_EXPORT cdd_c_error_t analyze_signature_tokens(
 /* --- Graph Management --- */
 
 /**
- * @brief Executes the graph add node operation.
+ * @brief Adds or retrieves a function node in the call dependency graph.
  */
 C_CDD_EXPORT cdd_c_error_t graph_add_node(struct DependencyGraph *g, size_t idx,
                                           const char *name) {
@@ -365,7 +359,7 @@ C_CDD_EXPORT cdd_c_error_t graph_add_node(struct DependencyGraph *g, size_t idx,
 }
 
 /**
- * @brief Executes the graph add edge operation.
+ * @brief Adds a directed caller-to-callee edge in the call dependency graph.
  */
 C_CDD_EXPORT cdd_c_error_t graph_add_edge(struct DependencyGraph *g,
                                           size_t caller_idx,
@@ -399,7 +393,7 @@ C_CDD_EXPORT cdd_c_error_t graph_add_edge(struct DependencyGraph *g,
 }
 
 /**
- * @brief Executes the graph free contents operation.
+ * @brief Releases all nodes and edges in a call dependency graph.
  */
 C_CDD_EXPORT cdd_c_error_t graph_free_contents(struct DependencyGraph *g) {
   size_t i;
@@ -419,7 +413,8 @@ C_CDD_EXPORT cdd_c_error_t graph_free_contents(struct DependencyGraph *g) {
 /* --- Propagation Logic --- */
 
 /**
- * @brief Executes the propagate refactor mark operation.
+ * @brief Propagates error-percolation refactoring marks transitively through
+ * callers.
  */
 C_CDD_EXPORT cdd_c_error_t propagate_refactor_mark(struct DependencyGraph *g,
                                                    size_t idx) {
@@ -449,11 +444,9 @@ C_CDD_EXPORT cdd_c_error_t propagate_refactor_mark(struct DependencyGraph *g,
   /* Recurse to all callers */
   for (i = 0; i < node->num_callers; i++) {
     size_t caller_idx = node->callers[i];
-    {
-      cdd_c_error_t rc_or = propagate_refactor_mark(g, caller_idx);
-      if (rc_or != CDD_C_SUCCESS)
-        return rc_or;
-    }
+    cdd_c_error_t rc = propagate_refactor_mark(g, caller_idx);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   return CDD_C_SUCCESS;
 }
@@ -461,13 +454,10 @@ C_CDD_EXPORT cdd_c_error_t propagate_refactor_mark(struct DependencyGraph *g,
 /* --- Main Orchestrator --- */
 
 /**
- * @brief Executes the orchestrate fix operation.
+ * @brief Runs multi-file error-percolation refactoring across a set of C
+ * sources.
  */
 cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
-  size_t _ast_find_token_in_range_3 = 0;
-  char *_ast_join_tokens_str_5 = NULL;
-  char *_ast_join_tokens_str_6 = NULL;
-  char *_ast_join_tokens_str_7 = NULL;
   struct TokenList *tokens = NULL;
   struct CstNodeList cst = {0};
   struct AllocationSiteList allocs = {0};
@@ -478,10 +468,6 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
   size_t marked_count = 0;
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
-  (void)_ast_join_tokens_str_5;
-  (void)_ast_join_tokens_str_6;
-  (void)_ast_join_tokens_str_7;
-
   if (!source_code || !out_code)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -490,8 +476,8 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
   if (g_force_tokenize_fail)
     return CDD_C_ERROR_MEMORY;
 #endif
-  if ((rc = tokenize(az_span_create_from_str((char *)(size_t)source_code),
-                     &tokens)) != CDD_C_SUCCESS)
+  if ((rc = tokenize(az_span_create_from_str(source_code), &tokens)) !=
+      CDD_C_SUCCESS)
     return rc;
 
 #ifdef CDD_BUILD_TESTS
@@ -563,8 +549,7 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
         fn->token_start = start_idx;
         fn->token_end = end_idx;
         find_token_in_range(tokens, start_idx, end_idx, TOKEN_LBRACE,
-                            &_ast_find_token_in_range_3);
-        fn->body_start = _ast_find_token_in_range_3;
+                            &fn->body_start);
 
         rc = extract_func_name(tokens, start_idx, fn->body_start, &name);
         if (rc != CDD_C_SUCCESS)
@@ -637,12 +622,9 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
     struct FuncNode *n = &graph.nodes[i];
     /* Seed: Function contains allocations and returns unsafe type */
     if (n->contains_allocs && (n->returns_void || n->returns_ptr)) {
-      {
-        cdd_c_error_t rc_or = propagate_refactor_mark(&graph, i);
-        if (rc_or != CDD_C_SUCCESS) {
-          rc = rc_or;
-          goto cleanup;
-        }
+      rc = propagate_refactor_mark(&graph, i);
+      if (rc != CDD_C_SUCCESS) {
+        goto cleanup;
       }
     }
   }
@@ -716,9 +698,7 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
             /* Generate Signature */
             if (!node->is_main) {
               if (rewrite_signature(&sig_slice, &new_sig) != 0) {
-                join_tokens_str(tokens, start_idx, node->body_start,
-                                &_ast_join_tokens_str_5);
-                new_sig = _ast_join_tokens_str_5;
+                join_tokens_str(tokens, start_idx, node->body_start, &new_sig);
               }
 
               trans.type = node->returns_ptr ? TRANSFORM_RET_PTR_TO_ARG
@@ -728,9 +708,7 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
               trans.error_code = "CDD_C_ERROR_MEMORY";
               trans.return_type = node->original_return_type;
             } else {
-              join_tokens_str(tokens, start_idx, node->body_start,
-                              &_ast_join_tokens_str_6);
-              new_sig = _ast_join_tokens_str_6;
+              join_tokens_str(tokens, start_idx, node->body_start, &new_sig);
               trans.type = TRANSFORM_NONE;
             }
 
@@ -738,21 +716,17 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
             {
               struct AllocationSiteList local_allocs = {0};
               size_t k;
-              {
-                cdd_c_error_t rc_or;
 #ifdef CDD_BUILD_TESTS
-                extern C_CDD_EXPORT int g_cdd_fail_local_alloc_init;
-                if (g_cdd_fail_local_alloc_init &&
-                    --g_cdd_fail_local_alloc_init == 0)
-                  rc_or = CDD_C_ERROR_MEMORY;
-                else
+              extern C_CDD_EXPORT int g_cdd_fail_local_alloc_init;
+              if (g_cdd_fail_local_alloc_init &&
+                  --g_cdd_fail_local_alloc_init == 0)
+                rc = CDD_C_ERROR_MEMORY;
+              else
 #endif
-                  rc_or = allocation_site_list_init(&local_allocs);
-                if (rc_or != CDD_C_SUCCESS) {
-                  rc = rc_or;
-                  C_CDD_FREE(new_sig);
-                  goto cleanup;
-                }
+                rc = allocation_site_list_init(&local_allocs);
+              if (rc != CDD_C_SUCCESS) {
+                C_CDD_FREE(new_sig);
+                goto cleanup;
               }
               for (k = 0; k < allocs.size; k++) {
                 if (allocs.sites[k].token_index >= node->body_start &&
@@ -773,6 +747,8 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
                     new_sites = (struct AllocationSite *)C_CDD_REALLOC(
                         local_allocs.sites, nc * sizeof(struct AllocationSite));
                     if (!new_sites) {
+                      if (site.var_name)
+                        C_CDD_FREE(site.var_name);
                       allocation_site_list_free(&local_allocs);
                       C_CDD_FREE(new_sig);
                       rc = CDD_C_ERROR_MEMORY;
@@ -802,8 +778,7 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
         }
 
         if (!segment) {
-          join_tokens_str(tokens, start_idx, end_idx, &_ast_join_tokens_str_7);
-          segment = _ast_join_tokens_str_7;
+          join_tokens_str(tokens, start_idx, end_idx, &segment);
         }
 
         {
@@ -880,7 +855,7 @@ C_CDD_EXPORT cdd_c_error_t is_c_source(const char *path, int *out_is_src) {
 }
 
 /**
- * @brief Executes the fix file callback operation.
+ * @brief Directory-walker callback that refactors a single C source file.
  */
 C_CDD_EXPORT cdd_c_error_t fix_file_callback(const char *path,
                                              void *user_data) {
@@ -947,7 +922,7 @@ C_CDD_EXPORT cdd_c_error_t fix_file_callback(const char *path,
 }
 
 /**
- * @brief Executes the fix code main operation.
+ * @brief CLI entry point for automated C code refactoring.
  */
 cdd_c_error_t fix_code_main(int argc, char **argv) {
   struct FixWalkContext ctx = {0};

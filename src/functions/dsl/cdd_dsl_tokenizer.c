@@ -1,3 +1,7 @@
+/**
+ * @file cdd_dsl_tokenizer.c
+ * @brief CDD FFI Domain-Specific Language (DSL) tokenizer.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -12,11 +16,14 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Internal state for the CDD DSL lexical scanner.
+ */
 typedef struct {
-  const char *source;
-  size_t current_pos;
-  size_t line;
-  size_t col;
+  const char *source; /**< Input DSL source buffer */
+  size_t current_pos; /**< Current byte offset in source */
+  size_t line;        /**< Current 1-based line number */
+  size_t col;         /**< Current 1-based column number */
 } tokenizer_state_t;
 
 static cdd_c_error_t advance(tokenizer_state_t *state) {
@@ -35,9 +42,9 @@ static cdd_c_error_t advance(tokenizer_state_t *state) {
   return CDD_C_SUCCESS;
 }
 
-static int is_at_end(const tokenizer_state_t *state) {
-  return state->source[state->current_pos] == '\0';
-}
+/** @brief Evaluates to non-zero if the tokenizer has reached the null
+ * terminator */
+#define IS_AT_END(st) ((st)->source[(st)->current_pos] == '\0')
 
 static cdd_c_error_t add_token(cdd_dsl_token_list_t *list,
                                cdd_dsl_token_kind_t kind,
@@ -173,12 +180,12 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
   out_tokens->count = 0;
   out_tokens->capacity = 0;
 
-  while (!is_at_end(&state)) {
+  while (!IS_AT_END(&state)) {
     char c = state.source[state.current_pos];
     size_t start_pos = state.current_pos;
 
     if (isspace(c)) {
-      while (!is_at_end(&state) && isspace(state.source[state.current_pos])) {
+      while (!IS_AT_END(&state) && isspace(state.source[state.current_pos])) {
         {
           rc = advance(&state);
           if (rc != CDD_C_SUCCESS)
@@ -193,7 +200,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
     }
 
     if (c == '/' && state.source[state.current_pos + 1] == '/') {
-      while (!is_at_end(&state) && state.source[state.current_pos] != '\n') {
+      while (!IS_AT_END(&state) && state.source[state.current_pos] != '\n') {
         {
           rc = advance(&state);
           if (rc != CDD_C_SUCCESS)
@@ -218,7 +225,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
       } /* * */
-      while (!is_at_end(&state)) {
+      while (!IS_AT_END(&state)) {
         if (state.source[state.current_pos] == '*' &&
             state.source[state.current_pos + 1] == '/') {
           {
@@ -339,7 +346,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
         goto cleanup;
 
       start_pos = state.current_pos;
-      while (!is_at_end(&state)) {
+      while (!IS_AT_END(&state)) {
         if (state.source[state.current_pos] == '}' &&
             state.source[state.current_pos + 1] == '%') {
           break;
@@ -355,7 +362,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
 
-      if (!is_at_end(&state)) {
+      if (!IS_AT_END(&state)) {
         start_pos = state.current_pos;
         {
           rc = advance(&state);
@@ -380,14 +387,14 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
       }
-      while (!is_at_end(&state) && state.source[state.current_pos] != '"') {
+      while (!IS_AT_END(&state) && state.source[state.current_pos] != '"') {
         if (state.source[state.current_pos] == '\\') {
           {
             rc = advance(&state);
             if (rc != CDD_C_SUCCESS)
               goto cleanup;
           }
-          if (is_at_end(&state))
+          if (IS_AT_END(&state))
             break;
         }
         {
@@ -396,7 +403,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
             goto cleanup;
         }
       }
-      if (!is_at_end(&state)) {
+      if (!IS_AT_END(&state)) {
         rc = advance(&state);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
@@ -538,7 +545,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
     }
 
     if (isalpha(c) || c == '_') {
-      while (!is_at_end(&state) && (isalnum(state.source[state.current_pos]) ||
+      while (!IS_AT_END(&state) && (isalnum(state.source[state.current_pos]) ||
                                     state.source[state.current_pos] == '_')) {
         {
           rc = advance(&state);
@@ -557,7 +564,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
 
     if (isdigit(c) ||
         (c == '\'' && isdigit(state.source[state.current_pos + 1]))) {
-      while (!is_at_end(&state) && (isalnum(state.source[state.current_pos]) ||
+      while (!IS_AT_END(&state) && (isalnum(state.source[state.current_pos]) ||
                                     state.source[state.current_pos] == '\'' ||
                                     state.source[state.current_pos] == '.')) {
         {

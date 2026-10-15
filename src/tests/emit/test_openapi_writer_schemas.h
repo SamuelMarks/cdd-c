@@ -24,7 +24,7 @@ TEST test_writer_inline_response_schema_primitive(void) {
   json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
-  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
+  resp.schema.inline_type = cdd_test_mut_str("string");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -68,7 +68,7 @@ TEST test_writer_inline_response_schema_array(void) {
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.is_array = 1;
-  resp.schema.inline_type = (char *)(size_t)(size_t) "integer";
+  resp.schema.inline_type = cdd_test_mut_str("integer");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -114,10 +114,10 @@ TEST test_writer_inline_schema_format_and_content(void) {
   json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
-  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
-  resp.schema.format = (char *)(size_t)(size_t) "uuid";
-  resp.schema.content_media_type = (char *)(size_t)(size_t) "image/png";
-  resp.schema.content_encoding = (char *)(size_t)(size_t) "base64";
+  resp.schema.inline_type = cdd_test_mut_str("string");
+  resp.schema.format = cdd_test_mut_str("uuid");
+  resp.schema.content_media_type = cdd_test_mut_str("image/png");
+  resp.schema.content_encoding = cdd_test_mut_str("base64");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -165,10 +165,10 @@ TEST test_writer_inline_schema_array_item_format_and_content(void) {
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.is_array = 1;
-  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
-  resp.schema.items_format = (char *)(size_t)(size_t) "uuid";
-  resp.schema.items_content_media_type = (char *)(size_t)(size_t) "image/png";
-  resp.schema.items_content_encoding = (char *)(size_t)(size_t) "base64";
+  resp.schema.inline_type = cdd_test_mut_str("string");
+  resp.schema.items_format = cdd_test_mut_str("uuid");
+  resp.schema.items_content_media_type = cdd_test_mut_str("image/png");
+  resp.schema.items_content_encoding = cdd_test_mut_str("base64");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -221,27 +221,26 @@ TEST test_writer_schema_external_docs_discriminator_xml(void) {
   setup_test_spec(&spec, &path, &op, NULL, &resp);
 
   resp.schema.ref_name = NULL;
-  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
+  resp.schema.inline_type = cdd_test_mut_str("string");
   resp.schema.external_docs_set = 1;
   resp.schema.external_docs.url =
-      (char *)(size_t)(size_t) "https://example.com/schema-doc";
+      cdd_test_mut_str("https://example.com/schema-doc");
   resp.schema.external_docs.description =
-      (char *)(size_t)(size_t) "Schema external docs";
+      cdd_test_mut_str("Schema external docs");
   resp.schema.discriminator_set = 1;
-  resp.schema.discriminator.property_name = (char *)(size_t)(size_t) "kind";
+  resp.schema.discriminator.property_name = cdd_test_mut_str("kind");
   resp.schema.discriminator.default_mapping =
-      (char *)(size_t)(size_t) "#/components/schemas/Base";
-  map.value = (char *)(size_t)(size_t) "cat";
-  map.schema = (char *)(size_t)(size_t) "#/components/schemas/Cat";
+      cdd_test_mut_str("#/components/schemas/Base");
+  map.value = cdd_test_mut_str("cat");
+  map.schema = cdd_test_mut_str("#/components/schemas/Cat");
   resp.schema.discriminator.mapping = &map;
   resp.schema.discriminator.n_mapping = 1;
   resp.schema.xml_set = 1;
   resp.schema.xml.node_type_set = 1;
   resp.schema.xml.node_type = OA_XML_NODE_ATTRIBUTE;
-  resp.schema.xml.name = (char *)(size_t)(size_t) "id";
-  resp.schema.xml.namespace_uri =
-      (char *)(size_t)(size_t) "https://example.com/ns";
-  resp.schema.xml.prefix = (char *)(size_t)(size_t) "p";
+  resp.schema.xml.name = cdd_test_mut_str("id");
+  resp.schema.xml.namespace_uri = cdd_test_mut_str("https://example.com/ns");
+  resp.schema.xml.prefix = cdd_test_mut_str("p");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -312,13 +311,13 @@ TEST test_writer_inline_schema_const_examples_annotations(void) {
 
   memset(examples, 0, sizeof(examples));
   examples[0].type = OA_ANY_STRING;
-  examples[0].string = (char *)(size_t)(size_t) "fast";
+  examples[0].string = cdd_test_mut_str("fast");
   examples[1].type = OA_ANY_STRING;
-  examples[1].string = (char *)(size_t)(size_t) "slow";
+  examples[1].string = cdd_test_mut_str("slow");
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
-  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
-  resp.schema.description = (char *)(size_t)(size_t) "Mode";
+  resp.schema.inline_type = cdd_test_mut_str("string");
+  resp.schema.description = cdd_test_mut_str("Mode");
   resp.schema.deprecated_set = 1;
   resp.schema.deprecated = 1;
   resp.schema.read_only_set = 1;
@@ -327,7 +326,7 @@ TEST test_writer_inline_schema_const_examples_annotations(void) {
   resp.schema.write_only = 0;
   resp.schema.const_value_set = 1;
   resp.schema.const_value.type = OA_ANY_STRING;
-  resp.schema.const_value.string = (char *)(size_t)(size_t) "fast";
+  resp.schema.const_value.string = cdd_test_mut_str("fast");
   resp.schema.examples = examples;
   resp.schema.n_examples = 2;
 
@@ -505,9 +504,9 @@ TEST test_writer_schema_ref_summary_description(void) {
   json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
-  resp.schema.ref_name = (char *)(size_t)(size_t) "Mode";
-  resp.schema.summary = (char *)(size_t)(size_t) "Mode summary";
-  resp.schema.description = (char *)(size_t)(size_t) "Mode description";
+  resp.schema.ref_name = cdd_test_mut_str("Mode");
+  resp.schema.summary = cdd_test_mut_str("Mode summary");
+  resp.schema.description = cdd_test_mut_str("Mode description");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -550,9 +549,9 @@ TEST test_writer_info_license_missing_name_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   json = NULL;
 
-  spec.info.title = (char *)(size_t)(size_t) "Example";
-  spec.info.version = (char *)(size_t)(size_t) "1.0";
-  spec.info.license.identifier = (char *)(size_t)(size_t) "Apache-2.0";
+  spec.info.title = cdd_test_mut_str("Example");
+  spec.info.version = cdd_test_mut_str("1.0");
+  spec.info.license.identifier = cdd_test_mut_str("Apache-2.0");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -571,13 +570,13 @@ TEST test_writer_options_trace_verbs(void) {
 
   memset(&path, 0, sizeof(path));
   memset(ops, 0, sizeof(ops));
-  path.route = (char *)(size_t)(size_t) "/verbs";
+  path.route = cdd_test_mut_str("/verbs");
   path.operations = ops;
   path.n_operations = 2;
   ops[0].verb = OA_VERB_OPTIONS;
-  ops[0].operation_id = (char *)(size_t)(size_t) "opt";
+  ops[0].operation_id = cdd_test_mut_str("opt");
   ops[1].verb = OA_VERB_TRACE;
-  ops[1].operation_id = (char *)(size_t)(size_t) "tr";
+  ops[1].operation_id = cdd_test_mut_str("tr");
   spec.paths = &path;
   spec.n_paths = 1;
 
@@ -610,9 +609,9 @@ TEST test_writer_query_and_external_docs(void) {
 
   setup_test_spec(&spec, &path, &op, NULL, NULL);
   op.verb = OA_VERB_QUERY;
-  op.operation_id = (char *)(size_t)(size_t) "querySearch";
-  op.external_docs.url = (char *)(size_t)(size_t) "https://example.com/op";
-  op.external_docs.description = (char *)(size_t)(size_t) "Op docs";
+  op.operation_id = cdd_test_mut_str("querySearch");
+  op.external_docs.url = cdd_test_mut_str("https://example.com/op");
+  op.external_docs.description = cdd_test_mut_str("Op docs");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);

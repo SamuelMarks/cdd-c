@@ -205,11 +205,7 @@ extern C_CDD_EXPORT cdd_c_error_t fs_is_directory(const char *path,
  * @param[out] out Pointer to char* where the allocated string will be stored.
  * @return 0 on success, ENOMEM on allocation failure, EINVAL if args invalid.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Retrieves the basename.
-                     */
-    cdd_c_error_t
-    get_basename(const char *path, char **out);
+extern C_CDD_EXPORT cdd_c_error_t get_basename(const char *path, char **out);
 
 /**
  * @brief Extract the directory component from a path.
@@ -219,11 +215,7 @@ extern C_CDD_EXPORT /**
  * @param[out] out Pointer to char* where the allocated string will be stored.
  * @return 0 on success, ENOMEM on allocation failure, EINVAL if args invalid.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Retrieves the dirname.
-                     */
-    cdd_c_error_t
-    get_dirname(const char *path, char **out);
+extern C_CDD_EXPORT cdd_c_error_t get_dirname(const char *path, char **out);
 
 /**
  * @brief Read entire file content into a buffer.
@@ -312,12 +304,8 @@ FilenameAndPtr_cleanup(struct FilenameAndPtr *file);
  *
  * @param[in] file Pointer to struct.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the FilenameAndPtr delete and cleanup
-                     * operation.
-                     */
-    cdd_c_error_t
-    FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file);
+extern C_CDD_EXPORT cdd_c_error_t
+FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file);
 
 /**
  * @brief Create a temporary file with a random name, open it, and return handle

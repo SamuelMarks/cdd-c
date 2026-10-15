@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_cpp.h
+ * @brief FFI binding emitter for Cpp.
+ */
 #ifndef CDD_FFI_EMIT_CPP_H
 #define CDD_FFI_EMIT_CPP_H
 

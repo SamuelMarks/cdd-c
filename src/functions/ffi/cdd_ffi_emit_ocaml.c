@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_ocaml.c
+ * @brief FFI binding emitter for Ocaml.
+ */
 #ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
 #endif
@@ -11,69 +15,17 @@ extern volatile int g_fail_io_after;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
-}
-
-static const char *get_ocaml_type(cdd_ffi_type_t type) {
-  if (type.pointer_depth > 0) {
-    if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
-      return "string";
-    }
-    return "(ptr void)";
-  }
-
-  switch (type.kind) {
-  case CDD_FFI_KIND_VOID:
-    return "void";
-  case CDD_FFI_KIND_BOOL:
-    return "bool";
-  case CDD_FFI_KIND_INT8:
-    return "int8_t";
-  case CDD_FFI_KIND_UINT8:
-    return "uint8_t";
-  case CDD_FFI_KIND_INT16:
-    return "int16_t";
-  case CDD_FFI_KIND_UINT16:
-    return "uint16_t";
-  case CDD_FFI_KIND_INT32:
-    return "int32_t";
-  case CDD_FFI_KIND_UINT32:
-    return "uint32_t";
-  case CDD_FFI_KIND_INT64:
-    return "int64_t";
-  case CDD_FFI_KIND_UINT64:
-    return "uint64_t";
-  case CDD_FFI_KIND_FLOAT32:
-    return "float";
-  case CDD_FFI_KIND_FLOAT64:
-    return "double";
-  case CDD_FFI_KIND_FUNCTION_PTR:
-    return "(ptr void)";
-  case CDD_FFI_KIND_STRUCT_REF:
-    return type.ref_name ? type.ref_name : "(ptr void)";
-  case CDD_FFI_KIND_ENUM_REF:
-    return "int";
-  case CDD_FFI_KIND_TYPEDEF_REF:
-    return type.ref_name ? type.ref_name : "(ptr void)";
-  case CDD_FFI_KIND_OPAQUE_PTR:
-    return "(ptr void)";
-  default:
-    return "(ptr void)";
-  }
+static cdd_c_error_t get_ocaml_type(cdd_ffi_type_t type,
+                                    const char **out_type) {
+  static const cdd_ffi_type_map_table_t k_ocaml_types = {
+      "void",    "bool",       "int8_t",  "uint8_t",  "int16_t", "uint16_t",
+      "int32_t", "uint32_t",   "int64_t", "uint64_t", "float",   "double",
+      "string",  "(ptr void)", NULL,      "int",      1,         0,
+      1};
+  return cdd_ffi_map_type_from_table(&k_ocaml_types, type, out_type);
 }
 
 static cdd_c_error_t
@@ -133,7 +85,7 @@ emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "(* %s *)\n", node->doc);
       fprintf(f, "module %s = struct\n", node->name);
@@ -153,7 +105,7 @@ emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "(* %s *)\n", node->doc);
       fprintf(f, "type %s\n", node->name);
@@ -162,7 +114,8 @@ emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       for (j = 0; j < node->fields_count; j++) {
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
-        const char *ftype = get_ocaml_type(node->fields[j].type);
+        const char *ftype = NULL;
+        get_ocaml_type(node->fields[j].type, &ftype);
         fprintf(f, "let %s_%s = field %s \"%s\" %s\n", node->name, fname,
                 node->name, fname, ftype);
       }
@@ -174,15 +127,18 @@ emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
+      const char *ret_ot = NULL;
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "(* %s *)\n", node->doc);
       fprintf(f, "let %s = foreign \"%s\" (", node->name, node->name);
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "%s @-> ", get_ocaml_type(node->fields[j].type));
+        const char *ot = NULL;
+        get_ocaml_type(node->fields[j].type, &ot);
+        fprintf(f, "%s @-> ", ot);
       }
-      fprintf(f, "returning %s)\n\n",
-              get_ocaml_type(node->return_or_base_type));
+      get_ocaml_type(node->return_or_base_type, &ret_ot);
+      fprintf(f, "returning %s)\n\n", ret_ot);
     }
   }
 

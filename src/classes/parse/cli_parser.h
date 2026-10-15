@@ -40,20 +40,12 @@ struct CliCommand {
 /**
  * @brief Initialize a CLI Command IR.
  */
-C_CDD_EXPORT /**
-              * @brief Executes the cli command init operation.
-              */
-    cdd_c_error_t
-    cli_command_init(struct CliCommand *cmd);
+C_CDD_EXPORT cdd_c_error_t cli_command_init(struct CliCommand *cmd);
 
 /**
  * @brief Free resources associated with a CLI Command IR.
  */
-C_CDD_EXPORT /**
-              * @brief Executes the cli command free operation.
-              */
-    void
-    cli_command_free(struct CliCommand *cmd);
+C_CDD_EXPORT void cli_command_free(struct CliCommand *cmd);
 
 /**
  * @brief Parses an AST/CST to extract CLI options and arguments.

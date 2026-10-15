@@ -39,14 +39,9 @@ extern "C" {
  * @param[in,out] patches The patch list to populate with injections.
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the strategy inject safety checks
-                     * operation.
-                     */
-    cdd_c_error_t
-    strategy_inject_safety_checks(const struct TokenList *tokens,
-                                  const struct AllocationSiteList *allocs,
-                                  struct PatchList *patches);
+extern C_CDD_EXPORT cdd_c_error_t strategy_inject_safety_checks(
+    const struct TokenList *tokens, const struct AllocationSiteList *allocs,
+    struct PatchList *patches);
 
 /**
  * @brief Inject safety specifically for `realloc` patterns.

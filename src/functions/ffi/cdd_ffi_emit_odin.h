@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_odin.h
+ * @brief FFI binding emitter for Odin.
+ */
 #ifndef CDD_FFI_EMIT_ODIN_H
 #define CDD_FFI_EMIT_ODIN_H
 

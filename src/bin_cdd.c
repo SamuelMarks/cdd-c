@@ -1,3 +1,7 @@
+/**
+ * @file bin_cdd.c
+ * @brief Core bin cdd definitions and implementation.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 #include "c_cdd/suppress_gui.h"

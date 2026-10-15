@@ -1,8 +1,14 @@
+/**
+ * @file cdd_cst_trivia.c
+ * @brief Concrete Syntax Tree (CST) trivia implementation and utilities.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_cst_trivia.h"
+#include "cdd_cst_builder_internal.h"
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -128,7 +134,7 @@ cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
     ws_buf = NULL;
   else
 #endif
-    ws_buf = (uint8_t *)malloc(total_spaces);
+    ws_buf = (uint8_t *)C_CDD_MALLOC(total_spaces + 1);
   if (!ws_buf) {
     free(nl);
     free(ws);
@@ -140,9 +146,23 @@ cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
   } else {
     memset(ws_buf, ' ', total_spaces);
   }
+  ws_buf[total_spaces] = '\0';
 
+  if (tree) {
+    const char *pooled = NULL;
+    if (cdd_cst_pool_string(tree, (const char *)ws_buf, &pooled) !=
+        CDD_C_SUCCESS) {
+      C_CDD_FREE(ws_buf);
+      free(nl);
+      free(ws);
+      return CDD_C_ERROR_MEMORY;
+    }
+    C_CDD_FREE(ws_buf);
+    ws->start = (const uint8_t *)pooled;
+  } else {
+    ws->start = ws_buf;
+  }
   ws->kind = TRIVIA_WHITESPACE;
-  ws->start = ws_buf;
   ws->length = total_spaces;
 
   nl->next = ws;

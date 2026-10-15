@@ -12,13 +12,13 @@ extern "C" {
 
 /** \brief mock */
 struct Haz {
-  const char *bzr;
+  char *bzr;
 };
 
 extern SIMPLE_MOCKS_EXPORT cdd_c_error_t Haz_cleanup(struct Haz *);
 
 struct Foo {
-  const char *bar;
+  char *bar;
   int can;
   struct Haz *haz;
 };

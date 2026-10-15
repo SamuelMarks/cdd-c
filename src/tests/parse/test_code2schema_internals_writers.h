@@ -26,15 +26,8 @@ extern "C" {
 #include <parson.h>
 /* clang-format on */
 
-extern C_CDD_EXPORT volatile int g_c2s_helper_fail;
-extern C_CDD_EXPORT volatile int g_cdd_fail_c2s_collect_schema_extras;
 extern C_CDD_EXPORT volatile int g_cdd_fail_json_set_value;
 extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
-extern C_CDD_EXPORT volatile int g_cdd_fail_struct_fields_get;
-extern C_CDD_EXPORT volatile int g_cdd_fail_struct_fields_add;
-extern C_CDD_EXPORT int g_struct_fields_init_fail;
-extern C_CDD_EXPORT int g_enum_members_init_fail;
-extern C_CDD_EXPORT int g_enum_members_add_strdup_fail;
 
 /**
  * @brief Tests c2s_write_default_value, constraints, and c2s_write_type_union.
@@ -675,8 +668,8 @@ TEST test_code2schema_merge_struct_field_bounds_and_unions(void) {
   char *u2[1];
   cdd_c_error_t rc = 0;
 
-  u1[0] = (char *)(size_t) "string";
-  u2[0] = (char *)(size_t) "integer";
+  u1[0] = cdd_test_mut_str("string");
+  u2[0] = cdd_test_mut_str("integer");
 
   memset(&dest, 0, sizeof(dest));
   memset(&src, 0, sizeof(src));

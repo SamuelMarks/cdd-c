@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_clojure.h
+ * @brief FFI binding emitter for Clojure.
+ */
 #ifndef CDD_FFI_EMIT_CLOJURE_H
 #define CDD_FFI_EMIT_CLOJURE_H
 

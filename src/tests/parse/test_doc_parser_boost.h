@@ -781,16 +781,21 @@ TEST test_doc_parser_extra_branches(void) {
               doc_split_scopes("read,write", &scopes_out, &n_scopes_out));
     g_doc_fail_trim_segment = 0;
 
-    g_doc_fail_trim_segment = 1;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY,
-              doc_parse_optional_bool_attr("deprecated:true", "deprecated",
-                                           &b_set, &b_val));
-    g_doc_fail_trim_segment = 0;
+    {
+      char attr_b[32];
+      char attr_ex[32];
+      CDD_STRCPY(attr_b, sizeof(attr_b), "deprecated:true");
+      CDD_STRCPY(attr_ex, sizeof(attr_ex), "example:123");
+      g_doc_fail_trim_segment = 1;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, doc_parse_optional_bool_attr(
+                                        attr_b, "deprecated", &b_set, &b_val));
+      g_doc_fail_trim_segment = 0;
 
-    g_doc_fail_trim_segment = 1;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY,
-              doc_parse_optional_example_attr("example:123", &ex_val));
-    g_doc_fail_trim_segment = 0;
+      g_doc_fail_trim_segment = 1;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY,
+                doc_parse_optional_example_attr(attr_ex, &ex_val));
+      g_doc_fail_trim_segment = 0;
+    }
   }
 
   /* 5. Test error percolation in security schemes */
@@ -853,9 +858,15 @@ TEST test_doc_parser_extra_branches(void) {
         " * @infoDescription MyDesc\n"
         " * @termsOfService https://example.com/tos\n"
         " */";
+    doc_metadata_init(&meta);
     doc_parse_block_with_oom(doc_oom1, &meta);
+    doc_metadata_free(&meta);
+    doc_metadata_init(&meta);
     doc_parse_block_with_oom(doc_oom2, &meta);
+    doc_metadata_free(&meta);
+    doc_metadata_init(&meta);
     doc_parse_block_with_oom(doc_oom3, &meta);
+    doc_metadata_free(&meta);
   }
 
   /* 7. Test skip_ws failure across directive lines */
@@ -920,13 +931,25 @@ TEST test_doc_parser_extra_branches(void) {
 
   /* 8. Single-line OOM across directives */
   {
+    doc_metadata_init(&meta);
     doc_parse_block_with_oom("/**\n * @return 200 [summary:OK]\n */", &meta);
+    doc_metadata_free(&meta);
+    doc_metadata_init(&meta);
     doc_parse_block_with_oom("/**\n * @responseHeader 200 X-Hdr\n */", &meta);
+    doc_metadata_free(&meta);
+    doc_metadata_init(&meta);
     doc_parse_block_with_oom("/**\n * @link myLink op1\n */", &meta);
+    doc_metadata_free(&meta);
+    doc_metadata_init(&meta);
     doc_parse_block_with_oom("/**\n * @securityScheme auth1\n */", &meta);
+    doc_metadata_free(&meta);
+    doc_metadata_init(&meta);
     doc_parse_block_with_oom("/**\n * @requestBody [required:true]\n */",
                              &meta);
+    doc_metadata_free(&meta);
+    doc_metadata_init(&meta);
     doc_parse_block_with_oom("/**\n * @tags a,b,c\n */", &meta);
+    doc_metadata_free(&meta);
   }
 
   /* 9. Incomplete / malformed directive lines (empty fields) */

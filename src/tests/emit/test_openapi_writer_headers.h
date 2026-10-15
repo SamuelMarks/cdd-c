@@ -26,24 +26,24 @@ TEST test_writer_ignores_content_type_response_header(void) {
 
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = (char *)(size_t)(size_t) "/r";
+  path.route = cdd_test_mut_str("/r");
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)(size_t) "getR";
+  op.operation_id = cdd_test_mut_str("getR");
   op.responses = &resp;
   op.n_responses = 1;
 
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.description = (char *)(size_t)(size_t) "ok";
+  resp.code = cdd_test_mut_str("200");
+  resp.description = cdd_test_mut_str("ok");
   resp.headers = headers;
   resp.n_headers = 2;
 
-  headers[0].name = (char *)(size_t)(size_t) "Content-Type";
-  headers[0].type = (char *)(size_t)(size_t) "string";
+  headers[0].name = cdd_test_mut_str("Content-Type");
+  headers[0].type = cdd_test_mut_str("string");
 
-  headers[1].name = (char *)(size_t)(size_t) "X-Rate";
-  headers[1].type = (char *)(size_t)(size_t) "integer";
+  headers[1].name = cdd_test_mut_str("X-Rate");
+  headers[1].type = cdd_test_mut_str("integer");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -83,19 +83,19 @@ TEST test_writer_path_level_parameters(void) {
 
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = (char *)(size_t)(size_t) "/pets";
-  path.summary = (char *)(size_t)(size_t) "Pets";
-  path.description = (char *)(size_t)(size_t) "All pets";
+  path.route = cdd_test_mut_str("/pets");
+  path.summary = cdd_test_mut_str("Pets");
+  path.description = cdd_test_mut_str("All pets");
   path.parameters = &pparam;
   path.n_parameters = 1;
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)(size_t) "listPets";
+  op.operation_id = cdd_test_mut_str("listPets");
 
-  pparam.name = (char *)(size_t)(size_t) "x-trace";
+  pparam.name = cdd_test_mut_str("x-trace");
   pparam.in = OA_PARAM_IN_HEADER;
-  pparam.type = (char *)(size_t)(size_t) "string";
+  pparam.type = cdd_test_mut_str("string");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -134,16 +134,16 @@ TEST test_writer_server_variables(void) {
   struct OpenAPI_ServerVariable var = {0};
   json = NULL;
 
-  enum_vals[0] = (char *)(size_t)(size_t) "prod";
-  enum_vals[1] = (char *)(size_t)(size_t) "staging";
+  enum_vals[0] = cdd_test_mut_str("prod");
+  enum_vals[1] = cdd_test_mut_str("staging");
 
-  var.name = (char *)(size_t)(size_t) "env";
-  var.default_value = (char *)(size_t)(size_t) "prod";
-  var.description = (char *)(size_t)(size_t) "Environment";
+  var.name = cdd_test_mut_str("env");
+  var.default_value = cdd_test_mut_str("prod");
+  var.description = cdd_test_mut_str("Environment");
   var.enum_values = enum_vals;
   var.n_enum_values = 2;
 
-  server.url = (char *)(size_t)(size_t) "https://{env}.example.com";
+  server.url = cdd_test_mut_str("https://{env}.example.com");
   server.variables = &var;
   server.n_variables = 1;
 
@@ -195,21 +195,21 @@ TEST test_writer_security_schemes(void) {
   memset(&s2, 0, sizeof(s2));
   memset(&s3, 0, sizeof(s3));
 
-  s1.name = (char *)(size_t)(size_t) "bearerAuth";
+  s1.name = cdd_test_mut_str("bearerAuth");
   s1.type = OA_SEC_HTTP;
-  s1.scheme = (char *)(size_t)(size_t) "bearer";
-  s1.bearer_format = (char *)(size_t)(size_t) "Opaque";
+  s1.scheme = cdd_test_mut_str("bearer");
+  s1.bearer_format = cdd_test_mut_str("Opaque");
 
-  s2.name = (char *)(size_t)(size_t) "apiKeyAuth";
+  s2.name = cdd_test_mut_str("apiKeyAuth");
   s2.type = OA_SEC_APIKEY;
   s2.in = OA_SEC_IN_HEADER;
-  s2.key_name = (char *)(size_t)(size_t) "X-Api-Key";
+  s2.key_name = cdd_test_mut_str("X-Api-Key");
 
   schemes[0] = s1;
   schemes[1] = s2;
-  s3.name = (char *)(size_t)(size_t) "mtlsAuth";
+  s3.name = cdd_test_mut_str("mtlsAuth");
   s3.type = OA_SEC_MUTUALTLS;
-  s3.description = (char *)(size_t)(size_t) "mTLS only";
+  s3.description = cdd_test_mut_str("mTLS only");
   schemes[2] = s3;
 
   spec.security_schemes = schemes;
@@ -281,7 +281,7 @@ TEST test_writer_security_requirements(void) {
   memset(&op_set, 0, sizeof(op_set));
   memset(&op_req, 0, sizeof(op_req));
 
-  root_req.scheme = (char *)(size_t)(size_t) "bearerAuth";
+  root_req.scheme = cdd_test_mut_str("bearerAuth");
   root_set.requirements = &root_req;
   root_set.n_requirements = 1;
 
@@ -289,7 +289,7 @@ TEST test_writer_security_requirements(void) {
   spec.n_security = 1;
   spec.security_set = 1;
 
-  op_req.scheme = (char *)(size_t)(size_t) "ApiKeyAuth";
+  op_req.scheme = cdd_test_mut_str("ApiKeyAuth");
   op_set.requirements = &op_req;
   op_set.n_requirements = 1;
   op.security = &op_set;
@@ -344,14 +344,14 @@ TEST test_writer_multipart_schema(void) {
   json = NULL;
 
   memset(&parts, 0, sizeof(parts));
-  parts[0].name = (char *)(size_t)(size_t) "file";
+  parts[0].name = cdd_test_mut_str("file");
   parts[0].is_binary = 1; /* File upload */
-  parts[1].name = (char *)(size_t)(size_t) "desc";
-  parts[1].type = (char *)(size_t)(size_t) "string";
+  parts[1].name = cdd_test_mut_str("desc");
+  parts[1].type = cdd_test_mut_str("string");
 
   setup_test_spec(&spec, &path, &op, NULL, NULL);
   op.verb = OA_VERB_POST;
-  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
+  op.req_body.content_type = cdd_test_mut_str("multipart/form-data");
   op.req_body.multipart_fields = parts;
   op.req_body.n_multipart_fields = 2;
 
@@ -421,47 +421,47 @@ TEST test_writer_components_and_response_headers(void) {
 
   memset(responses, 0, sizeof(responses));
 
-  param_names[0] = (char *)(size_t)(size_t) "LimitParam";
-  resp_names[0] = (char *)(size_t)(size_t) "NotFound";
-  hdr_names[0] = (char *)(size_t)(size_t) "RateLimit";
+  param_names[0] = cdd_test_mut_str("LimitParam");
+  resp_names[0] = cdd_test_mut_str("NotFound");
+  hdr_names[0] = cdd_test_mut_str("RateLimit");
 
-  comp_param.name = (char *)(size_t)(size_t) "limit";
+  comp_param.name = cdd_test_mut_str("limit");
   comp_param.in = OA_PARAM_IN_QUERY;
-  comp_param.type = (char *)(size_t)(size_t) "integer";
+  comp_param.type = cdd_test_mut_str("integer");
   spec.component_parameters = &comp_param;
   spec.component_parameter_names = param_names;
   spec.n_component_parameters = 1;
 
-  comp_resp.description = (char *)(size_t)(size_t) "missing";
+  comp_resp.description = cdd_test_mut_str("missing");
   spec.component_responses = &comp_resp;
   spec.component_response_names = resp_names;
   spec.n_component_responses = 1;
 
-  comp_hdr.type = (char *)(size_t)(size_t) "integer";
+  comp_hdr.type = cdd_test_mut_str("integer");
   spec.component_headers = &comp_hdr;
   spec.component_header_names = hdr_names;
   spec.n_component_headers = 1;
 
-  op_param.ref = (char *)(size_t)(size_t) "#/components/parameters/LimitParam";
+  op_param.ref = cdd_test_mut_str("#/components/parameters/LimitParam");
   op.parameters = &op_param;
   op.n_parameters = 1;
 
-  responses[0].code = (char *)(size_t)(size_t) "200";
-  responses[0].description = (char *)(size_t)(size_t) "ok";
-  resp_hdr.name = (char *)(size_t)(size_t) "X-Rate";
-  resp_hdr.ref = (char *)(size_t)(size_t) "#/components/headers/RateLimit";
+  responses[0].code = cdd_test_mut_str("200");
+  responses[0].description = cdd_test_mut_str("ok");
+  resp_hdr.name = cdd_test_mut_str("X-Rate");
+  resp_hdr.ref = cdd_test_mut_str("#/components/headers/RateLimit");
   responses[0].headers = &resp_hdr;
   responses[0].n_headers = 1;
 
-  responses[1].code = (char *)(size_t)(size_t) "404";
-  responses[1].ref = (char *)(size_t)(size_t) "#/components/responses/NotFound";
+  responses[1].code = cdd_test_mut_str("404");
+  responses[1].ref = cdd_test_mut_str("#/components/responses/NotFound");
 
   op.responses = responses;
   op.n_responses = 2;
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)(size_t) "listItems";
+  op.operation_id = cdd_test_mut_str("listItems");
 
-  path.route = (char *)(size_t)(size_t) "/items";
+  path.route = cdd_test_mut_str("/items");
   path.operations = &op;
   path.n_operations = 1;
 
@@ -547,16 +547,15 @@ TEST test_writer_components_request_bodies(void) {
 
   setup_test_spec(&spec, &path, &op, NULL, NULL);
   op.verb = OA_VERB_POST;
-  op.req_body_ref =
-      (char *)(size_t)(size_t) "#/components/requestBodies/CreatePet";
+  op.req_body_ref = cdd_test_mut_str("#/components/requestBodies/CreatePet");
 
-  comp_rb.description = (char *)(size_t)(size_t) "Create";
+  comp_rb.description = cdd_test_mut_str("Create");
   comp_rb.required_set = 1;
   comp_rb.required = 1;
-  comp_rb.schema.content_type = (char *)(size_t)(size_t) "application/json";
-  comp_rb.schema.ref_name = (char *)(size_t)(size_t) "Pet";
+  comp_rb.schema.content_type = cdd_test_mut_str("application/json");
+  comp_rb.schema.ref_name = cdd_test_mut_str("Pet");
 
-  rb_names[0] = (char *)(size_t)(size_t) "CreatePet";
+  rb_names[0] = cdd_test_mut_str("CreatePet");
   spec.component_request_bodies = &comp_rb;
   spec.component_request_body_names = rb_names;
   spec.n_component_request_bodies = 1;
@@ -611,7 +610,7 @@ TEST test_writer_components_schemas(void) {
   struct StructFields sf;
   char *name;
   char *json;
-  name = (char *)(size_t)(size_t) "MyModel";
+  name = cdd_test_mut_str("MyModel");
   json = NULL;
 
   memset(&spec, 0, sizeof(spec));

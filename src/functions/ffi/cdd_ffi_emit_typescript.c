@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_typescript.c
+ * @brief FFI binding emitter for Typescript.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -8,67 +12,91 @@
 #include <string.h>
 /* clang-format on */
 
-static const char *get_deno_ffi_type(cdd_ffi_type_t type) {
+static cdd_c_error_t get_deno_ffi_type(cdd_ffi_type_t type,
+                                       const char **out_type) {
   if (type.pointer_depth > 0) {
     if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
-      return "\"buffer\""; /* Commonly used for char / uint8_t ptr */
+      *out_type = "\"buffer\""; /* Commonly used for char / uint8_t ptr */
+      return CDD_C_SUCCESS;
     }
-    return "\"pointer\"";
+    *out_type = "\"pointer\"";
+    return CDD_C_SUCCESS;
   }
 
   switch (type.kind) {
   case CDD_FFI_KIND_VOID:
-    return "\"void\"";
+    *out_type = "\"void\"";
+    break;
   case CDD_FFI_KIND_BOOL:
-    return "\"u8\""; /* Deno uses u8 or bool (bool since 1.32, but u8 is safe
-                        fallback) */
+    *out_type = "\"u8\""; /* Deno uses u8 or bool (bool since 1.32, but u8 is
+                             safe fallback) */
+    break;
   case CDD_FFI_KIND_INT8:
-    return "\"i8\"";
+    *out_type = "\"i8\"";
+    break;
   case CDD_FFI_KIND_UINT8:
-    return "\"u8\"";
+    *out_type = "\"u8\"";
+    break;
   case CDD_FFI_KIND_INT16:
-    return "\"i16\"";
+    *out_type = "\"i16\"";
+    break;
   case CDD_FFI_KIND_UINT16:
-    return "\"u16\"";
+    *out_type = "\"u16\"";
+    break;
   case CDD_FFI_KIND_INT32:
-    return "\"i32\"";
+    *out_type = "\"i32\"";
+    break;
   case CDD_FFI_KIND_UINT32:
-    return "\"u32\"";
+    *out_type = "\"u32\"";
+    break;
   case CDD_FFI_KIND_INT64:
-    return "\"i64\"";
+    *out_type = "\"i64\"";
+    break;
   case CDD_FFI_KIND_UINT64:
-    return "\"u64\"";
+    *out_type = "\"u64\"";
+    break;
   case CDD_FFI_KIND_FLOAT32:
-    return "\"f32\"";
+    *out_type = "\"f32\"";
+    break;
   case CDD_FFI_KIND_FLOAT64:
-    return "\"f64\"";
+    *out_type = "\"f64\"";
+    break;
   case CDD_FFI_KIND_FUNCTION_PTR:
-    return "\"function\"";
+    *out_type = "\"function\"";
+    break;
   case CDD_FFI_KIND_STRUCT_REF:
   case CDD_FFI_KIND_ENUM_REF:
   case CDD_FFI_KIND_TYPEDEF_REF:
-    return "\"i32\""; /* Enums/Typedefs might be i32. For struct by value,
-                         complex, default to pointer */
+    *out_type = "\"i32\""; /* Enums/Typedefs might be i32. For struct by value,
+                              complex, default to pointer */
+    break;
   case CDD_FFI_KIND_OPAQUE_PTR:
-    return "\"pointer\"";
+    *out_type = "\"pointer\"";
+    break;
   default:
-    return "\"pointer\"";
+    *out_type = "\"pointer\"";
+    break;
   }
+  return CDD_C_SUCCESS;
 }
 
-static const char *get_ts_type(cdd_ffi_type_t type) {
+static cdd_c_error_t get_ts_type(cdd_ffi_type_t type, const char **out_type) {
   if (type.pointer_depth > 0) {
     if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
-      return "Uint8Array";
+      *out_type = "Uint8Array";
+      return CDD_C_SUCCESS;
     }
-    return "Deno.PointerValue";
+    *out_type = "Deno.PointerValue";
+    return CDD_C_SUCCESS;
   }
 
   switch (type.kind) {
   case CDD_FFI_KIND_VOID:
-    return "void";
+    *out_type = "void";
+    break;
   case CDD_FFI_KIND_BOOL:
-    return "boolean";
+    *out_type = "boolean";
+    break;
   case CDD_FFI_KIND_INT8:
   case CDD_FFI_KIND_UINT8:
   case CDD_FFI_KIND_INT16:
@@ -79,17 +107,22 @@ static const char *get_ts_type(cdd_ffi_type_t type) {
   case CDD_FFI_KIND_FLOAT64:
   case CDD_FFI_KIND_ENUM_REF:
   case CDD_FFI_KIND_TYPEDEF_REF:
-    return "number";
+    *out_type = "number";
+    break;
   case CDD_FFI_KIND_INT64:
   case CDD_FFI_KIND_UINT64:
-    return "bigint | number";
+    *out_type = "bigint | number";
+    break;
   case CDD_FFI_KIND_FUNCTION_PTR:
   case CDD_FFI_KIND_OPAQUE_PTR:
   case CDD_FFI_KIND_STRUCT_REF:
-    return "Deno.PointerValue";
+    *out_type = "Deno.PointerValue";
+    break;
   default:
-    return "unknown";
+    *out_type = "unknown";
+    break;
   }
+  return CDD_C_SUCCESS;
 }
 
 static cdd_c_error_t
@@ -165,18 +198,21 @@ emit_deno_module(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      const char *ret_dt = NULL;
       fprintf(f, "  %s: {\n", node->name);
       fprintf(f, "    parameters: [\n");
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "      %s", get_deno_ffi_type(node->fields[j].type));
+        const char *dt = NULL;
+        get_deno_ffi_type(node->fields[j].type, &dt);
+        fprintf(f, "      %s", dt);
         if (j < node->fields_count - 1)
           fprintf(f, ",");
         fprintf(f, " /* %s */\n",
                 node->fields[j].name ? node->fields[j].name : "arg");
       }
       fprintf(f, "    ],\n");
-      fprintf(f, "    result: %s\n",
-              get_deno_ffi_type(node->return_or_base_type));
+      get_deno_ffi_type(node->return_or_base_type, &ret_dt);
+      fprintf(f, "    result: %s\n", ret_dt);
       fprintf(f, "  },\n");
     }
   }
@@ -195,12 +231,14 @@ emit_deno_module(cdd_ffi_ir_t *ir,
         if (node->fields[j].intent != CDD_FFI_INTENT_OUT) {
           const char *arg_name =
               node->fields[j].name ? node->fields[j].name : "arg";
+          const char *tt = NULL;
           /* handle TS keywords */
           if (strcmp(arg_name, "function") == 0)
             arg_name = "func";
           if (!first_arg)
             fprintf(f, ", ");
-          fprintf(f, "%s: %s", arg_name, get_ts_type(node->fields[j].type));
+          get_ts_type(node->fields[j].type, &tt);
+          fprintf(f, "%s: %s", arg_name, tt);
           first_arg = 0;
         }
       }
@@ -212,13 +250,15 @@ emit_deno_module(cdd_ffi_ir_t *ir,
 
       {
         int out_count = 0;
+        const char *ret_tt = NULL;
+        get_ts_type(node->return_or_base_type, &ret_tt);
         for (j = 0; j < node->fields_count; j++) {
           if (node->fields[j].intent == CDD_FFI_INTENT_OUT ||
               node->fields[j].intent == CDD_FFI_INTENT_INOUT)
             out_count++;
         }
         if (out_count > 0) {
-          fprintf(f, "): { res: %s", get_ts_type(node->return_or_base_type));
+          fprintf(f, "): { res: %s", ret_tt);
           for (j = 0; j < node->fields_count; j++) {
             if (node->fields[j].intent == CDD_FFI_INTENT_OUT ||
                 node->fields[j].intent == CDD_FFI_INTENT_INOUT) {
@@ -230,7 +270,7 @@ emit_deno_module(cdd_ffi_ir_t *ir,
           }
           fprintf(f, " } {\n");
         } else {
-          fprintf(f, "): %s {\n", get_ts_type(node->return_or_base_type));
+          fprintf(f, "): %s {\n", ret_tt);
         }
       }
 

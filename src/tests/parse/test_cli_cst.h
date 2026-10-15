@@ -30,10 +30,13 @@ extern "C" {
  */
 TEST test_cli_cst_extern_c_audit(void) {
   int argc = 4;
-  char *argv[] = {
-      (char *)(size_t)(size_t) "extern_c", (char *)(size_t)(size_t) "--audit",
-      (char *)(size_t)(size_t) "test_cli_cst_file.h", (char *)(size_t)NULL};
+  char *argv[4];
   int rc;
+
+  argv[0] = cdd_test_mut_str("extern_c");
+  argv[1] = cdd_test_mut_str("--audit");
+  argv[2] = cdd_test_mut_str("test_cli_cst_file.h");
+  argv[3] = NULL;
   (void)rc;
   /* void foo */
 
@@ -55,10 +58,13 @@ TEST test_cli_cst_extern_c_audit(void) {
  */
 TEST test_cli_cst_extern_c_fix(void) {
   int argc = 4;
-  char *argv[] = {
-      (char *)(size_t)(size_t) "extern_c", (char *)(size_t)(size_t) "--fix",
-      (char *)(size_t)(size_t) "test_cli_cst_file.h", (char *)(size_t)NULL};
+  char *argv[4];
   int rc;
+
+  argv[0] = cdd_test_mut_str("extern_c");
+  argv[1] = cdd_test_mut_str("--fix");
+  argv[2] = cdd_test_mut_str("test_cli_cst_file.h");
+  argv[3] = NULL;
   (void)rc;
   /* void foo */
 
@@ -70,9 +76,12 @@ TEST test_cli_cst_extern_c_fix(void) {
 
   /* Audit should succeed on already fixed file */
   {
-    char *argv_audit[] = {
-        (char *)(size_t)(size_t) "extern_c", (char *)(size_t)(size_t) "--audit",
-        (char *)(size_t)(size_t) "test_cli_cst_file.h", (char *)(size_t)NULL};
+    char *argv_audit[4];
+
+    argv_audit[0] = cdd_test_mut_str("extern_c");
+    argv_audit[1] = cdd_test_mut_str("--audit");
+    argv_audit[2] = cdd_test_mut_str("test_cli_cst_file.h");
+    argv_audit[3] = NULL;
     rc = cli_cst_transformer_main(3, argv_audit);
     /* ASSERT_EQ(0, rc); */
 
@@ -94,11 +103,14 @@ TEST test_cli_cst_extern_c_fix(void) {
  */
 TEST test_cli_cst_extern_c_dry_run(void) {
   int argc = 5;
-  char *argv[] = {
-      (char *)(size_t)(size_t) "extern_c", (char *)(size_t)(size_t) "--fix",
-      (char *)(size_t)(size_t) "--dry-run",
-      (char *)(size_t)(size_t) "test_cli_cst_file.h", (char *)(size_t)NULL};
+  char *argv[5];
   int rc;
+
+  argv[0] = cdd_test_mut_str("extern_c");
+  argv[1] = cdd_test_mut_str("--fix");
+  argv[2] = cdd_test_mut_str("--dry-run");
+  argv[3] = cdd_test_mut_str("test_cli_cst_file.h");
+  argv[4] = NULL;
   (void)rc;
   /* void foo */
 
@@ -124,33 +136,50 @@ TEST test_cli_cst_extern_c_dry_run(void) {
  * @return The result of the test.
  */
 TEST test_cli_cst_errors(void) {
-  char *argv_no_args[] = {(char *)(size_t)NULL};
-  char *argv_unknown[] = {(char *)(size_t)(size_t) "unknown_tool",
-                          (char *)(size_t)NULL};
-  char *argv_help1[] = {(char *)(size_t)(size_t) "--help",
-                        (char *)(size_t)NULL};
-  char *argv_help1b[] = {(char *)(size_t)(size_t) "-h", (char *)(size_t)NULL};
-  char *argv_help2[] = {(char *)(size_t)(size_t) "extern_c",
-                        (char *)(size_t)(size_t) "--help",
-                        (char *)(size_t)NULL};
-  char *argv_help2b[] = {(char *)(size_t)(size_t) "extern_c",
-                         (char *)(size_t)(size_t) "-h", (char *)(size_t)NULL};
-  char *argv_nofix[] = {(char *)(size_t)(size_t) "extern_c",
-                        (char *)(size_t)(size_t) "file.h",
-                        (char *)(size_t)NULL};
-  char *argv_badfile[] = {
-      (char *)(size_t)(size_t) "extern_c", (char *)(size_t)(size_t) "--fix",
-      (char *)(size_t)(size_t) "does_not_exist_file.h", (char *)(size_t)NULL};
-  char *argv_msvc[] = {(char *)(size_t)(size_t) "msvc_port",
-                       (char *)(size_t)(size_t) "--help", (char *)(size_t)NULL};
-  char *argv_gnu[] = {(char *)(size_t)(size_t) "gnu_standardizer",
-                      (char *)(size_t)(size_t) "--help", (char *)(size_t)NULL};
-  char *argv_percolate[] = {(char *)(size_t)(size_t) "error_percolator",
-                            (char *)(size_t)(size_t) "--help",
-                            (char *)(size_t)NULL};
-  char *argv_safe[] = {(char *)(size_t)(size_t) "safe_crt",
-                       (char *)(size_t)(size_t) "--help", (char *)(size_t)NULL};
+  char *argv_no_args[] = {NULL};
+  char *argv_unknown[2];
+  char *argv_help1[2];
+  char *argv_help1b[2];
+  char *argv_help2[3];
+  char *argv_help2b[3];
+  char *argv_nofix[3];
+  char *argv_badfile[4];
+  char *argv_msvc[3];
+  char *argv_gnu[3];
+  char *argv_percolate[3];
+  char *argv_safe[3];
 
+  argv_unknown[0] = cdd_test_mut_str("unknown_tool");
+  argv_unknown[1] = NULL;
+  argv_help1[0] = cdd_test_mut_str("--help");
+  argv_help1[1] = NULL;
+  argv_help1b[0] = cdd_test_mut_str("-h");
+  argv_help1b[1] = NULL;
+  argv_help2[0] = cdd_test_mut_str("extern_c");
+  argv_help2[1] = cdd_test_mut_str("--help");
+  argv_help2[2] = NULL;
+  argv_help2b[0] = cdd_test_mut_str("extern_c");
+  argv_help2b[1] = cdd_test_mut_str("-h");
+  argv_help2b[2] = NULL;
+  argv_nofix[0] = cdd_test_mut_str("extern_c");
+  argv_nofix[1] = cdd_test_mut_str("file.h");
+  argv_nofix[2] = NULL;
+  argv_badfile[0] = cdd_test_mut_str("extern_c");
+  argv_badfile[1] = cdd_test_mut_str("--fix");
+  argv_badfile[2] = cdd_test_mut_str("does_not_exist_file.h");
+  argv_badfile[3] = NULL;
+  argv_msvc[0] = cdd_test_mut_str("msvc_port");
+  argv_msvc[1] = cdd_test_mut_str("--help");
+  argv_msvc[2] = NULL;
+  argv_gnu[0] = cdd_test_mut_str("gnu_standardizer");
+  argv_gnu[1] = cdd_test_mut_str("--help");
+  argv_gnu[2] = NULL;
+  argv_percolate[0] = cdd_test_mut_str("error_percolator");
+  argv_percolate[1] = cdd_test_mut_str("--help");
+  argv_percolate[2] = NULL;
+  argv_safe[0] = cdd_test_mut_str("safe_crt");
+  argv_safe[1] = cdd_test_mut_str("--help");
+  argv_safe[2] = NULL;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cli_cst_transformer_main(0, argv_no_args));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -181,15 +210,17 @@ TEST test_cli_cst_errors(void) {
  */
 TEST test_cli_standardize_gnu(void) {
   int argc = 7;
-  char *argv[] = {(char *)(size_t)(size_t) "--target-c89",
-                  (char *)(size_t)(size_t) "--target-c99",
-                  (char *)(size_t)(size_t) "--fallback-alloca",
-                  (char *)(size_t)(size_t) "--audit",
-                  (char *)(size_t)(size_t) "--fix",
-                  (char *)(size_t)(size_t) "--dry-run",
-                  (char *)(size_t)(size_t) "test_gnu_file.h",
-                  (char *)(size_t)NULL};
+  char *argv[8];
   int rc;
+
+  argv[0] = cdd_test_mut_str("--target-c89");
+  argv[1] = cdd_test_mut_str("--target-c99");
+  argv[2] = cdd_test_mut_str("--fallback-alloca");
+  argv[3] = cdd_test_mut_str("--audit");
+  argv[4] = cdd_test_mut_str("--fix");
+  argv[5] = cdd_test_mut_str("--dry-run");
+  argv[6] = cdd_test_mut_str("test_gnu_file.h");
+  argv[7] = NULL;
   (void)rc;
   /* void foo */
 
@@ -199,19 +230,26 @@ TEST test_cli_standardize_gnu(void) {
 
   /* Test help */
   {
-    char *argv_help[] = {(char *)(size_t)(size_t) "--help"};
-    char *argv_help2[] = {(char *)(size_t)(size_t) "-h"};
+    char *argv_help[1];
+    char *argv_help2[1];
+
+    argv_help[0] = cdd_test_mut_str("--help");
+    argv_help2[0] = cdd_test_mut_str("-h");
     ASSERT_EQ(0, cli_standardize_gnu_main(1, argv_help));
     ASSERT_EQ(0, cli_standardize_gnu_main(1, argv_help2));
 
     /* Test no file specified or bad file */
     {
-      char *argv_nofile[] = {(char *)(size_t)(size_t) "--audit"};
+      char *argv_nofile[1];
+
+      argv_nofile[0] = cdd_test_mut_str("--audit");
       ASSERT_EQ(0, cli_standardize_gnu_main(1, argv_nofile));
 
       /* Test missing audit/fix */
       {
-        char *argv_missing[] = {(char *)(size_t)(size_t) "test_gnu_file.h"};
+        char *argv_missing[1];
+
+        argv_missing[0] = cdd_test_mut_str("test_gnu_file.h");
         ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
                   cli_standardize_gnu_main(1, argv_missing));
 
@@ -222,18 +260,21 @@ TEST test_cli_standardize_gnu(void) {
         /* ASSERT_EQ(0, rc); */
 
         {
-          char *argv_fixonly[] = {(char *)(size_t)(size_t) "--fix",
-                                  (char *)(size_t)(size_t) "test_gnu_file.h",
-                                  (char *)(size_t)NULL};
+          char *argv_fixonly[3];
+
+          argv_fixonly[0] = cdd_test_mut_str("--fix");
+          argv_fixonly[1] = cdd_test_mut_str("test_gnu_file.h");
+          argv_fixonly[2] = NULL;
           ASSERT_EQ(0, cli_standardize_gnu_main(2, argv_fixonly));
 
           /* Test unknown flag */
           {
-            char *argv_unknown_flag[] = {
-                (char *)(size_t)(size_t) "--audit",
-                (char *)(size_t)(size_t) "--unknown-flag",
-                (char *)(size_t)(size_t) "test_gnu_file.h",
-                (char *)(size_t)NULL};
+            char *argv_unknown_flag[4];
+
+            argv_unknown_flag[0] = cdd_test_mut_str("--audit");
+            argv_unknown_flag[1] = cdd_test_mut_str("--unknown-flag");
+            argv_unknown_flag[2] = cdd_test_mut_str("test_gnu_file.h");
+            argv_unknown_flag[3] = NULL;
             rc = cli_standardize_gnu_main(3, argv_unknown_flag);
             /* ASSERT_EQ(0, rc); */
 
@@ -241,8 +282,10 @@ TEST test_cli_standardize_gnu(void) {
 
             /* Test file not found */
             {
-              char *argv_notfound[] = {(char *)(size_t)(size_t) "--audit",
-                                       (char *)(size_t)(size_t) "not_found.h"};
+              char *argv_notfound[2];
+
+              argv_notfound[0] = cdd_test_mut_str("--audit");
+              argv_notfound[1] = cdd_test_mut_str("not_found.h");
               ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
                         cli_standardize_gnu_main(2, argv_notfound));
 
@@ -271,14 +314,18 @@ extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail;
  * @return The result of the test.
  */
 TEST test_cli_cst_process_errors(void) {
-  char *argv_audit[] = {
-      (char *)(size_t)(size_t) "extern_c", (char *)(size_t)(size_t) "--audit",
-      (char *)(size_t)(size_t) "test_cli_cst_file.h", (char *)(size_t)NULL};
-  char *argv_fix[] = {
-      (char *)(size_t)(size_t) "extern_c", (char *)(size_t)(size_t) "--fix",
-      (char *)(size_t)(size_t) "test_cli_cst_file.h", (char *)(size_t)NULL};
+  char *argv_audit[4];
+  char *argv_fix[4];
   /* void foo */
 
+  argv_audit[0] = cdd_test_mut_str("extern_c");
+  argv_audit[1] = cdd_test_mut_str("--audit");
+  argv_audit[2] = cdd_test_mut_str("test_cli_cst_file.h");
+  argv_audit[3] = NULL;
+  argv_fix[0] = cdd_test_mut_str("extern_c");
+  argv_fix[1] = cdd_test_mut_str("--fix");
+  argv_fix[2] = cdd_test_mut_str("test_cli_cst_file.h");
+  argv_fix[3] = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, write_to_file("test_cli_cst_file.h", "void foo();"));
 
 #ifdef CDD_BUILD_TESTS

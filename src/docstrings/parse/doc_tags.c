@@ -47,8 +47,18 @@ cdd_c_error_t doc_add_tag(struct DocMetadata *out, const char *tag) {
 cdd_c_error_t doc_add_tag_meta(struct DocMetadata *out,
                                struct DocTagMeta *meta) {
   struct DocTagMeta *new_meta;
-  if (!out)
+  if (!out) {
+    if (meta) {
+      C_CDD_FREE(meta->name);
+      C_CDD_FREE(meta->summary);
+      C_CDD_FREE(meta->description);
+      C_CDD_FREE(meta->parent);
+      C_CDD_FREE(meta->kind);
+      C_CDD_FREE(meta->external_docs_url);
+      C_CDD_FREE(meta->external_docs_description);
+    }
     return CDD_C_SUCCESS;
+  }
   new_meta = (struct DocTagMeta *)C_CDD_REALLOC(
       out->tag_meta, (out->n_tag_meta + 1) * sizeof(struct DocTagMeta));
   if (!new_meta) {
@@ -128,14 +138,14 @@ cdd_c_error_t doc_parse_tag_meta_line(const char *line, const char *end,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)(size_t)C_CDD_MALLOC(inner_len + 1);
+      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
 
         if (strncmp(attr, "summary:", 8) == 0) {
           char *val = NULL;
-          rc = doc_trim_segment((char *)(size_t)(attr + 8), &val);
+          rc = doc_trim_segment(attr + 8, &val);
           if (rc != CDD_C_SUCCESS) {
             C_CDD_FREE(attr);
             goto cleanup_meta;
@@ -692,7 +702,7 @@ cdd_c_error_t doc_parse_server_var_line(const char *line, const char *end,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)(size_t)C_CDD_MALLOC(inner_len + 1);
+      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -700,7 +710,7 @@ cdd_c_error_t doc_parse_server_var_line(const char *line, const char *end,
         if (strncmp(attr, "default:", 8) == 0 ||
             strncmp(attr, "default=", 8) == 0) {
           char *val = NULL;
-          rc = doc_trim_segment((char *)(size_t)(attr + 8), &val);
+          rc = doc_trim_segment(attr + 8, &val);
           if (rc != CDD_C_SUCCESS) {
             C_CDD_FREE(attr);
             goto fail_server_var;
@@ -838,6 +848,7 @@ cdd_c_error_t doc_parse_encoding_line(const char *line, const char *end,
   entry = &out->encodings[out->n_encodings];
   memset(entry, 0, sizeof(*entry));
   entry->kind = kind;
+  out->n_encodings++;
 
   rc = doc_skip_ws(cur, &cur);
   if (rc != CDD_C_SUCCESS)
@@ -878,6 +889,7 @@ cdd_c_error_t doc_parse_encoding_line(const char *line, const char *end,
             return rc;
           }
           if (*val) {
+            C_CDD_FREE(entry->content_type);
             rc = c_cdd_strdup(val, &entry->content_type);
             if (rc != CDD_C_SUCCESS) {
               C_CDD_FREE(attr);
@@ -925,7 +937,6 @@ cdd_c_error_t doc_parse_encoding_line(const char *line, const char *end,
     }
   }
 
-  out->n_encodings++;
   return CDD_C_SUCCESS;
 }
 

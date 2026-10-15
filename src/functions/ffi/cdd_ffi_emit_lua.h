@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_lua.h
+ * @brief FFI binding emitter for Lua.
+ */
 #ifndef CDD_FFI_EMIT_LUA_H
 #define CDD_FFI_EMIT_LUA_H
 

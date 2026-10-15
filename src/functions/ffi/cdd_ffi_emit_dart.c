@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_dart.c
+ * @brief FFI binding emitter for Dart.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -7,84 +11,97 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
-}
-
-static const char *get_dart_ffi_type(cdd_ffi_type_t type) {
+static cdd_c_error_t get_dart_ffi_type(cdd_ffi_type_t type,
+                                       const char **out_type) {
   if (type.pointer_depth > 0) {
     if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
-      return "Pointer<Utf8>";
+      *out_type = "Pointer<Utf8>";
+      return CDD_C_SUCCESS;
     }
-    return "Pointer<Void>";
+    *out_type = "Pointer<Void>";
+    return CDD_C_SUCCESS;
   }
 
   switch (type.kind) {
   case CDD_FFI_KIND_VOID:
-    return "Void";
+    *out_type = "Void";
+    break;
   case CDD_FFI_KIND_BOOL:
-    return "Bool";
+    *out_type = "Bool";
+    break;
   case CDD_FFI_KIND_INT8:
-    return "Int8";
+    *out_type = "Int8";
+    break;
   case CDD_FFI_KIND_UINT8:
-    return "Uint8";
+    *out_type = "Uint8";
+    break;
   case CDD_FFI_KIND_INT16:
-    return "Int16";
+    *out_type = "Int16";
+    break;
   case CDD_FFI_KIND_UINT16:
-    return "Uint16";
+    *out_type = "Uint16";
+    break;
   case CDD_FFI_KIND_INT32:
-    return "Int32";
+    *out_type = "Int32";
+    break;
   case CDD_FFI_KIND_UINT32:
-    return "Uint32";
+    *out_type = "Uint32";
+    break;
   case CDD_FFI_KIND_INT64:
-    return "Int64";
+    *out_type = "Int64";
+    break;
   case CDD_FFI_KIND_UINT64:
-    return "Uint64";
+    *out_type = "Uint64";
+    break;
   case CDD_FFI_KIND_FLOAT32:
-    return "Float";
+    *out_type = "Float";
+    break;
   case CDD_FFI_KIND_FLOAT64:
-    return "Double";
+    *out_type = "Double";
+    break;
   case CDD_FFI_KIND_FUNCTION_PTR:
-    return "Pointer<NativeFunction>";
+    *out_type = "Pointer<NativeFunction>";
+    break;
   case CDD_FFI_KIND_STRUCT_REF:
-    return type.ref_name ? type.ref_name : "Struct";
+    *out_type = type.ref_name ? type.ref_name : "Struct";
+    break;
   case CDD_FFI_KIND_ENUM_REF:
-    return "Int32";
+    *out_type = "Int32";
+    break;
   case CDD_FFI_KIND_TYPEDEF_REF:
-    return type.ref_name ? type.ref_name : "Pointer<Void>";
+    *out_type = type.ref_name ? type.ref_name : "Pointer<Void>";
+    break;
   case CDD_FFI_KIND_OPAQUE_PTR:
-    return "Pointer<Void>";
+    *out_type = "Pointer<Void>";
+    break;
   default:
-    return "Pointer<Void>";
+    *out_type = "Pointer<Void>";
+    break;
   }
+  return CDD_C_SUCCESS;
 }
 
-static const char *get_dart_native_type(cdd_ffi_type_t type) {
+static cdd_c_error_t get_dart_native_type(cdd_ffi_type_t type,
+                                          const char **out_type) {
   if (type.pointer_depth > 0) {
     if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
-      return "Pointer<Utf8>";
+      *out_type = "Pointer<Utf8>";
+      return CDD_C_SUCCESS;
     }
-    return "Pointer<Void>";
+    *out_type = "Pointer<Void>";
+    return CDD_C_SUCCESS;
   }
 
   switch (type.kind) {
   case CDD_FFI_KIND_VOID:
-    return "void";
+    *out_type = "void";
+    break;
   case CDD_FFI_KIND_BOOL:
-    return "bool";
+    *out_type = "bool";
+    break;
   case CDD_FFI_KIND_INT8:
   case CDD_FFI_KIND_UINT8:
   case CDD_FFI_KIND_INT16:
@@ -94,21 +111,29 @@ static const char *get_dart_native_type(cdd_ffi_type_t type) {
   case CDD_FFI_KIND_INT64:
   case CDD_FFI_KIND_UINT64:
   case CDD_FFI_KIND_ENUM_REF:
-    return "int";
+    *out_type = "int";
+    break;
   case CDD_FFI_KIND_FLOAT32:
   case CDD_FFI_KIND_FLOAT64:
-    return "double";
+    *out_type = "double";
+    break;
   case CDD_FFI_KIND_FUNCTION_PTR:
-    return "Pointer<NativeFunction>";
+    *out_type = "Pointer<NativeFunction>";
+    break;
   case CDD_FFI_KIND_STRUCT_REF:
-    return type.ref_name ? type.ref_name : "Struct";
+    *out_type = type.ref_name ? type.ref_name : "Struct";
+    break;
   case CDD_FFI_KIND_TYPEDEF_REF:
-    return type.ref_name ? type.ref_name : "Pointer<Void>";
+    *out_type = type.ref_name ? type.ref_name : "Pointer<Void>";
+    break;
   case CDD_FFI_KIND_OPAQUE_PTR:
-    return "Pointer<Void>";
+    *out_type = "Pointer<Void>";
+    break;
   default:
-    return "Pointer<Void>";
+    *out_type = "Pointer<Void>";
+    break;
   }
+  return CDD_C_SUCCESS;
 }
 
 static cdd_c_error_t
@@ -149,7 +174,7 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "/// %s\n", node->doc);
       fprintf(f, "final class %s extends Struct {\n", node->name);
@@ -159,8 +184,10 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       for (j = 0; j < node->fields_count; j++) { /* LCOV_EXCL_BR_LINE */
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
-        const char *ftype = get_dart_ffi_type(node->fields[j].type);
-        const char *ntype = get_dart_native_type(node->fields[j].type);
+        const char *ftype = NULL;
+        const char *ntype = NULL;
+        get_dart_ffi_type(node->fields[j].type, &ftype);
+        get_dart_native_type(node->fields[j].type, &ntype);
 
         fprintf(f, "  @%s()\n", ftype);
         fprintf(f, "  external %s %s;\n", ntype, fname);
@@ -177,19 +204,25 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
+      const char *ret_ftype = NULL;
+      const char *ret_ntype = NULL;
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "  /// %s\n", node->doc);
+
+      get_dart_ffi_type(node->return_or_base_type, &ret_ftype);
+      get_dart_native_type(node->return_or_base_type, &ret_ntype);
 
       /* Typedefs for lookup */
       fprintf(f, "  late final _%sPtr = _dylib.lookup<NativeFunction<\n",
               node->name);
-      fprintf(f, "      %s Function(",
-              get_dart_ffi_type(node->return_or_base_type));
+      fprintf(f, "      %s Function(", ret_ftype);
       /* LCOV_EXCL_BR_START */
       /* LCOV_EXCL_BR_STOP */
       for (j = 0; j < node->fields_count; j++) { /* LCOV_EXCL_BR_LINE */
-        fprintf(f, "%s", get_dart_ffi_type(node->fields[j].type));
+        const char *ft = NULL;
+        get_dart_ffi_type(node->fields[j].type, &ft);
+        fprintf(f, "%s", ft);
         /* LCOV_EXCL_BR_START */
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
@@ -199,12 +232,13 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 
       fprintf(f, "  late final _%s = _%sPtr.asFunction<\n", node->name,
               node->name);
-      fprintf(f, "      %s Function(",
-              get_dart_native_type(node->return_or_base_type));
+      fprintf(f, "      %s Function(", ret_ntype);
       /* LCOV_EXCL_BR_START */
       /* LCOV_EXCL_BR_STOP */
       for (j = 0; j < node->fields_count; j++) { /* LCOV_EXCL_BR_LINE */
-        fprintf(f, "%s", get_dart_native_type(node->fields[j].type));
+        const char *nt = NULL;
+        get_dart_native_type(node->fields[j].type, &nt);
+        fprintf(f, "%s", nt);
         /* LCOV_EXCL_BR_START */
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
@@ -214,8 +248,7 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       /* LCOV_EXCL_BR_START */
 
       /* Wrapper method */
-      fprintf(f, "  %s %s(", get_dart_native_type(node->return_or_base_type),
-              node->name);
+      fprintf(f, "  %s %s(", ret_ntype, node->name);
       /* LCOV_EXCL_BR_STOP */
       /* LCOV_EXCL_BR_START */
       /* LCOV_EXCL_BR_STOP */
@@ -223,13 +256,14 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         /* LCOV_EXCL_BR_START */
         const char *arg_name =
             node->fields[j].name ? node->fields[j].name : "arg";
+        const char *nt = NULL;
         if (strcmp(arg_name, "class") == 0)
           arg_name = "clazz";
         if (strcmp(arg_name, "in") == 0)
           arg_name = "in_";
         /* LCOV_EXCL_BR_STOP */
-        fprintf(f, "%s %s", get_dart_native_type(node->fields[j].type),
-                arg_name);
+        get_dart_native_type(node->fields[j].type, &nt);
+        fprintf(f, "%s %s", nt, arg_name);
         /* LCOV_EXCL_BR_START */
         if (j < node->fields_count - 1)
           fprintf(f, ", ");

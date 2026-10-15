@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_ocaml.h
+ * @brief FFI binding emitter for Ocaml.
+ */
 #ifndef CDD_FFI_EMIT_OCAML_H
 #define CDD_FFI_EMIT_OCAML_H
 

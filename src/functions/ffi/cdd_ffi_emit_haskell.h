@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_haskell.h
+ * @brief FFI binding emitter for Haskell.
+ */
 #ifndef CDD_FFI_EMIT_HASKELL_H
 #define CDD_FFI_EMIT_HASKELL_H
 

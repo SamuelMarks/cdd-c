@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/code_writer.h"
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
 #include "functions/parse/str.h"
@@ -19,26 +20,8 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 extern C_CDD_EXPORT int g_cdd_fail_url_segment_alloc;
-#include <stdarg.h>
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)))
-#endif
-    ;
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  int ret;
-  va_list args;
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  va_start(args, format);
-  ret = vfprintf(stream, format, args);
-  va_end(args);
-  return ret;
-}
-#define fprintf test_cdd_fprintf_hook
+#define fprintf cdd_io_fprintf_hook
 
 static void *url_segment_malloc_impl(size_t sz) {
   if (g_cdd_fail_url_segment_alloc > 0 && --g_cdd_fail_url_segment_alloc == 0)
@@ -64,7 +47,7 @@ static void *url_segment_realloc_impl(void *ptr, size_t sz) {
 #endif
 
 /**
- * @brief Generates C code for write path object serialization.
+ * @brief Emits C source code for path object serialization.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_path_object_serialization(FILE *fp, const struct OpenAPI_Parameter *p) {
@@ -162,7 +145,7 @@ write_path_object_serialization(FILE *fp, const struct OpenAPI_Parameter *p) {
                      "        size_t val_len = strlen(val_enc);\n"
                      "        size_t extra = key_len + val_len + 1 + (first ? "
                      "%lu : %lu);\n"
-                     "        char *tmp = (char *)(size_t)realloc(path_%s, "
+                     "        char *tmp = (char *)realloc(path_%s, "
                      "path_len + extra + 1);\n"
                      "        if (!tmp) { free(key_enc); free(val_enc); rc = "
                      "CDD_C_ERROR_MEMORY; goto "
@@ -196,7 +179,7 @@ write_path_object_serialization(FILE *fp, const struct OpenAPI_Parameter *p) {
                      "        size_t extra = key_len + val_len + 1 + (first ? "
                      "%lu : %lu) + "
                      "%lu;\n"
-                     "        char *tmp = (char *)(size_t)realloc(path_%s, "
+                     "        char *tmp = (char *)realloc(path_%s, "
                      "path_len + extra + 1);\n"
                      "        if (!tmp) { free(key_enc); free(val_enc); rc = "
                      "CDD_C_ERROR_MEMORY; goto "
@@ -243,7 +226,7 @@ write_path_object_serialization(FILE *fp, const struct OpenAPI_Parameter *p) {
 }
 
 /**
- * @brief Generates C code for write path array serialization.
+ * @brief Emits C source code for path array serialization.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_path_array_serialization(FILE *fp, const struct OpenAPI_Parameter *p,
@@ -309,7 +292,7 @@ write_path_array_serialization(FILE *fp, const struct OpenAPI_Parameter *p,
         "        size_t extra = val_len + (i > 0 ? %lu"
         " : 0) + (i == 0 ? %lu : "
         "0);\n"
-        "        char *tmp = (char *)(size_t)realloc(path_%s, path_len + extra "
+        "        char *tmp = (char *)realloc(path_%s, path_len + extra "
         "+ 1);\n"
         "        if (!tmp) { free(enc); rc = CDD_C_ERROR_MEMORY; goto cleanup; "
         "}\n"
@@ -341,7 +324,7 @@ write_path_array_serialization(FILE *fp, const struct OpenAPI_Parameter *p,
         "        size_t extra = val_len + (i > 0 ? %lu"
         " : 0) + (i == 0 ? %lu : "
         "0);\n"
-        "        char *tmp = (char *)(size_t)realloc(path_%s, path_len "
+        "        char *tmp = (char *)realloc(path_%s, path_len "
         "+ extra + 1);\n"
         "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
         "        path_%s = tmp;\n",
@@ -554,10 +537,6 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
                                         const struct OpenAPI_Parameter *params,
                                         size_t n_params,
                                         const struct CodegenUrlConfig *config) {
-  const struct OpenAPI_Parameter *_ast_find_param_2;
-  const struct OpenAPI_Parameter *_ast_find_param_3;
-  const struct OpenAPI_Parameter *_ast_find_param_4;
-  const struct OpenAPI_Parameter *_ast_find_param_5;
   struct UrlSegment *segs = NULL;
   size_t n_segs = 0;
   size_t i;
@@ -575,19 +554,27 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
     return rc;
   }
 
+#undef CHECK_IO
+#define CHECK_IO(x)                                                            \
+  for (; (x) < 0;) {                                                           \
+    rc = CDD_C_ERROR_IO;                                                       \
+    goto cleanup_segs;                                                         \
+  }
+
   for (i = 0; i < n_segs; ++i) {
     if (segs[i].is_var) {
-      const struct OpenAPI_Parameter *p =
-          (find_param(segs[i].text, params, n_params, &_ast_find_param_2),
-           _ast_find_param_2);
+      const struct OpenAPI_Parameter *p = NULL;
+      find_param(segs[i].text, params, n_params, &p);
       if (p) {
         const char *name = p->name;
         enum OpenAPI_Style style =
             (p->style == OA_STYLE_UNKNOWN) ? OA_STYLE_SIMPLE : p->style;
         int explode = p->explode_set ? p->explode : 0;
         if (p->type && strcmp(p->type, "object") == 0 && !p->is_array) {
-          if (write_path_object_serialization(fp, p) != 0)
-            return CDD_C_ERROR_IO;
+          if (write_path_object_serialization(fp, p) != 0) {
+            rc = CDD_C_ERROR_IO;
+            goto cleanup_segs;
+          }
         } else if (p->is_array) {
           const char *prefix = "";
           const char *delim = ",";
@@ -615,8 +602,10 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
             prefix = "";
             delim = ",";
           }
-          if (write_path_array_serialization(fp, p, prefix, delim) != 0)
-            return CDD_C_ERROR_IO;
+          if (write_path_array_serialization(fp, p, prefix, delim) != 0) {
+            rc = CDD_C_ERROR_IO;
+            goto cleanup_segs;
+          }
         } else {
           const char *encode_fn = (p->allow_reserved_set && p->allow_reserved)
                                       ? "url_encode_allow_reserved"
@@ -696,9 +685,8 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
 
   for (i = 0; i < n_segs; ++i) {
     if (segs[i].is_var) {
-      const struct OpenAPI_Parameter *p =
-          (find_param(segs[i].text, params, n_params, &_ast_find_param_3),
-           _ast_find_param_3);
+      const struct OpenAPI_Parameter *p = NULL;
+      find_param(segs[i].text, params, n_params, &p);
       if (p) {
         CHECK_IO(fprintf(fp, ", path_%s", p->name));
       } else {
@@ -710,9 +698,8 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
 
   for (i = 0; i < n_segs; ++i) {
     if (segs[i].is_var) {
-      const struct OpenAPI_Parameter *p =
-          (find_param(segs[i].text, params, n_params, &_ast_find_param_4),
-           _ast_find_param_4);
+      const struct OpenAPI_Parameter *p = NULL;
+      find_param(segs[i].text, params, n_params, &p);
       if (p) {
         CHECK_IO(fprintf(fp, "    free(path_%s);\n", p->name));
       }
@@ -722,18 +709,18 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
 
   for (i = 0; i < n_segs; ++i) {
     if (segs[i].is_var) {
-      const struct OpenAPI_Parameter *p =
-          (find_param(segs[i].text, params, n_params, &_ast_find_param_5),
-           _ast_find_param_5);
+      const struct OpenAPI_Parameter *p = NULL;
+      find_param(segs[i].text, params, n_params, &p);
       if (p) {
         CHECK_IO(fprintf(fp, "  free(path_%s);\n", p->name));
       }
     }
   }
 
+cleanup_segs:
   for (i = 0; i < n_segs; ++i)
     free(segs[i].text);
   free(segs);
 
-  return CDD_C_SUCCESS;
+  return rc;
 }

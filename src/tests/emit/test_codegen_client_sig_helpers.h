@@ -60,11 +60,11 @@ TEST test_sig_helpers_coverage_1(void) {
   {
     struct OpenAPI_Parameter p;
     memset(&p, 0, sizeof(p));
-    p.type = (char *)(size_t)(size_t) "string";
+    p.type = cdd_test_mut_str("string");
     ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_param_is_object_kv(&p, &int_val));
     ASSERT_EQ(0, int_val);
 
-    p.type = (char *)(size_t)(size_t) "object";
+    p.type = cdd_test_mut_str("object");
     p.in = OA_PARAM_IN_QUERY;
     ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_param_is_object_kv(&p, &int_val));
     ASSERT_EQ(1, int_val);
@@ -215,8 +215,8 @@ TEST test_sig_helpers_coverage_2(void) {
             cdd_test_sig_find_media_type(mts, 2, NULL, &found_mt));
   ASSERT(found_mt == NULL);
   memset(mts, 0, sizeof(mts));
-  mts[0].name = (char *)(size_t)(size_t) "application/json";
-  mts[1].name = (char *)(size_t)(size_t) "multipart/form-data";
+  mts[0].name = cdd_test_mut_str("application/json");
+  mts[1].name = cdd_test_mut_str("multipart/form-data");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_find_media_type(
                                mts, 2, "multipart/form-data", &found_mt));
   ASSERT(found_mt == &mts[1]);
@@ -273,7 +273,7 @@ TEST test_sig_helpers_coverage_2(void) {
             cdd_test_sig_querystring_param_is_form_object(NULL, &int_val));
   ASSERT_EQ(0, int_val);
   memset(&p, 0, sizeof(p));
-  p.schema.ref_name = (char *)(size_t)(size_t) "MyRef";
+  p.schema.ref_name = cdd_test_mut_str("MyRef");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_is_form_object(&p, &int_val));
   ASSERT_EQ(1, int_val);
@@ -289,7 +289,7 @@ TEST test_sig_helpers_coverage_2(void) {
             cdd_test_sig_querystring_param_is_json_ref(NULL, &int_val));
   ASSERT_EQ(0, int_val);
   memset(&p, 0, sizeof(p));
-  p.schema.ref_name = (char *)(size_t)(size_t) "MyRef";
+  p.schema.ref_name = cdd_test_mut_str("MyRef");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_is_json_ref(&p, &int_val));
   ASSERT_EQ(1, int_val);
@@ -298,7 +298,7 @@ TEST test_sig_helpers_coverage_2(void) {
             cdd_test_sig_querystring_param_is_json_ref(&p, &int_val));
   ASSERT_EQ(0, int_val);
   p.schema.is_array = 0;
-  p.type = (char *)(size_t)(size_t) "array";
+  p.type = cdd_test_mut_str("array");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_is_json_ref(&p, &int_val));
   ASSERT_EQ(0, int_val);
@@ -315,17 +315,17 @@ TEST test_sig_helpers_coverage_2(void) {
             cdd_test_sig_querystring_param_json_primitive_type(&p, &str_val));
   ASSERT(str_val == NULL);
   p.in = OA_PARAM_IN_QUERYSTRING;
-  p.content_type = (char *)(size_t)(size_t) "text/plain";
+  p.content_type = cdd_test_mut_str("text/plain");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_primitive_type(&p, &str_val));
   ASSERT(str_val == NULL);
-  p.content_type = (char *)(size_t)(size_t) "application/json";
+  p.content_type = cdd_test_mut_str("application/json");
   p.schema.is_array = 1;
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_primitive_type(&p, &str_val));
   ASSERT(str_val == NULL);
   p.schema.is_array = 0;
-  p.type = (char *)(size_t)(size_t) "array";
+  p.type = cdd_test_mut_str("array");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_primitive_type(&p, &str_val));
   ASSERT(str_val == NULL);
@@ -333,24 +333,24 @@ TEST test_sig_helpers_coverage_2(void) {
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_primitive_type(&p, &str_val));
   ASSERT(str_val == NULL);
-  p.schema.inline_type = (char *)(size_t)(size_t) "integer";
+  p.schema.inline_type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_primitive_type(&p, &str_val));
   ASSERT_STR_EQ("integer", str_val);
-  p.schema.inline_type = (char *)(size_t)(size_t) "custom";
+  p.schema.inline_type = cdd_test_mut_str("custom");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_primitive_type(&p, &str_val));
   ASSERT(str_val == NULL);
   p.schema.inline_type = NULL;
-  p.type = (char *)(size_t)(size_t) "string";
+  p.type = cdd_test_mut_str("string");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_primitive_type(&p, &str_val));
   ASSERT_STR_EQ("string", str_val);
-  p.type = (char *)(size_t)(size_t) "number";
+  p.type = cdd_test_mut_str("number");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_primitive_type(&p, &str_val));
   ASSERT_STR_EQ("number", str_val);
-  p.type = (char *)(size_t)(size_t) "boolean";
+  p.type = cdd_test_mut_str("boolean");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_primitive_type(&p, &str_val));
   ASSERT_STR_EQ("boolean", str_val);
@@ -363,26 +363,26 @@ TEST test_sig_helpers_coverage_2(void) {
   ASSERT(str_val == NULL);
   memset(&p, 0, sizeof(p));
   p.in = OA_PARAM_IN_QUERYSTRING;
-  p.content_type = (char *)(size_t)(size_t) "application/json";
+  p.content_type = cdd_test_mut_str("application/json");
   p.is_array = 1;
-  p.items_type = (char *)(size_t)(size_t) "integer";
+  p.items_type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_array_item_type(&p, &str_val));
   ASSERT_STR_EQ("integer", str_val);
-  p.items_type = (char *)(size_t)(size_t) "custom";
+  p.items_type = cdd_test_mut_str("custom");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_array_item_type(&p, &str_val));
   ASSERT(str_val == NULL);
   p.items_type = NULL;
-  p.schema.inline_type = (char *)(size_t)(size_t) "string";
+  p.schema.inline_type = cdd_test_mut_str("string");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_array_item_type(&p, &str_val));
   ASSERT_STR_EQ("string", str_val);
-  p.schema.inline_type = (char *)(size_t)(size_t) "number";
+  p.schema.inline_type = cdd_test_mut_str("number");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_array_item_type(&p, &str_val));
   ASSERT_STR_EQ("number", str_val);
-  p.schema.inline_type = (char *)(size_t)(size_t) "boolean";
+  p.schema.inline_type = cdd_test_mut_str("boolean");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_array_item_type(&p, &str_val));
   ASSERT_STR_EQ("boolean", str_val);
@@ -391,12 +391,12 @@ TEST test_sig_helpers_coverage_2(void) {
             cdd_test_sig_querystring_param_json_array_item_type(&p, &str_val));
   ASSERT(str_val == NULL);
   p.is_array = 0;
-  p.type = (char *)(size_t)(size_t) "string";
+  p.type = cdd_test_mut_str("string");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_array_item_type(&p, &str_val));
   ASSERT(str_val == NULL);
-  p.type = (char *)(size_t)(size_t) "array";
-  p.items_type = (char *)(size_t)(size_t) "integer";
+  p.type = cdd_test_mut_str("array");
+  p.items_type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_array_item_type(&p, &str_val));
   ASSERT_STR_EQ("integer", str_val);
@@ -414,17 +414,17 @@ TEST test_sig_helpers_coverage_2(void) {
   ASSERT(str_val == NULL);
   memset(&p, 0, sizeof(p));
   p.in = OA_PARAM_IN_QUERYSTRING;
-  p.content_type = (char *)(size_t)(size_t) "application/json";
+  p.content_type = cdd_test_mut_str("application/json");
   p.is_array = 1;
-  p.items_type = (char *)(size_t)(size_t) "MyItemRef";
+  p.items_type = cdd_test_mut_str("MyItemRef");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_array_item_ref(&p, &str_val));
   ASSERT_STR_EQ("MyItemRef", str_val);
-  p.items_type = (char *)(size_t)(size_t) "object";
+  p.items_type = cdd_test_mut_str("object");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_array_item_ref(&p, &str_val));
   ASSERT(str_val == NULL);
-  p.items_type = (char *)(size_t)(size_t) "string";
+  p.items_type = cdd_test_mut_str("string");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_array_item_ref(&p, &str_val));
   ASSERT(str_val == NULL);
@@ -433,12 +433,12 @@ TEST test_sig_helpers_coverage_2(void) {
             cdd_test_sig_querystring_param_json_array_item_ref(&p, &str_val));
   ASSERT(str_val == NULL);
   p.is_array = 0;
-  p.type = (char *)(size_t)(size_t) "string";
+  p.type = cdd_test_mut_str("string");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_array_item_ref(&p, &str_val));
   ASSERT(str_val == NULL);
-  p.type = (char *)(size_t)(size_t) "array";
-  p.items_type = (char *)(size_t)(size_t) "MyItemRef";
+  p.type = cdd_test_mut_str("array");
+  p.items_type = cdd_test_mut_str("MyItemRef");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_array_item_ref(&p, &str_val));
   ASSERT_STR_EQ("MyItemRef", str_val);
@@ -453,20 +453,20 @@ TEST test_sig_helpers_coverage_2(void) {
   ASSERT(str_val == NULL);
   memset(&p, 0, sizeof(p));
   p.in = OA_PARAM_IN_QUERYSTRING;
-  p.content_type = (char *)(size_t)(size_t) "text/plain";
-  p.type = (char *)(size_t)(size_t) "integer";
+  p.content_type = cdd_test_mut_str("text/plain");
+  p.type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_raw_primitive_type(&p, &str_val));
   ASSERT_STR_EQ("integer", str_val);
-  p.type = (char *)(size_t)(size_t) "number";
+  p.type = cdd_test_mut_str("number");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_raw_primitive_type(&p, &str_val));
   ASSERT_STR_EQ("number", str_val);
-  p.type = (char *)(size_t)(size_t) "boolean";
+  p.type = cdd_test_mut_str("boolean");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_raw_primitive_type(&p, &str_val));
   ASSERT_STR_EQ("boolean", str_val);
-  p.type = (char *)(size_t)(size_t) "custom";
+  p.type = cdd_test_mut_str("custom");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_raw_primitive_type(&p, &str_val));
   ASSERT_STR_EQ("string", str_val);
@@ -474,7 +474,7 @@ TEST test_sig_helpers_coverage_2(void) {
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_raw_primitive_type(&p, &str_val));
   ASSERT_STR_EQ("string", str_val);
-  p.schema.inline_type = (char *)(size_t)(size_t) "string";
+  p.schema.inline_type = cdd_test_mut_str("string");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_raw_primitive_type(&p, &str_val));
   ASSERT_STR_EQ("string", str_val);
@@ -603,7 +603,7 @@ TEST test_sig_helpers_coverage_3(void) {
   memset(&schema, 0, sizeof(schema));
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_schema_has_inline(&schema, &int_val));
   ASSERT_EQ(0, int_val);
-  schema.inline_type = (char *)(size_t)(size_t) "string";
+  schema.inline_type = cdd_test_mut_str("string");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_schema_has_inline(&schema, &int_val));
   ASSERT_EQ(1, int_val);
 
@@ -616,15 +616,15 @@ TEST test_sig_helpers_coverage_3(void) {
   memset(resp, 0, sizeof(resp));
   op.responses = resp;
   op.n_responses = 3;
-  resp[0].code = (char *)(size_t)(size_t) "default";
-  resp[1].code = (char *)(size_t)(size_t) "404";
-  resp[2].code = (char *)(size_t)(size_t) "200";
+  resp[0].code = cdd_test_mut_str("default");
+  resp[1].code = cdd_test_mut_str("404");
+  resp[2].code = cdd_test_mut_str("200");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_response(&op, &out_resp));
   ASSERT(out_resp == &resp[2]);
-  resp[2].code = (char *)(size_t)(size_t) "2XX";
+  resp[2].code = cdd_test_mut_str("2XX");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_response(&op, &out_resp));
   ASSERT(out_resp == &resp[2]);
-  resp[2].code = (char *)(size_t)(size_t) "500";
+  resp[2].code = cdd_test_mut_str("500");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_response(&op, &out_resp));
   ASSERT(out_resp == &resp[0]);
 
@@ -634,8 +634,8 @@ TEST test_sig_helpers_coverage_3(void) {
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_response_is_binary_success(NULL, &int_val));
   ASSERT_EQ(0, int_val);
-  resp[2].code = (char *)(size_t)(size_t) "200";
-  resp[2].content_type = (char *)(size_t)(size_t) "application/octet-stream";
+  resp[2].code = cdd_test_mut_str("200");
+  resp[2].content_type = cdd_test_mut_str("application/octet-stream");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_response_is_binary_success(&op, &int_val));
   ASSERT_EQ(1, int_val);
@@ -645,7 +645,7 @@ TEST test_sig_helpers_coverage_3(void) {
             cdd_test_sig_get_success_schema(NULL, NULL));
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_schema(NULL, &out_schema));
   ASSERT(out_schema == NULL);
-  resp[2].schema.ref_name = (char *)(size_t)(size_t) "SuccessModel";
+  resp[2].schema.ref_name = cdd_test_mut_str("SuccessModel");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_schema(&op, &out_schema));
   ASSERT(out_schema == &resp[2].schema);
 
@@ -675,20 +675,20 @@ TEST test_sig_codegen_branches_coverage(void) {
   /* Parameter is JSON array with object item */
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
-  op.operation_id = (char *)(size_t)(size_t) "testArrayObj";
+  op.operation_id = cdd_test_mut_str("testArrayObj");
   op.n_parameters = 1;
   op.parameters = &param;
-  param.name = (char *)(size_t)(size_t) "items";
-  param.content_type = (char *)(size_t)(size_t) "application/json";
+  param.name = cdd_test_mut_str("items");
+  param.content_type = cdd_test_mut_str("application/json");
   param.is_array = 1;
-  param.items_type = (char *)(size_t)(size_t) "object";
+  param.items_type = cdd_test_mut_str("object");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "const void *items, size_t items_len") != NULL);
   free(code);
 
   /* Parameter is JSON array with custom struct item */
-  param.items_type = (char *)(size_t)(size_t) "CustomItem";
+  param.items_type = cdd_test_mut_str("CustomItem");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "const struct CustomItem **items, size_t items_len") !=
@@ -698,7 +698,7 @@ TEST test_sig_codegen_branches_coverage(void) {
   /* Parameter is JSON object with type "object" */
   param.is_array = 0;
   param.items_type = NULL;
-  param.type = (char *)(size_t)(size_t) "object";
+  param.type = cdd_test_mut_str("object");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "const struct OpenAPI_KV *items, size_t items_len") !=
@@ -710,18 +710,18 @@ TEST test_sig_codegen_branches_coverage(void) {
   memset(&mt, 0, sizeof(mt));
   memset(&enc, 0, sizeof(enc));
   memset(&hdr, 0, sizeof(hdr));
-  op.operation_id = (char *)(size_t)(size_t) "testMultipartHdr";
-  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
+  op.operation_id = cdd_test_mut_str("testMultipartHdr");
+  op.req_body.content_type = cdd_test_mut_str("multipart/form-data");
   op.n_req_body_media_types = 1;
   op.req_body_media_types = &mt;
-  mt.name = (char *)(size_t)(size_t) "multipart/form-data";
+  mt.name = cdd_test_mut_str("multipart/form-data");
   mt.n_encoding = 1;
   mt.encoding = &enc;
-  enc.name = (char *)(size_t)(size_t) "avatar";
+  enc.name = cdd_test_mut_str("avatar");
   enc.n_headers = 1;
   enc.headers = &hdr;
-  hdr.name = (char *)(size_t)(size_t) "X-Meta";
-  hdr.type = (char *)(size_t)(size_t) "object";
+  hdr.name = cdd_test_mut_str("X-Meta");
+  hdr.type = cdd_test_mut_str("object");
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   ASSERT(strstr(code, "const struct OpenAPI_KV *avatar_hdr_X_Meta, size_t "
@@ -729,8 +729,8 @@ TEST test_sig_codegen_branches_coverage(void) {
   free(code);
 
   /* Header is array of string */
-  hdr.type = (char *)(size_t)(size_t) "array";
-  hdr.items_type = (char *)(size_t)(size_t) "string";
+  hdr.type = cdd_test_mut_str("array");
+  hdr.items_type = cdd_test_mut_str("string");
   hdr.is_array = 1;
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
@@ -741,7 +741,7 @@ TEST test_sig_codegen_branches_coverage(void) {
   free(code);
 
   /* Header is integer */
-  hdr.type = (char *)(size_t)(size_t) "integer";
+  hdr.type = cdd_test_mut_str("integer");
   hdr.is_array = 0;
   hdr.items_type = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
@@ -751,9 +751,9 @@ TEST test_sig_codegen_branches_coverage(void) {
 
   /* Request body array of integers in req_body */
   memset(&op, 0, sizeof(op));
-  op.operation_id = (char *)(size_t)(size_t) "testReqBodyIntArray";
-  op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
-  op.req_body.ref_name = (char *)(size_t)(size_t) "integer";
+  op.operation_id = cdd_test_mut_str("testReqBodyIntArray");
+  op.req_body.content_type = cdd_test_mut_str("application/json");
+  op.req_body.ref_name = cdd_test_mut_str("integer");
   op.req_body.is_array = 1;
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
@@ -762,9 +762,9 @@ TEST test_sig_codegen_branches_coverage(void) {
 
   /* Success schema array of numbers */
   memset(&op, 0, sizeof(op));
-  op.operation_id = (char *)(size_t)(size_t) "testSuccessNumArray";
-  op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
-  op.req_body.inline_type = (char *)(size_t)(size_t) "number";
+  op.operation_id = cdd_test_mut_str("testSuccessNumArray");
+  op.req_body.content_type = cdd_test_mut_str("application/json");
+  op.req_body.inline_type = cdd_test_mut_str("number");
   op.req_body.is_array = 1;
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
@@ -773,9 +773,9 @@ TEST test_sig_codegen_branches_coverage(void) {
 
   /* Success schema inline number not array */
   memset(&op, 0, sizeof(op));
-  op.operation_id = (char *)(size_t)(size_t) "testSuccessNum";
-  op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
-  op.req_body.inline_type = (char *)(size_t)(size_t) "number";
+  op.operation_id = cdd_test_mut_str("testSuccessNum");
+  op.req_body.content_type = cdd_test_mut_str("application/json");
+  op.req_body.inline_type = cdd_test_mut_str("number");
   op.req_body.is_array = 0;
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);

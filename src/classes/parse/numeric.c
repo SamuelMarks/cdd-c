@@ -98,7 +98,7 @@ static cdd_c_error_t parse_int_suffixes(const char *str,
  * @brief Manually parse binary string to integer.
  * stdlib lacks `strtoull` for base 2 in strict C89 (and `0b` is an extension).
  */
-static cdd_c_error_t parse_binary_str(const char *str, char **endptr,
+static cdd_c_error_t parse_binary_str(const char *str, const char **endptr,
                                       uint64_t *_out_val) {
   uint64_t val = 0;
   const char *p = str;
@@ -116,7 +116,7 @@ static cdd_c_error_t parse_binary_str(const char *str, char **endptr,
     }
     p++;
   }
-  *endptr = (char *)(size_t)p;
+  *endptr = p;
   {
     *_out_val = val;
     return CDD_C_SUCCESS;
@@ -233,12 +233,13 @@ cdd_c_error_t parse_numeric_literal(const char *str, struct NumericValue *out) {
   } else {
     /* Integer */
     uint64_t val;
+    const char *end_cptr = NULL;
     out->kind = NUMERIC_INTEGER;
     errno = 0;
 
     if (is_bin) {
       {
-        cdd_c_error_t rc = parse_binary_str(start_digits, &end_ptr, &val);
+        cdd_c_error_t rc = parse_binary_str(start_digits, &end_cptr, &val);
         if (rc != CDD_C_SUCCESS)
           return rc;
       }
@@ -249,19 +250,20 @@ cdd_c_error_t parse_numeric_literal(const char *str, struct NumericValue *out) {
       /* Use base 0 to let stdlib handle prefixes if we preserved them?
          We advanced 'start_digits' past 0x. */
       val = strtoull(start_digits, &end_ptr, base);
+      end_cptr = end_ptr;
       out->data.integer.base = base;
     }
 
     if (errno == ERANGE)
       return CDD_C_ERROR_PARSE;
-    if (end_ptr == start_digits)
+    if (end_cptr == start_digits)
       return CDD_C_ERROR_PARSE;
 
     out->data.integer.value = val;
 
     /* Suffixes */
-    if (*end_ptr != '\0') {
-      if (parse_int_suffixes(end_ptr, &out->data.integer) != 0) {
+    if (*end_cptr != '\0') {
+      if (parse_int_suffixes(end_cptr, &out->data.integer) != 0) {
         return CDD_C_ERROR_PARSE;
       }
     }

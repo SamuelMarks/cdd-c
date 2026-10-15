@@ -151,7 +151,6 @@ cdd_c_error_t match_function_definition(const struct TokenList *tokens,
                                         size_t start_idx, size_t limit,
                                         size_t *end_idx_out,
                                         int *out_is_match) {
-  size_t _ast_skip_ws_0 = 0;
   size_t k = start_idx;
   int paren_depth;
   int brace_depth;
@@ -210,11 +209,10 @@ cdd_c_error_t match_function_definition(const struct TokenList *tokens,
     return CDD_C_SUCCESS;
 
   {
-    cdd_c_error_t rc_cst = skip_ws(tokens, k, limit, &_ast_skip_ws_0);
+    cdd_c_error_t rc_cst = skip_ws(tokens, k, limit, &k);
     if (rc_cst != CDD_C_SUCCESS)
       return rc_cst;
   }
-  k = _ast_skip_ws_0;
   if (tokens->tokens[k].kind != TOKEN_LBRACE)
     return CDD_C_SUCCESS;
 
@@ -331,8 +329,6 @@ cdd_c_error_t consume_attributes(const struct TokenList *tokens, size_t start,
 cdd_c_error_t consume_static_assert(const struct TokenList *tokens,
                                     size_t start, size_t limit,
                                     size_t *_out_val) {
-  size_t _ast_skip_ws_1 = 0;
-  size_t _ast_skip_ws_2 = 0;
   size_t i = start + 1;
   int paren_depth = 0;
 #ifdef CDD_BUILD_TESTS
@@ -344,11 +340,10 @@ cdd_c_error_t consume_static_assert(const struct TokenList *tokens,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   {
-    cdd_c_error_t rc_cst = skip_ws(tokens, i, limit, &_ast_skip_ws_1);
+    cdd_c_error_t rc_cst = skip_ws(tokens, i, limit, &i);
     if (rc_cst != CDD_C_SUCCESS)
       return rc_cst;
   }
-  i = _ast_skip_ws_1;
   if (i < limit && tokens->tokens[i].kind == TOKEN_LPAREN) {
     paren_depth = 1;
     i++;
@@ -366,11 +361,10 @@ cdd_c_error_t consume_static_assert(const struct TokenList *tokens,
   }
 
   {
-    cdd_c_error_t rc_cst = skip_ws(tokens, i, limit, &_ast_skip_ws_2);
+    cdd_c_error_t rc_cst = skip_ws(tokens, i, limit, &i);
     if (rc_cst != CDD_C_SUCCESS)
       return rc_cst;
   }
-  i = _ast_skip_ws_2;
   if (i < limit && tokens->tokens[i].kind == TOKEN_SEMICOLON) {
     *_out_val = i + 1;
     return CDD_C_SUCCESS;
@@ -391,8 +385,7 @@ cdd_c_error_t consume_static_assert(const struct TokenList *tokens,
 cdd_c_error_t consume_generic_selection(const struct TokenList *tokens,
                                         size_t start, size_t limit,
                                         size_t *_out_val) {
-  size_t _ast_skip_ws_3 = 0;
-  size_t _ast_consume_balanced_parens_4 = 0;
+  size_t parens_end = 0;
   size_t i = start + 1;
 #ifdef CDD_BUILD_TESTS
   if (g_cdd_fail_consume_generic_selection &&
@@ -403,26 +396,25 @@ cdd_c_error_t consume_generic_selection(const struct TokenList *tokens,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   {
-    cdd_c_error_t rc_cst = skip_ws(tokens, i, limit, &_ast_skip_ws_3);
+    cdd_c_error_t rc_cst = skip_ws(tokens, i, limit, &i);
     if (rc_cst != CDD_C_SUCCESS)
       return rc_cst;
   }
-  i = _ast_skip_ws_3;
   if (i >= limit || tokens->tokens[i].kind != TOKEN_LPAREN) {
     *_out_val = start;
     return CDD_C_SUCCESS;
   }
   {
-    cdd_c_error_t rc_cst = consume_balanced_parens(
-        tokens, i, limit, &_ast_consume_balanced_parens_4);
+    cdd_c_error_t rc_cst =
+        consume_balanced_parens(tokens, i, limit, &parens_end);
     if (rc_cst != CDD_C_SUCCESS)
       return rc_cst;
   }
-  if (_ast_consume_balanced_parens_4 == i) {
+  if (parens_end == i) {
     *_out_val = start;
     return CDD_C_SUCCESS;
   }
-  *_out_val = _ast_consume_balanced_parens_4;
+  *_out_val = parens_end;
   return CDD_C_SUCCESS;
 }
 
@@ -438,9 +430,7 @@ cdd_c_error_t consume_generic_selection(const struct TokenList *tokens,
  */
 cdd_c_error_t is_expression_brace(const struct TokenList *tokens,
                                   size_t brace_idx, int *out_is_expr) {
-  size_t _ast_skip_ws_back_5 = 0;
-  size_t _ast_skip_ws_back_6 = 0;
-  size_t prev;
+  size_t prev = 0;
   enum TokenKind pk;
 #ifdef CDD_BUILD_TESTS
   if (g_cdd_fail_is_expression_brace && --g_cdd_fail_is_expression_brace == 0)
@@ -452,12 +442,10 @@ cdd_c_error_t is_expression_brace(const struct TokenList *tokens,
   *out_is_expr = 0;
 
   {
-    cdd_c_error_t rc_cst =
-        skip_ws_back(tokens, brace_idx, &_ast_skip_ws_back_5);
+    cdd_c_error_t rc_cst = skip_ws_back(tokens, brace_idx, &prev);
     if (rc_cst != CDD_C_SUCCESS)
       return rc_cst;
   }
-  prev = _ast_skip_ws_back_5;
 
   pk = tokens->tokens[prev].kind;
 
@@ -477,14 +465,13 @@ cdd_c_error_t is_expression_brace(const struct TokenList *tokens,
     }
 
     {
-      size_t before_paren;
+      size_t before_paren = 0;
       enum TokenKind bpk;
       {
-        cdd_c_error_t rc_cst = skip_ws_back(tokens, k, &_ast_skip_ws_back_6);
+        cdd_c_error_t rc_cst = skip_ws_back(tokens, k, &before_paren);
         if (rc_cst != CDD_C_SUCCESS)
           return rc_cst;
       }
-      before_paren = _ast_skip_ws_back_6;
       bpk = tokens->tokens[before_paren].kind;
 
       if (bpk == TOKEN_KEYWORD_IF) {

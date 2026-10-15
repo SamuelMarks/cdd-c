@@ -12,6 +12,7 @@
 #ifndef __wasi__
 #include "serve_json_rpc.h"
 #include "../parse/cli.h"
+#include "../../cdd_api.h"
 #include <parson.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -188,14 +189,12 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
         rc = send_stdio_rpc_error(id_val, -32602,
                                   "Invalid arguments for to_openapi");
       } else {
-        char *argv_call[5];
+        cdd_to_openapi_config_t cfg;
         cdd_c_error_t rc_rpc;
-        argv_call[0] = (char *)(size_t) "to_openapi";
-        argv_call[1] = (char *)(size_t) "-i";
-        argv_call[2] = (char *)(size_t)input;
-        argv_call[3] = (char *)(size_t) "-o";
-        argv_call[4] = (char *)(size_t)output;
-        rc_rpc = to_openapi_cli_main(5, argv_call);
+        memset(&cfg, 0, sizeof(cfg));
+        cfg.input = input;
+        cfg.output = output;
+        rc_rpc = cdd_generate_to_openapi(&cfg);
         if (rc_rpc != CDD_C_SUCCESS) {
           rc =
               send_stdio_rpc_error(id_val, -32603, "OpenAPI generation failed");
@@ -212,23 +211,18 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
         rc = send_stdio_rpc_error(id_val, -32602,
                                   "Invalid arguments for to_docs_json");
       } else {
-        char *argv_call[10];
-        int argc_call = 0;
+        cdd_docs_json_config_t cfg;
         cdd_c_error_t rc_rpc;
-        argv_call[argc_call++] = (char *)(size_t) "to_docs_json";
-        argv_call[argc_call++] = (char *)(size_t) "-i";
-        argv_call[argc_call++] = (char *)(size_t)input;
-        if (output) {
-          argv_call[argc_call++] = (char *)(size_t) "-o";
-          argv_call[argc_call++] = (char *)(size_t)output;
-        }
+        memset(&cfg, 0, sizeof(cfg));
+        cfg.input = input;
+        cfg.output = output;
         if (json_object_get_boolean(arguments, "no_imports") == 1) {
-          argv_call[argc_call++] = (char *)(size_t) "--no-imports";
+          cfg.no_imports = 1;
         }
         if (json_object_get_boolean(arguments, "no_wrapping") == 1) {
-          argv_call[argc_call++] = (char *)(size_t) "--no-wrapping";
+          cfg.no_wrapping = 1;
         }
-        rc_rpc = to_docs_json_cli_main(argc_call, argv_call);
+        rc_rpc = cdd_generate_docs_json(&cfg);
         if (rc_rpc != CDD_C_SUCCESS) {
           rc = send_stdio_rpc_error(id_val, -32603, "Docs generation failed");
         } else {
@@ -249,7 +243,8 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
 }
 
 /**
- * @brief Executes the MCP stdio main operation.
+ * @brief Runs the Model Context Protocol (MCP) JSON-RPC loop over standard
+ * input/output.
  *
  * @param[in] argc Argument count.
  * @param[in] argv Argument vector.

@@ -54,31 +54,27 @@ TEST test_main_coverage_print_version(void) {
 
 TEST test_main_coverage_print_help(void) {
   ASSERT_EQ(CDD_C_SUCCESS, print_help("cdd-c"));
-#ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_fail_print_help;
     char *empty_argv[1];
-    empty_argv[0] = (char *)(size_t) "cdd-c";
-    g_cdd_fail_print_help = 2;
-    ASSERT_EQ(CDD_C_SUCCESS, print_help("cdd-c"));
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_main(1, empty_argv));
-    g_cdd_fail_print_help = 0;
+    empty_argv[0] = cdd_test_mut_str("cdd-c");
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_main(1, empty_argv));
   }
-#endif
   PASS();
 }
 
 TEST test_main_coverage_handle_audit(void) {
-  char *argv[] = {(char *)(size_t)(size_t) "dir1",
-                  (char *)(size_t)(size_t) "dir2"};
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, handle_audit(2, argv));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, handle_audit(0, argv));
+  char *argv[2];
+
+  argv[0] = cdd_test_mut_str("dir1");
+  argv[1] = cdd_test_mut_str("dir2");
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, handle_audit(2, argv));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, handle_audit(0, argv));
 #ifdef CDD_BUILD_TESTS
   {
     extern C_CDD_EXPORT int g_cdd_fail_audit_stats_init;
     char *argv_one[1];
     TEST_MKDIR("my_empty_dir");
-    argv_one[0] = (char *)(size_t) "my_empty_dir";
+    argv_one[0] = cdd_test_mut_str("my_empty_dir");
     g_cdd_fail_audit_stats_init = 2;
     ASSERT_EQ(CDD_C_SUCCESS, handle_audit(1, argv_one));
     ASSERT_EQ(CDD_C_ERROR_MEMORY, handle_audit(1, argv_one));
@@ -89,71 +85,84 @@ TEST test_main_coverage_handle_audit(void) {
 }
 
 TEST test_main_coverage_handle_audit_valid(void) {
-  char *argv[] = {(char *)(size_t)(size_t) "my_empty_dir"};
+  char *argv[1];
+
+  argv[0] = cdd_test_mut_str("my_empty_dir");
   handle_audit(1, argv);
   PASS();
 }
 
 TEST test_main_coverage_from_openapi(void) {
-  char *argv_no_args[] = {(char *)(size_t)(size_t) "from_openapi"};
-  char *argv_to_sdk[] = {(char *)(size_t)(size_t) "from_openapi",
-                         (char *)(size_t)(size_t) "to_sdk",
-                         (char *)(size_t)(size_t) "-i",
-                         (char *)(size_t)(size_t) "missing.json",
-                         (char *)(size_t)(size_t) "-o",
-                         (char *)(size_t)(size_t) "out"};
-  char *argv_to_sdk_cli[] = {(char *)(size_t)(size_t) "from_openapi",
-                             (char *)(size_t)(size_t) "to_sdk_cli",
-                             (char *)(size_t)(size_t) "--input-dir",
-                             (char *)(size_t)(size_t) "missing_dir",
-                             (char *)(size_t)(size_t) "-o",
-                             (char *)(size_t)(size_t) "out"};
-  char *argv_to_server[] = {(char *)(size_t)(size_t) "from_openapi",
-                            (char *)(size_t)(size_t) "to_server",
-                            (char *)(size_t)(size_t) "-i",
-                            (char *)(size_t)(size_t) "missing.json",
-                            (char *)(size_t)(size_t) "-o",
-                            (char *)(size_t)(size_t) "out"};
+  char *argv_no_args[1];
+  char *argv_to_sdk[6];
+  char *argv_to_sdk_cli[6];
+  char *argv_to_server[6];
 
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, from_openapi_cli_main(1, argv_no_args));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, from_openapi_cli_main(6, argv_to_sdk));
+  argv_no_args[0] = cdd_test_mut_str("from_openapi");
+  argv_to_sdk[0] = cdd_test_mut_str("from_openapi");
+  argv_to_sdk[1] = cdd_test_mut_str("to_sdk");
+  argv_to_sdk[2] = cdd_test_mut_str("-i");
+  argv_to_sdk[3] = cdd_test_mut_str("missing.json");
+  argv_to_sdk[4] = cdd_test_mut_str("-o");
+  argv_to_sdk[5] = cdd_test_mut_str("out");
+  argv_to_sdk_cli[0] = cdd_test_mut_str("from_openapi");
+  argv_to_sdk_cli[1] = cdd_test_mut_str("to_sdk_cli");
+  argv_to_sdk_cli[2] = cdd_test_mut_str("--input-dir");
+  argv_to_sdk_cli[3] = cdd_test_mut_str("missing_dir");
+  argv_to_sdk_cli[4] = cdd_test_mut_str("-o");
+  argv_to_sdk_cli[5] = cdd_test_mut_str("out");
+  argv_to_server[0] = cdd_test_mut_str("from_openapi");
+  argv_to_server[1] = cdd_test_mut_str("to_server");
+  argv_to_server[2] = cdd_test_mut_str("-i");
+  argv_to_server[3] = cdd_test_mut_str("missing.json");
+  argv_to_server[4] = cdd_test_mut_str("-o");
+  argv_to_server[5] = cdd_test_mut_str("out");
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            from_openapi_cli_main(1, argv_no_args));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, from_openapi_cli_main(6, argv_to_sdk));
   ASSERT_EQ(CDD_C_SUCCESS, from_openapi_cli_main(6, argv_to_sdk_cli));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, from_openapi_cli_main(6, argv_to_server));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, from_openapi_cli_main(6, argv_to_server));
   PASS();
 }
 
 TEST test_main_coverage_from_openapi_opts(void) {
-  char *argv_help[] = {(char *)(size_t)(size_t) "from_openapi",
-                       (char *)(size_t)(size_t) "--help"};
-  char *argv_opts[] = {(char *)(size_t)(size_t) "from_openapi",
-                       (char *)(size_t)(size_t) "to_sdk",
-                       (char *)(size_t)(size_t) "-i",
-                       (char *)(size_t)(size_t) "missing.json",
-                       (char *)(size_t)(size_t) "--no-github-actions",
-                       (char *)(size_t)(size_t) "--no-installable-package",
-                       (char *)(size_t)(size_t) "--tests"};
-  char *argv_out[] = {(char *)(size_t)(size_t) "from_openapi",
-                      (char *)(size_t)(size_t) "to_sdk",
-                      (char *)(size_t)(size_t) "-i",
-                      (char *)(size_t)(size_t) "missing.json",
-                      (char *)(size_t)(size_t) "-o",
-                      (char *)(size_t)(size_t) "out_dir"};
-  char *argv_trailing_o[] = {
-      (char *)(size_t)(size_t) "from_openapi",
-      (char *)(size_t)(size_t) "to_sdk", (char *)(size_t)(size_t) "-i",
-      (char *)(size_t)(size_t) "missing.json", (char *)(size_t)(size_t) "-o"};
-  char *argv_long_out[] = {(char *)(size_t)(size_t) "from_openapi",
-                           (char *)(size_t)(size_t) "to_sdk",
-                           (char *)(size_t)(size_t) "-i",
-                           (char *)(size_t)(size_t) "missing.json",
-                           (char *)(size_t)(size_t) "--output",
-                           (char *)(size_t)(size_t) "out_dir"};
+  char *argv_help[2];
+  char *argv_opts[7];
+  char *argv_out[6];
+  char *argv_trailing_o[5];
+  char *argv_long_out[6];
 
+  argv_help[0] = cdd_test_mut_str("from_openapi");
+  argv_help[1] = cdd_test_mut_str("--help");
+  argv_opts[0] = cdd_test_mut_str("from_openapi");
+  argv_opts[1] = cdd_test_mut_str("to_sdk");
+  argv_opts[2] = cdd_test_mut_str("-i");
+  argv_opts[3] = cdd_test_mut_str("missing.json");
+  argv_opts[4] = cdd_test_mut_str("--no-github-actions");
+  argv_opts[5] = cdd_test_mut_str("--no-installable-package");
+  argv_opts[6] = cdd_test_mut_str("--tests");
+  argv_out[0] = cdd_test_mut_str("from_openapi");
+  argv_out[1] = cdd_test_mut_str("to_sdk");
+  argv_out[2] = cdd_test_mut_str("-i");
+  argv_out[3] = cdd_test_mut_str("missing.json");
+  argv_out[4] = cdd_test_mut_str("-o");
+  argv_out[5] = cdd_test_mut_str("out_dir");
+  argv_trailing_o[0] = cdd_test_mut_str("from_openapi");
+  argv_trailing_o[1] = cdd_test_mut_str("to_sdk");
+  argv_trailing_o[2] = cdd_test_mut_str("-i");
+  argv_trailing_o[3] = cdd_test_mut_str("missing.json");
+  argv_trailing_o[4] = cdd_test_mut_str("-o");
+  argv_long_out[0] = cdd_test_mut_str("from_openapi");
+  argv_long_out[1] = cdd_test_mut_str("to_sdk");
+  argv_long_out[2] = cdd_test_mut_str("-i");
+  argv_long_out[3] = cdd_test_mut_str("missing.json");
+  argv_long_out[4] = cdd_test_mut_str("--output");
+  argv_long_out[5] = cdd_test_mut_str("out_dir");
   ASSERT_EQ(CDD_C_SUCCESS, from_openapi_cli_main(2, argv_help));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, from_openapi_cli_main(7, argv_opts));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, from_openapi_cli_main(6, argv_out));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, from_openapi_cli_main(6, argv_long_out));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, from_openapi_cli_main(5, argv_trailing_o));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, from_openapi_cli_main(7, argv_opts));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, from_openapi_cli_main(6, argv_out));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, from_openapi_cli_main(6, argv_long_out));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, from_openapi_cli_main(5, argv_trailing_o));
   PASS();
 }
 
@@ -173,12 +182,14 @@ TEST test_main_coverage_from_openapi_valid(void) {
       fclose(f);
   }
   {
-    char *argv_to_sdk[] = {(char *)(size_t)(size_t) "from_openapi",
-                           (char *)(size_t)(size_t) "to_sdk",
-                           (char *)(size_t)(size_t) "-i",
-                           (char *)(size_t)(size_t) "dummy_spec.json",
-                           (char *)(size_t)(size_t) "-o",
-                           (char *)(size_t)(size_t) "out_dir"};
+    char *argv_to_sdk[6];
+
+    argv_to_sdk[0] = cdd_test_mut_str("from_openapi");
+    argv_to_sdk[1] = cdd_test_mut_str("to_sdk");
+    argv_to_sdk[2] = cdd_test_mut_str("-i");
+    argv_to_sdk[3] = cdd_test_mut_str("dummy_spec.json");
+    argv_to_sdk[4] = cdd_test_mut_str("-o");
+    argv_to_sdk[5] = cdd_test_mut_str("out_dir");
     ASSERT_EQ(CDD_C_SUCCESS, from_openapi_cli_main(6, argv_to_sdk));
     PASS();
   }
@@ -198,13 +209,15 @@ TEST test_main_coverage_from_openapi_invalid(void) {
       fclose(f);
   }
   {
-    char *argv_invalid[] = {(char *)(size_t)(size_t) "from_openapi",
-                            (char *)(size_t)(size_t) "to_sdk",
-                            (char *)(size_t)(size_t) "-i",
-                            (char *)(size_t)(size_t) "invalid_spec.json",
-                            (char *)(size_t)(size_t) "-o",
-                            (char *)(size_t)(size_t) "out_dir"};
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, from_openapi_cli_main(6, argv_invalid));
+    char *argv_invalid[6];
+
+    argv_invalid[0] = cdd_test_mut_str("from_openapi");
+    argv_invalid[1] = cdd_test_mut_str("to_sdk");
+    argv_invalid[2] = cdd_test_mut_str("-i");
+    argv_invalid[3] = cdd_test_mut_str("invalid_spec.json");
+    argv_invalid[4] = cdd_test_mut_str("-o");
+    argv_invalid[5] = cdd_test_mut_str("out_dir");
+    ASSERT_EQ(CDD_C_ERROR_PARSE, from_openapi_cli_main(6, argv_invalid));
   }
 
 #if defined(_MSC_VER)
@@ -219,17 +232,21 @@ TEST test_main_coverage_from_openapi_invalid(void) {
       fclose(f);
   }
   {
-    char *argv_invalid2[] = {(char *)(size_t)(size_t) "from_openapi",
-                             (char *)(size_t)(size_t) "to_sdk",
-                             (char *)(size_t)(size_t) "-i",
-                             (char *)(size_t)(size_t) "invalid_spec2.json",
-                             (char *)(size_t)(size_t) "-o",
-                             (char *)(size_t)(size_t) "out_dir"};
-    char *argv_inp_last[] = {(char *)(size_t)(size_t) "from_openapi",
-                             (char *)(size_t)(size_t) "--input"};
+    char *argv_invalid2[6];
+    char *argv_inp_last[2];
+
+    argv_invalid2[0] = cdd_test_mut_str("from_openapi");
+    argv_invalid2[1] = cdd_test_mut_str("to_sdk");
+    argv_invalid2[2] = cdd_test_mut_str("-i");
+    argv_invalid2[3] = cdd_test_mut_str("invalid_spec2.json");
+    argv_invalid2[4] = cdd_test_mut_str("-o");
+    argv_invalid2[5] = cdd_test_mut_str("out_dir");
+    argv_inp_last[0] = cdd_test_mut_str("from_openapi");
+    argv_inp_last[1] = cdd_test_mut_str("--input");
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               from_openapi_cli_main(6, argv_invalid2));
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, from_openapi_cli_main(2, argv_inp_last));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              from_openapi_cli_main(2, argv_inp_last));
     remove("invalid_spec2.json");
     PASS();
   }
@@ -251,19 +268,21 @@ TEST test_main_coverage_from_openapi_cli_server(void) {
       fclose(f);
   }
   {
-    char *argv_cli[] = {(char *)(size_t)(size_t) "from_openapi",
-                        (char *)(size_t)(size_t) "to_sdk_cli",
-                        (char *)(size_t)(size_t) "-i",
-                        (char *)(size_t)(size_t) "dummy_spec.json",
-                        (char *)(size_t)(size_t) "-o",
-                        (char *)(size_t)(size_t) "out_dir"};
-    char *argv_server[] = {(char *)(size_t)(size_t) "from_openapi",
-                           (char *)(size_t)(size_t) "to_server",
-                           (char *)(size_t)(size_t) "-i",
-                           (char *)(size_t)(size_t) "dummy_spec.json",
-                           (char *)(size_t)(size_t) "-o",
-                           (char *)(size_t)(size_t) "out_dir"};
+    char *argv_cli[6];
+    char *argv_server[6];
 
+    argv_cli[0] = cdd_test_mut_str("from_openapi");
+    argv_cli[1] = cdd_test_mut_str("to_sdk_cli");
+    argv_cli[2] = cdd_test_mut_str("-i");
+    argv_cli[3] = cdd_test_mut_str("dummy_spec.json");
+    argv_cli[4] = cdd_test_mut_str("-o");
+    argv_cli[5] = cdd_test_mut_str("out_dir");
+    argv_server[0] = cdd_test_mut_str("from_openapi");
+    argv_server[1] = cdd_test_mut_str("to_server");
+    argv_server[2] = cdd_test_mut_str("-i");
+    argv_server[3] = cdd_test_mut_str("dummy_spec.json");
+    argv_server[4] = cdd_test_mut_str("-o");
+    argv_server[5] = cdd_test_mut_str("out_dir");
     ASSERT_EQ(CDD_C_SUCCESS, from_openapi_cli_main(6, argv_cli));
     ASSERT_EQ(CDD_C_SUCCESS, from_openapi_cli_main(6, argv_server));
     PASS();
@@ -271,13 +290,16 @@ TEST test_main_coverage_from_openapi_cli_server(void) {
 }
 
 TEST test_main_coverage_cdd_main(void) {
-  char *argv_ver[] = {(char *)(size_t)(size_t) "cdd-c",
-                      (char *)(size_t)(size_t) "--version"};
-  char *argv_help[] = {(char *)(size_t)(size_t) "cdd-c",
-                       (char *)(size_t)(size_t) "--help"};
-  char *argv_err[] = {(char *)(size_t)(size_t) "cdd-c",
-                      (char *)(size_t)(size_t) "unknown"};
+  char *argv_ver[2];
+  char *argv_help[2];
+  char *argv_err[2];
 
+  argv_ver[0] = cdd_test_mut_str("cdd-c");
+  argv_ver[1] = cdd_test_mut_str("--version");
+  argv_help[0] = cdd_test_mut_str("cdd-c");
+  argv_help[1] = cdd_test_mut_str("--help");
+  argv_err[0] = cdd_test_mut_str("cdd-c");
+  argv_err[1] = cdd_test_mut_str("unknown");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_main(2, argv_ver));
   ASSERT_EQ(CDD_C_SUCCESS, cdd_main(2, argv_help));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_main(2, argv_err));
@@ -285,26 +307,36 @@ TEST test_main_coverage_cdd_main(void) {
 }
 
 TEST test_main_coverage_to_openapi(void) {
-  char *argv_help[] = {(char *)(size_t)(size_t) "to_openapi",
-                       (char *)(size_t)(size_t) "--help"};
-  char *argv_no_args[] = {(char *)(size_t)(size_t) "to_openapi"};
-  char *argv_args[] = {
-      (char *)(size_t)(size_t) "to_openapi", (char *)(size_t)(size_t) "-i",
-      (char *)(size_t)(size_t) "my_empty_dir", (char *)(size_t)(size_t) "-o",
-      (char *)(size_t)(size_t) "out.json"};
-  char *argv_args_long[] = {
-      (char *)(size_t)(size_t) "to_openapi", (char *)(size_t)(size_t) "--input",
-      (char *)(size_t)(size_t) "my_empty_dir",
-      (char *)(size_t)(size_t) "--output", (char *)(size_t)(size_t) "out.json"};
-  char *argv_trailing_i[] = {(char *)(size_t)(size_t) "to_openapi",
-                             (char *)(size_t)(size_t) "-i"};
-  char *argv_trailing_o[] = {(char *)(size_t)(size_t) "to_openapi",
-                             (char *)(size_t)(size_t) "-o"};
+  char *argv_help[2];
+  char *argv_no_args[1];
+  char *argv_args[5];
+  char *argv_args_long[5];
+  char *argv_trailing_i[2];
+  char *argv_trailing_o[2];
 
+  argv_help[0] = cdd_test_mut_str("to_openapi");
+  argv_help[1] = cdd_test_mut_str("--help");
+  argv_no_args[0] = cdd_test_mut_str("to_openapi");
+  argv_args[0] = cdd_test_mut_str("to_openapi");
+  argv_args[1] = cdd_test_mut_str("-i");
+  argv_args[2] = cdd_test_mut_str("my_empty_dir");
+  argv_args[3] = cdd_test_mut_str("-o");
+  argv_args[4] = cdd_test_mut_str("out.json");
+  argv_args_long[0] = cdd_test_mut_str("to_openapi");
+  argv_args_long[1] = cdd_test_mut_str("--input");
+  argv_args_long[2] = cdd_test_mut_str("my_empty_dir");
+  argv_args_long[3] = cdd_test_mut_str("--output");
+  argv_args_long[4] = cdd_test_mut_str("out.json");
+  argv_trailing_i[0] = cdd_test_mut_str("to_openapi");
+  argv_trailing_i[1] = cdd_test_mut_str("-i");
+  argv_trailing_o[0] = cdd_test_mut_str("to_openapi");
+  argv_trailing_o[1] = cdd_test_mut_str("-o");
   ASSERT_EQ(CDD_C_SUCCESS, to_openapi_cli_main(2, argv_help));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, to_openapi_cli_main(1, argv_no_args));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, to_openapi_cli_main(2, argv_trailing_i));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, to_openapi_cli_main(2, argv_trailing_o));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, to_openapi_cli_main(1, argv_no_args));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            to_openapi_cli_main(2, argv_trailing_i));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            to_openapi_cli_main(2, argv_trailing_o));
   to_openapi_cli_main(5, argv_args);
   to_openapi_cli_main(5, argv_args_long);
   PASS();
@@ -326,39 +358,53 @@ TEST test_main_coverage_cdd_main_subcommands(void) {
       fclose(f);
   }
   {
-    char *argv_audit[] = {
-        (char *)(size_t)(size_t) "cdd-c", (char *)(size_t)(size_t) "audit",
-        (char *)(size_t)(size_t) "a", (char *)(size_t)(size_t) "b"};
-    char *argv_c2openapi[] = {
-        (char *)(size_t)(size_t) "cdd-c", (char *)(size_t)(size_t) "c2openapi",
-        (char *)(size_t)(size_t) "a", (char *)(size_t)(size_t) "b"};
-    char *argv_transformer[] = {(char *)(size_t)(size_t) "cdd-c",
-                                (char *)(size_t)(size_t) "transformer",
-                                (char *)(size_t)(size_t) "a"};
-    char *argv_standardize[] = {(char *)(size_t)(size_t) "cdd-c",
-                                (char *)(size_t)(size_t) "standardize-gnu"};
-    char *argv_code2schema[] = {(char *)(size_t)(size_t) "cdd-c",
-                                (char *)(size_t)(size_t) "code2schema",
-                                (char *)(size_t)(size_t) "a",
-                                (char *)(size_t)(size_t) "b"};
-    char *argv_gen_build[] = {(char *)(size_t)(size_t) "cdd-c",
-                              (char *)(size_t)(size_t) "generate_build_system",
-                              (char *)(size_t)(size_t) "a"};
-    char *argv_schema2code[] = {(char *)(size_t)(size_t) "cdd-c",
-                                (char *)(size_t)(size_t) "schema2code",
-                                (char *)(size_t)(size_t) "a"};
-    char *argv_to_docs[] = {(char *)(size_t)(size_t) "cdd-c",
-                            (char *)(size_t)(size_t) "to_docs_json",
-                            (char *)(size_t)(size_t) "a"};
-    char *argv_bind[] = {(char *)(size_t)(size_t) "cdd-c",
-                         (char *)(size_t)(size_t) "bind",
-                         (char *)(size_t)(size_t) "a"};
-    char *argv_from_openapi[] = {(char *)(size_t)(size_t) "cdd-c",
-                                 (char *)(size_t)(size_t) "from_openapi",
-                                 (char *)(size_t)(size_t) "a"};
-    char *argv_to_openapi[] = {(char *)(size_t)(size_t) "cdd-c",
-                               (char *)(size_t)(size_t) "to_openapi",
-                               (char *)(size_t)(size_t) "a"};
+    char *argv_audit[4];
+    char *argv_c2openapi[4];
+    char *argv_transformer[3];
+    char *argv_standardize[2];
+    char *argv_code2schema[4];
+    char *argv_gen_build[3];
+    char *argv_schema2code[3];
+    char *argv_to_docs[3];
+    char *argv_bind[3];
+    char *argv_from_openapi[3];
+    char *argv_to_openapi[3];
+
+    argv_audit[0] = cdd_test_mut_str("cdd-c");
+    argv_audit[1] = cdd_test_mut_str("audit");
+    argv_audit[2] = cdd_test_mut_str("a");
+    argv_audit[3] = cdd_test_mut_str("b");
+    argv_c2openapi[0] = cdd_test_mut_str("cdd-c");
+    argv_c2openapi[1] = cdd_test_mut_str("c2openapi");
+    argv_c2openapi[2] = cdd_test_mut_str("a");
+    argv_c2openapi[3] = cdd_test_mut_str("b");
+    argv_transformer[0] = cdd_test_mut_str("cdd-c");
+    argv_transformer[1] = cdd_test_mut_str("transformer");
+    argv_transformer[2] = cdd_test_mut_str("a");
+    argv_standardize[0] = cdd_test_mut_str("cdd-c");
+    argv_standardize[1] = cdd_test_mut_str("standardize-gnu");
+    argv_code2schema[0] = cdd_test_mut_str("cdd-c");
+    argv_code2schema[1] = cdd_test_mut_str("code2schema");
+    argv_code2schema[2] = cdd_test_mut_str("a");
+    argv_code2schema[3] = cdd_test_mut_str("b");
+    argv_gen_build[0] = cdd_test_mut_str("cdd-c");
+    argv_gen_build[1] = cdd_test_mut_str("generate_build_system");
+    argv_gen_build[2] = cdd_test_mut_str("a");
+    argv_schema2code[0] = cdd_test_mut_str("cdd-c");
+    argv_schema2code[1] = cdd_test_mut_str("schema2code");
+    argv_schema2code[2] = cdd_test_mut_str("a");
+    argv_to_docs[0] = cdd_test_mut_str("cdd-c");
+    argv_to_docs[1] = cdd_test_mut_str("to_docs_json");
+    argv_to_docs[2] = cdd_test_mut_str("a");
+    argv_bind[0] = cdd_test_mut_str("cdd-c");
+    argv_bind[1] = cdd_test_mut_str("bind");
+    argv_bind[2] = cdd_test_mut_str("a");
+    argv_from_openapi[0] = cdd_test_mut_str("cdd-c");
+    argv_from_openapi[1] = cdd_test_mut_str("from_openapi");
+    argv_from_openapi[2] = cdd_test_mut_str("a");
+    argv_to_openapi[0] = cdd_test_mut_str("cdd-c");
+    argv_to_openapi[1] = cdd_test_mut_str("to_openapi");
+    argv_to_openapi[2] = cdd_test_mut_str("a");
 
     cdd_main(2, argv_audit);
     cdd_main(2, argv_c2openapi);
@@ -380,45 +426,57 @@ TEST test_main_coverage_cdd_main_success(void) {
   FILE *f = NULL;
   FILE *f_h = NULL;
   FILE *f_c = NULL;
-  char *argv_to_openapi[] = {
-      (char *)(size_t)(size_t) "cdd-c", (char *)(size_t)(size_t) "to_openapi",
-      (char *)(size_t)(size_t) "-i",    (char *)(size_t)(size_t) "my_empty_dir",
-      (char *)(size_t)(size_t) "-o",    (char *)(size_t)(size_t) "out.json"};
-  char *argv_from_openapi[] = {(char *)(size_t)(size_t) "cdd-c",
-                               (char *)(size_t)(size_t) "from_openapi",
-                               (char *)(size_t)(size_t) "to_sdk",
-                               (char *)(size_t)(size_t) "-i",
-                               (char *)(size_t)(size_t) "dummy_spec.json",
-                               (char *)(size_t)(size_t) "-o",
-                               (char *)(size_t)(size_t) "out_dir"};
-  char *argv_c2openapi[] = {(char *)(size_t)(size_t) "cdd-c",
-                            (char *)(size_t)(size_t) "c2openapi",
-                            (char *)(size_t)(size_t) "my_empty_dir",
-                            (char *)(size_t)(size_t) "out.json"};
-  char *argv_code2schema[] = {(char *)(size_t)(size_t) "cdd-c",
-                              (char *)(size_t)(size_t) "code2schema",
-                              (char *)(size_t)(size_t) "my_empty_dir/empty.h",
-                              (char *)(size_t)(size_t) "out_schema.json"};
-  char *argv_transformer[] = {(char *)(size_t)(size_t) "cdd-c",
-                              (char *)(size_t)(size_t) "transformer",
-                              (char *)(size_t)(size_t) "safe_crt",
-                              (char *)(size_t)(size_t) "my_empty_dir/empty.c"};
-  char *argv_standardize[] = {(char *)(size_t)(size_t) "cdd-c",
-                              (char *)(size_t)(size_t) "standardize-gnu",
-                              (char *)(size_t)(size_t) "my_empty_dir/empty.c"};
-  char *argv_audit[] = {(char *)(size_t)(size_t) "cdd-c",
-                        (char *)(size_t)(size_t) "audit",
-                        (char *)(size_t)(size_t) "my_empty_dir"};
-  char *argv_gen_build[] = {(char *)(size_t)(size_t) "cdd-c",
-                            (char *)(size_t)(size_t) "generate_build_system",
-                            (char *)(size_t)(size_t) "cmake",
-                            (char *)(size_t)(size_t) "my_empty_dir",
-                            (char *)(size_t)(size_t) "test"};
-  char *argv_schema2code[] = {
-      (char *)(size_t)(size_t) "cdd-c", (char *)(size_t)(size_t) "schema2code",
-      (char *)(size_t)(size_t) "src/tests/mocks/emit/simple.schema.json",
-      (char *)(size_t)(size_t) "out_dir/simple"};
+  char *argv_to_openapi[6];
+  char *argv_from_openapi[7];
+  char *argv_c2openapi[4];
+  char *argv_code2schema[4];
+  char *argv_transformer[4];
+  char *argv_standardize[3];
+  char *argv_audit[3];
+  char *argv_gen_build[5];
+  char *argv_schema2code[4];
 
+  argv_to_openapi[0] = cdd_test_mut_str("cdd-c");
+  argv_to_openapi[1] = cdd_test_mut_str("to_openapi");
+  argv_to_openapi[2] = cdd_test_mut_str("-i");
+  argv_to_openapi[3] = cdd_test_mut_str("my_empty_dir");
+  argv_to_openapi[4] = cdd_test_mut_str("-o");
+  argv_to_openapi[5] = cdd_test_mut_str("out.json");
+  argv_from_openapi[0] = cdd_test_mut_str("cdd-c");
+  argv_from_openapi[1] = cdd_test_mut_str("from_openapi");
+  argv_from_openapi[2] = cdd_test_mut_str("to_sdk");
+  argv_from_openapi[3] = cdd_test_mut_str("-i");
+  argv_from_openapi[4] = cdd_test_mut_str("dummy_spec.json");
+  argv_from_openapi[5] = cdd_test_mut_str("-o");
+  argv_from_openapi[6] = cdd_test_mut_str("out_dir");
+  argv_c2openapi[0] = cdd_test_mut_str("cdd-c");
+  argv_c2openapi[1] = cdd_test_mut_str("c2openapi");
+  argv_c2openapi[2] = cdd_test_mut_str("my_empty_dir");
+  argv_c2openapi[3] = cdd_test_mut_str("out.json");
+  argv_code2schema[0] = cdd_test_mut_str("cdd-c");
+  argv_code2schema[1] = cdd_test_mut_str("code2schema");
+  argv_code2schema[2] = cdd_test_mut_str("my_empty_dir/empty.h");
+  argv_code2schema[3] = cdd_test_mut_str("out_schema.json");
+  argv_transformer[0] = cdd_test_mut_str("cdd-c");
+  argv_transformer[1] = cdd_test_mut_str("transformer");
+  argv_transformer[2] = cdd_test_mut_str("safe_crt");
+  argv_transformer[3] = cdd_test_mut_str("my_empty_dir/empty.c");
+  argv_standardize[0] = cdd_test_mut_str("cdd-c");
+  argv_standardize[1] = cdd_test_mut_str("standardize-gnu");
+  argv_standardize[2] = cdd_test_mut_str("my_empty_dir/empty.c");
+  argv_audit[0] = cdd_test_mut_str("cdd-c");
+  argv_audit[1] = cdd_test_mut_str("audit");
+  argv_audit[2] = cdd_test_mut_str("my_empty_dir");
+  argv_gen_build[0] = cdd_test_mut_str("cdd-c");
+  argv_gen_build[1] = cdd_test_mut_str("generate_build_system");
+  argv_gen_build[2] = cdd_test_mut_str("cmake");
+  argv_gen_build[3] = cdd_test_mut_str("my_empty_dir");
+  argv_gen_build[4] = cdd_test_mut_str("test");
+  argv_schema2code[0] = cdd_test_mut_str("cdd-c");
+  argv_schema2code[1] = cdd_test_mut_str("schema2code");
+  argv_schema2code[2] =
+      cdd_test_mut_str("src/tests/mocks/emit/simple.schema.json");
+  argv_schema2code[3] = cdd_test_mut_str("out_dir/simple");
   TEST_MKDIR("my_empty_dir");
 #if defined(_MSC_VER)
   if (fopen_s(&f_h, "my_empty_dir/empty.h", "w") != 0)
@@ -474,12 +532,16 @@ TEST test_main_coverage_all_routes(void) {
 
   /* 2. short flags -v and -h */
   {
-    char *argv_v[] = {(char *)(size_t)(size_t) "cdd-c",
-                      (char *)(size_t)(size_t) "-v"};
-    char *argv_h[] = {(char *)(size_t)(size_t) "cdd-c",
-                      (char *)(size_t)(size_t) "-h"};
-    char *argv_stub[] = {(char *)(size_t)(size_t) "cdd-c",
-                         (char *)(size_t)(size_t) "openapi2client"};
+    char *argv_v[2];
+    char *argv_h[2];
+    char *argv_stub[2];
+
+    argv_v[0] = cdd_test_mut_str("cdd-c");
+    argv_v[1] = cdd_test_mut_str("-v");
+    argv_h[0] = cdd_test_mut_str("cdd-c");
+    argv_h[1] = cdd_test_mut_str("-h");
+    argv_stub[0] = cdd_test_mut_str("cdd-c");
+    argv_stub[1] = cdd_test_mut_str("openapi2client");
     ASSERT_EQ(CDD_C_SUCCESS, cdd_main(2, argv_v));
     ASSERT_EQ(CDD_C_SUCCESS, cdd_main(2, argv_h));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_main(2, argv_stub));
@@ -487,19 +549,23 @@ TEST test_main_coverage_all_routes(void) {
 
   /* 3. to_docs_json, bind, serve_json_rpc, mcp --help */
   {
-    char *argv_docs[] = {(char *)(size_t)(size_t) "cdd-c",
-                         (char *)(size_t)(size_t) "to_docs_json",
-                         (char *)(size_t)(size_t) "--help"};
-    char *argv_bind[] = {(char *)(size_t)(size_t) "cdd-c",
-                         (char *)(size_t)(size_t) "bind",
-                         (char *)(size_t)(size_t) "--help"};
-    char *argv_rpc[] = {(char *)(size_t)(size_t) "cdd-c",
-                        (char *)(size_t)(size_t) "serve_json_rpc",
-                        (char *)(size_t)(size_t) "--help"};
-    char *argv_mcp[] = {(char *)(size_t)(size_t) "cdd-c",
-                        (char *)(size_t)(size_t) "mcp",
-                        (char *)(size_t)(size_t) "--help"};
+    char *argv_docs[3];
+    char *argv_bind[3];
+    char *argv_rpc[3];
+    char *argv_mcp[3];
 
+    argv_docs[0] = cdd_test_mut_str("cdd-c");
+    argv_docs[1] = cdd_test_mut_str("to_docs_json");
+    argv_docs[2] = cdd_test_mut_str("--help");
+    argv_bind[0] = cdd_test_mut_str("cdd-c");
+    argv_bind[1] = cdd_test_mut_str("bind");
+    argv_bind[2] = cdd_test_mut_str("--help");
+    argv_rpc[0] = cdd_test_mut_str("cdd-c");
+    argv_rpc[1] = cdd_test_mut_str("serve_json_rpc");
+    argv_rpc[2] = cdd_test_mut_str("--help");
+    argv_mcp[0] = cdd_test_mut_str("cdd-c");
+    argv_mcp[1] = cdd_test_mut_str("mcp");
+    argv_mcp[2] = cdd_test_mut_str("--help");
     ASSERT_EQ(CDD_C_SUCCESS, cdd_main(3, argv_docs));
     ASSERT_EQ(CDD_C_SUCCESS, cdd_main(3, argv_bind));
 #if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__)
@@ -520,42 +586,53 @@ TEST test_main_coverage_all_routes(void) {
   /* 4. Failure paths (goto handle_err) for subcommands */
   {
     cdd_c_error_t rc_main;
-    char *argv_audit_fail[] = {
-        (char *)(size_t)(size_t) "cdd-c", (char *)(size_t)(size_t) "audit",
-        (char *)(size_t)(size_t) "nonexistent_dir_12345"};
-    char *argv_c2_fail[] = {(char *)(size_t)(size_t) "cdd-c",
-                            (char *)(size_t)(size_t) "c2openapi",
-                            (char *)(size_t)(size_t) "--bad-flag"};
-    char *argv_tf_fail[] = {(char *)(size_t)(size_t) "cdd-c",
-                            (char *)(size_t)(size_t) "transformer",
-                            (char *)(size_t)(size_t) "--bad-flag"};
-    char *argv_gnu_fail[] = {(char *)(size_t)(size_t) "cdd-c",
-                             (char *)(size_t)(size_t) "standardize-gnu",
-                             (char *)(size_t)(size_t) "--bad-flag"};
-    char *argv_from_fail[] = {(char *)(size_t)(size_t) "cdd-c",
-                              (char *)(size_t)(size_t) "from_openapi",
-                              (char *)(size_t)(size_t) "--bad-flag"};
-    char *argv_to_fail[] = {(char *)(size_t)(size_t) "cdd-c",
-                            (char *)(size_t)(size_t) "to_openapi",
-                            (char *)(size_t)(size_t) "--bad-flag"};
-    char *argv_docs_fail[] = {(char *)(size_t)(size_t) "cdd-c",
-                              (char *)(size_t)(size_t) "to_docs_json",
-                              (char *)(size_t)(size_t) "--bad-flag"};
-    char *argv_bind_fail[] = {(char *)(size_t)(size_t) "cdd-c",
-                              (char *)(size_t)(size_t) "bind",
-                              (char *)(size_t)(size_t) "--bad-flag"};
-    char *argv_bld_fail[] = {(char *)(size_t)(size_t) "cdd-c",
-                             (char *)(size_t)(size_t) "generate_build_system",
-                             (char *)(size_t)(size_t) "--bad-flag"};
-    char *argv_schema2code_fail[] = {(char *)(size_t)(size_t) "cdd-c",
-                                     (char *)(size_t)(size_t) "schema2code",
-                                     (char *)(size_t)(size_t) "--bad-flag"};
-    char *argv_code2schema_fail[] = {
-        (char *)(size_t)(size_t) "cdd-c",
-        (char *)(size_t)(size_t) "code2schema",
-        (char *)(size_t)(size_t) "my_empty_dir/empty.h",
-        (char *)(size_t)(size_t) "my_empty_dir/empty.c/out.json"};
+    char *argv_audit_fail[3];
+    char *argv_c2_fail[3];
+    char *argv_tf_fail[3];
+    char *argv_gnu_fail[3];
+    char *argv_from_fail[3];
+    char *argv_to_fail[3];
+    char *argv_docs_fail[3];
+    char *argv_bind_fail[3];
+    char *argv_bld_fail[3];
+    char *argv_schema2code_fail[3];
+    char *argv_code2schema_fail[4];
 
+    argv_audit_fail[0] = cdd_test_mut_str("cdd-c");
+    argv_audit_fail[1] = cdd_test_mut_str("audit");
+    argv_audit_fail[2] = cdd_test_mut_str("nonexistent_dir_12345");
+    argv_c2_fail[0] = cdd_test_mut_str("cdd-c");
+    argv_c2_fail[1] = cdd_test_mut_str("c2openapi");
+    argv_c2_fail[2] = cdd_test_mut_str("--bad-flag");
+    argv_tf_fail[0] = cdd_test_mut_str("cdd-c");
+    argv_tf_fail[1] = cdd_test_mut_str("transformer");
+    argv_tf_fail[2] = cdd_test_mut_str("--bad-flag");
+    argv_gnu_fail[0] = cdd_test_mut_str("cdd-c");
+    argv_gnu_fail[1] = cdd_test_mut_str("standardize-gnu");
+    argv_gnu_fail[2] = cdd_test_mut_str("--bad-flag");
+    argv_from_fail[0] = cdd_test_mut_str("cdd-c");
+    argv_from_fail[1] = cdd_test_mut_str("from_openapi");
+    argv_from_fail[2] = cdd_test_mut_str("--bad-flag");
+    argv_to_fail[0] = cdd_test_mut_str("cdd-c");
+    argv_to_fail[1] = cdd_test_mut_str("to_openapi");
+    argv_to_fail[2] = cdd_test_mut_str("--bad-flag");
+    argv_docs_fail[0] = cdd_test_mut_str("cdd-c");
+    argv_docs_fail[1] = cdd_test_mut_str("to_docs_json");
+    argv_docs_fail[2] = cdd_test_mut_str("--bad-flag");
+    argv_bind_fail[0] = cdd_test_mut_str("cdd-c");
+    argv_bind_fail[1] = cdd_test_mut_str("bind");
+    argv_bind_fail[2] = cdd_test_mut_str("--bad-flag");
+    argv_bld_fail[0] = cdd_test_mut_str("cdd-c");
+    argv_bld_fail[1] = cdd_test_mut_str("generate_build_system");
+    argv_bld_fail[2] = cdd_test_mut_str("--bad-flag");
+    argv_schema2code_fail[0] = cdd_test_mut_str("cdd-c");
+    argv_schema2code_fail[1] = cdd_test_mut_str("schema2code");
+    argv_schema2code_fail[2] = cdd_test_mut_str("--bad-flag");
+    argv_code2schema_fail[0] = cdd_test_mut_str("cdd-c");
+    argv_code2schema_fail[1] = cdd_test_mut_str("code2schema");
+    argv_code2schema_fail[2] = cdd_test_mut_str("my_empty_dir/empty.h");
+    argv_code2schema_fail[3] =
+        cdd_test_mut_str("my_empty_dir/empty.c/out.json");
     rc_main = cdd_main(3, argv_audit_fail);
     ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
     rc_main = cdd_main(3, argv_c2_fail);
@@ -584,25 +661,30 @@ TEST test_main_coverage_all_routes(void) {
   {
     FILE *f_h;
     FILE *f_c;
-    char *argv_std_ok[] = {(char *)(size_t)(size_t) "cdd-c",
-                           (char *)(size_t)(size_t) "standardize-gnu",
-                           (char *)(size_t)(size_t) "--audit",
-                           (char *)(size_t)(size_t) "my_empty_dir/empty.c"};
-    char *argv_std_fail[] = {(char *)(size_t)(size_t) "cdd-c",
-                             (char *)(size_t)(size_t) "standardize-gnu",
-                             (char *)(size_t)(size_t) "my_empty_dir/empty.c"};
-    char *argv_rpc_ok[] = {(char *)(size_t)(size_t) "cdd-c",
-                           (char *)(size_t)(size_t) "serve_json_rpc",
-                           (char *)(size_t)(size_t) "--help"};
-    char *argv_rpc_fail[] = {(char *)(size_t)(size_t) "cdd-c",
-                             (char *)(size_t)(size_t) "serve_json_rpc",
-                             (char *)(size_t)(size_t) "--port"};
-    char *argv_code2schema_fail[] = {
-        (char *)(size_t)(size_t) "cdd-c",
-        (char *)(size_t)(size_t) "code2schema",
-        (char *)(size_t)(size_t) "my_empty_dir/empty.h",
-        (char *)(size_t)(size_t) "my_empty_dir/empty.c/out.json"};
+    char *argv_std_ok[4];
+    char *argv_std_fail[3];
+    char *argv_rpc_ok[3];
+    char *argv_rpc_fail[3];
+    char *argv_code2schema_fail[4];
 
+    argv_std_ok[0] = cdd_test_mut_str("cdd-c");
+    argv_std_ok[1] = cdd_test_mut_str("standardize-gnu");
+    argv_std_ok[2] = cdd_test_mut_str("--audit");
+    argv_std_ok[3] = cdd_test_mut_str("my_empty_dir/empty.c");
+    argv_std_fail[0] = cdd_test_mut_str("cdd-c");
+    argv_std_fail[1] = cdd_test_mut_str("standardize-gnu");
+    argv_std_fail[2] = cdd_test_mut_str("my_empty_dir/empty.c");
+    argv_rpc_ok[0] = cdd_test_mut_str("cdd-c");
+    argv_rpc_ok[1] = cdd_test_mut_str("serve_json_rpc");
+    argv_rpc_ok[2] = cdd_test_mut_str("--help");
+    argv_rpc_fail[0] = cdd_test_mut_str("cdd-c");
+    argv_rpc_fail[1] = cdd_test_mut_str("serve_json_rpc");
+    argv_rpc_fail[2] = cdd_test_mut_str("--port");
+    argv_code2schema_fail[0] = cdd_test_mut_str("cdd-c");
+    argv_code2schema_fail[1] = cdd_test_mut_str("code2schema");
+    argv_code2schema_fail[2] = cdd_test_mut_str("my_empty_dir/empty.h");
+    argv_code2schema_fail[3] =
+        cdd_test_mut_str("my_empty_dir/empty.c/out.json");
     f_h = fopen("my_empty_dir/empty.h", "w");
     if (f_h) {
       fputs("struct Foo { int x; };\n", f_h);
@@ -634,67 +716,77 @@ TEST test_main_coverage_all_routes(void) {
    * end */
   {
     cdd_c_error_t rc_from;
-    char *argv_h[] = {(char *)(size_t)(size_t) "from_openapi",
-                      (char *)(size_t)(size_t) "-h"};
-    char *argv_inp[] = {(char *)(size_t)(size_t) "from_openapi",
-                        (char *)(size_t)(size_t) "to_sdk",
-                        (char *)(size_t)(size_t) "--input",
-                        (char *)(size_t)(size_t) "dummy_spec.json",
-                        (char *)(size_t)(size_t) "-o",
-                        (char *)(size_t)(size_t) "out_dir"};
-    char *argv_out[] = {(char *)(size_t)(size_t) "from_openapi",
-                        (char *)(size_t)(size_t) "to_sdk",
-                        (char *)(size_t)(size_t) "--input",
-                        (char *)(size_t)(size_t) "dummy_spec.json",
-                        (char *)(size_t)(size_t) "--output",
-                        (char *)(size_t)(size_t) "out_dir"};
-    char *argv_dir_end[] = {(char *)(size_t)(size_t) "from_openapi",
-                            (char *)(size_t)(size_t) "--input-dir"};
-    char *argv_i_end[] = {(char *)(size_t)(size_t) "from_openapi",
-                          (char *)(size_t)(size_t) "-i"};
-    char *argv_no_o[] = {(char *)(size_t)(size_t) "from_openapi",
-                         (char *)(size_t)(size_t) "to_sdk",
-                         (char *)(size_t)(size_t) "-i",
-                         (char *)(size_t)(size_t) "dummy_spec.json"};
-    char *argv_bad_dir_sdk[] = {
-        (char *)(size_t)(size_t) "from_openapi",
-        (char *)(size_t)(size_t) "to_sdk",
-        (char *)(size_t)(size_t) "-i",
-        (char *)(size_t)(size_t) "dummy_spec.json",
-        (char *)(size_t)(size_t) "-o",
-        (char *)(size_t)(size_t) "my_empty_dir/empty.c/out"};
-    char *argv_bad_dir_srv[] = {
-        (char *)(size_t)(size_t) "from_openapi",
-        (char *)(size_t)(size_t) "to_server",
-        (char *)(size_t)(size_t) "-i",
-        (char *)(size_t)(size_t) "dummy_spec.json",
-        (char *)(size_t)(size_t) "-o",
-        (char *)(size_t)(size_t) "my_empty_dir/empty.c/out"};
-    char *argv_bad_dir_cli[] = {
-        (char *)(size_t)(size_t) "from_openapi",
-        (char *)(size_t)(size_t) "to_sdk_cli",
-        (char *)(size_t)(size_t) "-i",
-        (char *)(size_t)(size_t) "dummy_spec.json",
-        (char *)(size_t)(size_t) "-o",
-        (char *)(size_t)(size_t) "my_empty_dir/empty.c/out"};
-    char *argv_inp_cli[] = {(char *)(size_t)(size_t) "from_openapi",
-                            (char *)(size_t)(size_t) "to_sdk_cli",
-                            (char *)(size_t)(size_t) "--input",
-                            (char *)(size_t)(size_t) "dummy_spec.json",
-                            (char *)(size_t)(size_t) "-o",
-                            (char *)(size_t)(size_t) "out_dir"};
-    char *argv_inp_srv[] = {(char *)(size_t)(size_t) "from_openapi",
-                            (char *)(size_t)(size_t) "to_server",
-                            (char *)(size_t)(size_t) "--input",
-                            (char *)(size_t)(size_t) "dummy_spec.json",
-                            (char *)(size_t)(size_t) "-o",
-                            (char *)(size_t)(size_t) "out_dir"};
+    char *argv_h[2];
+    char *argv_inp[6];
+    char *argv_out[6];
+    char *argv_dir_end[2];
+    char *argv_i_end[2];
+    char *argv_no_o[4];
+    char *argv_bad_dir_sdk[6];
+    char *argv_bad_dir_srv[6];
+    char *argv_bad_dir_cli[6];
+    char *argv_inp_cli[6];
+    char *argv_inp_srv[6];
 
+    argv_h[0] = cdd_test_mut_str("from_openapi");
+    argv_h[1] = cdd_test_mut_str("-h");
+    argv_inp[0] = cdd_test_mut_str("from_openapi");
+    argv_inp[1] = cdd_test_mut_str("to_sdk");
+    argv_inp[2] = cdd_test_mut_str("--input");
+    argv_inp[3] = cdd_test_mut_str("dummy_spec.json");
+    argv_inp[4] = cdd_test_mut_str("-o");
+    argv_inp[5] = cdd_test_mut_str("out_dir");
+    argv_out[0] = cdd_test_mut_str("from_openapi");
+    argv_out[1] = cdd_test_mut_str("to_sdk");
+    argv_out[2] = cdd_test_mut_str("--input");
+    argv_out[3] = cdd_test_mut_str("dummy_spec.json");
+    argv_out[4] = cdd_test_mut_str("--output");
+    argv_out[5] = cdd_test_mut_str("out_dir");
+    argv_dir_end[0] = cdd_test_mut_str("from_openapi");
+    argv_dir_end[1] = cdd_test_mut_str("--input-dir");
+    argv_i_end[0] = cdd_test_mut_str("from_openapi");
+    argv_i_end[1] = cdd_test_mut_str("-i");
+    argv_no_o[0] = cdd_test_mut_str("from_openapi");
+    argv_no_o[1] = cdd_test_mut_str("to_sdk");
+    argv_no_o[2] = cdd_test_mut_str("-i");
+    argv_no_o[3] = cdd_test_mut_str("dummy_spec.json");
+    argv_bad_dir_sdk[0] = cdd_test_mut_str("from_openapi");
+    argv_bad_dir_sdk[1] = cdd_test_mut_str("to_sdk");
+    argv_bad_dir_sdk[2] = cdd_test_mut_str("-i");
+    argv_bad_dir_sdk[3] = cdd_test_mut_str("dummy_spec.json");
+    argv_bad_dir_sdk[4] = cdd_test_mut_str("-o");
+    argv_bad_dir_sdk[5] = cdd_test_mut_str("my_empty_dir/empty.c/out");
+    argv_bad_dir_srv[0] = cdd_test_mut_str("from_openapi");
+    argv_bad_dir_srv[1] = cdd_test_mut_str("to_server");
+    argv_bad_dir_srv[2] = cdd_test_mut_str("-i");
+    argv_bad_dir_srv[3] = cdd_test_mut_str("dummy_spec.json");
+    argv_bad_dir_srv[4] = cdd_test_mut_str("-o");
+    argv_bad_dir_srv[5] = cdd_test_mut_str("my_empty_dir/empty.c/out");
+    argv_bad_dir_cli[0] = cdd_test_mut_str("from_openapi");
+    argv_bad_dir_cli[1] = cdd_test_mut_str("to_sdk_cli");
+    argv_bad_dir_cli[2] = cdd_test_mut_str("-i");
+    argv_bad_dir_cli[3] = cdd_test_mut_str("dummy_spec.json");
+    argv_bad_dir_cli[4] = cdd_test_mut_str("-o");
+    argv_bad_dir_cli[5] = cdd_test_mut_str("my_empty_dir/empty.c/out");
+    argv_inp_cli[0] = cdd_test_mut_str("from_openapi");
+    argv_inp_cli[1] = cdd_test_mut_str("to_sdk_cli");
+    argv_inp_cli[2] = cdd_test_mut_str("--input");
+    argv_inp_cli[3] = cdd_test_mut_str("dummy_spec.json");
+    argv_inp_cli[4] = cdd_test_mut_str("-o");
+    argv_inp_cli[5] = cdd_test_mut_str("out_dir");
+    argv_inp_srv[0] = cdd_test_mut_str("from_openapi");
+    argv_inp_srv[1] = cdd_test_mut_str("to_server");
+    argv_inp_srv[2] = cdd_test_mut_str("--input");
+    argv_inp_srv[3] = cdd_test_mut_str("dummy_spec.json");
+    argv_inp_srv[4] = cdd_test_mut_str("-o");
+    argv_inp_srv[5] = cdd_test_mut_str("out_dir");
     ASSERT_EQ(CDD_C_SUCCESS, from_openapi_cli_main(2, argv_h));
     ASSERT_EQ(CDD_C_SUCCESS, from_openapi_cli_main(6, argv_inp));
     ASSERT_EQ(CDD_C_SUCCESS, from_openapi_cli_main(6, argv_out));
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, from_openapi_cli_main(2, argv_dir_end));
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, from_openapi_cli_main(2, argv_i_end));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              from_openapi_cli_main(2, argv_dir_end));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              from_openapi_cli_main(2, argv_i_end));
 
     rc_from = from_openapi_cli_main(4, argv_no_o);
     ASSERT(rc_from == CDD_C_SUCCESS || rc_from != CDD_C_SUCCESS);
@@ -748,11 +840,13 @@ TEST test_main_coverage_all_routes(void) {
       fclose(f_snap);
     }
     {
-      char *argv_snap[] = {(char *)(size_t)(size_t) "to_openapi",
-                           (char *)(size_t)(size_t) "-i",
-                           (char *)(size_t)(size_t) "my_empty_dir",
-                           (char *)(size_t)(size_t) "-o",
-                           (char *)(size_t)(size_t) "out_snap.json"};
+      char *argv_snap[5];
+
+      argv_snap[0] = cdd_test_mut_str("to_openapi");
+      argv_snap[1] = cdd_test_mut_str("-i");
+      argv_snap[2] = cdd_test_mut_str("my_empty_dir");
+      argv_snap[3] = cdd_test_mut_str("-o");
+      argv_snap[4] = cdd_test_mut_str("out_snap.json");
       to_openapi_cli_main(5, argv_snap);
     }
     remove("my_empty_dir/openapi.snapshot.json");

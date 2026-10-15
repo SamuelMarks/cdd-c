@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_swift.c
+ * @brief FFI binding emitter for Swift.
+ */
 #ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
 #endif
@@ -10,70 +14,78 @@ extern volatile int g_fail_io_after;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
-}
-
-static const char *get_swift_type(cdd_ffi_type_t type) {
+static cdd_c_error_t get_swift_type(cdd_ffi_type_t type,
+                                    const char **out_type) {
   if (type.pointer_depth > 0) {
     if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
-      return type.is_const ? "UnsafePointer<CChar>?"
-                           : "UnsafeMutablePointer<CChar>?";
+      *out_type = type.is_const ? "UnsafePointer<CChar>?"
+                                : "UnsafeMutablePointer<CChar>?";
+      return CDD_C_SUCCESS;
     }
-    return "UnsafeMutableRawPointer?";
+    *out_type = "UnsafeMutableRawPointer?";
+    return CDD_C_SUCCESS;
   }
 
   switch (type.kind) {
   case CDD_FFI_KIND_VOID:
-    return "Void";
+    *out_type = "Void";
+    break;
   case CDD_FFI_KIND_BOOL:
-    return "Bool";
+    *out_type = "Bool";
+    break;
   case CDD_FFI_KIND_INT8:
-    return "Int8";
+    *out_type = "Int8";
+    break;
   case CDD_FFI_KIND_UINT8:
-    return "UInt8";
+    *out_type = "UInt8";
+    break;
   case CDD_FFI_KIND_INT16:
-    return "Int16";
+    *out_type = "Int16";
+    break;
   case CDD_FFI_KIND_UINT16:
-    return "UInt16";
+    *out_type = "UInt16";
+    break;
   case CDD_FFI_KIND_INT32:
-    return "Int32";
+    *out_type = "Int32";
+    break;
   case CDD_FFI_KIND_UINT32:
-    return "UInt32";
+    *out_type = "UInt32";
+    break;
   case CDD_FFI_KIND_INT64:
-    return "Int64";
+    *out_type = "Int64";
+    break;
   case CDD_FFI_KIND_UINT64:
-    return "UInt64";
+    *out_type = "UInt64";
+    break;
   case CDD_FFI_KIND_FLOAT32:
-    return "Float";
+    *out_type = "Float";
+    break;
   case CDD_FFI_KIND_FLOAT64:
-    return "Double";
+    *out_type = "Double";
+    break;
   case CDD_FFI_KIND_FUNCTION_PTR:
-    return "UnsafeMutableRawPointer?";
+    *out_type = "UnsafeMutableRawPointer?";
+    break;
   case CDD_FFI_KIND_STRUCT_REF:
-    return type.ref_name ? type.ref_name : "UnsafeMutableRawPointer?";
+    *out_type = type.ref_name ? type.ref_name : "UnsafeMutableRawPointer?";
+    break;
   case CDD_FFI_KIND_ENUM_REF:
-    return type.ref_name ? type.ref_name : "Int32";
+    *out_type = type.ref_name ? type.ref_name : "Int32";
+    break;
   case CDD_FFI_KIND_TYPEDEF_REF:
-    return type.ref_name ? type.ref_name : "UnsafeMutableRawPointer?";
+    *out_type = type.ref_name ? type.ref_name : "UnsafeMutableRawPointer?";
+    break;
   case CDD_FFI_KIND_OPAQUE_PTR:
-    return "OpaquePointer?";
+    *out_type = "OpaquePointer?";
+    break;
   default:
-    return "UnsafeMutableRawPointer?";
+    *out_type = "UnsafeMutableRawPointer?";
+    break;
   }
+  return CDD_C_SUCCESS;
 }
 
 static cdd_c_error_t
@@ -117,7 +129,7 @@ emit_swift_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "/// %s\n", node->doc);
       fprintf(f, "public class %sWrapper {\n", node->name);
@@ -130,7 +142,8 @@ emit_swift_file(cdd_ffi_ir_t *ir,
       for (j = 0; j < node->fields_count; j++) {
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
-        const char *stype = get_swift_type(node->fields[j].type);
+        const char *stype = NULL;
+        get_swift_type(node->fields[j].type, &stype);
         fprintf(f, "    public var %s: %s {\n", fname, stype);
         fprintf(f, "        get { return inner.%s }\n", fname);
         fprintf(f, "        set { inner.%s = newValue }\n", fname);
@@ -145,7 +158,7 @@ emit_swift_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "    /// %s\n", node->doc);
       fprintf(f, "    public static func %s(", node->name);
@@ -153,18 +166,22 @@ emit_swift_file(cdd_ffi_ir_t *ir,
       for (j = 0; j < node->fields_count; j++) {
         const char *arg_name =
             node->fields[j].name ? node->fields[j].name : "arg";
+        const char *st = NULL;
         if (strcmp(arg_name, "class") == 0)
           arg_name = "clazz";
         if (strcmp(arg_name, "inout") == 0)
           arg_name = "inout_";
-        fprintf(f, "_ %s: %s", arg_name, get_swift_type(node->fields[j].type));
+        get_swift_type(node->fields[j].type, &st);
+        fprintf(f, "_ %s: %s", arg_name, st);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
       }
       fprintf(f, ")");
 
       if (node->return_or_base_type.kind != CDD_FFI_KIND_VOID) {
-        fprintf(f, " -> %s", get_swift_type(node->return_or_base_type));
+        const char *ret_st = NULL;
+        get_swift_type(node->return_or_base_type, &ret_st);
+        fprintf(f, " -> %s", ret_st);
       }
       fprintf(f, " {\n");
 

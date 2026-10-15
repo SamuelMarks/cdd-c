@@ -19,47 +19,15 @@ extern "C" {
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/emit/cdd_cst_emit.h"
 #include "c_str_span.h"
+#include "../../../transformers/safe_crt/safe_crt_internal.h"
 /* clang-format on */
 
 extern C_CDD_EXPORT int g_safe_crt_malloc_fail;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
 extern C_CDD_EXPORT int g_cdd_query_err_fail;
-
-#ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT cdd_c_error_t arena_alloc(size_t len, void **out_ptr);
-extern C_CDD_EXPORT cdd_c_error_t parse_expr_ast(void *stmt, size_t *idx,
-                                                 int stop_at_comma,
-                                                 void *out_ast);
-extern C_CDD_EXPORT cdd_c_error_t find_and_mark_fopen(void *head,
-                                                      int *out_found);
-extern C_CDD_EXPORT cdd_c_error_t check_unsupported_calls(void *head);
-extern C_CDD_EXPORT cdd_c_error_t check_needs_transform(void *head);
-extern C_CDD_EXPORT cdd_c_error_t expr_is_null_or_zero(void *node);
-extern C_CDD_EXPORT cdd_c_error_t clone_trivia(void *head, void **out_trivia);
-extern C_CDD_EXPORT cdd_c_error_t clone_token(void *tree, void *tok,
-                                              void **out_tok);
-extern C_CDD_EXPORT void emit_inferred_size(cdd_cst_builder_t *bld, void *dest);
-extern C_CDD_EXPORT const char *safe_crt_pool_string_safe(void *tree,
-                                                          const char *str);
-#ifndef SAFE_CRT_EXPR_TEST_DEF
-#define SAFE_CRT_EXPR_TEST_DEF
-struct safe_crt_expr_test {
-  int type;
-  cdd_token_t *tok;
-  cdd_token_t *close_tok;
-  void *args[16];
-  size_t num_args;
-  void *next;
-};
-#endif
-extern C_CDD_EXPORT cdd_c_error_t emit_ast_bld_strip(void *node,
-                                                     cdd_cst_builder_t *bld,
-                                                     int is_msc);
-extern C_CDD_EXPORT cdd_c_error_t
-emit_ast_bld_strip_ampersand(void *node, cdd_cst_builder_t *bld, int is_msc);
-extern C_CDD_EXPORT void get_indent_string(cdd_token_t *tok, char *out_indent);
 extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
-#endif
+
+#define safe_crt_expr_test expr_t
 
 TEST test_cdd_transform_safe_crt_direct_internals(void) {
   void *ptr = NULL;
@@ -103,15 +71,17 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
                       &dummy_tree) == 0) {
       if (cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node) == 0) {
         cdd_cst_builder_init(&dummy_bld, dummy_tree, dummy_node);
-        emit_inferred_size(&dummy_bld, (void *)&unknown_node);
+        emit_inferred_size(&dummy_bld, &unknown_node);
 
         /* now with identifier and g_cdd_query_err_fail */
         t_num.kind = CDD_TOKEN_IDENTIFIER;
         t_num.start = (const uint8_t *)"x";
         t_num.length = 1;
         g_cdd_query_err_fail = 1;
-        emit_inferred_size(&dummy_bld, (void *)&unknown_node);
+        emit_inferred_size(&dummy_bld, &unknown_node);
         g_cdd_query_err_fail = 0;
+        cdd_cst_builder_free(&dummy_bld);
+        cdd_cst_free_node(dummy_node);
       }
       cdd_cst_tree_free(dummy_tree);
     }
@@ -146,7 +116,9 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
           0) {
         if (cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node) == 0) {
           cdd_cst_builder_init(&dummy_bld, dummy_tree, dummy_node);
-          emit_ast_bld_strip((void *)&call_ast, &dummy_bld, 0);
+          emit_ast_bld_strip(&call_ast, &dummy_bld, 0);
+          cdd_cst_builder_free(&dummy_bld);
+          cdd_cst_free_node(dummy_node);
         }
         cdd_cst_tree_free(dummy_tree);
       }
@@ -154,10 +126,10 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
   }
   {
     /* check_needs_transform with type 3 node */
-    int n3[32];
-    memset(n3, 0, sizeof(n3));
-    n3[0] = 3; /* type = 3 */
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, check_needs_transform(n3));
+    expr_t n3;
+    memset(&n3, 0, sizeof(n3));
+    n3.type = 3; /* type = 3 */
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, check_needs_transform(&n3));
   }
 
   /* expr_is_null_or_zero */
@@ -175,13 +147,15 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
     cdd_cst_node_t *n = NULL;
     cdd_cst_builder_t b;
     size_t s_idx = 0;
-    void *ast = NULL;
+    expr_t *ast = NULL;
     if (cdd_cst_parse(az_span_create_from_str("/*hello*/ foo;"), &t) == 0) {
       if (t->root && t->root->num_children > 0) {
-        parse_expr_ast(t->root->children[0].val.node, &s_idx, 0, (void *)&ast);
+        parse_expr_ast(t->root->children[0].val.node, &s_idx, 0, &ast);
         if (cdd_cst_alloc_node(CDD_CST_UNKNOWN, &n) == 0) {
           cdd_cst_builder_init(&b, t, n);
           emit_ast_bld_strip(ast, &b, 0);
+          cdd_cst_builder_free(&b);
+          cdd_cst_free_node(n);
         }
       }
       cdd_cst_tree_free(t);
@@ -191,17 +165,28 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
   {
     /* safe_crt_pool_string_safe tests */
     cdd_cst_tree_t *dummy_tree = NULL;
-    ASSERT_EQ(NULL, safe_crt_pool_string_safe(NULL, "test"));
-    ASSERT_EQ(NULL, safe_crt_pool_string_safe((void *)1, NULL));
+    cdd_cst_tree_t stack_tree;
+    const char *pooled = NULL;
+    memset(&stack_tree, 0, sizeof(stack_tree));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              safe_crt_pool_string_safe(NULL, "test", &pooled));
+    ASSERT_EQ(NULL, pooled);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              safe_crt_pool_string_safe(&stack_tree, NULL, &pooled));
+    ASSERT_EQ(NULL, pooled);
     if (cdd_cst_parse(az_span_create_from_str("void f() {}"), &dummy_tree) ==
         0) {
       g_safe_crt_malloc_fail = 1;
-      ASSERT_EQ(NULL, safe_crt_pool_string_safe(dummy_tree, "dup_fail"));
+      ASSERT_EQ(CDD_C_ERROR_MEMORY,
+                safe_crt_pool_string_safe(dummy_tree, "dup_fail", &pooled));
+      ASSERT_EQ(NULL, pooled);
       g_safe_crt_malloc_fail = 2;
       /* strdup succeeds, then pool realloc fails because new_cap becomes 0 */
-      ASSERT_EQ(NULL, safe_crt_pool_string_safe(dummy_tree, "pool_fail"));
+      ASSERT_EQ(CDD_C_ERROR_MEMORY,
+                safe_crt_pool_string_safe(dummy_tree, "pool_fail", &pooled));
+      ASSERT_EQ(NULL, pooled);
       g_safe_crt_malloc_fail = 3;
-      safe_crt_pool_string_safe(dummy_tree, "pool_fail3");
+      safe_crt_pool_string_safe(dummy_tree, "pool_fail3", &pooled);
       g_safe_crt_malloc_fail = 0;
       cdd_cst_tree_free(dummy_tree);
     }
@@ -215,17 +200,33 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
     memset(&t2, 0, sizeof(t2));
     t1.next = &t2;
     g_safe_crt_malloc_fail = 2;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, clone_trivia(&t1, (void **)&out_triv));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, clone_trivia(&t1, &out_triv));
     g_safe_crt_malloc_fail = 0;
   }
   {
     /* clone_token with failed token creation */
     cdd_token_t tok_in;
     cdd_token_t *tok_out = NULL;
+    cdd_cst_tree_t *tree_ct = NULL;
+    cdd_trivia_t tr_in;
     memset(&tok_in, 0, sizeof(tok_in));
+    memset(&tr_in, 0, sizeof(tr_in));
     /* NULL tree causes cdd_cst_create_token_len to fail */
-    ASSERT_EQ(CDD_C_ERROR_MEMORY,
-              clone_token(NULL, &tok_in, (void **)&tok_out));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, clone_token(NULL, &tok_in, &tok_out));
+    if (cdd_cst_parse(az_span_create_from_str("int x;"), &tree_ct) == 0) {
+      tok_in.kind = CDD_TOKEN_IDENTIFIER;
+      tok_in.start = (const uint8_t *)"x";
+      tok_in.length = 1;
+      tok_in.leading_trivia = &tr_in;
+      g_safe_crt_malloc_fail = 1;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, clone_token(tree_ct, &tok_in, &tok_out));
+      tok_in.leading_trivia = NULL;
+      tok_in.trailing_trivia = &tr_in;
+      g_safe_crt_malloc_fail = 1;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, clone_token(tree_ct, &tok_in, &tok_out));
+      g_safe_crt_malloc_fail = 0;
+      cdd_cst_tree_free(tree_ct);
+    }
   }
 
   {
@@ -243,6 +244,8 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
       if (cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node) == 0) {
         cdd_cst_builder_init(&dummy_bld, dummy_tree, dummy_node);
         emit_inferred_size(&dummy_bld, NULL);
+        cdd_cst_builder_free(&dummy_bld);
+        cdd_cst_free_node(dummy_node);
       }
       cdd_cst_tree_free(dummy_tree);
     }
@@ -271,25 +274,25 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
     t_null.length = 4;
 
     n_test.type = 1;
-    ASSERT_EQ(CDD_C_SUCCESS, expr_is_null_or_zero((void *)&n_test));
+    ASSERT_EQ(CDD_C_SUCCESS, expr_is_null_or_zero(&n_test));
 
     n_test.type = 0;
     n_test.tok = NULL;
-    ASSERT_EQ(CDD_C_SUCCESS, expr_is_null_or_zero((void *)&n_test));
+    ASSERT_EQ(CDD_C_SUCCESS, expr_is_null_or_zero(&n_test));
 
     n_test.tok = &t_zero;
     n_test.next = &n_next;
-    ASSERT_EQ(CDD_C_SUCCESS, expr_is_null_or_zero((void *)&n_test));
+    ASSERT_EQ(CDD_C_SUCCESS, expr_is_null_or_zero(&n_test));
 
     n_test.next = NULL;
     n_test.tok = &t_one;
-    ASSERT_EQ(CDD_C_SUCCESS, expr_is_null_or_zero((void *)&n_test));
+    ASSERT_EQ(CDD_C_SUCCESS, expr_is_null_or_zero(&n_test));
 
     n_test.tok = &t_null;
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, expr_is_null_or_zero((void *)&n_test));
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, expr_is_null_or_zero(&n_test));
 
     n_test.tok = &t_zero;
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, expr_is_null_or_zero((void *)&n_test));
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, expr_is_null_or_zero(&n_test));
   }
 
   {
@@ -306,7 +309,7 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
     memset(&long_call, 0, sizeof(long_call));
     long_call.type = 1;
     long_call.tok = &t_long;
-    ASSERT_EQ(CDD_C_SUCCESS, check_unsupported_calls((void *)&long_call));
+    ASSERT_EQ(CDD_C_SUCCESS, check_unsupported_calls(&long_call));
   }
 
   {
@@ -361,61 +364,61 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
         /* length != 1 */
         t_amp.length = 2;
         n1.tok = &t_amp;
-        emit_inferred_size(&dummy_bld, (void *)&n1);
+        emit_inferred_size(&dummy_bld, &n1);
         t_amp.length = 1;
 
         /* start[0] != '&' */
         n1.tok = &t_star;
-        emit_inferred_size(&dummy_bld, (void *)&n1);
+        emit_inferred_size(&dummy_bld, &n1);
         n1.tok = &t_amp;
 
         /* n1.next == NULL */
         n1.next = NULL;
-        emit_inferred_size(&dummy_bld, (void *)&n1);
+        emit_inferred_size(&dummy_bld, &n1);
 
         /* n1.next->type != 0 */
         n1.next = &n2;
         n2.type = 1;
         n2.tok = &t_buf;
-        emit_inferred_size(&dummy_bld, (void *)&n1);
+        emit_inferred_size(&dummy_bld, &n1);
         n2.type = 0;
 
         /* n2.tok->kind != CDD_TOKEN_IDENTIFIER */
         n2.tok = &t_not_ident;
-        emit_inferred_size(&dummy_bld, (void *)&n1);
+        emit_inferred_size(&dummy_bld, &n1);
         n2.tok = &t_buf;
 
         /* n2.next == NULL */
         n2.next = NULL;
-        emit_inferred_size(&dummy_bld, (void *)&n1);
+        emit_inferred_size(&dummy_bld, &n1);
 
         /* n2.next->type != 2 */
         n2.next = &n3;
         n3.type = 0;
-        emit_inferred_size(&dummy_bld, (void *)&n1);
+        emit_inferred_size(&dummy_bld, &n1);
         n3.type = 2;
 
         /* n3.tok->kind != CDD_TOKEN_LBRACKET */
         n3.tok = &t_star;
-        emit_inferred_size(&dummy_bld, (void *)&n1);
+        emit_inferred_size(&dummy_bld, &n1);
 
         /* buf + expr sub-conditions */
         n1.tok = &t_buf;
         n1.next = NULL;
-        emit_inferred_size(&dummy_bld, (void *)&n1);
+        emit_inferred_size(&dummy_bld, &n1);
 
         n1.next = &n2;
         n2.type = 1;
         n2.tok = &t_buf;
-        emit_inferred_size(&dummy_bld, (void *)&n1);
+        emit_inferred_size(&dummy_bld, &n1);
         n2.type = 0;
 
         n2.tok = &t_star;
-        emit_inferred_size(&dummy_bld, (void *)&n1);
+        emit_inferred_size(&dummy_bld, &n1);
 
         n2.tok = &t_plus;
         n2.next = NULL;
-        emit_inferred_size(&dummy_bld, (void *)&n1);
+        emit_inferred_size(&dummy_bld, &n1);
 
         /* malloc/calloc/realloc sub-conditions */
         n_call_test.type = 1;
@@ -425,24 +428,26 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
         n_call_test.num_args = 1;
         t_call_name.start = (const uint8_t *)"f";
         t_call_name.length = 1;
-        emit_inferred_size(&dummy_bld, (void *)&n_call_test);
+        emit_inferred_size(&dummy_bld, &n_call_test);
 
         t_call_name.start = (const uint8_t *)"malloX";
         t_call_name.length = 6;
-        emit_inferred_size(&dummy_bld, (void *)&n_call_test);
+        emit_inferred_size(&dummy_bld, &n_call_test);
 
         n_call_test.num_args = 2;
         t_call_name.start = (const uint8_t *)"f";
         t_call_name.length = 1;
-        emit_inferred_size(&dummy_bld, (void *)&n_call_test);
+        emit_inferred_size(&dummy_bld, &n_call_test);
 
         t_call_name.start = (const uint8_t *)"calloX";
         t_call_name.length = 6;
-        emit_inferred_size(&dummy_bld, (void *)&n_call_test);
+        emit_inferred_size(&dummy_bld, &n_call_test);
 
         t_call_name.start = (const uint8_t *)"realloX";
         t_call_name.length = 7;
-        emit_inferred_size(&dummy_bld, (void *)&n_call_test);
+        emit_inferred_size(&dummy_bld, &n_call_test);
+        cdd_cst_builder_free(&dummy_bld);
+        cdd_cst_free_node(dummy_node);
       }
       cdd_cst_tree_free(dummy_tree);
     }
@@ -452,7 +457,7 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
     /* parse_expr_ast edge cases: unclosed and brace */
     cdd_cst_tree_t *t_brace = NULL;
     size_t s_idx = 0;
-    void *ast_out = NULL;
+    expr_t *ast_out = NULL;
     cdd_cst_node_t stmt;
     cdd_cst_child_t children[3];
     cdd_token_t tok_rbrace, tok_lbrace, tok_ident, tok_lparen;
@@ -507,9 +512,16 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
     /* check_needs_transform branch coverage */
     struct safe_crt_expr_test n_chk;
     cdd_token_t t_chk;
-    const char *names[] = {"vprintf", "_vsnprintf", "vscanf", "vfscanf",
-                           "vsscanf", "strlen",     "tmpfile"};
+    const char *names[7];
     size_t k;
+
+    names[0] = cdd_test_mut_str("vprintf");
+    names[1] = cdd_test_mut_str("_vsnprintf");
+    names[2] = cdd_test_mut_str("vscanf");
+    names[3] = cdd_test_mut_str("vfscanf");
+    names[4] = cdd_test_mut_str("vsscanf");
+    names[5] = cdd_test_mut_str("strlen");
+    names[6] = cdd_test_mut_str("tmpfile");
     memset(&n_chk, 0, sizeof(n_chk));
     memset(&t_chk, 0, sizeof(t_chk));
     t_chk.kind = CDD_TOKEN_IDENTIFIER;
@@ -519,7 +531,7 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
     n_chk.type = 5;
     t_chk.start = (const uint8_t *)"strcpy";
     t_chk.length = 6;
-    check_needs_transform((void *)&n_chk);
+    check_needs_transform(&n_chk);
 
     /* length >= 127 */
     {
@@ -527,14 +539,14 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
       memset(long_name, 'a', 130);
       t_chk.start = (const uint8_t *)long_name;
       t_chk.length = 130;
-      check_needs_transform((void *)&n_chk);
+      check_needs_transform(&n_chk);
     }
 
     n_chk.type = 1;
     for (k = 0; k < sizeof(names) / sizeof(names[0]); k++) {
       t_chk.start = (const uint8_t *)names[k];
       t_chk.length = strlen(names[k]);
-      check_needs_transform((void *)&n_chk);
+      check_needs_transform(&n_chk);
     }
   }
 
@@ -576,9 +588,12 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
     cdd_cst_builder_t dummy_bld;
     struct safe_crt_expr_test n_emit;
     cdd_token_t t_emit;
-    const char *emit_names[] = {"vfprintf", "vscanf", "_stricmp"};
+    const char *emit_names[3];
     size_t k;
 
+    emit_names[0] = cdd_test_mut_str("vfprintf");
+    emit_names[1] = cdd_test_mut_str("vscanf");
+    emit_names[2] = cdd_test_mut_str("_stricmp");
     memset(&n_emit, 0, sizeof(n_emit));
     memset(&t_emit, 0, sizeof(t_emit));
     t_emit.kind = CDD_TOKEN_IDENTIFIER;
@@ -591,14 +606,16 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
 
         /* node->tok == NULL */
         n_emit.tok = NULL;
-        emit_ast_bld_strip((void *)&n_emit, &dummy_bld, 0);
+        emit_ast_bld_strip(&n_emit, &dummy_bld, 0);
 
         n_emit.tok = &t_emit;
         for (k = 0; k < sizeof(emit_names) / sizeof(emit_names[0]); k++) {
           t_emit.start = (const uint8_t *)emit_names[k];
           t_emit.length = strlen(emit_names[k]);
-          emit_ast_bld_strip((void *)&n_emit, &dummy_bld, 1);
+          emit_ast_bld_strip(&n_emit, &dummy_bld, 1);
         }
+        cdd_cst_builder_free(&dummy_bld);
+        cdd_cst_free_node(dummy_node);
       }
       cdd_cst_tree_free(dummy_tree);
     }
@@ -609,7 +626,7 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
     cdd_cst_child_t children[4];
     cdd_token_t t_ident, t_lpar, t_comma, t_rpar, t_semi;
     size_t test_idx = 0;
-    void *out_expr = NULL;
+    expr_t *out_expr = NULL;
 
     memset(&stmt, 0, sizeof(stmt));
     memset(children, 0, sizeof(children));
@@ -680,7 +697,7 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
     n_call.type = 1;
     n_call.tok = &t_long_call;
 
-    find_and_mark_fopen((void *)&n_assign, &found_test);
+    find_and_mark_fopen(&n_assign, &found_test);
 
     /* fopen with semicolon before assign so lhs_start is NULL and t is NULL */
     n_semi.type = 0;
@@ -688,7 +705,7 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
     n_semi.next = &n_assign;
     t_long_call.start = (const uint8_t *)"fopen";
     t_long_call.length = 5;
-    find_and_mark_fopen((void *)&n_semi, &found_test);
+    find_and_mark_fopen(&n_semi, &found_test);
   }
 
   {
@@ -713,27 +730,52 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
     cdd_cst_builder_init(&bld_null_root, &tree_null_root, &dummy_tgt);
 
     /* current_tree->root is NULL */
-    emit_inferred_size(&bld_null_root, (void *)&n_dest);
+    emit_inferred_size(&bld_null_root, &n_dest);
 
     /* dest is NULL */
     tree_null_root.root = &dummy_tgt;
     emit_inferred_size(&bld_null_root, NULL);
+    cdd_cst_builder_free(&bld_null_root);
+    free(dummy_tgt.children);
+    {
+      size_t s_i;
+      for (s_i = 0; s_i < tree_null_root.num_synthesized; s_i++) {
+        cdd_token_t *st = tree_null_root.synthesized_tokens[s_i];
+        cdd_trivia_t *tr = st->leading_trivia;
+        while (tr) {
+          cdd_trivia_t *nxt = tr->next;
+          free(tr);
+          tr = nxt;
+        }
+        tr = st->trailing_trivia;
+        while (tr) {
+          cdd_trivia_t *nxt = tr->next;
+          free(tr);
+          tr = nxt;
+        }
+        free(st);
+      }
+      free(tree_null_root.synthesized_tokens);
+      for (s_i = 0; s_i < tree_null_root.num_strings; s_i++)
+        free(tree_null_root.string_pool[s_i]);
+      free(tree_null_root.string_pool);
+    }
+  }
+  {
+    cdd_cst_tree_t *flush_tree = NULL;
+    if (cdd_cst_parse(az_span_create_from_str("void f(void) {}"),
+                      &flush_tree) == 0 &&
+        flush_tree) {
+      cdd_transform_safe_crt(flush_tree, NULL);
+      cdd_cst_tree_free(flush_tree);
+    }
   }
   PASS();
 }
 
-struct my_expr_t {
-  int type;
-  cdd_token_t *tok;
-  cdd_token_t *close_tok;
-  void *args[16];
-  size_t num_args;
-  void *next;
-};
-
 TEST test_cdd_transform_safe_crt_emit_oom(void) {
-  struct my_expr_t node;
-  struct my_expr_t arg;
+  expr_t node;
+  expr_t arg;
   cdd_cst_builder_t bld;
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *target = NULL;
@@ -773,6 +815,8 @@ TEST test_cdd_transform_safe_crt_emit_oom(void) {
 
   free(arg.tok);
   free(node.tok);
+  cdd_cst_builder_free(&bld);
+  cdd_cst_free_node(target);
   cdd_cst_tree_free(tree);
 
   PASS();

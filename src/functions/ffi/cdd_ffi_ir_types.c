@@ -49,7 +49,7 @@ cdd_c_error_t parse_template_type(const char *c_type,
   }
 
   base_len = (size_t)(lt - c_type);
-  base_name = (char *)(size_t)CDD_MALLOC(base_len + 1);
+  base_name = (char *)CDD_MALLOC(base_len + 1);
   if (!base_name)
     return CDD_C_ERROR_MEMORY;
 #if defined(_MSC_VER)
@@ -62,7 +62,7 @@ cdd_c_error_t parse_template_type(const char *c_type,
   out_type->ref_name = base_name;
 
   inner_len = (size_t)(gt - lt - 1);
-  inner_type_str = (char *)(size_t)CDD_MALLOC(inner_len + 1);
+  inner_type_str = (char *)CDD_MALLOC(inner_len + 1);
   if (!inner_type_str) {
     free(base_name);
     out_type->ref_name = NULL;
@@ -82,6 +82,7 @@ cdd_c_error_t parse_template_type(const char *c_type,
     free(inner_type_str);
     free(base_name);
     out_type->ref_name = NULL;
+    out_type->template_args_count = 0;
     return CDD_C_ERROR_MEMORY;
   }
 
@@ -89,6 +90,10 @@ cdd_c_error_t parse_template_type(const char *c_type,
   if (rc != CDD_C_SUCCESS) {
     free(inner_type_str);
     free(base_name);
+    free(out_type->template_args);
+    out_type->template_args = NULL;
+    out_type->template_args_count = 0;
+    out_type->ref_name = NULL;
     return rc;
   }
   if (out_type->template_args[0].kind == CDD_FFI_KIND_STRUCT_REF ||
@@ -100,12 +105,22 @@ cdd_c_error_t parse_template_type(const char *c_type,
           parse_template_type(inner_type_str, &out_type->template_args[0]);
       if (rc_ex != CDD_C_SUCCESS) {
         free(inner_type_str);
+        free(base_name);
+        free(out_type->template_args);
+        out_type->template_args = NULL;
+        out_type->template_args_count = 0;
+        out_type->ref_name = NULL;
         return rc_ex;
       }
     } else {
       out_type->template_args[0].ref_name = CDD_STRDUP(inner_type_str);
       if (!out_type->template_args[0].ref_name) {
         free(inner_type_str);
+        free(base_name);
+        free(out_type->template_args);
+        out_type->template_args = NULL;
+        out_type->template_args_count = 0;
+        out_type->ref_name = NULL;
         return CDD_C_ERROR_MEMORY;
       }
     }
@@ -222,7 +237,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_mangle_cpp_name(const char *ns_name,
     len += strlen(class_name) + 1;
   len += strlen(method_name) + 1;
 
-  mangled = (char *)(size_t)CDD_MALLOC(len);
+  mangled = (char *)CDD_MALLOC(len);
   if (!mangled)
     return CDD_C_ERROR_MEMORY;
 

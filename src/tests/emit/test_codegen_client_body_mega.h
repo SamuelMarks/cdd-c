@@ -30,8 +30,8 @@ TEST test_client_body_form_mega(void) {
     memset(&spec, 0, sizeof(spec));
 
     op.req_body.content_type =
-        (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
-    op.req_body.ref_name = (char *)(size_t)(size_t) "MockFormSchema";
+        cdd_test_mut_str("application/x-www-form-urlencoded");
+    op.req_body.ref_name = cdd_test_mut_str("MockFormSchema");
 
     spec.n_defined_schemas = 5;
     spec.defined_schema_names = calloc(5, sizeof(char *));
@@ -781,20 +781,19 @@ TEST test_client_body_form_mega(void) {
     op.n_req_body_media_types = 1;
     op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
     op.req_body_media_types[0].name =
-        (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+        cdd_test_mut_str("application/x-www-form-urlencoded");
     op.req_body_media_types[0].n_encoding = 11;
     op.req_body_media_types[0].encoding =
         calloc(11, sizeof(struct OpenAPI_Encoding));
 
     op.req_body_media_types[0].encoding[0].name =
-        (char *)(size_t)(size_t) "fArrStrRsv";
+        cdd_test_mut_str("fArrStrRsv");
     op.req_body_media_types[0].encoding[0].style = OA_STYLE_FORM;
     op.req_body_media_types[0].encoding[0].style_set = 1;
     op.req_body_media_types[0].encoding[0].allow_reserved = 1;
     op.req_body_media_types[0].encoding[0].allow_reserved_set = 1;
 
-    op.req_body_media_types[0].encoding[1].name =
-        (char *)(size_t)(size_t) "fObjExp";
+    op.req_body_media_types[0].encoding[1].name = cdd_test_mut_str("fObjExp");
     op.req_body_media_types[0].encoding[1].style = OA_STYLE_FORM;
     op.req_body_media_types[0].encoding[1].style_set = 1;
     op.req_body_media_types[0].encoding[1].explode = 1;
@@ -802,56 +801,50 @@ TEST test_client_body_form_mega(void) {
     op.req_body_media_types[0].encoding[1].allow_reserved = 1;
     op.req_body_media_types[0].encoding[1].allow_reserved_set = 1;
 
-    op.req_body_media_types[0].encoding[2].name =
-        (char *)(size_t)(size_t) "fObjNoExp";
+    op.req_body_media_types[0].encoding[2].name = cdd_test_mut_str("fObjNoExp");
     op.req_body_media_types[0].encoding[2].style = OA_STYLE_FORM;
     op.req_body_media_types[0].encoding[2].style_set = 1;
     op.req_body_media_types[0].encoding[2].explode = 0;
     op.req_body_media_types[0].encoding[2].explode_set = 1;
 
-    op.req_body_media_types[0].encoding[3].name =
-        (char *)(size_t)(size_t) "fObjSpace";
+    op.req_body_media_types[0].encoding[3].name = cdd_test_mut_str("fObjSpace");
     op.req_body_media_types[0].encoding[3].style = OA_STYLE_SPACE_DELIMITED;
     op.req_body_media_types[0].encoding[3].style_set = 1;
 
-    op.req_body_media_types[0].encoding[4].name =
-        (char *)(size_t)(size_t) "fObjPipe";
+    op.req_body_media_types[0].encoding[4].name = cdd_test_mut_str("fObjPipe");
     op.req_body_media_types[0].encoding[4].style = OA_STYLE_PIPE_DELIMITED;
     op.req_body_media_types[0].encoding[4].style_set = 1;
 
-    op.req_body_media_types[0].encoding[5].name =
-        (char *)(size_t)(size_t) "fArrInt";
+    op.req_body_media_types[0].encoding[5].name = cdd_test_mut_str("fArrInt");
     op.req_body_media_types[0].encoding[5].style = OA_STYLE_SPACE_DELIMITED;
     op.req_body_media_types[0].encoding[5].style_set = 1;
 
     op.req_body_media_types[0].encoding[6].name =
-        (char *)(size_t)(size_t) "fFormArrInt";
+        cdd_test_mut_str("fFormArrInt");
     op.req_body_media_types[0].encoding[6].style = OA_STYLE_FORM;
     op.req_body_media_types[0].encoding[6].style_set = 1;
     op.req_body_media_types[0].encoding[6].explode = 1;
     op.req_body_media_types[0].encoding[6].explode_set = 1;
 
     op.req_body_media_types[0].encoding[7].name =
-        (char *)(size_t)(size_t) "fFormArrNum";
+        cdd_test_mut_str("fFormArrNum");
     op.req_body_media_types[0].encoding[7].style = OA_STYLE_FORM;
     op.req_body_media_types[0].encoding[7].style_set = 1;
     op.req_body_media_types[0].encoding[7].explode = 1;
     op.req_body_media_types[0].encoding[7].explode_set = 1;
 
     op.req_body_media_types[0].encoding[8].name =
-        (char *)(size_t)(size_t) "fFormArrBool";
+        cdd_test_mut_str("fFormArrBool");
     op.req_body_media_types[0].encoding[8].style = OA_STYLE_FORM;
     op.req_body_media_types[0].encoding[8].style_set = 1;
     op.req_body_media_types[0].encoding[8].explode = 1;
     op.req_body_media_types[0].encoding[8].explode_set = 1;
 
-    op.req_body_media_types[0].encoding[9].name =
-        (char *)(size_t)(size_t) "fArrNum";
+    op.req_body_media_types[0].encoding[9].name = cdd_test_mut_str("fArrNum");
     op.req_body_media_types[0].encoding[9].style = OA_STYLE_SPACE_DELIMITED;
     op.req_body_media_types[0].encoding[9].style_set = 1;
 
-    op.req_body_media_types[0].encoding[10].name =
-        (char *)(size_t)(size_t) "fArrBool";
+    op.req_body_media_types[0].encoding[10].name = cdd_test_mut_str("fArrBool");
     op.req_body_media_types[0].encoding[10].style = OA_STYLE_SPACE_DELIMITED;
     op.req_body_media_types[0].encoding[10].style_set = 1;
 

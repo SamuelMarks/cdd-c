@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_kotlin.h
+ * @brief FFI binding emitter for Kotlin.
+ */
 #ifndef CDD_FFI_EMIT_KOTLIN_H
 #define CDD_FFI_EMIT_KOTLIN_H
 

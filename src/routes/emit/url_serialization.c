@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/code_writer.h"
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
 #include "functions/parse/str.h"
@@ -19,25 +20,7 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
-#include <stdarg.h>
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)))
-#endif
-    ;
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  int ret;
-  va_list args;
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  va_start(args, format);
-  ret = vfprintf(stream, format, args);
-  va_end(args);
-  return ret;
-}
-#define fprintf test_cdd_fprintf_hook
+#define fprintf cdd_io_fprintf_hook
 #endif
 
 /** @brief CHECK_IO definition */
@@ -52,7 +35,7 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
 #endif
 
 /**
- * @brief Generates C code for write query json param.
+ * @brief Emits C source code for query json param.
  */
 cdd_c_error_t write_query_json_param(FILE *fp,
                                      const struct OpenAPI_Parameter *p) {
@@ -317,7 +300,7 @@ cdd_c_error_t write_query_json_param(FILE *fp,
 }
 
 /**
- * @brief Generates C code for write query object param.
+ * @brief Emits C source code for query object param.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
@@ -443,7 +426,7 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
         "        size_t key_len = strlen(key_enc);\n"
         "        size_t val_len = strlen(val_enc);\n"
         "        size_t extra = key_len + val_len + 1 + (joined_len ? 1 : 0);\n"
-        "        char *tmp = (char *)(size_t)realloc(joined, joined_len + "
+        "        char *tmp = (char *)realloc(joined, joined_len + "
         "extra + 1);\n"
         "        if (!tmp) { free(key_enc); free(val_enc); rc = "
         "CDD_C_ERROR_MEMORY; goto "
@@ -572,7 +555,7 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
           "        size_t val_len = strlen(val_enc);\n"
           "        size_t extra = key_len + val_len + %lu + "
           "(joined_len ? %lu : 0);\n"
-          "        char *tmp = (char *)(size_t)realloc(joined, joined_len + "
+          "        char *tmp = (char *)realloc(joined, joined_len + "
           "extra + "
           "1);\n"
           "        if (!tmp) { free(key_enc); free(val_enc); rc = "
@@ -647,7 +630,7 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
               "        size_t val_len = strlen(kv_raw);\n"
               "        size_t extra = key_len + val_len + 1 + "
               "(joined_len ? 1 : 0);\n"
-              "        char *tmp = (char *)(size_t)realloc(joined, joined_len "
+              "        char *tmp = (char *)realloc(joined, joined_len "
               "+ extra + "
               "1);\n"
               "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
@@ -691,7 +674,7 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
 }
 
 /**
- * @brief Generates C code for write joined query array.
+ * @brief Emits C source code for joined query array.
  */
 C_CDD_EXPORT cdd_c_error_t write_joined_query_array(
     FILE *fp, const struct OpenAPI_Parameter *p, const char delim,
@@ -747,7 +730,7 @@ C_CDD_EXPORT cdd_c_error_t write_joined_query_array(
         fp,
         "      {\n"
         "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-        "        char *tmp = (char *)(size_t)realloc(joined, joined_len + "
+        "        char *tmp = (char *)realloc(joined, joined_len + "
         "extra + 1);\n"
         "        if (!tmp) { free(enc); rc = CDD_C_ERROR_MEMORY; goto cleanup; "
         "}\n"
@@ -765,7 +748,7 @@ C_CDD_EXPORT cdd_c_error_t write_joined_query_array(
         fprintf(fp,
                 "      {\n"
                 "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-                "        char *tmp = (char *)(size_t)realloc(joined, "
+                "        char *tmp = (char *)realloc(joined, "
                 "joined_len + extra + 1);\n"
                 "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
                 "        joined = tmp;\n"
@@ -795,7 +778,7 @@ C_CDD_EXPORT cdd_c_error_t write_joined_query_array(
 }
 
 /**
- * @brief Generates C code for write joined query array encoded delim.
+ * @brief Emits C source code for joined query array encoded delim.
  */
 C_CDD_EXPORT cdd_c_error_t write_joined_query_array_encoded_delim(
     FILE *fp, const struct OpenAPI_Parameter *p, const char *delim_enc,
@@ -850,7 +833,7 @@ C_CDD_EXPORT cdd_c_error_t write_joined_query_array_encoded_delim(
       fp,
       "      {\n"
       "        size_t extra = val_len + (i > 0 ? %lu : 0);\n"
-      "        char *tmp = (char *)(size_t)realloc(joined, joined_len + extra "
+      "        char *tmp = (char *)realloc(joined, joined_len + extra "
       "+ 1);\n"
       "        if (!tmp) { free(enc); rc = CDD_C_ERROR_MEMORY; goto cleanup; "
       "}\n"

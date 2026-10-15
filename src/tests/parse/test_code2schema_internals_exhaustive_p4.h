@@ -25,15 +25,8 @@ extern "C" {
 #include <parson.h>
 /* clang-format on */
 
-extern C_CDD_EXPORT volatile int g_c2s_helper_fail;
-extern C_CDD_EXPORT volatile int g_cdd_fail_c2s_collect_schema_extras;
 extern C_CDD_EXPORT volatile int g_cdd_fail_json_set_value;
 extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
-extern C_CDD_EXPORT volatile int g_cdd_fail_struct_fields_get;
-extern C_CDD_EXPORT volatile int g_cdd_fail_struct_fields_add;
-extern C_CDD_EXPORT int g_struct_fields_init_fail;
-extern C_CDD_EXPORT int g_enum_members_init_fail;
-extern C_CDD_EXPORT int g_enum_members_add_strdup_fail;
 
 /**
  * @brief Tests remaining branches in code2schema part 4.
@@ -173,10 +166,10 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
       JSON_Object *o = json_value_get_object(v);
 
       struct_fields_init(&sf);
-      g_cdd_fail_c2s_collect_schema_extras = 2;
+      g_cdd_fail_json_serialize = 1;
       rc = c2s_json_object_to_struct_fields_internal(o, &sf, NULL,
                                                      "ExtrasFail2", 0);
-      g_cdd_fail_c2s_collect_schema_extras = 0;
+      g_cdd_fail_json_serialize = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       struct_fields_free(&sf);
       json_value_free(v);
@@ -192,10 +185,10 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
       JSON_Object *o = json_value_get_object(v);
 
       struct_fields_init(&sf);
-      g_cdd_fail_c2s_collect_schema_extras = 2;
+      g_cdd_fail_json_serialize = 1;
       rc = c2s_json_object_to_struct_fields_internal(o, &sf, NULL,
                                                      "ExtrasFail3", 0);
-      g_cdd_fail_c2s_collect_schema_extras = 0;
+      g_cdd_fail_json_serialize = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       struct_fields_free(&sf);
       json_value_free(v);
@@ -229,78 +222,40 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
       C_CDD_FREE(dest);
     }
 
-    /* 3. copy_string_array_code2schema direct fail hook */
+    /* 3. copy_string_array_code2schema OOM */
     {
       char *src_arr[1];
       char **out_arr = NULL;
       size_t out_cnt = 0;
       src_arr[0] = C_CDD_STR_LIT("a");
-      g_c2s_helper_fail = 1;
+      g_cdd_alloc_fail = 1;
       rc = copy_string_array_code2schema(&out_arr, &out_cnt, src_arr, 1);
-      g_c2s_helper_fail = 0;
+      g_cdd_alloc_fail = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
 
-    /* 4. parse_type_union_array_code2schema direct fail hook */
+    /* 4. parse_type_union_array_code2schema OOM */
     {
       JSON_Value *v = json_parse_string("[\"string\"]");
       JSON_Array *arr = json_value_get_array(v);
       char **out_arr = NULL;
       size_t out_cnt = 0;
       const char *primary = NULL;
-      g_c2s_helper_fail = 1;
+      g_cdd_alloc_fail = 1;
       rc = parse_type_union_array_code2schema(arr, &out_arr, &out_cnt, &primary,
                                               NULL);
-      g_c2s_helper_fail = 0;
-      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      g_cdd_alloc_fail = 0;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       json_value_free(v);
     }
 
-    /* 5. required_name_in_list direct and internal failure */
+    /* 5. required_name_in_list invalid arg */
     {
       JSON_Value *av = json_parse_string("[\"fld\"]");
       JSON_Array *arr = json_value_get_array(av);
-      int in_list = 0;
-      g_c2s_helper_fail = 1;
-      rc = required_name_in_list(arr, "fld", &in_list);
-      g_c2s_helper_fail = 0;
+      rc = required_name_in_list(arr, "fld", NULL);
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
       json_value_free(av);
-
-      /* internal percolation in c2s_json_object_to_struct_fields_internal (Line
-       * 2261) */
-      {
-        struct StructFields sf;
-        JSON_Value *v = json_parse_string(
-            "{\"type\":\"object\",\"required\":[\"fld\"],\"properties\":{"
-            "\"fld\":{\"type\":\"string\"} } }");
-        JSON_Object *o = json_value_get_object(v);
-        int k;
-
-        for (k = 1; k <= 5; ++k) {
-          struct_fields_init(&sf);
-          g_c2s_helper_fail = k;
-          rc = c2s_json_object_to_struct_fields_internal(o, &sf, NULL,
-                                                         "ReqFail", 0);
-          g_c2s_helper_fail = 0;
-          struct_fields_free(&sf);
-        }
-        json_value_free(v);
-      }
-    }
-
-    /* 6. merge_struct_fields struct_fields_get call 2 (Line 4483) */
-    {
-      struct StructFields src, dest;
-      struct_fields_init(&src);
-      struct_fields_init(&dest);
-      struct_fields_add(&src, "fld1", "string", NULL, NULL, NULL);
-      g_cdd_fail_struct_fields_get = 2;
-      rc = merge_struct_fields(&dest, &src);
-      g_cdd_fail_struct_fields_get = 0;
-      ASSERT_NEQ(CDD_C_SUCCESS, rc);
-      struct_fields_free(&src);
-      struct_fields_free(&dest);
     }
 
     /* 7. merge_struct_fields items_type_union copy failure (Line 4521) */
@@ -315,25 +270,28 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
       copy_string_array_code2schema(&src.fields[0].items_type_union,
                                     &src.fields[0].n_items_type_union,
                                     arr_types, 2);
-      g_c2s_helper_fail = 2;
+      g_cdd_alloc_fail = 1;
       rc = merge_struct_fields(&dest, &src);
-      g_c2s_helper_fail = 0;
+      g_cdd_alloc_fail = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       struct_fields_free(&src);
       struct_fields_free(&dest);
     }
 
-    /* 8. apply_allof_to_struct_fields merge failure (Line 4764) */
+    /* 8. apply_allof_to_struct_fields merge failure */
     {
       struct StructFields sf;
+      int j;
       JSON_Value *allof_val =
           json_parse_string("[{\"type\":\"object\",\"properties\":{\"f1\":{"
                             "\"type\":\"string\"}}}]");
       JSON_Array *allof_arr = json_value_get_array(allof_val);
       struct_fields_init(&sf);
-      g_cdd_fail_struct_fields_add = 2;
+      for (j = 0; j < 8; ++j)
+        struct_fields_add(&sf, "pad", "string", NULL, NULL, NULL);
+      g_cdd_alloc_fail = 2;
       rc = apply_allof_to_struct_fields(allof_arr, &sf, NULL);
-      g_cdd_fail_struct_fields_add = 0;
+      g_cdd_alloc_fail = 0;
       ASSERT_NEQ(CDD_C_SUCCESS, rc);
       struct_fields_free(&sf);
       json_value_free(allof_val);
@@ -359,15 +317,6 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
           "\"EnumItem\":{\"type\":\"string\",\"enum\":[\"E1\"]}}");
       JSON_Object *root = json_value_get_object(root_val);
       int k;
-
-      for (k = 1; k <= 15; ++k) {
-        struct_fields_init(&dest);
-        g_c2s_helper_fail = k;
-        rc = apply_union_to_struct_fields_ex(oneof_arr, &dest, root,
-                                             "UnionExErr", 0, obj, 1);
-        g_c2s_helper_fail = 0;
-        struct_fields_free(&dest);
-      }
 
       for (k = 1; k <= 10; ++k) {
         struct_fields_init(&dest);
@@ -731,15 +680,15 @@ TEST test_code2schema_merge_struct_field_exhaustive(void) {
   {
     memset(&dest, 0, sizeof(dest));
     memset(&src, 0, sizeof(src));
-    src.schema_extra_json = (char *)(size_t) "{bad_json";
-    dest.schema_extra_json = (char *)(size_t) "{bad_json_dest";
+    src.schema_extra_json = cdd_test_mut_str("{bad_json");
+    dest.schema_extra_json = cdd_test_mut_str("{bad_json_dest");
     rc = merge_struct_field(&dest, &src);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
     dest.schema_extra_json = NULL;
     src.schema_extra_json = NULL;
-    dest.items_extra_json = (char *)(size_t) "{\"a\":1}";
-    src.items_extra_json = (char *)(size_t) "{\"b\":2}";
+    dest.items_extra_json = cdd_test_mut_str("{\"a\":1}");
+    src.items_extra_json = cdd_test_mut_str("{\"b\":2}");
     g_cdd_fail_json_serialize = 1;
     rc = merge_struct_field(&dest, &src);
     g_cdd_fail_json_serialize = 0;
@@ -749,7 +698,9 @@ TEST test_code2schema_merge_struct_field_exhaustive(void) {
 
     /* type_union copy failure via OOM */
     {
-      char *u[] = {(char *)(size_t) "str"};
+      char *u[1];
+
+      u[0] = cdd_test_mut_str("str");
       src.type_union = u;
       src.n_type_union = 1;
       dest.type_union = NULL;
@@ -764,7 +715,9 @@ TEST test_code2schema_merge_struct_field_exhaustive(void) {
 
     /* items_type_union copy failure via OOM */
     {
-      char *iu[] = {(char *)(size_t) "str"};
+      char *iu[1];
+
+      iu[0] = cdd_test_mut_str("str");
       src.items_type_union = iu;
       src.n_items_type_union = 1;
       dest.items_type_union = NULL;

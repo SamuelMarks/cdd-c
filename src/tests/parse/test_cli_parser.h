@@ -101,7 +101,7 @@ TEST test_cli_parser_getopt(void) {
 
     /* Test freeing options with long_flag and with NULL
      * description/mapped_struct_field */
-    cmd.options[0].long_flag = (char *)(size_t)(size_t)strdup("port");
+    cmd.options[0].long_flag = strdup("port");
     free(cmd.options[2].description);
     cmd.options[2].description = NULL;
 

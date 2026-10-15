@@ -21,57 +21,57 @@
 #include <string.h>
 /* clang-format on */
 
-cdd_c_error_t verb_to_string(enum OpenAPI_Verb verb, char **_out_val) {
+cdd_c_error_t verb_to_string(enum OpenAPI_Verb verb, const char **_out_val) {
   switch (verb) {
   case OA_VERB_GET: {
-    *_out_val = (char *)(size_t) "GET";
+    *_out_val = "GET";
     return CDD_C_SUCCESS;
   }
   case OA_VERB_POST: {
-    *_out_val = (char *)(size_t) "POST";
+    *_out_val = "POST";
     return CDD_C_SUCCESS;
   }
   case OA_VERB_PUT: {
-    *_out_val = (char *)(size_t) "PUT";
+    *_out_val = "PUT";
     return CDD_C_SUCCESS;
   }
   case OA_VERB_DELETE: {
-    *_out_val = (char *)(size_t) "DELETE";
+    *_out_val = "DELETE";
     return CDD_C_SUCCESS;
   }
   case OA_VERB_PATCH: {
-    *_out_val = (char *)(size_t) "PATCH";
+    *_out_val = "PATCH";
     return CDD_C_SUCCESS;
   }
   case OA_VERB_HEAD: {
-    *_out_val = (char *)(size_t) "HEAD";
+    *_out_val = "HEAD";
     return CDD_C_SUCCESS;
   }
   case OA_VERB_OPTIONS: {
-    *_out_val = (char *)(size_t) "OPTIONS";
+    *_out_val = "OPTIONS";
     return CDD_C_SUCCESS;
   }
   case OA_VERB_TRACE: {
-    *_out_val = (char *)(size_t) "TRACE";
+    *_out_val = "TRACE";
     return CDD_C_SUCCESS;
   }
   case OA_VERB_QUERY: {
-    *_out_val = (char *)(size_t) "QUERY";
+    *_out_val = "QUERY";
     return CDD_C_SUCCESS;
   }
   default: {
-    *_out_val = (char *)(size_t) "UNKNOWN";
+    *_out_val = "UNKNOWN";
     return CDD_C_SUCCESS;
   }
   }
 }
 
 /**
- * @brief Generates C code for write docblock.
+ * @brief Emits C source code for docblock.
  */
 cdd_c_error_t write_docblock(FILE *fp, const struct OpenAPI_Path *path,
                              const struct OpenAPI_Operation *op) {
-  const char *_ast_verb_to_string_5 = NULL;
+  const char *verb_str = NULL;
   size_t i;
   CHECK_IO(fprintf(fp, "/**\n"));
   if (op->summary) {
@@ -83,9 +83,8 @@ cdd_c_error_t write_docblock(FILE *fp, const struct OpenAPI_Path *path,
   }
 
   if (path && path->route) {
-    verb_to_string(op->verb, (char **)&_ast_verb_to_string_5);
-    CHECK_IO(
-        fprintf(fp, " * @route %s %s\n", _ast_verb_to_string_5, path->route));
+    verb_to_string(op->verb, &verb_str);
+    CHECK_IO(fprintf(fp, " * @route %s %s\n", verb_str, path->route));
   }
 
   if (op->description) {
@@ -160,192 +159,11 @@ cdd_c_error_t write_docblock(FILE *fp, const struct OpenAPI_Path *path,
 
   CHECK_IO(fprintf(fp, " */\n"));
 
-  /* OpenAPI 3.2.0 coverage expansion:
-   *
-   * @authorizationUrl implicit password clientCredentials authorizationCode
-   * deviceAuthorization
-   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
-   * @Security Requirement Object {name}
-   * @XML Object nodeType namespace prefix attribute wrapped
-   * @Link Object operationRef operationId parameters requestBody server
-   * @Callback Object {expression}
-   * @Example Object dataValue serializedValue externalValue
-   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding
-   * style explode allowReserved
-   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
-   * @Discriminator Object defaultMapping
-   * @Components Object requestBodies securitySchemes links callbacks pathItems
-   * mediaTypes
-   * @Server Variable Object enum default
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 2:
-   *
-   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
-   * @termsOfService url email identifier
-   * @get put options head patch trace additionalOperations
-   * @externalDocs operationId
-   * @allowEmptyValue examples in required
-   * @contentType discriminator propertyName mapping
-   * @Responses default
-   * @Response Object
-   * @Example Object
-   * @Link Object
-   * @Callback Object
-   * @Encoding Object
-   * @Media Type Object
-   * @Discriminator Object
-   * @Components Object
-   * @Server Variable Object
-   * @OAuth Flows Object
-   * @OAuth Flow Object
-   * @Security Requirement Object
-   * @XML Object
-   * @Contact Object
-   * @License Object
-   * @Server Object
-   * @Paths Object
-   * @Path Item Object
-   * @Operation Object
-   * @External Documentation Object
-   * @Parameter Object
-   * @Request Body Object
-   * @Header Object
-   * @Tag Object
-   * @Reference Object
-   * @Schema Object
-   * @Security Scheme Object
-   * @OpenAPI Object
-   * @Info Object
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 3:
-   *
-   * @version @contact @license @server @url @name
-   * @get @put @post @delete @options @head @patch @trace
-   * @additionalOperations @operationId @requestBody @responses
-   * @allowEmptyValue @allowReserved @example @examples @schema @items
-   * @itemSchema @encoding @prefixEncoding @itemEncoding
-   * @contentType @headers @style @explode
-   * @default @HTTP Status Code @summary @description @links
-   * @dataValue @serializedValue @externalValue @value @operationRef
-   * @server @required @deprecated @schemas @parameters
-   * @securitySchemes @pathItems @mediaTypes
-   * @parent @kind @$ref @discriminator @propertyName @mapping
-   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
-   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
-   * @oauth2MetadataUrl @implicit @password @clientCredentials
-   * @authorizationCode
-   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
-   * @refreshUrl @scopes @{name} @{expression} @XML Object
-   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
-   * @Security Scheme Object @Reference Object @Tag Object @Header Object
-   * @Link Object @Example Object @Callback Object @Response Object @Responses
-   * Object
-   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
-   * @External Documentation Object @Operation Object @Path Item Object @Paths
-   * Object
-   * @Components Object @Server Variable Object @Server Object @License Object
-   * @Contact Object @Info Object @OpenAPI Object
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 4:
-   *
-   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue
-   * @value @operationRef @server
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 5:
-   *
-   * @version
-   * @get @put @options @head @patch @trace @additionalOperations @operationId
-   * @responses
-   * @allowEmptyValue
-   * @content
-   * @encoding @prefixEncoding @itemEncoding
-   * @contentType
-   * @HTTP Status Code
-   * @dataValue @serializedValue @externalValue @value
-   * @operationRef @server
-   * @required
-   * @schemas @parameters
-   * @securitySchemes @pathItems @mediaTypes
-   * @parent @kind
-   * @propertyName @mapping @defaultMapping
-   * @nodeType @namespace @prefix @attribute @wrapped
-   * @type @in @scheme @bearerFormat @flows
-   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
-   * @authorizationCode
-   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
-   * @refreshUrl @scopes
-   * @{name} @{expression}
-   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow
-   * Object
-   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link
-   * Object
-   * @Example Object @Callback Object @Response Object @Responses Object
-   * @Encoding Object
-   * @Media Type Object @Request Body Object @Parameter Object @External
-   * Documentation Object
-   * @Operation Object @Path Item Object @Paths Object @Components Object
-   * @Server Variable Object
-   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 6:
-   *
-   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML
-   * Object
-   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object
-   * (`parameters`)
-   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object
-   * (`server`)
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 7:
-   *
-   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML
-   * Object
-   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object
-   * (`parameters`)
-   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object
-   * (`server`)
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 8:
-   *
-   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head
-   * @patch @trace @query @additionalOperations
-   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated
-   * @security @servers
-   * @in @allowEmptyValue @example @examples @style @explode @allowReserved
-   * @schema @content @required @itemSchema
-   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default
-   * @HTTP Status Code @summary @description @links
-   * @{expression} @dataValue @serializedValue @externalValue @value
-   * @operationRef @parameters @server @name @parent
-   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml
-   * @nodeType @namespace @prefix @attribute
-   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl
-   * @oauth2MetadataUrl @implicit @password @clientCredentials
-   * @authorizationCode @deviceAuthorization @authorizationUrl
-   * @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
-   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object
-   * @License Object @Server Object @Server Variable Object
-   * @Components Object @Paths Object @Path Item Object @Operation Object
-   * @External Documentation Object @Parameter Object
-   * @Request Body Object @Media Type Object @Encoding Object @Responses Object
-   * @Response Object @Callback Object @Example Object
-   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object
-   * @Discriminator Object @XML Object
-   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security
-   * Requirement Object
-   */
-
   return CDD_C_SUCCESS;
 }
 /**
- * @brief Executes the emit operation operation.
+ * @brief Emits the header declaration and C implementation for a single OpenAPI
+ * operation.
  */
 
 cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
@@ -354,10 +172,7 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
                              const struct OpenAPI_Spec *spec,
                              const struct OpenApiClientConfig *config,
                              const char *prefix) {
-  char *_ast_sanitize_tag_6 = NULL;
-  struct OpenAPI_Server *_ast_select_operation_server_7;
-  char *_ast_render_server_url_default_8 = NULL;
-  char *_ast_build_base_url_literal_9 = NULL;
+  struct OpenAPI_Server *selected_server = NULL;
   struct OpenAPI_Operation effective_op;
   struct OpenAPI_Parameter *effective_params = NULL;
   size_t effective_count = 0;
@@ -397,8 +212,7 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
 
   /* Determine Group Name from Tags and Namespace */
   if (effective_op.n_tags > 0 && effective_op.tags[0]) {
-    sanitized_group = (sanitize_tag(effective_op.tags[0], &_ast_sanitize_tag_6),
-                       _ast_sanitize_tag_6);
+    sanitize_tag(effective_op.tags[0], &sanitized_group);
 #ifdef CDD_BUILD_TESTS
     if (g_client_gen_fail == 41) {
       free(sanitized_group);
@@ -483,17 +297,12 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
     sig_cfg.group_name = full_group;
   }
 
-  server_override =
-      (select_operation_server(path, op, &_ast_select_operation_server_7),
-       _ast_select_operation_server_7);
+  select_operation_server(path, op, &selected_server);
+  server_override = selected_server;
   if (server_override && server_override->url) {
-    override_url = (render_server_url_default(
-                        server_override, &_ast_render_server_url_default_8),
-                    _ast_render_server_url_default_8);
+    render_server_url_default(server_override, &override_url);
     if (override_url) {
-      base_url_expr =
-          (build_base_url_literal(override_url, &_ast_build_base_url_literal_9),
-           _ast_build_base_url_literal_9);
+      build_base_url_literal(override_url, &base_url_expr);
 #ifdef CDD_BUILD_TESTS
       if (g_client_gen_fail == 45) {
         free(base_url_expr);

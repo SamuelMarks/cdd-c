@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_elixir.h
+ * @brief FFI binding emitter for Elixir.
+ */
 #ifndef CDD_FFI_EMIT_ELIXIR_H
 #define CDD_FFI_EMIT_ELIXIR_H
 

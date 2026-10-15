@@ -45,8 +45,7 @@ TEST parse_compound_literal(void) {
   struct TokenList *tl = NULL;
   struct CstNodeList cst = {0};
   /* Should parse as ONE node due to (type) { ... } detection */
-  const az_span code = az_span_create_from_str(
-      (char *)(size_t)(size_t) "var = (struct S){ .x = 1 };");
+  const az_span code = az_span_create_from_str("var = (struct S){ .x = 1 };");
 
   ASSERT_EQ(0, tokenize(code, &tl));
   ASSERT_EQ(0, parse_tokens(tl, &cst));
@@ -65,10 +64,9 @@ TEST parse_compound_literal(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(az_span_create_from_str(
-                   (char *)(size_t) "void f() { int x = 1; if(x) { "
-                                    "_Static_assert(1); } else { "
-                                    "[[nodiscard]] int y; } }"),
+      tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
+                                       "_Static_assert(1); } else { "
+                                       "[[nodiscard]] int y; } }"),
                &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
@@ -90,12 +88,10 @@ TEST parse_compound_literal(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(
-          az_span_create_from_str(
-              (char *)(size_t)(size_t) "struct A { int a: 1; }; enum E { X }; "
+      tokenize(az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
                                        "union "
                                        "U { int b; }; _Generic((1), int: 1);"),
-          &tl_oom);
+               &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
       g_cdd_alloc_fail = 0;
@@ -117,8 +113,7 @@ TEST parse_control_block_split(void) {
   struct CstNodeList cst = {0};
   /* Should scan 'if(1)' as one node, then stop at brace. */
   /* The scanner breaks on block-start braces unless matched as expr. */
-  const az_span code =
-      az_span_create_from_str((char *)(size_t)(size_t) "if (1) { x=1; }");
+  const az_span code = az_span_create_from_str("if (1) { x=1; }");
 
   ASSERT_EQ(0, tokenize(code, &tl));
   ASSERT_EQ(0, parse_tokens(tl, &cst));
@@ -146,10 +141,9 @@ TEST parse_control_block_split(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(az_span_create_from_str(
-                   (char *)(size_t) "void f() { int x = 1; if(x) { "
-                                    "_Static_assert(1); } else { "
-                                    "[[nodiscard]] int y; } }"),
+      tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
+                                       "_Static_assert(1); } else { "
+                                       "[[nodiscard]] int y; } }"),
                &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
@@ -171,12 +165,10 @@ TEST parse_control_block_split(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(
-          az_span_create_from_str(
-              (char *)(size_t)(size_t) "struct A { int a: 1; }; enum E { X }; "
+      tokenize(az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
                                        "union "
                                        "U { int b; }; _Generic((1), int: 1);"),
-          &tl_oom);
+               &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
       g_cdd_alloc_fail = 0;
@@ -197,8 +189,7 @@ TEST parse_nested_compound_literal(void) {
   struct TokenList *tl = NULL;
   struct CstNodeList cst = {0};
   /* Function call with compound literal argument */
-  const az_span code = az_span_create_from_str(
-      (char *)(size_t)(size_t) "func((struct Point){0,0});");
+  const az_span code = az_span_create_from_str("func((struct Point){0,0});");
 
   ASSERT_EQ(0, tokenize(code, &tl));
   ASSERT_EQ(0, parse_tokens(tl, &cst));
@@ -218,10 +209,9 @@ TEST parse_nested_compound_literal(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(az_span_create_from_str(
-                   (char *)(size_t) "void f() { int x = 1; if(x) { "
-                                    "_Static_assert(1); } else { "
-                                    "[[nodiscard]] int y; } }"),
+      tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
+                                       "_Static_assert(1); } else { "
+                                       "[[nodiscard]] int y; } }"),
                &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
@@ -243,12 +233,10 @@ TEST parse_nested_compound_literal(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(
-          az_span_create_from_str(
-              (char *)(size_t)(size_t) "struct A { int a: 1; }; enum E { X }; "
+      tokenize(az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
                                        "union "
                                        "U { int b; }; _Generic((1), int: 1);"),
-          &tl_oom);
+               &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
       g_cdd_alloc_fail = 0;
@@ -269,8 +257,7 @@ TEST parse_return_compound(void) {
   struct TokenList *tl = NULL;
   struct CstNodeList cst = {0};
   /* Return compound literal */
-  const az_span code =
-      az_span_create_from_str((char *)(size_t)(size_t) "return (int[]){1,2};");
+  const az_span code = az_span_create_from_str("return (int[]){1,2};");
 
   ASSERT_EQ(0, tokenize(code, &tl));
   ASSERT_EQ(0, parse_tokens(tl, &cst));
@@ -288,10 +275,9 @@ TEST parse_return_compound(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(az_span_create_from_str(
-                   (char *)(size_t) "void f() { int x = 1; if(x) { "
-                                    "_Static_assert(1); } else { "
-                                    "[[nodiscard]] int y; } }"),
+      tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
+                                       "_Static_assert(1); } else { "
+                                       "[[nodiscard]] int y; } }"),
                &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
@@ -313,12 +299,10 @@ TEST parse_return_compound(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(
-          az_span_create_from_str(
-              (char *)(size_t)(size_t) "struct A { int a: 1; }; enum E { X }; "
+      tokenize(az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
                                        "union "
                                        "U { int b; }; _Generic((1), int: 1);"),
-          &tl_oom);
+               &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
       g_cdd_alloc_fail = 0;
@@ -339,10 +323,10 @@ TEST parse_c11_generic(void) {
   struct TokenList *tl = NULL;
   struct CstNodeList cst = {0};
   /* _Generic selection */
-  const az_span code = az_span_create_from_str(
-      (char *)(size_t)(size_t) "#define cbrt(X) _Generic((X), long double: "
-                               "cbrtl, "
-                               "default: cbrt, float: cbrtf)(X)");
+  const az_span code =
+      az_span_create_from_str("#define cbrt(X) _Generic((X), long double: "
+                              "cbrtl, "
+                              "default: cbrt, float: cbrtf)(X)");
 
   ASSERT_EQ(0, tokenize(code, &tl));
   ASSERT_EQ(0, parse_tokens(tl, &cst));
@@ -360,8 +344,8 @@ TEST parse_c11_generic(void) {
   free_cst_node_list(&cst);
 
   {
-    const az_span code2 = az_span_create_from_str((
-        char *)(size_t)(size_t) "int x = _Generic(1.0, float: 1, default: 0);");
+    const az_span code2 =
+        az_span_create_from_str("int x = _Generic(1.0, float: 1, default: 0);");
 
     tl = NULL;
     memset(&cst, 0, sizeof(cst));
@@ -392,10 +376,9 @@ TEST parse_c11_generic(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(az_span_create_from_str(
-                   (char *)(size_t) "void f() { int x = 1; if(x) { "
-                                    "_Static_assert(1); } else { "
-                                    "[[nodiscard]] int y; } }"),
+      tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
+                                       "_Static_assert(1); } else { "
+                                       "[[nodiscard]] int y; } }"),
                &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
@@ -417,12 +400,10 @@ TEST parse_c11_generic(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(
-          az_span_create_from_str(
-              (char *)(size_t)(size_t) "struct A { int a: 1; }; enum E { X }; "
+      tokenize(az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
                                        "union "
                                        "U { int b; }; _Generic((1), int: 1);"),
-          &tl_oom);
+               &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
       g_cdd_alloc_fail = 0;
@@ -469,10 +450,9 @@ TEST test_cst_find_first(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(az_span_create_from_str(
-                   (char *)(size_t) "void f() { int x = 1; if(x) { "
-                                    "_Static_assert(1); } else { "
-                                    "[[nodiscard]] int y; } }"),
+      tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
+                                       "_Static_assert(1); } else { "
+                                       "[[nodiscard]] int y; } }"),
                &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
@@ -494,12 +474,10 @@ TEST test_cst_find_first(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(
-          az_span_create_from_str(
-              (char *)(size_t)(size_t) "struct A { int a: 1; }; enum E { X }; "
+      tokenize(az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
                                        "union "
                                        "U { int b; }; _Generic((1), int: 1);"),
-          &tl_oom);
+               &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
       g_cdd_alloc_fail = 0;
@@ -524,41 +502,39 @@ TEST test_cst_parser_extra(void) {
   cdd_cst_tree_free(t2);
 
   /* Missing EOF / No tokens */
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t) ""), &tree);
+  cdd_cst_parse(az_span_create_from_str(""), &tree);
   cdd_cst_tree_free(tree);
 
   /* NULL out_tree */
   {
-    cdd_c_error_t out_rc =
-        cdd_cst_parse(az_span_create_from_str((char *)(size_t) ""), NULL);
+    cdd_c_error_t out_rc = cdd_cst_parse(az_span_create_from_str(""), NULL);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, out_rc);
   }
 
   {
     cdd_cst_tree_t *t_stray = NULL;
-    cdd_cst_parse(az_span_create_from_str((char *)(size_t) "}"), &t_stray);
+    cdd_cst_parse(az_span_create_from_str("}"), &t_stray);
     cdd_cst_tree_free(t_stray);
   }
   {
     cdd_cst_tree_t *t_stray = NULL;
-    cdd_cst_parse(az_span_create_from_str((char *)(size_t) "}}"), &t_stray);
+    cdd_cst_parse(az_span_create_from_str("}}"), &t_stray);
     cdd_cst_tree_free(t_stray);
   }
   {
     cdd_cst_tree_t *t_stray = NULL;
-    cdd_cst_parse(az_span_create_from_str((char *)(size_t) "{"), &t_stray);
+    cdd_cst_parse(az_span_create_from_str("{"), &t_stray);
     cdd_cst_tree_free(t_stray);
   }
   {
     cdd_cst_tree_t *t_empty = NULL;
-    cdd_cst_parse(az_span_create_from_str((char *)(size_t) "{}"), &t_empty);
+    cdd_cst_parse(az_span_create_from_str("{}"), &t_empty);
     if (t_empty)
       cdd_cst_tree_free(t_empty);
   }
   {
     cdd_cst_tree_t *t_empty = NULL;
-    cdd_cst_parse(az_span_create_from_str(
-                      (char *)(size_t)(size_t) "void f() noexcept(true);"),
+    cdd_cst_parse(az_span_create_from_str("void f() noexcept(true);"),
                   &t_empty);
     if (t_empty)
       cdd_cst_tree_free(t_empty);
@@ -566,8 +542,7 @@ TEST test_cst_parser_extra(void) {
 
   {
     cdd_cst_tree_t *t_macro = NULL;
-    cdd_cst_parse(az_span_create_from_str((char *)(size_t) "#define D 1\n"),
-                  &t_macro);
+    cdd_cst_parse(az_span_create_from_str("#define D 1\n"), &t_macro);
     if (t_macro)
       cdd_cst_tree_free(t_macro);
     {
@@ -579,8 +554,7 @@ TEST test_cst_parser_extra(void) {
       size_t j;
       for (j = 0; j < sizeof(abrupts) / sizeof(abrupts[0]); j++) {
         cdd_cst_tree_t *t_abrupt = NULL;
-        cdd_cst_parse(az_span_create_from_str((char *)(size_t)abrupts[j]),
-                      &t_abrupt);
+        cdd_cst_parse(az_span_create_from_str(abrupts[j]), &t_abrupt);
         if (t_abrupt)
           cdd_cst_tree_free(t_abrupt);
       }
@@ -679,7 +653,7 @@ TEST test_cst_parser_extra(void) {
 
       cdd_cst_tree_t *t_dummy = NULL;
       g_cdd_cst_realloc_fail = 1000000;
-      cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippet), &t_dummy);
+      cdd_cst_parse(az_span_create_from_str(snippet), &t_dummy);
       printf("Total REALLOCs in snippet: %d\n",
              1000000 - g_cdd_cst_realloc_fail);
       g_cdd_cst_realloc_fail = 0;
@@ -689,8 +663,8 @@ TEST test_cst_parser_extra(void) {
       g_cdd_alloc_fail = 1000000;
       t_dummy = NULL;
       {
-        int debug_rc = cdd_cst_parse(
-            az_span_create_from_str((char *)(size_t)snippet), &t_dummy);
+        int debug_rc =
+            cdd_cst_parse(az_span_create_from_str(snippet), &t_dummy);
         printf("Total ALLOCs in snippet: %d, RC=%d\n",
                1000000 - g_cdd_alloc_fail, debug_rc);
       }
@@ -706,8 +680,7 @@ TEST test_cst_parser_extra(void) {
         for (i = 1; i < 50; i++) {
           tree = NULL;
           g_cdd_alloc_fail = (int)i;
-          cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippet),
-                        &tree);
+          cdd_cst_parse(az_span_create_from_str(snippet), &tree);
           cdd_cst_tree_free(tree);
         }
         g_cdd_alloc_fail = 0;
@@ -715,8 +688,7 @@ TEST test_cst_parser_extra(void) {
         for (i = 1; i < 50; i++) {
           tree = NULL;
           g_cdd_cst_alloc_token_fail = i;
-          cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippet),
-                        &tree);
+          cdd_cst_parse(az_span_create_from_str(snippet), &tree);
           cdd_cst_tree_free(tree);
         }
         g_cdd_cst_alloc_token_fail = 0;
@@ -724,8 +696,7 @@ TEST test_cst_parser_extra(void) {
         for (i = 1; i < 50; i++) {
           tree = NULL;
           g_cdd_cst_realloc_fail = i;
-          cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippet),
-                        &tree);
+          cdd_cst_parse(az_span_create_from_str(snippet), &tree);
           cdd_cst_tree_free(tree);
         }
         g_cdd_cst_realloc_fail = 0;
@@ -744,10 +715,9 @@ TEST test_cst_parser_extra(void) {
         int rc = 0;
         /*  (moved to global) */
         rc += 0;
-        tokenize(az_span_create_from_str(
-                     (char *)(size_t)(size_t) "void f() { int x = 1; if(x) { "
-                                              "_Static_assert(1); } else { "
-                                              "[[nodiscard]] int y; } }"),
+        tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
+                                         "_Static_assert(1); } else { "
+                                         "[[nodiscard]] int y; } }"),
                  &tl_oom);
         g_cdd_alloc_fail = (int)i;
         rc = parse_tokens(tl_oom, &cst_oom);
@@ -770,10 +740,9 @@ TEST test_cst_parser_extra(void) {
         /*  (moved to global) */
         rc += 0;
         tokenize(
-            az_span_create_from_str((
-                char *)(size_t)(size_t) "struct A { int a: 1; }; enum E { X }; "
-                                        "union "
-                                        "U { int b; }; _Generic((1), int: 1);"),
+            az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
+                                    "union "
+                                    "U { int b; }; _Generic((1), int: 1);"),
             &tl_oom);
         g_cdd_alloc_fail = (int)i;
         rc = parse_tokens(tl_oom, &cst_oom);

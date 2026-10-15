@@ -49,7 +49,6 @@ static cdd_c_error_t find_path_in_list(struct OpenAPI_Path *paths,
 static cdd_c_error_t append_path_to_list(struct OpenAPI_Path **paths,
                                          size_t *n_paths, const char *route,
                                          struct OpenAPI_Path **out_ptr) {
-  char *_ast_strdup_0 = NULL;
   size_t new_count;
   struct OpenAPI_Path *new_arr;
 
@@ -86,11 +85,11 @@ static cdd_c_error_t append_path_to_list(struct OpenAPI_Path **paths,
     if (g_cdd_aggregator_fail_route_strdup) {
       (*out_ptr)->route = NULL;
     } else {
-      (*out_ptr)->route = (c_cdd_strdup(route, &_ast_strdup_0), _ast_strdup_0);
+      c_cdd_strdup(route, &(*out_ptr)->route);
     }
   }
 #else
-  (*out_ptr)->route = (c_cdd_strdup(route, &_ast_strdup_0), _ast_strdup_0);
+  c_cdd_strdup(route, &(*out_ptr)->route);
 #endif
   if (!(*out_ptr)->route)
     return CDD_C_ERROR_MEMORY;
@@ -99,7 +98,7 @@ static cdd_c_error_t append_path_to_list(struct OpenAPI_Path **paths,
 }
 
 /**
- * @brief Executes the append operation operation.
+ * @brief Appends an OpenAPI_Operation to a PathItem operation array.
  */
 static cdd_c_error_t append_operation(struct OpenAPI_Operation **ops,
                                       size_t *count,
@@ -135,13 +134,12 @@ static cdd_c_error_t append_operation(struct OpenAPI_Operation **ops,
 }
 
 /**
- * @brief Executes the openapi aggregator add operation operation.
+ * @brief Adds a parsed route operation into the aggregated OpenAPI_Spec.
  */
 cdd_c_error_t openapi_aggregator_add_operation(struct OpenAPI_Spec *spec,
                                                const char *route,
                                                struct OpenAPI_Operation *op) {
-  struct OpenAPI_Path *_ast_find_path_in_list_0;
-  struct OpenAPI_Path *target_path;
+  struct OpenAPI_Path *target_path = NULL;
   cdd_c_error_t rc;
 
   if (!spec)
@@ -152,9 +150,7 @@ cdd_c_error_t openapi_aggregator_add_operation(struct OpenAPI_Spec *spec,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* 1. Find or Create Path */
-  target_path = (find_path_in_list(spec->paths, spec->n_paths, route,
-                                   &_ast_find_path_in_list_0),
-                 _ast_find_path_in_list_0);
+  find_path_in_list(spec->paths, spec->n_paths, route, &target_path);
   if (!target_path) {
     rc = append_path_to_list(&spec->paths, &spec->n_paths, route, &target_path);
     if (rc != CDD_C_SUCCESS)
@@ -182,14 +178,13 @@ cdd_c_error_t openapi_aggregator_add_operation(struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Executes the openapi aggregator add webhook operation operation.
+ * @brief Adds a parsed webhook operation into the aggregated OpenAPI_Spec.
  */
 cdd_c_error_t
 openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
                                          const char *route,
                                          struct OpenAPI_Operation *op) {
-  struct OpenAPI_Path *_ast_find_path_in_list_1;
-  struct OpenAPI_Path *target_path;
+  struct OpenAPI_Path *target_path = NULL;
   cdd_c_error_t rc;
 
   if (!spec)
@@ -199,9 +194,7 @@ openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
   if (!op)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  target_path = (find_path_in_list(spec->webhooks, spec->n_webhooks, route,
-                                   &_ast_find_path_in_list_1),
-                 _ast_find_path_in_list_1);
+  find_path_in_list(spec->webhooks, spec->n_webhooks, route, &target_path);
   if (!target_path) {
     rc = append_path_to_list(&spec->webhooks, &spec->n_webhooks, route,
                              &target_path);

@@ -32,7 +32,7 @@ TEST test_openapi_writer_any_and_examples_coverage(void) {
   any.string = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
   json_value_free(val);
-  any.string = (char *)(size_t) "hello";
+  any.string = cdd_test_mut_str("hello");
   ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
   json_value_free(val);
 
@@ -54,11 +54,11 @@ TEST test_openapi_writer_any_and_examples_coverage(void) {
   json_value_free(val);
 
   any.type = OA_ANY_JSON;
-  any.json = (char *)(size_t) "{\"k\": \"v\"}";
+  any.json = cdd_test_mut_str("{\"k\": \"v\"}");
   ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
   json_value_free(val);
 
-  any.json = (char *)(size_t) "{invalid";
+  any.json = cdd_test_mut_str("{invalid");
   ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
   json_value_free(val);
 
@@ -75,20 +75,20 @@ TEST test_openapi_writer_any_and_examples_coverage(void) {
   obj = json_value_get_object(val);
 
   memset(&ex, 0, sizeof(ex));
-  ex.ref = (char *)(size_t) "#/components/examples/ref1";
-  ex.summary = (char *)(size_t) "sum";
-  ex.description = (char *)(size_t) "desc";
+  ex.ref = cdd_test_mut_str("#/components/examples/ref1");
+  ex.summary = cdd_test_mut_str("sum");
+  ex.description = cdd_test_mut_str("desc");
   write_example_object(obj, &ex);
 
   memset(&ex, 0, sizeof(ex));
-  ex.summary = (char *)(size_t) "sum";
-  ex.description = (char *)(size_t) "desc";
+  ex.summary = cdd_test_mut_str("sum");
+  ex.description = cdd_test_mut_str("desc");
   ex.data_value_set = 1;
   ex.data_value.type = OA_ANY_STRING;
-  ex.data_value.string = (char *)(size_t) "data";
-  ex.serialized_value = (char *)(size_t) "ser";
-  ex.external_value = (char *)(size_t) "http://example.com";
-  ex.extensions_json = (char *)(size_t) "{\"x-ex\": 1}";
+  ex.data_value.string = cdd_test_mut_str("data");
+  ex.serialized_value = cdd_test_mut_str("ser");
+  ex.external_value = cdd_test_mut_str("http://example.com");
+  ex.extensions_json = cdd_test_mut_str("{\"x-ex\": 1}");
   write_example_object(obj, &ex);
 
   memset(&ex, 0, sizeof(ex));
@@ -102,8 +102,8 @@ TEST test_openapi_writer_any_and_examples_coverage(void) {
   /* write_examples_object */
   memset(examples, 0, sizeof(examples));
   examples[0].name = NULL;
-  examples[1].name = (char *)(size_t) "ex2";
-  examples[1].summary = (char *)(size_t) "example 2";
+  examples[1].name = cdd_test_mut_str("ex2");
+  examples[1].summary = cdd_test_mut_str("example 2");
   ASSERT_EQ(CDD_C_SUCCESS,
             write_examples_object(parent, "examples", examples, 2));
 
@@ -111,7 +111,7 @@ TEST test_openapi_writer_any_and_examples_coverage(void) {
   write_example_fields(parent, NULL, 0, examples, 2);
   memset(&any, 0, sizeof(any));
   any.type = OA_ANY_STRING;
-  any.string = (char *)(size_t) "single";
+  any.string = cdd_test_mut_str("single");
   write_example_fields(parent, &any, 1, NULL, 0);
 
   json_value_free(parent_val);
@@ -150,25 +150,25 @@ TEST test_openapi_writer_objects_and_maps_coverage(void) {
   /* write_external_docs */
   memset(&docs, 0, sizeof(docs));
   write_external_docs(parent, "ext", &docs);
-  docs.url = (char *)(size_t) "https://docs.example.com";
-  docs.description = (char *)(size_t) "Documentation";
-  docs.extensions_json = (char *)(size_t) "{\"x-doc\": true}";
+  docs.url = cdd_test_mut_str("https://docs.example.com");
+  docs.description = cdd_test_mut_str("Documentation");
+  docs.extensions_json = cdd_test_mut_str("{\"x-doc\": true}");
   write_external_docs(parent, "ext", &docs);
 
   /* write_discriminator_object */
   memset(&disc, 0, sizeof(disc));
   write_discriminator_object(parent, &disc, 0);
   write_discriminator_object(parent, &disc, 1);
-  disc.property_name = (char *)(size_t) "petType";
-  disc.default_mapping = (char *)(size_t) "#/components/schemas/Pet";
+  disc.property_name = cdd_test_mut_str("petType");
+  disc.default_mapping = cdd_test_mut_str("#/components/schemas/Pet");
   memset(map, 0, sizeof(map));
   map[0].value = NULL;
   map[0].schema = NULL;
-  map[1].value = (char *)(size_t) "dog";
-  map[1].schema = (char *)(size_t) "#/components/schemas/Dog";
+  map[1].value = cdd_test_mut_str("dog");
+  map[1].schema = cdd_test_mut_str("#/components/schemas/Dog");
   disc.mapping = map;
   disc.n_mapping = 2;
-  disc.extensions_json = (char *)(size_t) "{\"x-disc\": 1}";
+  disc.extensions_json = cdd_test_mut_str("{\"x-disc\": 1}");
   write_discriminator_object(parent, &disc, 1);
 
   /* write_xml_object */
@@ -178,7 +178,7 @@ TEST test_openapi_writer_objects_and_maps_coverage(void) {
   xml.attribute = 1;
   xml.wrapped_set = 1;
   xml.wrapped = 1;
-  xml.extensions_json = (char *)(size_t) "{\"x-xml\": 1}";
+  xml.extensions_json = cdd_test_mut_str("{\"x-xml\": 1}");
   write_xml_object(parent, &xml, 1);
   xml.attribute = 0;
   xml.wrapped = 0;
@@ -187,28 +187,28 @@ TEST test_openapi_writer_objects_and_maps_coverage(void) {
   /* write_server_object */
   memset(&srv, 0, sizeof(srv));
   srv.url = NULL;
-  srv.description = (char *)(size_t) "Main server";
-  srv.name = (char *)(size_t) "prod";
+  srv.description = cdd_test_mut_str("Main server");
+  srv.name = cdd_test_mut_str("prod");
   memset(vars, 0, sizeof(vars));
   vars[0].name = NULL;
-  vars[1].name = (char *)(size_t) "port";
-  vars[1].default_value = (char *)(size_t) "8080";
-  vars[1].description = (char *)(size_t) "Port number";
+  vars[1].name = cdd_test_mut_str("port");
+  vars[1].default_value = cdd_test_mut_str("8080");
+  vars[1].description = cdd_test_mut_str("Port number");
   var_enums[0] = NULL;
-  var_enums[1] = (char *)(size_t) "8080";
+  var_enums[1] = cdd_test_mut_str("8080");
   vars[1].enum_values = var_enums;
   vars[1].n_enum_values = 2;
-  vars[1].extensions_json = (char *)(size_t) "{\"x-var\": 1}";
+  vars[1].extensions_json = cdd_test_mut_str("{\"x-var\": 1}");
   srv.variables = vars;
   srv.n_variables = 2;
-  srv.extensions_json = (char *)(size_t) "{\"x-srv\": 1}";
+  srv.extensions_json = cdd_test_mut_str("{\"x-srv\": 1}");
   write_server_object(obj, &srv);
 
   /* write_parameter_object */
   memset(&p, 0, sizeof(p));
-  p.ref = (char *)(size_t) "#/components/parameters/ParamRef";
-  p.summary = (char *)(size_t) "Param summary";
-  p.description = (char *)(size_t) "Param description";
+  p.ref = cdd_test_mut_str("#/components/parameters/ParamRef");
+  p.summary = cdd_test_mut_str("Param summary");
+  p.description = cdd_test_mut_str("Param description");
   write_parameter_object(obj, &p);
 
   memset(&p, 0, sizeof(p));
@@ -219,57 +219,57 @@ TEST test_openapi_writer_objects_and_maps_coverage(void) {
   p.explode = 1;
   p.allow_reserved_set = 1;
   p.allow_reserved = 1;
-  p.content_ref = (char *)(size_t) "#/components/media/Media1";
+  p.content_ref = cdd_test_mut_str("#/components/media/Media1");
   p.content_type = NULL;
   write_parameter_object(obj, &p);
 
   memset(&p, 0, sizeof(p));
   p.in = OA_PARAM_IN_QUERYSTRING;
-  p.content_ref = (char *)(size_t) "#/components/media/Media2";
+  p.content_ref = cdd_test_mut_str("#/components/media/Media2");
   p.content_type = NULL;
   write_parameter_object(obj, &p);
 
   memset(&p, 0, sizeof(p));
-  p.content_type = (char *)(size_t) "application/custom";
+  p.content_type = cdd_test_mut_str("application/custom");
   p.item_schema_set = 1;
-  p.schema.ref_name = (char *)(size_t) "ItemModel";
+  p.schema.ref_name = cdd_test_mut_str("ItemModel");
   write_parameter_object(obj, &p);
 
   memset(&p, 0, sizeof(p));
-  p.content_type = (char *)(size_t) "application/custom";
+  p.content_type = cdd_test_mut_str("application/custom");
   p.schema_set = 1;
-  p.schema.ref_name = (char *)(size_t) "Model";
+  p.schema.ref_name = cdd_test_mut_str("Model");
   write_parameter_object(obj, &p);
 
   memset(&p, 0, sizeof(p));
-  p.content_type = (char *)(size_t) "application/custom";
-  p.type = (char *)(size_t) "string";
+  p.content_type = cdd_test_mut_str("application/custom");
+  p.type = cdd_test_mut_str("string");
   p.example_location = OA_EXAMPLE_LOC_MEDIA;
-  p.extensions_json = (char *)(size_t) "{\"x-p\": 1}";
+  p.extensions_json = cdd_test_mut_str("{\"x-p\": 1}");
   write_parameter_object(obj, &p);
 
   /* write_header_object */
   memset(&h, 0, sizeof(h));
-  h.ref = (char *)(size_t) "#/components/headers/HRef";
-  h.description = (char *)(size_t) "H desc";
+  h.ref = cdd_test_mut_str("#/components/headers/HRef");
+  h.description = cdd_test_mut_str("H desc");
   write_header_object(obj, &h);
 
   memset(&h, 0, sizeof(h));
-  h.content_ref = (char *)(size_t) "#/components/media/HM1";
+  h.content_ref = cdd_test_mut_str("#/components/media/HM1");
   h.content_type = NULL;
   write_header_object(obj, &h);
 
   memset(&h, 0, sizeof(h));
-  h.content_type = (char *)(size_t) "application/json";
+  h.content_type = cdd_test_mut_str("application/json");
   h.schema_set = 1;
-  h.schema.ref_name = (char *)(size_t) "HSchema";
+  h.schema.ref_name = cdd_test_mut_str("HSchema");
   write_header_object(obj, &h);
 
   memset(&h, 0, sizeof(h));
-  h.content_type = (char *)(size_t) "application/json";
-  h.type = (char *)(size_t) "string";
+  h.content_type = cdd_test_mut_str("application/json");
+  h.type = cdd_test_mut_str("string");
   h.example_location = OA_EXAMPLE_LOC_MEDIA;
-  h.extensions_json = (char *)(size_t) "{\"x-h\": 1}";
+  h.extensions_json = cdd_test_mut_str("{\"x-h\": 1}");
   write_header_object(obj, &h);
 
   /* write_encoding_object and write_encoding_map */
@@ -279,95 +279,95 @@ TEST test_openapi_writer_objects_and_maps_coverage(void) {
   enc.n_prefix_encoding = 1;
   enc.item_encoding = &enc_arr[1];
   enc.item_encoding_set = 1;
-  enc.extensions_json = (char *)(size_t) "{\"x-enc\": 1}";
+  enc.extensions_json = cdd_test_mut_str("{\"x-enc\": 1}");
   ASSERT_EQ(CDD_C_SUCCESS, write_encoding_object(obj, &enc));
 
   memset(enc_arr, 0, sizeof(enc_arr));
   enc_arr[0].name = NULL;
-  enc_arr[1].name = (char *)(size_t) "field2";
+  enc_arr[1].name = cdd_test_mut_str("field2");
   ASSERT_EQ(CDD_C_SUCCESS, write_encoding_map(obj, enc_arr, 2));
 
   /* write_link_object */
   memset(&link, 0, sizeof(link));
-  link.ref = (char *)(size_t) "#/components/links/LRef";
-  link.summary = (char *)(size_t) "L summary";
-  link.description = (char *)(size_t) "L desc";
+  link.ref = cdd_test_mut_str("#/components/links/LRef");
+  link.summary = cdd_test_mut_str("L summary");
+  link.description = cdd_test_mut_str("L desc");
   write_link_object(obj, &link);
 
   memset(&link, 0, sizeof(link));
-  link.operation_ref = (char *)(size_t) "/paths/~1users/get";
-  link.operation_id = (char *)(size_t) "getUser";
-  link.description = (char *)(size_t) "User link";
+  link.operation_ref = cdd_test_mut_str("/paths/~1users/get");
+  link.operation_id = cdd_test_mut_str("getUser");
+  link.description = cdd_test_mut_str("User link");
   memset(lparam, 0, sizeof(lparam));
   lparam[0].name = NULL;
   lparam[0].value.type = OA_ANY_STRING;
-  lparam[0].value.string = (char *)(size_t) "val1";
-  lparam[1].name = (char *)(size_t) "userId";
+  lparam[0].value.string = cdd_test_mut_str("val1");
+  lparam[1].name = cdd_test_mut_str("userId");
   lparam[1].value.type = OA_ANY_NUMBER;
   lparam[1].value.number = 100.0;
   link.parameters = lparam;
   link.n_parameters = 2;
   link.request_body_set = 1;
   link.request_body.type = OA_ANY_STRING;
-  link.request_body.string = (char *)(size_t) "body";
+  link.request_body.string = cdd_test_mut_str("body");
   link.server_set = 1;
   link.server = &srv;
-  link.extensions_json = (char *)(size_t) "{\"x-l\": 1}";
+  link.extensions_json = cdd_test_mut_str("{\"x-l\": 1}");
   write_link_object(obj, &link);
 
   /* write_response_object */
   memset(&resp, 0, sizeof(resp));
-  resp.ref = (char *)(size_t) "#/components/responses/RRef";
-  resp.summary = (char *)(size_t) "R summary";
-  resp.description = (char *)(size_t) "R desc";
+  resp.ref = cdd_test_mut_str("#/components/responses/RRef");
+  resp.summary = cdd_test_mut_str("R summary");
+  resp.description = cdd_test_mut_str("R desc");
   write_response_object(obj, &resp);
 
   memset(&resp, 0, sizeof(resp));
-  resp.content_ref = (char *)(size_t) "#/components/media/RM1";
+  resp.content_ref = cdd_test_mut_str("#/components/media/RM1");
   resp.content_type = NULL;
   write_response_object(obj, &resp);
 
   memset(&resp, 0, sizeof(resp));
-  resp.content_type = (char *)(size_t) "application/json";
-  resp.extensions_json = (char *)(size_t) "{\"x-resp\": 1}";
+  resp.content_type = cdd_test_mut_str("application/json");
+  resp.extensions_json = cdd_test_mut_str("{\"x-resp\": 1}");
   write_response_object(obj, &resp);
 
   /* write_request_body_object */
   memset(&rb, 0, sizeof(rb));
-  rb.content_ref = (char *)(size_t) "#/components/media/RBM1";
+  rb.content_ref = cdd_test_mut_str("#/components/media/RBM1");
   rb.schema.content_type = NULL;
-  rb.extensions_json = (char *)(size_t) "{\"x-rb\": 1}";
+  rb.extensions_json = cdd_test_mut_str("{\"x-rb\": 1}");
   ASSERT_EQ(CDD_C_SUCCESS, write_request_body_object(obj, &rb));
 
   /* write_callback_object */
   memset(&cb, 0, sizeof(cb));
-  cb.ref = (char *)(size_t) "#/components/callbacks/CBRef";
-  cb.summary = (char *)(size_t) "CB summary";
-  cb.description = (char *)(size_t) "CB desc";
+  cb.ref = cdd_test_mut_str("#/components/callbacks/CBRef");
+  cb.summary = cdd_test_mut_str("CB summary");
+  cb.description = cdd_test_mut_str("CB desc");
   write_callback_object(obj, &cb);
 
   memset(&cb, 0, sizeof(cb));
   memset(cb_paths, 0, sizeof(cb_paths));
   cb_paths[0].route = NULL;
-  cb_paths[1].route = (char *)(size_t) "http://example.com/hook";
+  cb_paths[1].route = cdd_test_mut_str("http://example.com/hook");
   cb.paths = cb_paths;
   cb.n_paths = 2;
-  cb.extensions_json = (char *)(size_t) "{\"x-cb\": 1}";
+  cb.extensions_json = cdd_test_mut_str("{\"x-cb\": 1}");
   write_callback_object(obj, &cb);
 
   /* write_media_type_object */
   memset(&mt, 0, sizeof(mt));
-  mt.ref = (char *)(size_t) "#/components/mediaTypes/MTRef";
+  mt.ref = cdd_test_mut_str("#/components/mediaTypes/MTRef");
   ASSERT_EQ(CDD_C_SUCCESS, write_media_type_object(obj, &mt));
 
   memset(&mt, 0, sizeof(mt));
   mt.item_schema_set = 1;
-  mt.item_schema.ref_name = (char *)(size_t) "MTItem";
+  mt.item_schema.ref_name = cdd_test_mut_str("MTItem");
   mt.prefix_encoding = enc_arr;
   mt.n_prefix_encoding = 1;
   mt.item_encoding = &enc_arr[1];
   mt.item_encoding_set = 1;
-  mt.extensions_json = (char *)(size_t) "{\"x-mt\": 1}";
+  mt.extensions_json = cdd_test_mut_str("{\"x-mt\": 1}");
   ASSERT_EQ(CDD_C_SUCCESS, write_media_type_object(obj, &mt));
 
   json_value_free(val);
@@ -419,7 +419,7 @@ TEST test_openapi_writer_full_spec_edges(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             openapi_write_spec_to_json(&spec, &json));
 
-  spec.schema_root_json = (char *)(size_t) "{\"type\": \"object\"}";
+  spec.schema_root_json = cdd_test_mut_str("{\"type\": \"object\"}");
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(json != NULL);
@@ -428,51 +428,51 @@ TEST test_openapi_writer_full_spec_edges(void) {
   spec.is_schema_document = 0;
 
   /* 3. License with empty name rejected */
-  spec.info.license.name = (char *)(size_t) "";
+  spec.info.license.name = cdd_test_mut_str("");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             openapi_write_spec_to_json(&spec, &json));
   spec.info.license.name = NULL;
 
   /* 4. Full spec with all optional root and component fields */
   spec.openapi_version = NULL;
-  spec.self_uri = (char *)(size_t) "https://api.example.com/openapi.json";
+  spec.self_uri = cdd_test_mut_str("https://api.example.com/openapi.json");
   spec.json_schema_dialect =
-      (char *)(size_t) "https://json-schema.org/draft/2020-12/schema";
-  spec.extensions_json = (char *)(size_t) "{\"x-root\": 1}";
-  spec.external_docs.url = (char *)(size_t) "https://docs.example.com";
-  spec.info.license.name = (char *)(size_t) "MIT";
+      cdd_test_mut_str("https://json-schema.org/draft/2020-12/schema");
+  spec.extensions_json = cdd_test_mut_str("{\"x-root\": 1}");
+  spec.external_docs.url = cdd_test_mut_str("https://docs.example.com");
+  spec.info.license.name = cdd_test_mut_str("MIT");
   spec.info.license.url =
-      (char *)(size_t) "https://opensource.org/licenses/MIT";
+      cdd_test_mut_str("https://opensource.org/licenses/MIT");
 
   /* Paths with duplicate routes, unknown verb, empty body, reserved headers,
    * etc. */
   memset(paths, 0, sizeof(paths));
-  paths[0].route = (char *)(size_t) "/test";
-  paths[1].route = (char *)(size_t) "/test";
+  paths[0].route = cdd_test_mut_str("/test");
+  paths[1].route = cdd_test_mut_str("/test");
 
   memset(ops, 0, sizeof(ops));
   ops[0].verb = OA_VERB_UNKNOWN;
   ops[1].verb = OA_VERB_GET;
-  ops[1].req_body_ref = (char *)(size_t) "#/components/requestBodies/MyRB";
-  ops[1].req_body_description = (char *)(size_t) "RB desc";
-  ops[1].req_body_extensions_json = (char *)(size_t) "{\"x-rb-ext\": 1}";
+  ops[1].req_body_ref = cdd_test_mut_str("#/components/requestBodies/MyRB");
+  ops[1].req_body_description = cdd_test_mut_str("RB desc");
+  ops[1].req_body_extensions_json = cdd_test_mut_str("{\"x-rb-ext\": 1}");
 
   memset(params, 0, sizeof(params));
-  params[0].name = (char *)(size_t) "Accept";
+  params[0].name = cdd_test_mut_str("Accept");
   params[0].in = OA_PARAM_IN_HEADER;
-  params[1].name = (char *)(size_t) "Content-Type";
+  params[1].name = cdd_test_mut_str("Content-Type");
   params[1].in = OA_PARAM_IN_HEADER;
-  params[2].name = (char *)(size_t) "Authorization";
+  params[2].name = cdd_test_mut_str("Authorization");
   params[2].in = OA_PARAM_IN_HEADER;
   ops[1].parameters = params;
   ops[1].n_parameters = 3;
 
   memset(hdrs, 0, sizeof(hdrs));
-  hdrs[0].name = (char *)(size_t) "Content-Type";
-  hdrs[1].name = (char *)(size_t) "content-type";
+  hdrs[0].name = cdd_test_mut_str("Content-Type");
+  hdrs[1].name = cdd_test_mut_str("content-type");
   memset(resps, 0, sizeof(resps));
-  resps[0].code = (char *)(size_t) "200";
-  resps[0].description = (char *)(size_t) "OK";
+  resps[0].code = cdd_test_mut_str("200");
+  resps[0].description = cdd_test_mut_str("OK");
   resps[0].headers = hdrs;
   resps[0].n_headers = 2;
   ops[1].responses = resps;
@@ -501,11 +501,11 @@ TEST test_openapi_writer_full_spec_edges(void) {
   memset(sec_schemes, 0, sizeof(sec_schemes));
   sec_schemes[0].type = OA_SEC_APIKEY;
   sec_schemes[0].in = OA_SEC_IN_COOKIE;
-  sec_schemes[0].key_name = (char *)(size_t) "session_id";
+  sec_schemes[0].key_name = cdd_test_mut_str("session_id");
 
   sec_schemes[1].type = OA_SEC_OAUTH2;
   sec_schemes[1].oauth2_metadata_url =
-      (char *)(size_t) "https://oauth.example.com/.well-known/oauth";
+      cdd_test_mut_str("https://oauth.example.com/.well-known/oauth");
   memset(flows, 0, sizeof(flows));
   flows[0].type = (enum OpenAPI_OAuthFlowType)99;
   sec_schemes[1].flows = flows;
@@ -513,8 +513,8 @@ TEST test_openapi_writer_full_spec_edges(void) {
 
   sec_schemes[2].type = OA_SEC_OPENID;
   sec_schemes[2].open_id_connect_url =
-      (char *)(size_t) "https://auth.example.com/.well-known/"
-                       "openid-configuration";
+      cdd_test_mut_str("https://auth.example.com/.well-known/"
+                       "openid-configuration");
 
   sec_schemes[3].type = OA_SEC_UNKNOWN;
 
@@ -564,26 +564,26 @@ TEST test_openapi_writer_full_spec_edges(void) {
   c_pathnames[0] = NULL;
   c_pathnames[1] = NULL;
   memset(comp_paths, 0, sizeof(comp_paths));
-  comp_paths[0].route = (char *)(size_t) "/subpath";
+  comp_paths[0].route = cdd_test_mut_str("/subpath");
   comp_paths[1].route = NULL;
   spec.component_path_items = comp_paths;
   spec.component_path_item_names = c_pathnames;
   spec.n_component_path_items = 2;
 
   c_rbnames[0] = NULL;
-  c_rbnames[1] = (char *)(size_t) "RefBody";
+  c_rbnames[1] = cdd_test_mut_str("RefBody");
   memset(comp_rbs, 0, sizeof(comp_rbs));
-  comp_rbs[1].ref = (char *)(size_t) "#/components/requestBodies/TargetBody";
+  comp_rbs[1].ref = cdd_test_mut_str("#/components/requestBodies/TargetBody");
   spec.component_request_bodies = comp_rbs;
   spec.component_request_body_names = c_rbnames;
   spec.n_component_request_bodies = 2;
 
   raw_names[0] = NULL;
-  raw_jsons[0] = (char *)(size_t) "{}";
-  raw_names[1] = (char *)(size_t) "NullJson";
+  raw_jsons[0] = cdd_test_mut_str("{}");
+  raw_names[1] = cdd_test_mut_str("NullJson");
   raw_jsons[1] = NULL;
-  raw_names[2] = (char *)(size_t) "ValidSchema";
-  raw_jsons[2] = (char *)(size_t) "{\"type\": \"string\"}";
+  raw_names[2] = cdd_test_mut_str("ValidSchema");
+  raw_jsons[2] = cdd_test_mut_str("{\"type\": \"string\"}");
   spec.raw_schema_names = raw_names;
   spec.raw_schema_json = raw_jsons;
   spec.n_raw_schemas = 3;
@@ -594,8 +594,8 @@ TEST test_openapi_writer_full_spec_edges(void) {
   free(json);
   json = NULL;
 
-  raw_names[0] = (char *)(size_t) "BadJson";
-  raw_jsons[0] = (char *)(size_t) "{not valid json";
+  raw_names[0] = cdd_test_mut_str("BadJson");
+  raw_jsons[0] = cdd_test_mut_str("{not valid json");
   spec.n_raw_schemas = 1;
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);

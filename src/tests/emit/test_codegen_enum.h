@@ -12,6 +12,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "c_cdd/memory.h"
 #include "classes/emit/enum.h"
 #include <greatest.h>
 #include <stdio.h>
@@ -19,9 +20,7 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern C_CDD_EXPORT int g_enum_members_init_fail;
-extern C_CDD_EXPORT int g_enum_members_add_fail;
-extern C_CDD_EXPORT int g_enum_members_add_strdup_fail;
+extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
 TEST test_enum_generation(void) {
   FILE *tmp;
@@ -103,7 +102,7 @@ TEST test_enum_generation(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -150,34 +149,30 @@ TEST test_enum_generation(void) {
   }
 }
 
-#ifdef CDD_BUILD_TESTS
-/* extern C_CDD_EXPORT int g_enum_members_init_fail; (moved to global) */
-/* extern C_CDD_EXPORT int g_enum_members_add_fail; (moved to global) */
-/* extern C_CDD_EXPORT int g_enum_members_add_strdup_fail; (moved to global) */
-#endif
-
 TEST test_enum_generation_oom(void) {
   struct EnumMembers em;
 #ifdef CDD_BUILD_TESTS
-  g_enum_members_init_fail = 1;
+  g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_members_init(&em));
-  g_enum_members_init_fail = 0;
+  g_cdd_alloc_fail = 0;
 
   ASSERT_EQ(0, enum_members_init(&em));
   em.size = em.capacity; /* Force realloc */
-  g_enum_members_add_fail = 1;
+  g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_members_add(&em, "TEST"));
+  g_cdd_alloc_fail = 0;
 
   em.capacity = 16;
   em.size = 16;
+  g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_members_add(&em, "TEST2"));
   em.capacity = 0;
   em.size = 0;
-  g_enum_members_add_fail = 0;
+  g_cdd_alloc_fail = 0;
 
-  g_enum_members_add_strdup_fail = 1;
+  g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_members_add(&em, "TEST"));
-  g_enum_members_add_strdup_fail = 0;
+  g_cdd_strdup_fail = 0;
 
   /* NULL member test for coverage in write_enum_to_str_func / from_str_func */
   ASSERT_EQ(0, enum_members_add(&em, "VALID"));

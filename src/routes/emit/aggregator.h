@@ -44,14 +44,8 @@ extern "C" {
  * @param[in] op The operation to add.
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on bad args.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the openapi aggregator add operation
-                     * operation.
-                     */
-    cdd_c_error_t
-    openapi_aggregator_add_operation(struct OpenAPI_Spec *spec,
-                                     const char *route,
-                                     struct OpenAPI_Operation *op);
+extern C_CDD_EXPORT cdd_c_error_t openapi_aggregator_add_operation(
+    struct OpenAPI_Spec *spec, const char *route, struct OpenAPI_Operation *op);
 
 /**
  * @brief Add a webhook operation to the OpenAPI Spec, organizing by Path.
@@ -63,14 +57,8 @@ extern C_CDD_EXPORT /**
  * @param[in] op The operation to add.
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on bad args.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the openapi aggregator add webhook
-                     * operation operation.
-                     */
-    cdd_c_error_t
-    openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
-                                             const char *route,
-                                             struct OpenAPI_Operation *op);
+extern C_CDD_EXPORT cdd_c_error_t openapi_aggregator_add_webhook_operation(
+    struct OpenAPI_Spec *spec, const char *route, struct OpenAPI_Operation *op);
 
 #ifdef __cplusplus
 }

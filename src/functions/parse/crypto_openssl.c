@@ -33,62 +33,25 @@ extern C_CDD_EXPORT int g_crypto_fail_digestfinal_len;
 extern C_CDD_EXPORT int g_crypto_fail_hmac;
 extern C_CDD_EXPORT int g_crypto_fail_hmac_len;
 
-static const EVP_MD *get_hook_EVP_sha256(void) {
-  if (g_crypto_fail_sha256)
-    return NULL;
-  return EVP_sha256();
-}
-#define HOOK_EVP_sha256 get_hook_EVP_sha256
-
-static EVP_MD_CTX *get_hook_EVP_MD_CTX_new(void) {
-  if (g_crypto_fail_mdctx_new)
-    return NULL;
-  return EVP_MD_CTX_new();
-}
-#define HOOK_EVP_MD_CTX_new get_hook_EVP_MD_CTX_new
-
-static int calc_hook_EVP_DigestInit_ex(EVP_MD_CTX *ctx, const EVP_MD *type,
-                                       ENGINE *impl) {
-  if (g_crypto_fail_digestinit)
-    return 0;
-  return EVP_DigestInit_ex(ctx, type, impl);
-}
-#define HOOK_EVP_DigestInit_ex calc_hook_EVP_DigestInit_ex
-
-static int calc_hook_EVP_DigestUpdate(EVP_MD_CTX *ctx, const void *d,
-                                      size_t cnt) {
-  if (g_crypto_fail_digestupdate)
-    return 0;
-  return EVP_DigestUpdate(ctx, d, cnt);
-}
-#define HOOK_EVP_DigestUpdate calc_hook_EVP_DigestUpdate
-
-static int calc_hook_EVP_DigestFinal_ex(EVP_MD_CTX *ctx, unsigned char *md,
-                                        unsigned int *s) {
-  if (g_crypto_fail_digestfinal)
-    return 0;
-  if (g_crypto_fail_digestfinal_len) {
-    *s = 0;
-    return 1;
-  }
-  return EVP_DigestFinal_ex(ctx, md, s);
-}
-#define HOOK_EVP_DigestFinal_ex calc_hook_EVP_DigestFinal_ex
-
-static unsigned char *get_hook_HMAC(const EVP_MD *evp_md, const void *key,
-                                    int key_len, const unsigned char *d,
-                                    size_t n, unsigned char *md,
-                                    unsigned int *md_len) {
-  if (g_crypto_fail_hmac)
-    return NULL;
-  if (g_crypto_fail_hmac_len) {
-    unsigned char *res = HMAC(evp_md, key, key_len, d, n, md, md_len);
-    *md_len = 0;
-    return res;
-  }
-  return HMAC(evp_md, key, key_len, d, n, md, md_len);
-}
-#define HOOK_HMAC get_hook_HMAC
+#define HOOK_EVP_sha256() (g_crypto_fail_sha256 ? NULL : EVP_sha256())
+#define HOOK_EVP_MD_CTX_new()                                                  \
+  (g_crypto_fail_mdctx_new ? NULL : EVP_MD_CTX_new())
+#define HOOK_EVP_DigestInit_ex(ctx, type, impl)                                \
+  (g_crypto_fail_digestinit ? 0 : EVP_DigestInit_ex((ctx), (type), (impl)))
+#define HOOK_EVP_DigestUpdate(ctx, d, cnt)                                     \
+  (g_crypto_fail_digestupdate ? 0 : EVP_DigestUpdate((ctx), (d), (cnt)))
+#define HOOK_EVP_DigestFinal_ex(ctx, md, s)                                    \
+  (g_crypto_fail_digestfinal ? 0                                               \
+                             : (g_crypto_fail_digestfinal_len                  \
+                                    ? (*(s) = 0, 1)                            \
+                                    : EVP_DigestFinal_ex((ctx), (md), (s))))
+#define HOOK_HMAC(evp_md, key, key_len, d, n, md, md_len)                      \
+  (g_crypto_fail_hmac                                                          \
+       ? NULL                                                                  \
+       : (g_crypto_fail_hmac_len                                               \
+              ? (*(md_len) = 0,                                                \
+                 HMAC((evp_md), (key), (key_len), (d), (n), (md), (md_len)))   \
+              : HMAC((evp_md), (key), (key_len), (d), (n), (md), (md_len))))
 
 #else
 
@@ -108,7 +71,7 @@ static unsigned char *get_hook_HMAC(const EVP_MD *evp_md, const void *key,
 #endif
 
 /**
- * @brief Executes the crypto sha256 operation.
+ * @brief Computes a 32-byte SHA-256 digest over a data buffer.
  */
 cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
                             unsigned char *out_digest) {
@@ -155,7 +118,7 @@ cleanup:
 }
 
 /**
- * @brief Executes the crypto hmac sha256 operation.
+ * @brief Computes a 32-byte HMAC-SHA256 digest over a data buffer.
  */
 cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
                                  const void *data, size_t data_len,

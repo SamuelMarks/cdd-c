@@ -19,7 +19,6 @@ extern "C" {
  */
 
 /**
- * @struct cdd_ffi_error_t
  * @brief Standard FFI error structure for cross-language exception handling.
  */
 typedef struct cdd_ffi_error_t {
@@ -30,7 +29,6 @@ typedef struct cdd_ffi_error_t {
 } cdd_ffi_error_t;
 
 /**
- * @enum cdd_ffi_primitive_kind_t
  * @brief Represents primitive types in a cross-language way.
  */
 typedef enum cdd_ffi_primitive_kind_t {
@@ -59,7 +57,6 @@ typedef enum cdd_ffi_primitive_kind_t {
 } cdd_ffi_primitive_kind_t;
 
 /**
- * @enum cdd_ffi_trivia_kind_t
  * @brief Represents the specific kind of lexical trivia.
  */
 typedef enum cdd_ffi_trivia_kind_t {
@@ -70,7 +67,6 @@ typedef enum cdd_ffi_trivia_kind_t {
 } cdd_ffi_trivia_kind_t;
 
 /**
- * @struct cdd_ffi_trivia_t
  * @brief Represents lexical trivia (whitespace, comments, continuations) to
  * allow exact formatting roundtrips.
  */
@@ -84,12 +80,6 @@ typedef struct cdd_ffi_trivia_t {
 } cdd_ffi_trivia_t;
 
 /**
- * @struct cdd_ffi_type_t
- * @brief Normalized representation of any C type (including pointers).
- */
-
-/**
- * @enum cdd_ffi_number_prefix_t
  * @brief Represents the literal prefix for numbers.
  */
 typedef enum cdd_ffi_number_prefix_t {
@@ -100,7 +90,6 @@ typedef enum cdd_ffi_number_prefix_t {
 } cdd_ffi_number_prefix_t;
 
 /**
- * @struct cdd_ffi_number_t
  * @brief Enhances IR Number representations to capture exact text, prefixes,
  * and C23 separators.
  */
@@ -113,6 +102,9 @@ typedef struct cdd_ffi_number_t {
   int has_separators;
 } cdd_ffi_number_t;
 
+/**
+ * @brief Normalized representation of any C type (including pointers).
+ */
 typedef struct cdd_ffi_type_t {
   /** @brief The base kind of the type */
   cdd_ffi_primitive_kind_t kind;
@@ -128,13 +120,15 @@ typedef struct cdd_ffi_type_t {
   struct cdd_ffi_type_t *template_args;
   /** @brief Number of template parameters */
   size_t template_args_count;
+  /** @brief Leading lexical trivia */
   cdd_ffi_trivia_t *leading_trivia;
+  /** @brief Trailing lexical trivia */
   cdd_ffi_trivia_t *trailing_trivia;
+  /** @brief Exact raw type spelling */
   char *raw_spelling;
 } cdd_ffi_type_t;
 
 /**
- * @enum cdd_ffi_param_intent_t
  * @brief Represents the data flow intent of a parameter (In, Out, InOut).
  */
 typedef enum cdd_ffi_param_intent_t {
@@ -145,7 +139,6 @@ typedef enum cdd_ffi_param_intent_t {
 } cdd_ffi_param_intent_t;
 
 /**
- * @struct cdd_ffi_macro_expansion_t
  * @brief Models a macro expansion exactly as it appears in the source.
  */
 typedef struct cdd_ffi_macro_expansion_t {
@@ -159,7 +152,6 @@ typedef struct cdd_ffi_macro_expansion_t {
 } cdd_ffi_macro_expansion_t;
 
 /**
- * @struct cdd_ffi_field_t
  * @brief A field inside a struct, or an argument inside a function.
  */
 typedef struct cdd_ffi_field_t {
@@ -174,12 +166,13 @@ typedef struct cdd_ffi_field_t {
   /** @brief Reference to another field defining the array length (if
    * applicable) */
   char *array_length_ref;
+  /** @brief Leading lexical trivia */
   cdd_ffi_trivia_t *leading_trivia;
+  /** @brief Trailing lexical trivia */
   cdd_ffi_trivia_t *trailing_trivia;
 } cdd_ffi_field_t;
 
 /**
- * @enum cdd_ffi_node_kind_t
  * @brief The type of an exported FFI IR node.
  */
 typedef enum cdd_ffi_node_kind_t {
@@ -192,7 +185,6 @@ typedef enum cdd_ffi_node_kind_t {
 } cdd_ffi_node_kind_t;
 
 /**
- * @struct cdd_ffi_enum_variant_t
  * @brief A specific value inside an enum.
  */
 typedef struct cdd_ffi_enum_variant_t {
@@ -202,14 +194,17 @@ typedef struct cdd_ffi_enum_variant_t {
   char *value;
   /** @brief Optional docstring */
   char *doc;
+  /** @brief Leading lexical trivia */
   cdd_ffi_trivia_t *leading_trivia;
+  /** @brief Trailing lexical trivia */
   cdd_ffi_trivia_t *trailing_trivia;
+  /** @brief Detailed numeric literal representation */
   struct cdd_ffi_number_t *number_details;
+  /** @brief Exact raw variant spelling */
   char *raw_spelling;
 } cdd_ffi_enum_variant_t;
 
 /**
- * @struct cdd_ffi_base_class_t
  * @brief Represents a base class inherited by a C++ struct/class.
  */
 typedef struct cdd_ffi_base_class_t {
@@ -223,7 +218,6 @@ typedef struct cdd_ffi_base_class_t {
 } cdd_ffi_base_class_t;
 
 /**
- * @struct cdd_ffi_virtual_method_t
  * @brief A virtual method available for Director overriding.
  */
 typedef struct cdd_ffi_virtual_method_t {
@@ -240,7 +234,6 @@ typedef struct cdd_ffi_virtual_method_t {
 } cdd_ffi_virtual_method_t;
 
 /**
- * @enum cdd_ffi_macro_type_t
  * @brief The inferred type of an evaluated macro.
  */
 typedef enum cdd_ffi_macro_type_t {
@@ -251,7 +244,6 @@ typedef enum cdd_ffi_macro_type_t {
 } cdd_ffi_macro_type_t;
 
 /**
- * @struct cdd_ffi_ir_node_t
  * @brief A single exported node (Struct, Function, etc.) in the FFI IR.
  */
 typedef struct cdd_ffi_ir_node_t {
@@ -290,25 +282,27 @@ typedef struct cdd_ffi_ir_node_t {
   /** @brief Inferred type of the macro evaluation (if Macro) */
   cdd_ffi_macro_type_t inferred_type;
 
-  /** @brief True if the function requires GIL release (e.g., @ffi_release_gil
-   * or @blocking) */
+  /** @brief True if the function requires GIL release (e.g., \@ffi_release_gil
+   * or \@blocking) */
   int requires_gil_release;
 
   /** @brief True if the function accepts a variable number of arguments (...)
    */
   int is_variadic;
+  /** @brief Leading lexical trivia */
   cdd_ffi_trivia_t *leading_trivia;
+  /** @brief Trailing lexical trivia */
   cdd_ffi_trivia_t *trailing_trivia;
 
   /** @brief Macro expansions contained within this node */
   struct cdd_ffi_macro_expansion_t *macro_expansions;
   /** @brief Number of macro expansions */
   size_t macro_expansions_count;
+  /** @brief Raw function body text (if captured) */
   char *raw_body;
 } cdd_ffi_ir_node_t;
 
 /**
- * @struct cdd_ffi_ir_t
  * @brief The root FFI Intermediate Representation encompassing the whole API.
  */
 typedef struct cdd_ffi_ir_t {
@@ -318,6 +312,7 @@ typedef struct cdd_ffi_ir_t {
   size_t nodes_count;
   /** @brief Capacity of the nodes array */
   size_t nodes_capacity;
+  /** @brief Module name identifier */
   char *module_name;
 } cdd_ffi_ir_t;
 

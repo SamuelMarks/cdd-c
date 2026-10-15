@@ -469,16 +469,15 @@ TEST test_cdd_cst_builder_trivia_and_splice(void) {
 
     cdd_cst_tree_t *replacement_node_tree = NULL;
     (void)out_has;
-    cdd_cst_parse(az_span_create_from_str(
-                      (char *)(size_t) "/* L1 */ /* L2 */ int x; /* T1 */"),
+    cdd_cst_parse(az_span_create_from_str("/* L1 */ /* L2 */ int x; /* T1 */"),
                   &tree);
     root = tree->root;
     target_node = tree->root->children[0].val.node;
     cdd_cst_builder_init(&b, tree, tree->root);
 
-    cdd_cst_parse(az_span_create_from_str((
-                      char *)(size_t) "/* NL1 */ float y; /* NT1 */ /* NT2 */"),
-                  &replacement_node_tree);
+    cdd_cst_parse(
+        az_span_create_from_str("/* NL1 */ float y; /* NT1 */ /* NT2 */"),
+        &replacement_node_tree);
     replacement_node = replacement_node_tree->root->children[0].val.node;
 
     rc = cdd_cst_extract_leading_trivia(target_node, &lead);
@@ -671,7 +670,7 @@ TEST test_cdd_cst_builder_errors_extra(void) {
   cdd_cst_node_t *root = NULL;
   (void)root;
 
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t) ""), &tree);
+  cdd_cst_parse(az_span_create_from_str(""), &tree);
   if (tree->root)
     cdd_cst_free_node(tree->root);
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);

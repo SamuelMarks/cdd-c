@@ -13,7 +13,6 @@ extern "C" {
 
 /* clang-format off */
 #include "parse/test_openapi_loader_common.h"
-#include "openapi/parse/openapi_test_helpers.h"
 #include "openapi/parse/openapi_internal_components.h"
 #include "routes/parse/cli.h"
 /* clang-format on */
@@ -922,7 +921,7 @@ TEST test_openapi_components_full_coverage(void) {
   json_value_free(jv);
 
   /* 5. swagger definitions */
-  spec.swagger_version = (char *)(size_t) "2.0";
+  spec.swagger_version = cdd_test_mut_str("2.0");
   jv = json_parse_string(
       "{\"definitions\": {\"User\": {\"type\": \"object\", \"properties\": "
       "{\"id\": {\"type\": \"integer\"}}}}}");

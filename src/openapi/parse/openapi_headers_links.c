@@ -15,15 +15,6 @@ C_CDD_EXPORT cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
                                                struct OpenAPI_Header *out_hdr,
                                                const struct OpenAPI_Spec *spec,
                                                int resolve_refs) {
-  struct OpenAPI_Header *_ast_find_component_header_53;
-  enum OpenAPI_Style _ast_parse_param_style_54;
-  struct OpenAPI_MediaType *_ast_find_component_media_type_55;
-  char *_ast_strdup_216 = NULL;
-  char *_ast_strdup_217 = NULL;
-  char *_ast_strdup_218 = NULL;
-  char *_ast_strdup_219 = NULL;
-  char *_ast_strdup_220 = NULL;
-  char *_ast_strdup_221 = NULL;
   const char *ref;
   const char *desc;
   const char *style_str;
@@ -45,31 +36,30 @@ C_CDD_EXPORT cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
   const struct OpenAPI_SchemaRef *resolved_schema;
   struct OpenAPI_SchemaRef parsed_schema = {0};
   int parsed_schema_set;
+  cdd_c_error_t rc;
 
   if (!hdr_obj || !out_hdr)
     return CDD_C_SUCCESS;
 
   ref = json_object_get_string(hdr_obj, "$ref");
   if (ref) {
-    out_hdr->ref = (c_cdd_strdup(ref, &_ast_strdup_216), _ast_strdup_216);
+    c_cdd_strdup(ref, &out_hdr->ref);
     if (!out_hdr->ref)
       return CDD_C_ERROR_MEMORY;
     if (resolve_refs && spec) {
-      const struct OpenAPI_Header *comp =
-          (find_component_header(spec, ref, &_ast_find_component_header_53),
-           _ast_find_component_header_53);
+      struct OpenAPI_Header *comp = NULL;
+      find_component_header(spec, ref, &comp);
       if (comp) {
-        {
-          cdd_c_error_t _rc = copy_header_fields(out_hdr, comp);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        rc = copy_header_fields(out_hdr, comp);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
     }
     desc = json_object_get_string(hdr_obj, "description");
     if (desc) {
-      out_hdr->description =
-          (c_cdd_strdup(desc, &_ast_strdup_217), _ast_strdup_217);
+      free(out_hdr->description);
+      out_hdr->description = NULL;
+      c_cdd_strdup(desc, &out_hdr->description);
       if (!out_hdr->description)
         return CDD_C_ERROR_MEMORY;
     }
@@ -78,8 +68,7 @@ C_CDD_EXPORT cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
 
   desc = json_object_get_string(hdr_obj, "description");
   if (desc) {
-    out_hdr->description =
-        (c_cdd_strdup(desc, &_ast_strdup_218), _ast_strdup_218);
+    c_cdd_strdup(desc, &out_hdr->description);
     if (!out_hdr->description)
       return CDD_C_ERROR_MEMORY;
   }
@@ -98,9 +87,8 @@ C_CDD_EXPORT cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
 
   style_str = json_object_get_string(hdr_obj, "style");
   if (style_str) {
-    enum OpenAPI_Style parsed_style =
-        (parse_param_style(style_str, &_ast_parse_param_style_54),
-         _ast_parse_param_style_54);
+    enum OpenAPI_Style parsed_style = OA_STYLE_UNKNOWN;
+    parse_param_style(style_str, &parsed_style);
     if (parsed_style != OA_STYLE_SIMPLE)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     out_hdr->style_set = 1;
@@ -128,13 +116,11 @@ C_CDD_EXPORT cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
   if (content) {
     if (json_object_get_count(content) != 1)
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    {
-      cdd_c_error_t _rc = parse_content_object(
-          content, &out_hdr->content_media_types,
-          &out_hdr->n_content_media_types, spec, resolve_refs);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    rc = parse_content_object(content, &out_hdr->content_media_types,
+                              &out_hdr->n_content_media_types, spec,
+                              resolve_refs);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   effective_schema = schema;
   effective_schema_val = schema_val;
@@ -153,22 +139,18 @@ C_CDD_EXPORT cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
   if (content) {
     media_type = json_object_get_name(content, 0);
     media_obj = json_object_get_object(content, media_type);
-    out_hdr->content_type =
-        (c_cdd_strdup(media_type, &_ast_strdup_219), _ast_strdup_219);
+    c_cdd_strdup(media_type, &out_hdr->content_type);
     if (!out_hdr->content_type)
       return CDD_C_ERROR_MEMORY;
     if (media_obj) {
       media_ref = json_object_get_string(media_obj, "$ref");
       if (media_ref) {
-        out_hdr->content_ref =
-            (c_cdd_strdup(media_ref, &_ast_strdup_220), _ast_strdup_220);
+        c_cdd_strdup(media_ref, &out_hdr->content_ref);
         if (!out_hdr->content_ref)
           return CDD_C_ERROR_MEMORY;
         if (resolve_refs && spec) {
-          const struct OpenAPI_MediaType *mt =
-              (find_component_media_type(spec, media_ref,
-                                         &_ast_find_component_media_type_55),
-               _ast_find_component_media_type_55);
+          struct OpenAPI_MediaType *mt = NULL;
+          find_component_media_type(spec, media_ref, &mt);
           if (mt) {
             if (mt->schema_set)
               resolved_schema = &mt->schema;
@@ -186,16 +168,12 @@ C_CDD_EXPORT cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
   }
 
   if (resolved_schema) {
-    {
-      cdd_c_error_t _rc = apply_schema_ref_to_header(out_hdr, resolved_schema);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
-    {
-      cdd_c_error_t _rc = copy_schema_ref(&out_hdr->schema, resolved_schema);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    rc = apply_schema_ref_to_header(out_hdr, resolved_schema);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = copy_schema_ref(&out_hdr->schema, resolved_schema);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     out_hdr->schema_set = 1;
   } else if (effective_schema_val &&
              json_value_get_type(effective_schema_val) == JSONBoolean) {
@@ -204,12 +182,9 @@ C_CDD_EXPORT cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
         json_value_get_boolean(effective_schema_val);
     out_hdr->schema_set = 1;
   } else if (effective_schema) {
-    {
-      cdd_c_error_t _rc =
-          parse_schema_ref(effective_schema, &parsed_schema, spec);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    rc = parse_schema_ref(effective_schema, &parsed_schema, spec);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     parsed_schema_set = 1;
     if (apply_schema_ref_to_header(out_hdr, &parsed_schema) != 0) {
       free_schema_ref_content(&parsed_schema);
@@ -223,7 +198,7 @@ C_CDD_EXPORT cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
   }
 
   if (!out_hdr->type) {
-    out_hdr->type = (c_cdd_strdup("string", &_ast_strdup_221), _ast_strdup_221);
+    c_cdd_strdup("string", &out_hdr->type);
     if (!out_hdr->type) {
       if (parsed_schema_set)
         free_schema_ref_content(&parsed_schema);
@@ -237,52 +212,44 @@ C_CDD_EXPORT cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  {
-    cdd_c_error_t rc = parse_examples_object(
-        json_object_get_object(hdr_obj, "examples"), &out_hdr->examples,
-        &out_hdr->n_examples, spec, resolve_refs);
+  rc = parse_examples_object(json_object_get_object(hdr_obj, "examples"),
+                             &out_hdr->examples, &out_hdr->n_examples, spec,
+                             resolve_refs);
+  if (rc != CDD_C_SUCCESS) {
+    if (parsed_schema_set)
+      free_schema_ref_content(&parsed_schema);
+    return rc;
+  }
+  if (out_hdr->n_examples == 0) {
+    rc = parse_any_field(hdr_obj, "example", &out_hdr->example,
+                         &out_hdr->example_set);
     if (rc != CDD_C_SUCCESS) {
       if (parsed_schema_set)
         free_schema_ref_content(&parsed_schema);
       return rc;
     }
   }
-  if (out_hdr->n_examples == 0) {
-    {
-      cdd_c_error_t _rc = parse_any_field(hdr_obj, "example", &out_hdr->example,
-                                          &out_hdr->example_set);
-      if (_rc != CDD_C_SUCCESS) {
-        if (parsed_schema_set)
-          free_schema_ref_content(&parsed_schema);
-        return _rc;
-      }
-    }
-  }
   if (out_hdr->example_set || out_hdr->n_examples > 0) {
     out_hdr->example_location = OA_EXAMPLE_LOC_OBJECT;
   } else if (media_obj && !media_ref) {
-    {
-      cdd_c_error_t rc = parse_media_examples(
-          media_obj, &out_hdr->example, &out_hdr->example_set,
-          &out_hdr->examples, &out_hdr->n_examples, spec, resolve_refs);
-      if (rc != CDD_C_SUCCESS) {
-        if (parsed_schema_set)
-          free_schema_ref_content(&parsed_schema);
-        return rc;
-      }
+    rc = parse_media_examples(media_obj, &out_hdr->example,
+                              &out_hdr->example_set, &out_hdr->examples,
+                              &out_hdr->n_examples, spec, resolve_refs);
+    if (rc != CDD_C_SUCCESS) {
+      if (parsed_schema_set)
+        free_schema_ref_content(&parsed_schema);
+      return rc;
     }
     if (out_hdr->example_set || out_hdr->n_examples > 0) {
       out_hdr->example_location = OA_EXAMPLE_LOC_MEDIA;
     }
   }
 
-  {
-    cdd_c_error_t _rc = collect_extensions(hdr_obj, &out_hdr->extensions_json);
-    if (_rc != CDD_C_SUCCESS) {
-      if (parsed_schema_set)
-        free_schema_ref_content(&parsed_schema);
-      return _rc;
-    }
+  rc = collect_extensions(hdr_obj, &out_hdr->extensions_json);
+  if (rc != CDD_C_SUCCESS) {
+    if (parsed_schema_set)
+      free_schema_ref_content(&parsed_schema);
+    return rc;
   }
 
   if (parsed_schema_set)
@@ -297,7 +264,6 @@ C_CDD_EXPORT cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
 C_CDD_EXPORT cdd_c_error_t parse_link_parameters(
     const JSON_Object *params_obj, struct OpenAPI_LinkParam **out_params,
     size_t *out_count) {
-  char *_ast_strdup_222 = NULL;
   size_t count, i;
   if (!out_params || !out_count)
     return CDD_C_SUCCESS;
@@ -310,7 +276,7 @@ C_CDD_EXPORT cdd_c_error_t parse_link_parameters(
   if (count == 0)
     return CDD_C_SUCCESS;
 
-  *out_params = (struct OpenAPI_LinkParam *)calloc(
+  *out_params = (struct OpenAPI_LinkParam *)C_CDD_CALLOC(
       count, sizeof(struct OpenAPI_LinkParam));
   if (!*out_params)
     return CDD_C_ERROR_MEMORY;
@@ -319,8 +285,7 @@ C_CDD_EXPORT cdd_c_error_t parse_link_parameters(
   for (i = 0; i < count; ++i) {
     const char *name = json_object_get_name(params_obj, i);
     const JSON_Value *val = json_object_get_value_at(params_obj, i);
-    (*out_params)[i].name =
-        (c_cdd_strdup(name, &_ast_strdup_222), _ast_strdup_222);
+    c_cdd_strdup(name, &(*out_params)[i].name);
     if (!(*out_params)[i].name)
       return CDD_C_ERROR_MEMORY;
     if (parse_any_value(val, &(*out_params)[i].value) != 0)
@@ -337,14 +302,6 @@ C_CDD_EXPORT cdd_c_error_t parse_link_object(const JSON_Object *link_obj,
                                              struct OpenAPI_Link *out_link,
                                              const struct OpenAPI_Spec *spec,
                                              int resolve_refs) {
-  struct OpenAPI_Link *_ast_find_component_link_56;
-  char *_ast_strdup_223 = NULL;
-  char *_ast_strdup_224 = NULL;
-  char *_ast_strdup_225 = NULL;
-  char *_ast_strdup_226 = NULL;
-  char *_ast_strdup_227 = NULL;
-  char *_ast_strdup_228 = NULL;
-  char *_ast_strdup_229 = NULL;
   const char *ref;
   const char *summary;
   const char *desc;
@@ -353,38 +310,38 @@ C_CDD_EXPORT cdd_c_error_t parse_link_object(const JSON_Object *link_obj,
   const JSON_Object *params_obj;
   const JSON_Value *req_body_val;
   const JSON_Object *server_obj;
+  cdd_c_error_t rc;
 
   if (!link_obj || !out_link)
     return CDD_C_SUCCESS;
 
   ref = json_object_get_string(link_obj, "$ref");
   if (ref) {
-    out_link->ref = (c_cdd_strdup(ref, &_ast_strdup_223), _ast_strdup_223);
+    c_cdd_strdup(ref, &out_link->ref);
     if (!out_link->ref)
       return CDD_C_ERROR_MEMORY;
     if (resolve_refs && spec) {
-      const struct OpenAPI_Link *comp =
-          (find_component_link(spec, ref, &_ast_find_component_link_56),
-           _ast_find_component_link_56);
+      struct OpenAPI_Link *comp = NULL;
+      find_component_link(spec, ref, &comp);
       if (comp) {
-        {
-          cdd_c_error_t _rc = copy_link_fields(out_link, comp);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        rc = copy_link_fields(out_link, comp);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
     }
     summary = json_object_get_string(link_obj, "summary");
     if (summary) {
-      out_link->summary =
-          (c_cdd_strdup(summary, &_ast_strdup_224), _ast_strdup_224);
+      free(out_link->summary);
+      out_link->summary = NULL;
+      c_cdd_strdup(summary, &out_link->summary);
       if (!out_link->summary)
         return CDD_C_ERROR_MEMORY;
     }
     desc = json_object_get_string(link_obj, "description");
     if (desc) {
-      out_link->description =
-          (c_cdd_strdup(desc, &_ast_strdup_225), _ast_strdup_225);
+      free(out_link->description);
+      out_link->description = NULL;
+      c_cdd_strdup(desc, &out_link->description);
       if (!out_link->description)
         return CDD_C_ERROR_MEMORY;
     }
@@ -393,73 +350,59 @@ C_CDD_EXPORT cdd_c_error_t parse_link_object(const JSON_Object *link_obj,
 
   summary = json_object_get_string(link_obj, "summary");
   if (summary) {
-    out_link->summary =
-        (c_cdd_strdup(summary, &_ast_strdup_226), _ast_strdup_226);
+    c_cdd_strdup(summary, &out_link->summary);
     if (!out_link->summary)
       return CDD_C_ERROR_MEMORY;
   }
   desc = json_object_get_string(link_obj, "description");
   if (desc) {
-    out_link->description =
-        (c_cdd_strdup(desc, &_ast_strdup_227), _ast_strdup_227);
+    c_cdd_strdup(desc, &out_link->description);
     if (!out_link->description)
       return CDD_C_ERROR_MEMORY;
   }
 
   op_ref = json_object_get_string(link_obj, "operationRef");
   if (op_ref) {
-    out_link->operation_ref =
-        (c_cdd_strdup(op_ref, &_ast_strdup_228), _ast_strdup_228);
+    c_cdd_strdup(op_ref, &out_link->operation_ref);
     if (!out_link->operation_ref)
       return CDD_C_ERROR_MEMORY;
   }
   op_id = json_object_get_string(link_obj, "operationId");
   if (op_id) {
-    out_link->operation_id =
-        (c_cdd_strdup(op_id, &_ast_strdup_229), _ast_strdup_229);
+    c_cdd_strdup(op_id, &out_link->operation_id);
     if (!out_link->operation_id)
       return CDD_C_ERROR_MEMORY;
   }
   if ((op_ref && op_id) || (!op_ref && !op_id))
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  {
-    cdd_c_error_t _rc =
-        collect_extensions(link_obj, &out_link->extensions_json);
-    if (_rc != CDD_C_SUCCESS)
-      return _rc;
-  }
+  rc = collect_extensions(link_obj, &out_link->extensions_json);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   params_obj = json_object_get_object(link_obj, "parameters");
-  {
-    cdd_c_error_t _rc = parse_link_parameters(params_obj, &out_link->parameters,
-                                              &out_link->n_parameters);
-    if (_rc != CDD_C_SUCCESS)
-      return _rc;
-  }
+  rc = parse_link_parameters(params_obj, &out_link->parameters,
+                             &out_link->n_parameters);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   req_body_val = json_object_get_value(link_obj, "requestBody");
   if (req_body_val) {
     out_link->request_body_set = 1;
-    {
-      cdd_c_error_t _rc =
-          parse_any_value(req_body_val, &out_link->request_body);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    rc = parse_any_value(req_body_val, &out_link->request_body);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   server_obj = json_object_get_object(link_obj, "server");
   if (server_obj) {
     out_link->server =
-        (struct OpenAPI_Server *)calloc(1, sizeof(struct OpenAPI_Server));
+        (struct OpenAPI_Server *)C_CDD_CALLOC(1, sizeof(struct OpenAPI_Server));
     if (!out_link->server)
       return CDD_C_ERROR_MEMORY;
     out_link->server_set = 1;
-    {
-      cdd_c_error_t _rc = parse_server_object(server_obj, out_link->server);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    rc = parse_server_object(server_obj, out_link->server);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   return CDD_C_SUCCESS;
@@ -473,7 +416,6 @@ C_CDD_EXPORT cdd_c_error_t parse_links_object(const JSON_Object *links,
                                               size_t *out_count,
                                               const struct OpenAPI_Spec *spec,
                                               int resolve_refs) {
-  char *_ast_strdup_230 = NULL;
   size_t i, count;
   if (!out_links || !out_count)
     return CDD_C_SUCCESS;
@@ -489,7 +431,7 @@ C_CDD_EXPORT cdd_c_error_t parse_links_object(const JSON_Object *links,
     return CDD_C_SUCCESS;
 
   *out_links =
-      (struct OpenAPI_Link *)calloc(count, sizeof(struct OpenAPI_Link));
+      (struct OpenAPI_Link *)C_CDD_CALLOC(count, sizeof(struct OpenAPI_Link));
   if (!*out_links)
     return CDD_C_ERROR_MEMORY;
   *out_count = count;
@@ -499,16 +441,13 @@ C_CDD_EXPORT cdd_c_error_t parse_links_object(const JSON_Object *links,
     const JSON_Object *link_obj =
         json_value_get_object(json_object_get_value_at(links, i));
     struct OpenAPI_Link *curr = &(*out_links)[i];
-    curr->name = (c_cdd_strdup(name, &_ast_strdup_230), _ast_strdup_230);
+    c_cdd_strdup(name, &curr->name);
     if (!curr->name)
       return CDD_C_ERROR_MEMORY;
     if (link_obj) {
-      {
-        cdd_c_error_t _rc =
-            parse_link_object(link_obj, curr, spec, resolve_refs);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      cdd_c_error_t rc = parse_link_object(link_obj, curr, spec, resolve_refs);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
   }
 
@@ -522,7 +461,6 @@ C_CDD_EXPORT cdd_c_error_t parse_headers_object(
     const JSON_Object *headers, struct OpenAPI_Header **out_headers,
     size_t *out_count, const struct OpenAPI_Spec *spec, int resolve_refs,
     int ignore_content_type) {
-  char *_ast_strdup_231 = NULL;
   size_t i, count, valid = 0;
   if (!out_headers || !out_count)
     return CDD_C_SUCCESS;
@@ -537,8 +475,8 @@ C_CDD_EXPORT cdd_c_error_t parse_headers_object(
   if (count == 0)
     return CDD_C_SUCCESS;
 
-  *out_headers =
-      (struct OpenAPI_Header *)calloc(count, sizeof(struct OpenAPI_Header));
+  *out_headers = (struct OpenAPI_Header *)C_CDD_CALLOC(
+      count, sizeof(struct OpenAPI_Header));
   if (!*out_headers)
     return CDD_C_ERROR_MEMORY;
 
@@ -549,7 +487,7 @@ C_CDD_EXPORT cdd_c_error_t parse_headers_object(
     struct OpenAPI_Header *curr = &(*out_headers)[valid];
     if (ignore_content_type && header_name_is_content_type(name))
       continue;
-    curr->name = (c_cdd_strdup(name, &_ast_strdup_231), _ast_strdup_231);
+    c_cdd_strdup(name, &curr->name);
     if (!curr->name) {
       *out_count = valid;
       return CDD_C_ERROR_MEMORY;
@@ -571,7 +509,7 @@ C_CDD_EXPORT cdd_c_error_t parse_headers_object(
     return CDD_C_SUCCESS;
   }
   if (valid < count) {
-    struct OpenAPI_Header *tmp = (struct OpenAPI_Header *)realloc(
+    struct OpenAPI_Header *tmp = (struct OpenAPI_Header *)C_CDD_REALLOC(
         *out_headers, valid * sizeof(struct OpenAPI_Header));
     if (tmp)
       *out_headers = tmp;
@@ -586,8 +524,6 @@ C_CDD_EXPORT cdd_c_error_t parse_headers_object(
 C_CDD_EXPORT cdd_c_error_t
 parse_encoding_object(const JSON_Object *enc_obj, struct OpenAPI_Encoding *out,
                       const struct OpenAPI_Spec *spec, int resolve_refs) {
-  enum OpenAPI_Style _ast_parse_param_style_57;
-  char *_ast_strdup_232 = NULL;
   const char *content_type;
   const char *style_str;
   int explode_present;
@@ -598,6 +534,7 @@ parse_encoding_object(const JSON_Object *enc_obj, struct OpenAPI_Encoding *out,
   const JSON_Object *nested_encoding_obj;
   const JSON_Array *prefix_encoding_arr;
   const JSON_Object *item_encoding_obj;
+  cdd_c_error_t rc;
 
   if (!enc_obj || !out)
     return CDD_C_SUCCESS;
@@ -612,16 +549,14 @@ parse_encoding_object(const JSON_Object *enc_obj, struct OpenAPI_Encoding *out,
 
   content_type = json_object_get_string(enc_obj, "contentType");
   if (content_type) {
-    out->content_type =
-        (c_cdd_strdup(content_type, &_ast_strdup_232), _ast_strdup_232);
+    c_cdd_strdup(content_type, &out->content_type);
     if (!out->content_type)
       return CDD_C_ERROR_MEMORY;
   }
 
   style_str = json_object_get_string(enc_obj, "style");
   if (style_str) {
-    out->style = (parse_param_style(style_str, &_ast_parse_param_style_57),
-                  _ast_parse_param_style_57);
+    parse_param_style(style_str, &out->style);
     out->style_set = 1;
   }
   explode_present = json_object_has_value(enc_obj, "explode");
@@ -639,54 +574,44 @@ parse_encoding_object(const JSON_Object *enc_obj, struct OpenAPI_Encoding *out,
 
   headers_obj = json_object_get_object(enc_obj, "headers");
   if (headers_obj) {
-    cdd_c_error_t rc = parse_headers_object(
-        headers_obj, &out->headers, &out->n_headers, spec, resolve_refs, 1);
+    rc = parse_headers_object(headers_obj, &out->headers, &out->n_headers, spec,
+                              resolve_refs, 1);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
 
   nested_encoding_obj = json_object_get_object(enc_obj, "encoding");
   if (nested_encoding_obj) {
-    {
-      cdd_c_error_t _rc =
-          parse_encoding_map(nested_encoding_obj, &out->encoding,
-                             &out->n_encoding, spec, resolve_refs);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    rc = parse_encoding_map(nested_encoding_obj, &out->encoding,
+                            &out->n_encoding, spec, resolve_refs);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   prefix_encoding_arr = json_object_get_array(enc_obj, "prefixEncoding");
   if (prefix_encoding_arr) {
-    {
-      cdd_c_error_t _rc =
-          parse_encoding_array(prefix_encoding_arr, &out->prefix_encoding,
-                               &out->n_prefix_encoding, spec, resolve_refs);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    rc = parse_encoding_array(prefix_encoding_arr, &out->prefix_encoding,
+                              &out->n_prefix_encoding, spec, resolve_refs);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   item_encoding_obj = json_object_get_object(enc_obj, "itemEncoding");
   if (item_encoding_obj) {
-    out->item_encoding =
-        (struct OpenAPI_Encoding *)calloc(1, sizeof(struct OpenAPI_Encoding));
+    out->item_encoding = (struct OpenAPI_Encoding *)C_CDD_CALLOC(
+        1, sizeof(struct OpenAPI_Encoding));
     if (!out->item_encoding)
       return CDD_C_ERROR_MEMORY;
     out->item_encoding_set = 1;
-    {
-      cdd_c_error_t _rc = parse_encoding_object(
-          item_encoding_obj, out->item_encoding, spec, resolve_refs);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    rc = parse_encoding_object(item_encoding_obj, out->item_encoding, spec,
+                               resolve_refs);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
-  {
-    cdd_c_error_t _rc = collect_extensions(enc_obj, &out->extensions_json);
-    if (_rc != CDD_C_SUCCESS)
-      return _rc;
-  }
+  rc = collect_extensions(enc_obj, &out->extensions_json);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   return CDD_C_SUCCESS;
 }
@@ -699,7 +624,6 @@ C_CDD_EXPORT cdd_c_error_t parse_encoding_map(const JSON_Object *enc_obj,
                                               size_t *out_count,
                                               const struct OpenAPI_Spec *spec,
                                               int resolve_refs) {
-  char *_ast_strdup_233 = NULL;
   size_t i, count, valid = 0;
   if (!out || !out_count)
     return CDD_C_SUCCESS;
@@ -711,8 +635,8 @@ C_CDD_EXPORT cdd_c_error_t parse_encoding_map(const JSON_Object *enc_obj,
   if (count == 0)
     return CDD_C_SUCCESS;
 
-  *out =
-      (struct OpenAPI_Encoding *)calloc(count, sizeof(struct OpenAPI_Encoding));
+  *out = (struct OpenAPI_Encoding *)C_CDD_CALLOC(
+      count, sizeof(struct OpenAPI_Encoding));
   if (!*out)
     return CDD_C_ERROR_MEMORY;
 
@@ -723,9 +647,11 @@ C_CDD_EXPORT cdd_c_error_t parse_encoding_map(const JSON_Object *enc_obj,
     struct OpenAPI_Encoding *curr = &(*out)[valid];
     if (!enc_def)
       continue;
-    curr->name = (c_cdd_strdup(name, &_ast_strdup_233), _ast_strdup_233);
-    if (!curr->name)
+    c_cdd_strdup(name, &curr->name);
+    if (!curr->name) {
+      *out_count = valid;
       return CDD_C_ERROR_MEMORY;
+    }
     {
       cdd_c_error_t rc =
           parse_encoding_object(enc_def, curr, spec, resolve_refs);
@@ -766,8 +692,8 @@ C_CDD_EXPORT cdd_c_error_t parse_encoding_array(const JSON_Array *enc_arr,
   if (count == 0)
     return CDD_C_SUCCESS;
 
-  *out =
-      (struct OpenAPI_Encoding *)calloc(count, sizeof(struct OpenAPI_Encoding));
+  *out = (struct OpenAPI_Encoding *)C_CDD_CALLOC(
+      count, sizeof(struct OpenAPI_Encoding));
   if (!*out)
     return CDD_C_ERROR_MEMORY;
 

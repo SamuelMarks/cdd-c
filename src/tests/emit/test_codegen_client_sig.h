@@ -20,14 +20,14 @@ TEST test_sig_simple_get(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "get_pet";
+  op.operation_id = cdd_test_mut_str("get_pet");
 
-  param.name = (char *)(size_t)(size_t)(size_t)(size_t) "id";
-  param.type = (char *)(size_t)(size_t)(size_t)(size_t) "integer";
+  param.name = cdd_test_mut_str("id");
+  param.type = cdd_test_mut_str("integer");
   op.parameters = &param;
   op.n_parameters = 1;
 
-  op.req_body.ref_name = (char *)(size_t)(size_t)(size_t)(size_t) "Pet";
+  op.req_body.ref_name = cdd_test_mut_str("Pet");
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_0), _ast_gen_sig_0);
   ASSERT(code);
@@ -78,7 +78,7 @@ TEST test_sig_verify_apierror(void) {
   char *_ast_gen_sig_1 = NULL;
   struct OpenAPI_Operation op = {0};
   char *code;
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "do";
+  op.operation_id = cdd_test_mut_str("do");
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_1), _ast_gen_sig_1);
   ASSERT(code);
@@ -127,10 +127,10 @@ TEST test_sig_grouped(void) {
   struct CodegenSigConfig cfg = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "getById";
+  op.operation_id = cdd_test_mut_str("getById");
 
-  cfg.prefix = (char *)(size_t)(size_t)(size_t)(size_t) "api_";
-  cfg.group_name = (char *)(size_t)(size_t)(size_t)(size_t) "Pet";
+  cfg.prefix = cdd_test_mut_str("api_");
+  cfg.group_name = cdd_test_mut_str("Pet");
 
   code = (gen_sig(&op, &cfg, &_ast_gen_sig_2), _ast_gen_sig_2);
   ASSERT(code);
@@ -180,10 +180,10 @@ TEST test_sig_success_range_response(void) {
   struct OpenAPI_Response resp = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "listPets";
+  op.operation_id = cdd_test_mut_str("listPets");
 
-  resp.code = (char *)(size_t)(size_t)(size_t)(size_t) "2XX";
-  resp.schema.ref_name = (char *)(size_t)(size_t)(size_t)(size_t) "Pet";
+  resp.code = cdd_test_mut_str("2XX");
+  resp.schema.ref_name = cdd_test_mut_str("Pet");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -234,10 +234,10 @@ TEST test_sig_default_response_success(void) {
   struct OpenAPI_Response resp = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "defaultPet";
+  op.operation_id = cdd_test_mut_str("defaultPet");
 
-  resp.code = (char *)(size_t)(size_t)(size_t)(size_t) "default";
-  resp.schema.ref_name = (char *)(size_t)(size_t)(size_t)(size_t) "Pet";
+  resp.code = cdd_test_mut_str("default");
+  resp.schema.ref_name = cdd_test_mut_str("Pet");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -288,10 +288,10 @@ TEST test_sig_inline_response_string(void) {
   struct OpenAPI_Response resp = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "getInline";
+  op.operation_id = cdd_test_mut_str("getInline");
 
-  resp.code = (char *)(size_t)(size_t)(size_t)(size_t) "200";
-  resp.schema.inline_type = (char *)(size_t)(size_t)(size_t)(size_t) "string";
+  resp.code = cdd_test_mut_str("200");
+  resp.schema.inline_type = cdd_test_mut_str("string");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -342,11 +342,11 @@ TEST test_sig_inline_response_array(void) {
   struct OpenAPI_Response resp = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "getInlineArr";
+  op.operation_id = cdd_test_mut_str("getInlineArr");
 
-  resp.code = (char *)(size_t)(size_t)(size_t)(size_t) "200";
+  resp.code = cdd_test_mut_str("200");
   resp.schema.is_array = 1;
-  resp.schema.inline_type = (char *)(size_t)(size_t)(size_t)(size_t) "integer";
+  resp.schema.inline_type = cdd_test_mut_str("integer");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -396,10 +396,9 @@ TEST test_sig_inline_request_body_string(void) {
   struct OpenAPI_Operation op = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "postInline";
-  op.req_body.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "application/json";
-  op.req_body.inline_type = (char *)(size_t)(size_t)(size_t)(size_t) "string";
+  op.operation_id = cdd_test_mut_str("postInline");
+  op.req_body.content_type = cdd_test_mut_str("application/json");
+  op.req_body.inline_type = cdd_test_mut_str("string");
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_7), _ast_gen_sig_7);
   ASSERT(code);
@@ -447,11 +446,10 @@ TEST test_sig_inline_request_body_array(void) {
   struct OpenAPI_Operation op = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)(size_t)(size_t)(size_t) "postInlineArr";
-  op.req_body.content_type =
-      (char *)(size_t)(size_t)(size_t)(size_t) "application/json";
+  op.operation_id = cdd_test_mut_str("postInlineArr");
+  op.req_body.content_type = cdd_test_mut_str("application/json");
   op.req_body.is_array = 1;
-  op.req_body.inline_type = (char *)(size_t)(size_t)(size_t)(size_t) "number";
+  op.req_body.inline_type = cdd_test_mut_str("number");
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_8), _ast_gen_sig_8);
   ASSERT(code);

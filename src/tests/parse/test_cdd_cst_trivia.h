@@ -29,11 +29,10 @@ extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
  */
 TEST test_cdd_cst_trivia_detect(void) {
   cdd_cst_tree_t *tree = NULL;
-  const char *code = (char *)(size_t)(size_t) "int main() {\n    return 0;\n}";
+  const char *code = cdd_test_mut_str("int main() {\n    return 0;\n}");
   cdd_cst_format_config_t config;
   cdd_cst_tree_t tree2;
-  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                         &tree);
+  int rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
   ASSERT_EQ(0, rc);
 
   memset(&tree2, 0, sizeof(tree2));
@@ -54,8 +53,7 @@ TEST test_cdd_cst_trivia_detect(void) {
 
   tree = NULL;
   code = "int main() {\n  return 0;\n}";
-  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                     &tree);
+  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
   ASSERT_EQ(0, rc);
   rc = cdd_cst_detect_format_config(tree, &config);
   ASSERT_EQ(0, rc);
@@ -66,8 +64,7 @@ TEST test_cdd_cst_trivia_detect(void) {
   /* Test fallback to 4 spaces */
   tree = NULL;
   code = "int main() {\n     return 0;\n}"; /* 5 spaces avg >= 3 -> 4 spaces */
-  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                     &tree);
+  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
   ASSERT_EQ(0, rc);
   rc = cdd_cst_detect_format_config(tree, &config);
   ASSERT_EQ(0, rc);
@@ -78,8 +75,7 @@ TEST test_cdd_cst_trivia_detect(void) {
   /* Test spaces > 8 ignored from sum */
   tree = NULL;
   code = "int main() {\n         return 0;\n}"; /* 9 spaces ignored */
-  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                     &tree);
+  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
   ASSERT_EQ(0, rc);
   rc = cdd_cst_detect_format_config(tree, &config);
   ASSERT_EQ(0, rc);
@@ -98,10 +94,9 @@ TEST test_cdd_cst_trivia_detect(void) {
  */
 TEST test_cdd_cst_trivia_detect_tabs(void) {
   cdd_cst_tree_t *tree = NULL;
-  const char *code = (char *)(size_t)(size_t) "int main() {\n\t\treturn 0;\n}";
+  const char *code = cdd_test_mut_str("int main() {\n\t\treturn 0;\n}");
   cdd_cst_format_config_t config;
-  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                         &tree);
+  int rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
   ASSERT_EQ(0, rc);
 
   rc = cdd_cst_detect_format_config(tree, &config);
@@ -119,24 +114,27 @@ TEST test_cdd_cst_trivia_detect_tabs(void) {
  * @return The result of the test.
  */
 TEST test_cdd_cst_trivia_generate(void) {
+  cdd_cst_tree_t *tree = NULL;
   cdd_trivia_t *t = NULL;
   cdd_cst_format_config_t config = {0, 4};
   cdd_cst_format_config_t config_tabs = {1, 1};
   int rc;
+
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str("int x;"), &tree));
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_generate_indent_trivia(NULL, NULL, 2, &t));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_generate_indent_trivia(NULL, &config, 2, NULL));
 
-  ASSERT_EQ(0, cdd_cst_generate_indent_trivia(NULL, &config, 0, &t));
+  ASSERT_EQ(0, cdd_cst_generate_indent_trivia(tree, &config, 0, &t));
   ASSERT(t != NULL);
   ASSERT_EQ(TRIVIA_NEWLINE, t->kind);
   ASSERT_EQ(NULL, t->next);
   free(t);
   t = NULL;
 
-  rc = cdd_cst_generate_indent_trivia(NULL, &config, 2, &t);
+  rc = cdd_cst_generate_indent_trivia(tree, &config, 2, &t);
   ASSERT_EQ(0, rc);
   ASSERT(t != NULL);
   ASSERT_EQ(TRIVIA_NEWLINE, t->kind);
@@ -144,11 +142,10 @@ TEST test_cdd_cst_trivia_generate(void) {
   ASSERT_EQ(TRIVIA_WHITESPACE, t->next->kind);
   ASSERT_EQ(8, t->next->length);
 
-  free((void *)(size_t)t->next->start);
   free(t->next);
   free(t);
 
-  rc = cdd_cst_generate_indent_trivia(NULL, &config_tabs, 2, &t);
+  rc = cdd_cst_generate_indent_trivia(tree, &config_tabs, 2, &t);
   ASSERT_EQ(0, rc);
   ASSERT(t != NULL);
   ASSERT_EQ(TRIVIA_NEWLINE, t->kind);
@@ -157,9 +154,19 @@ TEST test_cdd_cst_trivia_generate(void) {
   ASSERT_EQ(2, t->next->length);
   ASSERT_EQ('\t', t->next->start[0]);
 
+  free(t->next);
+  free(t);
+
+  /* Also test with tree == NULL */
+  rc = cdd_cst_generate_indent_trivia(NULL, &config, 2, &t);
+  ASSERT_EQ(0, rc);
+  ASSERT(t != NULL);
+  ASSERT(t->next != NULL);
   free((void *)(size_t)t->next->start);
   free(t->next);
   free(t);
+
+  cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
 
   PASS();
@@ -173,9 +180,12 @@ TEST test_cdd_cst_trivia_generate(void) {
 /* extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail; (moved to global) */
 
 TEST test_cdd_cst_trivia_oom(void) {
-  cdd_cst_format_config_t config = {0};
+  cdd_cst_tree_t *tree = NULL;
+  cdd_cst_format_config_t config = {0, 4};
   cdd_trivia_t *out = NULL;
   int rc_tmp, rc_tmp3;
+
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str("int x;"), &tree));
 
   g_cdd_cst_alloc_node_fail = 1;
   rc_tmp = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
@@ -189,6 +199,14 @@ TEST test_cdd_cst_trivia_oom(void) {
   rc_tmp3 = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
   ASSERT(rc_tmp3 != 0);
   g_cdd_cst_alloc_node_fail = 0;
+
+  /* OOM inside cdd_cst_pool_string when tree != NULL */
+  g_cdd_alloc_fail = 2;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            cdd_cst_generate_indent_trivia(tree, &config, 1, &out));
+  g_cdd_alloc_fail = 0;
+
+  cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }

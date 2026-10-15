@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_groovy.h
+ * @brief FFI binding emitter for Groovy.
+ */
 #ifndef CDD_FFI_EMIT_GROOVY_H
 #define CDD_FFI_EMIT_GROOVY_H
 

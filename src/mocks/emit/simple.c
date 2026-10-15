@@ -9,7 +9,7 @@
 
 /** \brief func */
 /**
- * @brief Executes the Haz cleanup operation.
+ * @brief Releases memory owned by a Haz instance.
  */
 enum cdd_c_error Haz_cleanup(struct Haz *haz) {
   C_CDD_FREE(haz);
@@ -18,7 +18,7 @@ enum cdd_c_error Haz_cleanup(struct Haz *haz) {
 
 /** \brief func */
 /**
- * @brief Executes the Foo cleanup operation.
+ * @brief Releases memory owned by a Foo instance.
  */
 enum cdd_c_error Foo_cleanup(struct Foo *foo) {
   enum cdd_c_error rc;

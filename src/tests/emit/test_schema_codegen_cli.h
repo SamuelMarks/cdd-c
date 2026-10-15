@@ -24,6 +24,7 @@ extern "C" {
 #include "classes/emit/schema.h"
 #include "classes/emit/schema_codegen.h"
 #include "classes/parse/code2schema.h"
+#include "c_cdd/memory.h"
 #include "functions/emit/codegen.h"
 #include "functions/parse/fs.h"
 /* clang-format on */
@@ -31,7 +32,6 @@ extern "C" {
 extern C_CDD_EXPORT int g_schema_fail_io_after;
 extern C_CDD_EXPORT int g_schema_io_calls;
 extern C_CDD_EXPORT int g_schema_strdup_fail;
-extern C_CDD_EXPORT int g_struct_fields_init_fail;
 extern C_CDD_EXPORT int g_json_object_to_struct_fields_fail;
 extern C_CDD_EXPORT int g_schema_realloc_fail;
 extern C_CDD_EXPORT int g_schema_codegen_force_fail;
@@ -329,16 +329,11 @@ TEST test_schema_codegen_main_paths(void) {
 /* Moved extern declarations for C89 compliance */
 extern C_CDD_EXPORT int g_schema_strdup_fail;
 extern C_CDD_EXPORT int g_schema_io_calls;
-extern C_CDD_EXPORT int g_struct_fields_init_fail;
 extern C_CDD_EXPORT int g_json_object_to_struct_fields_fail;
 extern C_CDD_EXPORT int g_schema_realloc_fail;
 extern C_CDD_EXPORT int g_schema_codegen_force_fail;
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
 extern C_CDD_EXPORT int g_schema_fail_io_after;
-
-/* extern C_CDD_EXPORT int g_struct_fields_init_fail; (moved to global) */
-/* extern C_CDD_EXPORT int g_json_object_to_struct_fields_fail; (moved to
- * global) */
 
 TEST test_schema_codegen_init_fail(void) {
   void *root;
@@ -362,23 +357,24 @@ TEST test_schema_codegen_init_fail(void) {
   schemas = json_object_get_object(json_value_get_object(root), "components");
   schemas = json_object_get_object(schemas, "schemas");
 
-  g_struct_fields_init_fail = 1;
+  g_cdd_alloc_fail = 1;
   rc = generate_header("test_out2", "basename", schemas, NULL);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
 
-  g_struct_fields_init_fail = 2; /* Fail Pass 2 of generate_header */
+  g_cdd_alloc_fail = 2; /* Fail Pass 2 of generate_header */
   rc = generate_header("test_out2", "basename", schemas, NULL);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_alloc_fail = 0;
 
   g_json_object_to_struct_fields_fail = 2; /* Fail Pass 2 mapping */
   rc = generate_header("test_out2", "basename", schemas, NULL);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_json_object_to_struct_fields_fail = 0;
 
-  g_struct_fields_init_fail = 1;
+  g_cdd_alloc_fail = 1;
   rc = generate_source("test_out2", "basename", schemas, NULL);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-  g_struct_fields_init_fail = 0;
+  g_cdd_alloc_fail = 0;
 
   json_value_free(root);
   remove("test_codegen_schema_init.json");
@@ -457,8 +453,10 @@ TEST test_schema_codegen_source_fail(void) {
 
   /* Call main which calls generate_header and generate_source */
   {
-    char *argv_bad[] = {(char *)(size_t)(size_t) "test_codegen_schema_io.json",
-                        (char *)(size_t)(size_t) "test_out_source"};
+    char *argv_bad[2];
+
+    argv_bad[0] = cdd_test_mut_str("test_codegen_schema_io.json");
+    argv_bad[1] = cdd_test_mut_str("test_out_source");
     rc = schema2code_main(2, argv_bad);
 #if !defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(__CYGWIN__)
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
@@ -510,16 +508,20 @@ TEST test_schema_codegen_system_error(void) {
 
 TEST test_schema_codegen_main_errors(void) {
   int rc = 0;
-  char *argv_bad1[] = {(char *)(size_t)(size_t) "file.json"};
-  char *argv_bad2[] = {(char *)(size_t)(size_t) "file.json",
-                       (char *)(size_t)NULL};
-  char *argv_bad3[] = {(char *)(size_t)(size_t) "nonexistent.json",
-                       (char *)(size_t)(size_t) "prefix"};
-  char *argv_bad4[] = {(char *)(size_t)(size_t) "file.json",
-                       (char *)(size_t)(size_t) "/invalid/path/prefix"};
+  char *argv_bad1[1];
+  char *argv_bad2[2];
+  char *argv_bad3[2];
+  char *argv_bad4[2];
   const char *schema_json = "{\"components\": {\"schemas\": {\"MyStruct\": "
                             "{\"type\": \"object\",\"properties\": {}}}}}";
   FILE *f;
+  argv_bad1[0] = cdd_test_mut_str("file.json");
+  argv_bad2[0] = cdd_test_mut_str("file.json");
+  argv_bad2[1] = NULL;
+  argv_bad3[0] = cdd_test_mut_str("nonexistent.json");
+  argv_bad3[1] = cdd_test_mut_str("prefix");
+  argv_bad4[0] = cdd_test_mut_str("file.json");
+  argv_bad4[1] = cdd_test_mut_str("/invalid/path/prefix");
 #if defined(_MSC_VER)
   if (fopen_s(&f, "file.json", "w") != 0)
     f = NULL;

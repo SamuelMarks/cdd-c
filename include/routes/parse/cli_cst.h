@@ -1,3 +1,7 @@
+/**
+ * @file cli_cst.h
+ * @brief Core cli cst definitions and implementation.
+ */
 #ifndef ROUTES_PARSE_CLI_CST_H
 #define ROUTES_PARSE_CLI_CST_H
 

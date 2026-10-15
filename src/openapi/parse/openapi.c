@@ -9,15 +9,16 @@
 /* clang-format on */
 
 /**
- * @brief Executes the openapi load from json internal operation.
+ * @brief Parses a Parson JSON object into an OpenAPI_Spec with document
+ * context.
  */
 cdd_c_error_t openapi_load_from_json_internal(
     const JSON_Value *root, struct OpenAPI_Spec *out, const char *retrieval_uri,
     struct OpenAPI_DocRegistry *registry) {
-  const JSON_Object *root_obj;
+  JSON_Object *root_obj;
   const JSON_Object *paths_obj;
   const JSON_Object *webhooks_obj;
-  const JSON_Object *comps_obj;
+  JSON_Object *comps_obj;
   cdd_c_error_t rc;
 
   if (!root || !out)
@@ -40,8 +41,10 @@ cdd_c_error_t openapi_load_from_json_internal(
     const char *swagger_version =
         root_obj ? json_object_get_string(root_obj, "swagger") : NULL;
     if (!version && !swagger_version) {
-      if (!root_is_schema_document(root, root_obj))
+      if (!root_is_schema_document(root, root_obj)) {
+        openapi_spec_free(out);
         return CDD_C_ERROR_INVALID_ARGUMENT;
+      }
       out->is_schema_document = 1;
       {
         const char *schema_id =
@@ -50,8 +53,10 @@ cdd_c_error_t openapi_load_from_json_internal(
             (out->retrieval_uri && *out->retrieval_uri)) {
           rc = compute_document_uri(schema_id, out->retrieval_uri,
                                     &out->document_uri);
-          if (rc != CDD_C_SUCCESS)
+          if (rc != CDD_C_SUCCESS) {
+            openapi_spec_free(out);
             return CDD_C_ERROR_MEMORY;
+          }
         }
       }
       rc = store_schema_root_json(out, root);
@@ -69,16 +74,22 @@ cdd_c_error_t openapi_load_from_json_internal(
       return CDD_C_SUCCESS;
     }
     if (version) {
-      if (!openapi_version_supported(version))
+      if (!openapi_version_supported(version)) {
+        openapi_spec_free(out);
         return CDD_C_ERROR_INVALID_ARGUMENT;
+      }
       rc = c_cdd_strdup(version, &out->openapi_version);
-      if (rc != CDD_C_SUCCESS)
+      if (rc != CDD_C_SUCCESS) {
+        openapi_spec_free(out);
         return rc;
+      }
     }
     if (swagger_version) {
       rc = c_cdd_strdup(swagger_version, &out->swagger_version);
-      if (rc != CDD_C_SUCCESS)
+      if (rc != CDD_C_SUCCESS) {
+        openapi_spec_free(out);
         return rc;
+      }
     }
 
     if (out->swagger_version) {
@@ -92,53 +103,69 @@ cdd_c_error_t openapi_load_from_json_internal(
       host = json_object_get_string(root_obj, "host");
       if (host) {
         rc = c_cdd_strdup(host, &out->host);
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
+          openapi_spec_free(out);
           return rc;
+        }
       }
       basePath = json_object_get_string(root_obj, "basePath");
       if (basePath) {
         rc = c_cdd_strdup(basePath, &out->basePath);
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
+          openapi_spec_free(out);
           return rc;
+        }
       }
 
       schemes_arr = json_object_get_array(root_obj, "schemes");
       if (schemes_arr) {
         out->n_schemes = json_array_get_count(schemes_arr);
         out->schemes = (char **)c_cdd_calloc(out->n_schemes, sizeof(char *));
-        if (!out->schemes)
+        if (!out->schemes) {
+          openapi_spec_free(out);
           return CDD_C_ERROR_MEMORY;
+        }
         for (i = 0; i < out->n_schemes; i++) {
           rc = c_cdd_strdup(json_array_get_string(schemes_arr, i),
                             &out->schemes[i]);
-          if (rc != CDD_C_SUCCESS)
+          if (rc != CDD_C_SUCCESS) {
+            openapi_spec_free(out);
             return rc;
+          }
         }
       }
       consumes_arr = json_object_get_array(root_obj, "consumes");
       if (consumes_arr) {
         out->n_consumes = json_array_get_count(consumes_arr);
         out->consumes = (char **)c_cdd_calloc(out->n_consumes, sizeof(char *));
-        if (!out->consumes)
+        if (!out->consumes) {
+          openapi_spec_free(out);
           return CDD_C_ERROR_MEMORY;
+        }
         for (i = 0; i < out->n_consumes; i++) {
           rc = c_cdd_strdup(json_array_get_string(consumes_arr, i),
                             &out->consumes[i]);
-          if (rc != CDD_C_SUCCESS)
+          if (rc != CDD_C_SUCCESS) {
+            openapi_spec_free(out);
             return rc;
+          }
         }
       }
       produces_arr = json_object_get_array(root_obj, "produces");
       if (produces_arr) {
         out->n_produces = json_array_get_count(produces_arr);
         out->produces = (char **)c_cdd_calloc(out->n_produces, sizeof(char *));
-        if (!out->produces)
+        if (!out->produces) {
+          openapi_spec_free(out);
           return CDD_C_ERROR_MEMORY;
+        }
         for (i = 0; i < out->n_produces; i++) {
           rc = c_cdd_strdup(json_array_get_string(produces_arr, i),
                             &out->produces[i]);
-          if (rc != CDD_C_SUCCESS)
+          if (rc != CDD_C_SUCCESS) {
+            openapi_spec_free(out);
             return rc;
+          }
         }
       }
     }
@@ -147,28 +174,36 @@ cdd_c_error_t openapi_load_from_json_internal(
       const char *self_uri = json_object_get_string(root_obj, "$self");
       if (self_uri) {
         rc = c_cdd_strdup(self_uri, &out->self_uri);
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
+          openapi_spec_free(out);
           return rc;
+        }
       }
     }
     if (out->self_uri || out->retrieval_uri) {
       rc = compute_document_uri(out->self_uri, out->retrieval_uri,
                                 &out->document_uri);
-      if (rc != CDD_C_SUCCESS)
+      if (rc != CDD_C_SUCCESS) {
+        openapi_spec_free(out);
         return CDD_C_ERROR_MEMORY;
+      }
     }
     {
       const char *dialect =
           json_object_get_string(root_obj, "jsonSchemaDialect");
       if (dialect) {
         rc = c_cdd_strdup(dialect, &out->json_schema_dialect);
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
+          openapi_spec_free(out);
           return rc;
+        }
       }
     }
     rc = collect_extensions(root_obj, &out->extensions_json);
-    if (rc != CDD_C_SUCCESS)
+    if (rc != CDD_C_SUCCESS) {
+      openapi_spec_free(out);
       return rc;
+    }
 
     rc = parse_info(root_obj, out);
     if (rc != CDD_C_SUCCESS) {
@@ -221,24 +256,30 @@ cdd_c_error_t openapi_load_from_json_internal(
       {
         cdd_c_error_t _rc =
             collect_extensions(paths_obj, &out->paths_extensions_json);
-        if (_rc != CDD_C_SUCCESS)
+        if (_rc != CDD_C_SUCCESS) {
+          openapi_spec_free(out);
           return _rc;
+        }
       }
     }
     if (webhooks_obj) {
       {
         cdd_c_error_t _rc =
             collect_extensions(webhooks_obj, &out->webhooks_extensions_json);
-        if (_rc != CDD_C_SUCCESS)
+        if (_rc != CDD_C_SUCCESS) {
+          openapi_spec_free(out);
           return _rc;
+        }
       }
     }
     if (comps_obj) {
       {
         cdd_c_error_t _rc =
             collect_extensions(comps_obj, &out->components_extensions_json);
-        if (_rc != CDD_C_SUCCESS)
+        if (_rc != CDD_C_SUCCESS) {
+          openapi_spec_free(out);
           return _rc;
+        }
       }
     }
     if (!paths_obj && !webhooks_obj && !comps_obj) {
@@ -265,7 +306,7 @@ cdd_c_error_t openapi_load_from_json_internal(
         }
       }
       if (has_oauth2) {
-        JSON_Object *mut_comps = (JSON_Object *)comps_obj;
+        JSON_Object *mut_comps = comps_obj;
         JSON_Object *schemas = json_object_get_object(mut_comps, "schemas");
         if (!schemas) {
           JSON_Value *schemas_val;
@@ -275,8 +316,10 @@ cdd_c_error_t openapi_load_from_json_internal(
           else
 #endif
             schemas_val = json_value_init_object();
-          if (!schemas_val)
+          if (!schemas_val) {
+            openapi_spec_free(out);
             return CDD_C_ERROR_MEMORY;
+          }
           json_object_set_value(mut_comps, "schemas", schemas_val);
           schemas = json_object_get_object(mut_comps, "schemas");
         }
@@ -464,7 +507,7 @@ cdd_c_error_t openapi_load_from_json_internal(
 }
 
 /**
- * @brief Executes the openapi load from json operation.
+ * @brief Parses a JSON string into an OpenAPI_Spec structure.
  */
 cdd_c_error_t openapi_load_from_json(const JSON_Value *root,
                                      struct OpenAPI_Spec *out) {
@@ -472,7 +515,8 @@ cdd_c_error_t openapi_load_from_json(const JSON_Value *root,
 }
 
 /**
- * @brief Executes the openapi load from json with context operation.
+ * @brief Parses a JSON string into an OpenAPI_Spec with base URI and registry
+ * context.
  */
 cdd_c_error_t openapi_load_from_json_with_context(
     const JSON_Value *root, const char *retrieval_uri, struct OpenAPI_Spec *out,
@@ -481,7 +525,7 @@ cdd_c_error_t openapi_load_from_json_with_context(
 }
 
 /**
- * @brief Executes the openapi spec find schema operation.
+ * @brief Looks up a component schema by name in an OpenAPI_Spec.
  */
 cdd_c_error_t openapi_spec_find_schema(const struct OpenAPI_Spec *spec,
                                        const char *name,
@@ -509,7 +553,7 @@ cdd_c_error_t openapi_spec_find_schema(const struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Executes the openapi spec find schema by id operation.
+ * @brief Looks up a schema in an OpenAPI_Spec by its JSON Schema $id URI.
  */
 cdd_c_error_t openapi_spec_find_schema_by_id(const struct OpenAPI_Spec *spec,
                                              const char *ref,
@@ -563,7 +607,7 @@ cdd_c_error_t openapi_spec_find_schema_by_id(const struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Executes the openapi spec find schema by anchor operation.
+ * @brief Looks up a schema in an OpenAPI_Spec by its JSON Schema $anchor.
  */
 cdd_c_error_t
 openapi_spec_find_schema_by_anchor(const struct OpenAPI_Spec *spec,
@@ -621,7 +665,7 @@ openapi_spec_find_schema_by_anchor(const struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Executes the openapi spec find schema for ref operation.
+ * @brief Resolves a local or external $ref URI to a target OpenAPI_SchemaRef.
  */
 cdd_c_error_t
 openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
@@ -638,40 +682,6 @@ openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
     return CDD_C_SUCCESS;
   }
 
-  if (ref->all_of) {
-    size_t i;
-    for (i = 0; i < ref->n_all_of; ++i)
-      free_schema_ref_content(&ref->all_of[i]);
-    free(ref->all_of);
-  }
-  if (ref->any_of) {
-    size_t i;
-    for (i = 0; i < ref->n_any_of; ++i)
-      free_schema_ref_content(&ref->any_of[i]);
-    free(ref->any_of);
-  }
-  if (ref->one_of) {
-    size_t i;
-    for (i = 0; i < ref->n_one_of; ++i)
-      free_schema_ref_content(&ref->one_of[i]);
-    free(ref->one_of);
-  }
-  if (ref->not_schema) {
-    free_schema_ref_content(ref->not_schema);
-    free(ref->not_schema);
-  }
-  if (ref->if_schema) {
-    free_schema_ref_content(ref->if_schema);
-    free(ref->if_schema);
-  }
-  if (ref->then_schema) {
-    free_schema_ref_content(ref->then_schema);
-    free(ref->then_schema);
-  }
-  if (ref->else_schema) {
-    free_schema_ref_content(ref->else_schema);
-    free(ref->else_schema);
-  }
   if (ref->ref_name) {
     if (ref->ref) {
       rc = resolve_ref_target(spec, ref->ref, &resolved);

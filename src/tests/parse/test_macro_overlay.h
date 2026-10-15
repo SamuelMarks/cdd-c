@@ -19,8 +19,7 @@ TEST test_macro_overlay_basic(void) {
   struct CstNodeList cst;
   struct TokenList *tl = NULL;
 
-  ASSERT_EQ(0,
-            tokenize(az_span_create_from_str((char *)(size_t) "int x;"), &tl));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str("int x;"), &tl));
   cst.size = 0;
   cst.capacity = 0;
   cst.nodes = NULL;
@@ -55,8 +54,7 @@ TEST test_macro_overlay_with_nodes(void) {
   struct TokenList *tl = NULL;
   size_t i;
 
-  ASSERT_EQ(
-      0, tokenize(az_span_create_from_str((char *)(size_t) "MACRO(x);"), &tl));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str("MACRO(x);"), &tl));
   cst.size = 1;
   cst.capacity = 1;
   cst.nodes = calloc(1, sizeof(struct CstNode));
@@ -223,8 +221,7 @@ TEST test_macro_overlay_coverage_edge(void) {
   struct CstNodeList cst;
   struct TokenList *tl = NULL;
 
-  ASSERT_EQ(0,
-            tokenize(az_span_create_from_str((char *)(size_t) "1 2 3"), &tl));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str("1 2 3"), &tl));
   cst.size = 1;
   cst.capacity = 1;
   cst.nodes = calloc(1, sizeof(struct CstNode));
@@ -239,8 +236,7 @@ TEST test_macro_overlay_coverage_edge(void) {
   free_token_list(tl);
   tl = NULL;
 
-  ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t) "1 2 3 4 5 6"),
-                        &tl));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str("1 2 3 4 5 6"), &tl));
   cst.size = 1;
   cst.capacity = 1;
   cst.nodes = calloc(1, sizeof(struct CstNode));

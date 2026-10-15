@@ -12,7 +12,7 @@
  * @brief Parses schema type from the given input.
  */
 cdd_c_error_t parse_schema_type(const JSON_Object *schema, int *out_nullable,
-                                char **_out_val) {
+                                const char **_out_val) {
   const char *type;
   const JSON_Array *types;
   size_t i, count;
@@ -27,7 +27,7 @@ cdd_c_error_t parse_schema_type(const JSON_Object *schema, int *out_nullable,
 
   type = json_object_get_string(schema, "type");
   if (type) {
-    *_out_val = (char *)(size_t)(type);
+    *_out_val = type;
     return CDD_C_SUCCESS;
   }
 
@@ -52,12 +52,12 @@ cdd_c_error_t parse_schema_type(const JSON_Object *schema, int *out_nullable,
   }
 
   if (!chosen && out_nullable && *out_nullable) {
-    *_out_val = (char *)(size_t) "null";
+    *_out_val = "null";
     return CDD_C_SUCCESS;
   }
 
   {
-    *_out_val = (char *)(size_t)(chosen);
+    *_out_val = chosen;
     return CDD_C_SUCCESS;
   }
 }
@@ -67,17 +67,14 @@ cdd_c_error_t parse_schema_type(const JSON_Object *schema, int *out_nullable,
  */
 cdd_c_error_t parse_schema_constraints(const JSON_Object *schema,
                                        struct SchemaConstraintTarget *target) {
-  char *_ast_strdup_17 = NULL;
   if (!schema || !target)
     return CDD_C_SUCCESS;
 
   if (target->example && target->example_set) {
-    {
-      cdd_c_error_t _rc = parse_any_field(schema, "example", target->example,
-                                          target->example_set);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    cdd_c_error_t rc = parse_any_field(schema, "example", target->example,
+                                       target->example_set);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   if (target->has_min && target->min_val) {
@@ -133,10 +130,12 @@ cdd_c_error_t parse_schema_constraints(const JSON_Object *schema,
   if (target->pattern) {
     if (json_object_has_value_of_type(schema, "pattern", JSONString)) {
       const char *pattern = json_object_get_string(schema, "pattern");
-      *target->pattern =
-          (c_cdd_strdup(pattern, &_ast_strdup_17), _ast_strdup_17);
-      if (!*target->pattern)
+      c_cdd_strdup(pattern, target->pattern);
+      if (!*target->pattern) {
+        if (target->example)
+          free_any_value(target->example);
         return CDD_C_ERROR_MEMORY;
+      }
     }
   }
 
@@ -168,7 +167,6 @@ cdd_c_error_t parse_schema_constraints(const JSON_Object *schema,
  */
 cdd_c_error_t parse_string_enum_array(const JSON_Array *arr, char ***out,
                                       size_t *out_count) {
-  char *_ast_strdup_18 = NULL;
   size_t i, count;
 
   if (!out || !out_count)
@@ -194,7 +192,7 @@ cdd_c_error_t parse_string_enum_array(const JSON_Array *arr, char ***out,
 
   for (i = 0; i < count; ++i) {
     const char *val = json_array_get_string(arr, i);
-    (*out)[i] = (c_cdd_strdup(val, &_ast_strdup_18), _ast_strdup_18);
+    c_cdd_strdup(val, &(*out)[i]);
     if (!(*out)[i]) {
       size_t j;
       for (j = 0; j < i; ++j)
@@ -214,7 +212,6 @@ cdd_c_error_t parse_string_enum_array(const JSON_Array *arr, char ***out,
  */
 cdd_c_error_t copy_string_array(char ***dst, size_t *dst_count, char **src,
                                 size_t src_count) {
-  char *_ast_strdup_19 = NULL;
   size_t i;
   if (!dst || !dst_count)
     return CDD_C_SUCCESS;
@@ -229,7 +226,7 @@ cdd_c_error_t copy_string_array(char ***dst, size_t *dst_count, char **src,
   for (i = 0; i < src_count; ++i) {
     if (!src[i])
       continue;
-    (*dst)[i] = (c_cdd_strdup(src[i], &_ast_strdup_19), _ast_strdup_19);
+    c_cdd_strdup(src[i], &(*dst)[i]);
     if (!(*dst)[i]) {
       size_t j;
       for (j = 0; j < i; ++j)
@@ -244,7 +241,8 @@ cdd_c_error_t copy_string_array(char ***dst, size_t *dst_count, char **src,
 }
 
 /**
- * @brief Executes the schema is string enum only operation.
+ * @brief Checks whether a schema is a pure string enumeration without struct
+ * fields.
  */
 cdd_c_error_t schema_is_string_enum_only(const JSON_Object *schema_obj) {
   const JSON_Array *enum_arr;
@@ -275,7 +273,7 @@ cdd_c_error_t schema_is_string_enum_only(const JSON_Object *schema_obj) {
 }
 
 /**
- * @brief Executes the schema is struct compatible operation.
+ * @brief Determines whether a schema should be emitted as a C struct.
  */
 cdd_c_error_t schema_is_struct_compatible(const JSON_Value *schema_val,
                                           const JSON_Object *schema_obj) {
@@ -299,7 +297,7 @@ cdd_c_error_t schema_is_struct_compatible(const JSON_Value *schema_val,
 }
 
 /**
- * @brief Executes the schema has composition operation.
+ * @brief Checks whether a schema uses allOf, anyOf, or oneOf composition.
  */
 cdd_c_error_t schema_has_composition(const JSON_Object *schema_obj) {
   if (!schema_obj)

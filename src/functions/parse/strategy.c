@@ -52,7 +52,7 @@ static cdd_c_error_t find_next_token_idx(const struct TokenList *tokens,
 }
 
 /**
- * @brief Executes the range to string operation.
+ * @brief Extracts a contiguous range of tokens into a newly allocated string.
  */
 static cdd_c_error_t range_to_string(const struct TokenList *tokens,
                                      size_t start, size_t end, char **out_val) {
@@ -64,7 +64,7 @@ static cdd_c_error_t range_to_string(const struct TokenList *tokens,
   for (i = start; i < end; ++i)
     len += tokens->tokens[i].length;
 
-  buf = (char *)(size_t)C_CDD_MALLOC(len + 1);
+  buf = (char *)C_CDD_MALLOC(len + 1);
   if (!buf) {
     return CDD_C_ERROR_MEMORY;
   }
@@ -82,7 +82,8 @@ static cdd_c_error_t range_to_string(const struct TokenList *tokens,
 /* --- Realloc Strategy --- */
 
 /**
- * @brief Executes the strategy rewrite realloc operation.
+ * @brief Rewrites unchecked realloc calls into safe temporary-pointer
+ * assignments.
  */
 cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
                                        const struct AllocationSite *site,
@@ -227,7 +228,7 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
     /* This sample assumes HAVE_ASPRINTF */
     {
       size_t replacement_len = strlen(call_expr) + strlen(site->var_name) + 128;
-      replacement = (char *)(size_t)C_CDD_MALLOC(replacement_len);
+      replacement = (char *)C_CDD_MALLOC(replacement_len);
       if (replacement) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
         sprintf_s(replacement, replacement_len,
@@ -266,7 +267,7 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
 /* --- General Safety Injection --- */
 
 /**
- * @brief Executes the strategy inject safety checks operation.
+ * @brief Injects null-pointer and error-return checks after fallible calls.
  */
 cdd_c_error_t
 strategy_inject_safety_checks(const struct TokenList *tokens,
@@ -317,7 +318,7 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
     if (site->spec->check_style == CHECK_PTR_NULL) {
       /* " if (!var) { return CDD_C_ERROR_MEMORY; }" */
       size_t len = strlen(site->var_name) + strlen(DEFAULT_ERROR_CODE) + 40;
-      injection = (char *)(size_t)C_CDD_MALLOC(len);
+      injection = (char *)C_CDD_MALLOC(len);
       if (!injection) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;
@@ -332,7 +333,7 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
 
     } else if (site->spec->check_style == CHECK_INT_NEGATIVE) {
       size_t len = strlen(site->var_name) + strlen(DEFAULT_ERROR_CODE) + 40;
-      injection = (char *)(size_t)C_CDD_MALLOC(len);
+      injection = (char *)C_CDD_MALLOC(len);
       if (!injection) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;
@@ -347,7 +348,7 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
 
     } else if (site->spec->check_style == CHECK_INT_NONZERO) {
       size_t len = strlen(site->var_name) + strlen(DEFAULT_ERROR_CODE) + 40;
-      injection = (char *)(size_t)C_CDD_MALLOC(len);
+      injection = (char *)C_CDD_MALLOC(len);
       if (!injection) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;

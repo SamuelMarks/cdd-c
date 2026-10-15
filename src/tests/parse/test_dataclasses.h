@@ -332,10 +332,15 @@ TEST test_json_parsing_corner_cases(void) {
 
 TEST test_null_args_and_errors(void) {
   char *str = NULL;
-  struct HazE h = {"", Tank_BIG};
-  struct FooE f = {"", 1, NULL};
+  char empty_buf[] = "";
+  struct HazE h;
+  struct FooE f;
   struct HazE *haz_e_ptr = &h;
   struct FooE *foo_e_ptr = &f;
+  h.bzr = empty_buf;
+  h.tank = Tank_BIG;
+  f.bar = empty_buf;
+  f.can = 1;
   f.haz = haz_e_ptr;
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, Tank_to_str(Tank_BIG, NULL));
@@ -465,12 +470,12 @@ TEST test_eq_null_cases(void) {
   ASSERT(HazE_eq(h1, NULL) != 0);
   ASSERT(HazE_eq(NULL, h1) != 0);
 
-  free((void *)(size_t)f1->bar);
+  free(f1->bar);
   f1->bar = NULL;
   f2->bar = strdup("not null");
   ASSERT(FooE_eq(f1, f2) != 0);
 
-  free((void *)(size_t)f2->bar);
+  free(f2->bar);
   f2->bar = NULL;
   ASSERT(FooE_eq(f1, f2) == 0); /* Both bars are null */
 
@@ -753,9 +758,15 @@ TEST test_debug_with_null_nested(void) {
 }
 
 TEST test_debug_with_empty_strings(void) {
-  struct HazE haz = {"", Tank_SMALL};
-  struct FooE foo = {"", 0, NULL};
+  char empty_buf[] = "";
+  struct HazE haz;
+  struct FooE foo;
   FILE *tmp;
+  haz.bzr = empty_buf;
+  haz.tank = Tank_SMALL;
+  foo.bar = empty_buf;
+  foo.can = 0;
+  foo.haz = NULL;
 #if defined(_MSC_VER)
   if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
@@ -775,9 +786,12 @@ TEST test_debug_with_empty_strings(void) {
 }
 
 TEST test_HazE_deepcopy_alloc_fail(void) {
-  struct HazE haz_in = {"test", Tank_BIG};
+  char test_buf[] = "test";
+  struct HazE haz_in;
   struct HazE *haz_out = NULL;
   int rc = 0;
+  haz_in.bzr = test_buf;
+  haz_in.tank = Tank_BIG;
 
   rc = HazE_deepcopy(&haz_in, &haz_out);
   ASSERT_EQ(0, rc);
@@ -794,18 +808,18 @@ TEST test_simple_json_HazE_more_eq_cases(void) {
   HazE_default(&h2);
 
   /* Test bzr member inequality */
-  free((void *)(size_t)h1->bzr);
+  free(h1->bzr);
   h1->bzr = strdup("abc");
-  free((void *)(size_t)h2->bzr);
+  free(h2->bzr);
   h2->bzr = strdup("def");
   ASSERT(HazE_eq(h1, h2) != 0);
 
   /* Test one-sided null bzr */
-  free((void *)(size_t)h1->bzr);
+  free(h1->bzr);
   h1->bzr = NULL;
   ASSERT(HazE_eq(h1, h2) != 0);
 
-  free((void *)(size_t)h2->bzr);
+  free(h2->bzr);
   h2->bzr = strdup("abc");
   ASSERT(HazE_eq(h2, h1) != 0);
 

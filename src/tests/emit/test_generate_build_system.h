@@ -94,9 +94,9 @@ TEST test_gen_cmake_with_tests(void) {
  * @return TEST
  */
 TEST test_gen_build_system_cli_args(void) {
-  char *arg0 = (char *)(size_t)(size_t) "cmake";
-  char *arg1 = (char *)(size_t)(size_t) "test_build_dir";
-  char *arg2 = (char *)(size_t)(size_t) "CLIProj";
+  char *arg0 = cdd_test_mut_str("cmake");
+  char *arg1 = cdd_test_mut_str("test_build_dir");
+  char *arg2 = cdd_test_mut_str("CLIProj");
   char *argv[3];
   int rc = 0;
 
@@ -138,13 +138,13 @@ TEST test_gen_build_system_cli_args(void) {
  * @return TEST
  */
 TEST test_gen_build_system_bad_args(void) {
-  char *arg0_short = (char *)(size_t)(size_t) "cmake";
-  char *arg1_short = (char *)(size_t)(size_t) ".";
+  char *arg0_short = cdd_test_mut_str("cmake");
+  char *arg1_short = cdd_test_mut_str(".");
   char *argv_short[2];
 
-  char *arg0_bad = (char *)(size_t)(size_t) "ninja";
-  char *arg1_bad = (char *)(size_t)(size_t) ".";
-  char *arg2_bad = (char *)(size_t)(size_t) "Name";
+  char *arg0_bad = cdd_test_mut_str("ninja");
+  char *arg1_bad = cdd_test_mut_str(".");
+  char *arg2_bad = cdd_test_mut_str("Name");
   char *argv_bad[3];
 
   argv_short[0] = arg0_short;
@@ -287,11 +287,14 @@ TEST test_build_system_io_failure(void) {
 }
 
 TEST test_gen_build_system_cli_args_tests(void) {
-  char *argv[] = {(char *)(size_t)(size_t) "cmake",
-                  (char *)(size_t)(size_t) "test_build_dir_tests",
-                  (char *)(size_t)(size_t) "CLIProjWithTests",
-                  (char *)(size_t)(size_t) "test"};
-  int rc = generate_build_system_main(4, argv);
+  char *argv[4];
+  int rc;
+
+  argv[0] = cdd_test_mut_str("cmake");
+  argv[1] = cdd_test_mut_str("test_build_dir_tests");
+  argv[2] = cdd_test_mut_str("CLIProjWithTests");
+  argv[3] = cdd_test_mut_str("test");
+  rc = generate_build_system_main(4, argv);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   remove("test_build_dir_tests/src/CMakeLists.txt");
@@ -301,10 +304,12 @@ TEST test_gen_build_system_cli_args_tests(void) {
 }
 
 TEST test_gen_build_system_cli_args_fail(void) {
-  char *argv[] = {(char *)(size_t)(size_t) "cmake",
-                  (char *)(size_t)(size_t) "test_dummy_file_for_makedirs/foo",
-                  (char *)(size_t)(size_t) "CLIProjWithTests"};
+  char *argv[3];
   FILE *f;
+
+  argv[0] = cdd_test_mut_str("cmake");
+  argv[1] = cdd_test_mut_str("test_dummy_file_for_makedirs/foo");
+  argv[2] = cdd_test_mut_str("CLIProjWithTests");
 #if defined(_MSC_VER)
   if (fopen_s(&f, "test_dummy_file_for_makedirs", "w") != 0)
     f = NULL;

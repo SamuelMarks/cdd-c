@@ -29,7 +29,7 @@
 
 #ifdef CDD_BUILD_TESTS
 /**
- * @brief Executes the c cdd strdup operation.
+ * @brief Allocates a duplicate of a null-terminated string.
  */
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
 #endif
@@ -54,7 +54,7 @@ cdd_c_error_t c_cdd_strdup(const char *s, char **out_s) {
 }
 
 /**
- * @brief Executes the c cdd str starts with operation.
+ * @brief Checks whether a string begins with a specified prefix.
  */
 cdd_c_error_t c_cdd_str_starts_with(const char *str, const char *prefix,
                                     int *out_b) {
@@ -79,7 +79,7 @@ cdd_c_error_t c_cdd_str_starts_with(const char *str, const char *prefix,
 }
 
 /**
- * @brief Executes the c cdd str equal operation.
+ * @brief Compares two null-terminated strings for exact equality.
  */
 cdd_c_error_t c_cdd_str_equal(const char *a, const char *b, int *out_b) {
   if (a == b) {
@@ -95,7 +95,7 @@ cdd_c_error_t c_cdd_str_equal(const char *a, const char *b, int *out_b) {
 }
 
 /**
- * @brief Executes the c cdd str iequal operation.
+ * @brief Compares two null-terminated strings for case-insensitive equality.
  */
 cdd_c_error_t c_cdd_str_iequal(const char *a, const char *b, int *out_b) {
 #ifdef CDD_BUILD_TESTS
@@ -126,7 +126,8 @@ cdd_c_error_t c_cdd_str_iequal(const char *a, const char *b, int *out_b) {
 }
 
 /**
- * @brief Executes the c cdd str after last operation.
+ * @brief Returns a pointer to the substring following the last occurrence of a
+ * delimiter.
  */
 cdd_c_error_t c_cdd_str_after_last(const char *str, int delimiter,
                                    const char **out_s) {
@@ -146,7 +147,7 @@ cdd_c_error_t c_cdd_str_after_last(const char *str, int delimiter,
 }
 
 /**
- * @brief Executes the c cdd ref is type operation.
+ * @brief Checks whether a JSON reference points to a named schema component.
  */
 cdd_c_error_t c_cdd_ref_is_type(const char *ref, const char *type, int *out_b) {
   const char *extracted = NULL;
@@ -163,7 +164,7 @@ cdd_c_error_t c_cdd_ref_is_type(const char *ref, const char *type, int *out_b) {
 }
 
 /**
- * @brief Executes the c cdd str trim trailing whitespace operation.
+ * @brief Trims trailing ASCII whitespace characters from a string in place.
  */
 cdd_c_error_t c_cdd_str_trim_trailing_whitespace(char *str) {
   size_t len;
@@ -183,7 +184,7 @@ cdd_c_error_t c_cdd_str_trim_trailing_whitespace(char *str) {
 }
 
 /**
- * @brief Executes the c cdd destringize operation.
+ * @brief Unescapes a C string literal token into its raw character sequence.
  */
 
 cdd_c_error_t c_cdd_destringize(const char *quoted, char **out_s) {
@@ -213,7 +214,7 @@ cdd_c_error_t c_cdd_destringize(const char *quoted, char **out_s) {
     return CDD_C_SUCCESS;
   }
 
-  out = (char *)(size_t)C_CDD_MALLOC(len + 1);
+  out = (char *)C_CDD_MALLOC(len + 1);
   if (!out) {
     *out_s = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -244,7 +245,7 @@ cdd_c_error_t c_cdd_destringize(const char *quoted, char **out_s) {
 }
 
 /**
- * @brief Executes the c cdd stricmp operation.
+ * @brief Performs a case-insensitive comparison of two strings.
  *
  */
 cdd_c_error_t c_cdd_stricmp(const char *a, const char *b, int *out_diff) {

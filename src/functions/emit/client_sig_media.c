@@ -35,6 +35,11 @@ extern C_CDD_EXPORT int g_cdd_fail_find_media_type;
 
 /**
  * @brief Computes length of media type up to optional semicolon parameter.
+ *
+ * @param[in] media_type Media type string.
+ * @param[out] _out_val Pointer to receive base length.
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT if _out_val is
+ * NULL.
  */
 cdd_c_error_t media_type_base_len(const char *media_type, size_t *_out_val) {
   size_t i = 0;

@@ -118,11 +118,36 @@ extern C_CDD_EXPORT cdd_c_error_t param_keys_match(
 extern C_CDD_EXPORT cdd_c_error_t build_effective_parameters(
     const struct OpenAPI_Path *path, const struct OpenAPI_Operation *op,
     struct OpenAPI_Parameter **out_params, size_t *out_count);
+/**
+ * @brief Converts an OpenAPI HTTP verb enum into its uppercase string literal.
+ *
+ * @param[in] verb HTTP verb enum.
+ * @param[out] _out_val Pointer to receive the static uppercase verb string.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
 extern C_CDD_EXPORT cdd_c_error_t verb_to_string(enum OpenAPI_Verb verb,
-                                                 char **_out_val);
+                                                 const char **_out_val);
+
+/**
+ * @brief Writes a Doxygen docblock for an OpenAPI operation.
+ *
+ * @param[in,out] fp Output file stream.
+ * @param[in] path Enclosing OpenAPI path item.
+ * @param[in] op OpenAPI operation descriptor.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
 extern C_CDD_EXPORT cdd_c_error_t
 write_docblock(FILE *fp, const struct OpenAPI_Path *path,
                const struct OpenAPI_Operation *op);
+
+/**
+ * @brief Writes the C header preamble for a generated OpenAPI client header.
+ *
+ * @param[in,out] fp Output file stream.
+ * @param[in] guard Include guard macro name.
+ * @param[in] model_decl Optional model header filename to include.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
 extern C_CDD_EXPORT cdd_c_error_t write_header_preamble(FILE *fp,
                                                         const char *guard,
                                                         const char *model_decl);

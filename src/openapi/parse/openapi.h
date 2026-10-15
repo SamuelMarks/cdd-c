@@ -128,15 +128,9 @@ openapi_load_from_json(const JSON_Value *root, struct OpenAPI_Spec *out);
  * @param[in,out] registry Optional registry for multi-doc resolution.
  * @return 0 on success, EINVAL on invalid input, ENOMEM on allocation failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the openapi load from json with context
-                     * operation.
-                     */
-    cdd_c_error_t
-    openapi_load_from_json_with_context(const JSON_Value *root,
-                                        const char *retrieval_uri,
-                                        struct OpenAPI_Spec *out,
-                                        struct OpenAPI_DocRegistry *registry);
+extern C_CDD_EXPORT cdd_c_error_t openapi_load_from_json_with_context(
+    const JSON_Value *root, const char *retrieval_uri, struct OpenAPI_Spec *out,
+    struct OpenAPI_DocRegistry *registry);
 
 /**
  * @param[out] _out_val Pointer to store the result
@@ -160,14 +154,9 @@ openapi_spec_find_schema(const struct OpenAPI_Spec *spec, const char *name,
  * @param[in] ref The schema reference.
  * @return Pointer to StructFields if found, NULL otherwise.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the openapi spec find schema for ref
-                     * operation.
-                     */
-    cdd_c_error_t
-    openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
-                                     const struct OpenAPI_SchemaRef *ref,
-                                     struct StructFields **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t openapi_spec_find_schema_for_ref(
+    const struct OpenAPI_Spec *spec, const struct OpenAPI_SchemaRef *ref,
+    struct StructFields **_out_val);
 
 #ifdef __cplusplus
 }

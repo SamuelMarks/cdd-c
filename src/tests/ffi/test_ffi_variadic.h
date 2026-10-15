@@ -49,7 +49,7 @@ static cdd_c_error_t dummy_variadic_func(const char *fmt, ...) {
 }
 
 TEST test_ffi_variadic_format_parser(void) {
-  const char *fmt = (char *)(size_t)(size_t) "Hello %d %s %p %% %f";
+  const char *fmt = cdd_test_mut_str("Hello %d %s %p %% %f");
   cdd_ffi_type_t types[20];
   size_t count;
 
@@ -134,10 +134,11 @@ TEST test_ffi_variadic_invoke(void) {
   cdd_ffi_var_arg_t args[10];
   cdd_c_error_t result;
   int d_val = 42;
-  char *s_val = (char *)(size_t)(size_t) "test";
+  char s_buf[] = "test";
+  char *s_val = s_buf;
   void *p_val = &d_val;
 
-  args[0].p = (void *)(size_t)d_val;
+  args[0].i = d_val;
   args[1].p = s_val;
   args[2].p = p_val;
 

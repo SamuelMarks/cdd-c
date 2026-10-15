@@ -1,3 +1,7 @@
+/**
+ * @file main.h
+ * @brief Core main definitions and implementation.
+ */
 #ifndef C_CDD_MAIN_H
 #define C_CDD_MAIN_H
 

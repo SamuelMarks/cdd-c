@@ -64,7 +64,7 @@ TEST test_pp_100_cov_directives(void) {
     struct EmbedParams params;
     memset(&params, 0, sizeof(params));
 
-    rc = tokenize(az_span_create_from_str((char *)(size_t) "const(1)"), &tl);
+    rc = tokenize(az_span_create_from_str("const(1)"), &tl);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     g_cdd_fail_identify_keyword_or_id = 1;
     rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
@@ -73,8 +73,7 @@ TEST test_pp_100_cov_directives(void) {
     free_token_list(tl);
     tl = NULL;
 
-    rc =
-        tokenize(az_span_create_from_str((char *)(size_t) "gnu::attr(1)"), &tl);
+    rc = tokenize(az_span_create_from_str("gnu::attr(1)"), &tl);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     g_cdd_pp_token_to_string_fail = 2;
     rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
@@ -83,7 +82,7 @@ TEST test_pp_100_cov_directives(void) {
     free_token_list(tl);
     tl = NULL;
 
-    rc = tokenize(az_span_create_from_str((char *)(size_t) "limit(10)"), &tl);
+    rc = tokenize(az_span_create_from_str("limit(10)"), &tl);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     g_cdd_pp_eval_expr_fail = 1;
     rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
@@ -92,8 +91,7 @@ TEST test_pp_100_cov_directives(void) {
     free_token_list(tl);
     tl = NULL;
 
-    rc = tokenize(
-        az_span_create_from_str((char *)(size_t) "suffix(end) (nested)"), &tl);
+    rc = tokenize(az_span_create_from_str("suffix(end) (nested)"), &tl);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -101,29 +99,28 @@ TEST test_pp_100_cov_directives(void) {
     free_token_list(tl);
     tl = NULL;
 
-    rc = tokenize(az_span_create_from_str((char *)(size_t) "limit"), &tl);
+    rc = tokenize(az_span_create_from_str("limit"), &tl);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
     free_token_list(tl);
     tl = NULL;
 
-    rc = tokenize(az_span_create_from_str((char *)(size_t) "gnu::123(1)"), &tl);
+    rc = tokenize(az_span_create_from_str("gnu::123(1)"), &tl);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
     free_token_list(tl);
     tl = NULL;
 
-    rc = tokenize(az_span_create_from_str((char *)(size_t) "gnu::unknown(1)"),
-                  &tl);
+    rc = tokenize(az_span_create_from_str("gnu::unknown(1)"), &tl);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     free_token_list(tl);
     tl = NULL;
 
-    rc = tokenize(az_span_create_from_str((char *)(size_t) "gnu::"), &tl);
+    rc = tokenize(az_span_create_from_str("gnu::"), &tl);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -200,6 +197,7 @@ TEST test_pp_100_cov_directives(void) {
   g_cdd_pp_resolve_path_fail = 0;
 
   g_cdd_pp_context_init_fail = 2;
+  pp_context_free(&ctx);
   rc = pp_context_init(&ctx);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_context_init(&ctx);
@@ -213,7 +211,7 @@ TEST test_pp_100_cov_directives(void) {
   ASSERT_EQ(CDD_C_ERROR_IO, rc);
   g_cdd_pp_scan_defines_fail = 0;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1 + 2"), &tl);
+  rc = tokenize(az_span_create_from_str("1 + 2"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -323,7 +321,7 @@ TEST test_pp_100_cov_directives(void) {
     free_token_list(tl);
     tl = NULL;
 
-    rc = tokenize(az_span_create_from_str((char *)(size_t) "FUNC_MACRO"), &tl);
+    rc = tokenize(az_span_create_from_str("FUNC_MACRO"), &tl);
     s.tokens = tl;
     s.pos = 0;
     s.error = 0;
@@ -333,8 +331,7 @@ TEST test_pp_100_cov_directives(void) {
     free_token_list(tl);
     tl = NULL;
 
-    rc = tokenize(az_span_create_from_str((char *)(size_t) "NULL_VAL_MACRO"),
-                  &tl);
+    rc = tokenize(az_span_create_from_str("NULL_VAL_MACRO"), &tl);
     s.tokens = tl;
     s.pos = 0;
     s.error = 0;
@@ -347,8 +344,7 @@ TEST test_pp_100_cov_directives(void) {
   }
 
   /* Single colon edge cases for ( gnu : pure ) and embed gnu : attr(1) */
-  rc =
-      tokenize(az_span_create_from_str((char *)(size_t) "( gnu : pure )"), &tl);
+  rc = tokenize(az_span_create_from_str("( gnu : pure )"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -361,8 +357,7 @@ TEST test_pp_100_cov_directives(void) {
   {
     struct EmbedParams params;
     memset(&params, 0, sizeof(params));
-    rc = tokenize(az_span_create_from_str((char *)(size_t) "gnu : attr(1)"),
-                  &tl);
+    rc = tokenize(az_span_create_from_str("gnu : attr(1)"), &tl);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
     free_token_list(tl);
@@ -437,7 +432,7 @@ TEST test_pp_100_cov_directives(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* __has_c_attribute( at EOF */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "("), &tl);
+  rc = tokenize(az_span_create_from_str("("), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -448,7 +443,7 @@ TEST test_pp_100_cov_directives(void) {
   tl = NULL;
 
   /* ( gnu :: at EOF */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "( gnu ::"), &tl);
+  rc = tokenize(az_span_create_from_str("( gnu ::"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -459,7 +454,7 @@ TEST test_pp_100_cov_directives(void) {
   tl = NULL;
 
   /* Hex literal 0x10 in parse_primary */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "0x10"), &tl);
+  rc = tokenize(az_span_create_from_str("0x10"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -473,7 +468,7 @@ TEST test_pp_100_cov_directives(void) {
 
   s.ctx = NULL;
   /* Non-ident, non-keyword token in parse_primary */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "+"), &tl);
+  rc = tokenize(az_span_create_from_str("+"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -485,7 +480,7 @@ TEST test_pp_100_cov_directives(void) {
   tl = NULL;
 
   /* Keyword token in parse_primary */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "const"), &tl);
+  rc = tokenize(az_span_create_from_str("const"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -498,7 +493,7 @@ TEST test_pp_100_cov_directives(void) {
   tl = NULL;
 
   /* defined at EOF */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "defined"), &tl);
+  rc = tokenize(az_span_create_from_str("defined"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -510,7 +505,7 @@ TEST test_pp_100_cov_directives(void) {
   tl = NULL;
 
   /* Empty parens in __has_c_attribute with skip_ws fail at line 877 */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "( )"), &tl);
+  rc = tokenize(az_span_create_from_str("( )"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -524,7 +519,7 @@ TEST test_pp_100_cov_directives(void) {
   tl = NULL;
 
   /* Double colon without scope before it: ( :: pure ) */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "( :: pure )"), &tl);
+  rc = tokenize(az_span_create_from_str("( :: pure )"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -534,7 +529,7 @@ TEST test_pp_100_cov_directives(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "( :: pure )"), &tl);
+  rc = tokenize(az_span_create_from_str("( :: pure )"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -548,7 +543,7 @@ TEST test_pp_100_cov_directives(void) {
   tl = NULL;
 
   /* Decimal literal length > 2 not starting with 0 in parse_primary */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "123"), &tl);
+  rc = tokenize(az_span_create_from_str("123"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -561,7 +556,7 @@ TEST test_pp_100_cov_directives(void) {
   tl = NULL;
 
   /* Semicolon token in parse_primary */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) ";"), &tl);
+  rc = tokenize(az_span_create_from_str(";"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -573,7 +568,7 @@ TEST test_pp_100_cov_directives(void) {
   tl = NULL;
 
   /* Identifier in parse_primary when ctx is NULL */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "UNKNOWN_MACRO"), &tl);
+  rc = tokenize(az_span_create_from_str("UNKNOWN_MACRO"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -587,7 +582,7 @@ TEST test_pp_100_cov_directives(void) {
   tl = NULL;
 
   /* defined followed by non-identifier */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "defined 123"), &tl);
+  rc = tokenize(az_span_create_from_str("defined 123"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   s.tokens = tl;
   s.pos = 0;
@@ -599,7 +594,7 @@ TEST test_pp_100_cov_directives(void) {
   tl = NULL;
 
   /* g_cdd_pp_eval_expr_fail = 2 for --hook == 0 */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "1"), &tl);
+  rc = tokenize(az_span_create_from_str("1"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   g_cdd_pp_eval_expr_fail = 2;
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);

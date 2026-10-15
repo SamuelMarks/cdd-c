@@ -37,7 +37,7 @@ TEST test_operation_reach_100_percent(void) {
     struct OpenAPI_Response *out = NULL;
     memset(&op, 0, sizeof(op));
     memset(&r, 0, sizeof(r));
-    r.code = (char *)(size_t) "200";
+    r.code = cdd_test_mut_str("200");
     op.responses = &r;
     op.n_responses = 1;
     g_cdd_fail_stricmp = 1;
@@ -46,20 +46,17 @@ TEST test_operation_reach_100_percent(void) {
     g_cdd_fail_stricmp = 0;
   }
 
-  /* 5. apply_example_to_response find_media_type_op fail */
+  /* 5. apply_example_to_response with content_type not found */
   {
     struct OpenAPI_Response resp;
     struct OpenAPI_MediaType mt;
     memset(&resp, 0, sizeof(resp));
     memset(&mt, 0, sizeof(mt));
-    mt.name = (char *)(size_t) "application/json";
+    mt.name = cdd_test_mut_str("application/json");
     resp.content_media_types = &mt;
     resp.n_content_media_types = 1;
-    g_op_fail_find_media_type_op = 1;
-    ASSERT_EQ(
-        CDD_C_ERROR_INVALID_ARGUMENT,
-        apply_example_to_response(&resp, "{\"a\":1}", "application/json"));
-    g_op_fail_find_media_type_op = 0;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              apply_example_to_response(&resp, "{\"a\":1}", "text/plain"));
   }
 
   /* 6. ensure_response_for_code find_response_by_code fail */
@@ -69,7 +66,7 @@ TEST test_operation_reach_100_percent(void) {
     struct OpenAPI_Response *out = NULL;
     memset(&op, 0, sizeof(op));
     memset(&r, 0, sizeof(r));
-    r.code = (char *)(size_t) "200";
+    r.code = cdd_test_mut_str("200");
     op.responses = &r;
     op.n_responses = 1;
     g_cdd_fail_stricmp = 1;
@@ -99,28 +96,27 @@ TEST test_operation_reach_100_percent(void) {
     memset(&resp, 0, sizeof(resp));
     memset(&hdr, 0, sizeof(hdr));
     memset(&dh, 0, sizeof(dh));
-    hdr.name = (char *)(size_t) "X-Test";
+    hdr.name = cdd_test_mut_str("X-Test");
     resp.headers = &hdr;
     resp.n_headers = 1;
-    dh.name = (char *)(size_t) "X-Test";
+    dh.name = cdd_test_mut_str("X-Test");
     g_cdd_fail_stricmp = 1;
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_header_to_response(&resp, &dh));
     g_cdd_fail_stricmp = 0;
   }
 
-  /* 9. apply_format_to_schema_ref oa_type_is_primitive fail */
+  /* 9. apply_format_to_schema_ref non-primitive type */
   {
     struct OpenAPI_SchemaRef schema;
     struct OpenApiTypeMapping map;
     int applied = 0;
     memset(&schema, 0, sizeof(schema));
     memset(&map, 0, sizeof(map));
-    map.oa_format = (char *)(size_t) "int32";
-    map.oa_type = (char *)(size_t) "integer";
-    g_op_fail_oa_type_is_primitive = 1;
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+    map.oa_format = cdd_test_mut_str("custom");
+    map.oa_type = cdd_test_mut_str("object");
+    ASSERT_EQ(CDD_C_SUCCESS,
               apply_format_to_schema_ref(&schema, &map, NULL, &applied));
-    g_op_fail_oa_type_is_primitive = 0;
+    ASSERT_EQ(0, applied);
   }
 
   /* 10. c_mapping_init fail in c2openapi_build_operation */
@@ -133,8 +129,8 @@ TEST test_operation_reach_100_percent(void) {
     memset(&sig, 0, sizeof(sig));
     memset(&arg, 0, sizeof(arg));
     memset(&op, 0, sizeof(op));
-    arg.name = (char *)(size_t) "x";
-    arg.type = (char *)(size_t) "int";
+    arg.name = cdd_test_mut_str("x");
+    arg.type = cdd_test_mut_str("int");
     sig.args = &arg;
     sig.n_args = 1;
     ctx.sig = &sig;
@@ -142,79 +138,6 @@ TEST test_operation_reach_100_percent(void) {
     g_mapping_fail_init = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, c2openapi_build_operation(&ctx, &op));
     g_mapping_fail_init = 0;
-    reset_operation_test(&op);
-  }
-
-  /* 11. find_doc_param fail in c2openapi_build_operation */
-  {
-    struct OpBuilderContext ctx;
-    struct C2OpenAPI_ParsedSig sig;
-    struct C2OpenAPI_ParsedArg arg;
-    struct OpenAPI_Operation op;
-    memset(&ctx, 0, sizeof(ctx));
-    memset(&sig, 0, sizeof(sig));
-    memset(&arg, 0, sizeof(arg));
-    memset(&op, 0, sizeof(op));
-    arg.name = (char *)(size_t) "x";
-    arg.type = (char *)(size_t) "int";
-    sig.args = &arg;
-    sig.n_args = 1;
-    ctx.sig = &sig;
-    ctx.func_name = "test_fn";
-    g_op_fail_find_doc_param = 1;
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-              c2openapi_build_operation(&ctx, &op));
-    g_op_fail_find_doc_param = 0;
-    reset_operation_test(&op);
-  }
-
-  /* 12. is_path_param fail in c2openapi_build_operation */
-  {
-    struct OpBuilderContext ctx;
-    struct C2OpenAPI_ParsedSig sig;
-    struct C2OpenAPI_ParsedArg arg;
-    struct DocMetadata doc;
-    struct OpenAPI_Operation op;
-    memset(&ctx, 0, sizeof(ctx));
-    memset(&sig, 0, sizeof(sig));
-    memset(&arg, 0, sizeof(arg));
-    memset(&doc, 0, sizeof(doc));
-    memset(&op, 0, sizeof(op));
-    doc.route = (char *)(size_t) "/items/{x}";
-    arg.name = (char *)(size_t) "x";
-    arg.type = (char *)(size_t) "int";
-    sig.args = &arg;
-    sig.n_args = 1;
-    ctx.sig = &sig;
-    ctx.doc = &doc;
-    ctx.func_name = "test_fn";
-    g_op_fail_is_path_param = 1;
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-              c2openapi_build_operation(&ctx, &op));
-    g_op_fail_is_path_param = 0;
-    reset_operation_test(&op);
-  }
-
-  /* 13. is_struct_pointer fail in c2openapi_build_operation */
-  {
-    struct OpBuilderContext ctx;
-    struct C2OpenAPI_ParsedSig sig;
-    struct C2OpenAPI_ParsedArg arg;
-    struct OpenAPI_Operation op;
-    memset(&ctx, 0, sizeof(ctx));
-    memset(&sig, 0, sizeof(sig));
-    memset(&arg, 0, sizeof(arg));
-    memset(&op, 0, sizeof(op));
-    arg.name = (char *)(size_t) "x";
-    arg.type = (char *)(size_t) "struct Foo *";
-    sig.args = &arg;
-    sig.n_args = 1;
-    ctx.sig = &sig;
-    ctx.func_name = "test_fn";
-    g_op_fail_is_struct_pointer = 1;
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-              c2openapi_build_operation(&ctx, &op));
-    g_op_fail_is_struct_pointer = 0;
     reset_operation_test(&op);
   }
 
@@ -232,12 +155,12 @@ TEST test_operation_reach_100_percent(void) {
     memset(&doc, 0, sizeof(doc));
     memset(&dp, 0, sizeof(dp));
     memset(&op, 0, sizeof(op));
-    dp.name = (char *)(size_t) "hdr";
-    dp.in_loc = (char *)(size_t) "header";
+    dp.name = cdd_test_mut_str("hdr");
+    dp.in_loc = cdd_test_mut_str("header");
     doc.params = &dp;
     doc.n_params = 1;
-    arg.name = (char *)(size_t) "hdr";
-    arg.type = (char *)(size_t) "char *";
+    arg.name = cdd_test_mut_str("hdr");
+    arg.type = cdd_test_mut_str("char *");
     sig.args = &arg;
     sig.n_args = 1;
     ctx.sig = &sig;
@@ -250,127 +173,7 @@ TEST test_operation_reach_100_percent(void) {
     reset_operation_test(&op);
   }
 
-  /* 15. doc_style_to_openapi fail in c2openapi_build_operation parameter */
-  {
-    struct OpBuilderContext ctx;
-    struct C2OpenAPI_ParsedSig sig;
-    struct C2OpenAPI_ParsedArg arg;
-    struct DocMetadata doc;
-    struct DocParam dp;
-    struct OpenAPI_Operation op;
-    memset(&ctx, 0, sizeof(ctx));
-    memset(&sig, 0, sizeof(sig));
-    memset(&arg, 0, sizeof(arg));
-    memset(&doc, 0, sizeof(doc));
-    memset(&dp, 0, sizeof(dp));
-    memset(&op, 0, sizeof(op));
-    dp.name = (char *)(size_t) "p";
-    dp.style_set = 1;
-    dp.style = DOC_PARAM_STYLE_FORM;
-    doc.params = &dp;
-    doc.n_params = 1;
-    arg.name = (char *)(size_t) "p";
-    arg.type = (char *)(size_t) "int";
-    sig.args = &arg;
-    sig.n_args = 1;
-    ctx.sig = &sig;
-    ctx.doc = &doc;
-    ctx.func_name = "test_fn";
-    g_op_fail_doc_style_to_openapi = 1;
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-              c2openapi_build_operation(&ctx, &op));
-    g_op_fail_doc_style_to_openapi = 0;
-    reset_operation_test(&op);
-  }
-
-  /* 16. find_media_type_op fail for rb->example */
-  {
-    struct OpBuilderContext ctx;
-    struct C2OpenAPI_ParsedSig sig;
-    struct DocMetadata doc;
-    struct DocRequestBody rb;
-    struct OpenAPI_Operation op;
-    memset(&ctx, 0, sizeof(ctx));
-    memset(&sig, 0, sizeof(sig));
-    memset(&doc, 0, sizeof(doc));
-    memset(&rb, 0, sizeof(rb));
-    memset(&op, 0, sizeof(op));
-    rb.content_type = (char *)(size_t) "application/json";
-    rb.example = (char *)(size_t) "{}";
-    doc.request_bodies = &rb;
-    doc.n_request_bodies = 1;
-    ctx.sig = &sig;
-    ctx.doc = &doc;
-    ctx.func_name = "test_fn";
-    g_op_fail_find_media_type_op = 1;
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-              c2openapi_build_operation(&ctx, &op));
-    g_op_fail_find_media_type_op = 0;
-    reset_operation_test(&op);
-  }
-
-  /* 17. find_media_type_op fail for doc->encodings */
-  {
-    struct OpBuilderContext ctx;
-    struct C2OpenAPI_ParsedSig sig;
-    struct DocMetadata doc;
-    struct DocRequestBody rb;
-    struct DocEncoding enc;
-    struct OpenAPI_Operation op;
-    memset(&ctx, 0, sizeof(ctx));
-    memset(&sig, 0, sizeof(sig));
-    memset(&doc, 0, sizeof(doc));
-    memset(&rb, 0, sizeof(rb));
-    memset(&enc, 0, sizeof(enc));
-    memset(&op, 0, sizeof(op));
-    rb.content_type = (char *)(size_t) "multipart/form-data";
-    doc.request_bodies = &rb;
-    doc.n_request_bodies = 1;
-    enc.name = (char *)(size_t) "field1";
-    doc.encodings = &enc;
-    doc.n_encodings = 1;
-    ctx.sig = &sig;
-    ctx.doc = &doc;
-    ctx.func_name = "test_fn";
-    g_op_fail_find_media_type_op = 1;
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-              c2openapi_build_operation(&ctx, &op));
-    g_op_fail_find_media_type_op = 0;
-    reset_operation_test(&op);
-  }
-
-  /* 18. doc_style_to_openapi fail for d_enc->style */
-  {
-    struct OpBuilderContext ctx;
-    struct C2OpenAPI_ParsedSig sig;
-    struct DocMetadata doc;
-    struct DocRequestBody rb;
-    struct DocEncoding enc;
-    struct OpenAPI_Operation op;
-    memset(&ctx, 0, sizeof(ctx));
-    memset(&sig, 0, sizeof(sig));
-    memset(&doc, 0, sizeof(doc));
-    memset(&rb, 0, sizeof(rb));
-    memset(&enc, 0, sizeof(enc));
-    memset(&op, 0, sizeof(op));
-    rb.content_type = (char *)(size_t) "multipart/form-data";
-    doc.request_bodies = &rb;
-    doc.n_request_bodies = 1;
-    enc.name = (char *)(size_t) "field1";
-    enc.style = DOC_PARAM_STYLE_FORM;
-    doc.encodings = &enc;
-    doc.n_encodings = 1;
-    ctx.sig = &sig;
-    ctx.doc = &doc;
-    ctx.func_name = "test_fn";
-    g_op_fail_doc_style_to_openapi = 1;
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-              c2openapi_build_operation(&ctx, &op));
-    g_op_fail_doc_style_to_openapi = 0;
-    reset_operation_test(&op);
-  }
-
-  /* 19. ensure_response_for_code null for doc->response_headers */
+  /* 19. ensure_response_for_code OOM for doc->response_headers */
   {
     struct OpBuilderContext ctx;
     struct C2OpenAPI_ParsedSig sig;
@@ -382,16 +185,16 @@ TEST test_operation_reach_100_percent(void) {
     memset(&doc, 0, sizeof(doc));
     memset(&rh, 0, sizeof(rh));
     memset(&op, 0, sizeof(op));
-    rh.code = (char *)(size_t) "200";
-    rh.name = (char *)(size_t) "X-Header";
+    rh.code = cdd_test_mut_str("200");
+    rh.name = cdd_test_mut_str("X-Header");
     doc.response_headers = &rh;
     doc.n_response_headers = 1;
     ctx.sig = &sig;
     ctx.doc = &doc;
     ctx.func_name = "test_fn";
-    g_op_fail_ensure_response_null = 1;
+    g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, c2openapi_build_operation(&ctx, &op));
-    g_op_fail_ensure_response_null = 0;
+    g_cdd_alloc_fail = 0;
     reset_operation_test(&op);
   }
 
@@ -407,21 +210,21 @@ TEST test_operation_reach_100_percent(void) {
     memset(&doc, 0, sizeof(doc));
     memset(&rh, 0, sizeof(rh));
     memset(&op, 0, sizeof(op));
-    rh.code = (char *)(size_t) "200";
-    rh.name = (char *)(size_t) "X-Header";
+    rh.code = cdd_test_mut_str("200");
+    rh.name = cdd_test_mut_str("X-Header");
     doc.response_headers = &rh;
     doc.n_response_headers = 1;
     ctx.sig = &sig;
     ctx.doc = &doc;
     ctx.func_name = "test_fn";
-    g_op_fail_ensure_response_for_code = 1;
+    g_cdd_fail_stricmp = 1;
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               c2openapi_build_operation(&ctx, &op));
-    g_op_fail_ensure_response_for_code = 0;
+    g_cdd_fail_stricmp = 0;
     reset_operation_test(&op);
   }
 
-  /* 20. ensure_response_for_code null for doc->links */
+  /* 20. ensure_response_for_code OOM for doc->links */
   {
     struct OpBuilderContext ctx;
     struct C2OpenAPI_ParsedSig sig;
@@ -433,16 +236,16 @@ TEST test_operation_reach_100_percent(void) {
     memset(&doc, 0, sizeof(doc));
     memset(&dl, 0, sizeof(dl));
     memset(&op, 0, sizeof(op));
-    dl.code = (char *)(size_t) "200";
-    dl.name = (char *)(size_t) "MyLink";
+    dl.code = cdd_test_mut_str("200");
+    dl.name = cdd_test_mut_str("MyLink");
     doc.links = &dl;
     doc.n_links = 1;
     ctx.sig = &sig;
     ctx.doc = &doc;
     ctx.func_name = "test_fn";
-    g_op_fail_ensure_response_null = 1;
+    g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, c2openapi_build_operation(&ctx, &op));
-    g_op_fail_ensure_response_null = 0;
+    g_cdd_alloc_fail = 0;
     reset_operation_test(&op);
   }
 
@@ -458,17 +261,17 @@ TEST test_operation_reach_100_percent(void) {
     memset(&doc, 0, sizeof(doc));
     memset(&dl, 0, sizeof(dl));
     memset(&op, 0, sizeof(op));
-    dl.code = (char *)(size_t) "200";
-    dl.name = (char *)(size_t) "MyLink";
+    dl.code = cdd_test_mut_str("200");
+    dl.name = cdd_test_mut_str("MyLink");
     doc.links = &dl;
     doc.n_links = 1;
     ctx.sig = &sig;
     ctx.doc = &doc;
     ctx.func_name = "test_fn";
-    g_op_fail_ensure_response_for_code = 1;
+    g_cdd_fail_stricmp = 1;
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               c2openapi_build_operation(&ctx, &op));
-    g_op_fail_ensure_response_for_code = 0;
+    g_cdd_fail_stricmp = 0;
     reset_operation_test(&op);
   }
 

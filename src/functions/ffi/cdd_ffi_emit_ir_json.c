@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_ir_json.c
+ * @brief FFI binding emitter for Ir Json.
+ */
 /* clang-format off */
 #include "../../include/ffi/cdd_ffi_ir.h"
 #include "../../include/cdd_c_error.h"

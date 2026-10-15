@@ -1,3 +1,7 @@
+/**
+ * @file log.c
+ * @brief Core log definitions and implementation.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 

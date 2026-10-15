@@ -39,8 +39,10 @@ TEST test_lift_anonymous_struct(void) {
   write_to_file("anon.h", src);
 
   {
-    char *argv[] = {(char *)(size_t)(size_t) "anon.h",
-                    (char *)(size_t)(size_t) "anon.json"};
+    char *argv[2];
+
+    argv[0] = cdd_test_mut_str("anon.h");
+    argv[1] = cdd_test_mut_str("anon.json");
     ASSERT_EQ(CDD_C_SUCCESS, code2schema_main(2, argv));
 
     /* Check JSON */

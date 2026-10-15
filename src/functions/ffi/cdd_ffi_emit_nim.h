@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_nim.h
+ * @brief FFI binding emitter for Nim.
+ */
 #ifndef CDD_FFI_EMIT_NIM_H
 #define CDD_FFI_EMIT_NIM_H
 

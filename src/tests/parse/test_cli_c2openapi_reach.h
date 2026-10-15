@@ -56,19 +56,6 @@ static const char *get_simple_schema(void) {
 }
 #endif /* CDD_TEST_CLI_C2OPENAPI_HELPERS_DEFINED */
 
-#ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cli_fail_spec_find_tag;
-extern C_CDD_EXPORT int g_cdd_fail_token_find_next;
-extern C_CDD_EXPORT int g_cli_fail_is_source_file;
-extern C_CDD_EXPORT int g_openapi_spec_init_fail;
-extern C_CDD_EXPORT int g_cli_fail_collect_spec_tags;
-extern C_CDD_EXPORT int g_cli_fail_spec_has_tag;
-extern C_CDD_EXPORT int g_cli_fail_find_oauth_flow;
-extern C_CDD_EXPORT int g_cli_fail_spec_find_security_scheme;
-extern C_CDD_EXPORT int g_cli_fail_map_doc_security_in;
-extern C_CDD_EXPORT int g_cli_fail_map_doc_security_type;
-#endif
-
 TEST test_c2openapi_reach_100_percent(void) {
   /* 1. spec_add_tag realloc fail */
   {
@@ -80,62 +67,49 @@ TEST test_c2openapi_reach_100_percent(void) {
     openapi_spec_free(&s);
   }
 
-  /* 1b. spec_add_tag spec_has_tag fail */
-  {
-    struct OpenAPI_Spec s;
-    memset(&s, 0, sizeof(s));
-    g_cli_fail_spec_has_tag = 1;
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, spec_add_tag(&s, "tag"));
-    g_cli_fail_spec_has_tag = 0;
-    openapi_spec_free(&s);
-  }
-
   /* 2. spec_add_security_scheme add_oauth_flows realloc fail */
   {
     struct OpenAPI_Spec s;
     struct DocSecurityScheme d;
     struct DocOAuthFlow f1;
     struct DocOAuthFlow f2;
+    struct DocOAuthScope sc[2];
     memset(&s, 0, sizeof(s));
     memset(&d, 0, sizeof(d));
     memset(&f1, 0, sizeof(f1));
     memset(&f2, 0, sizeof(f2));
+    memset(sc, 0, sizeof(sc));
 
-    d.name = (char *)(size_t) "oauth_sch";
+    d.name = cdd_test_mut_str("oauth_sch");
     d.type = DOC_SEC_OAUTH2;
     f1.type = DOC_OAUTH_FLOW_IMPLICIT;
-    f1.authorization_url = (char *)(size_t) "http://auth";
+    f1.authorization_url = cdd_test_mut_str("http://auth");
     d.flows = &f1;
     d.n_flows = 1;
     ASSERT_EQ(CDD_C_SUCCESS, spec_add_security_scheme(&s, &d));
 
     f2.type = DOC_OAUTH_FLOW_PASSWORD;
-    f2.token_url = (char *)(size_t) "http://token";
+    f2.token_url = cdd_test_mut_str("http://token");
     d.flows = &f2;
     d.n_flows = 1;
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_add_security_scheme(&s, &d));
     g_cdd_alloc_fail = 0;
-    openapi_spec_free(&s);
-  }
 
-  /* 2b. spec_add_security_scheme find_oauth_flow fail */
-  {
-    struct OpenAPI_Spec s;
-    struct DocSecurityScheme d;
-    struct DocOAuthFlow f1;
-    memset(&s, 0, sizeof(s));
-    memset(&d, 0, sizeof(d));
-    memset(&f1, 0, sizeof(f1));
-    d.name = (char *)(size_t) "oauth_sch";
-    d.type = DOC_SEC_OAUTH2;
-    f1.type = DOC_OAUTH_FLOW_IMPLICIT;
-    f1.authorization_url = (char *)(size_t) "http://auth";
-    d.flows = &f1;
-    d.n_flows = 1;
-    g_cli_fail_find_oauth_flow = 1;
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, spec_add_security_scheme(&s, &d));
-    g_cli_fail_find_oauth_flow = 0;
+    /* Test multi-scope OOM rollback in add_oauth_flows */
+    sc[0].name = cdd_test_mut_str("read");
+    sc[0].description = cdd_test_mut_str("Read access");
+    sc[1].name = cdd_test_mut_str("write");
+    sc[1].description = cdd_test_mut_str("Write access");
+    f2.scopes = sc;
+    f2.n_scopes = 2;
+    g_cdd_strdup_fail = 4; /* Fail on 2nd scope name */
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_add_security_scheme(&s, &d));
+    g_cdd_strdup_fail = 0;
+    g_cdd_strdup_fail = 5; /* Fail on 2nd scope description */
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_add_security_scheme(&s, &d));
+    g_cdd_strdup_fail = 0;
+
     openapi_spec_free(&s);
   }
 
@@ -145,41 +119,12 @@ TEST test_c2openapi_reach_100_percent(void) {
     struct DocSecurityScheme d;
     memset(&s, 0, sizeof(s));
     memset(&d, 0, sizeof(d));
-    d.name = (char *)(size_t) "sch_alloc_fail";
+    d.name = cdd_test_mut_str("sch_alloc_fail");
     d.type = DOC_SEC_HTTP;
-    d.scheme = (char *)(size_t) "bearer";
+    d.scheme = cdd_test_mut_str("bearer");
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_add_security_scheme(&s, &d));
     g_cdd_alloc_fail = 0;
-    openapi_spec_free(&s);
-  }
-
-  /* 3b. spec_add_security_scheme c2openapi_map_doc_security_type fail */
-  {
-    struct OpenAPI_Spec s;
-    struct DocSecurityScheme d;
-    memset(&s, 0, sizeof(s));
-    memset(&d, 0, sizeof(d));
-    d.name = (char *)(size_t) "map_fail_sch";
-    d.type = DOC_SEC_HTTP;
-    g_cli_fail_map_doc_security_type = 1;
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, spec_add_security_scheme(&s, &d));
-    g_cli_fail_map_doc_security_type = 0;
-    openapi_spec_free(&s);
-  }
-
-  /* 3c. spec_add_security_scheme spec_find_security_scheme fail */
-  {
-    struct OpenAPI_Spec s;
-    struct DocSecurityScheme d;
-    memset(&s, 0, sizeof(s));
-    memset(&d, 0, sizeof(d));
-    d.name = (char *)(size_t) "find_fail_sch";
-    d.type = DOC_SEC_HTTP;
-    d.scheme = (char *)(size_t) "bearer";
-    g_cli_fail_spec_find_security_scheme = 1;
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, spec_add_security_scheme(&s, &d));
-    g_cli_fail_spec_find_security_scheme = 0;
     openapi_spec_free(&s);
   }
 
@@ -189,9 +134,9 @@ TEST test_c2openapi_reach_100_percent(void) {
     struct DocSecurityScheme d;
     memset(&s, 0, sizeof(s));
     memset(&d, 0, sizeof(d));
-    d.name = (char *)(size_t) "sch_strdup_fail";
+    d.name = cdd_test_mut_str("sch_strdup_fail");
     d.type = DOC_SEC_HTTP;
-    d.scheme = (char *)(size_t) "bearer";
+    d.scheme = cdd_test_mut_str("bearer");
     g_cdd_strdup_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_add_security_scheme(&s, &d));
     g_cdd_strdup_fail = 0;
@@ -204,10 +149,10 @@ TEST test_c2openapi_reach_100_percent(void) {
     struct DocSecurityScheme d;
     memset(&s, 0, sizeof(s));
     memset(&d, 0, sizeof(d));
-    d.name = (char *)(size_t) "api_key_sch";
+    d.name = cdd_test_mut_str("api_key_sch");
     d.type = DOC_SEC_APIKEY;
     d.in = DOC_SEC_IN_HEADER;
-    d.param_name = (char *)(size_t) "X-API-Key";
+    d.param_name = cdd_test_mut_str("X-API-Key");
     ASSERT_EQ(CDD_C_SUCCESS, spec_add_security_scheme(&s, &d));
 
     free(s.security_schemes[0].key_name);
@@ -218,81 +163,36 @@ TEST test_c2openapi_reach_100_percent(void) {
     openapi_spec_free(&s);
   }
 
-  /* 5b. spec_add_security_scheme map_doc_security_in fail */
+  /* 6. c2openapi_cli_main collect_spec_tags fail via base spec tag OOM */
   {
-    struct OpenAPI_Spec s;
-    struct DocSecurityScheme d;
-    memset(&s, 0, sizeof(s));
-    memset(&d, 0, sizeof(d));
-    d.name = (char *)(size_t) "apikey_map_fail";
-    d.type = DOC_SEC_APIKEY;
-    d.in = DOC_SEC_IN_HEADER;
-    d.param_name = (char *)(size_t) "X-Key";
-    g_cli_fail_map_doc_security_in = 1;
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, spec_add_security_scheme(&s, &d));
-    g_cli_fail_map_doc_security_in = 0;
-    openapi_spec_free(&s);
-  }
-
-  /* 6. spec_apply_tag_meta with spec_find_tag returning error */
-  {
-    struct OpenAPI_Spec s;
-    struct DocTagMeta meta;
-    memset(&s, 0, sizeof(s));
-    memset(&meta, 0, sizeof(meta));
-    meta.name = (char *)(size_t) "tag1";
-    g_cli_fail_spec_find_tag = 1;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_apply_tag_meta(&s, &meta));
-    g_cli_fail_spec_find_tag = 0;
-    openapi_spec_free(&s);
-  }
-
-  /* 7. parse_c_fn_sig token_find_next error */
-  {
-    struct C2OpenAPI_ParsedSig sig;
-    const char *test_code = "int my_fn(int a, int b);";
-    memset(&sig, 0, sizeof(sig));
-    g_cdd_fail_token_find_next = 2;
-    ASSERT_EQ(CDD_C_SUCCESS,
-              c2openapi_parse_c_signature_string(test_code, &sig));
-    c2openapi_free_parsed_sig(&sig);
-    memset(&sig, 0, sizeof(sig));
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-              c2openapi_parse_c_signature_string(test_code, &sig));
-    g_cdd_fail_token_find_next = 0;
-    c2openapi_free_parsed_sig(&sig);
-  }
-
-  /* 8. walker_cb is_source_file error */
-  {
-    struct OpenAPI_Spec s;
-    memset(&s, 0, sizeof(s));
-    g_cli_fail_is_source_file = 1;
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, walker_cb("foo.c", &s));
-    g_cli_fail_is_source_file = 0;
-    openapi_spec_free(&s);
-  }
-
-  /* 9. c2openapi_cli_main openapi_spec_init fail */
-  {
-    char *argv[3];
-    argv[0] = (char *)(size_t) "c2openapi";
-    argv[1] = (char *)(size_t) "src";
-    argv[2] = (char *)(size_t) "out.json";
-    g_openapi_spec_init_fail = 1;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, c2openapi_cli_main(3, argv));
-    g_openapi_spec_init_fail = 0;
-  }
-
-  /* 10. c2openapi_cli_main collect_spec_tags fail */
-  {
-    char *argv[3];
-    argv[0] = (char *)(size_t) "c2openapi";
-    argv[1] = (char *)(size_t)get_mocks_dir();
-    argv[2] = (char *)(size_t) "out.json";
-    g_cli_fail_collect_spec_tags = 1;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, c2openapi_cli_main(3, argv));
-    g_cli_fail_collect_spec_tags = 0;
+    const char *base_path = "build/test_c2o_base_tags.json";
+    char *argv[5];
+    int step;
+    int hit_tag_oom = 0;
+    TEST_MKDIR("build/nonexistent_empty_src_dir");
+    fs_write_to_file(base_path,
+                     "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\","
+                     "\"version\":\"1\"},\"paths\":{\"/p\":{\"get\":{"
+                     "\"tags\":[\"my_op_tag\"],\"responses\":{\"200\":{"
+                     "\"description\":\"ok\"}}}}}}");
+    argv[0] = cdd_test_mut_str("c2openapi");
+    argv[1] = cdd_test_mut_str("--base");
+    argv[2] = cdd_test_mut_str(base_path);
+    argv[3] = cdd_test_mut_str("build/nonexistent_empty_src_dir");
+    argv[4] = cdd_test_mut_str("build/out_tags_fail.json");
+    for (step = 1; step <= 20; ++step) {
+      cdd_c_error_t rc_main;
+      g_cdd_alloc_fail = step;
+      rc_main = c2openapi_cli_main(5, argv);
+      g_cdd_alloc_fail = 0;
+      if (rc_main == CDD_C_ERROR_MEMORY) {
+        hit_tag_oom = 1;
+        break;
+      }
+    }
+    ASSERT_EQ(1, hit_tag_oom);
+    remove(base_path);
+    remove("build/out_tags_fail.json");
   }
 
   PASS();

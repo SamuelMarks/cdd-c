@@ -104,7 +104,7 @@ TEST test_code2schema_obj_array_detection(void) {
       "  struct Item **items;\n"
       "  size_t n_items;\n"
       "};\n";
-  const char *json_out_file = (char *)(size_t)(size_t)"test_obj_array_detect.json";
+  const char *json_out_file = cdd_test_mut_str("test_obj_array_detect.json");
   char *json_content;
   size_t len;
 
@@ -119,8 +119,8 @@ extern C_CDD_EXPORT int g_io_calls;
 extern C_CDD_EXPORT int g_fail_io_after;
     /* clang-format on */
     char *argv[2];
-    argv[0] = (char *)(size_t) "test_obj_array.h";
-    argv[1] = (char *)(size_t)json_out_file;
+    argv[0] = cdd_test_mut_str("test_obj_array.h");
+    argv[1] = cdd_test_mut_str(json_out_file);
     ASSERT_EQ(CDD_C_SUCCESS, code2schema_main(2, argv));
   }
 

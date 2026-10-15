@@ -44,7 +44,7 @@ static cdd_c_error_t join_tokens_skipping_ws(const struct TokenList *tokens,
     }
   }
 
-  buf = (char *)(size_t)C_CDD_MALLOC(len + 1);
+  buf = (char *)C_CDD_MALLOC(len + 1);
   if (!buf) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -69,7 +69,7 @@ static cdd_c_error_t join_tokens_skipping_ws(const struct TokenList *tokens,
 /* --- List Management --- */
 
 /**
- * @brief Executes the init list init operation.
+ * @brief Initializes a C initializer list container.
  */
 cdd_c_error_t init_list_init(struct InitList *list) {
   if (!list)
@@ -81,12 +81,12 @@ cdd_c_error_t init_list_init(struct InitList *list) {
 }
 
 /**
- * @brief Executes the init value free operation.
+ * @brief Releases memory owned by an initializer value node.
  */
 static void init_value_free(struct InitValue *val);
 
 /**
- * @brief Executes the init list free operation.
+ * @brief Releases all elements in an initializer list container.
  */
 void init_list_free(struct InitList *list) {
   size_t i;
@@ -109,7 +109,7 @@ void init_list_free(struct InitList *list) {
 }
 
 /**
- * @brief Executes the init value free operation.
+ * @brief Releases memory owned by an initializer value node.
  */
 static void init_value_free(struct InitValue *val) {
   if (val->kind == INIT_KIND_SCALAR) {
@@ -121,7 +121,7 @@ static void init_value_free(struct InitValue *val) {
 }
 
 /**
- * @brief Executes the init list add operation.
+ * @brief Appends an initializer entry to an initializer list.
  */
 static cdd_c_error_t init_list_add(struct InitList *list, char *desig,
                                    struct InitValue *val) {
@@ -308,8 +308,11 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
     }
 
     rc = skip_ws(tokens, i, end_idx, &i);
-    if (rc != CDD_C_SUCCESS)
+    if (rc != CDD_C_SUCCESS) {
+      if (desig_str)
+        C_CDD_FREE(desig_str);
       goto error;
+    }
 
     /* Allocate Value Object */
     val_obj = (struct InitValue *)C_CDD_CALLOC(1, sizeof(struct InitValue));

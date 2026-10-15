@@ -23,7 +23,7 @@
 /* clang-format on */
 
 /**
- * @brief Executes the patch list init operation.
+ * @brief Initializes a source code patch list.
  */
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_patcher_test_cap_1 = 0;
@@ -51,7 +51,7 @@ cdd_c_error_t patch_list_init(struct PatchList *list) {
 }
 
 /**
- * @brief Executes the patch list free operation.
+ * @brief Releases all memory associated with a patch list.
  */
 void patch_list_free(struct PatchList *list) {
   size_t i;
@@ -71,7 +71,7 @@ void patch_list_free(struct PatchList *list) {
 }
 
 /**
- * @brief Executes the patch list add operation.
+ * @brief Appends a replacement span patch to a patch list.
  */
 cdd_c_error_t patch_list_add(struct PatchList *list, size_t start_idx,
                              size_t end_idx, char *text) {
@@ -143,7 +143,7 @@ static int compare_patches(const void *a, const void *b) {
 }
 
 /**
- * @brief Executes the patch list sort operation.
+ * @brief Sorts patches in ascending order of token start index.
  */
 cdd_c_error_t patch_list_sort(struct PatchList *list) {
 #ifdef CDD_BUILD_TESTS
@@ -158,7 +158,8 @@ cdd_c_error_t patch_list_sort(struct PatchList *list) {
 }
 
 /**
- * @brief Executes the patch list apply operation.
+ * @brief Applies a sorted list of patches to a token stream and emits the
+ * result.
  */
 cdd_c_error_t patch_list_apply(struct PatchList *list,
                                const struct TokenList *tokens,
@@ -180,7 +181,7 @@ cdd_c_error_t patch_list_apply(struct PatchList *list,
       return rc_patch;
   }
 
-  output = (char *)(size_t)C_CDD_MALLOC(out_cap);
+  output = (char *)C_CDD_MALLOC(out_cap);
   if (!output) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -198,7 +199,7 @@ cdd_c_error_t patch_list_apply(struct PatchList *list,
       while (out_len + text_len + 1 > out_cap) {
         char *tmp;
         out_cap = out_cap * 2 + text_len;
-        tmp = (char *)(size_t)C_CDD_REALLOC(output, out_cap);
+        tmp = (char *)C_CDD_REALLOC(output, out_cap);
         if (!tmp) {
           printf("HIT LINE 193!\n");
           rc = CDD_C_ERROR_MEMORY;
@@ -236,7 +237,7 @@ cdd_c_error_t patch_list_apply(struct PatchList *list,
       while (out_len + tok_len + 1 > out_cap) {
         char *tmp;
         out_cap = out_cap * 2 + tok_len; /* Ensure growth */
-        tmp = (char *)(size_t)C_CDD_REALLOC(output, out_cap);
+        tmp = (char *)C_CDD_REALLOC(output, out_cap);
         if (!tmp) {
           printf("HIT LINE 193!\n");
           rc = CDD_C_ERROR_MEMORY;
@@ -262,7 +263,7 @@ cdd_c_error_t patch_list_apply(struct PatchList *list,
     while (out_len + text_len + 1 > out_cap) {
       char *tmp;
       out_cap = out_cap * 2 + text_len;
-      tmp = (char *)(size_t)C_CDD_REALLOC(output, out_cap);
+      tmp = (char *)C_CDD_REALLOC(output, out_cap);
       if (!tmp) {
         rc = CDD_C_ERROR_MEMORY;
         goto cleanup;

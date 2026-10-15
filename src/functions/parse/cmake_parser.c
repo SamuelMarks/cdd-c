@@ -30,10 +30,10 @@ static cdd_c_error_t my_strdup(const char *s, char **out_val) {
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       d = NULL;
     else
-      d = (char *)(size_t)malloc(len);
+      d = (char *)malloc(len);
   }
 #else
-  d = (char *)(size_t)malloc(len);
+  d = (char *)malloc(len);
 #endif
   if (!d)
     return CDD_C_ERROR_MEMORY;
@@ -43,7 +43,7 @@ static cdd_c_error_t my_strdup(const char *s, char **out_val) {
 }
 
 /**
- * @brief Executes the cmake modifier init operation.
+ * @brief Initializes a CMakeLists.txt modification context.
  */
 cdd_c_error_t cmake_modifier_init(struct CMakeModifier *mod,
                                   const char *filepath,
@@ -71,7 +71,7 @@ cdd_c_error_t cmake_modifier_init(struct CMakeModifier *mod,
 }
 
 /**
- * @brief Executes the cmake modifier add compile opt operation.
+ * @brief Registers a compiler option to inject into a CMake target.
  */
 cdd_c_error_t cmake_modifier_add_compile_opt(struct CMakeModifier *mod,
                                              const char *opt) {
@@ -108,7 +108,7 @@ cdd_c_error_t cmake_modifier_add_compile_opt(struct CMakeModifier *mod,
 }
 
 /**
- * @brief Executes the cmake modifier add link lib operation.
+ * @brief Registers a link library to inject into a CMake target.
  */
 cdd_c_error_t cmake_modifier_add_link_lib(struct CMakeModifier *mod,
                                           const char *lib) {
@@ -144,7 +144,7 @@ cdd_c_error_t cmake_modifier_add_link_lib(struct CMakeModifier *mod,
 }
 
 /**
- * @brief Executes the cmake modifier free operation.
+ * @brief Releases memory held by a CMake modifier context.
  */
 void cmake_modifier_free(struct CMakeModifier *mod) {
   size_t i;
@@ -171,7 +171,7 @@ void cmake_modifier_free(struct CMakeModifier *mod) {
 }
 
 /**
- * @brief Executes the read file to string operation.
+ * @brief Reads the entire contents of a file into a null-terminated string.
  */
 static cdd_c_error_t read_file_to_string(const char *filename, size_t *out_len,
                                          char **out_val) {
@@ -215,10 +215,10 @@ static cdd_c_error_t read_file_to_string(const char *filename, size_t *out_len,
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       buf = NULL;
     else
-      buf = (char *)(size_t)malloc((size_t)size + 1);
+      buf = (char *)malloc((size_t)size + 1);
   }
 #else
-  buf = (char *)(size_t)malloc((size_t)size + 1);
+  buf = (char *)malloc((size_t)size + 1);
 #endif
   if (!buf) {
     fclose(f);
@@ -240,7 +240,8 @@ static cdd_c_error_t read_file_to_string(const char *filename, size_t *out_len,
 
 /* Simple append implementation ignoring sophisticated replacement for now */
 /**
- * @brief Executes the cmake modifier apply diff operation.
+ * @brief Applies registered compile options and libraries to a CMakeLists.txt
+ * file.
  */
 cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
                                         char **out_diff) {
@@ -284,10 +285,10 @@ cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       diff = NULL;
     else
-      diff = (char *)(size_t)malloc(diff_cap);
+      diff = (char *)malloc(diff_cap);
   }
 #else
-  diff = (char *)(size_t)malloc(diff_cap);
+  diff = (char *)malloc(diff_cap);
 #endif
   if (!diff) {
     free(src);
@@ -309,10 +310,10 @@ cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       str_buf = NULL;
     else
-      str_buf = (char *)(size_t)malloc(1024);
+      str_buf = (char *)malloc(1024);
   }
 #else
-  str_buf = (char *)(size_t)malloc(1024);
+  str_buf = (char *)malloc(1024);
 #endif
   if (!str_buf) {
     free(src);

@@ -38,7 +38,7 @@ TEST test_client_gui_gen_basic(void) {
 
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
-  config.filename_base = (char *)(size_t)(size_t) "test_gui";
+  config.filename_base = cdd_test_mut_str("test_gui");
 
   rc = openapi_client_gui_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -104,10 +104,10 @@ TEST test_client_gui_gen_with_server(void) {
   spec.n_servers = 1;
   spec.servers =
       (struct OpenAPI_Server *)C_CDD_CALLOC(1, sizeof(struct OpenAPI_Server));
-  spec.servers[0].url = (char *)(size_t)(size_t) "https://api.example.com";
+  spec.servers[0].url = cdd_test_mut_str("https://api.example.com");
 
   memset(&config, 0, sizeof(config));
-  config.filename_base = (char *)(size_t)(size_t) "test_gui2";
+  config.filename_base = cdd_test_mut_str("test_gui2");
 
   rc = openapi_client_gui_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -132,7 +132,7 @@ TEST test_client_gui_gen_errors(void) {
 
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
-  config.filename_base = (char *)(size_t)(size_t) "/nonexistent/dir/test_gui";
+  config.filename_base = cdd_test_mut_str("/nonexistent/dir/test_gui");
   g_io_calls = 0;
   g_fail_io_after = 1;
   rc = openapi_client_gui_generate(&spec, &config);
@@ -150,7 +150,7 @@ TEST test_client_gui_gen_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
 
-  config.filename_base = (char *)(size_t)(size_t) "test_build_dir/test_gui";
+  config.filename_base = cdd_test_mut_str("test_build_dir/test_gui");
   {
     int i;
     for (i = 1; i <= 5; ++i) {
@@ -171,7 +171,7 @@ TEST test_client_gui_gen_errors(void) {
     srv.url = NULL;
     spec.servers = &srv;
     spec.n_servers = 1;
-    config.filename_base = (char *)(size_t)(size_t) "test_gui_null_url";
+    config.filename_base = cdd_test_mut_str("test_gui_null_url");
     rc = openapi_client_gui_generate(&spec, &config);
     ASSERT_EQ(0, rc);
     remove("src/test_gui_null_url_gui.c");
@@ -183,8 +183,7 @@ TEST test_client_gui_gen_errors(void) {
   /* Test fopen failures */
   /* Case 1: fp_h fails to open because it is a directory */
   makedirs("test_build_dir/bad_gui1/src/bad_gui_gui.h");
-  config.filename_base =
-      (char *)(size_t)(size_t) "test_build_dir/bad_gui1/bad_gui";
+  config.filename_base = cdd_test_mut_str("test_build_dir/bad_gui1/bad_gui");
   rc = openapi_client_gui_generate(&spec, &config);
   ASSERT_EQ(CDD_C_ERROR_IO, rc);
   remove("test_build_dir/bad_gui1/src/bad_gui_gui.h");
@@ -192,8 +191,7 @@ TEST test_client_gui_gen_errors(void) {
   /* Case 2: fp_c fails to open because it is a directory (while fp_h succeeds
    * and must be closed) */
   makedirs("test_build_dir/bad_gui2/src/bad_gui_gui.c");
-  config.filename_base =
-      (char *)(size_t)(size_t) "test_build_dir/bad_gui2/bad_gui";
+  config.filename_base = cdd_test_mut_str("test_build_dir/bad_gui2/bad_gui");
   rc = openapi_client_gui_generate(&spec, &config);
   ASSERT_EQ(CDD_C_ERROR_IO, rc);
   remove("test_build_dir/bad_gui2/src/bad_gui_gui.c");

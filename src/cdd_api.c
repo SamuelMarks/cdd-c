@@ -1,3 +1,7 @@
+/**
+ * @file cdd_api.c
+ * @brief Core cdd api definitions and implementation.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -5,13 +9,11 @@
 #include "c_cdd/memory.h"
 #include "functions/parse/cst.h"
 #include "functions/parse/fs.h"
-
-#ifdef CDD_BUILD_TESTS
-#endif
-
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_scope.h"
 #include "classes/parse/cdd_cst_semantic.h"
+#include "dsl/cdd_dsl_parser.h"
+#include "dsl/cdd_ffi_emit_dsl.h"
 #include "functions/ffi/cdd_ffi_emit_ada.h"
 #include "functions/ffi/cdd_ffi_emit_clojure.h"
 #include "functions/ffi/cdd_ffi_emit_common_lisp.h"
@@ -55,149 +57,301 @@
 #include "functions/ffi/cdd_ffi_emit_zig.h"
 #include "functions/ffi/cdd_ffi_emit_ir_json.h"
 #include "functions/ffi/cdd_ffi_ir_extractor.h"
+#include "openapi/parse/openapi.h"
+#include "routes/emit/cli_gen.h"
+#include "routes/emit/client_gen.h"
+#include "routes/emit/client_gui_gen.h"
 #include "routes/emit/serve_json_rpc.h"
+#include "routes/emit/server_gen.h"
 #include "routes/parse/cli.h"
+#include <parson.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
 
-#define MAX_ARGS 32
-
 cdd_c_error_t
 cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
-  char *argv[MAX_ARGS];
-  int argc = 0;
+  const char *subcmd;
+  int is_cli;
+  int is_server;
+  struct OpenAPI_Spec spec = {0};
+  struct OpenApiClientConfig client_cfg = {0};
+  cdd_c_error_t rc = CDD_C_SUCCESS;
+  JSON_Value *root;
 
-  argv[argc++] = "from_openapi";
-
-  if (config->subcommand) {
-    argv[argc++] = (char *)(size_t)config->subcommand;
-  } else {
-    argv[argc++] = "to_sdk";
+  if (!config || (!config->input && !config->input_dir)) {
+    fprintf(stderr,
+            "Error: -i|--input <spec.json> or --input-dir <dir> required\n");
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
+
+  subcmd = config->subcommand ? config->subcommand : "to_sdk";
+  is_cli = (strcmp(subcmd, "to_sdk_cli") == 0);
+  is_server = (strcmp(subcmd, "to_server") == 0);
+
+  client_cfg.no_github_actions = config->no_github_actions;
+  client_cfg.no_installable_package = config->no_installable_package;
+  client_cfg.create_tests_and_mocks = config->tests;
 
   if (config->input) {
-    argv[argc++] = "-i";
-    argv[argc++] = (char *)(size_t)config->input;
-  } else if (config->input_dir) {
-    argv[argc++] = "--input-dir";
-    argv[argc++] = (char *)(size_t)config->input_dir;
+    char *alloc_path = NULL;
+    root = json_parse_file(config->input);
+    if (!root) {
+      fprintf(stderr, "Failed to parse JSON file: %s\n", config->input);
+      return CDD_C_ERROR_PARSE;
+    }
+
+    rc = openapi_load_from_json(root, &spec);
+    json_value_free(root);
+
+    if (rc != CDD_C_SUCCESS) {
+      fprintf(stderr, "Failed to load openapi spec from %s\n", config->input);
+      return rc;
+    }
+
+    if (config->output) {
+      rc = fs_path_join(config->output, "generated_client", &alloc_path);
+      if (rc != CDD_C_SUCCESS) {
+        openapi_spec_free(&spec);
+        return rc;
+      }
+      client_cfg.filename_base = alloc_path;
+    } else {
+      client_cfg.filename_base = "test_build_dir/generated_client";
+    }
+    client_cfg.func_prefix = "api_";
+
+    if (is_server) {
+      rc = openapi_server_generate(&spec, &client_cfg);
+    } else {
+      rc = openapi_client_generate(&spec, &client_cfg);
+      if (rc == CDD_C_SUCCESS) {
+        rc = openapi_client_gui_generate(&spec, &client_cfg);
+      }
+      if (rc == CDD_C_SUCCESS && is_cli) {
+        rc = openapi_cli_generate(&spec, &client_cfg);
+      }
+    }
+
+    if (alloc_path) {
+      C_CDD_FREE(alloc_path);
+    }
+    openapi_spec_free(&spec);
   }
 
-  if (config->output) {
-    argv[argc++] = "-o";
-    argv[argc++] = (char *)(size_t)config->output;
-  }
-
-  if (config->no_github_actions) {
-    argv[argc++] = "--no-github-actions";
-  }
-
-  if (config->no_installable_package) {
-    argv[argc++] = "--no-installable-package";
-  }
-
-  if (config->tests) {
-    argv[argc++] = "--tests";
-  }
-
-  return from_openapi_cli_main(argc, argv);
+  return rc;
 }
 
 cdd_c_error_t cdd_generate_to_openapi(const cdd_to_openapi_config_t *config) {
-  char *argv[MAX_ARGS];
-  int argc = 0;
+  const char *input_dir;
+  const char *out_file;
+  char *snapshot_path = NULL;
+  FILE *f = NULL;
+  cdd_c_error_t rc;
+  cdd_to_openapi_config_t run_cfg;
 
-  argv[argc++] = "to_openapi";
-
-  if (config->input) {
-    argv[argc++] = "-i";
-    argv[argc++] = (char *)(size_t)config->input;
+  if (!config || !config->input) {
+    fprintf(stderr, "Error: -i <directory> required\n");
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  if (config->output) {
-    argv[argc++] = "-o";
-    argv[argc++] = (char *)(size_t)config->output;
+  input_dir = config->input;
+  out_file = config->output ? config->output : "openapi.json";
+
+  memset(&run_cfg, 0, sizeof(run_cfg));
+  run_cfg.input = input_dir;
+  run_cfg.output = out_file;
+  run_cfg.base_file = config->base_file;
+  run_cfg.self_uri = config->self_uri;
+  run_cfg.dialect_uri = config->dialect_uri;
+
+  if (!run_cfg.base_file) {
+    rc = fs_path_join(input_dir, "openapi.snapshot.json", &snapshot_path);
+    if (rc == CDD_C_SUCCESS) {
+#if defined(_MSC_VER)
+      if (fopen_s(&f, snapshot_path, "r") != 0)
+        f = NULL;
+#else
+      f = fopen(snapshot_path, "r");
+#endif
+      if (f) {
+        fclose(f);
+        run_cfg.base_file = snapshot_path;
+        rc = c2openapi_generate(&run_cfg);
+        C_CDD_FREE(snapshot_path);
+        return rc;
+      }
+      C_CDD_FREE(snapshot_path);
+    }
   }
 
-  return to_openapi_cli_main(argc, argv);
+  return c2openapi_generate(&run_cfg);
 }
 
 cdd_c_error_t cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
-  char *argv[MAX_ARGS];
-  int argc = 0;
+  const char *input_file;
+  int no_imports;
+  int no_wrapping;
+  struct OpenAPI_Spec spec = {0};
+  cdd_c_error_t rc;
+  JSON_Value *parsed_root;
+  JSON_Value *root_val;
+  JSON_Object *root_obj;
+  JSON_Value *endpoints_val;
+  JSON_Object *endpoints_obj;
+  size_t p, op_idx;
 
-  argv[argc++] = "to_docs_json";
+  if (!config || !config->input)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (config->input) {
-    argv[argc++] = "-i";
-    argv[argc++] = (char *)(size_t)config->input;
+  input_file = config->input;
+  no_imports = config->no_imports;
+  no_wrapping = config->no_wrapping;
+
+  parsed_root = json_parse_file(input_file);
+  if (!parsed_root)
+    return CDD_C_ERROR_PARSE;
+
+  rc = openapi_load_from_json(parsed_root, &spec);
+  json_value_free(parsed_root);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  root_val = json_value_init_object();
+  root_obj = json_value_get_object(root_val);
+  endpoints_val = json_value_init_object();
+  endpoints_obj = json_value_get_object(endpoints_val);
+
+  for (p = 0; p < spec.n_paths; p++) {
+    struct OpenAPI_Path *pi = &spec.paths[p];
+    JSON_Value *path_val = json_value_init_object();
+    JSON_Object *path_obj = json_value_get_object(path_val);
+    json_object_set_value(endpoints_obj, pi->route, path_val);
+
+    for (op_idx = 0; op_idx < pi->n_operations; op_idx++) {
+      struct OpenAPI_Operation *op = &pi->operations[op_idx];
+      const char *method = "";
+      char snippet[4096];
+      char final_code[8192];
+      const char *op_id = op->operation_id ? op->operation_id : "unknown";
+
+      switch (op->verb) {
+      case OA_VERB_GET:
+        method = "get";
+        break;
+      case OA_VERB_POST:
+        method = "post";
+        break;
+      case OA_VERB_PUT:
+        method = "put";
+        break;
+      case OA_VERB_DELETE:
+        method = "delete";
+        break;
+      case OA_VERB_PATCH:
+        method = "patch";
+        break;
+      case OA_VERB_HEAD:
+        method = "head";
+        break;
+      case OA_VERB_OPTIONS:
+        method = "options";
+        break;
+      case OA_VERB_TRACE:
+        method = "trace";
+        break;
+      default:
+        method = "custom";
+        break;
+      }
+
+      snippet[0] = '\0';
+      final_code[0] = '\0';
+
+      if (!no_imports) {
+        CDD_STRCAT(final_code, sizeof(final_code),
+                   "#include \"generated_client.h\"\n#include <stdio.h>\n\n");
+      }
+      if (!no_wrapping) {
+        CDD_STRCAT(final_code, sizeof(final_code),
+                   "int main(void) {\n  struct HttpClient client;\n  "
+                   "struct ApiError *err = NULL;\n  api_init(&client, "
+                   "\"https://api.example.com\");\n");
+      }
+
+      CDD_SNPRINTF(snippet, sizeof(snippet),
+                   "  /* Call the %s API */\n  cdd_c_error_t rc = "
+                   "api_%s(&client, &err);\n  "
+                   "if (rc != CDD_C_SUCCESS) {\n    /* handle error */\n  }\n",
+                   op_id, op_id);
+      CDD_STRCAT(final_code, sizeof(final_code), snippet);
+
+      if (!no_wrapping) {
+        CDD_STRCAT(final_code, sizeof(final_code),
+                   "  api_cleanup(&client);\n  return CDD_C_SUCCESS;\n}\n");
+      }
+
+      json_object_set_string(path_obj, method, final_code);
+    }
   }
 
-  if (config->output) {
-    argv[argc++] = "-o";
-    argv[argc++] = (char *)(size_t)config->output;
+  json_object_set_value(root_obj, "endpoints", endpoints_val);
+
+  {
+    char *serialized = json_serialize_to_string_pretty(root_val);
+    printf("%s\n", serialized);
+    json_free_serialized_string(serialized);
   }
 
-  if (config->no_imports) {
-    argv[argc++] = "--no-imports";
-  }
-
-  if (config->no_wrapping) {
-    argv[argc++] = "--no-wrapping";
-  }
-
-  return to_docs_json_cli_main(argc, argv);
+  json_value_free(root_val);
+  openapi_spec_free(&spec);
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t cdd_serve_json_rpc(const cdd_serve_json_rpc_config_t *config) {
-  char *argv[MAX_ARGS];
-  int argc = 0;
-  char port_str[32];
-
-  argv[argc++] = "serve_json_rpc";
-
-  if (config->port > 0) {
-    CDD_SNPRINTF(port_str, sizeof(port_str), "%d", config->port);
-    argv[argc++] = "-p";
-    argv[argc++] = port_str;
-  }
-
-  if (config->listen_host) {
-    argv[argc++] = "-l";
-    argv[argc++] = (char *)(size_t)config->listen_host;
-  }
-
-  return serve_json_rpc_main(argc, argv);
+  return serve_json_rpc_run(config);
 }
 
 /**
  * @brief Generate SWIG-like FFI bindings for multiple target languages.
  */
 
-#define HAS_LANG(langs, lang, out_result)                                      \
-  do {                                                                         \
-    const char *_p = (langs);                                                  \
-    size_t _len = strlen(lang);                                                \
-    *(out_result) = 0;                                                         \
-    while ((_p = strstr(_p, (lang))) != NULL) {                                \
-      if ((_p == (langs) || _p[-1] == ',') &&                                  \
-          (_p[_len] == '\0' || _p[_len] == ',')) {                             \
-        *(out_result) = 1;                                                     \
-        break;                                                                 \
-      }                                                                        \
-      _p += _len;                                                              \
-    }                                                                          \
-  } while (0)
+/**
+ * @brief Checks if a comma-separated list of target languages contains `lang`.
+ *
+ * @param[in] langs Comma-separated target language string.
+ * @param[in] lang Language name or alias to search for.
+ * @param[out] out_result Pointer to receive 1 if matched, 0 otherwise.
+ * @return CDD_C_SUCCESS on success.
+ */
+static cdd_c_error_t cdd_target_langs_contains(const char *langs,
+                                               const char *lang,
+                                               int *out_result) {
+  const char *p = langs;
+  size_t len = strlen(lang);
+  *out_result = 0;
+  while ((p = strstr(p, lang)) != NULL) {
+    if ((p == langs || p[-1] == ',') && (p[len] == '\0' || p[len] == ',')) {
+      *out_result = 1;
+      break;
+    }
+    p += len;
+  }
+  return CDD_C_SUCCESS;
+}
 
+/** @brief Function pointer type for FFI target language emitters */
 typedef enum cdd_c_error (*ffi_emitter_fn_t)(
     cdd_ffi_ir_t *, const cdd_generate_bindings_config_t *);
 
+/**
+ * @brief Mapping entry from target language name/alias to its FFI emitter.
+ */
 struct FfiEmitterEntry {
-  const char *name;
-  const char *alias;
-  ffi_emitter_fn_t emit;
+  const char *name;      /**< Primary target language identifier */
+  const char *alias;     /**< Optional secondary alias identifier */
+  ffi_emitter_fn_t emit; /**< Emitter callback function */
 };
 
 static const struct FfiEmitterEntry EMITTERS[] = {
@@ -244,11 +398,6 @@ static const struct FfiEmitterEntry EMITTERS[] = {
     {"crystal", NULL, cdd_ffi_emit_crystal},
     {"ir", "json", cdd_ffi_emit_ir_json}};
 
-/* clang-format off */
-#include "dsl/cdd_dsl_parser.h"
-#include "dsl/cdd_ffi_emit_dsl.h"
-/* clang-format on */
-
 C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
     const char *source, const cdd_generate_bindings_config_t *config) {
   cdd_dsl_token_list_t tokens;
@@ -269,7 +418,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
 
   /* If target_langs includes "dsl", we can emit it back */
   if (config->target_langs && strstr(config->target_langs, "dsl")) {
-    rc = cdd_ffi_emit_dsl(ir, (const void *)config);
+    rc = cdd_ffi_emit_dsl(ir, config);
   }
 
   cdd_ffi_ir_free(ir);
@@ -288,7 +437,7 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
 
   if (!config || !config->input || !config->output_dir ||
       !config->target_langs) {
-    return CDD_C_ERROR_UNKNOWN; /* EINVAL */
+    return CDD_C_ERROR_INVALID_ARGUMENT; /* EINVAL */
   }
 
   /* Read file to string */
@@ -330,11 +479,13 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         should_emit = 1;
       } else {
         int out_result = 0;
-        HAS_LANG(config->target_langs, EMITTERS[i].name, &out_result);
+        cdd_target_langs_contains(config->target_langs, EMITTERS[i].name,
+                                  &out_result);
         if (out_result) {
           should_emit = 1;
         } else if (EMITTERS[i].alias) {
-          HAS_LANG(config->target_langs, EMITTERS[i].alias, &out_result);
+          cdd_target_langs_contains(config->target_langs, EMITTERS[i].alias,
+                                    &out_result);
           if (out_result)
             should_emit = 1;
         }

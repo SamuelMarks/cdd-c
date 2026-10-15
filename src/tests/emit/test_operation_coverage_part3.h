@@ -30,7 +30,7 @@ TEST test_operation_100_percent_coverage_part3(void) {
     memset(encs, 0, sizeof(encs));
     memset(&op, 0, sizeof(op));
 
-    rb.content_type = (char *)(size_t) "application/json";
+    rb.content_type = cdd_test_mut_str("application/json");
     doc.request_bodies = &rb;
     doc.n_request_bodies = 1;
 
@@ -64,12 +64,12 @@ TEST test_operation_100_percent_coverage_part3(void) {
     memset(rets, 0, sizeof(rets));
     memset(&op, 0, sizeof(op));
 
-    rets[0].code = (char *)(size_t) "200";
-    rets[0].summary = (char *)(size_t) "First summary";
+    rets[0].code = cdd_test_mut_str("200");
+    rets[0].summary = cdd_test_mut_str("First summary");
     rets[0].description = NULL;
-    rets[1].code = (char *)(size_t) "200";
-    rets[1].summary = (char *)(size_t) "Second summary";
-    rets[1].description = (char *)(size_t) "New desc";
+    rets[1].code = cdd_test_mut_str("200");
+    rets[1].summary = cdd_test_mut_str("Second summary");
+    rets[1].description = cdd_test_mut_str("New desc");
 
     doc.returns = rets;
     doc.n_returns = 2;
@@ -95,7 +95,7 @@ TEST test_operation_100_percent_coverage_part3(void) {
     memset(rets, 0, sizeof(rets));
     memset(&op, 0, sizeof(op));
 
-    rets[0].code = (char *)(size_t) "200";
+    rets[0].code = cdd_test_mut_str("200");
     rets[1].code = NULL;
     doc.returns = rets;
     doc.n_returns = 2;
@@ -146,9 +146,9 @@ TEST test_operation_100_percent_coverage_part3(void) {
     memset(&srv, 0, sizeof(srv));
     memset(&dserver, 0, sizeof(dserver));
     memset(&svar, 0, sizeof(svar));
-    enums[0] = (char *)(size_t) "v1";
-    svar.name = (char *)(size_t) "env";
-    svar.default_value = (char *)(size_t) "v1";
+    enums[0] = cdd_test_mut_str("v1");
+    svar.name = cdd_test_mut_str("env");
+    svar.default_value = cdd_test_mut_str("v1");
     svar.enum_values = enums;
     svar.n_enum_values = 0;
     dserver.variables = &svar;
@@ -164,7 +164,7 @@ TEST test_operation_100_percent_coverage_part3(void) {
     struct OpenAPI_MediaType mt;
     memset(&resp, 0, sizeof(resp));
     memset(&mt, 0, sizeof(mt));
-    mt.name = (char *)(size_t) "application/json";
+    mt.name = cdd_test_mut_str("application/json");
     mt.example_set = 1;
     resp.content_media_types = &mt;
     resp.n_content_media_types = 1;
@@ -173,6 +173,7 @@ TEST test_operation_100_percent_coverage_part3(void) {
 
     resp.n_content_media_types = 0;
     ASSERT_EQ(CDD_C_SUCCESS, apply_example_to_response(&resp, "ex", NULL));
+    free_any_value_local(&resp.example);
   }
 
   /* Case 21: schema_ref_has_data_basic empty strings */
@@ -180,17 +181,17 @@ TEST test_operation_100_percent_coverage_part3(void) {
     struct OpenAPI_SchemaRef sref;
     int has_d = 0;
     memset(&sref, 0, sizeof(sref));
-    sref.inline_type = (char *)(size_t) "";
+    sref.inline_type = cdd_test_mut_str("");
     ASSERT_EQ(CDD_C_SUCCESS, schema_ref_has_data_basic(&sref, &has_d));
     ASSERT_EQ(0, has_d);
 
     sref.inline_type = NULL;
-    sref.ref_name = (char *)(size_t) "";
+    sref.ref_name = cdd_test_mut_str("");
     ASSERT_EQ(CDD_C_SUCCESS, schema_ref_has_data_basic(&sref, &has_d));
     ASSERT_EQ(0, has_d);
 
     sref.ref_name = NULL;
-    sref.ref = (char *)(size_t) "";
+    sref.ref = cdd_test_mut_str("");
     ASSERT_EQ(CDD_C_SUCCESS, schema_ref_has_data_basic(&sref, &has_d));
     ASSERT_EQ(0, has_d);
   }
@@ -199,7 +200,7 @@ TEST test_operation_100_percent_coverage_part3(void) {
   {
     struct OpenAPI_SchemaRef src, dst;
     memset(&src, 0, sizeof(src));
-    src.ref_name = (char *)(size_t) "MyRef";
+    src.ref_name = cdd_test_mut_str("MyRef");
     g_cdd_strdup_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_schema_ref_basic(&dst, &src));
     g_cdd_strdup_fail = 0;
@@ -236,8 +237,8 @@ TEST test_operation_100_percent_coverage_part3(void) {
     int applied = 0;
     memset(&sref, 0, sizeof(sref));
     memset(&map, 0, sizeof(map));
-    map.oa_type = (char *)(size_t) "string";
-    map.oa_format = (char *)(size_t) "";
+    map.oa_type = cdd_test_mut_str("string");
+    map.oa_format = cdd_test_mut_str("");
     ASSERT_EQ(CDD_C_SUCCESS,
               apply_format_to_schema_ref(&sref, &map, NULL, &applied));
     ASSERT_EQ(0, applied);
@@ -253,8 +254,8 @@ TEST test_operation_100_percent_coverage_part3(void) {
     memset(&sig, 0, sizeof(sig));
     memset(&arg, 0, sizeof(arg));
     memset(&op, 0, sizeof(op));
-    arg.name = (char *)(size_t) "in";
-    arg.type = (char *)(size_t) "struct Foo *";
+    arg.name = cdd_test_mut_str("in");
+    arg.type = cdd_test_mut_str("struct Foo *");
     sig.args = &arg;
     sig.n_args = 1;
     ctx.sig = &sig;
@@ -276,8 +277,8 @@ TEST test_operation_100_percent_coverage_part3(void) {
     memset(&sig, 0, sizeof(sig));
     memset(&arg, 0, sizeof(arg));
     memset(&op, 0, sizeof(op));
-    arg.name = (char *)(size_t) "out";
-    arg.type = (char *)(size_t) "int **";
+    arg.name = cdd_test_mut_str("out");
+    arg.type = cdd_test_mut_str("int **");
     sig.args = &arg;
     sig.n_args = 1;
     ctx.sig = &sig;
@@ -291,12 +292,12 @@ TEST test_operation_100_percent_coverage_part3(void) {
     memset(&doc, 0, sizeof(doc));
     memset(&dp, 0, sizeof(dp));
     memset(&op, 0, sizeof(op));
-    arg.name = (char *)(size_t) "in";
-    arg.type = (char *)(size_t) "int *";
+    arg.name = cdd_test_mut_str("in");
+    arg.type = cdd_test_mut_str("int *");
     sig.args = &arg;
     sig.n_args = 1;
-    dp.name = (char *)(size_t) "in";
-    dp.in_loc = (char *)(size_t) "body";
+    dp.name = cdd_test_mut_str("in");
+    dp.in_loc = cdd_test_mut_str("body");
     doc.params = &dp;
     doc.n_params = 1;
     ctx.sig = &sig;
@@ -321,13 +322,13 @@ TEST test_operation_100_percent_coverage_part3(void) {
     memset(&dp, 0, sizeof(dp));
     memset(&op, 0, sizeof(op));
 
-    arg.name = (char *)(size_t) "qs";
-    arg.type = (char *)(size_t) "int";
+    arg.name = cdd_test_mut_str("qs");
+    arg.type = cdd_test_mut_str("int");
     sig.args = &arg;
     sig.n_args = 1;
-    dp.name = (char *)(size_t) "qs";
-    dp.in_loc = (char *)(size_t) "querystring";
-    dp.example = (char *)(size_t) "10";
+    dp.name = cdd_test_mut_str("qs");
+    dp.in_loc = cdd_test_mut_str("querystring");
+    dp.example = cdd_test_mut_str("10");
     doc.params = &dp;
     doc.n_params = 1;
     ctx.sig = &sig;
@@ -350,10 +351,10 @@ TEST test_operation_100_percent_coverage_part3(void) {
     memset(&rb, 0, sizeof(rb));
     memset(&op, 0, sizeof(op));
 
-    rb.content_type = (char *)(size_t) "application/json";
+    rb.content_type = cdd_test_mut_str("application/json");
     doc.request_bodies = &rb;
     doc.n_request_bodies = 1;
-    doc.request_body_content_type = (char *)(size_t) "application/xml";
+    doc.request_body_content_type = cdd_test_mut_str("application/xml");
 
     ctx.sig = &sig;
     ctx.doc = &doc;
@@ -378,12 +379,12 @@ TEST test_operation_100_percent_coverage_part3(void) {
     memset(&enc, 0, sizeof(enc));
     memset(&op, 0, sizeof(op));
 
-    rb.content_type = (char *)(size_t) "application/json";
+    rb.content_type = cdd_test_mut_str("application/json");
     doc.request_bodies = &rb;
     doc.n_request_bodies = 1;
 
-    enc.name = (char *)(size_t) "f1";
-    enc.content_type = (char *)(size_t) "text/plain";
+    enc.name = cdd_test_mut_str("f1");
+    enc.content_type = cdd_test_mut_str("text/plain");
     enc.kind = 1;
     doc.encodings = &enc;
     doc.n_encodings = 1;
@@ -424,19 +425,19 @@ TEST test_operation_100_percent_coverage_part3(void) {
     memset(&resp_ex, 0, sizeof(resp_ex));
     memset(&h_ex, 0, sizeof(h_ex));
     memset(&dh_ex, 0, sizeof(dh_ex));
-    h_ex.name = (char *)(size_t) "X-Null-Type";
+    h_ex.name = cdd_test_mut_str("X-Null-Type");
     h_ex.type = NULL;
     resp_ex.headers = &h_ex;
     resp_ex.n_headers = 1;
 
-    dh_ex.name = (char *)(size_t) "X-Null-Type";
-    dh_ex.format = (char *)(size_t) "int32";
+    dh_ex.name = cdd_test_mut_str("X-Null-Type");
+    dh_ex.format = cdd_test_mut_str("int32");
     dh_ex.example = NULL;
     ASSERT_EQ(CDD_C_SUCCESS, add_header_to_response(&resp_ex, &dh_ex));
     free(h_ex.schema.inline_type);
     free(h_ex.schema.format);
 
-    h_ex.type = (char *)(size_t) "string";
+    h_ex.type = cdd_test_mut_str("string");
     h_ex.schema.inline_type = NULL;
     h_ex.schema.format = NULL;
     ASSERT_EQ(CDD_C_SUCCESS, add_header_to_response(&resp_ex, &dh_ex));
@@ -449,7 +450,7 @@ TEST test_operation_100_percent_coverage_part3(void) {
     struct OpenAPI_SchemaRef src_no_ref, dst_no_ref;
     memset(&src_no_ref, 0, sizeof(src_no_ref));
     src_no_ref.ref_name = NULL;
-    src_no_ref.ref = (char *)(size_t) "SomeRef";
+    src_no_ref.ref = cdd_test_mut_str("SomeRef");
     ASSERT_EQ(CDD_C_SUCCESS, copy_schema_ref_basic(&dst_no_ref, &src_no_ref));
     free(dst_no_ref.ref);
   }
@@ -464,8 +465,8 @@ TEST test_operation_100_percent_coverage_part3(void) {
     memset(&ctx, 0, sizeof(ctx));
     memset(&sig, 0, sizeof(sig));
     memset(&arg, 0, sizeof(arg));
-    arg.name = (char *)(size_t) "out";
-    arg.type = (char *)(size_t) "int **";
+    arg.name = cdd_test_mut_str("out");
+    arg.type = cdd_test_mut_str("int **");
     sig.args = &arg;
     sig.n_args = 1;
     ctx.sig = &sig;
@@ -495,12 +496,12 @@ TEST test_operation_100_percent_coverage_part3(void) {
     memset(&arg, 0, sizeof(arg));
     memset(&doc, 0, sizeof(doc));
     memset(&dp, 0, sizeof(dp));
-    arg.name = (char *)(size_t) "in";
-    arg.type = (char *)(size_t) "int *";
+    arg.name = cdd_test_mut_str("in");
+    arg.type = cdd_test_mut_str("int *");
     sig.args = &arg;
     sig.n_args = 1;
-    dp.name = (char *)(size_t) "in";
-    dp.in_loc = (char *)(size_t) "body";
+    dp.name = cdd_test_mut_str("in");
+    dp.in_loc = cdd_test_mut_str("body");
     doc.params = &dp;
     doc.n_params = 1;
     ctx.sig = &sig;
@@ -528,8 +529,8 @@ TEST test_operation_100_percent_coverage_part3(void) {
     memset(&ctx, 0, sizeof(ctx));
     memset(&sig, 0, sizeof(sig));
     memset(&arg, 0, sizeof(arg));
-    arg.name = (char *)(size_t) "items[]";
-    arg.type = (char *)(size_t) "int";
+    arg.name = cdd_test_mut_str("items[]");
+    arg.type = cdd_test_mut_str("int");
     sig.args = &arg;
     sig.n_args = 1;
     ctx.sig = &sig;
@@ -544,8 +545,8 @@ TEST test_operation_100_percent_coverage_part3(void) {
       reset_operation_test(&op);
     }
 
-    arg.name = (char *)(size_t) "users[]";
-    arg.type = (char *)(size_t) "struct User";
+    arg.name = cdd_test_mut_str("users[]");
+    arg.type = cdd_test_mut_str("struct User");
     for (k = 0; k <= 10; ++k) {
       memset(&op, 0, sizeof(op));
       g_cdd_strdup_fail = k;

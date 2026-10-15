@@ -29,7 +29,9 @@ set(Header_Files
         "classes/parse/cdd_cst_escape.h"
         "classes/parse/cdd_cst_query.h"
         "../include/cdd_cst_transform.h"
+        "../include/c_cdd/code_writer.h"
         "../include/routes/parse/cli_cst.h"
+        "functions/ffi/cdd_ffi_emit_common.h"
         "classes/parse/cdd_cst_trivia.h"
         "classes/emit/cdd_cst_emit.h"
         "functions/emit/codegen.h"
@@ -66,7 +68,10 @@ set(Header_Files
         "openapi/parse/openapi_types.h"
         "openapi/parse/openapi_internal.h"
         "openapi/parse/openapi_internal_components.h"
-        "openapi/parse/openapi_test_helpers.h"
+        "openapi/parse/openapi_media.h"
+        "openapi/parse/openapi_schema.h"
+        "openapi/parse/openapi_uri.h"
+        "openapi/parse/openapi_validate.h"
         "openapi/emit/openapi.h"
         "functions/parse/preprocessor.h"
         "functions/parse/audit.h"
@@ -186,7 +191,9 @@ set(Source_Files
         "transformers/safe_crt/safe_crt_parse.c"
         "transformers/safe_crt/safe_crt_rules.c"
         "log.c"
+        "code_writer.c"
         "cdd_c_error.c"
+        "functions/ffi/cdd_ffi_emit_common.c"
         "functions/parse/analysis.c"
         "classes/parse/inspector.c"
         "routes/parse/cli.c"
@@ -294,7 +301,6 @@ set(Source_Files
         "openapi/parse/openapi_components.c"
         "openapi/parse/openapi_paths.c"
         "openapi/parse/openapi_validation.c"
-        "openapi/parse/openapi_test_helpers.c"
         "openapi/emit/openapi.c"
         "functions/parse/preprocessor.c"
         "functions/parse/macro_evaluator.c"
@@ -727,8 +733,4 @@ if (APPLE)
     find_library(COREFOUNDATION_LIBRARY CoreFoundation)
     find_library(CFNETWORK_LIBRARY CFNetwork)
     target_link_libraries("${LIBRARY_NAME}" PRIVATE ${COREFOUNDATION_LIBRARY} ${CFNETWORK_LIBRARY})
-endif()
-if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
-    add_executable(test_dump2 tests/test_dump2.c)
-target_link_libraries(test_dump2 c_cdd cdd_test_helpers)
 endif()

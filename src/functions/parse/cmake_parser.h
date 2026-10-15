@@ -48,22 +48,14 @@ extern C_CDD_EXPORT cdd_c_error_t cmake_modifier_init(struct CMakeModifier *mod,
 /**
  * @brief Add a compile option to be injected.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the cmake modifier add compile opt
-                     * operation.
-                     */
-    cdd_c_error_t
-    cmake_modifier_add_compile_opt(struct CMakeModifier *mod, const char *opt);
+extern C_CDD_EXPORT cdd_c_error_t
+cmake_modifier_add_compile_opt(struct CMakeModifier *mod, const char *opt);
 
 /**
  * @brief Add a link library to be injected.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the cmake modifier add link lib
-                     * operation.
-                     */
-    cdd_c_error_t
-    cmake_modifier_add_link_lib(struct CMakeModifier *mod, const char *lib);
+extern C_CDD_EXPORT cdd_c_error_t
+cmake_modifier_add_link_lib(struct CMakeModifier *mod, const char *lib);
 
 /**
  * @brief Free resources associated with a CMake modifier.

@@ -75,11 +75,13 @@ TEST test_serve_json_rpc_bind_fail(void) {
   int server_fd;
 #endif
   struct sockaddr_in addr;
-  char *argv[] = {(char *)(size_t)(size_t) "serve_json_rpc_main",
-                  (char *)(size_t)(size_t) "--port",
-                  (char *)(size_t)(size_t) "12346"};
+  char *argv[3];
   int argc = 3;
   int rc = 0;
+
+  argv[0] = cdd_test_mut_str("serve_json_rpc_main");
+  argv[1] = cdd_test_mut_str("--port");
+  argv[2] = cdd_test_mut_str("12346");
 
   /* Create a socket holding port 12346 */
 #if defined(_WIN32)
@@ -116,18 +118,23 @@ TEST test_serve_json_rpc_bind_fail(void) {
  * @return The result of the test.
  */
 TEST test_serve_json_rpc_listen_once(void) {
-  char *argv[] = {
-      (char *)(size_t)(size_t) "serve_json_rpc_main",
-      (char *)(size_t)(size_t) "--port", (char *)(size_t)(size_t) "12347",
-      (char *)(size_t)(size_t) "--listen", (char *)(size_t)(size_t) "255"};
-  char *argv_accept_fail[] = {
-      (char *)(size_t)(size_t) "serve_json_rpc_main",
-      (char *)(size_t)(size_t) "--port", (char *)(size_t)(size_t) "12349",
-      (char *)(size_t)(size_t) "--listen", (char *)(size_t)(size_t) "1"};
+  char *argv[5];
+  char *argv_accept_fail[5];
   int argc = 5;
   int rc = 0;
 
   /* Should break immediately because listen_flag is -1 */
+
+  argv[0] = cdd_test_mut_str("serve_json_rpc_main");
+  argv[1] = cdd_test_mut_str("--port");
+  argv[2] = cdd_test_mut_str("12347");
+  argv[3] = cdd_test_mut_str("--listen");
+  argv[4] = cdd_test_mut_str("255");
+  argv_accept_fail[0] = cdd_test_mut_str("serve_json_rpc_main");
+  argv_accept_fail[1] = cdd_test_mut_str("--port");
+  argv_accept_fail[2] = cdd_test_mut_str("12349");
+  argv_accept_fail[3] = cdd_test_mut_str("--listen");
+  argv_accept_fail[4] = cdd_test_mut_str("1");
   rc = serve_json_rpc_main(argc, argv);
   ASSERT_EQ(0, rc);
 
@@ -148,18 +155,22 @@ TEST test_serve_json_rpc_listen_once(void) {
  * @return The result of the test.
  */
 TEST test_serve_json_rpc_basic(void) {
-  char *argv[] = {(char *)(size_t)(size_t) "serve_json_rpc_main",
-                  (char *)(size_t)(size_t) "--port",
-                  (char *)(size_t)(size_t) "12345"};
-  char *argv_short[] = {
-      (char *)(size_t)(size_t) "serve_json_rpc_main",
-      (char *)(size_t)(size_t) "-p", (char *)(size_t)(size_t) "12348",
-      (char *)(size_t)(size_t) "-l", (char *)(size_t)(size_t) "0"};
+  char *argv[3];
+  char *argv_short[5];
   int argc = 3;
   int rc = 0;
 
   /* Since we do not pass --listen, it should bind, listen, and immediately exit
    * the loop returning 0 */
+
+  argv[0] = cdd_test_mut_str("serve_json_rpc_main");
+  argv[1] = cdd_test_mut_str("--port");
+  argv[2] = cdd_test_mut_str("12345");
+  argv_short[0] = cdd_test_mut_str("serve_json_rpc_main");
+  argv_short[1] = cdd_test_mut_str("-p");
+  argv_short[2] = cdd_test_mut_str("12348");
+  argv_short[3] = cdd_test_mut_str("-l");
+  argv_short[4] = cdd_test_mut_str("0");
   rc = serve_json_rpc_main(argc, argv);
   /* Note: Depending on parallel testing or permission, bind might fail if port
      12345 is in use. We can just assert it doesn't crash. If bind succeeds it
@@ -182,22 +193,30 @@ TEST test_serve_json_rpc_basic(void) {
  * @return The result of the test.
  */
 TEST test_serve_json_rpc_bad_port(void) {
-  char *argv[] = {(char *)(size_t)(size_t) "serve_json_rpc_main"};
-  char *argv_help[] = {(char *)(size_t)(size_t) "serve_json_rpc_main",
-                       (char *)(size_t)(size_t) "--help"};
-  char *argv_help_short[] = {(char *)(size_t)(size_t) "serve_json_rpc_main",
-                             (char *)(size_t)(size_t) "-h"};
-  char *argv_unknown[] = {(char *)(size_t)(size_t) "serve_json_rpc_main",
-                          (char *)(size_t)(size_t) "--invalid-opt"};
-  char *argv_port_missing[] = {(char *)(size_t)(size_t) "serve_json_rpc_main",
-                               (char *)(size_t)(size_t) "--port"};
-  char *argv_p_missing[] = {(char *)(size_t)(size_t) "serve_json_rpc_main",
-                            (char *)(size_t)(size_t) "-p"};
-  char *argv_listen_missing[] = {(char *)(size_t)(size_t) "serve_json_rpc_main",
-                                 (char *)(size_t)(size_t) "--listen"};
+  char *argv[1];
+  char *argv_help[2];
+  char *argv_help_short[2];
+  char *argv_unknown[2];
+  char *argv_port_missing[2];
+  char *argv_p_missing[2];
+  char *argv_listen_missing[2];
   int rc = 0;
 
   /* Test environment variables CDD_PORT and CDD_LISTEN */
+
+  argv[0] = cdd_test_mut_str("serve_json_rpc_main");
+  argv_help[0] = cdd_test_mut_str("serve_json_rpc_main");
+  argv_help[1] = cdd_test_mut_str("--help");
+  argv_help_short[0] = cdd_test_mut_str("serve_json_rpc_main");
+  argv_help_short[1] = cdd_test_mut_str("-h");
+  argv_unknown[0] = cdd_test_mut_str("serve_json_rpc_main");
+  argv_unknown[1] = cdd_test_mut_str("--invalid-opt");
+  argv_port_missing[0] = cdd_test_mut_str("serve_json_rpc_main");
+  argv_port_missing[1] = cdd_test_mut_str("--port");
+  argv_p_missing[0] = cdd_test_mut_str("serve_json_rpc_main");
+  argv_p_missing[1] = cdd_test_mut_str("-p");
+  argv_listen_missing[0] = cdd_test_mut_str("serve_json_rpc_main");
+  argv_listen_missing[1] = cdd_test_mut_str("--listen");
   g_serve_json_rpc_fail_socket = 1;
 #if defined(_WIN32)
   _putenv("CDD_PORT=19999");
@@ -261,7 +280,7 @@ TEST test_serve_json_rpc_bad_port(void) {
  */
 #ifndef __EMSCRIPTEN__
 TEST test_serve_mcp_stdio_main(void) {
-  char *argv[] = {(char *)(size_t)(size_t) "serve_mcp_stdio_main"};
+  char *argv[1];
   int argc = 1;
   int rc = 0;
   FILE *tmp = NULL;
@@ -271,10 +290,25 @@ TEST test_serve_mcp_stdio_main(void) {
   char mcp_tmp_path[64];
   static int mcp_tmp_counter = 0;
 
+  argv[0] = cdd_test_mut_str("serve_mcp_stdio_main");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, handle_stdio_request(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, serve_json_rpc_run(NULL));
   g_serve_json_rpc_fail_handle = 1;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, handle_stdio_request("{\"jsonrpc\":\"2.0\"}"));
   g_serve_json_rpc_fail_handle = 0;
+
+  {
+    FILE *f_oas = fopen("build/simple_test_oas.json", "w");
+    if (f_oas) {
+      fprintf(
+          f_oas,
+          "{\"openapi\":\"3.0.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
+          "\"paths\":{\"/"
+          "x\":{\"get\":{\"responses\":{\"200\":{\"description\":\"ok\"}}}}}}");
+      fclose(f_oas);
+    }
+    makedirs("build/my_empty_dir");
+  }
 
 #if defined(_MSC_VER)
   sprintf_s(mcp_tmp_path, sizeof(mcp_tmp_path), "test_mcp_stdio_tmp_%d.txt",
@@ -374,7 +408,7 @@ TEST test_serve_mcp_stdio_main(void) {
                  "\"id\":111}\n");
     fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
                  "call\",\"params\":{\"name\":\"to_openapi\",\"arguments\":{"
-                 "\"input\":\"my_empty_dir\"}},\"id\":121}\n");
+                 "\"input\":\"build/my_empty_dir\"}},\"id\":121}\n");
     fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
                  "call\",\"params\":{\"name\":\"to_openapi\",\"arguments\":{"
                  "\"input\":\"nonexistent_dir_123\",\"output\":\"out.json\"}},"
@@ -388,20 +422,20 @@ TEST test_serve_mcp_stdio_main(void) {
     fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
                  "call\",\"params\":{\"name\":\"to_docs_json\",\"arguments\":{"
                  "\"input\":\"nonexistent_file_123.json\"}},\"id\":118}\n");
-    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
-                 "call\",\"params\":{\"name\":\"to_docs_json\",\"arguments\":{"
-                 "\"input\":\"src/tests/mocks/emit/"
-                 "simple.schema.json\",\"output\":\"docs.json\",\"no_imports\":"
-                 "true,\"no_wrapping\":true}},\"id\":114}\n");
+    fprintf(tmp,
+            "{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
+            "call\",\"params\":{\"name\":\"to_docs_json\",\"arguments\":{"
+            "\"input\":\"build/"
+            "simple_test_oas.json\",\"output\":\"docs.json\",\"no_imports\":"
+            "true,\"no_wrapping\":true}},\"id\":114}\n");
     fprintf(
         tmp,
         "{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
         "call\",\"params\":{\"name\":\"to_openapi\",\"arguments\":{\"input\":"
-        "\"my_empty_dir\",\"output\":\"out.json\"}},\"id\":112}\n");
+        "\"build/my_empty_dir\",\"output\":\"out.json\"}},\"id\":112}\n");
     fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
                  "call\",\"params\":{\"name\":\"to_docs_json\",\"arguments\":{"
-                 "\"input\":\"src/tests/mocks/emit/"
-                 "simple.schema.json\"}},\"id\":116}\n");
+                 "\"input\":\"build/simple_test_oas.json\"}},\"id\":116}\n");
     fclose(tmp);
     tmp = NULL;
 
@@ -493,20 +527,26 @@ TEST test_serve_mcp_stdio_main(void) {
 
 #if defined(_WIN32)
 static unsigned __stdcall rpc_server_http_thread_func(void *arg) {
-  char *argv[] = {
-      (char *)(size_t)(size_t) "serve_json_rpc_main",
-      (char *)(size_t)(size_t) "--port", (char *)(size_t)(size_t) "19985",
-      (char *)(size_t)(size_t) "--listen", (char *)(size_t)(size_t) "58"};
+  char *argv[5];
+
+  argv[0] = cdd_test_mut_str("serve_json_rpc_main");
+  argv[1] = cdd_test_mut_str("--port");
+  argv[2] = cdd_test_mut_str("19985");
+  argv[3] = cdd_test_mut_str("--listen");
+  argv[4] = cdd_test_mut_str("58");
   (void)arg;
   serve_json_rpc_main(5, argv);
   return 0;
 }
 #else
 static void *rpc_server_http_thread_func(void *arg) {
-  char *argv[] = {
-      (char *)(size_t)(size_t) "serve_json_rpc_main",
-      (char *)(size_t)(size_t) "--port", (char *)(size_t)(size_t) "19985",
-      (char *)(size_t)(size_t) "--listen", (char *)(size_t)(size_t) "58"};
+  char *argv[5];
+
+  argv[0] = cdd_test_mut_str("serve_json_rpc_main");
+  argv[1] = cdd_test_mut_str("--port");
+  argv[2] = cdd_test_mut_str("19985");
+  argv[3] = cdd_test_mut_str("--listen");
+  argv[4] = cdd_test_mut_str("58");
   (void)arg;
   serve_json_rpc_main(5, argv);
   return NULL;
@@ -580,7 +620,7 @@ TEST test_serve_json_rpc_http_requests(void) {
       "POST / HTTP/1.1\r\nContent-Length: "
       "85\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
       "call\",\"params\":{\"name\":\"to_openapi\",\"arguments\":{\"input\":"
-      "\"my_empty_dir\"}}}",
+      "\"build/my_empty_dir\"}}}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "90\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
       "call\",\"params\":{\"name\":\"to_openapi\",\"arguments\":{\"output\":"
@@ -592,7 +632,7 @@ TEST test_serve_json_rpc_http_requests(void) {
       "POST / HTTP/1.1\r\nContent-Length: "
       "120\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
       "call\",\"params\":{\"name\":\"to_openapi\",\"arguments\":{\"input\":"
-      "\"my_empty_dir\",\"output\":\"out.json\"}}}",
+      "\"build/my_empty_dir\",\"output\":\"out.json\"}}}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "80\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
       "call\",\"params\":{\"name\":\"to_docs_json\",\"arguments\":{}}}",
@@ -607,13 +647,14 @@ TEST test_serve_json_rpc_http_requests(void) {
       "POST / HTTP/1.1\r\nContent-Length: "
       "160\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
       "call\",\"params\":{\"name\":\"to_docs_json\",\"arguments\":{\"input\":"
-      "\"src/tests/mocks/emit/"
-      "simple.schema.json\",\"output\":\"docs.json\",\"no_imports\":true,\"no_"
+      "\"build/"
+      "simple_test_oas.json\",\"output\":\"docs.json\",\"no_imports\":true,"
+      "\"no_"
       "wrapping\":true}}}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "120\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
       "call\",\"params\":{\"name\":\"to_docs_json\",\"arguments\":{\"input\":"
-      "\"src/tests/mocks/emit/simple.schema.json\"}}}",
+      "\"build/simple_test_oas.json\"}}}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "80\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
       "call\",\"params\":{\"name\":\"unknown\",\"arguments\":{}}}",
@@ -624,13 +665,13 @@ TEST test_serve_json_rpc_http_requests(void) {
       "\"output\":\"out\"}}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "75\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"to_openapi\",\"params\":{"
-      "\"input\":\"my_empty_dir\"}}",
+      "\"input\":\"build/my_empty_dir\"}}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "100\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"to_openapi\",\"params\":{"
       "\"input\":\"nonexistent_dir_123\",\"output\":\"out.json\"}}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "90\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"to_openapi\",\"params\":{"
-      "\"input\":\"my_empty_dir\",\"output\":\"out.json\"}}",
+      "\"input\":\"build/my_empty_dir\",\"output\":\"out.json\"}}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "35\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"to_docs_json\"}",
       "POST / HTTP/1.1\r\nContent-Length: "
@@ -641,12 +682,13 @@ TEST test_serve_json_rpc_http_requests(void) {
       "\"input\":\"nonexistent_file_123.json\"}}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "150\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"to_docs_json\",\"params\":{"
-      "\"input\":\"src/tests/mocks/emit/"
-      "simple.schema.json\",\"output\":\"docs.json\",\"no_imports\":true,\"no_"
+      "\"input\":\"build/"
+      "simple_test_oas.json\",\"output\":\"docs.json\",\"no_imports\":true,"
+      "\"no_"
       "wrapping\":true}}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "90\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"to_docs_json\",\"params\":{"
-      "\"input\":\"src/tests/mocks/emit/simple.schema.json\"}}",
+      "\"input\":\"build/simple_test_oas.json\"}}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "45\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"from_openapi_to_sdk\"}",
       "POST / HTTP/1.1\r\nContent-Length: "
@@ -657,17 +699,17 @@ TEST test_serve_json_rpc_http_requests(void) {
       "\"params\":{\"output\":\"out\"}}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "180\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"from_openapi_to_sdk\","
-      "\"params\":{\"input\":\"src/tests/mocks/emit/"
-      "simple.schema.json\",\"output\":\"out_sdk\",\"no_github_actions\":true,"
+      "\"params\":{\"input\":\"build/simple_test_oas.json\",\"output\":\"build/"
+      "out_sdk\",\"no_github_actions\":true,"
       "\"no_installable_package\":true,\"tests\":true}}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "120\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"from_openapi_to_sdk_cli\","
       "\"params\":{\"input_dir\":\"src/tests/mocks/"
-      "emit\",\"output\":\"out_sdk_cli\"}}",
+      "emit\",\"output\":\"build/out_sdk_cli\"}}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "120\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"from_openapi_to_server\","
-      "\"params\":{\"input\":\"src/tests/mocks/emit/"
-      "simple.schema.json\",\"output\":\"out_server\"}}",
+      "\"params\":{\"input\":\"build/simple_test_oas.json\",\"output\":\"build/"
+      "out_server\"}}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "50\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"from_openapi_unknown\"}",
       "POST / HTTP/1.1\r\nContent-Length: "
@@ -679,6 +721,19 @@ TEST test_serve_json_rpc_http_requests(void) {
   cdd_test_thread_t th;
   struct sockaddr_in addr;
   size_t i;
+
+  {
+    FILE *f_oas = fopen("build/simple_test_oas.json", "w");
+    if (f_oas) {
+      fprintf(
+          f_oas,
+          "{\"openapi\":\"3.0.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
+          "\"paths\":{\"/"
+          "x\":{\"get\":{\"responses\":{\"200\":{\"description\":\"ok\"}}}}}}");
+      fclose(f_oas);
+    }
+    makedirs("build/my_empty_dir");
+  }
 
   ASSERT_EQ(0, CDD_TEST_THREAD_CREATE(&th, rpc_server_http_thread_func, NULL));
 #if defined(_WIN32)
@@ -746,6 +801,9 @@ TEST test_serve_json_rpc_http_requests(void) {
   }
 
   CDD_TEST_THREAD_JOIN(th);
+  remove("docs.json");
+  remove("out.json");
+  remove("build/simple_test_oas.json");
   PASS();
 }
 

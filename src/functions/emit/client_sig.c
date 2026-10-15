@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/code_writer.h"
 #include "c_cdd/safe_crt.h"
 #include "functions/emit/client_sig.h"
 #include "functions/emit/client_sig_media.h"
@@ -26,29 +27,10 @@
 
 /** @brief CHECK_IO definition */
 #ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
 extern C_CDD_EXPORT int g_cdd_fail_response_is_binary_success;
 extern C_CDD_EXPORT int g_cdd_fail_get_success_schema;
 extern C_CDD_EXPORT int g_cdd_fail_get_success_response;
-
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)))
-#endif
-    ;
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  int ret;
-  va_list args;
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) {
-    return -1;
-  }
-  va_start(args, format);
-  ret = vfprintf(stream, format, args);
-  va_end(args);
-  return ret;
-}
-#define fprintf test_cdd_fprintf_hook
+#define fprintf cdd_io_fprintf_hook
 #endif
 
 #define CHECK_IO(x)                                                            \
@@ -218,7 +200,7 @@ get_success_schema(const struct OpenAPI_Operation *op,
 }
 
 /**
- * @brief Generates C code for codegen client write signature.
+ * @brief Emits generated C code for codegen client write signature.
  */
 cdd_c_error_t
 codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,

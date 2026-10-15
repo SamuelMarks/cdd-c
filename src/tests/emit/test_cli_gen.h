@@ -45,12 +45,11 @@ TEST test_cli_gen_basic(void) {
   spec.paths[0].n_operations = 1;
   spec.paths[0].operations =
       (struct OpenAPI_Operation *)calloc(1, sizeof(struct OpenAPI_Operation));
-  spec.paths[0].operations[0].operation_id =
-      (char *)(size_t)(size_t) "doSomething";
-  spec.paths[0].operations[0].summary = (char *)(size_t)(size_t) "Does a thing";
+  spec.paths[0].operations[0].operation_id = cdd_test_mut_str("doSomething");
+  spec.paths[0].operations[0].summary = cdd_test_mut_str("Does a thing");
 
   /* Add parameters with examples */
-  param.name = (char *)(size_t)(size_t) "query_param";
+  param.name = cdd_test_mut_str("query_param");
   param.example_set = 1;
   spec.paths[0].operations[0].parameters = &param;
   spec.paths[0].operations[0].n_parameters = 1;
@@ -64,11 +63,11 @@ TEST test_cli_gen_basic(void) {
   spec.paths[0].operations[0].deprecated = 1;
 
   /* Add responses with links and headers */
-  resp.code = (char *)(size_t)(size_t) "200";
-  link.operation_ref = (char *)(size_t)(size_t) "opRef";
+  resp.code = cdd_test_mut_str("200");
+  link.operation_ref = cdd_test_mut_str("opRef");
   resp.links = &link;
   resp.n_links = 1;
-  header.name = (char *)(size_t)(size_t) "X-Header";
+  header.name = cdd_test_mut_str("X-Header");
   resp.headers = &header;
   resp.n_headers = 1;
   spec.paths[0].operations[0].responses = &resp;
@@ -76,10 +75,10 @@ TEST test_cli_gen_basic(void) {
 
   /* Add externalDocs */
   spec.paths[0].operations[0].external_docs.url =
-      (char *)(size_t)(size_t) "http://doc";
+      cdd_test_mut_str("http://doc");
 
   /* Add callbacks */
-  cb.name = (char *)(size_t)(size_t) "myCb";
+  cb.name = cdd_test_mut_str("myCb");
   spec.paths[0].operations[0].callbacks = &cb;
   spec.paths[0].operations[0].n_callbacks = 1;
 
@@ -92,14 +91,14 @@ TEST test_cli_gen_basic(void) {
   spec.paths[0].operations[0].security_set = 1;
 
   flow.type = OA_OAUTH_FLOW_IMPLICIT;
-  flow.authorization_url = (char *)(size_t)(size_t) "url";
+  flow.authorization_url = cdd_test_mut_str("url");
   scheme.flows = &flow;
   scheme.n_flows = 1;
   spec.security_schemes = &scheme;
   spec.n_security_schemes = 1;
 
   memset(&config, 0, sizeof(config));
-  config.filename_base = (char *)(size_t)(size_t) "test_cli";
+  config.filename_base = cdd_test_mut_str("test_cli");
 
   rc = openapi_cli_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -145,7 +144,7 @@ TEST test_cli_gen_fail_open(void) {
   memset(&config, 0, sizeof(config));
 
   /* Case 1: makedirs fails because directory path cannot be created */
-  config.filename_base = (char *)(size_t)(size_t) "/nonexistent/dir/test_cli";
+  config.filename_base = cdd_test_mut_str("/nonexistent/dir/test_cli");
   g_io_calls = 0;
   g_fail_io_after = 1;
 
@@ -155,8 +154,7 @@ TEST test_cli_gen_fail_open(void) {
 
   /* Case 2: fopen fails because destination path is an existing directory */
   makedirs("test_build_dir/bad_cli/src/bad_base_cli.c");
-  config.filename_base =
-      (char *)(size_t)(size_t) "test_build_dir/bad_cli/bad_base";
+  config.filename_base = cdd_test_mut_str("test_build_dir/bad_cli/bad_base");
   rc = openapi_cli_generate(&spec, &config);
   ASSERT_EQ(CDD_C_ERROR_IO, rc);
   remove("test_build_dir/bad_cli/src/bad_base_cli.c");
@@ -174,53 +172,51 @@ TEST test_cli_gen_full(void) {
   int rc = 0;
 
   memset(&spec, 0, sizeof(spec));
-  spec.openapi_version = (char *)(size_t)(size_t) "3.1.0";
-  spec.info.title = (char *)(size_t)(size_t) "Full API";
-  spec.info.version = (char *)(size_t)(size_t) "1.0.0";
-  spec.info.description = (char *)(size_t)(size_t) "Full Description";
-  spec.info.terms_of_service =
-      (char *)(size_t)(size_t) "https://terms.example.com";
-  spec.info.contact.name = (char *)(size_t)(size_t) "Support";
-  spec.info.contact.email = (char *)(size_t)(size_t) "support@example.com";
-  spec.info.contact.url =
-      (char *)(size_t)(size_t) "https://support.example.com";
-  spec.info.license.name = (char *)(size_t)(size_t) "MIT";
-  spec.info.license.identifier = (char *)(size_t)(size_t) "MIT-id";
-  spec.info.license.url =
-      (char *)(size_t)(size_t) "https://license.example.com";
+  spec.openapi_version = cdd_test_mut_str("3.1.0");
+  spec.info.title = cdd_test_mut_str("Full API");
+  spec.info.version = cdd_test_mut_str("1.0.0");
+  spec.info.description = cdd_test_mut_str("Full Description");
+  spec.info.terms_of_service = cdd_test_mut_str("https://terms.example.com");
+  spec.info.contact.name = cdd_test_mut_str("Support");
+  spec.info.contact.email = cdd_test_mut_str("support@example.com");
+  spec.info.contact.url = cdd_test_mut_str("https://support.example.com");
+  spec.info.license.name = cdd_test_mut_str("MIT");
+  spec.info.license.identifier = cdd_test_mut_str("MIT-id");
+  spec.info.license.url = cdd_test_mut_str("https://license.example.com");
 
   spec.n_servers = 1;
   spec.servers = calloc(1, sizeof(*spec.servers));
-  spec.servers[0].url = (char *)(size_t)(size_t) "https://api.example.com";
-  spec.servers[0].description = (char *)(size_t)(size_t) "Prod server";
-  spec.servers[0].variables = (void *)1; /* dummy pointer */
+  spec.servers[0].url = cdd_test_mut_str("https://api.example.com");
+  spec.servers[0].description = cdd_test_mut_str("Prod server");
+  {
+    static struct OpenAPI_ServerVariable dummy_var;
+    spec.servers[0].variables = &dummy_var;
+  }
 
   spec.n_webhooks = 1; /* dummy trigger */
-  spec.external_docs.url = (char *)(size_t)(size_t) "https://docs.example.com";
+  spec.external_docs.url = cdd_test_mut_str("https://docs.example.com");
 
   spec.n_paths = 1;
   spec.paths = calloc(1, sizeof(*spec.paths));
-  spec.paths[0].route = (char *)(size_t)(size_t) "/full";
+  spec.paths[0].route = cdd_test_mut_str("/full");
   spec.paths[0].n_operations = 1;
   spec.paths[0].operations = calloc(1, sizeof(*spec.paths[0].operations));
-  spec.paths[0].operations[0].method = (char *)(size_t)(size_t) "get";
-  spec.paths[0].operations[0].operation_id = (char *)(size_t)(size_t) "doFull";
-  spec.paths[0].operations[0].summary =
-      (char *)(size_t)(size_t) "Does full thing";
+  spec.paths[0].operations[0].method = cdd_test_mut_str("get");
+  spec.paths[0].operations[0].operation_id = cdd_test_mut_str("doFull");
+  spec.paths[0].operations[0].summary = cdd_test_mut_str("Does full thing");
 
   spec.json_schema_dialect =
-      (char *)(size_t)(size_t) "https://json-schema.org/draft/2020-12/schema";
+      cdd_test_mut_str("https://json-schema.org/draft/2020-12/schema");
 
   spec.paths[0].operations[0].n_parameters = 1;
   spec.paths[0].operations[0].parameters =
       calloc(1, sizeof(*spec.paths[0].operations[0].parameters));
-  spec.paths[0].operations[0].parameters[0].name =
-      (char *)(size_t)(size_t) "param1";
+  spec.paths[0].operations[0].parameters[0].name = cdd_test_mut_str("param1");
   spec.paths[0].operations[0].parameters[0].in = 1;
   spec.paths[0].operations[0].parameters[0].required = 1;
   spec.paths[0].operations[0].parameters[0].explode = 1;
   spec.paths[0].operations[0].parameters[0].description =
-      (char *)(size_t)(size_t) "desc";
+      cdd_test_mut_str("desc");
   spec.paths[0].operations[0].parameters[0].allow_empty_value = 1;
   spec.paths[0].operations[0].parameters[0].allow_reserved = 1;
   spec.paths[0].operations[0].parameters[0].style = 1;
@@ -228,7 +224,7 @@ TEST test_cli_gen_full(void) {
       1; /* OA_ANY_INT or something */
 
   memset(&config, 0, sizeof(config));
-  config.filename_base = (char *)(size_t)(size_t) "test_cli_full";
+  config.filename_base = cdd_test_mut_str("test_cli_full");
 
   rc = openapi_cli_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -259,7 +255,7 @@ TEST test_cli_gen_malloc_fail(void) {
 
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
-  config.filename_base = (char *)(size_t)(size_t) "test_build_dir/cli";
+  config.filename_base = cdd_test_mut_str("test_build_dir/cli");
 
   for (i = 1; i < 5; i++) {
     g_cdd_alloc_fail = i;
@@ -283,67 +279,63 @@ TEST test_cli_gen_partial(void) {
   int rc = 0;
 
   memset(&spec, 0, sizeof(spec));
-  spec.openapi_version = (char *)(size_t)(size_t) "3.1.0";
-  spec.info.title = (char *)(size_t)(size_t) "Partial API";
-  spec.info.version = (char *)(size_t)(size_t) "1.0.0";
+  spec.openapi_version = cdd_test_mut_str("3.1.0");
+  spec.info.title = cdd_test_mut_str("Partial API");
+  spec.info.version = cdd_test_mut_str("1.0.0");
 
-  spec.info.contact.url =
-      (char *)(size_t)(size_t) "https://support.example.com";
-  spec.info.license.name = (char *)(size_t)(size_t) "MIT";
+  spec.info.contact.url = cdd_test_mut_str("https://support.example.com");
+  spec.info.license.name = cdd_test_mut_str("MIT");
 
   spec.n_servers = 2;
   spec.servers = (struct OpenAPI_Server *)calloc(2, sizeof(*spec.servers));
   spec.servers[0].variables = NULL;
-  spec.servers[1].variables = (void *)1;
+  {
+    static struct OpenAPI_ServerVariable dummy_var2;
+    spec.servers[1].variables = &dummy_var2;
+  }
 
   spec.n_paths = 1;
   spec.paths = (struct OpenAPI_Path *)calloc(1, sizeof(*spec.paths));
-  spec.paths[0].route = (char *)(size_t)(size_t) "/partial";
+  spec.paths[0].route = cdd_test_mut_str("/partial");
   spec.paths[0].n_operations = 3;
   spec.paths[0].operations =
       (struct OpenAPI_Operation *)calloc(3, sizeof(*spec.paths[0].operations));
-  spec.paths[0].operations[0].method = (char *)(size_t)(size_t) "get";
-  spec.paths[0].operations[0].operation_id =
-      (char *)(size_t)(size_t) "partial_op";
+  spec.paths[0].operations[0].method = cdd_test_mut_str("get");
+  spec.paths[0].operations[0].operation_id = cdd_test_mut_str("partial_op");
   spec.paths[0].operations[0].n_parameters = 1;
   spec.paths[0].operations[0].parameters =
       (struct OpenAPI_Parameter *)calloc(1, sizeof(struct OpenAPI_Parameter));
   spec.paths[0].operations[0].n_responses = 1;
   spec.paths[0].operations[0].responses =
       (struct OpenAPI_Response *)calloc(1, sizeof(struct OpenAPI_Response));
-  spec.paths[0].operations[0].responses[0].code =
-      (char *)(size_t)(size_t) "200";
+  spec.paths[0].operations[0].responses[0].code = cdd_test_mut_str("200");
   spec.paths[0].operations[0].security_set = 1;
   spec.paths[0].operations[0].n_security = 1;
   spec.paths[0].operations[0].security =
       (struct OpenAPI_SecurityRequirementSet *)calloc(
           1, sizeof(struct OpenAPI_SecurityRequirementSet));
 
-  spec.paths[0].operations[1].method = (char *)(size_t)(size_t) "post";
-  spec.paths[0].operations[1].operation_id =
-      (char *)(size_t)(size_t) "empty_op";
+  spec.paths[0].operations[1].method = cdd_test_mut_str("post");
+  spec.paths[0].operations[1].operation_id = cdd_test_mut_str("empty_op");
   spec.paths[0].operations[1].n_parameters = 0;
   spec.paths[0].operations[1].n_responses = 1;
   spec.paths[0].operations[1].responses =
       (struct OpenAPI_Response *)calloc(1, sizeof(struct OpenAPI_Response));
-  spec.paths[0].operations[1].responses[0].code =
-      (char *)(size_t)(size_t) "200";
+  spec.paths[0].operations[1].responses[0].code = cdd_test_mut_str("200");
 
-  spec.paths[0].operations[2].method = (char *)(size_t)(size_t) "put";
+  spec.paths[0].operations[2].method = cdd_test_mut_str("put");
   spec.paths[0].operations[2].operation_id = NULL;
-  spec.paths[0].operations[2].summary =
-      (char *)(size_t)(size_t) "should_not_print";
+  spec.paths[0].operations[2].summary = cdd_test_mut_str("should_not_print");
   spec.paths[0].operations[2].n_parameters = 0;
   spec.paths[0].operations[2].n_responses = 1;
   spec.paths[0].operations[2].responses =
       (struct OpenAPI_Response *)calloc(1, sizeof(struct OpenAPI_Response));
-  spec.paths[0].operations[2].responses[0].code =
-      (char *)(size_t)(size_t) "200";
+  spec.paths[0].operations[2].responses[0].code = cdd_test_mut_str("200");
 
   spec.security_schemes = NULL;
 
   memset(&config, 0, sizeof(config));
-  config.filename_base = (char *)(size_t)(size_t) "test_cli_partial";
+  config.filename_base = cdd_test_mut_str("test_cli_partial");
 
   rc = openapi_cli_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -368,15 +360,15 @@ TEST test_cli_gen_partial2(void) {
   int rc = 0;
 
   memset(&spec, 0, sizeof(spec));
-  spec.openapi_version = (char *)(size_t)(size_t) "3.1.0";
-  spec.info.title = (char *)(size_t)(size_t) "Partial API 2";
-  spec.info.version = (char *)(size_t)(size_t) "1.0.0";
+  spec.openapi_version = cdd_test_mut_str("3.1.0");
+  spec.info.title = cdd_test_mut_str("Partial API 2");
+  spec.info.version = cdd_test_mut_str("1.0.0");
 
-  spec.info.contact.email = (char *)(size_t)(size_t) "support@example.com";
-  spec.info.license.identifier = (char *)(size_t)(size_t) "MIT-id";
+  spec.info.contact.email = cdd_test_mut_str("support@example.com");
+  spec.info.license.identifier = cdd_test_mut_str("MIT-id");
 
   memset(&config, 0, sizeof(config));
-  config.filename_base = (char *)(size_t)(size_t) "test_cli_partial2";
+  config.filename_base = cdd_test_mut_str("test_cli_partial2");
 
   rc = openapi_cli_generate(&spec, &config);
   ASSERT_EQ(0, rc);

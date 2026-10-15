@@ -8,17 +8,27 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include "cdd_helpers.h"
-/* clang-format on */
-#include <errno.h>
+#if defined(_WIN32)
+#include <direct.h>
+#include <io.h>
+#else
+#include <dirent.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
 
 #include "c_cdd_export.h"
+#include "cdd_helpers.h"
 #include "cdd_test_helpers_export.h"
+/* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
 extern C_CDD_EXPORT int g_io_calls;
@@ -136,9 +146,99 @@ cdd_c_error_t write_to_file(const char *filename, const char *contents) {
 
   return rc;
 }
-#include "cdd_test_helpers_export.h"
+
+static void cdd_test_rmdir_recursive(const char *path) {
+#if defined(_WIN32)
+  struct _finddata_t file_info;
+  intptr_t handle;
+  char search_path[1024];
+  char child_path[1024];
+
+  if (!path || !*path)
+    return;
+#if defined(_MSC_VER)
+  sprintf_s(search_path, sizeof(search_path), "%s\\*", path);
+#else
+  CDD_SNPRINTF(search_path, sizeof(search_path), "%s\\*", path);
+#endif
+  handle = _findfirst(search_path, &file_info);
+  if (handle != -1) {
+    do {
+      if (strcmp(file_info.name, ".") == 0 || strcmp(file_info.name, "..") == 0)
+        continue;
+#if defined(_MSC_VER)
+      sprintf_s(child_path, sizeof(child_path), "%s\\%s", path, file_info.name);
+#else
+      CDD_SNPRINTF(child_path, sizeof(child_path), "%s\\%s", path,
+                   file_info.name);
+#endif
+      if (file_info.attrib & _A_SUBDIR) {
+        cdd_test_rmdir_recursive(child_path);
+      } else {
+        remove(child_path);
+      }
+    } while (_findnext(handle, &file_info) == 0);
+    _findclose(handle);
+  }
+  _rmdir(path);
+#else
+  DIR *d;
+  struct dirent *entry;
+  struct stat st;
+  char child_path[4096];
+
+  if (!path || !*path)
+    return;
+  chmod(path, 0755);
+  d = opendir(path);
+  if (d) {
+    while ((entry = readdir(d)) != NULL) {
+      if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+        continue;
+      CDD_SNPRINTF(child_path, sizeof(child_path), "%s/%s", path,
+                   entry->d_name);
+      if (stat(child_path, &st) == 0 && S_ISDIR(st.st_mode)) {
+        cdd_test_rmdir_recursive(child_path);
+      } else {
+        remove(child_path);
+      }
+    }
+    closedir(d);
+  }
+  rmdir(path);
+#endif
+}
 
 char g_cdd_test_tmp_buf[1024][64];
+static char g_cdd_test_mut_pool[1024][512];
+static size_t g_cdd_test_mut_idx = 0;
+
+/**
+ * @brief Returns a mutable copy of a string in a rotating static test buffer.
+ *
+ * @param[in] str Input string.
+ * @return Mutable pointer to a copy of str, or NULL if str is NULL.
+ */
+CDD_TEST_HELPERS_EXPORT char *cdd_test_mut_str(const char *str) {
+  char *dst;
+  size_t len;
+  if (!str)
+    return NULL;
+  dst = g_cdd_test_mut_pool[g_cdd_test_mut_idx];
+  g_cdd_test_mut_idx = (g_cdd_test_mut_idx + 1) & 1023;
+  len = strlen(str);
+  if (len >= sizeof(g_cdd_test_mut_pool[0]))
+    len = sizeof(g_cdd_test_mut_pool[0]) - 1;
+  memcpy(dst, str, len);
+  dst[len] = '\0';
+  return dst;
+}
+
+/**
+ * @brief Create a temporary file in the test sandbox and return its stream.
+ *
+ * @return Open FILE pointer on success, or NULL on error.
+ */
 CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void) {
   static int counter = 0;
   FILE *f;
@@ -160,4 +260,114 @@ CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void) {
 #endif
   counter++;
   return f;
+}
+
+/**
+ * @brief Clean up all temporary files and directories created by tests.
+ */
+CDD_TEST_HELPERS_EXPORT void cdd_test_tmpfile_cleanup(void) {
+  int i;
+  static const char *const k_transient_files[] = {
+      "impl.c",
+      "invalid_spec.json",
+      "out.c",
+      "out.json",
+      "out2.json",
+      "docs.json",
+      "docs_out.json",
+      "out_schema.json",
+      "dummy_spec.json",
+      "test_c2openapi_eof.c",
+      "test_c2openapi_gui_only.c",
+      "test_c2openapi_infer.c",
+      "test_c2openapi_infer2.c",
+      "test_c2openapi_infer3.c",
+      "test_c2openapi_infer4.c",
+      "test_c2openapi_infer5.c",
+      "test_c2openapi_infer_fail.c",
+      "test_c2openapi_last_tok.c",
+      "test_c2openapi_no_brace.c",
+      "test_c2openapi_only_infer.c",
+      "test_c2openapi_oom_build.c",
+      "test_c2openapi_render_extra.c",
+      "test_codegen_schema_io.json.c",
+      "test_codegen_schema_io.json.h",
+      "test_empty.c",
+      "test_empty.txt",
+      "test_nif.c",
+      "test_out_dsl.dsl",
+      "test_router_edge.c",
+      "test_tcl.c",
+      "test_valid_infer.c",
+      "union_array_schema.json.c",
+      "union_array_schema.json.h",
+      "cdd_test_tmp_union.txt",
+      "cdd_test_tmp_hdr.h",
+      "cdd_test_tmp_out.json",
+      "cdd_test_tmp_unclosed.h",
+      "cdd_test_tmp_nested_fail.h",
+      "cdd_test_tmp_struct_fail.h",
+      "cdd_test_tmp_enum_fail.h"};
+  static const char *const k_transient_dirs[] = {"my_empty_dir",
+                                                 "non_eexist_dir",
+                                                 "out",
+                                                 "out_dir",
+                                                 "out_dir_io",
+                                                 "out_sdk",
+                                                 "out_sdk_cli",
+                                                 "out_server",
+                                                 "test_bindings_out",
+                                                 "test_build_dir",
+                                                 "test_build_dir_io",
+                                                 "test_build_dir_oom",
+                                                 "test_build_dir_readonly",
+                                                 "test_build_dir_readonly2",
+                                                 "test_build_dir_tests",
+                                                 "test_cli_bind_out",
+                                                 "test_cpp_out",
+                                                 "test_csharp_out",
+                                                 "test_dart_out",
+                                                 "test_dummy_dir_for_makedirs",
+                                                 "test_ffi_e2e_out",
+                                                 "test_go_out",
+                                                 "test_haskell_out",
+                                                 "test_java_out",
+                                                 "test_julia_out",
+                                                 "test_kotlin_out",
+                                                 "test_lua_out",
+                                                 "test_m_dir",
+                                                 "test_matlab_out",
+                                                 "test_napi_dir",
+                                                 "test_napi_out",
+                                                 "test_ocaml_out",
+                                                 "test_odin_out",
+                                                 "test_out_swift_io",
+                                                 "test_php_out",
+                                                 "test_pom_dir",
+                                                 "test_python_out",
+                                                 "test_r_out",
+                                                 "test_ruby_out",
+                                                 "test_rust_out",
+                                                 "test_swift_out",
+                                                 "test_typescript_out",
+                                                 "test_zig_out"};
+
+  for (i = 0; i < 1024; i++) {
+    char buf[64];
+#if defined(_MSC_VER)
+    sprintf_s(buf, sizeof(buf), "cdd_test_tmp_%d.txt", i);
+#else
+    CDD_SNPRINTF(buf, sizeof(buf), "cdd_test_tmp_%d.txt", i);
+#endif
+    remove(buf);
+  }
+  for (i = 0;
+       i < (int)(sizeof(k_transient_files) / sizeof(k_transient_files[0]));
+       i++) {
+    remove(k_transient_files[i]);
+  }
+  for (i = 0; i < (int)(sizeof(k_transient_dirs) / sizeof(k_transient_dirs[0]));
+       i++) {
+    cdd_test_rmdir_recursive(k_transient_dirs[i]);
+  }
 }

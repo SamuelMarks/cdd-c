@@ -31,11 +31,8 @@ extern "C" {
  * @param[in] argv Argument vector.
  * @return 0 on success, EXIT_FAILURE on error.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates build system main.
-                     */
-    cdd_c_error_t
-    generate_build_system_main(int argc, char **argv);
+extern C_CDD_EXPORT cdd_c_error_t generate_build_system_main(int argc,
+                                                             char **argv);
 
 /**
  * @brief Generate a CMakeLists.txt file.
@@ -45,12 +42,8 @@ extern C_CDD_EXPORT /**
  * @param[in] has_tests 1 if test scaffolding should be included.
  * @return 0 on success, error code (errno) on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Generates cmake project.
-                     */
-    cdd_c_error_t
-    generate_cmake_project(const char *output_path, const char *project_name,
-                           int has_tests);
+extern C_CDD_EXPORT cdd_c_error_t generate_cmake_project(
+    const char *output_path, const char *project_name, int has_tests);
 
 #ifdef CDD_BUILD_TESTS
 /**

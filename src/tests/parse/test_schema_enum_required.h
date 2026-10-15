@@ -33,11 +33,7 @@ static cdd_c_error_t load_spec_string(const char *json,
   root = json_parse_string(json);
   if (!root)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  rc = openapi_spec_init(spec);
-  if (rc != CDD_C_SUCCESS) {
-    json_value_free(root);
-    return rc;
-  }
+  openapi_spec_init(spec);
   rc = openapi_load_from_json(root, spec);
   json_value_free(root);
   return rc;
@@ -57,17 +53,12 @@ TEST test_loader_enum_and_required(void) {
       "}}}";
 
   struct OpenAPI_Spec spec;
-  extern C_CDD_EXPORT int g_openapi_spec_init_fail;
   int rc = 0;
 
   /* Exercise error handling in load_spec_string */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, load_spec_string(NULL, &spec));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, load_spec_string(json, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, load_spec_string("{bad_json", &spec));
-
-  g_openapi_spec_init_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, load_spec_string(json, &spec));
-  g_openapi_spec_init_fail = 0;
 
   rc = load_spec_string(json, &spec);
   ASSERT_EQ(0, rc);
@@ -112,8 +103,8 @@ TEST test_writer_enum_and_required(void) {
   int rc = 0;
 
   rc += 0;
-  names[0] = (char *)(size_t)(size_t) "Color";
-  names[1] = (char *)(size_t)(size_t) "Car";
+  names[0] = cdd_test_mut_str("Color");
+  names[1] = cdd_test_mut_str("Car");
 
   struct_fields_init(&schemas[0]);
   schemas[0].is_enum = 1;
@@ -126,7 +117,7 @@ TEST test_writer_enum_and_required(void) {
                     NULL, NULL);
   schemas[1].fields[0].required = 1;
 
-  spec.openapi_version = (char *)(size_t)(size_t) "3.2.0";
+  spec.openapi_version = cdd_test_mut_str("3.2.0");
   spec.defined_schemas = schemas;
   spec.defined_schema_names = names;
   spec.n_defined_schemas = 2;

@@ -341,7 +341,7 @@ cdd_c_error_t doc_parse_block(const char *comment, struct DocMetadata *out) {
 
       {
         size_t cmd_len = (size_t)(cmd_end - cmd_start);
-        cmd = (char *)(size_t)C_CDD_MALLOC(cmd_len + 1);
+        cmd = (char *)C_CDD_MALLOC(cmd_len + 1);
         if (!cmd) {
           rc = CDD_C_ERROR_MEMORY;
           goto cleanup;
@@ -482,12 +482,20 @@ cdd_c_error_t parse_style_text_test(const char *s, enum DocParamStyle *out) {
 }
 
 cdd_c_error_t parse_optional_example_attr_test(const char *attr, char **out) {
-  return doc_parse_optional_example_attr(attr, out);
+  char buf[256];
+  if (!attr)
+    return doc_parse_optional_example_attr(NULL, out);
+  CDD_STRCPY(buf, sizeof(buf), attr);
+  return doc_parse_optional_example_attr(buf, out);
 }
 
 cdd_c_error_t parse_optional_bool_attr_test(const char *attr, const char *key,
                                             int *out_set, int *out_val) {
-  return doc_parse_optional_bool_attr(attr, key, out_set, out_val);
+  char buf[256];
+  if (!attr)
+    return doc_parse_optional_bool_attr(NULL, key, out_set, out_val);
+  CDD_STRCPY(buf, sizeof(buf), attr);
+  return doc_parse_optional_bool_attr(buf, key, out_set, out_val);
 }
 
 cdd_c_error_t split_scopes_test(const char *s, char ***out_scopes,

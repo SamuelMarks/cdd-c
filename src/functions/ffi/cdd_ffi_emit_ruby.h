@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_ruby.h
+ * @brief FFI binding emitter for Ruby.
+ */
 #ifndef CDD_FFI_EMIT_RUBY_H
 #define CDD_FFI_EMIT_RUBY_H
 

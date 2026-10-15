@@ -1,3 +1,7 @@
+/**
+ * @file cdd_cst_builder.c
+ * @brief Concrete Syntax Tree (CST) builder implementation and utilities.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -515,7 +519,7 @@ cdd_c_error_t cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
   if (builder->error_state != 0)
     return (cdd_c_error_t)builder->error_state;
 
-  span = az_span_create_from_str((char *)(size_t)snippet);
+  span = az_span_create_from_str(snippet);
   rc = cdd_lexer_tokenize(span, &list);
   if (rc != CDD_C_SUCCESS) {
     builder->error_state = rc;

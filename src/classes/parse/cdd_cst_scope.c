@@ -1,3 +1,7 @@
+/**
+ * @file cdd_cst_scope.c
+ * @brief Concrete Syntax Tree (CST) scope implementation and utilities.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -46,7 +50,7 @@ cdd_c_error_t cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
 static void free_symbols(cdd_cst_symbol_t *sym) {
   while (sym) {
     cdd_cst_symbol_t *next = sym->next;
-    C_CDD_FREE((void *)sym->name);
+    C_CDD_FREE(sym->name);
     C_CDD_FREE(sym);
     sym = next;
   }
@@ -122,7 +126,7 @@ static cdd_c_error_t cdd_strdup(const char *s, char **out_s) {
   size_t len;
   char *d;
   len = strlen(s);
-  d = (char *)(size_t)C_CDD_MALLOC(len + 1);
+  d = (char *)C_CDD_MALLOC(len + 1);
   if (!d) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -147,7 +151,7 @@ cdd_c_error_t cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env,
     return CDD_C_ERROR_MEMORY;
   }
 
-  if (cdd_strdup(name, (char **)&sym->name) != 0)
+  if (cdd_strdup(name, &sym->name) != 0)
     sym->name = NULL;
   if (!sym->name) {
     C_CDD_FREE(sym);

@@ -13,7 +13,6 @@ extern "C" {
 
 /* clang-format off */
 #include "parse/test_openapi_loader_common.h"
-#include "openapi/parse/openapi_test_helpers.h"
 #include "openapi/parse/openapi_internal_components.h"
 /* clang-format on */
 
@@ -38,11 +37,11 @@ TEST test_openapi_uri_basics(void) {
   cdd_c_error_t rc = 0;
 
   /* 1. json_pointer_unescape */
-  rc = cdd_test_json_pointer_unescape(NULL, &str);
+  rc = json_pointer_unescape(NULL, &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(NULL, str);
 
-  rc = cdd_test_json_pointer_unescape("a~0b~1c~2d", &str);
+  rc = json_pointer_unescape("a~0b~1c~2d", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("a~b/c~2d", str);
   free(str);
@@ -50,60 +49,60 @@ TEST test_openapi_uri_basics(void) {
 
   /* json_pointer_unescape OOM */
   g_cdd_alloc_fail = 1;
-  rc = cdd_test_json_pointer_unescape("test", &str);
+  rc = json_pointer_unescape("test", &str);
   g_cdd_alloc_fail = 0;
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(NULL, str);
 
   /* 2. uri_base_len */
-  rc = cdd_test_uri_base_len(NULL, &ulen);
+  rc = uri_base_len(NULL, &ulen);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, ulen);
 
-  rc = cdd_test_uri_base_len("http://example.com/api#fragment", &ulen);
+  rc = uri_base_len("http://example.com/api#fragment", &ulen);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(strlen("http://example.com/api"), ulen);
 
   /* 3. uri_scheme_len */
-  rc = cdd_test_uri_scheme_len(NULL, 0, &ulen);
+  rc = uri_scheme_len(NULL, 0, &ulen);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, ulen);
 
-  rc = cdd_test_uri_scheme_len("http://example.com", 0, &ulen);
+  rc = uri_scheme_len("http://example.com", 0, &ulen);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, ulen);
 
-  rc = cdd_test_uri_scheme_len("http://example.com",
-                               strlen("http://example.com"), &ulen);
+  rc =
+      uri_scheme_len("http://example.com", strlen("http://example.com"), &ulen);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(4, ulen);
 
   /* uri_scheme_len stopping on slash, query, hash */
-  rc = cdd_test_uri_scheme_len("/path/test", 10, &ulen);
+  rc = uri_scheme_len("/path/test", 10, &ulen);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, ulen);
 
-  rc = cdd_test_uri_scheme_len("?query", 6, &ulen);
+  rc = uri_scheme_len("?query", 6, &ulen);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, ulen);
 
-  rc = cdd_test_uri_scheme_len("#hash", 5, &ulen);
+  rc = uri_scheme_len("#hash", 5, &ulen);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, ulen);
 
   /* 4. dup_substr */
-  rc = cdd_test_dup_substr(NULL, 10, &str);
+  rc = dup_substr(NULL, 10, &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(NULL, str);
 
-  rc = cdd_test_dup_substr("hello world", 5, &str);
+  rc = dup_substr("hello world", 5, &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("hello", str);
   free(str);
   str = NULL;
 
   g_cdd_alloc_fail = 1;
-  rc = cdd_test_dup_substr("hello world", 5, &str);
+  rc = dup_substr("hello world", 5, &str);
   g_cdd_alloc_fail = 0;
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(NULL, str);
@@ -119,61 +118,61 @@ TEST test_openapi_uri_normalize_path_branches(void) {
   cdd_c_error_t rc = 0;
 
   /* NULL path */
-  rc = cdd_test_normalize_path(NULL, &str);
+  rc = normalize_path(NULL, &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(NULL, str);
 
   /* Empty string */
-  rc = cdd_test_normalize_path("", &str);
+  rc = normalize_path("", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("", str);
   free(str);
   str = NULL;
 
   /* Absolute root "/" */
-  rc = cdd_test_normalize_path("/", &str);
+  rc = normalize_path("/", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("/", str);
   free(str);
   str = NULL;
 
   /* Absolute "//" */
-  rc = cdd_test_normalize_path("//", &str);
+  rc = normalize_path("//", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("/", str);
   free(str);
   str = NULL;
 
   /* Absolute "/." */
-  rc = cdd_test_normalize_path("/.", &str);
+  rc = normalize_path("/.", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("/", str);
   free(str);
   str = NULL;
 
   /* Absolute "/.." */
-  rc = cdd_test_normalize_path("/..", &str);
+  rc = normalize_path("/..", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("/", str);
   free(str);
   str = NULL;
 
   /* Trailing slash with single segment */
-  rc = cdd_test_normalize_path("/a/", &str);
+  rc = normalize_path("/a/", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("/a/", str);
   free(str);
   str = NULL;
 
   /* Relative path with trailing slash */
-  rc = cdd_test_normalize_path("a/b/", &str);
+  rc = normalize_path("a/b/", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("a/b/", str);
   free(str);
   str = NULL;
 
   /* Relative path with leading "../" */
-  rc = cdd_test_normalize_path("../../a", &str);
+  rc = normalize_path("../../a", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("../../a", str);
   free(str);
@@ -181,7 +180,7 @@ TEST test_openapi_uri_normalize_path_branches(void) {
 
   /* Normalize path OOM conditions */
   g_cdd_alloc_fail = 1;
-  rc = cdd_test_normalize_path("a/b/c", &str);
+  rc = normalize_path("a/b/c", &str);
   g_cdd_alloc_fail = 0;
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(NULL, str);
@@ -197,43 +196,42 @@ TEST test_openapi_uri_resolve_reference_branches(void) {
   cdd_c_error_t rc = 0;
 
   /* NULL ref */
-  rc = cdd_test_resolve_uri_reference("http://example.com", NULL, &str);
+  rc = resolve_uri_reference("http://example.com", NULL, &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(NULL, str);
 
   /* Protocol-relative ref "//cdn.example.com/lib.js" */
-  rc = cdd_test_resolve_uri_reference("https://example.com/api",
-                                      "//cdn.example.com/lib.js", &str);
+  rc = resolve_uri_reference("https://example.com/api",
+                             "//cdn.example.com/lib.js", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("https://cdn.example.com/lib.js", str);
   free(str);
   str = NULL;
 
   /* Protocol-relative ref with base without scheme */
-  rc = cdd_test_resolve_uri_reference("no_scheme_base",
-                                      "//cdn.example.com/lib.js", &str);
+  rc =
+      resolve_uri_reference("no_scheme_base", "//cdn.example.com/lib.js", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("//cdn.example.com/lib.js", str);
   free(str);
   str = NULL;
 
   /* Base URI with scheme authority and no path */
-  rc = cdd_test_resolve_uri_reference("https://example.com", "api/v1", &str);
+  rc = resolve_uri_reference("https://example.com", "api/v1", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("https://example.com/api/v1", str);
   free(str);
   str = NULL;
 
   /* Base URI with root directory */
-  rc = cdd_test_resolve_uri_reference("https://example.com/", "api/v1", &str);
+  rc = resolve_uri_reference("https://example.com/", "api/v1", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("https://example.com/api/v1", str);
   free(str);
   str = NULL;
 
   /* Absolute path ref on base URI */
-  rc = cdd_test_resolve_uri_reference("https://example.com/api/v1", "/root/doc",
-                                      &str);
+  rc = resolve_uri_reference("https://example.com/api/v1", "/root/doc", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("https://example.com/root/doc", str);
   free(str);
@@ -250,33 +248,32 @@ TEST test_openapi_uri_compute_document_uri_branches(void) {
   cdd_c_error_t rc = 0;
 
   /* Both NULL or empty */
-  rc = cdd_test_compute_document_uri(NULL, NULL, &str);
+  rc = compute_document_uri(NULL, NULL, &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(NULL, str);
 
-  rc = cdd_test_compute_document_uri("", "", &str);
+  rc = compute_document_uri("", "", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(NULL, str);
 
   /* Only self_uri */
-  rc = cdd_test_compute_document_uri("https://example.com/schema.json", NULL,
-                                     &str);
+  rc = compute_document_uri("https://example.com/schema.json", NULL, &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("https://example.com/schema.json", str);
   free(str);
   str = NULL;
 
   /* Only retrieval_uri */
-  rc = cdd_test_compute_document_uri(
-      NULL, "https://example.com/retrieved.json#frag", &str);
+  rc = compute_document_uri(NULL, "https://example.com/retrieved.json#frag",
+                            &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("https://example.com/retrieved.json", str);
   free(str);
   str = NULL;
 
   /* Both self_uri and retrieval_uri */
-  rc = cdd_test_compute_document_uri("sub/schema.json#frag",
-                                     "https://example.com/api/root.json", &str);
+  rc = compute_document_uri("sub/schema.json#frag",
+                            "https://example.com/api/root.json", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("https://example.com/api/sub/schema.json", str);
   free(str);
@@ -284,7 +281,7 @@ TEST test_openapi_uri_compute_document_uri_branches(void) {
 
   /* OOM branches */
   g_cdd_strdup_fail = 1;
-  rc = cdd_test_compute_document_uri("https://example.com", NULL, &str);
+  rc = compute_document_uri("https://example.com", NULL, &str);
   g_cdd_strdup_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
 
@@ -299,86 +296,86 @@ TEST test_openapi_uri_schema_and_ref_branches(void) {
   struct OpenAPI_DocRegistry reg;
   struct OpenAPI_DocRegistryEntry entry;
   struct ResolvedRefTarget tgt;
-  char *name = NULL;
+  const char *name = NULL;
   JSON_Value *jv = NULL;
   JSON_Object *jo = NULL;
   cdd_c_error_t rc = 0;
 
   /* 1. root_has_openapi_fields */
-  rc = cdd_test_root_has_openapi_fields(NULL);
+  rc = root_has_openapi_fields(NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   jv = json_parse_string("{\"servers\": []}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_root_has_openapi_fields(jo);
+  rc = root_has_openapi_fields(jo);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
   json_value_free(jv);
 
   jv = json_parse_string("{\"webhooks\": {}}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_root_has_openapi_fields(jo);
+  rc = root_has_openapi_fields(jo);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
   json_value_free(jv);
 
   jv = json_parse_string("{\"tags\": []}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_root_has_openapi_fields(jo);
+  rc = root_has_openapi_fields(jo);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
   json_value_free(jv);
 
   jv = json_parse_string("{\"security\": []}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_root_has_openapi_fields(jo);
+  rc = root_has_openapi_fields(jo);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
   json_value_free(jv);
 
   jv = json_parse_string("{\"externalDocs\": {}}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_root_has_openapi_fields(jo);
+  rc = root_has_openapi_fields(jo);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
   json_value_free(jv);
 
   jv = json_parse_string("{\"$self\": \"uri\"}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_root_has_openapi_fields(jo);
+  rc = root_has_openapi_fields(jo);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
   json_value_free(jv);
 
   /* 2. root_is_schema_document */
-  rc = cdd_test_root_is_schema_document(NULL, NULL);
+  rc = root_is_schema_document(NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   jv = json_parse_string("true");
-  rc = cdd_test_root_is_schema_document(jv, json_value_get_object(jv));
+  rc = root_is_schema_document(jv, json_value_get_object(jv));
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   json_value_free(jv);
 
   jv = json_parse_string("123");
-  rc = cdd_test_root_is_schema_document(jv, json_value_get_object(jv));
+  rc = root_is_schema_document(jv, json_value_get_object(jv));
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   json_value_free(jv);
 
   /* 3. store_schema_root_json */
   memset(&spec, 0, sizeof(spec));
-  rc = cdd_test_store_schema_root_json(NULL, NULL);
+  rc = store_schema_root_json(NULL, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   jv = json_parse_string("{\"type\": \"string\"}");
-  rc = cdd_test_store_schema_root_json(&spec, jv);
+  rc = store_schema_root_json(&spec, jv);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   /* second call when already stored */
-  rc = cdd_test_store_schema_root_json(&spec, jv);
+  rc = store_schema_root_json(&spec, jv);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   openapi_spec_free(&spec);
   json_value_free(jv);
 
   /* 4. resolve_ref_target */
   memset(&spec, 0, sizeof(spec));
-  rc = cdd_test_resolve_ref_target(NULL, "#/components/schemas/Pet", &tgt);
+  rc = resolve_ref_target(NULL, "#/components/schemas/Pet", &tgt);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Local ref #/frag without base */
-  rc = cdd_test_resolve_ref_target(&spec, "#/frag", &tgt);
+  rc = resolve_ref_target(&spec, "#/frag", &tgt);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Target in registry */
@@ -394,7 +391,7 @@ TEST test_openapi_uri_schema_and_ref_branches(void) {
     spec.doc_registry = &reg;
     spec.document_uri = d_uri;
 
-    rc = cdd_test_resolve_ref_target(&spec, "models.json#/Pet", &tgt);
+    rc = resolve_ref_target(&spec, "models.json#/Pet", &tgt);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_EQ(&spec, tgt.spec);
     if (tgt.resolved_ref)
@@ -404,25 +401,24 @@ TEST test_openapi_uri_schema_and_ref_branches(void) {
   }
 
   /* 5. ref_base_matches_self */
-  rc = cdd_test_ref_base_matches_self(NULL, NULL, NULL);
+  rc = ref_base_matches_self(NULL, NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   {
     const char ex_frag[] = "https://example.com#frag";
-    rc = cdd_test_ref_base_matches_self(&spec, ex_frag, ex_frag);
+    rc = ref_base_matches_self(&spec, ex_frag, ex_frag);
   }
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
 
-  rc = cdd_test_ref_base_matches_self(NULL, "https://example.com/api#frag",
-                                      "#frag");
+  rc = ref_base_matches_self(NULL, "https://example.com/api#frag", "#frag");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Relative document_uri match */
   {
     char doc_rel[] = "./models.json";
     spec.document_uri = doc_rel;
-    rc = cdd_test_ref_base_matches_self(&spec, "dir/models.json#frag",
-                                        strchr("dir/models.json#frag", '#'));
+    rc = ref_base_matches_self(&spec, "dir/models.json#frag",
+                               strchr("dir/models.json#frag", '#'));
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
     spec.document_uri = NULL;
   }
@@ -431,32 +427,32 @@ TEST test_openapi_uri_schema_and_ref_branches(void) {
   {
     char self_rel[] = "./common.json";
     spec.self_uri = self_rel;
-    rc = cdd_test_ref_base_matches_self(&spec, "sub/common.json#frag",
-                                        strchr("sub/common.json#frag", '#'));
+    rc = ref_base_matches_self(&spec, "sub/common.json#frag",
+                               strchr("sub/common.json#frag", '#'));
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
     spec.self_uri = NULL;
   }
 
   /* 6. ref_name_from_prefix */
-  rc = cdd_test_ref_name_from_prefix(NULL, NULL, NULL, &name);
+  rc = ref_name_from_prefix(NULL, NULL, NULL, &name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(NULL, name);
 
   /* Matching prefix */
-  rc = cdd_test_ref_name_from_prefix(&spec, "#/components/schemas/Dog",
-                                     "#/components/schemas/", &name);
+  rc = ref_name_from_prefix(&spec, "#/components/schemas/Dog",
+                            "#/components/schemas/", &name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("Dog", name);
 
   /* Prefix with empty name */
-  rc = cdd_test_ref_name_from_prefix(&spec, "#/components/schemas/",
-                                     "#/components/schemas/", &name);
+  rc = ref_name_from_prefix(&spec, "#/components/schemas/",
+                            "#/components/schemas/", &name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(NULL, name);
 
   /* Prefix with slash in name */
-  rc = cdd_test_ref_name_from_prefix(&spec, "#/components/schemas/Dog/Sub",
-                                     "#/components/schemas/", &name);
+  rc = ref_name_from_prefix(&spec, "#/components/schemas/Dog/Sub",
+                            "#/components/schemas/", &name);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(NULL, name);
 
@@ -464,23 +460,20 @@ TEST test_openapi_uri_schema_and_ref_branches(void) {
   {
     char s_uri[] = "models.json";
     spec.self_uri = s_uri;
-    rc = cdd_test_ref_name_from_prefix(&spec,
-                                       "models.json#/components/schemas/Cat",
-                                       "#/components/schemas/", &name);
+    rc = ref_name_from_prefix(&spec, "models.json#/components/schemas/Cat",
+                              "#/components/schemas/", &name);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_STR_EQ("Cat", name);
 
     /* External ref with hash prefix but empty name */
-    rc =
-        cdd_test_ref_name_from_prefix(&spec, "models.json#/components/schemas/",
-                                      "#/components/schemas/", &name);
+    rc = ref_name_from_prefix(&spec, "models.json#/components/schemas/",
+                              "#/components/schemas/", &name);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_EQ(NULL, name);
 
     /* External ref with slash in name */
-    rc = cdd_test_ref_name_from_prefix(&spec,
-                                       "models.json#/components/schemas/A/B",
-                                       "#/components/schemas/", &name);
+    rc = ref_name_from_prefix(&spec, "models.json#/components/schemas/A/B",
+                              "#/components/schemas/", &name);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_EQ(NULL, name);
     spec.self_uri = NULL;
@@ -500,7 +493,7 @@ TEST test_openapi_uri_advanced_branches(void) {
   cdd_c_error_t rc = 0;
 
   /* 1. json_pointer_unescape with '~' at end of string */
-  rc = cdd_test_json_pointer_unescape("abc~", &str);
+  rc = json_pointer_unescape("abc~", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("abc~", str);
   free(str);
@@ -514,7 +507,7 @@ TEST test_openapi_uri_advanced_branches(void) {
   {
     /* relative path with multiple .. requiring capacity expansion (cap 4 -> 8)
      */
-    rc = cdd_test_normalize_path("../../../../../a", &str);
+    rc = normalize_path("../../../../../a", &str);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_STR_EQ("../../../../../a", str);
     free(str);
@@ -522,21 +515,21 @@ TEST test_openapi_uri_advanced_branches(void) {
 
     /* normalize_path OOM on root "/" when count == 0 and absolute == 1 */
     g_cdd_strdup_fail = 1;
-    rc = cdd_test_normalize_path("/", &str);
+    rc = normalize_path("/", &str);
     g_cdd_strdup_fail = 0;
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_EQ(NULL, str);
 
     /* normalize_path OOM on empty "" when count == 0 and absolute == 0 */
     g_cdd_strdup_fail = 1;
-    rc = cdd_test_normalize_path(".", &str);
+    rc = normalize_path(".", &str);
     g_cdd_strdup_fail = 0;
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_EQ(NULL, str);
 
     /* normalize_path with trailing slash on absolute path with 1 segment: "/a/"
      */
-    rc = cdd_test_normalize_path("/a/", &str);
+    rc = normalize_path("/a/", &str);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_STR_EQ("/a/", str);
     free(str);
@@ -550,7 +543,7 @@ TEST test_openapi_uri_advanced_branches(void) {
   {
     /* e.g. "https://example.com" with "sub" where base_dir_len == 0 and
      * prefix_len > 0 -> base_dir = "/" */
-    rc = cdd_test_resolve_uri_reference("https://example.com", "sub", &str);
+    rc = resolve_uri_reference("https://example.com", "sub", &str);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_STR_EQ("https://example.com/sub", str);
     free(str);
@@ -558,8 +551,8 @@ TEST test_openapi_uri_advanced_branches(void) {
 
     /* protocol relative ref OOM on malloc */
     g_cdd_alloc_fail = 1;
-    rc = cdd_test_resolve_uri_reference("https://example.com/api",
-                                        "//cdn.com/lib", &str);
+    rc =
+        resolve_uri_reference("https://example.com/api", "//cdn.com/lib", &str);
     g_cdd_alloc_fail = 0;
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_EQ(NULL, str);
@@ -570,7 +563,7 @@ TEST test_openapi_uri_advanced_branches(void) {
     JSON_Value *jv = json_parse_string("{\"type\": \"object\"}");
     memset(&spec, 0, sizeof(spec));
     g_cdd_fail_json_serialize = 1;
-    rc = cdd_test_store_schema_root_json(&spec, jv);
+    rc = store_schema_root_json(&spec, jv);
     g_cdd_fail_json_serialize = 0;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     json_value_free(jv);
@@ -599,35 +592,35 @@ TEST test_openapi_uri_advanced_branches(void) {
     spec.document_uri = doc_exact;
     {
       const char mf[] = "models.json#frag";
-      rc = cdd_test_ref_base_matches_self(&spec, mf, strchr(mf, '#'));
+      rc = ref_base_matches_self(&spec, mf, strchr(mf, '#'));
     }
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
 
     /* rel[0] == '/' */
     spec.document_uri = doc_slash;
-    rc = cdd_test_ref_base_matches_self(&spec, "dir/models.json#frag",
-                                        strchr("dir/models.json#frag", '#'));
+    rc = ref_base_matches_self(&spec, "dir/models.json#frag",
+                               strchr("dir/models.json#frag", '#'));
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
     spec.document_uri = NULL;
 
     /* self_base[0] == '/' */
     spec.self_uri = self_slash;
-    rc = cdd_test_ref_base_matches_self(&spec, "dir/common.json#frag",
-                                        strchr("dir/common.json#frag", '#'));
+    rc = ref_base_matches_self(&spec, "dir/common.json#frag",
+                               strchr("dir/common.json#frag", '#'));
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
 
     /* base_len == self_len */
     spec.self_uri = self_exact;
     {
       const char cf[] = "common.json#frag";
-      rc = cdd_test_ref_base_matches_self(&spec, cf, strchr(cf, '#'));
+      rc = ref_base_matches_self(&spec, cf, strchr(cf, '#'));
     }
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
 
     /* self_len == 0 after stripping ./ */
     spec.self_uri = self_dots;
-    rc = cdd_test_ref_base_matches_self(&spec, "something#frag",
-                                        strchr("something#frag", '#'));
+    rc = ref_base_matches_self(&spec, "something#frag",
+                               strchr("something#frag", '#'));
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     spec.self_uri = NULL;
   }
@@ -647,7 +640,7 @@ TEST test_openapi_uri_final_edges(void) {
      - path with multiple slashes "a//b"
      - realloc failure in segments
   */
-  rc = cdd_test_normalize_path("a//b", &str);
+  rc = normalize_path("a//b", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("a/b", str);
   free(str);
@@ -663,21 +656,21 @@ TEST test_openapi_uri_final_edges(void) {
     memset(&spec, 0, sizeof(spec));
 
     spec.document_uri = doc;
-    rc = cdd_test_ref_base_matches_self(&spec, "prefix/models.json#frag",
-                                        strchr("prefix/models.json#frag", '#'));
+    rc = ref_base_matches_self(&spec, "prefix/models.json#frag",
+                               strchr("prefix/models.json#frag", '#'));
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
     spec.document_uri = NULL;
 
     spec.self_uri = self_doc;
-    rc = cdd_test_ref_base_matches_self(&spec, "prefix/common.json#frag",
-                                        strchr("prefix/common.json#frag", '#'));
+    rc = ref_base_matches_self(&spec, "prefix/common.json#frag",
+                               strchr("prefix/common.json#frag", '#'));
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
     spec.self_uri = NULL;
   }
 
   /* 3. resolve_uri_reference where base_uri has scheme but prefix_len > 0 and
    * base_path has no trailing slash */
-  rc = cdd_test_resolve_uri_reference("http://example.com/api", "v1", &str);
+  rc = resolve_uri_reference("http://example.com/api", "v1", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("http://example.com/v1", str);
   free(str);
@@ -699,14 +692,14 @@ TEST test_openapi_uri_exhaust_branches(void) {
   {
     /* Path with 5 components requiring realloc from cap 4 to 8 */
     g_cdd_alloc_fail = 2;
-    rc = cdd_test_normalize_path("a/b/c/d/e", &str);
+    rc = normalize_path("a/b/c/d/e", &str);
     g_cdd_alloc_fail = 0;
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_EQ(NULL, str);
 
     /* realloc failure when pushing '..' */
     g_cdd_alloc_fail = 2;
-    rc = cdd_test_normalize_path("../../../../..", &str);
+    rc = normalize_path("../../../../..", &str);
     g_cdd_alloc_fail = 0;
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_EQ(NULL, str);
@@ -724,19 +717,19 @@ TEST test_openapi_uri_exhaust_branches(void) {
 
     /* OOM on dup_substr */
     g_cdd_alloc_fail = 1;
-    rc = cdd_test_resolve_ref_target(&spec, "models.json#/Pet", &tgt);
+    rc = resolve_ref_target(&spec, "models.json#/Pet", &tgt);
     g_cdd_alloc_fail = 0;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
 
     /* OOM on resolve_uri_reference (falls back to base_part) */
     g_cdd_alloc_fail = 2;
-    rc = cdd_test_resolve_ref_target(&spec, "models.json#/Pet", &tgt);
+    rc = resolve_ref_target(&spec, "models.json#/Pet", &tgt);
     g_cdd_alloc_fail = 0;
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     free(tgt.resolved_ref);
 
     /* Normal resolution where resolved_base != ref base */
-    rc = cdd_test_resolve_ref_target(&spec, "models.json#/Pet", &tgt);
+    rc = resolve_ref_target(&spec, "models.json#/Pet", &tgt);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_NEQ(NULL, tgt.resolved_ref);
     free(tgt.resolved_ref);
@@ -749,14 +742,13 @@ TEST test_openapi_uri_exhaust_branches(void) {
     JSON_Value *jv_sw = json_parse_string("{\"swagger\": \"2.0\"}");
     JSON_Value *jv_info = json_parse_string("{\"info\": {}}");
 
-    rc = cdd_test_root_is_schema_document(jv_oa, json_value_get_object(jv_oa));
+    rc = root_is_schema_document(jv_oa, json_value_get_object(jv_oa));
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-    rc = cdd_test_root_is_schema_document(jv_sw, json_value_get_object(jv_sw));
+    rc = root_is_schema_document(jv_sw, json_value_get_object(jv_sw));
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-    rc = cdd_test_root_is_schema_document(jv_info,
-                                          json_value_get_object(jv_info));
+    rc = root_is_schema_document(jv_info, json_value_get_object(jv_info));
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
     json_value_free(jv_oa);
@@ -766,12 +758,12 @@ TEST test_openapi_uri_exhaust_branches(void) {
 
   /* 4. ref_name_from_prefix NULL arguments */
   {
-    char *out_name = NULL;
-    rc = cdd_test_ref_name_from_prefix(&spec, NULL, "#/prefix/", &out_name);
+    const char *out_name = NULL;
+    rc = ref_name_from_prefix(&spec, NULL, "#/prefix/", &out_name);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_EQ(NULL, out_name);
 
-    rc = cdd_test_ref_name_from_prefix(&spec, "#/something", NULL, &out_name);
+    rc = ref_name_from_prefix(&spec, "#/something", NULL, &out_name);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_EQ(NULL, out_name);
   }
@@ -795,16 +787,14 @@ TEST test_openapi_uri_non_matching_relative(void) {
     memset(&spec, 0, sizeof(spec));
 
     spec.document_uri = doc;
-    rc = cdd_test_ref_base_matches_self(
-        &spec, "prefix/different.json#frag",
-        strchr("prefix/different.json#frag", '#'));
+    rc = ref_base_matches_self(&spec, "prefix/different.json#frag",
+                               strchr("prefix/different.json#frag", '#'));
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     spec.document_uri = NULL;
 
     spec.self_uri = self_doc;
-    rc = cdd_test_ref_base_matches_self(
-        &spec, "prefix/different.json#frag",
-        strchr("prefix/different.json#frag", '#'));
+    rc = ref_base_matches_self(&spec, "prefix/different.json#frag",
+                               strchr("prefix/different.json#frag", '#'));
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     spec.self_uri = NULL;
   }
@@ -826,7 +816,7 @@ TEST test_openapi_uri_final_unhit_branches(void) {
   /* 1. root_has_openapi_fields with "components" */
   jv = json_parse_string("{\"components\": {}}");
   jo = json_value_get_object(jv);
-  rc = cdd_test_root_has_openapi_fields(jo);
+  rc = root_has_openapi_fields(jo);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
   json_value_free(jv);
 
@@ -837,14 +827,14 @@ TEST test_openapi_uri_final_unhit_branches(void) {
     spec.self_uri = self_with_hash;
     {
       const char mf[] = "models.json#frag";
-      rc = cdd_test_ref_base_matches_self(&spec, mf, strchr(mf, '#'));
+      rc = ref_base_matches_self(&spec, mf, strchr(mf, '#'));
     }
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
     spec.self_uri = NULL;
   }
 
   /* 3. resolve_uri_reference where base_dir_len == 0 (no prefix and no path) */
-  rc = cdd_test_resolve_uri_reference("urn:isbn", "12345", &str);
+  rc = resolve_uri_reference("urn:isbn", "12345", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("12345", str);
   free(str);
@@ -865,14 +855,14 @@ TEST test_openapi_uri_100_percent_final(void) {
   cdd_c_error_t rc = 0;
 
   /* 1. normalize_path: 5 regular segments to grow cap from 4 to 8 */
-  rc = cdd_test_normalize_path("a/b/c/d/e", &str);
+  rc = normalize_path("a/b/c/d/e", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("a/b/c/d/e", str);
   free(str);
   str = NULL;
 
   /* 2. resolve_uri_reference: ref_len < 2, e.g. "/" */
-  rc = cdd_test_resolve_uri_reference("https://example.com/api", "/", &str);
+  rc = resolve_uri_reference("https://example.com/api", "/", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("https://example.com/", str);
   free(str);
@@ -880,7 +870,7 @@ TEST test_openapi_uri_100_percent_final(void) {
 
   /* 3. compute_document_uri: self_uri non-empty and retrieval_uri empty string
    * "" */
-  rc = cdd_test_compute_document_uri("https://example.com/self", "", &str);
+  rc = compute_document_uri("https://example.com/self", "", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("https://example.com/self", str);
   free(str);
@@ -890,9 +880,9 @@ TEST test_openapi_uri_100_percent_final(void) {
   {
     JSON_Value *jv = json_parse_string("123");
     memset(&spec, 0, sizeof(spec));
-    rc = cdd_test_store_schema_root_json(NULL, jv);
+    rc = store_schema_root_json(NULL, jv);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_test_store_schema_root_json(&spec, NULL);
+    rc = store_schema_root_json(&spec, NULL);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
     json_value_free(jv);
   }
@@ -907,7 +897,7 @@ TEST test_openapi_uri_100_percent_final(void) {
     char mod_base[] = "https://example.com/models.json";
     memset(&spec, 0, sizeof(spec));
     spec.document_uri = empty_doc;
-    rc = cdd_test_resolve_ref_target(&spec, "models.json#/Pet", &tgt);
+    rc = resolve_ref_target(&spec, "models.json#/Pet", &tgt);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     free(tgt.resolved_ref);
 
@@ -923,8 +913,8 @@ TEST test_openapi_uri_100_percent_final(void) {
     spec.doc_registry = &reg;
     spec.document_uri = mod_base;
 
-    rc = cdd_test_resolve_ref_target(
-        &spec, "https://example.com/models.json#/Pet", &tgt);
+    rc =
+        resolve_ref_target(&spec, "https://example.com/models.json#/Pet", &tgt);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_EQ(&spec, tgt.spec);
     if (tgt.resolved_ref)
@@ -941,14 +931,14 @@ TEST test_openapi_uri_100_percent_final(void) {
     char empty_str[] = "";
     memset(&spec, 0, sizeof(spec));
     spec.document_uri = empty_str;
-    rc = cdd_test_ref_base_matches_self(&spec, "something#frag",
-                                        strchr("something#frag", '#'));
+    rc = ref_base_matches_self(&spec, "something#frag",
+                               strchr("something#frag", '#'));
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
     spec.document_uri = NULL;
     spec.self_uri = empty_str;
-    rc = cdd_test_ref_base_matches_self(&spec, "something#frag",
-                                        strchr("something#frag", '#'));
+    rc = ref_base_matches_self(&spec, "something#frag",
+                               strchr("something#frag", '#'));
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     spec.self_uri = NULL;
   }
@@ -969,7 +959,7 @@ TEST test_openapi_uri_branch_finishing(void) {
 
   /* 1. base_uri with scheme where scheme_len + 2 >= base_len (e.g. "http:" or
    * "http:/") */
-  rc = cdd_test_resolve_uri_reference("http:", "path", &str);
+  rc = resolve_uri_reference("http:", "path", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("path", str);
   free(str);
@@ -994,7 +984,7 @@ TEST test_openapi_uri_branch_finishing(void) {
        base_part same len as resolved: If doc_uri is NULL, resolved_base is
        base_part. Let's test resolve_ref_target with relative doc_uri:
     */
-    rc = cdd_test_resolve_ref_target(&spec, "abcd.json#/Pet", &tgt);
+    rc = resolve_ref_target(&spec, "abcd.json#/Pet", &tgt);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     if (tgt.resolved_ref)
       free(tgt.resolved_ref);
@@ -1003,7 +993,7 @@ TEST test_openapi_uri_branch_finishing(void) {
   }
 
   /* 3. ref_base_matches_self with ref != NULL and hash == NULL */
-  rc = cdd_test_ref_base_matches_self(&spec, "no_hash_ref", NULL);
+  rc = ref_base_matches_self(&spec, "no_hash_ref", NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* 4. ref_base_matches_self where uri_len == base_len but strncmp != 0 */
@@ -1014,7 +1004,7 @@ TEST test_openapi_uri_branch_finishing(void) {
     /* "common.json" has same len (11) as "models.json" */
     {
       const char cf[] = "common.json#frag";
-      rc = cdd_test_ref_base_matches_self(&spec, cf, strchr(cf, '#'));
+      rc = ref_base_matches_self(&spec, cf, strchr(cf, '#'));
     }
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     spec.document_uri = NULL;
@@ -1026,15 +1016,15 @@ TEST test_openapi_uri_branch_finishing(void) {
     memset(&spec, 0, sizeof(spec));
     spec.document_uri = doc;
     /* base_len ("m.json", 6) < rel_len (18) */
-    rc = cdd_test_ref_base_matches_self(&spec, "m.json#frag",
-                                        strchr("m.json#frag", '#'));
+    rc =
+        ref_base_matches_self(&spec, "m.json#frag", strchr("m.json#frag", '#'));
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     spec.document_uri = NULL;
 
     /* And for self_uri with base_len < self_len */
     spec.self_uri = doc;
-    rc = cdd_test_ref_base_matches_self(&spec, "m.json#frag",
-                                        strchr("m.json#frag", '#'));
+    rc =
+        ref_base_matches_self(&spec, "m.json#frag", strchr("m.json#frag", '#'));
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     spec.self_uri = NULL;
   }
@@ -1048,14 +1038,14 @@ TEST test_openapi_uri_branch_finishing(void) {
 
     spec.document_uri = doc;
     /* 'badmodels.json' ends with 'models.json' but char before is 'd' != '/' */
-    rc = cdd_test_ref_base_matches_self(&spec, "badmodels.json#frag",
-                                        strchr("badmodels.json#frag", '#'));
+    rc = ref_base_matches_self(&spec, "badmodels.json#frag",
+                               strchr("badmodels.json#frag", '#'));
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     spec.document_uri = NULL;
 
     spec.self_uri = self_dot_doc;
-    rc = cdd_test_ref_base_matches_self(&spec, "badcommon.json#frag",
-                                        strchr("badcommon.json#frag", '#'));
+    rc = ref_base_matches_self(&spec, "badcommon.json#frag",
+                               strchr("badcommon.json#frag", '#'));
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     spec.self_uri = NULL;
   }
@@ -1067,7 +1057,7 @@ TEST test_openapi_uri_branch_finishing(void) {
     spec.self_uri = self_dot;
     {
       const char cf[] = "common.json#frag";
-      rc = cdd_test_ref_base_matches_self(&spec, cf, strchr(cf, '#'));
+      rc = ref_base_matches_self(&spec, cf, strchr(cf, '#'));
     }
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
     spec.self_uri = NULL;
@@ -1080,7 +1070,7 @@ TEST test_openapi_uri_branch_finishing(void) {
     spec.self_uri = self_doc;
     {
       const char cf[] = "common.json#frag";
-      rc = cdd_test_ref_base_matches_self(&spec, cf, strchr(cf, '#'));
+      rc = ref_base_matches_self(&spec, cf, strchr(cf, '#'));
     }
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     spec.self_uri = NULL;

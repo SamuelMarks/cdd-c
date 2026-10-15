@@ -33,8 +33,7 @@
 #else
 /* Naive fallback for non-MSVC C89 */
 /** @brief sprintf_s_chk macro */
-#define sprintf_s_chk(buf, size, fmt, arg)                                     \
-  CDD_SNPRINTF(buf, sizeof(buf), fmt, arg)
+#define sprintf_s_chk(buf, size, fmt, arg) CDD_SNPRINTF(buf, size, fmt, arg)
 #endif
 
 /**
@@ -117,11 +116,12 @@ static cdd_c_error_t is_unreserved_form(unsigned char c) {
 }
 
 /**
- * @brief Executes the url encode operation.
+ * @brief Percent-encodes a string according to RFC 3986 unreserved character
+ * rules.
  */
 cdd_c_error_t url_encode(const char *str, char **_out_val) {
-  char _ast_to_hex_0;
-  char _ast_to_hex_1;
+  char hex_hi;
+  char hex_lo;
   const char *p;
   char *enc = NULL;
   char *e;
@@ -142,7 +142,7 @@ cdd_c_error_t url_encode(const char *str, char **_out_val) {
   }
 
   /* Alloc */
-  enc = (char *)(size_t)malloc(needed_len + 1);
+  enc = (char *)malloc(needed_len + 1);
   if (!enc) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -156,10 +156,10 @@ cdd_c_error_t url_encode(const char *str, char **_out_val) {
       *e++ = *p;
     } else {
       *e++ = '%';
-      to_hex((char)(unsigned char)((unsigned char)c >> 4), &_ast_to_hex_0);
-      *e++ = (char)_ast_to_hex_0;
-      to_hex((char)(unsigned char)((unsigned char)c & 15), &_ast_to_hex_1);
-      *e++ = (char)_ast_to_hex_1;
+      to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
+      *e++ = hex_hi;
+      to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
+      *e++ = hex_lo;
     }
   }
   *e = '\0';
@@ -171,11 +171,12 @@ cdd_c_error_t url_encode(const char *str, char **_out_val) {
 }
 
 /**
- * @brief Executes the url encode allow reserved operation.
+ * @brief Percent-encodes a string while preserving RFC 3986 reserved characters
+ * and %HH triples.
  */
 cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
-  char _ast_to_hex_2;
-  char _ast_to_hex_3;
+  char hex_hi;
+  char hex_lo;
   const char *p;
   char *enc = NULL;
   char *e;
@@ -200,7 +201,7 @@ cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
     }
   }
 
-  enc = (char *)(size_t)malloc(needed_len + 1);
+  enc = (char *)malloc(needed_len + 1);
   if (!enc) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -219,10 +220,10 @@ cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
       *e++ = *p;
     } else {
       *e++ = '%';
-      to_hex((char)(unsigned char)((unsigned char)c >> 4), &_ast_to_hex_2);
-      *e++ = (char)_ast_to_hex_2;
-      to_hex((char)(unsigned char)((unsigned char)c & 15), &_ast_to_hex_3);
-      *e++ = (char)_ast_to_hex_3;
+      to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
+      *e++ = hex_hi;
+      to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
+      *e++ = hex_lo;
     }
   }
   *e = '\0';
@@ -233,11 +234,12 @@ cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
 }
 
 /**
- * @brief Executes the url encode form operation.
+ * @brief Percent-encodes a string for application/x-www-form-urlencoded (spaces
+ * as +).
  */
 cdd_c_error_t url_encode_form(const char *str, char **_out_val) {
-  char _ast_to_hex_4;
-  char _ast_to_hex_5;
+  char hex_hi;
+  char hex_lo;
   const char *p;
   char *enc = NULL;
   char *e;
@@ -259,7 +261,7 @@ cdd_c_error_t url_encode_form(const char *str, char **_out_val) {
     }
   }
 
-  enc = (char *)(size_t)malloc(needed_len + 1);
+  enc = (char *)malloc(needed_len + 1);
   if (!enc) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -274,10 +276,10 @@ cdd_c_error_t url_encode_form(const char *str, char **_out_val) {
       *e++ = *p;
     } else {
       *e++ = '%';
-      to_hex((char)(unsigned char)((unsigned char)c >> 4), &_ast_to_hex_4);
-      *e++ = (char)_ast_to_hex_4;
-      to_hex((char)(unsigned char)((unsigned char)c & 15), &_ast_to_hex_5);
-      *e++ = (char)_ast_to_hex_5;
+      to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
+      *e++ = hex_hi;
+      to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
+      *e++ = hex_lo;
     }
   }
   *e = '\0';
@@ -288,13 +290,12 @@ cdd_c_error_t url_encode_form(const char *str, char **_out_val) {
 }
 
 /**
- * @brief Executes the url encode form allow reserved operation.
+ * @brief Form-encodes a string while preserving non-delimiter reserved
+ * characters.
  */
 cdd_c_error_t url_encode_form_allow_reserved(const char *str, char **_out_val) {
-  char _ast_to_hex_6;
-  char _ast_to_hex_7;
-  char _ast_to_hex_8;
-  char _ast_to_hex_9;
+  char hex_hi;
+  char hex_lo;
   const char *p;
   char *enc = NULL;
   char *e;
@@ -323,7 +324,7 @@ cdd_c_error_t url_encode_form_allow_reserved(const char *str, char **_out_val) {
     }
   }
 
-  enc = (char *)(size_t)malloc(needed_len + 1);
+  enc = (char *)malloc(needed_len + 1);
   if (!enc) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -341,19 +342,19 @@ cdd_c_error_t url_encode_form_allow_reserved(const char *str, char **_out_val) {
     } else if (is_unreserved_form(c) || is_reserved(c)) {
       if (c == '&' || c == '=' || c == '+') {
         *e++ = '%';
-        to_hex((char)(unsigned char)((unsigned char)c >> 4), &_ast_to_hex_6);
-        *e++ = (char)_ast_to_hex_6;
-        to_hex((char)(unsigned char)((unsigned char)c & 15), &_ast_to_hex_7);
-        *e++ = (char)_ast_to_hex_7;
+        to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
+        *e++ = hex_hi;
+        to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
+        *e++ = hex_lo;
       } else {
         *e++ = *p;
       }
     } else {
       *e++ = '%';
-      to_hex((char)(unsigned char)((unsigned char)c >> 4), &_ast_to_hex_8);
-      *e++ = (char)_ast_to_hex_8;
-      to_hex((char)(unsigned char)((unsigned char)c & 15), &_ast_to_hex_9);
-      *e++ = (char)_ast_to_hex_9;
+      to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
+      *e++ = hex_hi;
+      to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
+      *e++ = hex_lo;
     }
   }
   *e = '\0';
@@ -364,7 +365,7 @@ cdd_c_error_t url_encode_form_allow_reserved(const char *str, char **_out_val) {
 }
 
 /**
- * @brief Executes the url query init operation.
+ * @brief Initializes a UrlQueryParams container to empty state.
  */
 cdd_c_error_t url_query_init(struct UrlQueryParams *qp) {
   if (!qp)
@@ -376,7 +377,8 @@ cdd_c_error_t url_query_init(struct UrlQueryParams *qp) {
 }
 
 /**
- * @brief Executes the url query free operation.
+ * @brief Releases all key/value strings and storage in a UrlQueryParams
+ * container.
  */
 void url_query_free(struct UrlQueryParams *qp) {
   size_t i;
@@ -397,12 +399,10 @@ void url_query_free(struct UrlQueryParams *qp) {
 }
 
 /**
- * @brief Executes the url query add operation.
+ * @brief Appends a raw key/value parameter pair to a UrlQueryParams container.
  */
 cdd_c_error_t url_query_add(struct UrlQueryParams *qp, const char *key,
                             const char *value) {
-  char *_ast_strdup_0 = NULL;
-  char *_ast_strdup_1 = NULL;
   if (!qp || !key || !value)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -418,13 +418,11 @@ cdd_c_error_t url_query_add(struct UrlQueryParams *qp, const char *key,
     qp->capacity = new_cap;
   }
 
-  qp->params[qp->count].key =
-      (c_cdd_strdup(key, &_ast_strdup_0), _ast_strdup_0);
+  c_cdd_strdup(key, &qp->params[qp->count].key);
   if (!qp->params[qp->count].key)
     return CDD_C_ERROR_MEMORY;
 
-  qp->params[qp->count].value =
-      (c_cdd_strdup(value, &_ast_strdup_1), _ast_strdup_1);
+  c_cdd_strdup(value, &qp->params[qp->count].value);
   if (!qp->params[qp->count].value) {
     free(qp->params[qp->count].key);
     return CDD_C_ERROR_MEMORY;
@@ -436,12 +434,11 @@ cdd_c_error_t url_query_add(struct UrlQueryParams *qp, const char *key,
 }
 
 /**
- * @brief Executes the url query add encoded operation.
+ * @brief Appends a pre-encoded value parameter pair to a UrlQueryParams
+ * container.
  */
 cdd_c_error_t url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
                                     const char *value) {
-  char *_ast_strdup_2 = NULL;
-  char *_ast_strdup_3 = NULL;
   if (!qp || !key || !value)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -457,13 +454,11 @@ cdd_c_error_t url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
     qp->capacity = new_cap;
   }
 
-  qp->params[qp->count].key =
-      (c_cdd_strdup(key, &_ast_strdup_2), _ast_strdup_2);
+  c_cdd_strdup(key, &qp->params[qp->count].key);
   if (!qp->params[qp->count].key)
     return CDD_C_ERROR_MEMORY;
 
-  qp->params[qp->count].value =
-      (c_cdd_strdup(value, &_ast_strdup_3), _ast_strdup_3);
+  c_cdd_strdup(value, &qp->params[qp->count].value);
   if (!qp->params[qp->count].value) {
     free(qp->params[qp->count].key);
     return CDD_C_ERROR_MEMORY;
@@ -475,16 +470,10 @@ cdd_c_error_t url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
 }
 
 /**
- * @brief Executes the url query build operation.
+ * @brief Serializes a UrlQueryParams container into a ?-prefixed RFC 3986 query
+ * string.
  */
 cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, char **out_str) {
-  char *_ast_url_encode_10 = NULL;
-  char *_ast_url_encode_11 = NULL;
-  char *_ast_url_encode_12 = NULL;
-  char *_ast_url_encode_13 = NULL;
-  char *_ast_strdup_4 = NULL;
-  char *_ast_strdup_5 = NULL;
-  char *_ast_strdup_6 = NULL;
   size_t i;
   size_t total_len = 0;
   char *buf = NULL;
@@ -494,7 +483,7 @@ cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, char **out_str) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (qp->count == 0) {
-    *out_str = (c_cdd_strdup("", &_ast_strdup_4), _ast_strdup_4);
+    c_cdd_strdup("", out_str);
     return *out_str ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   }
 
@@ -506,15 +495,15 @@ cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, char **out_str) {
   total_len = 1; /* '?' */
 
   for (i = 0; i < qp->count; ++i) {
-    char *e_key = (url_encode(qp->params[i].key, &_ast_url_encode_10),
-                   _ast_url_encode_10);
+    char *e_key = NULL;
     char *e_val = NULL;
     const char *raw_val = qp->params[i].value;
 
+    url_encode(qp->params[i].key, &e_key);
     if (qp->params[i].value_is_encoded) {
-      e_val = (c_cdd_strdup(raw_val, &_ast_strdup_5), _ast_strdup_5);
+      c_cdd_strdup(raw_val, &e_val);
     } else {
-      e_val = (url_encode(raw_val, &_ast_url_encode_11), _ast_url_encode_11);
+      url_encode(raw_val, &e_val);
     }
 
     if (!e_key || !e_val) {
@@ -535,7 +524,7 @@ cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, char **out_str) {
   }
 
   /* 2. Allocate */
-  buf = (char *)(size_t)malloc(total_len + 1);
+  buf = (char *)malloc(total_len + 1);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -546,16 +535,16 @@ cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, char **out_str) {
   *ptr++ = '?';
 
   for (i = 0; i < qp->count; ++i) {
-    char *e_key = (url_encode(qp->params[i].key, &_ast_url_encode_12),
-                   _ast_url_encode_12);
+    char *e_key = NULL;
     size_t kl, vl;
     char *e_val = NULL;
     const char *raw_val = qp->params[i].value;
 
+    url_encode(qp->params[i].key, &e_key);
     if (qp->params[i].value_is_encoded) {
-      e_val = (c_cdd_strdup(raw_val, &_ast_strdup_6), _ast_strdup_6);
+      c_cdd_strdup(raw_val, &e_val);
     } else {
-      e_val = (url_encode(raw_val, &_ast_url_encode_13), _ast_url_encode_13);
+      url_encode(raw_val, &e_val);
     }
 
     if (!e_key || !e_val) {
@@ -597,16 +586,11 @@ cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, char **out_str) {
 }
 
 /**
- * @brief Executes the url query build form operation.
+ * @brief Serializes a UrlQueryParams container into an
+ * application/x-www-form-urlencoded body.
  */
 cdd_c_error_t url_query_build_form(const struct UrlQueryParams *qp,
                                    char **out_str) {
-  char *_ast_url_encode_form_14 = NULL;
-  char *_ast_url_encode_form_15 = NULL;
-  char *_ast_url_encode_form_16 = NULL;
-  char *_ast_url_encode_form_17 = NULL;
-  char *_ast_strdup_7 = NULL;
-  char *_ast_strdup_8 = NULL;
   size_t i;
   size_t total_len = 0;
   char *buf;
@@ -616,27 +600,25 @@ cdd_c_error_t url_query_build_form(const struct UrlQueryParams *qp,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (qp->count == 0) {
-    *out_str = (char *)(size_t)calloc(1, 1);
+    *out_str = (char *)calloc(1, 1);
     if (!*out_str)
       return CDD_C_ERROR_MEMORY;
     return CDD_C_SUCCESS;
   }
 
   for (i = 0; i < qp->count; ++i) {
-    char *e_key = (url_encode_form(qp->params[i].key, &_ast_url_encode_form_14),
-                   _ast_url_encode_form_14);
-    char *e_val;
+    char *e_key = NULL;
+    char *e_val = NULL;
     size_t kl, vl;
+    url_encode_form(qp->params[i].key, &e_key);
     if (!e_key) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
     }
     if (qp->params[i].value_is_encoded) {
-      e_val =
-          (c_cdd_strdup(qp->params[i].value, &_ast_strdup_7), _ast_strdup_7);
+      c_cdd_strdup(qp->params[i].value, &e_val);
     } else {
-      e_val = (url_encode_form(qp->params[i].value, &_ast_url_encode_form_15),
-               _ast_url_encode_form_15);
+      url_encode_form(qp->params[i].value, &e_val);
     }
     if (!e_val) {
       free(e_key);
@@ -651,7 +633,7 @@ cdd_c_error_t url_query_build_form(const struct UrlQueryParams *qp,
     free(e_val);
   }
 
-  buf = (char *)(size_t)malloc(total_len + 1);
+  buf = (char *)malloc(total_len + 1);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -659,20 +641,18 @@ cdd_c_error_t url_query_build_form(const struct UrlQueryParams *qp,
   ptr = buf;
 
   for (i = 0; i < qp->count; ++i) {
-    char *e_key = (url_encode_form(qp->params[i].key, &_ast_url_encode_form_16),
-                   _ast_url_encode_form_16);
-    char *e_val;
+    char *e_key = NULL;
+    char *e_val = NULL;
     size_t kl, vl;
+    url_encode_form(qp->params[i].key, &e_key);
     if (!e_key) {
       free(buf);
       return CDD_C_ERROR_MEMORY;
     }
     if (qp->params[i].value_is_encoded) {
-      e_val =
-          (c_cdd_strdup(qp->params[i].value, &_ast_strdup_8), _ast_strdup_8);
+      c_cdd_strdup(qp->params[i].value, &e_val);
     } else {
-      e_val = (url_encode_form(qp->params[i].value, &_ast_url_encode_form_17),
-               _ast_url_encode_form_17);
+      url_encode_form(qp->params[i].value, &e_val);
     }
     if (!e_val) {
       free(e_key);
@@ -697,7 +677,8 @@ cdd_c_error_t url_query_build_form(const struct UrlQueryParams *qp,
 }
 
 /**
- * @brief Executes the append str operation.
+ * @brief Appends a null-terminated string to a dynamically resized character
+ * buffer.
  */
 static cdd_c_error_t append_str(char **buf, size_t *len, size_t *cap,
                                 const char *s) {
@@ -714,7 +695,7 @@ static cdd_c_error_t append_str(char **buf, size_t *len, size_t *cap,
     size_t new_cap = (*cap == 0) ? 64 : *cap * 2;
     while (new_cap < need)
       new_cap *= 2;
-    tmp = (char *)(size_t)realloc(*buf, new_cap);
+    tmp = (char *)realloc(*buf, new_cap);
     if (!tmp) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -729,7 +710,7 @@ static cdd_c_error_t append_str(char **buf, size_t *len, size_t *cap,
 }
 
 /**
- * @brief Executes the kv value to string operation.
+ * @brief Formats a typed OpenAPI_KV value into a string representation.
  */
 static cdd_c_error_t kv_value_to_string(const struct OpenAPI_KV *kv, char *buf,
                                         size_t buf_len, const char **_out_val) {
@@ -774,12 +755,12 @@ static cdd_c_error_t kv_value_to_string(const struct OpenAPI_KV *kv, char *buf,
 }
 
 /**
- * @brief Executes the openapi kv join form operation.
+ * @brief Joins an array of OpenAPI_KV pairs using a delimiter and form
+ * encoding.
  */
 cdd_c_error_t openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
                                    const char *delim, int allow_reserved,
                                    char **_out_val) {
-  const char *_ast_kv_value_to_string_18 = NULL;
   size_t i;
   char *buf = NULL;
   size_t len = 0;
@@ -794,7 +775,7 @@ cdd_c_error_t openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
     delim = ",";
 
   if (!kvs || n == 0) {
-    buf = (char *)(size_t)calloc(1, 1);
+    buf = (char *)calloc(1, 1);
     if (!buf)
       return CDD_C_ERROR_MEMORY;
     {
@@ -804,12 +785,10 @@ cdd_c_error_t openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
   }
 
   for (i = 0; i < n; ++i) {
-    const char *raw_val;
+    const char *raw_val = NULL;
     if (!kvs[i].key)
       continue;
-    raw_val = (kv_value_to_string(&kvs[i], num_buf, sizeof(num_buf),
-                                  &_ast_kv_value_to_string_18),
-               _ast_kv_value_to_string_18);
+    kv_value_to_string(&kvs[i], num_buf, sizeof(num_buf), &raw_val);
     if (!raw_val)
       continue;
     enc_fn(kvs[i].key, &enc_key);
@@ -835,7 +814,7 @@ cdd_c_error_t openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
   }
 
   if (!buf) {
-    buf = (char *)(size_t)calloc(1, 1);
+    buf = (char *)calloc(1, 1);
     if (!buf)
       return CDD_C_ERROR_MEMORY;
   }

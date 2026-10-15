@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_haskell.c
+ * @brief FFI binding emitter for Haskell.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -7,72 +11,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
+static cdd_c_error_t get_haskell_type(cdd_ffi_type_t type,
+                                      const char **out_type) {
+  static const cdd_ffi_type_map_table_t k_haskell_types = {
+      "()",      "CBool",   "CChar",   "CUChar", "CShort",
+      "CUShort", "CInt",    "CUInt",   "CLLong", "CULLong",
+      "CFloat",  "CDouble", "CString", "Ptr ()", "FunPtr ()",
+      "CInt",    1,         0,         1};
+  return cdd_ffi_map_type_from_table(&k_haskell_types, type, out_type);
 }
 
-static const char *get_haskell_type(cdd_ffi_type_t type) {
-  if (type.pointer_depth > 0) {
-    if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
-      return "CString";
-    }
-    return "Ptr ()";
-  }
-
-  switch (type.kind) {
-  case CDD_FFI_KIND_VOID:
-    return "()";
-  case CDD_FFI_KIND_BOOL:
-    return "CBool";
-  case CDD_FFI_KIND_INT8:
-    return "CChar";
-  case CDD_FFI_KIND_UINT8:
-    return "CUChar";
-  case CDD_FFI_KIND_INT16:
-    return "CShort";
-  case CDD_FFI_KIND_UINT16:
-    return "CUShort";
-  case CDD_FFI_KIND_INT32:
-    return "CInt";
-  case CDD_FFI_KIND_UINT32:
-    return "CUInt";
-  case CDD_FFI_KIND_INT64:
-    return "CLLong";
-  case CDD_FFI_KIND_UINT64:
-    return "CULLong";
-  case CDD_FFI_KIND_FLOAT32:
-    return "CFloat";
-  case CDD_FFI_KIND_FLOAT64:
-    return "CDouble";
-  case CDD_FFI_KIND_FUNCTION_PTR:
-    return "FunPtr ()";
-  case CDD_FFI_KIND_STRUCT_REF:
-    return type.ref_name ? type.ref_name : "Ptr ()";
-  case CDD_FFI_KIND_ENUM_REF:
-    return "CInt";
-  case CDD_FFI_KIND_TYPEDEF_REF:
-    return type.ref_name ? type.ref_name : "Ptr ()";
-  case CDD_FFI_KIND_OPAQUE_PTR:
-    return "Ptr ()";
-  default:
-    return "Ptr ()";
-  }
-}
-
-static void to_camel_case(const char *snake, char *out, size_t out_size) {
+static cdd_c_error_t to_camel_case(const char *snake, char *out,
+                                   size_t out_size) {
   size_t i, j = 0;
   int up = 1;
   for (i = 0; i < strlen(snake) && j < out_size - 1; i++) {
@@ -88,6 +41,7 @@ static void to_camel_case(const char *snake, char *out, size_t out_size) {
     }
   }
   out[j] = '\0';
+  return CDD_C_SUCCESS;
 }
 
 static cdd_c_error_t
@@ -138,7 +92,7 @@ emit_haskell_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "-- | %s\n", node->doc);
       fprintf(f, "data %s\n\n", node->name);
@@ -149,16 +103,20 @@ emit_haskell_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
+      const char *ret_ht = NULL;
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "-- | %s\n", node->doc);
       fprintf(f, "foreign import ccall unsafe \"%s\" c_%s\n", node->name,
               node->name);
       fprintf(f, "  :: ");
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "%s -> ", get_haskell_type(node->fields[j].type));
+        const char *ht = NULL;
+        get_haskell_type(node->fields[j].type, &ht);
+        fprintf(f, "%s -> ", ht);
       }
-      fprintf(f, "IO (%s)\n\n", get_haskell_type(node->return_or_base_type));
+      get_haskell_type(node->return_or_base_type, &ret_ht);
+      fprintf(f, "IO (%s)\n\n", ret_ht);
     }
   }
 

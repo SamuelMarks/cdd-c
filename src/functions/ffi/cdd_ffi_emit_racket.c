@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_racket.c
+ * @brief FFI binding emitter for Racket.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -10,28 +14,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
-}
-
-static void racketify_name(const char *c_name, char *out_name, size_t out_sz) {
+static cdd_c_error_t racketify_name(const char *c_name, char *out_name,
+                                    size_t out_sz) {
   size_t i = 0, j = 0;
   if (!c_name) {
     out_name[0] = '\0';
-    return;
+    return CDD_C_SUCCESS;
   }
   while (c_name[i] && j < out_sz - 1) {
     if (c_name[i] == '_') {
@@ -42,17 +33,19 @@ static void racketify_name(const char *c_name, char *out_name, size_t out_sz) {
     i++;
   }
   out_name[j] = '\0';
+  return CDD_C_SUCCESS;
 }
 
-static void map_racket_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz) {
+static cdd_c_error_t map_racket_type(cdd_ffi_type_t *t, char *out_type,
+                                     size_t out_sz) {
   if (t->pointer_depth > 0) {
     if ((t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) &&
         t->is_const) {
       CDD_SNPRINTF(out_type, out_sz, "_bytes");
-      return;
+      return CDD_C_SUCCESS;
     }
     CDD_SNPRINTF(out_type, out_sz, "_pointer");
-    return;
+    return CDD_C_SUCCESS;
   }
   switch (t->kind) {
   case CDD_FFI_KIND_VOID:
@@ -114,6 +107,7 @@ static void map_racket_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz) {
     CDD_SNPRINTF(out_type, out_sz, "_pointer");
     break;
   }
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t
@@ -195,7 +189,7 @@ cdd_ffi_emit_racket(cdd_ffi_ir_t *ir,
         }
       }
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "(define _%s\n", racket_node_name);
       fprintf(f, "  (_enum\n");
       fprintf(f, "   '(\n");
@@ -213,7 +207,7 @@ cdd_ffi_emit_racket(cdd_ffi_ir_t *ir,
       map_racket_type(&node->return_or_base_type, type_str, sizeof(type_str));
       fprintf(f, "(define _%s %s)\n\n", racket_node_name, type_str);
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       map_racket_type(&node->return_or_base_type, ret_type_str,
                       sizeof(ret_type_str));
       fprintf(f, "(define-%s %s\n", racket_lib_name, node->name);

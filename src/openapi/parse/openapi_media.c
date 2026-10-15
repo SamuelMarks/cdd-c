@@ -8,15 +8,9 @@
 #include "openapi/parse/openapi_internal.h"
 /* clang-format on */
 
-/**
- * @brief Parses media type object from the given input.
- */
-cdd_c_error_t parse_media_type_object(const JSON_Object *media_obj,
-                                      struct OpenAPI_MediaType *out,
-                                      const struct OpenAPI_Spec *spec,
-                                      int resolve_refs) {
-  struct OpenAPI_MediaType *_ast_find_component_media_type_63;
-  char *_ast_strdup_241 = NULL;
+static cdd_c_error_t parse_media_type_object_inner(
+    const JSON_Object *media_obj, struct OpenAPI_MediaType *out,
+    const struct OpenAPI_Spec *spec, int resolve_refs) {
   const JSON_Value *schema_val;
   const JSON_Object *schema_obj;
   const JSON_Value *item_schema_val;
@@ -25,6 +19,7 @@ cdd_c_error_t parse_media_type_object(const JSON_Object *media_obj,
   const JSON_Array *prefix_encoding_arr;
   const JSON_Object *item_encoding_obj;
   const char *ref;
+  cdd_c_error_t rc;
 
   if (!media_obj || !out)
     return CDD_C_SUCCESS;
@@ -39,20 +34,16 @@ cdd_c_error_t parse_media_type_object(const JSON_Object *media_obj,
 
   ref = json_object_get_string(media_obj, "$ref");
   if (ref) {
-    out->ref = (c_cdd_strdup(ref, &_ast_strdup_241), _ast_strdup_241);
+    c_cdd_strdup(ref, &out->ref);
     if (!out->ref)
       return CDD_C_ERROR_MEMORY;
     if (resolve_refs && spec) {
-      const struct OpenAPI_MediaType *mt =
-          (find_component_media_type(spec, ref,
-                                     &_ast_find_component_media_type_63),
-           _ast_find_component_media_type_63);
+      struct OpenAPI_MediaType *mt = NULL;
+      find_component_media_type(spec, ref, &mt);
       if (mt) {
-        {
-          cdd_c_error_t _rc = copy_media_type_fields(out, mt);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        rc = copy_media_type_fields(out, mt);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
     }
     return CDD_C_SUCCESS;
@@ -66,11 +57,9 @@ cdd_c_error_t parse_media_type_object(const JSON_Object *media_obj,
       out->schema.schema_boolean_value = json_value_get_boolean(schema_val);
       out->schema_set = 1;
     } else if (schema_obj) {
-      {
-        cdd_c_error_t _rc = parse_schema_ref(schema_obj, &out->schema, spec);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      rc = parse_schema_ref(schema_obj, &out->schema, spec);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       out->schema_set = 1;
     }
   }
@@ -85,29 +74,25 @@ cdd_c_error_t parse_media_type_object(const JSON_Object *media_obj,
           json_value_get_boolean(item_schema_val);
       out->item_schema_set = 1;
     } else if (item_schema_obj) {
-      {
-        cdd_c_error_t _rc =
-            parse_schema_ref(item_schema_obj, &out->item_schema, spec);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      rc = parse_schema_ref(item_schema_obj, &out->item_schema, spec);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       out->item_schema_set = 1;
     }
   }
 
   encoding_obj = json_object_get_object(media_obj, "encoding");
   if (encoding_obj) {
-    cdd_c_error_t rc = parse_encoding_map(encoding_obj, &out->encoding,
-                                          &out->n_encoding, spec, resolve_refs);
+    rc = parse_encoding_map(encoding_obj, &out->encoding, &out->n_encoding,
+                            spec, resolve_refs);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
 
   prefix_encoding_arr = json_object_get_array(media_obj, "prefixEncoding");
   if (prefix_encoding_arr) {
-    cdd_c_error_t rc =
-        parse_encoding_array(prefix_encoding_arr, &out->prefix_encoding,
-                             &out->n_prefix_encoding, spec, resolve_refs);
+    rc = parse_encoding_array(prefix_encoding_arr, &out->prefix_encoding,
+                              &out->n_prefix_encoding, spec, resolve_refs);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
@@ -119,77 +104,81 @@ cdd_c_error_t parse_media_type_object(const JSON_Object *media_obj,
     if (!out->item_encoding)
       return CDD_C_ERROR_MEMORY;
     out->item_encoding_set = 1;
-    {
-      cdd_c_error_t rc = parse_encoding_object(
-          item_encoding_obj, out->item_encoding, spec, resolve_refs);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
-    }
-  }
-
-  {
-    cdd_c_error_t rc = parse_media_examples(
-        media_obj, &out->example, &out->example_set, &out->examples,
-        &out->n_examples, spec, resolve_refs);
+    rc = parse_encoding_object(item_encoding_obj, out->item_encoding, spec,
+                               resolve_refs);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
 
-  {
-    cdd_c_error_t _rc = collect_extensions(media_obj, &out->extensions_json);
-    if (_rc != CDD_C_SUCCESS)
-      return _rc;
-  }
+  rc = parse_media_examples(media_obj, &out->example, &out->example_set,
+                            &out->examples, &out->n_examples, spec,
+                            resolve_refs);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = collect_extensions(media_obj, &out->extensions_json);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Executes the media type base len operation.
+ * @brief Parses media type object from the given input.
  */
-cdd_c_error_t media_type_base_len(const char *name, size_t *_out_val) {
-  size_t len = 0;
-  if (!name) {
-    *_out_val = 0;
-    return CDD_C_SUCCESS;
-  }
-  while (name[len] && name[len] != ';')
-    ++len;
-  {
-    *_out_val = len;
-    return CDD_C_SUCCESS;
-  }
+cdd_c_error_t parse_media_type_object(const JSON_Object *media_obj,
+                                      struct OpenAPI_MediaType *out,
+                                      const struct OpenAPI_Spec *spec,
+                                      int resolve_refs) {
+  cdd_c_error_t rc =
+      parse_media_type_object_inner(media_obj, out, spec, resolve_refs);
+  if (rc != CDD_C_SUCCESS && out)
+    free_media_type(out);
+  return rc;
 }
 
 /**
- * @brief Executes the media type base equal operation.
+ * @brief Computes the length of the essence (type/subtype) portion of a media
+ * type string.
+ */
+cdd_c_error_t openapi_media_type_base_len(const char *media_type,
+                                          size_t *_out_val) {
+  size_t len = 0;
+  if (!media_type) {
+    *_out_val = 0;
+    return CDD_C_SUCCESS;
+  }
+  while (media_type[len] && media_type[len] != ';') {
+    len++;
+  }
+  *_out_val = len;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Compares the essence (type/subtype) of two media type strings for
+ * equality.
  */
 cdd_c_error_t media_type_base_equal(const char *a, const char *b) {
-  size_t _ast_media_type_base_len_64 = 0;
-  size_t _ast_media_type_base_len_65 = 0;
-  size_t alen;
-  size_t blen;
+  size_t alen = 0;
+  size_t blen = 0;
   if (!a || !b)
     return CDD_C_SUCCESS;
-  alen = (media_type_base_len(a, &_ast_media_type_base_len_64),
-          _ast_media_type_base_len_64);
-  blen = (media_type_base_len(b, &_ast_media_type_base_len_65),
-          _ast_media_type_base_len_65);
+  media_type_base_len(a, &alen);
+  media_type_base_len(b, &blen);
   if (alen != blen)
     return CDD_C_SUCCESS;
   return strncmp(a, b, alen) == 0;
 }
 
 /**
- * @brief Executes the media type is json operation.
+ * @brief Checks whether a media type is application/json or has a +json suffix.
  */
-cdd_c_error_t media_type_is_json(const char *name) {
-  size_t _ast_media_type_base_len_66 = 0;
-  size_t len;
+cdd_c_error_t openapi_media_type_is_json(const char *name) {
+  size_t len = 0;
   if (!name)
     return CDD_C_SUCCESS;
-  len = (media_type_base_len(name, &_ast_media_type_base_len_66),
-         _ast_media_type_base_len_66);
+  media_type_base_len(name, &len);
   if (len == strlen("application/json") &&
       strncmp(name, "application/json", len) == 0)
     return CDD_C_ERROR_UNKNOWN;
@@ -199,20 +188,18 @@ cdd_c_error_t media_type_is_json(const char *name) {
 }
 
 /**
- * @brief Executes the media type specificity operation.
+ * @brief Computes a specificity score (0..2) for a media type pattern.
  */
 cdd_c_error_t media_type_specificity(const char *name, int *out_spec) {
-  size_t _ast_media_type_base_len_67 = 0;
   const char *slash;
-  size_t len;
+  size_t len = 0;
   size_t type_len;
   size_t sub_len;
   if (out_spec)
     *out_spec = 0;
   if (!name)
     return CDD_C_SUCCESS;
-  len = (media_type_base_len(name, &_ast_media_type_base_len_67),
-         _ast_media_type_base_len_67);
+  media_type_base_len(name, &len);
   if (len == 0)
     return CDD_C_SUCCESS;
   slash = (const char *)memchr(name, '/', len);
@@ -241,7 +228,8 @@ cdd_c_error_t media_type_specificity(const char *name, int *out_spec) {
 }
 
 /**
- * @brief Executes the media type preference rank operation.
+ * @brief Computes a preference rank for selecting a default request/response
+ * media type.
  */
 cdd_c_error_t media_type_preference_rank(const char *name, int *out_rank) {
   if (out_rank)
@@ -267,7 +255,8 @@ cdd_c_error_t media_type_preference_rank(const char *name, int *out_rank) {
 }
 
 /**
- * @brief Executes the select primary media type index operation.
+ * @brief Selects the index of the preferred media type from an array of media
+ * types.
  */
 cdd_c_error_t
 select_primary_media_type_index(const struct OpenAPI_MediaType *mts, size_t n,
@@ -306,7 +295,7 @@ select_primary_media_type_index(const struct OpenAPI_MediaType *mts, size_t n,
  */
 cdd_c_error_t find_media_object_by_name(const JSON_Object *content,
                                         const char *media_name,
-                                        JSON_Object **_out_val) {
+                                        const JSON_Object **_out_val) {
   size_t i, count;
   if (!content || !media_name) {
     *_out_val = NULL;
@@ -315,7 +304,7 @@ cdd_c_error_t find_media_object_by_name(const JSON_Object *content,
   {
     const JSON_Object *exact = json_object_get_object(content, media_name);
     if (exact) {
-      *_out_val = (JSON_Object *)(exact);
+      *_out_val = exact;
       return CDD_C_SUCCESS;
     }
   }
@@ -323,16 +312,12 @@ cdd_c_error_t find_media_object_by_name(const JSON_Object *content,
   for (i = 0; i < count; ++i) {
     const char *name = json_object_get_name(content, i);
     if (media_type_base_equal(name, media_name)) {
-      {
-        *_out_val = json_object_get_object(content, name);
-        return CDD_C_SUCCESS;
-      }
+      *_out_val = json_object_get_object(content, name);
+      return CDD_C_SUCCESS;
     }
   }
-  {
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = NULL;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -343,7 +328,6 @@ cdd_c_error_t parse_content_object(const JSON_Object *content,
                                    size_t *out_count,
                                    const struct OpenAPI_Spec *spec,
                                    int resolve_refs) {
-  char *_ast_strdup_242 = NULL;
   size_t i, count, valid = 0;
   if (!out || !out_count)
     return CDD_C_SUCCESS;
@@ -366,16 +350,28 @@ cdd_c_error_t parse_content_object(const JSON_Object *content,
     const JSON_Object *media_obj =
         json_value_get_object(json_object_get_value_at(content, i));
     struct OpenAPI_MediaType *curr = &(*out)[valid];
+    cdd_c_error_t rc;
     if (!media_obj)
       continue;
-    curr->name = (c_cdd_strdup(name, &_ast_strdup_242), _ast_strdup_242);
-    if (!curr->name)
+    c_cdd_strdup(name, &curr->name);
+    if (!curr->name) {
+      size_t j;
+      for (j = 0; j < count; ++j)
+        free_media_type(&(*out)[j]);
+      free(*out);
+      *out = NULL;
+      *out_count = 0;
       return CDD_C_ERROR_MEMORY;
-    {
-      cdd_c_error_t rc =
-          parse_media_type_object(media_obj, curr, spec, resolve_refs);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+    }
+    rc = parse_media_type_object(media_obj, curr, spec, resolve_refs);
+    if (rc != CDD_C_SUCCESS) {
+      size_t j;
+      for (j = 0; j < count; ++j)
+        free_media_type(&(*out)[j]);
+      free(*out);
+      *out = NULL;
+      *out_count = 0;
+      return rc;
     }
     valid++;
   }

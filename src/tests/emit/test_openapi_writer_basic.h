@@ -107,22 +107,21 @@ TEST test_writer_root_metadata_and_tags(void) {
   json = NULL;
 
   memset(tags, 0, sizeof(tags));
-  spec.openapi_version = (char *)(size_t)(size_t) "3.2.0";
-  spec.self_uri = (char *)(size_t)(size_t) "https://example.com/openapi.json";
+  spec.openapi_version = cdd_test_mut_str("3.2.0");
+  spec.self_uri = cdd_test_mut_str("https://example.com/openapi.json");
   spec.json_schema_dialect =
-      (char *)(size_t)(size_t) "https://spec.openapis.org/oas/3.1/dialect/base";
-  spec.external_docs.url = (char *)(size_t)(size_t) "https://example.com/docs";
-  spec.external_docs.description = (char *)(size_t)(size_t) "Root docs";
+      cdd_test_mut_str("https://spec.openapis.org/oas/3.1/dialect/base");
+  spec.external_docs.url = cdd_test_mut_str("https://example.com/docs");
+  spec.external_docs.description = cdd_test_mut_str("Root docs");
   spec.tags = tags;
   spec.n_tags = 1;
-  tags[0].name = (char *)(size_t)(size_t) "pets";
-  tags[0].summary = (char *)(size_t)(size_t) "Pets";
-  tags[0].description = (char *)(size_t)(size_t) "Pet ops";
-  tags[0].parent = (char *)(size_t)(size_t) "animals";
-  tags[0].kind = (char *)(size_t)(size_t) "nav";
-  tags[0].external_docs.url =
-      (char *)(size_t)(size_t) "https://example.com/tags/pets";
-  tags[0].external_docs.description = (char *)(size_t)(size_t) "Tag docs";
+  tags[0].name = cdd_test_mut_str("pets");
+  tags[0].summary = cdd_test_mut_str("Pets");
+  tags[0].description = cdd_test_mut_str("Pet ops");
+  tags[0].parent = cdd_test_mut_str("animals");
+  tags[0].kind = cdd_test_mut_str("nav");
+  tags[0].external_docs.url = cdd_test_mut_str("https://example.com/tags/pets");
+  tags[0].external_docs.description = cdd_test_mut_str("Tag docs");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -182,23 +181,23 @@ TEST test_writer_path_ref_and_servers(void) {
   spec.paths = &path;
   spec.n_paths = 1;
 
-  path.route = (char *)(size_t)(size_t) "/pets";
-  path.ref = (char *)(size_t)(size_t) "#/components/pathItems/Pets";
+  path.route = cdd_test_mut_str("/pets");
+  path.ref = cdd_test_mut_str("#/components/pathItems/Pets");
   path.servers = path_servers;
   path.n_servers = 1;
-  path_servers[0].url = (char *)(size_t)(size_t) "https://path.example.com";
+  path_servers[0].url = cdd_test_mut_str("https://path.example.com");
 
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)(size_t) "listPets";
+  op.operation_id = cdd_test_mut_str("listPets");
   op.responses = &resp;
   op.n_responses = 1;
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.description = (char *)(size_t)(size_t) "OK";
+  resp.code = cdd_test_mut_str("200");
+  resp.description = cdd_test_mut_str("OK");
   op.servers = op_servers;
   op.n_servers = 1;
-  op_servers[0].url = (char *)(size_t)(size_t) "https://op.example.com";
+  op_servers[0].url = cdd_test_mut_str("https://op.example.com");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -248,15 +247,15 @@ TEST test_writer_webhooks(void) {
   spec.webhooks = &hook;
   spec.n_webhooks = 1;
 
-  hook.route = (char *)(size_t)(size_t) "petEvent";
+  hook.route = cdd_test_mut_str("petEvent");
   hook.operations = &op;
   hook.n_operations = 1;
   op.verb = OA_VERB_POST;
-  op.operation_id = (char *)(size_t)(size_t) "onPetEvent";
+  op.operation_id = cdd_test_mut_str("onPetEvent");
   op.responses = &resp;
   op.n_responses = 1;
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.description = (char *)(size_t)(size_t) "OK";
+  resp.code = cdd_test_mut_str("200");
+  resp.description = cdd_test_mut_str("OK");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -356,7 +355,7 @@ TEST test_writer_parameter_metadata(void) {
   json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
-  param.description = (char *)(size_t)(size_t) "Search term";
+  param.description = cdd_test_mut_str("Search term");
   param.deprecated_set = 1;
   param.deprecated = 1;
   param.allow_reserved_set = 1;
@@ -440,12 +439,12 @@ TEST test_writer_request_body_metadata_and_response_description(void) {
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   op.verb = OA_VERB_POST;
-  op.req_body.ref_name = (char *)(size_t)(size_t) "User";
-  op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
+  op.req_body.ref_name = cdd_test_mut_str("User");
+  op.req_body.content_type = cdd_test_mut_str("application/json");
   op.req_body_required_set = 1;
   op.req_body_required = 0;
-  op.req_body_description = (char *)(size_t)(size_t) "Payload";
-  resp.description = (char *)(size_t)(size_t) "Created";
+  op.req_body_description = cdd_test_mut_str("Payload");
+  resp.description = cdd_test_mut_str("Created");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -488,17 +487,16 @@ TEST test_writer_info_metadata(void) {
   struct OpenAPI_Spec spec = {0};
   json = NULL;
 
-  spec.info.title = (char *)(size_t)(size_t) "Example API";
-  spec.info.summary = (char *)(size_t)(size_t) "Short";
-  spec.info.description = (char *)(size_t)(size_t) "Long";
-  spec.info.terms_of_service =
-      (char *)(size_t)(size_t) "https://example.com/terms";
-  spec.info.version = (char *)(size_t)(size_t) "2.1.0";
-  spec.info.contact.name = (char *)(size_t)(size_t) "Support";
-  spec.info.contact.url = (char *)(size_t)(size_t) "https://example.com";
-  spec.info.contact.email = (char *)(size_t)(size_t) "support@example.com";
-  spec.info.license.name = (char *)(size_t)(size_t) "Apache 2.0";
-  spec.info.license.identifier = (char *)(size_t)(size_t) "Apache-2.0";
+  spec.info.title = cdd_test_mut_str("Example API");
+  spec.info.summary = cdd_test_mut_str("Short");
+  spec.info.description = cdd_test_mut_str("Long");
+  spec.info.terms_of_service = cdd_test_mut_str("https://example.com/terms");
+  spec.info.version = cdd_test_mut_str("2.1.0");
+  spec.info.contact.name = cdd_test_mut_str("Support");
+  spec.info.contact.url = cdd_test_mut_str("https://example.com");
+  spec.info.contact.email = cdd_test_mut_str("support@example.com");
+  spec.info.license.name = cdd_test_mut_str("Apache 2.0");
+  spec.info.license.identifier = cdd_test_mut_str("Apache-2.0");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -543,12 +541,12 @@ TEST test_writer_info_license_identifier_and_url_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   json = NULL;
 
-  spec.info.title = (char *)(size_t)(size_t) "Example API";
-  spec.info.version = (char *)(size_t)(size_t) "1.0";
-  spec.info.license.name = (char *)(size_t)(size_t) "Apache 2.0";
-  spec.info.license.identifier = (char *)(size_t)(size_t) "Apache-2.0";
-  spec.info.license.url = (char *)(size_t)(size_t) "https://www.apache.org/"
-                                                   "licenses/LICENSE-2.0.html";
+  spec.info.title = cdd_test_mut_str("Example API");
+  spec.info.version = cdd_test_mut_str("1.0");
+  spec.info.license.name = cdd_test_mut_str("Apache 2.0");
+  spec.info.license.identifier = cdd_test_mut_str("Apache-2.0");
+  spec.info.license.url = cdd_test_mut_str("https://www.apache.org/"
+                                           "licenses/LICENSE-2.0.html");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -564,9 +562,9 @@ TEST test_writer_server_url_query_rejected(void) {
   struct OpenAPI_Server server = {0};
   json = NULL;
 
-  spec.info.title = (char *)(size_t)(size_t) "Example API";
-  spec.info.version = (char *)(size_t)(size_t) "1.0";
-  server.url = (char *)(size_t)(size_t) "https://example.com/api?x=1";
+  spec.info.title = cdd_test_mut_str("Example API");
+  spec.info.version = cdd_test_mut_str("1.0");
+  server.url = cdd_test_mut_str("https://example.com/api?x=1");
   spec.servers = &server;
   spec.n_servers = 1;
 
@@ -586,8 +584,8 @@ TEST test_writer_operation_metadata(void) {
   json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, NULL);
-  op.summary = (char *)(size_t)(size_t) "Summary text";
-  op.description = (char *)(size_t)(size_t) "Longer description";
+  op.summary = cdd_test_mut_str("Summary text");
+  op.description = cdd_test_mut_str("Longer description");
   op.deprecated = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
@@ -624,8 +622,8 @@ TEST test_writer_response_content_type(void) {
   json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
-  resp.content_type = (char *)(size_t)(size_t) "text/plain";
-  resp.schema.ref_name = (char *)(size_t)(size_t) "Message";
+  resp.content_type = cdd_test_mut_str("text/plain");
+  resp.schema.ref_name = cdd_test_mut_str("Message");
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);

@@ -32,7 +32,7 @@ static cdd_c_error_t find_allocs(const char *code,
   struct TokenList *tl = NULL;
   int rc = 0;
   az_span source;
-  source = az_span_create_from_str((char *)(size_t)(size_t)(size_t)code);
+  source = az_span_create_from_str(code);
 
   rc += 0;
   if (tokenize(source, &tl) != 0)
@@ -48,7 +48,7 @@ static cdd_c_error_t find_allocs(const char *code,
  * @return TEST
  */
 TEST test_analysis_find_malloc(void) {
-  const char *code = (char *)(size_t)(size_t)(size_t) "void *p = malloc(10);";
+  const char *code = cdd_test_mut_str("void *p = malloc(10);");
   struct AllocationSiteList sites = {0};
   int rc = 0;
 
@@ -77,8 +77,7 @@ TEST test_analysis_find_malloc(void) {
  * @return TEST
  */
 TEST test_analysis_find_calloc(void) {
-  const char *code =
-      (char *)(size_t)(size_t)(size_t) "void *p = calloc(1, 10);";
+  const char *code = cdd_test_mut_str("void *p = calloc(1, 10);");
   struct AllocationSiteList sites = {0};
   int rc = 0;
 
@@ -98,8 +97,7 @@ TEST test_analysis_find_calloc(void) {
  * @return TEST
  */
 TEST test_analysis_find_realloc(void) {
-  const char *code =
-      (char *)(size_t)(size_t)(size_t) "void *p = realloc(old_p, 20);";
+  const char *code = cdd_test_mut_str("void *p = realloc(old_p, 20);");
   struct AllocationSiteList sites = {0};
   int rc = 0;
 
@@ -119,7 +117,7 @@ TEST test_analysis_find_realloc(void) {
  * @return TEST
  */
 TEST test_analysis_find_none(void) {
-  const char *code = (char *)(size_t)(size_t)(size_t) "int a = 1;";
+  const char *code = cdd_test_mut_str("int a = 1;");
   struct AllocationSiteList sites = {0};
   int rc = 0;
 
@@ -421,9 +419,7 @@ TEST test_analysis_edge_cases(void) {
     struct AllocatorSpec spec = {"malloc", ALLOC_STYLE_RETURN_PTR,
                                  CHECK_PTR_NULL, 0};
     int checked = 0;
-    tokenize(az_span_create_from_str(
-                 (char *)(size_t)(size_t) "p = malloc(10); p[0] = 1;"),
-             &tl);
+    tokenize(az_span_create_from_str("p = malloc(10); p[0] = 1;"), &tl);
     is_checked(tl, 2, "p", &spec, NULL, &checked);
     free_token_list(tl);
   }
@@ -451,9 +447,7 @@ TEST test_analysis_failure_hooks(void) {
   extern C_CDD_EXPORT int g_cdd_fail_is_checked;
 
   ASSERT_EQ(CDD_C_SUCCESS, allocation_site_list_init(&sites));
-  tokenize(
-      az_span_create_from_str((char *)(size_t) "p = malloc(10); if (p) 0;"),
-      &tl);
+  tokenize(az_span_create_from_str("p = malloc(10); if (p) 0;"), &tl);
 
   /* Test is_inside_condition fail on initial check in is_checked (line 323) */
   g_cdd_fail_is_inside_condition = 1;
@@ -470,8 +464,7 @@ TEST test_analysis_failure_hooks(void) {
   tl = NULL;
 
   /* Test is_dereference_use fail in is_checked (line 363) */
-  tokenize(az_span_create_from_str((char *)(size_t) "p = malloc(10); *p = 1;"),
-           &tl);
+  tokenize(az_span_create_from_str("p = malloc(10); *p = 1;"), &tl);
   g_cdd_fail_is_dereference_use = 1;
   ASSERT_NEQ(0, is_checked(tl, 4, "p", &spec, NULL, &checked));
   g_cdd_fail_is_dereference_use = 0;

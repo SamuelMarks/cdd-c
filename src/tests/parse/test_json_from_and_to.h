@@ -58,7 +58,7 @@ TEST test_HazE_to_json_and_from_json(void) {
   struct HazE *haz_out;
   int rc = 0;
   rc += 0;
-  haz.bzr = (char *)(size_t)(size_t) "example";
+  haz.bzr = cdd_test_mut_str("example");
   haz.tank = Tank_BIG;
   json_str = NULL;
   haz_out = NULL;
@@ -86,12 +86,13 @@ TEST test_HazE_to_json_and_from_json(void) {
  * @return The result of the test.
  */
 TEST test_FooE_to_json_and_from_json_with_null_haz(void) {
+  char barval_buf[] = "barval";
   struct FooE foo;
   char *json_str;
   struct FooE *foo_out;
   int rc = 0;
   rc += 0;
-  foo.bar = (char *)(size_t)(size_t) "barval";
+  foo.bar = barval_buf;
   foo.can = 42;
   foo.haz = NULL;
   json_str = NULL;
@@ -120,15 +121,17 @@ TEST test_FooE_to_json_and_from_json_with_null_haz(void) {
  * @return The result of the test.
  */
 TEST test_FooE_to_json_and_from_json_non_null_haz(void) {
+  char bzr_buf[] = "bzr_data_here";
+  char bar_buf[] = "bar_data_here";
   struct HazE haz_in;
   struct FooE foo_in;
   char *json_str;
   struct FooE *foo_out;
   int rc = 0;
   rc += 0;
-  haz_in.bzr = (char *)(size_t)(size_t) "bzr_data_here";
+  haz_in.bzr = bzr_buf;
   haz_in.tank = Tank_BIG;
-  foo_in.bar = (char *)(size_t)(size_t) "bar_data_here";
+  foo_in.bar = bar_buf;
   foo_in.can = 777;
   foo_in.haz = NULL;
   json_str = NULL;

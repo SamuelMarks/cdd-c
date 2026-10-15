@@ -9,6 +9,7 @@
 #include "c_cdd/safe_crt_msvc.h"
 
 #include "classes/emit/types.h"
+#include "c_cdd/code_writer.h"
 #include "c_cdd/log.h"
 #include "classes/emit/struct.h"
 #include "functions/parse/str.h"
@@ -21,26 +22,8 @@
 
 /* Wrapper for fprintf to check errors tersely */
 #ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)));
-#else
-    ;
-#endif
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  int ret;
-  va_list args;
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  va_start(args, format);
-  ret = vfprintf(stream, format, args);
-  va_end(args);
-  return ret;
-}
 /** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK test_cdd_fprintf_hook
+#define FPRINTF_HOOK cdd_io_fprintf_hook
 #else
 /** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK fprintf
@@ -52,14 +35,12 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   return CDD_C_ERROR_IO
 
 /**
- * @brief Generates C code for write root array cleanup func.
+ * @brief Emits C source code for root array cleanup func.
  */
 cdd_c_error_t
 write_root_array_cleanup_func(FILE *fp, const char *name, const char *item_type,
                               const char *item_ref,
                               const struct CodegenTypesConfig *config) {
-  char *_ast_get_type_from_ref_7 = NULL;
-  char *_ast_get_type_from_ref_8 = NULL;
   if (!fp || !name || !item_type)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -85,6 +66,8 @@ write_root_array_cleanup_func(FILE *fp, const char *name, const char *item_type,
   } else if (strcmp(item_type, "object") == 0) {
     /* Array of pointers to structs */
     /* LCOV_EXCL_START */
+    const char *tn = NULL;
+    get_type_from_ref(item_ref, &tn);
     CHECK_IO(
         FPRINTF_HOOK(fp,
                      "cdd_c_error_t %s_cleanup(struct %s **in, size_t len) {\n"
@@ -93,11 +76,7 @@ write_root_array_cleanup_func(FILE *fp, const char *name, const char *item_type,
                      "  for(i=0; i<len; ++i) %s_cleanup(in[i]);\n"
                      "  free(in);\n"
                      "}\n",
-                     name,
-                     (get_type_from_ref(item_ref, &_ast_get_type_from_ref_7),
-                      _ast_get_type_from_ref_7),
-                     (get_type_from_ref(item_ref, &_ast_get_type_from_ref_8),
-                      _ast_get_type_from_ref_8)));
+                     name, tn, tn));
     /* LCOV_EXCL_STOP */
   } else {
     /* Fallback generic void* */
@@ -114,13 +93,12 @@ write_root_array_cleanup_func(FILE *fp, const char *name, const char *item_type,
 }
 
 /**
- * @brief Generates C code for write root array to json func.
+ * @brief Emits C source code for root array to json func.
  */
 cdd_c_error_t
 write_root_array_to_json_func(FILE *fp, const char *name, const char *item_type,
                               const char *item_ref,
                               const struct CodegenTypesConfig *config) {
-  char *_ast_get_type_from_ref_10 = NULL;
   if (!fp || !name || !item_type)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -141,7 +119,7 @@ write_root_array_to_json_func(FILE *fp, const char *name, const char *item_type,
     /* LCOV_EXCL_STOP */
   } else if (strcmp(item_type, "object") == 0) {
     {
-      char *tn = NULL;
+      const char *tn = NULL;
       get_type_from_ref(item_ref, &tn);
       CHECK_IO(FPRINTF_HOOK(
           fp,
@@ -173,6 +151,8 @@ write_root_array_to_json_func(FILE *fp, const char *name, const char *item_type,
     CHECK_IO(FPRINTF_HOOK(fp, "    c89stringutils_jasprintf(json_out, "
                               "\"\\\"%%s\\\"\", in[i]);\n"));
   } else if (strcmp(item_type, "object") == 0) {
+    const char *tn = NULL;
+    get_type_from_ref(item_ref, &tn);
     CHECK_IO(FPRINTF_HOOK(
         fp,
         "    {\n"
@@ -182,8 +162,7 @@ write_root_array_to_json_func(FILE *fp, const char *name, const char *item_type,
         "      c89stringutils_jasprintf(json_out, \"%%s\", tmp);\n"
         "      free(tmp);\n"
         "    }\n",
-        (get_type_from_ref(item_ref, &_ast_get_type_from_ref_10),
-         _ast_get_type_from_ref_10)));
+        tn));
   }
   CHECK_IO(FPRINTF_HOOK(
       fp, "    if (!*json_out) return CDD_C_ERROR_MEMORY;\n  }\n"));
@@ -198,16 +177,12 @@ write_root_array_to_json_func(FILE *fp, const char *name, const char *item_type,
 }
 
 /**
- * @brief Generates C code for write root array from json func.
+ * @brief Emits C source code for root array from json func.
  */
 cdd_c_error_t
 write_root_array_from_json_func(FILE *fp, const char *name,
                                 const char *item_type, const char *item_ref,
                                 const struct CodegenTypesConfig *config) {
-  char *_ast_get_type_from_ref_11 = NULL;
-  char *_ast_get_type_from_ref_12 = NULL;
-  char *_ast_get_type_from_ref_13 = NULL;
-  char *_ast_get_type_from_ref_14 = NULL;
   if (!fp || !name || !item_type)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -227,14 +202,13 @@ write_root_array_from_json_func(FILE *fp, const char *name,
         "*len) {\n",
         name));
   } else if (strcmp(item_type, "object") == 0) {
-    CHECK_IO(
-        FPRINTF_HOOK(fp,
-                     "cdd_c_error_t %s_from_json(const char *json, struct "
-                     "%s ***out, size_t "
-                     "*len) {\n",
-                     name,
-                     (get_type_from_ref(item_ref, &_ast_get_type_from_ref_11),
-                      _ast_get_type_from_ref_11)));
+    const char *tn = NULL;
+    get_type_from_ref(item_ref, &tn);
+    CHECK_IO(FPRINTF_HOOK(fp,
+                          "cdd_c_error_t %s_from_json(const char *json, struct "
+                          "%s ***out, size_t "
+                          "*len) {\n",
+                          name, tn));
   } else {
     /* Fallback */
     CHECK_IO(FPRINTF_HOOK(
@@ -266,10 +240,10 @@ write_root_array_from_json_func(FILE *fp, const char *name,
   } else if (strcmp(item_type, "string") == 0) {
     CHECK_IO(FPRINTF_HOOK(fp, "  *out = calloc(count, sizeof(char *));\n"));
   } else if (strcmp(item_type, "object") == 0) {
+    const char *tn = NULL;
+    get_type_from_ref(item_ref, &tn);
     CHECK_IO(
-        FPRINTF_HOOK(fp, "  *out = calloc(count, sizeof(struct %s*));\n",
-                     (get_type_from_ref(item_ref, &_ast_get_type_from_ref_12),
-                      _ast_get_type_from_ref_12)));
+        FPRINTF_HOOK(fp, "  *out = calloc(count, sizeof(struct %s*));\n", tn));
   }
 
   CHECK_IO(FPRINTF_HOOK(
@@ -292,6 +266,8 @@ write_root_array_from_json_func(FILE *fp, const char *name,
                           "return CDD_C_ERROR_MEMORY;\n"
                           "    }\n"));
   } else if (strcmp(item_type, "object") == 0) {
+    const char *tn = NULL;
+    get_type_from_ref(item_ref, &tn);
     CHECK_IO(FPRINTF_HOOK(
         fp,
         "    int rc = %s_from_jsonObject(json_array_get_object(arr, i), "
@@ -301,10 +277,7 @@ write_root_array_from_json_func(FILE *fp, const char *name,
         "      for(j=0; j<i; j++) %s_cleanup((*out)[j]);\n"
         "      free(*out); *out=NULL; json_value_free(val); return rc;\n"
         "    }\n",
-        (get_type_from_ref(item_ref, &_ast_get_type_from_ref_13),
-         _ast_get_type_from_ref_13),
-        (get_type_from_ref(item_ref, &_ast_get_type_from_ref_14),
-         _ast_get_type_from_ref_14)));
+        tn, tn));
   }
 
   CHECK_IO(FPRINTF_HOOK(

@@ -134,7 +134,7 @@ TEST test_operation_copy_and_free_any_value_local(void) {
   ASSERT_EQ(OA_ANY_NULL, mt.example.type);
   mt.example_set = 0;
 
-  mt.name = (char *)(size_t) "application/json";
+  mt.name = cdd_test_mut_str("application/json");
   ASSERT_EQ(CDD_C_SUCCESS,
             apply_example_to_response(&resp, "\"hello\"", "application/json"));
   ASSERT_EQ(1, mt.example_set);
@@ -196,8 +196,8 @@ TEST test_operation_apply_example_to_response_branches(void) {
 
   resp.content_media_types = mts;
   resp.n_content_media_types = 2;
-  mts[0].name = (char *)(size_t) "application/json";
-  mts[1].name = (char *)(size_t) "text/plain";
+  mts[0].name = cdd_test_mut_str("application/json");
+  mts[1].name = cdd_test_mut_str("text/plain");
 
   g_cdd_strdup_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -226,12 +226,12 @@ TEST test_operation_copy_doc_server_variables_op_oom(void) {
   memset(&src, 0, sizeof(src));
   memset(&var, 0, sizeof(var));
 
-  enums[0] = (char *)(size_t) "v1";
-  enums[1] = (char *)(size_t) "v2";
+  enums[0] = cdd_test_mut_str("v1");
+  enums[1] = cdd_test_mut_str("v2");
 
-  var.name = (char *)(size_t) "port";
-  var.default_value = (char *)(size_t) "v1";
-  var.description = (char *)(size_t) "desc";
+  var.name = cdd_test_mut_str("port");
+  var.default_value = cdd_test_mut_str("v1");
+  var.description = cdd_test_mut_str("desc");
   var.enum_values = enums;
   var.n_enum_values = 2;
 
@@ -254,7 +254,7 @@ TEST test_operation_copy_doc_server_variables_op_oom(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_doc_server_variables_op(&dst, &src));
   g_cdd_strdup_fail = 0;
 
-  var.default_value = (char *)(size_t) "v_not_found";
+  var.default_value = cdd_test_mut_str("v_not_found");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             copy_doc_server_variables_op(&dst, &src));
 
@@ -273,8 +273,8 @@ TEST test_operation_doc_server_variables_enum_calloc_oom(void) {
   memset(&src, 0, sizeof(src));
   memset(&var, 0, sizeof(var));
 
-  var.name = (char *)(size_t) "port";
-  var.default_value = (char *)(size_t) "8080";
+  var.name = cdd_test_mut_str("port");
+  var.default_value = cdd_test_mut_str("8080");
   src.variables = &var;
   src.n_variables = 1;
   ASSERT_EQ(CDD_C_SUCCESS, copy_doc_server_variables_op(&dst, &src));
@@ -295,8 +295,8 @@ TEST test_operation_find_doc_param(void) {
   ASSERT_EQ(CDD_C_SUCCESS, find_doc_param(&doc, NULL, &out));
   ASSERT_EQ(NULL, out);
 
-  params[0].name = (char *)(size_t) "foo";
-  params[1].name = (char *)(size_t) "bar";
+  params[0].name = cdd_test_mut_str("foo");
+  params[1].name = cdd_test_mut_str("bar");
   doc.params = params;
   doc.n_params = 2;
 
@@ -353,26 +353,26 @@ TEST test_operation_add_header_to_response_advanced(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_header_to_response(&resp, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_header_to_response(&resp, &dh));
 
-  dh.name = (char *)(size_t) "X-Test";
-  dh.description = (char *)(size_t) "desc";
-  dh.type = (char *)(size_t) "integer";
-  dh.content_type = (char *)(size_t) "text/plain";
-  dh.format = (char *)(size_t) "int64";
+  dh.name = cdd_test_mut_str("X-Test");
+  dh.description = cdd_test_mut_str("desc");
+  dh.type = cdd_test_mut_str("integer");
+  dh.content_type = cdd_test_mut_str("text/plain");
+  dh.format = cdd_test_mut_str("int64");
   dh.required_set = 1;
   dh.required = 1;
-  dh.example = (char *)(size_t) "42";
+  dh.example = cdd_test_mut_str("42");
 
   ASSERT_EQ(CDD_C_SUCCESS, add_header_to_response(&resp, &dh));
   ASSERT_EQ(1, resp.n_headers);
   ASSERT_EQ(OA_EXAMPLE_LOC_MEDIA, resp.headers[0].example_location);
 
-  dh.name = (char *)(size_t) "x-test";
+  dh.name = cdd_test_mut_str("x-test");
   dh.description = NULL;
   dh.type = NULL;
   dh.content_type = NULL;
-  dh.format = (char *)(size_t) "int32";
+  dh.format = cdd_test_mut_str("int32");
   dh.required = 0;
-  dh.example = (char *)(size_t) "100";
+  dh.example = cdd_test_mut_str("100");
   ASSERT_EQ(CDD_C_SUCCESS, add_header_to_response(&resp, &dh));
 
   if (resp.headers[0].description)
@@ -385,10 +385,10 @@ TEST test_operation_add_header_to_response_advanced(void) {
   resp.headers[0].type = NULL;
   resp.headers[0].content_type = NULL;
   resp.headers[0].example_set = 0;
-  dh.description = (char *)(size_t) "new desc";
-  dh.type = (char *)(size_t) "string";
-  dh.content_type = (char *)(size_t) "application/json";
-  dh.example = (char *)(size_t) "test";
+  dh.description = cdd_test_mut_str("new desc");
+  dh.type = cdd_test_mut_str("string");
+  dh.content_type = cdd_test_mut_str("application/json");
+  dh.example = cdd_test_mut_str("test");
   ASSERT_EQ(CDD_C_SUCCESS, add_header_to_response(&resp, &dh));
 
   {
@@ -415,12 +415,12 @@ TEST test_operation_add_header_to_response_advanced(void) {
     resp.n_headers = 0;
   }
 
-  dh.name = (char *)(size_t) "X-OOM";
-  dh.description = (char *)(size_t) "desc";
-  dh.type = (char *)(size_t) "string";
-  dh.content_type = (char *)(size_t) "text/plain";
-  dh.format = (char *)(size_t) "date";
-  dh.example = (char *)(size_t) "2020-01-01";
+  dh.name = cdd_test_mut_str("X-OOM");
+  dh.description = cdd_test_mut_str("desc");
+  dh.type = cdd_test_mut_str("string");
+  dh.content_type = cdd_test_mut_str("text/plain");
+  dh.format = cdd_test_mut_str("date");
+  dh.example = cdd_test_mut_str("2020-01-01");
 
   {
     int k;
@@ -449,29 +449,29 @@ TEST test_operation_add_header_to_response_existing_oom(void) {
 
   resp.headers = &hdr;
   resp.n_headers = 1;
-  hdr.name = (char *)(size_t) "X-Custom";
+  hdr.name = cdd_test_mut_str("X-Custom");
 
-  dh.name = (char *)(size_t) "X-Custom";
+  dh.name = cdd_test_mut_str("X-Custom");
 
-  dh.description = (char *)(size_t) "desc";
+  dh.description = cdd_test_mut_str("desc");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, add_header_to_response(&resp, &dh));
   g_cdd_strdup_fail = 0;
   dh.description = NULL;
 
-  dh.type = (char *)(size_t) "integer";
+  dh.type = cdd_test_mut_str("integer");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, add_header_to_response(&resp, &dh));
   g_cdd_strdup_fail = 0;
   dh.type = NULL;
 
-  dh.content_type = (char *)(size_t) "application/json";
+  dh.content_type = cdd_test_mut_str("application/json");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, add_header_to_response(&resp, &dh));
   g_cdd_strdup_fail = 0;
   dh.content_type = NULL;
 
-  dh.format = (char *)(size_t) "date";
+  dh.format = cdd_test_mut_str("date");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, add_header_to_response(&resp, &dh));
   g_cdd_strdup_fail = 0;
@@ -485,7 +485,7 @@ TEST test_operation_add_header_to_response_existing_oom(void) {
   }
   dh.format = NULL;
 
-  dh.example = (char *)(size_t) "ex";
+  dh.example = cdd_test_mut_str("ex");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, add_header_to_response(&resp, &dh));
   g_cdd_strdup_fail = 0;
@@ -503,20 +503,20 @@ TEST test_operation_header_example_failure(void) {
 
   resp.headers = &hdr;
   resp.n_headers = 1;
-  hdr.name = (char *)(size_t) "X-Header";
-  dh.name = (char *)(size_t) "X-Header";
-  dh.example = (char *)(size_t) "example_val";
+  hdr.name = cdd_test_mut_str("X-Header");
+  dh.name = cdd_test_mut_str("X-Header");
+  dh.example = cdd_test_mut_str("example_val");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, add_header_to_response(&resp, &dh));
   g_cdd_strdup_fail = 0;
 
   memset(&resp, 0, sizeof(resp));
-  dh.name = (char *)(size_t) "X-New-Header";
-  dh.description = (char *)(size_t) "desc";
-  dh.type = (char *)(size_t) "string";
-  dh.content_type = (char *)(size_t) "text/plain";
-  dh.format = (char *)(size_t) "date";
-  dh.example = (char *)(size_t) "example_val";
+  dh.name = cdd_test_mut_str("X-New-Header");
+  dh.description = cdd_test_mut_str("desc");
+  dh.type = cdd_test_mut_str("string");
+  dh.content_type = cdd_test_mut_str("text/plain");
+  dh.format = cdd_test_mut_str("date");
+  dh.example = cdd_test_mut_str("example_val");
   g_cdd_strdup_fail = 7;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, add_header_to_response(&resp, &dh));
   g_cdd_strdup_fail = 0;
@@ -538,21 +538,21 @@ TEST test_operation_add_link_to_response_advanced(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_link_to_response(&resp, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_link_to_response(&resp, &dl));
 
-  dl.name = (char *)(size_t) "link1";
+  dl.name = cdd_test_mut_str("link1");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_link_to_response(&resp, &dl));
-  dl.operation_id = (char *)(size_t) "op1";
-  dl.operation_ref = (char *)(size_t) "#/paths/op";
+  dl.operation_id = cdd_test_mut_str("op1");
+  dl.operation_ref = cdd_test_mut_str("#/paths/op");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_link_to_response(&resp, &dl));
 
   dl.operation_id = NULL;
-  dl.operation_ref = (char *)(size_t) "#/components/links/Ref";
-  dl.summary = (char *)(size_t) "link summary";
-  dl.description = (char *)(size_t) "link desc";
-  dl.server_url = (char *)(size_t) "https://api.example.com";
-  dl.server_name = (char *)(size_t) "ProdServer";
-  dl.server_description = (char *)(size_t) "Production server";
-  dl.parameters_json = (char *)(size_t) "{\"userId\": \"$response.body#/id\"}";
-  dl.request_body_json = (char *)(size_t) "{\"meta\": \"data\"}";
+  dl.operation_ref = cdd_test_mut_str("#/components/links/Ref");
+  dl.summary = cdd_test_mut_str("link summary");
+  dl.description = cdd_test_mut_str("link desc");
+  dl.server_url = cdd_test_mut_str("https://api.example.com");
+  dl.server_name = cdd_test_mut_str("ProdServer");
+  dl.server_description = cdd_test_mut_str("Production server");
+  dl.parameters_json = cdd_test_mut_str("{\"userId\": \"$response.body#/id\"}");
+  dl.request_body_json = cdd_test_mut_str("{\"meta\": \"data\"}");
 
   ASSERT_EQ(CDD_C_SUCCESS, add_link_to_response(&resp, &dl));
   ASSERT_EQ(1, resp.n_links);
@@ -596,7 +596,7 @@ TEST test_operation_add_link_to_response_advanced(void) {
     resp.n_links = 0;
   }
 
-  dl.parameters_json = (char *)(size_t) "invalid json";
+  dl.parameters_json = cdd_test_mut_str("invalid json");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_link_to_response(&resp, &dl));
   dl.parameters_json = NULL;
 
@@ -622,13 +622,13 @@ TEST test_operation_add_link_to_response_oom_sweep(void) {
   int k;
   memset(&dl, 0, sizeof(dl));
 
-  dl.name = (char *)(size_t) "LinkName";
-  dl.summary = (char *)(size_t) "Summary";
-  dl.description = (char *)(size_t) "Description";
-  dl.operation_id = (char *)(size_t) "op_id";
-  dl.server_url = (char *)(size_t) "https://api.example.com";
-  dl.server_name = (char *)(size_t) "server1";
-  dl.server_description = (char *)(size_t) "server_desc";
+  dl.name = cdd_test_mut_str("LinkName");
+  dl.summary = cdd_test_mut_str("Summary");
+  dl.description = cdd_test_mut_str("Description");
+  dl.operation_id = cdd_test_mut_str("op_id");
+  dl.server_url = cdd_test_mut_str("https://api.example.com");
+  dl.server_name = cdd_test_mut_str("server1");
+  dl.server_description = cdd_test_mut_str("server_desc");
 
   for (k = 1; k <= 7; ++k) {
     memset(&resp, 0, sizeof(resp));
@@ -642,7 +642,7 @@ TEST test_operation_add_link_to_response_oom_sweep(void) {
   }
 
   dl.operation_id = NULL;
-  dl.operation_ref = (char *)(size_t) "#/components/links/Ref";
+  dl.operation_ref = cdd_test_mut_str("#/components/links/Ref");
   for (k = 1; k <= 7; ++k) {
     memset(&resp, 0, sizeof(resp));
     g_cdd_strdup_fail = k;
@@ -663,13 +663,13 @@ TEST test_operation_link_cleanup_specific(void) {
   memset(&resp, 0, sizeof(resp));
   memset(&dl, 0, sizeof(dl));
 
-  dl.name = (char *)(size_t) "L1";
-  dl.operation_id = (char *)(size_t) "op1";
-  dl.parameters_json = (char *)(size_t) "invalid_json";
+  dl.name = cdd_test_mut_str("L1");
+  dl.operation_id = cdd_test_mut_str("op1");
+  dl.parameters_json = cdd_test_mut_str("invalid_json");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_link_to_response(&resp, &dl));
 
-  dl.parameters_json = (char *)(size_t) "{\"s\": \"val\", \"j\": {\"x\": 1}}";
-  dl.request_body_json = (char *)(size_t) "not-json";
+  dl.parameters_json = cdd_test_mut_str("{\"s\": \"val\", \"j\": {\"x\": 1}}");
+  dl.request_body_json = cdd_test_mut_str("not-json");
   g_cdd_strdup_fail = 7;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, add_link_to_response(&resp, &dl));
   g_cdd_strdup_fail = 0;
@@ -715,7 +715,7 @@ TEST test_operation_apply_format_to_schema_ref(void) {
             apply_format_to_schema_ref(&schema, NULL, "fmt", &applied));
   ASSERT_EQ(0, applied);
 
-  map.oa_type = (char *)(size_t) "integer";
+  map.oa_type = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS,
             apply_format_to_schema_ref(&schema, &map, NULL, &applied));
   ASSERT_EQ(0, applied);
@@ -723,15 +723,15 @@ TEST test_operation_apply_format_to_schema_ref(void) {
             apply_format_to_schema_ref(&schema, &map, "", &applied));
   ASSERT_EQ(0, applied);
 
-  map.oa_type = (char *)(size_t) "object";
-  map.oa_format = (char *)(size_t) "custom";
+  map.oa_type = cdd_test_mut_str("object");
+  map.oa_format = cdd_test_mut_str("custom");
   ASSERT_EQ(CDD_C_SUCCESS,
             apply_format_to_schema_ref(&schema, &map, NULL, &applied));
   ASSERT_EQ(0, applied);
 
   map.kind = OA_TYPE_ARRAY;
-  map.oa_type = (char *)(size_t) "integer";
-  map.oa_format = (char *)(size_t) "int64";
+  map.oa_type = cdd_test_mut_str("integer");
+  map.oa_format = cdd_test_mut_str("int64");
 
 #ifdef __cplusplus
 }

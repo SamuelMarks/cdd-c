@@ -9,8 +9,11 @@
 extern "C" {
 #endif /* __cplusplus */
 #ifndef __cplusplus
+/** @brief C89 boolean type fallback */
 typedef unsigned char bool;
+/** @brief Boolean true constant */
 #define true 1
+/** @brief Boolean false constant */
 #define false 0
 #endif
 

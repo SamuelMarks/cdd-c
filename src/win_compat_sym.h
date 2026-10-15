@@ -1,3 +1,7 @@
+/**
+ * @file win_compat_sym.h
+ * @brief Core win compat sym definitions and implementation.
+ */
 #ifndef C_CDD_WIN_COMPAT_SYM_H
 #define C_CDD_WIN_COMPAT_SYM_H
 
@@ -33,10 +37,14 @@ extern "C" {
 #define CDD_NUM_FORMAT PRIu64
 #elif defined(__LP64__) || defined(_LP64) || defined(__wasm__) ||              \
     defined(__wasm32__)
+/** @brief Format specifier for size_t */
 #define CDD_SIZE_T_FMT "lu"
+/** @brief Format specifier for 64-bit unsigned integers */
 #define CDD_NUM_FORMAT "lu"
 #else
+/** @brief Format specifier for size_t */
 #define CDD_SIZE_T_FMT "u"
+/** @brief Format specifier for 64-bit unsigned integers */
 #define CDD_NUM_FORMAT "llu"
 #endif
 

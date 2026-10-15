@@ -23,10 +23,10 @@ TEST test_dsl_parser_number(void) {
   rc = cdd_dsl_parse(&list, &ir);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
 
-  ASSERT_EQ_FMT((size_t)1, ir->nodes_count, "%zu");
+  ASSERT_EQ((size_t)1, ir->nodes_count);
   ASSERT_EQ_FMT(CDD_FFI_NODE_ENUM, ir->nodes[0].kind, "%d");
   ASSERT_STR_EQ("Status", ir->nodes[0].name);
-  ASSERT_EQ_FMT((size_t)3, ir->nodes[0].variants_count, "%zu");
+  ASSERT_EQ((size_t)3, ir->nodes[0].variants_count);
 
   ASSERT_STR_EQ("OK", ir->nodes[0].variants[0].name);
   ASSERT_STR_EQ("0", ir->nodes[0].variants[0].number_details->raw_spelling);

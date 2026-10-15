@@ -33,7 +33,7 @@ static cdd_c_error_t tokenize_string(const char *s,
   cdd_c_error_t rc = 0;
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  span = az_span_create_from_str((char *)(size_t)s);
+  span = az_span_create_from_str(s);
   rc = tokenize(span, &tl);
   if (rc != CDD_C_SUCCESS) {
     return rc;

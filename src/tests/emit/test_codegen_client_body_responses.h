@@ -31,8 +31,8 @@ TEST test_body_response_range_success(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "2XX";
-  resp.schema.ref_name = (char *)(size_t)(size_t) "Pet";
+  resp.code = cdd_test_mut_str("2XX");
+  resp.schema.ref_name = cdd_test_mut_str("Pet");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -62,8 +62,8 @@ TEST test_body_default_response_success(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "default";
-  resp.schema.ref_name = (char *)(size_t)(size_t) "Pet";
+  resp.code = cdd_test_mut_str("default");
+  resp.schema.ref_name = cdd_test_mut_str("Pet");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -93,9 +93,9 @@ TEST test_body_text_plain_response_string(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.content_type = (char *)(size_t)(size_t) "text/plain; charset=utf-8";
-  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
+  resp.code = cdd_test_mut_str("200");
+  resp.content_type = cdd_test_mut_str("text/plain; charset=utf-8");
+  resp.schema.inline_type = cdd_test_mut_str("string");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -125,9 +125,9 @@ TEST test_body_text_plain_response_range(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "2XX";
-  resp.content_type = (char *)(size_t)(size_t) "text/plain";
-  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
+  resp.code = cdd_test_mut_str("2XX");
+  resp.content_type = cdd_test_mut_str("text/plain");
+  resp.schema.inline_type = cdd_test_mut_str("string");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -157,9 +157,9 @@ TEST test_body_text_plain_response_default(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "default";
-  resp.content_type = (char *)(size_t)(size_t) "text/plain";
-  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
+  resp.code = cdd_test_mut_str("default");
+  resp.content_type = cdd_test_mut_str("text/plain");
+  resp.schema.inline_type = cdd_test_mut_str("string");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -189,9 +189,9 @@ TEST test_body_textual_response_xml(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.content_type = (char *)(size_t)(size_t) "application/xml; charset=utf-8";
-  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
+  resp.code = cdd_test_mut_str("200");
+  resp.content_type = cdd_test_mut_str("application/xml; charset=utf-8");
+  resp.schema.inline_type = cdd_test_mut_str("string");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -221,8 +221,8 @@ TEST test_body_binary_response_pdf(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)(size_t) "200";
-  resp.content_type = (char *)(size_t)(size_t) "application/pdf";
+  resp.code = cdd_test_mut_str("200");
+  resp.content_type = cdd_test_mut_str("application/pdf");
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -251,7 +251,7 @@ TEST test_client_body_verb_mapping(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.operation_id = (char *)(size_t)(size_t) "testVerb";
+  op.operation_id = cdd_test_mut_str("testVerb");
 
   /* Test additional non-standard verbs */
   op.is_additional = 1;
@@ -259,34 +259,34 @@ TEST test_client_body_verb_mapping(void) {
   op.method = NULL;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)(size_t) "get";
+  op.method = cdd_test_mut_str("get");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)(size_t) "post";
+  op.method = cdd_test_mut_str("post");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)(size_t) "put";
+  op.method = cdd_test_mut_str("put");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)(size_t) "delete";
+  op.method = cdd_test_mut_str("delete");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)(size_t) "head";
+  op.method = cdd_test_mut_str("head");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)(size_t) "patch";
+  op.method = cdd_test_mut_str("patch");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)(size_t) "options";
+  op.method = cdd_test_mut_str("options");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)(size_t) "trace";
+  op.method = cdd_test_mut_str("trace");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)(size_t) "query";
+  op.method = cdd_test_mut_str("query");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)(size_t) "unknown";
+  op.method = cdd_test_mut_str("unknown");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   if (fp)
@@ -310,14 +310,14 @@ TEST test_client_body_mapped_err_code(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.operation_id = (char *)(size_t)(size_t) "testErrCode";
+  op.operation_id = cdd_test_mut_str("testErrCode");
   op.n_responses = 5;
   op.responses = calloc(5, sizeof(*op.responses));
-  op.responses[0].code = (char *)(size_t)(size_t) "400";
-  op.responses[1].code = (char *)(size_t)(size_t) "401";
-  op.responses[2].code = (char *)(size_t)(size_t) "403";
-  op.responses[3].code = (char *)(size_t)(size_t) "404";
-  op.responses[4].code = (char *)(size_t)(size_t) "500";
+  op.responses[0].code = cdd_test_mut_str("400");
+  op.responses[1].code = cdd_test_mut_str("401");
+  op.responses[2].code = cdd_test_mut_str("403");
+  op.responses[3].code = cdd_test_mut_str("404");
+  op.responses[4].code = cdd_test_mut_str("500");
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
@@ -343,22 +343,21 @@ TEST test_client_body_media_type_matching(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)(size_t) "post";
+  op.method = cdd_test_mut_str("post");
   op.verb = OA_VERB_POST;
-  op.operation_id = (char *)(size_t)(size_t) "testMediaMatch";
-  op.summary = (char *)(size_t)(size_t) "Test summary";
+  op.operation_id = cdd_test_mut_str("testMediaMatch");
+  op.summary = cdd_test_mut_str("Test summary");
 
-  op.req_body.content_type =
-      (char *)(size_t)(size_t) "application/vnd.github+JSON";
+  op.req_body.content_type = cdd_test_mut_str("application/vnd.github+JSON");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.req_body.content_type = (char *)(size_t)(size_t) "APPLICATION/XML";
+  op.req_body.content_type = cdd_test_mut_str("APPLICATION/XML");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
+  op.req_body.content_type = cdd_test_mut_str("multipart/form-data");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.req_body.content_type = (char *)(size_t)(size_t) "text/plain";
+  op.req_body.content_type = cdd_test_mut_str("text/plain");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   if (fp)
@@ -382,22 +381,22 @@ TEST test_client_body_find_media_type_not_found(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.operation_id = (char *)(size_t)(size_t) "testMediaTypeFindNotFound";
-  op.method = (char *)(size_t)(size_t) "post";
+  op.operation_id = cdd_test_mut_str("testMediaTypeFindNotFound");
+  op.method = cdd_test_mut_str("post");
   op.verb = OA_VERB_POST;
 
   op.req_body.content_type =
-      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+      cdd_test_mut_str("application/x-www-form-urlencoded");
   op.n_req_body_media_types = 1;
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name =
-      (char *)(size_t)(size_t) "application/json"; /* Doesn't match */
+      cdd_test_mut_str("application/json"); /* Doesn't match */
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
+  op.req_body.content_type = cdd_test_mut_str("multipart/form-data");
   op.req_body_media_types[0].name =
-      (char *)(size_t)(size_t) "application/xml"; /* Doesn't match */
+      cdd_test_mut_str("application/xml"); /* Doesn't match */
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
@@ -424,23 +423,21 @@ TEST test_client_body_find_encoding_not_found(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.operation_id = (char *)(size_t)(size_t) "testEncodingFindNotFound";
-  op.method = (char *)(size_t)(size_t) "post";
+  op.operation_id = cdd_test_mut_str("testEncodingFindNotFound");
+  op.method = cdd_test_mut_str("post");
   op.verb = OA_VERB_POST;
 
-  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
-  op.req_body.ref_name = (char *)(size_t)(size_t) "MockSchema";
+  op.req_body.content_type = cdd_test_mut_str("multipart/form-data");
+  op.req_body.ref_name = cdd_test_mut_str("MockSchema");
 
   /* Provide req_body_media_types */
   op.n_req_body_media_types = 1;
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
-  op.req_body_media_types[0].name =
-      (char *)(size_t)(size_t) "multipart/form-data";
+  op.req_body_media_types[0].name = cdd_test_mut_str("multipart/form-data");
 
   memset(&enc, 0, sizeof(enc));
-  enc.name =
-      (char *)(size_t)(size_t) "other_prop"; /* Different from test_prop */
-  enc.content_type = (char *)(size_t)(size_t) "text/plain";
+  enc.name = cdd_test_mut_str("other_prop"); /* Different from test_prop */
+  enc.content_type = cdd_test_mut_str("text/plain");
 
   op.req_body_media_types[0].n_encoding = 1;
   op.req_body_media_types[0].encoding = &enc;
@@ -505,17 +502,16 @@ TEST test_client_body_array_items_statics(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.operation_id = (char *)(size_t)(size_t) "testArrayItemsStatics";
-  op.method = (char *)(size_t)(size_t) "post";
+  op.operation_id = cdd_test_mut_str("testArrayItemsStatics");
+  op.method = cdd_test_mut_str("post");
   op.verb = OA_VERB_POST;
 
-  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
-  op.req_body.ref_name = (char *)(size_t)(size_t) "MockSchema2";
+  op.req_body.content_type = cdd_test_mut_str("multipart/form-data");
+  op.req_body.ref_name = cdd_test_mut_str("MockSchema2");
 
   op.n_req_body_media_types = 1;
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
-  op.req_body_media_types[0].name =
-      (char *)(size_t)(size_t) "multipart/form-data";
+  op.req_body_media_types[0].name = cdd_test_mut_str("multipart/form-data");
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
@@ -682,9 +678,9 @@ TEST test_client_body_array_items_statics(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.req_body.content_type =
-      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+      cdd_test_mut_str("application/x-www-form-urlencoded");
   op.req_body_media_types[0].name =
-      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+      cdd_test_mut_str("application/x-www-form-urlencoded");
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(spec.defined_schemas[0].fields);

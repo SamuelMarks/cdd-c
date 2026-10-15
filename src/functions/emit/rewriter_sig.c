@@ -99,7 +99,7 @@ static cdd_c_error_t join_tokens(const struct TokenList *tokens, size_t start,
     len += tokens->tokens[i].length;
   }
 
-  buf = (char *)(size_t)C_CDD_MALLOC(len + 1);
+  buf = (char *)C_CDD_MALLOC(len + 1);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -138,7 +138,9 @@ static cdd_c_error_t is_storage_specifier(const struct Token *tok) {
  * @param start Index of the opening token (e.g. LPAREN).
  * @param open Kind of opening token.
  * @param close Kind of closing token.
- * @return Index of the matching closing token, or tokens->size if not found.
+ * @param _out_val Pointer to receive the index of the matching closing token,
+ * or tokens->size if not found.
+ * @return CDD_C_SUCCESS on success or error code.
  */
 static cdd_c_error_t find_balanced_end(const struct TokenList *tokens,
                                        size_t start, enum TokenKind open,
@@ -278,7 +280,8 @@ static cdd_c_error_t has_meaningful_tokens(const struct TokenList *tokens,
 }
 
 /**
- * @brief Executes the rewrite signature operation.
+ * @brief Rewrites a C function signature to return an error enum and output
+ * pointer.
  */
 cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
                                 char **out_code) {

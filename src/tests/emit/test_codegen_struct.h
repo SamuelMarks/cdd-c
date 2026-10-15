@@ -19,6 +19,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "c_cdd/memory.h"
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,8 +29,6 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern C_CDD_EXPORT int g_struct_fields_init_fail;
-extern C_CDD_EXPORT int g_struct_fields_add_fail;
 extern C_CDD_EXPORT int g_cdd_fail_str_after_last;
 
 static void setup_struct_fields(struct StructFields *sf) {
@@ -64,7 +63,7 @@ TEST test_cleanup_generation(void) {
     sz = ftell(tmp);
     rewind(tmp);
 
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -108,7 +107,7 @@ TEST test_default_generation(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -153,7 +152,7 @@ TEST test_deepcopy_generation(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -200,7 +199,7 @@ TEST test_eq_generation(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -239,14 +238,14 @@ TEST test_guards_injection(void) {
 
     ASSERT(tmp);
     setup_struct_fields(&sf);
-    cfg.guard_macro = (char *)(size_t)(size_t) "MY_GUARD";
+    cfg.guard_macro = cdd_test_mut_str("MY_GUARD");
 
     ASSERT_EQ(0, write_struct_cleanup_func(tmp, "User", &sf, &cfg));
 
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -322,7 +321,7 @@ TEST test_struct_debug_func(void) {
     sz = ftell(tmp);
     rewind(tmp);
 
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -417,14 +416,13 @@ TEST test_struct_fields_add_bitwidth(void) {
 TEST test_struct_fields_init_oom(void) {
   struct StructFields sf = {0};
   struct StructField *f_ptr = NULL;
-  char *val = NULL;
+  const char *val = NULL;
 #ifdef CDD_BUILD_TESTS
-  g_struct_fields_init_fail = 1;
+  g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, struct_fields_init(&sf));
   struct_fields_free(&sf); /* hit sf->fields == NULL branch */
-  g_struct_fields_init_fail = 0;
+  g_cdd_alloc_fail = 0;
 
-  g_struct_fields_add_fail = 2;
   ASSERT_EQ(0, struct_fields_init(&sf));
 
   sf.capacity = 1;
@@ -432,10 +430,11 @@ TEST test_struct_fields_init_oom(void) {
   ASSERT_EQ(0, struct_fields_add(&sf, "a", "b", NULL, NULL, NULL));
 
   sf.capacity = sf.size;
+  g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             struct_fields_add(&sf, "c", "d", NULL, NULL, NULL));
+  g_cdd_alloc_fail = 0;
 
-  g_struct_fields_add_fail = 0;
   struct_fields_free(&sf);
 #endif
 
@@ -458,7 +457,7 @@ TEST test_struct_fields_init_oom(void) {
   /* Free string array null */
   sf.is_union = 1;
   sf.union_is_anyof = 0;
-  sf.union_discriminator = (char *)(size_t)malloc(5);
+  sf.union_discriminator = (char *)malloc(5);
 #if defined(_MSC_VER)
   strcpy_s(sf.union_discriminator, 5, "type");
 #else
@@ -473,10 +472,10 @@ TEST test_struct_fields_init_oom(void) {
   sf.capacity = 1;
   sf.size = 1;
 #ifdef CDD_BUILD_TESTS
-  g_struct_fields_add_fail = 1;
+  g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             struct_fields_add(&sf, "new_field", "string", NULL, NULL, NULL));
-  g_struct_fields_add_fail = 0;
+  g_cdd_alloc_fail = 0;
 #endif
 
   struct_fields_free(NULL);
@@ -527,7 +526,7 @@ TEST test_struct_fields_init_oom(void) {
       struct_fields_add(&sf_enum, "enum_f", "enum", "#/definitions/MyEnum",
                         "\"FOO\"", NULL);
 
-      cfg.guard_macro = (char *)(size_t) "MY_GUARD";
+      cfg.guard_macro = cdd_test_mut_str("MY_GUARD");
 
       /* cleanup with array of ref objects failing get_type_from_ref */
       g_cdd_fail_str_after_last = 1;

@@ -26,7 +26,7 @@ TEST test_ffi_ir_emit_ruby(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_ruby_out";
+  char *output_dir = cdd_test_mut_str("test_ruby_out");
   FILE *f;
 
   config.target_langs = "ruby";
@@ -79,7 +79,7 @@ TEST test_ffi_ir_emit_kotlin(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_kotlin_out";
+  char *output_dir = cdd_test_mut_str("test_kotlin_out");
   FILE *f;
 
   config.target_langs = "kotlin";
@@ -132,7 +132,7 @@ TEST test_ffi_ir_emit_php(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_php_out";
+  char *output_dir = cdd_test_mut_str("test_php_out");
   FILE *f;
 
   config.target_langs = "php";
@@ -185,7 +185,7 @@ TEST test_ffi_ir_emit_lua(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_lua_out";
+  char *output_dir = cdd_test_mut_str("test_lua_out");
   FILE *f;
 
   config.target_langs = "lua";
@@ -238,7 +238,7 @@ TEST test_ffi_ir_emit_zig(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_zig_out";
+  char *output_dir = cdd_test_mut_str("test_zig_out");
   FILE *f;
 
   config.target_langs = "zig";
@@ -291,7 +291,7 @@ TEST test_ffi_ir_emit_odin(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_odin_out";
+  char *output_dir = cdd_test_mut_str("test_odin_out");
   FILE *f;
 
   config.target_langs = "odin";
@@ -348,7 +348,7 @@ TEST test_ffi_ir_emit_julia(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_julia_out";
+  char *output_dir = cdd_test_mut_str("test_julia_out");
   FILE *f;
 
   config.target_langs = "julia";
@@ -401,7 +401,7 @@ TEST test_ffi_ir_emit_r(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_r_out";
+  char *output_dir = cdd_test_mut_str("test_r_out");
   FILE *f;
 
   config.target_langs = "r";
@@ -454,7 +454,7 @@ TEST test_ffi_ir_emit_matlab(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_matlab_out";
+  char *output_dir = cdd_test_mut_str("test_matlab_out");
   FILE *f;
 
   config.target_langs = "matlab";
@@ -507,7 +507,7 @@ TEST test_ffi_ir_emit_haskell(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_haskell_out";
+  char *output_dir = cdd_test_mut_str("test_haskell_out");
   FILE *f;
 
   config.target_langs = "haskell";
@@ -560,7 +560,7 @@ TEST test_ffi_ir_emit_ocaml(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = (char *)(size_t)(size_t) "test_ocaml_out";
+  char *output_dir = cdd_test_mut_str("test_ocaml_out");
   FILE *f;
 
   config.target_langs = "ocaml";

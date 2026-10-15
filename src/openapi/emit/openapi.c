@@ -19,12 +19,20 @@
 #include "openapi/emit/openapi.h"
 /* clang-format on */
 
+/** @brief Safely sets a JSON object property and frees the value on failure */
+#define json_object_set_value(obj, name, val)                                  \
+  do {                                                                         \
+    JSON_Value *_cdd_jv = (val);                                               \
+    if ((json_object_set_value)((obj), (name), _cdd_jv) != JSONSuccess)        \
+      json_value_free(_cdd_jv);                                                \
+  } while (0)
+
 /**
- * @brief Executes the openapi write spec to json operation.
+ * @brief Serializes an in-memory OpenAPI_Spec structure to a JSON string or
+ * file.
  */
 cdd_c_error_t openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
                                          char **json_out) {
-  char *_ast_strdup_4 = NULL;
   JSON_Value *root_val;
   JSON_Object *root_obj;
   cdd_c_error_t rc;
@@ -36,8 +44,7 @@ cdd_c_error_t openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
   if (spec->is_schema_document) {
     if (!spec->schema_root_json)
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    *json_out =
-        (c_cdd_strdup(spec->schema_root_json, &_ast_strdup_4), _ast_strdup_4);
+    c_cdd_strdup(spec->schema_root_json, json_out);
     return *json_out ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   }
   if (license_fields_invalid(&spec->info.license))

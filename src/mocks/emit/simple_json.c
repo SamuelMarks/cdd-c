@@ -19,7 +19,7 @@
 
 /** \brief func */
 /**
- * @brief Executes the quote or null operation.
+ * @brief Formats a nullable string as a quoted JSON string or null.
  */
 static enum cdd_c_error quote_or_null(const char *s, char **s1) {
   if (s == NULL) {
@@ -45,7 +45,7 @@ static enum cdd_c_error quote_or_null(const char *s, char **s1) {
 
 /** \brief func */
 /**
- * @brief Executes the c str eq operation.
+ * @brief Compares two c str values for equality.
  */
 static enum cdd_c_error c_str_eq(const char *s0, const char *s1) {
   return ((s0 == NULL && s1 == NULL) ||
@@ -56,7 +56,7 @@ static enum cdd_c_error c_str_eq(const char *s0, const char *s1) {
 
 /** \brief func */
 /**
- * @brief Executes the Tank default operation.
+ * @brief Initializes a Tank instance with default values.
  */
 enum cdd_c_error Tank_default(enum Tank *out) {
   if (out)
@@ -66,7 +66,7 @@ enum cdd_c_error Tank_default(enum Tank *out) {
 
 /** \brief func */
 /**
- * @brief Executes the Tank to str operation.
+ * @brief Converts a Tank enum value to its string representation.
  */
 enum cdd_c_error Tank_to_str(const enum Tank tank, char **const str) {
   if (str == NULL)
@@ -97,7 +97,7 @@ enum cdd_c_error Tank_to_str(const enum Tank tank, char **const str) {
 
 /** \brief func */
 /**
- * @brief Executes the Tank from str operation.
+ * @brief Parses a Tank enum value from its string representation.
  */
 enum cdd_c_error Tank_from_str(const char *str, enum Tank *val) {
   if (val == NULL)
@@ -117,20 +117,20 @@ enum cdd_c_error Tank_from_str(const char *str, enum Tank *val) {
 
 /** \brief func */
 /**
- * @brief Executes the HazE cleanup operation.
+ * @brief Releases memory owned by a HazE instance.
  */
 enum cdd_c_error HazE_cleanup(struct HazE *haz_e) {
   if (haz_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  C_CDD_FREE((void *)haz_e->bzr);
+  C_CDD_FREE(haz_e->bzr);
   C_CDD_FREE(haz_e);
   return CDD_C_SUCCESS;
 }
 
 /** \brief func */
 /**
- * @brief Executes the HazE default operation.
+ * @brief Initializes a HazE instance with default values.
  */
 enum cdd_c_error HazE_default(struct HazE **haz_e) {
   if (haz_e == NULL)
@@ -144,7 +144,7 @@ enum cdd_c_error HazE_default(struct HazE **haz_e) {
 }
 
 /**
- * @brief Executes the HazE deepcopy operation.
+ * @brief Performs a deep copy of a HazE instance.
  */
 enum cdd_c_error HazE_deepcopy(const struct HazE *haz_e_original,
                                struct HazE **haz_e_dest) {
@@ -174,7 +174,7 @@ enum cdd_c_error HazE_deepcopy(const struct HazE *haz_e_original,
 
 /** \brief func */
 /**
- * @brief Executes the HazE display operation.
+ * @brief Formats a human-readable representation of HazE to a stream.
  */
 enum cdd_c_error HazE_display(const struct HazE *haz_e, FILE *fh) {
   char *s = NULL;
@@ -192,7 +192,7 @@ enum cdd_c_error HazE_display(const struct HazE *haz_e, FILE *fh) {
 
 /** \brief func */
 /**
- * @brief Executes the HazE debug operation.
+ * @brief Formats a debug representation of HazE to a stream.
  */
 enum cdd_c_error HazE_debug(const struct HazE *haz_e, FILE *fh) {
   cdd_c_error_t rc;
@@ -222,7 +222,7 @@ enum cdd_c_error HazE_debug(const struct HazE *haz_e, FILE *fh) {
 
 /** \brief func */
 /**
- * @brief Executes the HazE eq operation.
+ * @brief Compares two HazE values for equality.
  */
 enum cdd_c_error HazE_eq(const struct HazE *haz_e0, const struct HazE *haz_e1) {
   if (haz_e0 == NULL || haz_e1 == NULL)
@@ -236,7 +236,7 @@ enum cdd_c_error HazE_eq(const struct HazE *haz_e0, const struct HazE *haz_e1) {
 
 /** \brief func */
 /**
- * @brief Executes the HazE to json operation.
+ * @brief Serializes a HazE instance to a JSON string.
  */
 enum cdd_c_error HazE_to_json(const struct HazE *haz_e, char **json) {
   char *tank_str = NULL;
@@ -290,7 +290,7 @@ cleanup:
 }
 
 /**
- * @brief Executes the HazE from jsonObject operation.
+ * @brief Deserializes a HazE instance from a Parson JSON_Object.
  */
 enum cdd_c_error HazE_from_jsonObject(const JSON_Object *jsonObject,
                                       struct HazE **haz_e) {
@@ -332,7 +332,7 @@ enum cdd_c_error HazE_from_jsonObject(const JSON_Object *jsonObject,
 
 /** \brief func */
 /**
- * @brief Executes the HazE from json operation.
+ * @brief Deserializes a HazE instance from a JSON string.
  */
 enum cdd_c_error HazE_from_json(const char *json, struct HazE **haz_e) {
   JSON_Value *root = NULL;
@@ -358,13 +358,13 @@ enum cdd_c_error HazE_from_json(const char *json, struct HazE **haz_e) {
 
 /** \brief func */
 /**
- * @brief Executes the FooE cleanup operation.
+ * @brief Releases memory owned by a FooE instance.
  */
 enum cdd_c_error FooE_cleanup(struct FooE *foo_e) {
   enum cdd_c_error rc;
   if (foo_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  C_CDD_FREE((void *)foo_e->bar);
+  C_CDD_FREE(foo_e->bar);
   rc = HazE_cleanup(foo_e->haz);
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -374,7 +374,7 @@ enum cdd_c_error FooE_cleanup(struct FooE *foo_e) {
 
 /** \brief func */
 /**
- * @brief Executes the FooE default operation.
+ * @brief Initializes a FooE instance with default values.
  */
 enum cdd_c_error FooE_default(struct FooE **foo_e) {
   cdd_c_error_t rc;
@@ -396,7 +396,7 @@ enum cdd_c_error FooE_default(struct FooE **foo_e) {
 }
 
 /**
- * @brief Executes the FooE deepcopy operation.
+ * @brief Performs a deep copy of a FooE instance.
  */
 enum cdd_c_error FooE_deepcopy(const struct FooE *foo_e_original,
                                struct FooE **foo_e_dest) {
@@ -435,7 +435,7 @@ enum cdd_c_error FooE_deepcopy(const struct FooE *foo_e_original,
 
 /** \brief func */
 /**
- * @brief Executes the FooE display operation.
+ * @brief Formats a human-readable representation of FooE to a stream.
  */
 enum cdd_c_error FooE_display(const struct FooE *foo_e, FILE *fh) {
   char *s = NULL;
@@ -453,7 +453,7 @@ enum cdd_c_error FooE_display(const struct FooE *foo_e, FILE *fh) {
 
 /** \brief func */
 /**
- * @brief Executes the FooE debug operation.
+ * @brief Formats a debug representation of FooE to a stream.
  */
 enum cdd_c_error FooE_debug(const struct FooE *foo_e, FILE *fh) {
   cdd_c_error_t rc;
@@ -489,7 +489,7 @@ enum cdd_c_error FooE_debug(const struct FooE *foo_e, FILE *fh) {
 
 /** \brief func */
 /**
- * @brief Executes the FooE eq operation.
+ * @brief Compares two FooE values for equality.
  */
 enum cdd_c_error FooE_eq(const struct FooE *foo_e0, const struct FooE *foo_e1) {
   if (foo_e0 == NULL || foo_e1 == NULL)
@@ -504,7 +504,7 @@ enum cdd_c_error FooE_eq(const struct FooE *foo_e0, const struct FooE *foo_e1) {
 
 /** \brief func */
 /**
- * @brief Executes the FooE to json operation.
+ * @brief Serializes a FooE instance to a JSON string.
  */
 enum cdd_c_error FooE_to_json(const struct FooE *foo_e, char **const json) {
   char *haz_e_json = NULL;
@@ -555,7 +555,7 @@ cleanup:
 }
 
 /**
- * @brief Executes the FooE from jsonObject operation.
+ * @brief Deserializes a FooE instance from a Parson JSON_Object.
  */
 enum cdd_c_error FooE_from_jsonObject(const JSON_Object *jsonObject,
                                       struct FooE **const foo_e) {
@@ -597,7 +597,7 @@ enum cdd_c_error FooE_from_jsonObject(const JSON_Object *jsonObject,
 
 /** \brief func */
 /**
- * @brief Executes the FooE from json operation.
+ * @brief Deserializes a FooE instance from a JSON string.
  */
 enum cdd_c_error FooE_from_json(const char *json, struct FooE **const foo_e) {
   JSON_Value *root = NULL;

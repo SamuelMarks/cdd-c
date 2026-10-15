@@ -56,7 +56,7 @@ C_CDD_EXPORT cdd_c_error_t test_build_system_mock_io_negative(void) {
 #endif
 
 /**
- * @brief Generates C code for write cmake content.
+ * @brief Emits C source code for cmake content.
  */
 static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
                                          int has_tests) {

@@ -42,8 +42,8 @@ static cdd_c_error_t token_to_cstr(char *buf, size_t buf_len,
 }
 
 TEST tokenize_all_tokens(void) {
-  const az_span code = az_span_create_from_str((
-      char *)(size_t)(size_t) "struct union enum identifier 123 'a' \"string\" "
+  const az_span code =
+      az_span_create_from_str("struct union enum identifier 123 'a' \"string\" "
                               "/* block */ // line \n # \n"
                               "{} ; , / ");
   struct TokenList *tl = NULL;
@@ -112,8 +112,7 @@ TEST tokenize_c23_digit_separators(void) {
   char *_ast_token_to_cstr_1 = NULL;
   char *_ast_token_to_cstr_2 = NULL;
   /* Test 123'456 */
-  const az_span code = az_span_create_from_str(
-      (char *)(size_t)(size_t) "123'456 0xAB'CD 0b10'10");
+  const az_span code = az_span_create_from_str("123'456 0xAB'CD 0b10'10");
   struct TokenList *tl = NULL;
   int rc = 0;
   char buf[32];
@@ -205,8 +204,7 @@ TEST tokenize_digit_separator_edge_case(void) {
   /* Then loop breaks. ' remains. */
   /* Next iteration: ' starts a char literal probably. */
 
-  const az_span code = az_span_create_from_str(
-      (char *)(size_t)(size_t) "123' 456"); /* Space after ' */
+  const az_span code = az_span_create_from_str("123' 456"); /* Space after ' */
   struct TokenList *tl = NULL;
   char buf[32];
   int rc = 0;
@@ -245,7 +243,7 @@ TEST test_tokenize_all_keywords(void) {
       "_Atomic _Thread_local thread_local _Alignas alignas _Alignof alignof "
       "_Noreturn constexpr _Static_assert static_assert typeof nullptr true "
       "false embed _Pragma __attribute__ __declspec";
-  const az_span code = az_span_create_from_str((char *)(size_t)src);
+  const az_span code = az_span_create_from_str(src);
   struct TokenList *tl = NULL;
   cdd_c_error_t rc = 0;
   size_t i;
@@ -338,7 +336,7 @@ TEST test_tokenize_operators_and_digraphs(void) {
       "{ } [ ] ( ) ; , ~ ? : :> / /= = == ! != + ++ += - -- -> -= * *= % %= "
       "%> %: %:%: < <= << <<= <% <: > >= >> >>= & && &= | || |= ^ ^= . ... "
       "# ##";
-  const az_span code = az_span_create_from_str((char *)(size_t)src);
+  const az_span code = az_span_create_from_str(src);
   struct TokenList *tl = NULL;
   cdd_c_error_t rc = 0;
   size_t i;
@@ -420,10 +418,9 @@ TEST test_tokenize_comments_and_ucn(void) {
   cdd_c_error_t rc = 0;
 
   /* Line comment, block comment, unterminated block comment */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "// line\n/* block * with * "
-                                               "stars */\n/* unterminated"),
-      &tl);
+  rc = tokenize(az_span_create_from_str("// line\n/* block * with * "
+                                        "stars */\n/* unterminated"),
+                &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_COMMENT, tl->tokens[0].kind);
@@ -434,21 +431,21 @@ TEST test_tokenize_comments_and_ucn(void) {
   free_token_list(tl);
 
   /* UCN at identifier start: \u0041 (A) */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "\\u0041bc"), &tl);
+  rc = tokenize(az_span_create_from_str("\\u0041bc"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
   free_token_list(tl);
 
   /* UCN \U00000041 at start */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "\\U00000041bc"), &tl);
+  rc = tokenize(az_span_create_from_str("\\U00000041bc"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
   free_token_list(tl);
 
   /* \ followed by non-u/U -> TOKEN_OTHER */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "\\z"), &tl);
+  rc = tokenize(az_span_create_from_str("\\z"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_OTHER, tl->tokens[0].kind);
@@ -456,78 +453,77 @@ TEST test_tokenize_comments_and_ucn(void) {
   free_token_list(tl);
 
   /* \u not followed by hex -> TOKEN_OTHER */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "\\uz"), &tl);
+  rc = tokenize(az_span_create_from_str("\\uz"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_OTHER, tl->tokens[0].kind);
   free_token_list(tl);
 
   /* UCN inside identifier: abc\u0041def */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "abc\\u0041def"), &tl);
+  rc = tokenize(az_span_create_from_str("abc\\u0041def"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
   free_token_list(tl);
 
   /* UCN inside identifier with non-hex after \u: abc\uz */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "abc\\uz"), &tl);
+  rc = tokenize(az_span_create_from_str("abc\\uz"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
   free_token_list(tl);
 
   /* Identifier with \non-u inside: abc\x */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "abc\\x"), &tl);
+  rc = tokenize(az_span_create_from_str("abc\\x"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
   free_token_list(tl);
 
   /* UCN inside identifier with U: abc\U00000041def */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "abc\\U00000041def"),
-                &tl);
+  rc = tokenize(az_span_create_from_str("abc\\U00000041def"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
   free_token_list(tl);
 
   /* UCN inside identifier with U followed by non-hex: abc\Uz */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "abc\\Uz"), &tl);
+  rc = tokenize(az_span_create_from_str("abc\\Uz"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
   free_token_list(tl);
 
   /* Line comment at EOF without newline */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "// at eof"), &tl);
+  rc = tokenize(az_span_create_from_str("// at eof"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_COMMENT, tl->tokens[0].kind);
   free_token_list(tl);
 
   /* Block comment with star then EOF */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "/* at *"), &tl);
+  rc = tokenize(az_span_create_from_str("/* at *"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_COMMENT, tl->tokens[0].kind);
   free_token_list(tl);
 
   /* Digraph %: followed by % but not : */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "%: %x"), &tl);
+  rc = tokenize(az_span_create_from_str("%: %x"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_HASH, tl->tokens[0].kind);
   free_token_list(tl);
 
   /* Digraph %: followed immediately by % then non-colon */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "%:%a"), &tl);
+  rc = tokenize(az_span_create_from_str("%:%a"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_HASH, tl->tokens[0].kind);
   free_token_list(tl);
 
   /* Dot dot followed by non-dot */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) ".."), &tl);
+  rc = tokenize(az_span_create_from_str(".."), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_DOT, tl->tokens[0].kind);
@@ -535,9 +531,9 @@ TEST test_tokenize_comments_and_ucn(void) {
   free_token_list(tl);
 
   /* Identifier ending with splice at EOF */
-  rc = tokenize(az_span_create_from_str((char *)(size_t)("id"
-                                                         "\\"
-                                                         "\n")),
+  rc = tokenize(az_span_create_from_str(("id"
+                                         "\\"
+                                         "\n")),
                 &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
@@ -545,9 +541,9 @@ TEST test_tokenize_comments_and_ucn(void) {
   free_token_list(tl);
 
   /* Line comment ending with splice at EOF */
-  rc = tokenize(az_span_create_from_str((char *)(size_t)("// comm"
-                                                         "\\"
-                                                         "\n")),
+  rc = tokenize(az_span_create_from_str(("// comm"
+                                         "\\"
+                                         "\n")),
                 &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
@@ -555,9 +551,9 @@ TEST test_tokenize_comments_and_ucn(void) {
   free_token_list(tl);
 
   /* Block comment ending with splice at EOF */
-  rc = tokenize(az_span_create_from_str((char *)(size_t)("/* comm"
-                                                         "\\"
-                                                         "\n")),
+  rc = tokenize(az_span_create_from_str(("/* comm"
+                                         "\\"
+                                         "\n")),
                 &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
@@ -573,16 +569,14 @@ TEST test_tokenize_spliced_keywords_and_numbers(void) {
   cdd_c_error_t rc = 0;
 
   /* Number with underscore */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "123_456"), &tl);
+  rc = tokenize(az_span_create_from_str("123_456"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_NUMBER_LITERAL, tl->tokens[0].kind);
   free_token_list(tl);
 
   /* Spliced return, switch, if */
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "re\\\nturn swi\\\ntch i\\\nf"),
-      &tl);
+  rc = tokenize(az_span_create_from_str("re\\\nturn swi\\\ntch i\\\nf"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_KEYWORD_RETURN, tl->tokens[0].kind);
@@ -593,7 +587,7 @@ TEST test_tokenize_spliced_keywords_and_numbers(void) {
   free_token_list(tl);
 
   /* Number starting with dot */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) ".456 123.789"), &tl);
+  rc = tokenize(az_span_create_from_str(".456 123.789"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_NUMBER_LITERAL, tl->tokens[0].kind);
@@ -602,7 +596,7 @@ TEST test_tokenize_spliced_keywords_and_numbers(void) {
   free_token_list(tl);
 
   /* Dot not followed by digit */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) ".foo ..."), &tl);
+  rc = tokenize(az_span_create_from_str(".foo ..."), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_DOT, tl->tokens[0].kind);
@@ -612,9 +606,8 @@ TEST test_tokenize_spliced_keywords_and_numbers(void) {
   free_token_list(tl);
 
   /* String and char literals with escape sequences */
-  rc = tokenize(az_span_create_from_str(
-                    (char *)(size_t) "\"hello \\\" world\" 'a' '\\\\'"),
-                &tl);
+  rc =
+      tokenize(az_span_create_from_str("\"hello \\\" world\" 'a' '\\\\'"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_STRING_LITERAL, tl->tokens[0].kind);
@@ -625,14 +618,13 @@ TEST test_tokenize_spliced_keywords_and_numbers(void) {
   free_token_list(tl);
 
   /* Unterminated string and char at EOF */
-  rc =
-      tokenize(az_span_create_from_str((char *)(size_t) "\"unterminated"), &tl);
+  rc = tokenize(az_span_create_from_str("\"unterminated"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_STRING_LITERAL, tl->tokens[0].kind);
   free_token_list(tl);
 
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "'unterminated"), &tl);
+  rc = tokenize(az_span_create_from_str("'unterminated"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_CHAR_LITERAL, tl->tokens[0].kind);
@@ -650,19 +642,19 @@ TEST test_tokenizer_oom_and_edge_cases(void) {
   int is_match = 0;
   size_t next_idx = 0;
   struct Token dummy_tok;
-  const az_span many_tokens = az_span_create_from_str(
-      (char *)(size_t) "; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; "
-                       "; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; "
-                       "; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; "
-                       "; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ");
+  const az_span many_tokens =
+      az_span_create_from_str("; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; "
+                              "; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; "
+                              "; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; "
+                              "; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ");
 
   /* tokenize with NULL out */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "int x;"), NULL);
+  rc = tokenize(az_span_create_from_str("int x;"), NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   /* tokenize OOM on calloc */
   g_cdd_alloc_fail = 1;
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "int x;"), &tl);
+  rc = tokenize(az_span_create_from_str("int x;"), &tl);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_alloc_fail = 0;
 
@@ -696,7 +688,7 @@ TEST test_tokenizer_oom_and_edge_cases(void) {
   ASSERT_EQ(0, is_match);
 
   /* token_find_next found vs not found */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "int x = 10;"), &tl);
+  rc = tokenize(az_span_create_from_str("int x = 10;"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
 
@@ -743,25 +735,25 @@ TEST test_tokenizer_oom_and_edge_cases(void) {
   ASSERT_EQ(0, is_match);
 
   /* tokenize with whitespace ending in splice */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "   \\\n"), &tl);
+  rc = tokenize(az_span_create_from_str("   \\\n"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   free_token_list(tl);
 
   /* tokenize with number ending in splice */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "123\\\n"), &tl);
+  rc = tokenize(az_span_create_from_str("123\\\n"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   free_token_list(tl);
 
   /* tokenize with splice at start */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "\\\n"), &tl);
+  rc = tokenize(az_span_create_from_str("\\\n"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   free_token_list(tl);
 
   /* tokenize with string ending in splice at EOF */
-  rc = tokenize(az_span_create_from_str((char *)(size_t) "\"hello\\\n"), &tl);
+  rc = tokenize(az_span_create_from_str("\"hello\\\n"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   free_token_list(tl);

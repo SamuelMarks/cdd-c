@@ -1,3 +1,7 @@
+/**
+ * @file str_includes.h
+ * @brief Core str includes definitions and implementation.
+ */
 #ifndef C_CDD_STR_INCLUDES_H
 #define C_CDD_STR_INCLUDES_H
 
@@ -13,8 +17,10 @@ extern "C" {
 #endif
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+/** @brief Length modifier for size_t / long formatting */
 #define NUM_LONG_FMT "z"
 #else
+/** @brief Length modifier for size_t / long formatting */
 #define NUM_LONG_FMT "l"
 #endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||           \
           defined(__NT__) */

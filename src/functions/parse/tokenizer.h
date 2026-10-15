@@ -317,11 +317,8 @@ struct TokenList {
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
  */
 
-extern C_CDD_EXPORT /**
-                     * @brief Executes the tokenize operation.
-                     */
-    cdd_c_error_t
-    tokenize(az_span source, struct TokenList **out);
+extern C_CDD_EXPORT cdd_c_error_t tokenize(az_span source,
+                                           struct TokenList **out);
 
 /**
  * @brief Free resources associated with a TokenList.
@@ -331,11 +328,7 @@ extern C_CDD_EXPORT /**
  * @param[in] tl The token list to free. Safe to pass NULL.
  */
 
-extern C_CDD_EXPORT /**
-                     * @brief Frees the memory associated with token list.
-                     */
-    void
-    free_token_list(struct TokenList *tl);
+extern C_CDD_EXPORT void free_token_list(struct TokenList *tl);
 
 /**
  * @param[out] _out_val Pointer to store the result
@@ -350,13 +343,10 @@ extern C_CDD_EXPORT /**
  * @return true if token content equals `match`, false otherwise.
  */
 
-extern C_CDD_EXPORT /**
-                     * @brief Executes the token matches string operation.
-                     */
-    cdd_c_error_t
-    token_matches_string(const struct Token *tok,
+extern C_CDD_EXPORT cdd_c_error_t token_matches_string(const struct Token *tok,
 
-                         const char *match, int *_out_val);
+                                                       const char *match,
+                                                       int *_out_val);
 
 /**
  * @param[out] _out_val Pointer to store the result
@@ -373,15 +363,13 @@ extern C_CDD_EXPORT /**
  * not found.
  */
 
-extern C_CDD_EXPORT /**
-                     * @brief Executes the token find next operation.
-                     */
-    cdd_c_error_t
-    token_find_next(const struct TokenList *list,
+extern C_CDD_EXPORT cdd_c_error_t token_find_next(const struct TokenList *list,
 
-                    size_t start_idx, size_t end_idx,
+                                                  size_t start_idx,
+                                                  size_t end_idx,
 
-                    enum TokenKind kind, size_t *_out_val);
+                                                  enum TokenKind kind,
+                                                  size_t *_out_val);
 
 /**
  * @param[out] _out_val Pointer to store the result
@@ -392,13 +380,10 @@ extern C_CDD_EXPORT /**
  * @return The detected TokenKind (keyword kind or TOKEN_IDENTIFIER).
  */
 
-extern C_CDD_EXPORT /**
-                     * @brief Executes the identify keyword or id operation.
-                     */
-    cdd_c_error_t
-    identify_keyword_or_id(const uint8_t *start,
+extern C_CDD_EXPORT cdd_c_error_t
+identify_keyword_or_id(const uint8_t *start,
 
-                           size_t len, enum TokenKind *_out_val);
+                       size_t len, enum TokenKind *_out_val);
 
 /**
  * @brief Appends a token to the token list.

@@ -9,28 +9,6 @@
 #include "functions/emit/client_body_internal.h"
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
-#include <stdarg.h>
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)))
-#endif
-    ;
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  int ret;
-  va_list args;
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  va_start(args, format);
-  ret = vfprintf(stream, format, args);
-  va_end(args);
-  return ret;
-}
-#define fprintf test_cdd_fprintf_hook
-#endif
-
 /**
  * @brief Checks if status range code.
  */
@@ -48,7 +26,8 @@ cdd_c_error_t client_body_is_status_range_code(const char *code,
 }
 
 /**
- * @brief Executes the status range prefix operation.
+ * @brief Checks whether an HTTP status code matches a wildcard range such as
+ * 2XX.
  */
 cdd_c_error_t client_body_status_range_prefix(const char *code,
                                               int *out_prefix) {
@@ -82,15 +61,13 @@ cdd_c_error_t client_body_is_status_code_literal(const char *code,
 }
 
 /**
- * @brief Generates C code for codegen client write body.
+ * @brief Emits generated C code for codegen client write body.
  */
 cdd_c_error_t codegen_client_write_body(FILE *fp,
                                         const struct OpenAPI_Operation *op,
                                         const struct OpenAPI_Spec *spec,
                                         const char *path_template,
                                         const char *base_url_expr) {
-  const char *_ast_verb_to_enum_str_16 = NULL;
-  const char *_ast_method_str_to_enum_str_17 = NULL;
   const char *err_code_str = NULL;
   int query_exists = 0;
   int cookie_exists = 0;
@@ -464,7 +441,7 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
         CHECK_IO(fprintf(fp, "  }\n\n"));
       } else if (req_is_textual) {
         CHECK_IO(fprintf(fp, "  if (req_body) {\n"));
-        CHECK_IO(fprintf(fp, "    req.body = (void *)req_body;\n"));
+        CHECK_IO(fprintf(fp, "    req.body = req_body;\n"));
         CHECK_IO(fprintf(fp, "    req.body_len = strlen(req_body);\n"));
         CHECK_IO(fprintf(fp,
                          "    http_headers_add(&req.headers, "
@@ -472,7 +449,7 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
                          ct));
         CHECK_IO(fprintf(fp, "  }\n\n"));
       } else if (req_is_binary || req_is_mp) {
-        CHECK_IO(fprintf(fp, "  req.body = (void *)body;\n"));
+        CHECK_IO(fprintf(fp, "  req.body = body;\n"));
         CHECK_IO(fprintf(fp, "  req.body_len = body_len;\n"));
         CHECK_IO(fprintf(fp,
                          "  http_headers_add(&req.headers, "
@@ -502,13 +479,11 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
   }
 
   {
-    const char *method_enum =
-        (verb_to_enum_str(op->verb, &_ast_verb_to_enum_str_16),
-         _ast_verb_to_enum_str_16);
+    const char *method_enum = NULL;
+    verb_to_enum_str(op->verb, &method_enum);
     if (op->is_additional) {
-      const char *mapped =
-          (method_str_to_enum_str(op->method, &_ast_method_str_to_enum_str_17),
-           _ast_method_str_to_enum_str_17);
+      const char *mapped = NULL;
+      method_str_to_enum_str(op->method, &mapped);
       if (mapped) {
         method_enum = mapped;
       } else if (op->method && op->method[0] != '\0') {

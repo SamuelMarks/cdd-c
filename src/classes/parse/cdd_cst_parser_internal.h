@@ -1,3 +1,8 @@
+/**
+ * @file cdd_cst_parser_internal.h
+ * @brief Concrete Syntax Tree (CST) parser internal implementation and
+ * utilities.
+ */
 #ifndef CDD_CST_PARSER_INTERNAL_H
 #define CDD_CST_PARSER_INTERNAL_H
 

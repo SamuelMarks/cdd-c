@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_csharp.c
+ * @brief FFI binding emitter for Csharp.
+ */
 #ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
 #endif
@@ -11,65 +15,68 @@ extern volatile int g_fail_io_after;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
-}
-
-static const char *get_csharp_primitive(cdd_ffi_primitive_kind_t kind) {
+static cdd_c_error_t get_csharp_primitive(cdd_ffi_primitive_kind_t kind,
+                                          const char **out_type) {
   switch (kind) {
   case CDD_FFI_KIND_BOOL:
-    return "byte";
+    *out_type = "byte";
+    break;
   case CDD_FFI_KIND_INT8:
-    return "sbyte";
+    *out_type = "sbyte";
+    break;
   case CDD_FFI_KIND_UINT8:
-    return "byte";
+    *out_type = "byte";
+    break;
   case CDD_FFI_KIND_INT16:
-    return "short";
+    *out_type = "short";
+    break;
   case CDD_FFI_KIND_UINT16:
-    return "ushort";
+    *out_type = "ushort";
+    break;
   case CDD_FFI_KIND_INT32:
-    return "int";
+    *out_type = "int";
+    break;
   case CDD_FFI_KIND_UINT32:
-    return "uint";
+    *out_type = "uint";
+    break;
   case CDD_FFI_KIND_INT64:
-    return "long";
+    *out_type = "long";
+    break;
   case CDD_FFI_KIND_UINT64:
-    return "ulong";
+    *out_type = "ulong";
+    break;
   case CDD_FFI_KIND_FLOAT32:
-    return "float";
+    *out_type = "float";
+    break;
   case CDD_FFI_KIND_FLOAT64:
-    return "double";
+    *out_type = "double";
+    break;
   case CDD_FFI_KIND_OPAQUE_PTR:
-    return "IntPtr";
+    *out_type = "IntPtr";
+    break;
   case CDD_FFI_KIND_FUNCTION_PTR:
-    return "IntPtr";
+    *out_type = "IntPtr";
+    break;
   default:
-    return "IntPtr";
+    *out_type = "IntPtr";
+    break;
   }
+  return CDD_C_SUCCESS;
 }
 
-static void emit_csharp_type(FILE *f, const cdd_ffi_type_t *type,
-                             int is_return) {
+static cdd_c_error_t emit_csharp_type(FILE *f, const cdd_ffi_type_t *type,
+                                      int is_return) {
+  const char *prim = NULL;
   if (type->kind == CDD_FFI_KIND_VOID && type->pointer_depth == 0) {
     if (is_return) {
       fprintf(f, "void");
     } else {
       fprintf(f, "IntPtr");
     }
-    return;
+    return CDD_C_SUCCESS;
   }
 
   if (type->pointer_depth > 0) {
@@ -79,23 +86,25 @@ static void emit_csharp_type(FILE *f, const cdd_ffi_type_t *type,
       /* String representation could be handled via MarshalAs LPStr, but
        * generally IntPtr is safest for raw pointers */
       fprintf(f, "IntPtr");
-      return;
+      return CDD_C_SUCCESS;
     }
     if (type->pointer_depth == 1 && type->ref_name &&
         type->kind == CDD_FFI_KIND_STRUCT_REF) {
       fprintf(f, "ref %s", type->ref_name);
-      return;
+      return CDD_C_SUCCESS;
     }
     fprintf(f, "IntPtr");
-    return;
+    return CDD_C_SUCCESS;
   }
 
   if (type->ref_name) {
     fprintf(f, "%s", type->ref_name);
-    return;
+    return CDD_C_SUCCESS;
   }
 
-  fprintf(f, "%s", get_csharp_primitive(type->kind));
+  get_csharp_primitive(type->kind, &prim);
+  fprintf(f, "%s", prim);
+  return CDD_C_SUCCESS;
 }
 
 static cdd_c_error_t
@@ -157,7 +166,7 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "    public enum %s : int\n    {\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         fprintf(f, "        %s = %s,\n", node->variants[j].name,
@@ -174,7 +183,7 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
     if (node->kind == CDD_FFI_NODE_STRUCT) {
       int has_derived = 0;
       size_t k, b;
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       for (k = 0; k < ir->nodes_count; k++) {
         if (ir->nodes[k].kind == CDD_FFI_NODE_STRUCT) {
           for (b = 0; b < ir->nodes[k].base_classes_count; b++) {
@@ -230,7 +239,7 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "        [DllImport(LibraryName, CallingConvention = "
                  "CallingConvention.Cdecl)]\n");
 

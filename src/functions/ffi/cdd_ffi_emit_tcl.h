@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_tcl.h
+ * @brief FFI binding emitter for Tcl.
+ */
 #ifndef CDD_FFI_EMIT_TCL_H
 #define CDD_FFI_EMIT_TCL_H
 

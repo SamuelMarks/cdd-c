@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_java.h
+ * @brief FFI binding emitter for Java.
+ */
 #ifndef CDD_FFI_EMIT_JAVA_H
 #define CDD_FFI_EMIT_JAVA_H
 

@@ -193,11 +193,11 @@ cdd_c_error_t xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t,
  * @return 1 if true, 0 otherwise.
  */
 cdd_c_error_t header_name_is_content_type_openapi(const char *name) {
-  int _ast_iequal_0 = false;
+  int eq = 0;
   if (!name)
     return CDD_C_SUCCESS;
-  return (c_cdd_str_iequal(name, "Content-Type", &_ast_iequal_0),
-          _ast_iequal_0) != 0;
+  c_cdd_str_iequal(name, "Content-Type", &eq);
+  return eq != 0;
 }
 
 /**
@@ -208,17 +208,15 @@ cdd_c_error_t header_name_is_content_type_openapi(const char *name) {
  */
 cdd_c_error_t
 param_is_reserved_header_openapi(const struct OpenAPI_Parameter *p) {
-  int _ast_iequal_1 = false;
-  int _ast_iequal_2 = false;
-  int _ast_iequal_3 = false;
+  int eq_accept = 0;
+  int eq_ct = 0;
+  int eq_auth = 0;
   if (!p || p->in != OA_PARAM_IN_HEADER || !p->name)
     return CDD_C_SUCCESS;
-  return (c_cdd_str_iequal(p->name, "Accept", &_ast_iequal_1), _ast_iequal_1) !=
-             0 ||
-         (c_cdd_str_iequal(p->name, "Content-Type", &_ast_iequal_2),
-          _ast_iequal_2) ||
-         (c_cdd_str_iequal(p->name, "Authorization", &_ast_iequal_3),
-          _ast_iequal_3);
+  c_cdd_str_iequal(p->name, "Accept", &eq_accept);
+  c_cdd_str_iequal(p->name, "Content-Type", &eq_ct);
+  c_cdd_str_iequal(p->name, "Authorization", &eq_auth);
+  return eq_accept != 0 || eq_ct != 0 || eq_auth != 0;
 }
 
 /**
@@ -273,7 +271,8 @@ C_CDD_EXPORT cdd_c_error_t is_schema_primitive_openapi(const char *type) {
 }
 
 /**
- * @brief Executes the license fields invalid operation.
+ * @brief Checks whether an OpenAPI License object violates mutual-exclusivity
+ * rules.
  */
 C_CDD_EXPORT cdd_c_error_t
 license_fields_invalid(const struct OpenAPI_License *lic) {
@@ -291,41 +290,13 @@ license_fields_invalid(const struct OpenAPI_License *lic) {
 }
 
 /**
- * @brief Executes the server url has query or fragment operation.
+ * @brief Checks whether an OpenAPI Server URL contains forbidden query or
+ * fragment parts.
  */
 C_CDD_EXPORT cdd_c_error_t server_url_has_query_or_fragment(const char *url) {
   if (!url)
     return CDD_C_SUCCESS;
   return strchr(url, '?') != NULL || strchr(url, '#') != NULL;
-}
-
-/**
- * @brief Executes the clone json value operation.
- */
-C_CDD_EXPORT cdd_c_error_t clone_json_value(const JSON_Value *val,
-                                            JSON_Value **_out_val) {
-  char *serialized;
-  JSON_Value *copy;
-
-  if (!_out_val)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
-  if (!val) {
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
-  }
-
-  serialized = json_serialize_to_string((JSON_Value *)val);
-  if (!serialized) {
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
-  }
-  copy = json_parse_string(serialized);
-  json_free_serialized_string(serialized);
-  {
-    *_out_val = copy;
-    return CDD_C_SUCCESS;
-  }
 }
 
 /**
@@ -337,7 +308,6 @@ C_CDD_EXPORT cdd_c_error_t clone_json_value(const JSON_Value *val,
  */
 C_CDD_EXPORT cdd_c_error_t merge_schema_extras_object_openapi(
     JSON_Object *target, const char *extras_json) {
-  JSON_Value *_ast_clone_json_value_0;
   JSON_Value *extras_val;
   JSON_Object *extras_obj;
   size_t i, count;
@@ -358,12 +328,11 @@ C_CDD_EXPORT cdd_c_error_t merge_schema_extras_object_openapi(
   for (i = 0; i < count; ++i) {
     const char *key = json_object_get_name(extras_obj, i);
     const JSON_Value *val;
-    JSON_Value *copy;
+    JSON_Value *copy = NULL;
     if (json_object_has_value(target, key))
       continue;
     val = json_object_get_value(extras_obj, key);
-    copy = (clone_json_value(val, &_ast_clone_json_value_0),
-            _ast_clone_json_value_0);
+    clone_json_value(val, &copy);
     if (!copy) {
       json_value_free(extras_val);
       return CDD_C_ERROR_MEMORY;
@@ -379,16 +348,29 @@ C_CDD_EXPORT cdd_c_error_t merge_schema_extras_object_openapi(
   return CDD_C_SUCCESS;
 }
 
+/** @brief Safely sets a JSON object property and frees the value on failure */
+#define json_object_set_value(obj, name, val)                                  \
+  do {                                                                         \
+    JSON_Value *_cdd_jv = (val);                                               \
+    if ((json_object_set_value)((obj), (name), _cdd_jv) != JSONSuccess)        \
+      json_value_free(_cdd_jv);                                                \
+  } while (0)
+/** @brief Safely appends a JSON array element and frees the value on failure */
+#define json_array_append_value(arr, val)                                      \
+  do {                                                                         \
+    JSON_Value *_cdd_jv = (val);                                               \
+    if ((json_array_append_value)((arr), _cdd_jv) != JSONSuccess)              \
+      json_value_free(_cdd_jv);                                                \
+  } while (0)
+
 /**
- * @brief Generates C code for write example object.
+ * @brief Serializes the OpenAPI example object into the target JSON object.
  */
-C_CDD_EXPORT void write_example_object(JSON_Object *ex_obj,
-                                       const struct OpenAPI_Example *ex) {
-  JSON_Value *_ast_any_to_json_value_2;
-  JSON_Value *_ast_any_to_json_value_3;
-  JSON_Value *val;
+C_CDD_EXPORT cdd_c_error_t
+write_example_object(JSON_Object *ex_obj, const struct OpenAPI_Example *ex) {
+  JSON_Value *val = NULL;
   if (!ex_obj || !ex)
-    return;
+    return CDD_C_SUCCESS;
 
   if (ex->ref) {
     json_object_set_string(ex_obj, "$ref", ex->ref);
@@ -396,7 +378,7 @@ C_CDD_EXPORT void write_example_object(JSON_Object *ex_obj,
       json_object_set_string(ex_obj, "summary", ex->summary);
     if (ex->description)
       json_object_set_string(ex_obj, "description", ex->description);
-    return;
+    return CDD_C_SUCCESS;
   }
 
   if (ex->summary)
@@ -405,13 +387,11 @@ C_CDD_EXPORT void write_example_object(JSON_Object *ex_obj,
     json_object_set_string(ex_obj, "description", ex->description);
 
   if (ex->data_value_set) {
-    val = (any_to_json_value(&ex->data_value, &_ast_any_to_json_value_2),
-           _ast_any_to_json_value_2);
+    any_to_json_value(&ex->data_value, &val);
     if (val)
       json_object_set_value(ex_obj, "dataValue", val);
   } else if (ex->value_set) {
-    val = (any_to_json_value(&ex->value, &_ast_any_to_json_value_3),
-           _ast_any_to_json_value_3);
+    any_to_json_value(&ex->value, &val);
     if (val)
       json_object_set_value(ex_obj, "value", val);
   }
@@ -422,10 +402,11 @@ C_CDD_EXPORT void write_example_object(JSON_Object *ex_obj,
     json_object_set_string(ex_obj, "externalValue", ex->external_value);
   if (ex->extensions_json)
     merge_schema_extras_object_openapi(ex_obj, ex->extensions_json);
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Generates C code for write examples object.
+ * @brief Serializes the OpenAPI examples object into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t write_examples_object(
     JSON_Object *parent, const char *key,
@@ -461,41 +442,40 @@ C_CDD_EXPORT cdd_c_error_t write_examples_object(
 }
 
 /**
- * @brief Generates C code for write example fields.
+ * @brief Serializes the OpenAPI example fields into the target JSON object.
  */
-C_CDD_EXPORT void write_example_fields(JSON_Object *parent,
-                                       const struct OpenAPI_Any *example,
-                                       int example_set,
-                                       const struct OpenAPI_Example *examples,
-                                       size_t n_examples) {
-  JSON_Value *_ast_any_to_json_value_4;
+C_CDD_EXPORT cdd_c_error_t write_example_fields(
+    JSON_Object *parent, const struct OpenAPI_Any *example, int example_set,
+    const struct OpenAPI_Example *examples, size_t n_examples) {
   if (!parent)
-    return;
+    return CDD_C_SUCCESS;
   if (examples && n_examples > 0) {
     {
       cdd_c_error_t rc_oa_tmp =
           write_examples_object(parent, "examples", examples, n_examples);
       if (rc_oa_tmp != CDD_C_SUCCESS)
-        return;
+        return rc_oa_tmp;
     }
   } else if (example_set && example) {
-    JSON_Value *val = (any_to_json_value(example, &_ast_any_to_json_value_4),
-                       _ast_any_to_json_value_4);
+    JSON_Value *val = NULL;
+    any_to_json_value(example, &val);
     if (val)
       json_object_set_value(parent, "example", val);
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Generates C code for write external docs.
+ * @brief Serializes the OpenAPI external docs into the target JSON object.
  */
-C_CDD_EXPORT void write_external_docs(JSON_Object *parent, const char *key,
-                                      const struct OpenAPI_ExternalDocs *docs) {
+C_CDD_EXPORT cdd_c_error_t
+write_external_docs(JSON_Object *parent, const char *key,
+                    const struct OpenAPI_ExternalDocs *docs) {
   JSON_Value *ext_val;
   JSON_Object *ext_obj;
 
   if (!parent || !docs || !docs->url)
-    return;
+    return CDD_C_SUCCESS;
 
   ext_val = json_value_init_object();
   ext_obj = json_value_get_object(ext_val);
@@ -507,15 +487,16 @@ C_CDD_EXPORT void write_external_docs(JSON_Object *parent, const char *key,
     merge_schema_extras_object_openapi(ext_obj, docs->extensions_json);
 
   json_object_set_value(parent, key, ext_val);
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Generates C code for write discriminator object.
+ * @brief Serializes the OpenAPI discriminator object into the target JSON
+ * object.
  */
-C_CDD_EXPORT void
-write_discriminator_object(JSON_Object *parent,
-                           const struct OpenAPI_Discriminator *disc,
-                           int disc_set) {
+C_CDD_EXPORT cdd_c_error_t write_discriminator_object(
+    JSON_Object *parent, const struct OpenAPI_Discriminator *disc,
+    int disc_set) {
   JSON_Value *disc_val;
   JSON_Object *disc_obj;
   JSON_Value *mapping_val;
@@ -523,13 +504,13 @@ write_discriminator_object(JSON_Object *parent,
   size_t i;
 
   if (!parent || !disc || !disc_set)
-    return;
+    return CDD_C_SUCCESS;
   if (!disc->property_name && disc->n_mapping == 0 && !disc->default_mapping)
-    return;
+    return CDD_C_SUCCESS;
 
   disc_val = json_value_init_object();
   if (!disc_val)
-    return;
+    return CDD_C_SUCCESS;
   disc_obj = json_value_get_object(disc_val);
 
   if (disc->property_name)
@@ -552,29 +533,28 @@ write_discriminator_object(JSON_Object *parent,
     merge_schema_extras_object_openapi(disc_obj, disc->extensions_json);
 
   json_object_set_value(parent, "discriminator", disc_val);
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Generates C code for write xml object.
+ * @brief Serializes the OpenAPI xml object into the target JSON object.
  */
-C_CDD_EXPORT void write_xml_object(JSON_Object *parent,
-                                   const struct OpenAPI_Xml *xml, int xml_set) {
-  char *_ast_xml_node_type_to_str_5 = NULL;
+C_CDD_EXPORT cdd_c_error_t write_xml_object(JSON_Object *parent,
+                                            const struct OpenAPI_Xml *xml,
+                                            int xml_set) {
   JSON_Value *xml_val;
   JSON_Object *xml_obj;
-  const char *node_type;
+  char *node_type = NULL;
 
   if (!parent || !xml || !xml_set)
-    return;
+    return CDD_C_SUCCESS;
 
   xml_val = json_value_init_object();
   if (!xml_val)
-    return;
+    return CDD_C_SUCCESS;
   xml_obj = json_value_get_object(xml_val);
 
-  node_type = (xml_node_type_to_str_openapi(xml->node_type,
-                                            &_ast_xml_node_type_to_str_5),
-               _ast_xml_node_type_to_str_5);
+  xml_node_type_to_str_openapi(xml->node_type, &node_type);
   if (xml->node_type_set && node_type)
     json_object_set_string(xml_obj, "nodeType", node_type);
   if (xml->name)
@@ -591,13 +571,14 @@ C_CDD_EXPORT void write_xml_object(JSON_Object *parent,
     merge_schema_extras_object_openapi(xml_obj, xml->extensions_json);
 
   json_object_set_value(parent, "xml", xml_val);
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Generates C code for write info.
+ * @brief Serializes the OpenAPI info into the target JSON object.
  */
-C_CDD_EXPORT void write_info(JSON_Object *root_obj,
-                             const struct OpenAPI_Spec *spec) {
+C_CDD_EXPORT cdd_c_error_t write_info(JSON_Object *root_obj,
+                                      const struct OpenAPI_Spec *spec) {
   JSON_Value *info_val = json_value_init_object();
   JSON_Object *info_obj = json_value_get_object(info_val);
   JSON_Value *contact_val;
@@ -654,15 +635,16 @@ C_CDD_EXPORT void write_info(JSON_Object *root_obj,
   }
 
   json_object_set_value(root_obj, "info", info_val);
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Generates C code for write server object.
+ * @brief Serializes the OpenAPI server object into the target JSON object.
  */
-C_CDD_EXPORT void write_server_object(JSON_Object *srv_obj,
-                                      const struct OpenAPI_Server *srv) {
+C_CDD_EXPORT cdd_c_error_t
+write_server_object(JSON_Object *srv_obj, const struct OpenAPI_Server *srv) {
   if (!srv_obj || !srv)
-    return;
+    return CDD_C_SUCCESS;
 
   json_object_set_string(srv_obj, "url", srv->url ? srv->url : "/");
   if (srv->description)
@@ -702,10 +684,11 @@ C_CDD_EXPORT void write_server_object(JSON_Object *srv_obj,
   }
   if (srv->extensions_json)
     merge_schema_extras_object_openapi(srv_obj, srv->extensions_json);
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Generates C code for write servers.
+ * @brief Serializes the OpenAPI servers into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t write_servers(JSON_Object *root_obj,
                                          const struct OpenAPI_Spec *spec) {
@@ -716,7 +699,7 @@ C_CDD_EXPORT cdd_c_error_t write_servers(JSON_Object *root_obj,
 }
 
 /**
- * @brief Generates C code for write server array.
+ * @brief Serializes the OpenAPI server array into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_server_array(JSON_Object *parent, const char *key,
@@ -755,7 +738,7 @@ write_server_array(JSON_Object *parent, const char *key,
 }
 
 /**
- * @brief Generates C code for write tags.
+ * @brief Serializes the OpenAPI tags into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t write_tags(JSON_Object *root_obj,
                                       const struct OpenAPI_Spec *spec) {

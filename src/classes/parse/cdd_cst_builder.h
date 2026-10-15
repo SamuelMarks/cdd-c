@@ -1,3 +1,7 @@
+/**
+ * @file cdd_cst_builder.h
+ * @brief Concrete Syntax Tree (CST) builder implementation and utilities.
+ */
 #ifndef CDD_CST_BUILDER_H
 #define CDD_CST_BUILDER_H
 
@@ -59,7 +63,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_builder_free(cdd_cst_builder_t *builder);
  * @brief Checks if the builder has encountered an error.
  *
  * @param builder The builder to check.
- * @return int 1 if an error occurred, 0 otherwise.
+ * @param out_has_error Pointer to receive 1 if an error occurred, 0 otherwise.
+ * @return CDD_C_SUCCESS on success or error code.
  */
 C_CDD_EXPORT cdd_c_error_t
 cdd_cst_builder_has_error(const cdd_cst_builder_t *builder, int *out_has_error);
@@ -136,7 +141,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_include(cdd_cst_builder_t *builder,
                                                const char *path, int is_system);
 
 /**
- * @brief Appends an #ifndef macro_name directive.
+ * @brief Appends an \#ifndef macro_name directive.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_ifndef(cdd_cst_builder_t *builder,
                                               const char *macro_name);
@@ -207,6 +212,10 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_quote(cdd_cst_builder_t *builder,
 
 /**
  * @brief Appends a block comment (/ * ... * /) as trivia.
+ *
+ * @param[in,out] builder The CST builder.
+ * @param[in] text Comment text content.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
                                                      const char *text);
@@ -218,6 +227,10 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
  * Note: If the last appended child is a token, the trivia will be attached as
  * trailing trivia. Otherwise, it will be attached to the target_node as leading
  * trivia.
+ *
+ * @param[in,out] builder The CST builder.
+ * @param[in] text Comment text content.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_line_comment(cdd_cst_builder_t *builder,
                                                     const char *text);
@@ -226,8 +239,10 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_line_comment(cdd_cst_builder_t *builder,
  * @brief Extracts leading trivia from a source node, removing it from that
  * node.
  *
- * @param node The node to extract from.
- * @return The extracted trivia list (or NULL if none).
+ * @param[in,out] node The node to extract from.
+ * @param[out] out_trivia Pointer to receive the extracted trivia list (or NULL
+ * if none).
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t
 cdd_cst_extract_leading_trivia(cdd_cst_node_t *node, cdd_trivia_t **out_trivia);
@@ -236,8 +251,10 @@ cdd_cst_extract_leading_trivia(cdd_cst_node_t *node, cdd_trivia_t **out_trivia);
  * @brief Extracts trailing trivia from a source node, removing it from that
  * node.
  *
- * @param node The node to extract from.
- * @return The extracted trivia list (or NULL if none).
+ * @param[in,out] node The node to extract from.
+ * @param[out] out_trivia Pointer to receive the extracted trivia list (or NULL
+ * if none).
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_extract_trailing_trivia(
     cdd_cst_node_t *node, cdd_trivia_t **out_trivia);

@@ -60,14 +60,15 @@ TEST test_openapi_writer_close_100_percent(void) {
 
   /* 1. L367: duplicate key in merge_schema_extras_object_openapi */
   json_object_set_string(obj, "k", "orig");
-  merge_schema_extras_object_openapi(obj, "{\"k\": \"dup\", \"k2\": \"new\"}");
+  ASSERT_EQ(CDD_C_SUCCESS, merge_schema_extras_object_openapi(
+                               obj, "{\"k\": \"dup\", \"k2\": \"new\"}"));
 
   /* 2. L422: write_schema_type with type == NULL */
   write_schema_type(obj, NULL, 0);
 
   /* 3. L463: write_schema_type_union with type_union != NULL && n_type_union ==
    * 0 */
-  tu[0] = (char *)(size_t) "string";
+  tu[0] = cdd_test_mut_str("string");
   write_schema_type_union(obj, "string", 0, tu, 0);
 
   /* 4. L490, L503: write_enum_any_values variations */
@@ -79,12 +80,12 @@ TEST test_openapi_writer_close_100_percent(void) {
   write_enum_any_values(NULL, "k", any_vals, 1);
   write_enum_any_values(obj, "bad_enum", any_vals, 1);
   any_vals[0].type = OA_ANY_STRING;
-  any_vals[0].string = (char *)(size_t) "good";
+  any_vals[0].string = cdd_test_mut_str("good");
   write_enum_any_values(obj, "good_enum", any_vals, 1);
 
   /* 5. L579, L581, L594, L599: write_example_object branches */
   memset(&ex, 0, sizeof(ex));
-  ex.ref = (char *)(size_t) "#/ref";
+  ex.ref = cdd_test_mut_str("#/ref");
   ex.summary = NULL;
   ex.description = NULL;
   write_example_object(obj, &ex);
@@ -101,12 +102,13 @@ TEST test_openapi_writer_close_100_percent(void) {
 
   /* 6. L621: write_examples_object null/empty checks */
   memset(ex_arr, 0, sizeof(ex_arr));
-  ex_arr[0].name = (char *)(size_t) "ex1";
-  write_examples_object(parent, "k", NULL, 1);
-  write_examples_object(parent, "k", ex_arr, 0);
-  write_examples_object(parent, NULL, ex_arr, 1);
-  write_examples_object(NULL, "k", ex_arr, 1);
-  write_examples_object(parent, "valid_ex", ex_arr, 1);
+  ex_arr[0].name = cdd_test_mut_str("ex1");
+  ASSERT_EQ(CDD_C_SUCCESS, write_examples_object(parent, "k", NULL, 1));
+  ASSERT_EQ(CDD_C_SUCCESS, write_examples_object(parent, "k", ex_arr, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, write_examples_object(parent, NULL, ex_arr, 1));
+  ASSERT_EQ(CDD_C_SUCCESS, write_examples_object(NULL, "k", ex_arr, 1));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            write_examples_object(parent, "valid_ex", ex_arr, 1));
 
   /* 7. L658, L665, L668: write_example_fields branches */
   write_example_fields(parent, NULL, 0, ex_arr, 0);
@@ -129,15 +131,15 @@ TEST test_openapi_writer_close_100_percent(void) {
   write_discriminator_object(parent, &disc, 1);
 
   memset(&disc, 0, sizeof(disc));
-  disc.property_name = (char *)(size_t) "type";
+  disc.property_name = cdd_test_mut_str("type");
   disc.n_mapping = 0;
   disc.default_mapping = NULL;
   write_discriminator_object(parent, &disc, 1);
 
   memset(&disc, 0, sizeof(disc));
   memset(dmap, 0, sizeof(dmap));
-  dmap[0].value = (char *)(size_t) "val";
-  dmap[0].schema = (char *)(size_t) "sch";
+  dmap[0].value = cdd_test_mut_str("val");
+  dmap[0].schema = cdd_test_mut_str("sch");
   disc.property_name = NULL;
   disc.mapping = dmap;
   disc.n_mapping = 1;
@@ -146,11 +148,11 @@ TEST test_openapi_writer_close_100_percent(void) {
 
   memset(&disc, 0, sizeof(disc));
   disc.property_name = NULL;
-  disc.default_mapping = (char *)(size_t) "def";
+  disc.default_mapping = cdd_test_mut_str("def");
   write_discriminator_object(parent, &disc, 1);
 
   memset(&disc, 0, sizeof(disc));
-  disc.property_name = (char *)(size_t) "type";
+  disc.property_name = cdd_test_mut_str("type");
   disc.mapping = NULL;
   disc.n_mapping = 1;
   write_discriminator_object(parent, &disc, 1);
@@ -159,7 +161,7 @@ TEST test_openapi_writer_close_100_percent(void) {
   disc.n_mapping = 0;
   write_discriminator_object(parent, &disc, 1);
 
-  dmap[0].value = (char *)(size_t) "val";
+  dmap[0].value = cdd_test_mut_str("val");
   dmap[0].schema = NULL;
   disc.mapping = dmap;
   disc.n_mapping = 1;
@@ -194,14 +196,14 @@ TEST test_openapi_writer_close_100_percent(void) {
   write_items_schema_fields(obj, NULL);
   memset(&sr, 0, sizeof(sr));
   sr.is_array = 1;
-  sr.inline_type = (char *)(size_t) "string";
+  sr.inline_type = cdd_test_mut_str("string");
   sr.items_const_value_set = 1;
   sr.items_const_value.type = (enum OpenAPI_AnyType)999;
   write_schema_ref(parent, "items_const", &sr);
 
   memset(&sr, 0, sizeof(sr));
   sr.is_array = 1;
-  sr.inline_type = (char *)(size_t) "string";
+  sr.inline_type = cdd_test_mut_str("string");
   sr.items_default_value_set = 1;
   sr.items_default_value.type = (enum OpenAPI_AnyType)999;
   write_schema_ref(parent, "items_def", &sr);
@@ -215,15 +217,15 @@ TEST test_openapi_writer_close_100_percent(void) {
   write_schema_ref(parent, "arr_empty", &sr);
 
   memset(&sr, 0, sizeof(sr));
-  sr.summary = (char *)(size_t) "sum";
+  sr.summary = cdd_test_mut_str("sum");
   sr.ref_name = NULL;
   sr.ref = NULL;
   write_schema_ref(parent, "sch_sum_no_ref", &sr);
 
   memset(&sr, 0, sizeof(sr));
-  sr.summary = (char *)(size_t) "sum";
+  sr.summary = cdd_test_mut_str("sum");
   sr.ref_name = NULL;
-  sr.ref = (char *)(size_t) "#/ref";
+  sr.ref = cdd_test_mut_str("#/ref");
   write_schema_ref(parent, "sch_sum_ref", &sr);
 
   memset(&sr, 0, sizeof(sr));
@@ -242,7 +244,7 @@ TEST test_openapi_writer_close_100_percent(void) {
   write_schema_ref(parent, "sch_def", &sr);
 
   memset(sub_sr, 0, sizeof(sub_sr));
-  sub_sr[0].ref_name = (char *)(size_t) "Sub";
+  sub_sr[0].ref_name = cdd_test_mut_str("Sub");
   memset(&sr, 0, sizeof(sr));
   sr.all_of = sub_sr;
   sr.n_all_of = 1;
@@ -298,19 +300,19 @@ TEST test_openapi_writer_close_100_percent(void) {
   write_parameter_object(obj, &p);
 
   memset(&p, 0, sizeof(p));
-  p.content_type = (char *)(size_t) "application/json";
+  p.content_type = cdd_test_mut_str("application/json");
   p.schema_set = 1;
   write_parameter_object(obj, &p);
 
   memset(&p, 0, sizeof(p));
-  p.content_type = (char *)(size_t) "application/json";
+  p.content_type = cdd_test_mut_str("application/json");
   p.schema_set = 0;
   p.type = NULL;
   p.is_array = 0;
   write_parameter_object(obj, &p);
 
   memset(&p, 0, sizeof(p));
-  p.content_type = (char *)(size_t) "application/json";
+  p.content_type = cdd_test_mut_str("application/json");
   p.schema_set = 0;
   p.type = NULL;
   p.is_array = 1;
@@ -328,17 +330,17 @@ TEST test_openapi_writer_close_100_percent(void) {
   write_header_object(obj, &h);
 
   memset(&h, 0, sizeof(h));
-  h.content_ref = (char *)(size_t) "#/ref";
-  h.content_type = (char *)(size_t) "application/json";
+  h.content_ref = cdd_test_mut_str("#/ref");
+  h.content_type = cdd_test_mut_str("application/json");
   write_header_object(obj, &h);
 
   memset(&h, 0, sizeof(h));
-  h.content_type = (char *)(size_t) "application/json";
+  h.content_type = cdd_test_mut_str("application/json");
   h.schema_set = 1;
   write_header_object(obj, &h);
 
   memset(&h, 0, sizeof(h));
-  h.content_type = (char *)(size_t) "application/json";
+  h.content_type = cdd_test_mut_str("application/json");
   h.schema_set = 0;
   h.type = NULL;
   h.is_array = 0;
@@ -353,33 +355,33 @@ TEST test_openapi_writer_close_100_percent(void) {
   memset(&enc, 0, sizeof(enc));
   enc.style_set = 1;
   enc.style = (enum OpenAPI_Style)999;
-  write_encoding_object(obj, &enc);
+  ASSERT_EQ(CDD_C_SUCCESS, write_encoding_object(obj, &enc));
 
   memset(&enc, 0, sizeof(enc));
   enc.headers = (struct OpenAPI_Header *)(size_t)0x1;
   enc.n_headers = 0;
-  write_encoding_object(obj, &enc);
+  ASSERT_EQ(CDD_C_SUCCESS, write_encoding_object(obj, &enc));
 
   memset(&enc, 0, sizeof(enc));
   enc.encoding = (struct OpenAPI_Encoding *)(size_t)0x1;
   enc.n_encoding = 0;
-  write_encoding_object(obj, &enc);
+  ASSERT_EQ(CDD_C_SUCCESS, write_encoding_object(obj, &enc));
 
   memset(&enc, 0, sizeof(enc));
   enc.prefix_encoding = (struct OpenAPI_Encoding *)(size_t)0x1;
   enc.n_prefix_encoding = 0;
-  write_encoding_object(obj, &enc);
+  ASSERT_EQ(CDD_C_SUCCESS, write_encoding_object(obj, &enc));
 
   memset(&enc, 0, sizeof(enc));
   enc.item_encoding = &enc;
   enc.item_encoding_set = 0;
-  write_encoding_object(obj, &enc);
+  ASSERT_EQ(CDD_C_SUCCESS, write_encoding_object(obj, &enc));
 
-  write_encoding_map(obj, NULL, 1);
-  write_encoding_map(obj, &enc, 0);
-  write_encoding_array(parent, NULL, &enc, 1);
-  write_encoding_array(parent, "k", NULL, 1);
-  write_encoding_array(parent, "k", &enc, 0);
+  ASSERT_EQ(CDD_C_SUCCESS, write_encoding_map(obj, NULL, 1));
+  ASSERT_EQ(CDD_C_SUCCESS, write_encoding_map(obj, &enc, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, write_encoding_array(parent, NULL, &enc, 1));
+  ASSERT_EQ(CDD_C_SUCCESS, write_encoding_array(parent, "k", NULL, 1));
+  ASSERT_EQ(CDD_C_SUCCESS, write_encoding_array(parent, "k", &enc, 0));
 
   /* 18. L1709, L1712, L1717, L1721, L1726, L1754: write_media_type_* */
   memset(&mt_dummy, 0, sizeof(mt_dummy));
@@ -389,20 +391,20 @@ TEST test_openapi_writer_close_100_percent(void) {
   mt_dummy.n_prefix_encoding = 0;
   mt_dummy.item_encoding = &enc;
   mt_dummy.item_encoding_set = 0;
-  write_media_type_object(obj, &mt_dummy);
-  write_media_type_map(parent, NULL, &mt_dummy, 1);
-  write_media_type_map(parent, "k", NULL, 1);
-  write_media_type_map(parent, "k", &mt_dummy, 0);
+  ASSERT_EQ(CDD_C_SUCCESS, write_media_type_object(obj, &mt_dummy));
+  ASSERT_EQ(CDD_C_SUCCESS, write_media_type_map(parent, NULL, &mt_dummy, 1));
+  ASSERT_EQ(CDD_C_SUCCESS, write_media_type_map(parent, "k", NULL, 1));
+  ASSERT_EQ(CDD_C_SUCCESS, write_media_type_map(parent, "k", &mt_dummy, 0));
 
   memset(&mt_dummy, 0, sizeof(mt_dummy));
   mt_dummy.schema_set = 0;
-  mt_dummy.schema.ref_name = (char *)(size_t) "Model";
-  write_media_type_object(obj, &mt_dummy);
+  mt_dummy.schema.ref_name = cdd_test_mut_str("Model");
+  ASSERT_EQ(CDD_C_SUCCESS, write_media_type_object(obj, &mt_dummy));
 
   memset(&mt_dummy, 0, sizeof(mt_dummy));
   mt_dummy.item_schema_set = 0;
-  mt_dummy.item_schema.ref_name = (char *)(size_t) "ItemModel";
-  write_media_type_object(obj, &mt_dummy);
+  mt_dummy.item_schema.ref_name = cdd_test_mut_str("ItemModel");
+  ASSERT_EQ(CDD_C_SUCCESS, write_media_type_object(obj, &mt_dummy));
 
   /* 19. L1808, L1817, L1819, L1830, L1834, L1856, L1894, L1909, L1955, L1958,
    * L1962 */
@@ -414,10 +416,10 @@ TEST test_openapi_writer_close_100_percent(void) {
   memset(&lk, 0, sizeof(lk));
   memset(lp, 0, sizeof(lp));
   lp[0].value.type = OA_ANY_STRING;
-  lp[0].value.string = (char *)(size_t) "val";
+  lp[0].value.string = cdd_test_mut_str("val");
   lp[0].name = NULL;
   lp[1].value.type = (enum OpenAPI_AnyType)999;
-  lp[1].name = (char *)(size_t) "p";
+  lp[1].name = cdd_test_mut_str("p");
   lk.parameters = lp;
   lk.n_parameters = 2;
   lk.request_body_set = 1;
@@ -427,26 +429,26 @@ TEST test_openapi_writer_close_100_percent(void) {
   write_link_object(obj, &lk);
 
   memset(h_arr, 0, sizeof(h_arr));
-  h_arr[0].name = (char *)(size_t) "X-H";
-  write_headers_map(parent, NULL, h_arr, 1, 0);
-  write_headers_map(parent, "k", NULL, 1, 0);
-  write_headers_map(parent, "k", h_arr, 0, 0);
+  h_arr[0].name = cdd_test_mut_str("X-H");
+  ASSERT_EQ(CDD_C_SUCCESS, write_headers_map(parent, NULL, h_arr, 1, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, write_headers_map(parent, "k", NULL, 1, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, write_headers_map(parent, "k", h_arr, 0, 0));
 
   memset(&r_dummy, 0, sizeof(r_dummy));
   r_dummy.n_headers = 0;
-  write_headers(parent, &r_dummy);
+  ASSERT_EQ(CDD_C_SUCCESS, write_headers(parent, &r_dummy));
   r_dummy.n_headers = 1;
   r_dummy.headers = NULL;
-  write_headers(parent, &r_dummy);
-  write_headers(obj, NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, write_headers(parent, &r_dummy));
+  ASSERT_EQ(CDD_C_SUCCESS, write_headers(obj, NULL));
 
-  write_links(NULL, &r_dummy);
+  ASSERT_EQ(CDD_C_SUCCESS, write_links(NULL, &r_dummy));
   r_dummy.n_links = 0;
-  write_links(parent, &r_dummy);
+  ASSERT_EQ(CDD_C_SUCCESS, write_links(parent, &r_dummy));
   r_dummy.n_links = 1;
   r_dummy.links = NULL;
-  write_links(parent, &r_dummy);
-  write_links(obj, NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, write_links(parent, &r_dummy));
+  ASSERT_EQ(CDD_C_SUCCESS, write_links(obj, NULL));
 
   memset(&r_dummy, 0, sizeof(r_dummy));
   r_dummy.headers = h_arr;
@@ -458,35 +460,35 @@ TEST test_openapi_writer_close_100_percent(void) {
   write_response_object(obj, &r_dummy);
 
   /* 20. L2009, L2054, L2076, L2127, L2148: parameters & request_body */
-  write_parameters(NULL, &p, 1);
-  write_parameters(parent, &p, 0);
+  ASSERT_EQ(CDD_C_SUCCESS, write_parameters(NULL, &p, 1));
+  ASSERT_EQ(CDD_C_SUCCESS, write_parameters(parent, &p, 0));
 
   memset(&rb_d, 0, sizeof(rb_d));
   rb_d.content_media_types = &mt_dummy;
   rb_d.n_content_media_types = 0;
-  write_request_body_object(obj, &rb_d);
+  ASSERT_EQ(CDD_C_SUCCESS, write_request_body_object(obj, &rb_d));
 
   memset(&rb_d, 0, sizeof(rb_d));
-  rb_d.content_ref = (char *)(size_t) "#/ref";
-  rb_d.schema.content_type = (char *)(size_t) "application/json";
-  write_request_body_object(obj, &rb_d);
+  rb_d.content_ref = cdd_test_mut_str("#/ref");
+  rb_d.schema.content_type = cdd_test_mut_str("application/json");
+  ASSERT_EQ(CDD_C_SUCCESS, write_request_body_object(obj, &rb_d));
 
   memset(&op, 0, sizeof(op));
-  write_request_body(NULL, &op);
+  ASSERT_EQ(CDD_C_SUCCESS, write_request_body(NULL, &op));
 
   memset(&op, 0, sizeof(op));
-  op.req_body.ref_name = (char *)(size_t) "Body";
+  op.req_body.ref_name = cdd_test_mut_str("Body");
   op.req_body.content_type = NULL;
   op.n_req_body_media_types = 0;
-  write_request_body(obj, &op);
+  ASSERT_EQ(CDD_C_SUCCESS, write_request_body(obj, &op));
 
   memset(&op, 0, sizeof(op));
-  op.req_body.content_type = (char *)(size_t) "application/json";
-  write_request_body(obj, &op);
+  op.req_body.content_type = cdd_test_mut_str("application/json");
+  ASSERT_EQ(CDD_C_SUCCESS, write_request_body(obj, &op));
 
   /* 21. L2191, L2193, L2198, L2228, L2240, L2261: callbacks & responses */
   memset(&cb_d, 0, sizeof(cb_d));
-  cb_d.ref = (char *)(size_t) "#/ref";
+  cb_d.ref = cdd_test_mut_str("#/ref");
   cb_d.summary = NULL;
   cb_d.description = NULL;
   write_callback_object(obj, &cb_d);
@@ -498,64 +500,66 @@ TEST test_openapi_writer_close_100_percent(void) {
   write_callback_object(obj, &cb_d);
 
   memset(&op, 0, sizeof(op));
-  write_callbacks(NULL, &op);
-  write_callbacks(obj, NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, write_callbacks(NULL, &op));
+  ASSERT_EQ(CDD_C_SUCCESS, write_callbacks(obj, NULL));
   op.n_callbacks = 0;
-  write_callbacks(obj, &op);
+  ASSERT_EQ(CDD_C_SUCCESS, write_callbacks(obj, &op));
   op.n_callbacks = 1;
   op.callbacks = NULL;
-  write_callbacks(obj, &op);
+  ASSERT_EQ(CDD_C_SUCCESS, write_callbacks(obj, &op));
 
   cb_d.name = NULL;
   op.callbacks = &cb_d;
   op.n_callbacks = 1;
-  write_callbacks(obj, &op);
+  ASSERT_EQ(CDD_C_SUCCESS, write_callbacks(obj, &op));
 
-  write_responses(obj, NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, write_responses(obj, NULL));
 
   /* 22. L2354, L2411, L2472, L2514: operations & paths */
   memset(&op, 0, sizeof(op));
   op.n_servers = 1;
   op.servers = NULL;
-  write_operation_object(obj, &op);
+  ASSERT_EQ(CDD_C_SUCCESS, write_operation_object(obj, &op));
 
-  write_additional_operations(NULL, &path);
-  write_additional_operations(obj, NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, write_additional_operations(NULL, &path));
+  ASSERT_EQ(CDD_C_SUCCESS, write_additional_operations(obj, NULL));
   memset(&path, 0, sizeof(path));
   path.n_additional_operations = 0;
-  write_additional_operations(obj, &path);
+  ASSERT_EQ(CDD_C_SUCCESS, write_additional_operations(obj, &path));
   path.n_additional_operations = 1;
   path.additional_operations = NULL;
-  write_additional_operations(obj, &path);
+  ASSERT_EQ(CDD_C_SUCCESS, write_additional_operations(obj, &path));
 
   memset(&path, 0, sizeof(path));
   path.n_servers = 1;
   path.servers = NULL;
-  write_path_item_object(obj, &path);
+  ASSERT_EQ(CDD_C_SUCCESS, write_path_item_object(obj, &path));
 
   memset(&sp_d, 0, sizeof(sp_d));
   memset(&path, 0, sizeof(path));
   path.route = NULL;
   sp_d.paths = &path;
   sp_d.n_paths = 1;
-  write_paths(obj, &sp_d);
+  ASSERT_EQ(CDD_C_SUCCESS, write_paths(obj, &sp_d));
 
   /* 23. L2560, L2598, L2695: server array, tags, security requirements */
-  write_server_array(NULL, "k", srv, 1);
-  write_server_array(parent, NULL, srv, 1);
-  write_tags(obj, NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, write_server_array(NULL, "k", srv, 1));
+  ASSERT_EQ(CDD_C_SUCCESS, write_server_array(parent, NULL, srv, 1));
+  ASSERT_EQ(CDD_C_SUCCESS, write_tags(obj, NULL));
   memset(&sec_set, 0, sizeof(sec_set));
-  write_security_requirements(NULL, "k", &sec_set, 1, 1);
-  write_security_requirements(parent, NULL, &sec_set, 1, 1);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            write_security_requirements(NULL, "k", &sec_set, 1, 1));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            write_security_requirements(parent, NULL, &sec_set, 1, 1));
 
   /* 24. L2799, L2818, L2853, L2869: security schemes */
   memset(&sp_d, 0, sizeof(sp_d));
   memset(&ss, 0, sizeof(ss));
   ss.type = OA_SEC_HTTP;
-  ss.scheme = (char *)(size_t) "basic";
+  ss.scheme = cdd_test_mut_str("basic");
   sp_d.security_schemes = &ss;
   sp_d.n_security_schemes = 1;
-  write_security_schemes(obj, &sp_d);
+  ASSERT_EQ(CDD_C_SUCCESS, write_security_schemes(obj, &sp_d));
 
   memset(&ss, 0, sizeof(ss));
   ss.type = OA_SEC_OAUTH2;
@@ -563,7 +567,7 @@ TEST test_openapi_writer_close_100_percent(void) {
   ss.n_flows = 0;
   sp_d.security_schemes = &ss;
   sp_d.n_security_schemes = 1;
-  write_security_schemes(obj, &sp_d);
+  ASSERT_EQ(CDD_C_SUCCESS, write_security_schemes(obj, &sp_d));
 
   memset(&ss, 0, sizeof(ss));
   memset(&fl, 0, sizeof(fl));
@@ -577,39 +581,39 @@ TEST test_openapi_writer_close_100_percent(void) {
   ss.n_flows = 1;
   sp_d.security_schemes = &ss;
   sp_d.n_security_schemes = 1;
-  write_security_schemes(obj, &sp_d);
+  ASSERT_EQ(CDD_C_SUCCESS, write_security_schemes(obj, &sp_d));
 
   memset(&ss, 0, sizeof(ss));
   ss.type = OA_SEC_OPENID;
   ss.open_id_connect_url = NULL;
   sp_d.security_schemes = &ss;
   sp_d.n_security_schemes = 1;
-  write_security_schemes(obj, &sp_d);
+  ASSERT_EQ(CDD_C_SUCCESS, write_security_schemes(obj, &sp_d));
 
   /* 25. L2898, L2934, L2970, L3006, L3047, L3083, L3116, L3150: component_* */
-  write_component_parameters(obj, NULL);
-  write_component_responses(obj, NULL);
-  write_component_headers(obj, NULL);
-  write_component_media_types(obj, NULL);
-  write_component_examples(obj, NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, write_component_parameters(obj, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, write_component_responses(obj, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, write_component_headers(obj, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, write_component_media_types(obj, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, write_component_examples(obj, NULL));
   memset(&sp_d, 0, sizeof(sp_d));
   sp_d.n_component_examples = 1;
   sp_d.component_examples = NULL;
-  write_component_examples(obj, &sp_d);
+  ASSERT_EQ(CDD_C_SUCCESS, write_component_examples(obj, &sp_d));
 
-  write_component_links(obj, NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, write_component_links(obj, NULL));
   memset(&sp_d, 0, sizeof(sp_d));
   sp_d.n_component_links = 1;
   sp_d.component_links = NULL;
-  write_component_links(obj, &sp_d);
+  ASSERT_EQ(CDD_C_SUCCESS, write_component_links(obj, &sp_d));
 
-  write_component_callbacks(obj, NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, write_component_callbacks(obj, NULL));
   memset(&sp_d, 0, sizeof(sp_d));
   sp_d.n_component_callbacks = 1;
   sp_d.component_callbacks = NULL;
-  write_component_callbacks(obj, &sp_d);
+  ASSERT_EQ(CDD_C_SUCCESS, write_component_callbacks(obj, &sp_d));
 
-  write_component_path_items(obj, NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, write_component_path_items(obj, NULL));
 
   /* 26. L3269: write_components with NULL name */
   memset(&sp_d, 0, sizeof(sp_d));
@@ -618,22 +622,22 @@ TEST test_openapi_writer_close_100_percent(void) {
   sp_d.defined_schemas = sf;
   sp_d.defined_schema_names = dn;
   sp_d.n_defined_schemas = 1;
-  write_components(obj, &sp_d);
+  ASSERT_EQ(CDD_C_SUCCESS, write_components(obj, &sp_d));
 
   /* 27. L3448: openapi_write_spec_to_json with n_paths == 0 and
    * paths_extensions_json */
   memset(&sp_d, 0, sizeof(sp_d));
   sp_d.n_paths = 0;
-  sp_d.paths_extensions_json = (char *)(size_t) "{\"x-paths\": 1}";
-  openapi_write_spec_to_json(&sp_d, &json);
-  if (json) {
-    free(json);
-    json = NULL;
-  }
+  sp_d.paths_extensions_json = cdd_test_mut_str("{\"x-paths\": 1}");
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_write_spec_to_json(&sp_d, &json));
+  ASSERT(json != NULL);
+  free(json);
+  json = NULL;
 
   json_value_free(val);
   json_value_free(parent_val);
   PASS();
+}
 
 #ifdef __cplusplus
 }

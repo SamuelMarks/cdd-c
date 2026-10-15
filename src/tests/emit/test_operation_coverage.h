@@ -153,13 +153,13 @@ TEST test_operation_100_percent_coverage(void) {
   g_cdd_alloc_fail = 0;
 
   /* 5. copy_doc_server_variables_op calloc OOM */
-  dsv.name = (char *)(size_t) "env";
-  dsv.default_value = (char *)(size_t) "dev";
-  enums[0] = (char *)(size_t) "dev";
-  enums[1] = (char *)(size_t) "prod";
+  dsv.name = cdd_test_mut_str("env");
+  dsv.default_value = cdd_test_mut_str("dev");
+  enums[0] = cdd_test_mut_str("dev");
+  enums[1] = cdd_test_mut_str("prod");
   dsv.enum_values = enums;
   dsv.n_enum_values = 2;
-  ds.url = (char *)(size_t) "https://api.example.com";
+  ds.url = cdd_test_mut_str("https://api.example.com");
   ds.variables = &dsv;
   ds.n_variables = 1;
 
@@ -172,43 +172,32 @@ TEST test_operation_100_percent_coverage(void) {
   g_cdd_alloc_fail = 0;
 
   /* 6. add_header_to_response realloc OOM */
-  dh.name = (char *)(size_t) "X-Custom";
-  dh.type = (char *)(size_t) "string";
+  dh.name = cdd_test_mut_str("X-Custom");
+  dh.type = cdd_test_mut_str("string");
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, add_header_to_response(&resp, &dh));
   g_cdd_alloc_fail = 0;
 
   /* 7. add_link_to_response realloc & calloc OOM */
-  dl.name = (char *)(size_t) "LinkName";
-  dl.operation_id = (char *)(size_t) "opId";
+  dl.name = cdd_test_mut_str("LinkName");
+  dl.operation_id = cdd_test_mut_str("opId");
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, add_link_to_response(&resp, &dl));
   g_cdd_alloc_fail = 0;
 
-  dl.server_url = (char *)(size_t) "http://server.com";
+  dl.server_url = cdd_test_mut_str("http://server.com");
   g_cdd_alloc_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, add_link_to_response(&resp, &dl));
   g_cdd_alloc_fail = 0;
+  free(resp.links);
+  resp.links = NULL;
 
   /* 8. add_param_to_op realloc OOM */
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, add_param_to_op(&op, &param));
   g_cdd_alloc_fail = 0;
 
-  /* 9. schema_ref_has_data_basic failure hook */
-  resp.content_type = (char *)(size_t) "application/json";
-  g_cdd_fail_schema_ref_has_data = 1;
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            init_media_type_from_response(&mt, "application/json", &resp, 0));
-  g_cdd_fail_schema_ref_has_data = 0;
-
-  op.req_body.content_type = (char *)(size_t) "application/json";
-  g_cdd_fail_schema_ref_has_data = 1;
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            init_media_type_from_request_body(&mt, "application/json", &op, 0));
-  g_cdd_fail_schema_ref_has_data = 0;
-
-  /* 10. add_response_media_type & add_request_body_media_type calloc & realloc
+  /* 9. add_response_media_type & add_request_body_media_type calloc & realloc
    * OOM */
   memset(&resp, 0, sizeof(resp));
   g_cdd_alloc_fail = 1;
@@ -222,6 +211,9 @@ TEST test_operation_100_percent_coverage(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             add_response_media_type(&resp, "text/plain", 0));
   g_cdd_alloc_fail = 0;
+  free(resp.content_media_types[0].name);
+  free(resp.content_media_types);
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   g_cdd_alloc_fail = 1;
@@ -235,6 +227,7 @@ TEST test_operation_100_percent_coverage(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             add_request_body_media_type(&op, "text/plain", 0));
   g_cdd_alloc_fail = 0;
+  reset_operation_test(&op);
 
   /* 11. Primitive output argument (hits lines 2100-2102) */
   memset(&op, 0, sizeof(op));
@@ -243,8 +236,8 @@ TEST test_operation_100_percent_coverage(void) {
   ctx.func_name = "api_test_primitive_out";
   sig.args = args;
   sig.n_args = 1;
-  args[0].name = (char *)(size_t) "out_val";
-  args[0].type = (char *)(size_t) "int **";
+  args[0].name = cdd_test_mut_str("out_val");
+  args[0].type = cdd_test_mut_str("int **");
   ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
   ASSERT_EQ(1, op.n_responses);
   ASSERT_STR_EQ("integer", op.responses[0].schema.inline_type);
@@ -262,7 +255,7 @@ TEST test_operation_100_percent_coverage(void) {
 
   /* 13. New response in doc.returns realloc OOM (line 2495) */
   memset(&op, 0, sizeof(op));
-  ret.code = (char *)(size_t) "404";
+  ret.code = cdd_test_mut_str("404");
   doc.returns = &ret;
   doc.n_returns = 1;
   sig.n_args = 0;
@@ -285,9 +278,9 @@ TEST test_operation_100_percent_coverage(void) {
   {
     struct DocResponseHeader drh;
     memset(&drh, 0, sizeof(drh));
-    drh.code = (char *)(size_t) "400";
-    drh.name = (char *)(size_t) "X-Err";
-    drh.type = (char *)(size_t) "string";
+    drh.code = cdd_test_mut_str("400");
+    drh.name = cdd_test_mut_str("X-Err");
+    drh.type = cdd_test_mut_str("string");
     doc.response_headers = &drh;
     doc.n_response_headers = 1;
     ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
@@ -300,9 +293,9 @@ TEST test_operation_100_percent_coverage(void) {
   {
     struct DocLink dlk;
     memset(&dlk, 0, sizeof(dlk));
-    dlk.code = (char *)(size_t) "400";
-    dlk.name = (char *)(size_t) "ErrLink";
-    dlk.operation_id = (char *)(size_t) "handleErr";
+    dlk.code = cdd_test_mut_str("400");
+    dlk.name = cdd_test_mut_str("ErrLink");
+    dlk.operation_id = cdd_test_mut_str("handleErr");
     doc.links = &dlk;
     doc.n_links = 1;
     ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
@@ -319,80 +312,75 @@ TEST test_operation_100_percent_coverage(void) {
   g_cdd_fail_json_serialize = 0;
   json_value_free(val_obj);
 
-  /* 18. any_from_json_value default branch (line 113) */
-  {
-    char dummy_val_buf[64];
-    memset(dummy_val_buf, 0, sizeof(dummy_val_buf));
-    ASSERT_EQ(CDD_C_SUCCESS,
-              any_from_json_value((const JSON_Value *)dummy_val_buf, &any));
-  }
-
   /* 19. add_header_to_response existing header content_type OOM (line 667) &
    * loop exit (line 676) */
   memset(&resp, 0, sizeof(resp));
-  dh.name = (char *)(size_t) "X-Custom";
-  dh.type = (char *)(size_t) "string";
+  dh.name = cdd_test_mut_str("X-Custom");
+  dh.type = cdd_test_mut_str("string");
   dh.content_type = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, add_header_to_response(&resp, &dh));
   /* Loop exit when header name differs (hits line 676) */
-  dh.name = (char *)(size_t) "X-Different";
+  dh.name = cdd_test_mut_str("X-Different");
   ASSERT_EQ(CDD_C_SUCCESS, add_header_to_response(&resp, &dh));
   /* Matching header OOM on content_type (hits line 667) */
-  dh.name = (char *)(size_t) "X-Custom";
-  dh.content_type = (char *)(size_t) "application/json";
+  dh.name = cdd_test_mut_str("X-Custom");
+  dh.content_type = cdd_test_mut_str("application/json");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, add_header_to_response(&resp, &dh));
   g_cdd_strdup_fail = 0;
+  free(resp.headers[0].name);
+  free(resp.headers[0].type);
+  free(resp.headers[1].name);
+  free(resp.headers[1].type);
+  free(resp.headers);
 
   /* 20. add_link_to_response duplicate link name (line 854) & loop exit (line
    * 863) */
   memset(&resp, 0, sizeof(resp));
-  dl.name = (char *)(size_t) "LinkName";
-  dl.operation_id = (char *)(size_t) "opId";
+  dl.server_url = NULL;
+  dl.name = cdd_test_mut_str("LinkName");
+  dl.operation_id = cdd_test_mut_str("opId");
   ASSERT_EQ(CDD_C_SUCCESS, add_link_to_response(&resp, &dl));
   /* Loop exit when link name differs (hits line 863) */
-  dl.name = (char *)(size_t) "AnotherLink";
+  dl.name = cdd_test_mut_str("AnotherLink");
   ASSERT_EQ(CDD_C_SUCCESS, add_link_to_response(&resp, &dl));
   /* Duplicate link name (hits line 854) */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_link_to_response(&resp, &dl));
+  cleanup_link_fields(&resp.links[0]);
+  cleanup_link_fields(&resp.links[1]);
+  free(resp.links);
+  resp.links = NULL;
+  resp.n_links = 0;
 
-  /* 21. Output arg with apply_format_to_schema_ref failure (lines 2097-2098) */
+  /* 21. Output arg with apply_format_to_schema_ref OOM */
   memset(&op, 0, sizeof(op));
   ctx.sig = &sig;
   ctx.doc = &doc;
   ctx.func_name = "api_test_out_fmt_fail";
   sig.args = args;
   sig.n_args = 1;
-  args[0].name = (char *)(size_t) "out_val";
-  args[0].type = (char *)(size_t) "int **";
-  g_cdd_fail_apply_format = 1;
+  args[0].name = cdd_test_mut_str("out_val");
+  args[0].type = cdd_test_mut_str("int **");
+  g_cdd_strdup_fail = 6;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, c2openapi_build_operation(&ctx, &op));
-  g_cdd_fail_apply_format = 0;
+  g_cdd_strdup_fail = 0;
   reset_operation_test(&op);
 
-  /* 22. Body arg with apply_format_to_schema_ref failure (lines 2126-2150) */
+  /* 22. Body arg with inline_type format failure */
   memset(&op, 0, sizeof(op));
   ctx.func_name = "api_post_user";
-  args[0].name = (char *)(size_t) "in_body";
-  args[0].type = (char *)(size_t) "const struct User *";
-  g_cdd_fail_apply_format = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, c2openapi_build_operation(&ctx, &op));
-  g_cdd_fail_apply_format = 0;
-  reset_operation_test(&op);
-
-  /* Body arg with inline_type format failure (lines 2146-2148) */
-  memset(&op, 0, sizeof(op));
-  args[0].type = (char *)(size_t) "int";
+  args[0].name = cdd_test_mut_str("in_body");
+  args[0].type = cdd_test_mut_str("int");
   {
     struct DocParam dp_body;
     memset(&dp_body, 0, sizeof(dp_body));
-    dp_body.name = (char *)(size_t) "in_body";
-    dp_body.in_loc = (char *)(size_t) "body";
+    dp_body.name = cdd_test_mut_str("in_body");
+    dp_body.in_loc = cdd_test_mut_str("body");
     doc.params = &dp_body;
     doc.n_params = 1;
-    g_cdd_fail_apply_format = 1;
+    g_cdd_strdup_fail = 5;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, c2openapi_build_operation(&ctx, &op));
-    g_cdd_fail_apply_format = 0;
+    g_cdd_strdup_fail = 0;
     doc.params = NULL;
     doc.n_params = 0;
     reset_operation_test(&op);
@@ -401,23 +389,29 @@ TEST test_operation_100_percent_coverage(void) {
   /* 23. Param description OOM (lines 2169-2171) */
   memset(&op, 0, sizeof(op));
   ctx.func_name = "api_user_get";
-  args[0].name = (char *)(size_t) "user_id";
-  args[0].type = (char *)(size_t) "int";
+  args[0].name = cdd_test_mut_str("user_id");
+  args[0].type = cdd_test_mut_str("int");
   {
     struct DocParam dp_desc;
     int k_step;
+    int hit_oom = 0;
     memset(&dp_desc, 0, sizeof(dp_desc));
-    dp_desc.name = (char *)(size_t) "user_id";
-    dp_desc.description = (char *)(size_t) "User identifier";
+    dp_desc.name = cdd_test_mut_str("user_id");
+    dp_desc.description = cdd_test_mut_str("User identifier");
     doc.params = &dp_desc;
     doc.n_params = 1;
     for (k_step = 1; k_step <= 6; ++k_step) {
+      cdd_c_error_t rc_step;
       g_cdd_strdup_fail = k_step;
-      if (c2openapi_build_operation(&ctx, &op) != CDD_C_SUCCESS) {
+      rc_step = c2openapi_build_operation(&ctx, &op);
+      if (rc_step != CDD_C_SUCCESS) {
+        ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_step);
+        hit_oom = 1;
       }
       g_cdd_strdup_fail = 0;
       reset_operation_test(&op);
     }
+    ASSERT_EQ(1, hit_oom);
     doc.params = NULL;
     doc.n_params = 0;
   }
@@ -425,13 +419,13 @@ TEST test_operation_100_percent_coverage(void) {
   /* 24. Param example error percolation (lines 2303-2305) */
   memset(&op, 0, sizeof(op));
   ctx.func_name = "api_user_get";
-  args[0].name = (char *)(size_t) "page";
-  args[0].type = (char *)(size_t) "int";
+  args[0].name = cdd_test_mut_str("page");
+  args[0].type = cdd_test_mut_str("int");
   {
     struct DocParam dp_ex;
     memset(&dp_ex, 0, sizeof(dp_ex));
-    dp_ex.name = (char *)(size_t) "page";
-    dp_ex.example = (char *)(size_t) "{invalid_json";
+    dp_ex.name = cdd_test_mut_str("page");
+    dp_ex.example = cdd_test_mut_str("{invalid_json");
     doc.params = &dp_ex;
     doc.n_params = 1;
     /* In parse_example_any, invalid JSON falls back to OA_ANY_STRING unless
@@ -450,13 +444,13 @@ TEST test_operation_100_percent_coverage(void) {
   memset(&op, 0, sizeof(op));
   ctx.func_name = "api_user_get";
   sig.n_args = 1;
-  args[0].name = (char *)(size_t) "out_user";
-  args[0].type = (char *)(size_t) "struct User **";
+  args[0].name = cdd_test_mut_str("out_user");
+  args[0].type = cdd_test_mut_str("struct User **");
   {
     struct DocResponse ret_desc;
     memset(&ret_desc, 0, sizeof(ret_desc));
-    ret_desc.code = (char *)(size_t) "200";
-    ret_desc.description = (char *)(size_t) "Successful retrieval";
+    ret_desc.code = cdd_test_mut_str("200");
+    ret_desc.description = cdd_test_mut_str("Successful retrieval");
     doc.returns = &ret_desc;
     doc.n_returns = 1;
     ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
@@ -481,19 +475,25 @@ TEST test_operation_100_percent_coverage(void) {
   sig.n_args = 0;
   {
     int k_step;
-    doc.request_body_description = (char *)(size_t) "Request payload";
-    doc.request_body_content_type = (char *)(size_t) "application/json";
+    int hit_oom = 0;
+    doc.request_body_description = cdd_test_mut_str("Request payload");
+    doc.request_body_content_type = cdd_test_mut_str("application/json");
     doc.n_request_bodies = 0;
     ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
     reset_operation_test(&op);
 
     for (k_step = 1; k_step <= 4; ++k_step) {
+      cdd_c_error_t rc_step;
       g_cdd_strdup_fail = k_step;
-      if (c2openapi_build_operation(&ctx, &op) != CDD_C_SUCCESS) {
+      rc_step = c2openapi_build_operation(&ctx, &op);
+      if (rc_step != CDD_C_SUCCESS) {
+        ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_step);
+        hit_oom = 1;
       }
       g_cdd_strdup_fail = 0;
       reset_operation_test(&op);
     }
+    ASSERT_EQ(1, hit_oom);
 
     doc.request_body_description = NULL;
     doc.request_body_content_type = NULL;
@@ -503,19 +503,25 @@ TEST test_operation_100_percent_coverage(void) {
   {
     struct DocResponseHeader drh;
     int k_step;
+    int hit_oom = 0;
     memset(&drh, 0, sizeof(drh));
-    drh.code = (char *)(size_t) "200";
-    drh.name = (char *)(size_t) "X-Res";
-    drh.type = (char *)(size_t) "string";
+    drh.code = cdd_test_mut_str("200");
+    drh.name = cdd_test_mut_str("X-Res");
+    drh.type = cdd_test_mut_str("string");
     doc.response_headers = &drh;
     doc.n_response_headers = 1;
     for (k_step = 1; k_step <= 5; ++k_step) {
+      cdd_c_error_t rc_step;
       g_cdd_strdup_fail = k_step;
-      if (c2openapi_build_operation(&ctx, &op) != CDD_C_SUCCESS) {
+      rc_step = c2openapi_build_operation(&ctx, &op);
+      if (rc_step != CDD_C_SUCCESS) {
+        ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_step);
+        hit_oom = 1;
       }
       g_cdd_strdup_fail = 0;
       reset_operation_test(&op);
     }
+    ASSERT_EQ(1, hit_oom);
     doc.response_headers = NULL;
     doc.n_response_headers = 0;
   }
@@ -524,19 +530,25 @@ TEST test_operation_100_percent_coverage(void) {
   {
     struct DocLink dlk;
     int k_step;
+    int hit_oom = 0;
     memset(&dlk, 0, sizeof(dlk));
-    dlk.code = (char *)(size_t) "200";
-    dlk.name = (char *)(size_t) "MyLink";
-    dlk.operation_id = (char *)(size_t) "myOp";
+    dlk.code = cdd_test_mut_str("200");
+    dlk.name = cdd_test_mut_str("MyLink");
+    dlk.operation_id = cdd_test_mut_str("myOp");
     doc.links = &dlk;
     doc.n_links = 1;
     for (k_step = 1; k_step <= 5; ++k_step) {
+      cdd_c_error_t rc_step;
       g_cdd_strdup_fail = k_step;
-      if (c2openapi_build_operation(&ctx, &op) != CDD_C_SUCCESS) {
+      rc_step = c2openapi_build_operation(&ctx, &op);
+      if (rc_step != CDD_C_SUCCESS) {
+        ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_step);
+        hit_oom = 1;
       }
       g_cdd_strdup_fail = 0;
       reset_operation_test(&op);
     }
+    ASSERT_EQ(1, hit_oom);
     doc.links = NULL;
     doc.n_links = 0;
   }

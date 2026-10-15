@@ -38,12 +38,12 @@ cdd_c_error_t set_str_if_missing(char **dst, const char *src);
  *
  * @param[in] spec Target OpenAPI specification.
  * @param[in] name Name of security scheme to find.
- * @param[out] out_val Pointer to receive matched scheme pointer.
+ * @param[out] _out_val Pointer to receive matched scheme pointer.
  * @return CDD_C_SUCCESS on success or CDD_C_ERROR_UNKNOWN if not found.
  */
 cdd_c_error_t
 spec_find_security_scheme(struct OpenAPI_Spec *spec, const char *name,
-                          struct OpenAPI_SecurityScheme **out_val);
+                          struct OpenAPI_SecurityScheme **_out_val);
 
 /**
  * @brief Test helper for c2openapi_infer_client_route.

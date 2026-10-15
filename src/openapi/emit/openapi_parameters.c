@@ -19,19 +19,32 @@
 #include "openapi/emit/openapi.h"
 /* clang-format on */
 
+/** @brief Safely sets a JSON object property and frees the value on failure */
+#define json_object_set_value(obj, name, val)                                  \
+  do {                                                                         \
+    JSON_Value *_cdd_jv = (val);                                               \
+    if ((json_object_set_value)((obj), (name), _cdd_jv) != JSONSuccess)        \
+      json_value_free(_cdd_jv);                                                \
+  } while (0)
+/** @brief Safely appends a JSON array element and frees the value on failure */
+#define json_array_append_value(arr, val)                                      \
+  do {                                                                         \
+    JSON_Value *_cdd_jv = (val);                                               \
+    if ((json_array_append_value)((arr), _cdd_jv) != JSONSuccess)              \
+      json_value_free(_cdd_jv);                                                \
+  } while (0)
+
 /**
- * @brief Generates C code for write parameter object.
+ * @brief Serializes the OpenAPI parameter object into the target JSON object.
  */
-C_CDD_EXPORT void write_parameter_object(JSON_Object *p_obj,
-                                         const struct OpenAPI_Parameter *p) {
-  char *_ast_param_in_to_str_14 = NULL;
-  char *_ast_style_to_str_15 = NULL;
-  const char *in_str;
-  const char *style_str;
+C_CDD_EXPORT cdd_c_error_t
+write_parameter_object(JSON_Object *p_obj, const struct OpenAPI_Parameter *p) {
+  char *in_str = NULL;
+  char *style_str = NULL;
   cdd_c_error_t rc;
 
   if (!p_obj || !p)
-    return;
+    return CDD_C_SUCCESS;
 
   if (p->ref) {
     json_object_set_string(p_obj, "$ref", p->ref);
@@ -39,13 +52,11 @@ C_CDD_EXPORT void write_parameter_object(JSON_Object *p_obj,
       json_object_set_string(p_obj, "summary", p->summary);
     if (p->description)
       json_object_set_string(p_obj, "description", p->description);
-    return;
+    return CDD_C_SUCCESS;
   }
 
-  in_str = (param_in_to_str_openapi(p->in, &_ast_param_in_to_str_14),
-            _ast_param_in_to_str_14);
-  style_str = (style_to_str_openapi(p->style, &_ast_style_to_str_15),
-               _ast_style_to_str_15);
+  param_in_to_str_openapi(p->in, &in_str);
+  style_to_str_openapi(p->style, &style_str);
 
   if (p->name)
     json_object_set_string(p_obj, "name", p->name);
@@ -83,7 +94,7 @@ C_CDD_EXPORT void write_parameter_object(JSON_Object *p_obj,
     rc = write_media_type_map(p_obj, "content", p->content_media_types,
                               p->n_content_media_types);
     if (rc != CDD_C_SUCCESS)
-      return;
+      return rc;
   } else if (p->content_ref) {
     JSON_Value *content_val = json_value_init_object();
     JSON_Object *content_obj = json_value_get_object(content_val);
@@ -132,25 +143,25 @@ C_CDD_EXPORT void write_parameter_object(JSON_Object *p_obj,
 
   if (p->extensions_json)
     merge_schema_extras_object_openapi(p_obj, p->extensions_json);
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Generates C code for write header object.
+ * @brief Serializes the OpenAPI header object into the target JSON object.
  */
-C_CDD_EXPORT void write_header_object(JSON_Object *h_obj,
-                                      const struct OpenAPI_Header *h) {
-  char *_ast_style_to_str_16 = NULL;
-  const char *style_str;
+C_CDD_EXPORT cdd_c_error_t write_header_object(JSON_Object *h_obj,
+                                               const struct OpenAPI_Header *h) {
+  char *style_str = NULL;
   cdd_c_error_t rc;
 
   if (!h_obj || !h)
-    return;
+    return CDD_C_SUCCESS;
 
   if (h->ref) {
     json_object_set_string(h_obj, "$ref", h->ref);
     if (h->description)
       json_object_set_string(h_obj, "description", h->description);
-    return;
+    return CDD_C_SUCCESS;
   }
 
   if (h->description)
@@ -160,8 +171,7 @@ C_CDD_EXPORT void write_header_object(JSON_Object *h_obj,
   if (h->deprecated_set)
     json_object_set_boolean(h_obj, "deprecated", h->deprecated ? 1 : 0);
   if (h->style_set) {
-    style_str = (style_to_str_openapi(h->style, &_ast_style_to_str_16),
-                 _ast_style_to_str_16);
+    style_to_str_openapi(h->style, &style_str);
     if (style_str)
       json_object_set_string(h_obj, "style", style_str);
   }
@@ -176,7 +186,7 @@ C_CDD_EXPORT void write_header_object(JSON_Object *h_obj,
     rc = write_media_type_map(h_obj, "content", h->content_media_types,
                               h->n_content_media_types);
     if (rc != CDD_C_SUCCESS)
-      return;
+      return rc;
   } else if (h->content_ref) {
     JSON_Value *content_val = json_value_init_object();
     JSON_Object *content_obj = json_value_get_object(content_val);
@@ -217,14 +227,14 @@ C_CDD_EXPORT void write_header_object(JSON_Object *h_obj,
 
   if (h->extensions_json)
     merge_schema_extras_object_openapi(h_obj, h->extensions_json);
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Generates C code for write encoding object.
+ * @brief Serializes the OpenAPI encoding object into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t write_encoding_object(
     JSON_Object *enc_obj, const struct OpenAPI_Encoding *enc) {
-  char *_ast_style_to_str_17 = NULL;
   cdd_c_error_t rc;
   if (!enc_obj || !enc)
     return CDD_C_SUCCESS;
@@ -232,9 +242,8 @@ C_CDD_EXPORT cdd_c_error_t write_encoding_object(
   if (enc->content_type)
     json_object_set_string(enc_obj, "contentType", enc->content_type);
   if (enc->style_set) {
-    const char *style_str =
-        (style_to_str_openapi(enc->style, &_ast_style_to_str_17),
-         _ast_style_to_str_17);
+    char *style_str = NULL;
+    style_to_str_openapi(enc->style, &style_str);
     if (style_str)
       json_object_set_string(enc_obj, "style", style_str);
   }
@@ -278,7 +287,7 @@ C_CDD_EXPORT cdd_c_error_t write_encoding_object(
 }
 
 /**
- * @brief Generates C code for write encoding map.
+ * @brief Serializes the OpenAPI encoding map into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_encoding_map(JSON_Object *media_obj,
@@ -304,11 +313,13 @@ write_encoding_map(JSON_Object *media_obj,
     const char *name = enc->name ? enc->name : "encoding";
 
     if (!e_val) {
+      json_value_free(enc_val);
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
     }
     if (write_encoding_object(e_obj, enc) != 0) {
       json_value_free(e_val);
+      json_value_free(enc_val);
       return CDD_C_ERROR_MEMORY;
     }
     json_object_set_value(enc_obj, name, e_val);
@@ -319,7 +330,7 @@ write_encoding_map(JSON_Object *media_obj,
 }
 
 /**
- * @brief Generates C code for write encoding array.
+ * @brief Serializes the OpenAPI encoding array into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t write_encoding_array(
     JSON_Object *parent, const char *key,
@@ -342,11 +353,13 @@ C_CDD_EXPORT cdd_c_error_t write_encoding_array(
     JSON_Value *e_val = json_value_init_object();
     JSON_Object *e_obj = json_value_get_object(e_val);
     if (!e_val) {
+      json_value_free(arr_val);
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
     }
     if (write_encoding_object(e_obj, &encoding[i]) != 0) {
       json_value_free(e_val);
+      json_value_free(arr_val);
       return CDD_C_ERROR_MEMORY;
     }
     json_array_append_value(arr, e_val);
@@ -357,7 +370,7 @@ C_CDD_EXPORT cdd_c_error_t write_encoding_array(
 }
 
 /**
- * @brief Generates C code for write media type object.
+ * @brief Serializes the OpenAPI media type object into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t write_media_type_object(
     JSON_Object *media_obj, const struct OpenAPI_MediaType *mt) {
@@ -403,7 +416,7 @@ C_CDD_EXPORT cdd_c_error_t write_media_type_object(
 }
 
 /**
- * @brief Generates C code for write media type map.
+ * @brief Serializes the OpenAPI media type map into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_media_type_map(JSON_Object *parent, const char *key,
@@ -441,14 +454,12 @@ write_media_type_map(JSON_Object *parent, const char *key,
 }
 
 /**
- * @brief Generates C code for write link object.
+ * @brief Serializes the OpenAPI link object into the target JSON object.
  */
-C_CDD_EXPORT void write_link_object(JSON_Object *l_obj,
-                                    const struct OpenAPI_Link *link) {
-  JSON_Value *_ast_any_to_json_value_18;
-  JSON_Value *_ast_any_to_json_value_19;
+C_CDD_EXPORT cdd_c_error_t write_link_object(JSON_Object *l_obj,
+                                             const struct OpenAPI_Link *link) {
   if (!l_obj || !link)
-    return;
+    return CDD_C_SUCCESS;
 
   if (link->ref) {
     json_object_set_string(l_obj, "$ref", link->ref);
@@ -456,7 +467,7 @@ C_CDD_EXPORT void write_link_object(JSON_Object *l_obj,
       json_object_set_string(l_obj, "summary", link->summary);
     if (link->description)
       json_object_set_string(l_obj, "description", link->description);
-    return;
+    return CDD_C_SUCCESS;
   }
 
   if (link->operation_ref)
@@ -472,9 +483,8 @@ C_CDD_EXPORT void write_link_object(JSON_Object *l_obj,
     size_t i;
     for (i = 0; i < link->n_parameters; ++i) {
       const struct OpenAPI_LinkParam *param = &link->parameters[i];
-      JSON_Value *val =
-          (any_to_json_value(&param->value, &_ast_any_to_json_value_18),
-           _ast_any_to_json_value_18);
+      JSON_Value *val = NULL;
+      any_to_json_value(&param->value, &val);
       if (val && param->name) {
         json_object_set_value(params_obj, param->name, val);
       } else if (val) {
@@ -485,9 +495,8 @@ C_CDD_EXPORT void write_link_object(JSON_Object *l_obj,
   }
 
   if (link->request_body_set) {
-    JSON_Value *rb_val =
-        (any_to_json_value(&link->request_body, &_ast_any_to_json_value_19),
-         _ast_any_to_json_value_19);
+    JSON_Value *rb_val = NULL;
+    any_to_json_value(&link->request_body, &rb_val);
     if (rb_val)
       json_object_set_value(l_obj, "requestBody", rb_val);
   }
@@ -501,10 +510,11 @@ C_CDD_EXPORT void write_link_object(JSON_Object *l_obj,
 
   if (link->extensions_json)
     merge_schema_extras_object_openapi(l_obj, link->extensions_json);
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Generates C code for write headers map.
+ * @brief Serializes the OpenAPI headers map into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t write_headers_map(
     JSON_Object *parent, const char *key, const struct OpenAPI_Header *headers,
@@ -548,7 +558,7 @@ C_CDD_EXPORT cdd_c_error_t write_headers_map(
 }
 
 /**
- * @brief Generates C code for write headers.
+ * @brief Serializes the OpenAPI headers into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t write_headers(JSON_Object *parent,
                                          const struct OpenAPI_Response *resp) {
@@ -559,7 +569,7 @@ C_CDD_EXPORT cdd_c_error_t write_headers(JSON_Object *parent,
 }
 
 /**
- * @brief Generates C code for write links.
+ * @brief Serializes the OpenAPI links into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t write_links(JSON_Object *parent,
                                        const struct OpenAPI_Response *resp) {
@@ -592,13 +602,13 @@ C_CDD_EXPORT cdd_c_error_t write_links(JSON_Object *parent,
 }
 
 /**
- * @brief Generates C code for write response object.
+ * @brief Serializes the OpenAPI response object into the target JSON object.
  */
-C_CDD_EXPORT void write_response_object(JSON_Object *r_obj,
-                                        const struct OpenAPI_Response *resp) {
+C_CDD_EXPORT cdd_c_error_t
+write_response_object(JSON_Object *r_obj, const struct OpenAPI_Response *resp) {
   cdd_c_error_t rc;
   if (!r_obj || !resp)
-    return;
+    return CDD_C_SUCCESS;
 
   if (resp->ref) {
     json_object_set_string(r_obj, "$ref", resp->ref);
@@ -606,7 +616,7 @@ C_CDD_EXPORT void write_response_object(JSON_Object *r_obj,
       json_object_set_string(r_obj, "summary", resp->summary);
     if (resp->description)
       json_object_set_string(r_obj, "description", resp->description);
-    return;
+    return CDD_C_SUCCESS;
   }
 
   if (resp->summary)
@@ -625,7 +635,7 @@ C_CDD_EXPORT void write_response_object(JSON_Object *r_obj,
     rc = write_media_type_map(r_obj, "content", resp->content_media_types,
                               resp->n_content_media_types);
     if (rc != CDD_C_SUCCESS)
-      return;
+      return rc;
   } else if (resp->content_ref) {
     JSON_Value *cont_val = json_value_init_object();
     JSON_Object *cont_obj = json_value_get_object(cont_val);
@@ -657,10 +667,11 @@ C_CDD_EXPORT void write_response_object(JSON_Object *r_obj,
 
   if (resp->extensions_json)
     merge_schema_extras_object_openapi(r_obj, resp->extensions_json);
+  return CDD_C_SUCCESS;
 }
 
 /**
- * @brief Generates C code for write parameters.
+ * @brief Serializes the OpenAPI parameters into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_parameters(JSON_Object *parent, const struct OpenAPI_Parameter *params,
@@ -703,7 +714,8 @@ write_parameters(JSON_Object *parent, const struct OpenAPI_Parameter *params,
 }
 
 /**
- * @brief Generates C code for write request body object.
+ * @brief Serializes the OpenAPI request body object into the target JSON
+ * object.
  */
 C_CDD_EXPORT cdd_c_error_t write_request_body_object(
     JSON_Object *rb_obj, const struct OpenAPI_RequestBody *rb) {
@@ -781,7 +793,7 @@ C_CDD_EXPORT cdd_c_error_t write_request_body_object(
 }
 
 /**
- * @brief Generates C code for write request body.
+ * @brief Serializes the OpenAPI request body into the target JSON object.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_request_body(JSON_Object *op_obj, const struct OpenAPI_Operation *op) {

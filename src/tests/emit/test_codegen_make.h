@@ -46,14 +46,14 @@ TEST test_make_simple(void) {
 
     ASSERT(tmp);
     memset(&cfg, 0, sizeof(cfg));
-    cfg.project_name = (char *)(size_t)(size_t) "test_client";
+    cfg.project_name = cdd_test_mut_str("test_client");
 
     ASSERT_EQ(0, codegen_make_generate(tmp, &cfg));
 
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -85,12 +85,14 @@ TEST test_make_extra_sources(void) {
   {
     struct MakeConfig cfg;
     char *content = NULL;
-    const char *extras[] = {"a.c", "b.c"};
+    const char *extras[2];
     long sz;
 
+    extras[0] = cdd_test_mut_str("a.c");
+    extras[1] = cdd_test_mut_str("b.c");
     ASSERT(tmp);
     memset(&cfg, 0, sizeof(cfg));
-    cfg.project_name = (char *)(size_t)(size_t) "w_extras";
+    cfg.project_name = cdd_test_mut_str("w_extras");
     cfg.extra_sources = (char **)(size_t)extras;
     cfg.extra_source_count = 2;
 
@@ -99,7 +101,7 @@ TEST test_make_extra_sources(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -148,7 +150,7 @@ TEST test_make_invalid(void) {
 TEST test_make_io_failure(void) {
   struct MakeConfig cfg = {0};
   FILE *f;
-  cfg.project_name = (char *)(size_t)(size_t) "test_io";
+  cfg.project_name = cdd_test_mut_str("test_io");
 #if defined(_MSC_VER)
   if (((f = cdd_test_tmpfile_global()) == NULL))
     f = NULL;
@@ -175,18 +177,20 @@ TEST test_make_io_failure(void) {
 
 TEST test_make_oom(void) {
   struct MakeConfig config = {0};
-  const char *srcs[] = {"a.c", "b.c"};
+  const char *srcs[2];
   FILE *fp;
   struct MakeConfig config2 = {0};
   struct MakeConfig config3 = {0};
-  const char *srcs2[] = {(char *)(size_t)NULL};
+  const char *srcs2[] = {NULL};
 #ifdef CDD_BUILD_TESTS
   /* extern C_CDD_EXPORT int g_cdd_fprintf_fail; (moved to global) */
   int i;
   int rc = 0;
 #endif
 
-  config.project_name = (char *)(size_t)(size_t) "proj";
+  srcs[0] = cdd_test_mut_str("a.c");
+  srcs[1] = cdd_test_mut_str("b.c");
+  config.project_name = cdd_test_mut_str("proj");
   config.extra_sources = (char **)(size_t)srcs;
   config.extra_source_count = 2;
 
@@ -217,8 +221,8 @@ TEST test_make_oom(void) {
 #else
   fp = fopen("test_make_out.txt", "w");
 #endif
-  config2.project_name = (char *)(size_t)(size_t) "proj";
-  config2.min_cmake_version = (char *)(size_t)(size_t) "3.20";
+  config2.project_name = cdd_test_mut_str("proj");
+  config2.min_cmake_version = cdd_test_mut_str("3.20");
   ASSERT_EQ(0, codegen_make_generate(fp, &config2));
   if (fp)
     fclose(fp);
@@ -231,7 +235,7 @@ TEST test_make_oom(void) {
 #else
   fp = fopen("test_make_out.txt", "w");
 #endif
-  config3.project_name = (char *)(size_t)(size_t) "proj";
+  config3.project_name = cdd_test_mut_str("proj");
   config3.extra_sources = (char **)(size_t)srcs2;
   config3.extra_source_count = 1;
   ASSERT_EQ(0, codegen_make_generate(fp, &config3));

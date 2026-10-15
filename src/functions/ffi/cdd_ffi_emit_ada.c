@@ -1,3 +1,7 @@
+/**
+ * @file cdd_ffi_emit_ada.c
+ * @brief FFI binding emitter for Ada.
+ */
 #ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
 #endif
@@ -14,65 +18,68 @@ extern volatile int g_fail_io_after;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
- * @brief Emits trivia (comments, whitespace).
- * @param f The FILE pointer.
- * @param trivia The trivia chain.
- */
-static void emit_trivia(void *f, cdd_ffi_trivia_t *trivia) {
-  FILE *file = (FILE *)f;
-  while (trivia) {
-    if (trivia->text) {
-      fprintf(file, "%s", trivia->text);
-    }
-    trivia = trivia->next;
-  }
-}
-
-static const char *map_ada_type(cdd_ffi_type_t *t) {
+static cdd_c_error_t map_ada_type(cdd_ffi_type_t *t, const char **out_type) {
   if (t->pointer_depth > 0) {
     if ((t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) &&
         t->is_const) {
-      return "Interfaces.C.Strings.chars_ptr";
+      *out_type = "Interfaces.C.Strings.chars_ptr";
+      return CDD_C_SUCCESS;
     }
-    return "System.Address";
+    *out_type = "System.Address";
+    return CDD_C_SUCCESS;
   }
   switch (t->kind) {
   case CDD_FFI_KIND_VOID:
-    return "System.Address";
+    *out_type = "System.Address";
+    break;
   case CDD_FFI_KIND_BOOL:
-    return "Boolean";
+    *out_type = "Boolean";
+    break;
   case CDD_FFI_KIND_INT8:
   case CDD_FFI_KIND_UINT8:
-    return "Interfaces.C.char";
+    *out_type = "Interfaces.C.char";
+    break;
   case CDD_FFI_KIND_INT16:
-    return "Interfaces.C.short";
+    *out_type = "Interfaces.C.short";
+    break;
   case CDD_FFI_KIND_UINT16:
-    return "Interfaces.C.unsigned_short";
+    *out_type = "Interfaces.C.unsigned_short";
+    break;
   case CDD_FFI_KIND_INT32:
-    return "Interfaces.C.int";
+    *out_type = "Interfaces.C.int";
+    break;
   case CDD_FFI_KIND_UINT32:
-    return "Interfaces.C.unsigned";
+    *out_type = "Interfaces.C.unsigned";
+    break;
   case CDD_FFI_KIND_INT64:
-    return "Interfaces.C.long";
+    *out_type = "Interfaces.C.long";
+    break;
   case CDD_FFI_KIND_UINT64:
-    return "Interfaces.C.unsigned_long";
+    *out_type = "Interfaces.C.unsigned_long";
+    break;
   case CDD_FFI_KIND_FLOAT32:
-    return "Interfaces.C.C_float";
+    *out_type = "Interfaces.C.C_float";
+    break;
   case CDD_FFI_KIND_FLOAT64:
-    return "Interfaces.C.double";
+    *out_type = "Interfaces.C.double";
+    break;
   case CDD_FFI_KIND_STRUCT_REF:
   case CDD_FFI_KIND_ENUM_REF:
   case CDD_FFI_KIND_TYPEDEF_REF:
     if (t->ref_name) {
-      return t->ref_name;
+      *out_type = t->ref_name;
+    } else {
+      *out_type = "System.Address";
     }
-    return "System.Address";
+    break;
   default:
-    return "System.Address";
+    *out_type = "System.Address";
+    break;
   }
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
@@ -150,14 +157,15 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
     node = &ir->nodes[i];
 
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "   type %s is record\n", node->name);
       if (node->fields_count == 0) {
         fprintf(f, "      null;\n");
       }
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "      %s : %s;\n", node->fields[j].name,
-                map_ada_type(&node->fields[j].type));
+        const char *atype = NULL;
+        map_ada_type(&node->fields[j].type, &atype);
+        fprintf(f, "      %s : %s;\n", node->fields[j].name, atype);
       }
       fprintf(f, "   end record;\n");
       fprintf(f, "   pragma Convention (C, %s);\n\n", node->name);
@@ -171,7 +179,7 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
       fprintf(f, "   end record;\n");
       fprintf(f, "   pragma Convention (C, %s);\n\n", node->name);
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "   type %s is (\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
@@ -181,7 +189,7 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
       fprintf(f, "   );\n");
       fprintf(f, "   pragma Convention (C, %s);\n\n", node->name);
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      emit_trivia(f, node->leading_trivia);
+      cdd_ffi_emit_trivia(f, node->leading_trivia);
       is_void = (node->return_or_base_type.kind == CDD_FFI_KIND_VOID &&
                  node->return_or_base_type.pointer_depth == 0);
 
@@ -192,8 +200,9 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
       }
 
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "      %s : %s%s\n", node->fields[j].name,
-                map_ada_type(&node->fields[j].type),
+        const char *atype = NULL;
+        map_ada_type(&node->fields[j].type, &atype);
+        fprintf(f, "      %s : %s%s\n", node->fields[j].name, atype,
                 j + 1 < node->fields_count ? ";" : "");
       }
 
@@ -207,14 +216,14 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
                   node->name);
         }
       } else {
+        const char *ret_atype = NULL;
+        map_ada_type(&node->return_or_base_type, &ret_atype);
         if (node->fields_count == 0) {
-          fprintf(f, "   return %s;\n",
-                  map_ada_type(&node->return_or_base_type));
+          fprintf(f, "   return %s;\n", ret_atype);
           fprintf(f, "   pragma Import (C, %s, \"%s\");\n\n", node->name,
                   node->name);
         } else {
-          fprintf(f, "   ) return %s;\n",
-                  map_ada_type(&node->return_or_base_type));
+          fprintf(f, "   ) return %s;\n", ret_atype);
           fprintf(f, "   pragma Import (C, %s, \"%s\");\n\n", node->name,
                   node->name);
         }

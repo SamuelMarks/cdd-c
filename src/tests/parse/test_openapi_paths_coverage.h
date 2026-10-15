@@ -13,7 +13,6 @@ extern "C" {
 
 /* clang-format off */
 #include "parse/test_openapi_loader_common.h"
-#include "openapi/parse/openapi_test_helpers.h"
 /* clang-format on */
 
 /**
@@ -27,37 +26,35 @@ TEST test_openapi_paths_name_list_and_template_names(void) {
   size_t count = 0;
   size_t i;
 
-  list[0] = (char *)(size_t) "foo";
-  list[1] = (char *)(size_t) "bar";
-  list[2] = (char *)(size_t) "baz";
+  list[0] = cdd_test_mut_str("foo");
+  list[1] = cdd_test_mut_str("bar");
+  list[2] = cdd_test_mut_str("baz");
 
   /* 1. name_in_list */
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_name_in_list("foo", NULL, 3));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_name_in_list(NULL, list, 3));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_name_in_list("foo", list, 0));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_name_in_list("qux", list, 3));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_test_name_in_list("bar", list, 3));
+  ASSERT_EQ(CDD_C_SUCCESS, name_in_list("foo", NULL, 3));
+  ASSERT_EQ(CDD_C_SUCCESS, name_in_list(NULL, list, 3));
+  ASSERT_EQ(CDD_C_SUCCESS, name_in_list("foo", list, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, name_in_list("qux", list, 3));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, name_in_list("bar", list, 3));
   list[0] = NULL;
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_name_in_list("foo", list, 1));
-  list[0] = (char *)(size_t) "foo";
+  ASSERT_EQ(CDD_C_SUCCESS, name_in_list("foo", list, 1));
+  list[0] = cdd_test_mut_str("foo");
 
   /* 2. collect_path_template_names error args */
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_collect_path_template_names(NULL, &names, &count));
+  ASSERT_EQ(CDD_C_SUCCESS, collect_path_template_names(NULL, &names, &count));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_collect_path_template_names("/users", NULL, &count));
+            collect_path_template_names("/users", NULL, &count));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_collect_path_template_names("/users", &names, NULL));
+            collect_path_template_names("/users", &names, NULL));
 
   /* 3. empty route */
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_collect_path_template_names("", &names, &count));
+  ASSERT_EQ(CDD_C_SUCCESS, collect_path_template_names("", &names, &count));
   ASSERT_EQ(0, count);
 
   /* 4. valid extraction */
   ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_collect_path_template_names(
-                "/users/{userId}/posts/{postId}", &names, &count));
+            collect_path_template_names("/users/{userId}/posts/{postId}",
+                                        &names, &count));
   ASSERT_EQ(2, count);
   ASSERT_STR_EQ("userId", names[0]);
   ASSERT_STR_EQ("postId", names[1]);
@@ -69,33 +66,31 @@ TEST test_openapi_paths_name_list_and_template_names(void) {
 
   /* 5. duplicate template parameter in route */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_collect_path_template_names(
-                "/users/{userId}/posts/{userId}", &names, &count));
+            collect_path_template_names("/users/{userId}/posts/{userId}",
+                                        &names, &count));
 
   /* 6. unclosed brace and empty brace */
+  ASSERT_EQ(
+      CDD_C_ERROR_INVALID_ARGUMENT,
+      collect_path_template_names("/users/{}/posts/{postId", &names, &count));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_collect_path_template_names("/users/{}/posts/{postId",
-                                                 &names, &count));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_collect_path_template_names("/users/{id", &names, &count));
+            collect_path_template_names("/users/{id", &names, &count));
   ASSERT_EQ(0, count);
 
   /* 7. dup_substr allocation failure */
   g_cdd_alloc_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_test_collect_path_template_names(
-                                    "/users/{userId}", &names, &count));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            collect_path_template_names("/users/{userId}", &names, &count));
   g_cdd_alloc_fail = 0;
 
   /* 8. unmatched closing brace */
-  ASSERT_EQ(
-      CDD_C_ERROR_INVALID_ARGUMENT,
-      cdd_test_collect_path_template_names("/users/userId}", &names, &count));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            collect_path_template_names("/users/userId}", &names, &count));
 
   /* 9. realloc failure */
   for (i = 1; i <= 8; ++i) {
     g_cdd_alloc_fail = (int)i;
-    cdd_test_collect_path_template_names("/a/{b}/{c}/{d}/{e}/{f}", &names,
-                                         &count);
+    collect_path_template_names("/a/{b}/{c}/{d}/{e}/{f}", &names, &count);
     g_cdd_alloc_fail = 0;
   }
 
@@ -116,93 +111,84 @@ TEST test_openapi_paths_normalize_and_collisions(void) {
   memset(bad_paths, 0, sizeof(bad_paths));
 
   /* 1. normalize_path_template_route error args */
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_normalize_path_template_route(NULL, &norm));
+  ASSERT_EQ(CDD_C_SUCCESS, normalize_path_template_route(NULL, &norm));
   ASSERT_EQ(NULL, norm);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_normalize_path_template_route("/users", NULL));
+            normalize_path_template_route("/users", NULL));
 
   /* 2. empty route */
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_normalize_path_template_route("", &norm));
+  ASSERT_EQ(CDD_C_SUCCESS, normalize_path_template_route("", &norm));
   ASSERT_STR_EQ("", norm);
   free(norm);
   norm = NULL;
 
   /* 3. normalize with template */
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_normalize_path_template_route(
+  ASSERT_EQ(CDD_C_SUCCESS, normalize_path_template_route(
                                "/users/{userId}/posts/{postId}", &norm));
   ASSERT_STR_EQ("/users/{}/posts/{}", norm);
   free(norm);
   norm = NULL;
 
   /* 4. normalize with unclosed brace */
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_normalize_path_template_route("/users/{id", &norm));
+  ASSERT_EQ(CDD_C_SUCCESS, normalize_path_template_route("/users/{id", &norm));
   ASSERT_EQ(NULL, norm);
 
   /* 5. malloc failure in normalize */
   g_cdd_alloc_fail = 1;
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_normalize_path_template_route("/users/{id}", &norm));
+  ASSERT_EQ(CDD_C_SUCCESS, normalize_path_template_route("/users/{id}", &norm));
   ASSERT_EQ(NULL, norm);
   g_cdd_alloc_fail = 0;
 
   /* 6. validate_path_template_collisions */
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_path_template_collisions(NULL, 2));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_path_template_collisions(NULL, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, validate_path_template_collisions(NULL, 2));
+  ASSERT_EQ(CDD_C_SUCCESS, validate_path_template_collisions(NULL, 0));
 
   /* 7. paths with NULL routes */
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_validate_path_template_collisions(paths, 2));
+  ASSERT_EQ(CDD_C_SUCCESS, validate_path_template_collisions(paths, 2));
 
   /* 8. collision */
-  bad_paths[0].route = (char *)(size_t) "/users/{id}";
-  bad_paths[1].route = (char *)(size_t) "/users/{userId}";
+  bad_paths[0].route = cdd_test_mut_str("/users/{id}");
+  bad_paths[1].route = cdd_test_mut_str("/users/{userId}");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_validate_path_template_collisions(bad_paths, 2));
+            validate_path_template_collisions(bad_paths, 2));
 
   /* 9. distinct paths */
-  bad_paths[1].route = (char *)(size_t) "/posts/{id}";
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_validate_path_template_collisions(bad_paths, 2));
+  bad_paths[1].route = cdd_test_mut_str("/posts/{id}");
+  ASSERT_EQ(CDD_C_SUCCESS, validate_path_template_collisions(bad_paths, 2));
 
   /* 10. non-templated second path */
-  bad_paths[1].route = (char *)(size_t) "/posts";
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_validate_path_template_collisions(bad_paths, 2));
+  bad_paths[1].route = cdd_test_mut_str("/posts");
+  ASSERT_EQ(CDD_C_SUCCESS, validate_path_template_collisions(bad_paths, 2));
 
   /* 11. unclosed brace in second path */
-  bad_paths[1].route = (char *)(size_t) "/users/{id";
+  bad_paths[1].route = cdd_test_mut_str("/users/{id");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_validate_path_template_collisions(bad_paths, 2));
+            validate_path_template_collisions(bad_paths, 2));
 
   /* 11b. unclosed brace in first path */
-  bad_paths[0].route = (char *)(size_t) "/users/{id";
-  bad_paths[1].route = (char *)(size_t) "/users/{id}";
+  bad_paths[0].route = cdd_test_mut_str("/users/{id");
+  bad_paths[1].route = cdd_test_mut_str("/users/{id}");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_validate_path_template_collisions(bad_paths, 2));
+            validate_path_template_collisions(bad_paths, 2));
 
   /* 12. non-slash start in first path */
-  bad_paths[0].route = (char *)(size_t) "users/{id}";
-  bad_paths[1].route = (char *)(size_t) "/users/{id}";
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_validate_path_template_collisions(bad_paths, 2));
+  bad_paths[0].route = cdd_test_mut_str("users/{id}");
+  bad_paths[1].route = cdd_test_mut_str("/users/{id}");
+  ASSERT_EQ(CDD_C_SUCCESS, validate_path_template_collisions(bad_paths, 2));
 
   /* 13. NULL second path */
-  bad_paths[0].route = (char *)(size_t) "/users/{id}";
+  bad_paths[0].route = cdd_test_mut_str("/users/{id}");
   bad_paths[1].route = NULL;
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_validate_path_template_collisions(bad_paths, 2));
+  ASSERT_EQ(CDD_C_SUCCESS, validate_path_template_collisions(bad_paths, 2));
 
   /* 14. non-slash start in second path */
-  bad_paths[1].route = (char *)(size_t) "users/{id}";
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_validate_path_template_collisions(bad_paths, 2));
+  bad_paths[1].route = cdd_test_mut_str("users/{id}");
+  ASSERT_EQ(CDD_C_SUCCESS, validate_path_template_collisions(bad_paths, 2));
 
   /* 15. identical routes */
-  bad_paths[0].route = (char *)(size_t) "/users/{id}";
-  bad_paths[1].route = (char *)(size_t) "/users/{id}";
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_validate_path_template_collisions(bad_paths, 2));
+  bad_paths[0].route = cdd_test_mut_str("/users/{id}");
+  bad_paths[1].route = cdd_test_mut_str("/users/{id}");
+  ASSERT_EQ(CDD_C_SUCCESS, validate_path_template_collisions(bad_paths, 2));
 
   PASS();
 }
@@ -214,7 +200,7 @@ TEST test_openapi_paths_normalize_and_collisions(void) {
  */
 TEST test_openapi_paths_validation_branches(void) {
   struct OpenAPI_Parameter params[3];
-  struct OpenAPI_Parameter *found = NULL;
+  const struct OpenAPI_Parameter *found = NULL;
   struct OpenAPI_Path path;
   struct OpenAPI_Operation op;
   char *template_names[2];
@@ -223,89 +209,85 @@ TEST test_openapi_paths_validation_branches(void) {
   memset(&path, 0, sizeof(path));
   memset(&op, 0, sizeof(op));
 
-  template_names[0] = (char *)(size_t) "id";
-  template_names[1] = (char *)(size_t) "subId";
+  template_names[0] = cdd_test_mut_str("id");
+  template_names[1] = cdd_test_mut_str("subId");
 
   /* 1. find_path_param */
-  params[0].name = (char *)(size_t) "id";
+  params[0].name = cdd_test_mut_str("id");
   params[0].in = OA_PARAM_IN_QUERY;
-  params[1].name = (char *)(size_t) "id";
+  params[1].name = cdd_test_mut_str("id");
   params[1].in = OA_PARAM_IN_PATH;
   params[1].required = 1;
 
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_find_path_param(params, 2, "id", &found));
+  ASSERT_EQ(CDD_C_SUCCESS, find_path_param(params, 2, "id", &found));
   ASSERT_EQ(&params[1], found);
   found = NULL;
 
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_find_path_param(params, 2, "missing", &found));
+  ASSERT_EQ(CDD_C_SUCCESS, find_path_param(params, 2, "missing", &found));
   ASSERT_EQ(NULL, found);
 
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_find_path_param(params, 2, NULL, &found));
+  ASSERT_EQ(CDD_C_SUCCESS, find_path_param(params, 2, NULL, &found));
   ASSERT_EQ(NULL, found);
 
   /* Parameter with NULL name */
   params[0].name = NULL;
   params[0].in = OA_PARAM_IN_PATH;
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_find_path_param(params, 1, "id", &found));
+  ASSERT_EQ(CDD_C_SUCCESS, find_path_param(params, 1, "id", &found));
   ASSERT_EQ(NULL, found);
 
   /* 2. validate_path_params_list */
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_validate_path_params_list(NULL, 0, NULL, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, validate_path_params_list(NULL, 0, NULL, 0));
 
   /* Parameter in PATH but not required */
   params[1].required = 0;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_validate_path_params_list(params, 2, template_names, 2));
+            validate_path_params_list(params, 2, template_names, 2));
 
   /* Parameter in PATH not in template */
   params[1].required = 1;
-  params[2].name = (char *)(size_t) "notInTemplate";
+  params[2].name = cdd_test_mut_str("notInTemplate");
   params[2].in = OA_PARAM_IN_PATH;
   params[2].required = 1;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_validate_path_params_list(params, 3, template_names, 2));
+            validate_path_params_list(params, 3, template_names, 2));
 
   /* Valid list */
-  params[0].name = (char *)(size_t) "queryParam";
+  params[0].name = cdd_test_mut_str("queryParam");
   params[0].in = OA_PARAM_IN_QUERY;
-  params[2].name = (char *)(size_t) "other";
+  params[2].name = cdd_test_mut_str("other");
   params[2].in = OA_PARAM_IN_HEADER;
   ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_validate_path_params_list(params, 3, template_names, 2));
+            validate_path_params_list(params, 3, template_names, 2));
 
   /* 3. validate_path_template_for_operation */
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_path_template_for_operation(
+  ASSERT_EQ(CDD_C_SUCCESS, validate_path_template_for_operation(
                                NULL, NULL, template_names, 2));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_path_template_for_operation(
-                               &path, NULL, NULL, 2));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_path_template_for_operation(
+  ASSERT_EQ(CDD_C_SUCCESS,
+            validate_path_template_for_operation(&path, NULL, NULL, 2));
+  ASSERT_EQ(CDD_C_SUCCESS, validate_path_template_for_operation(
                                &path, &op, template_names, 0));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_validate_path_template_for_operation(&path, NULL,
-                                                          template_names, 2));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, validate_path_template_for_operation(
+                                              &path, NULL, template_names, 2));
 
   /* Missing in both path and operation */
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_validate_path_template_for_operation(&path, &op,
-                                                          template_names, 2));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, validate_path_template_for_operation(
+                                              &path, &op, template_names, 2));
 
   /* Present in path */
   path.parameters = params;
   path.n_parameters = 2; /* has "id" */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_validate_path_template_for_operation(
-                &path, &op, template_names, 2)); /* missing subId */
+            validate_path_template_for_operation(&path, &op, template_names,
+                                                 2)); /* missing subId */
 
   /* Present in operation */
   op.parameters =
       (struct OpenAPI_Parameter *)calloc(1, sizeof(struct OpenAPI_Parameter));
-  op.parameters[0].name = (char *)(size_t) "subId";
+  op.parameters[0].name = cdd_test_mut_str("subId");
   op.parameters[0].in = OA_PARAM_IN_PATH;
   op.parameters[0].required = 1;
   op.n_parameters = 1;
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_path_template_for_operation(
+  ASSERT_EQ(CDD_C_SUCCESS, validate_path_template_for_operation(
                                &path, &op, template_names, 2));
   free(op.parameters);
   op.parameters = NULL;
@@ -314,41 +296,39 @@ TEST test_openapi_paths_validation_branches(void) {
   path.n_parameters = 0;
 
   /* 4. validate_path_templates */
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_path_templates(NULL, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, validate_path_templates(NULL, 0));
 
   /* Path with NULL route in multi-path list */
   {
     struct OpenAPI_Path m_paths[2];
     memset(m_paths, 0, sizeof(m_paths));
     m_paths[0].route = NULL;
-    m_paths[1].route = (char *)(size_t) "/users";
-    ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_path_templates(m_paths, 2));
+    m_paths[1].route = cdd_test_mut_str("/users");
+    ASSERT_EQ(CDD_C_SUCCESS, validate_path_templates(m_paths, 2));
   }
 
   /* Path with template but NO operations */
-  path.route = (char *)(size_t) "/items/{itemId}";
+  path.route = cdd_test_mut_str("/items/{itemId}");
   path.n_operations = 0;
   path.n_additional_operations = 0;
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_path_templates(&path, 1));
+  ASSERT_EQ(CDD_C_SUCCESS, validate_path_templates(&path, 1));
 
   /* Path with template and operation missing parameter */
   path.operations = &op;
   path.n_operations = 1;
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_validate_path_templates(&path, 1));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, validate_path_templates(&path, 1));
   path.operations = NULL;
   path.n_operations = 0;
 
   /* Path without leading slash */
-  path.route = (char *)(size_t) "users/{id}";
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_path_templates(&path, 1));
+  path.route = cdd_test_mut_str("users/{id}");
+  ASSERT_EQ(CDD_C_SUCCESS, validate_path_templates(&path, 1));
 
   /* Path with additional operations missing template param */
-  path.route = (char *)(size_t) "/items/{itemId}";
+  path.route = cdd_test_mut_str("/items/{itemId}");
   path.additional_operations = &op;
   path.n_additional_operations = 1;
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_validate_path_templates(&path, 1));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, validate_path_templates(&path, 1));
   path.additional_operations = NULL;
   path.n_additional_operations = 0;
 
@@ -380,21 +360,19 @@ TEST test_openapi_paths_parsing_branches(void) {
   jv = json_parse_string("{\"/users\": {}}");
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_parse_paths_object(NULL, &paths, &n_paths, &spec, 1, 1));
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_parse_paths_object(jo, NULL, &n_paths, &spec, 1, 1));
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_parse_paths_object(jo, &paths, NULL, &spec, 1, 1));
+            parse_paths_object(NULL, &paths, &n_paths, &spec, 1, 1));
+  ASSERT_EQ(CDD_C_SUCCESS, parse_paths_object(jo, NULL, &n_paths, &spec, 1, 1));
+  ASSERT_EQ(CDD_C_SUCCESS, parse_paths_object(jo, &paths, NULL, &spec, 1, 1));
   json_value_free(jv);
 
   /* Path without leading slash when require_leading_slash == 0 */
   jv = json_parse_string("{\"users\": {}}");
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_parse_paths_object(jo, &paths, &n_paths, &spec, 0, 0));
+            parse_paths_object(jo, &paths, &n_paths, &spec, 0, 0));
   if (paths) {
     for (i = 0; i < n_paths; ++i)
-      cdd_test_free_path_item(&paths[i]);
+      free_path_item(&paths[i]);
     free(paths);
     paths = NULL;
   }
@@ -404,10 +382,10 @@ TEST test_openapi_paths_parsing_branches(void) {
   jv = json_parse_string("{\"/empty\": 123}");
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
+            parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
   if (paths) {
     for (i = 0; i < n_paths; ++i)
-      cdd_test_free_path_item(&paths[i]);
+      free_path_item(&paths[i]);
     free(paths);
     paths = NULL;
   }
@@ -417,7 +395,7 @@ TEST test_openapi_paths_parsing_branches(void) {
   jv = json_parse_string("{}");
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_parse_paths_object(jo, &paths, &n_paths, &spec, 1, 1));
+            parse_paths_object(jo, &paths, &n_paths, &spec, 1, 1));
   ASSERT_EQ(0, n_paths);
   json_value_free(jv);
 
@@ -426,17 +404,17 @@ TEST test_openapi_paths_parsing_branches(void) {
   jo = json_value_get_object(jv);
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
-            cdd_test_parse_paths_object(jo, &paths, &n_paths, &spec, 1, 1));
+            parse_paths_object(jo, &paths, &n_paths, &spec, 1, 1));
   g_cdd_alloc_fail = 0;
 
   /* 4. non-root path with template character (e.g. callback with {) */
   jv = json_parse_string("{\"/users/{id}\": {\"summary\": \"Users\"}}");
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_parse_paths_object(jo, &paths, &n_paths, &spec, 0, 0));
+            parse_paths_object(jo, &paths, &n_paths, &spec, 0, 0));
   if (paths) {
     for (i = 0; i < n_paths; ++i)
-      cdd_test_free_path_item(&paths[i]);
+      free_path_item(&paths[i]);
     free(paths);
     paths = NULL;
   }
@@ -449,7 +427,7 @@ TEST test_openapi_paths_parsing_branches(void) {
   jo = json_value_get_object(jv);
   g_cdd_alloc_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
-            cdd_test_parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
+            parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
   g_cdd_alloc_fail = 0;
   json_value_free(jv);
 
@@ -459,7 +437,7 @@ TEST test_openapi_paths_parsing_branches(void) {
   jo = json_value_get_object(jv);
   g_cdd_alloc_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
-            cdd_test_parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
+            parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
   g_cdd_alloc_fail = 0;
   json_value_free(jv);
 
@@ -467,17 +445,17 @@ TEST test_openapi_paths_parsing_branches(void) {
   jv = json_parse_string("{\"/users\": {\"get\": {\"responses\": {}}}}");
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS,
-             cdd_test_parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
+             parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
   json_value_free(jv);
 
   /* 8. path item with extensions */
   jv = json_parse_string("{\"/users\": {\"x-internal\": true}}");
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
+            parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
   if (paths) {
     for (i = 0; i < n_paths; ++i)
-      cdd_test_free_path_item(&paths[i]);
+      free_path_item(&paths[i]);
     free(paths);
     paths = NULL;
   }
@@ -489,33 +467,29 @@ TEST test_openapi_paths_parsing_branches(void) {
       "{\"200\": {\"description\": \"OK\"}}}}}");
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
+            parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
   if (paths) {
     for (i = 0; i < n_paths; ++i)
-      cdd_test_free_path_item(&paths[i]);
+      free_path_item(&paths[i]);
     free(paths);
     paths = NULL;
   }
   json_value_free(jv);
 
   /* 9. parse_additional_operations NULL args */
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_parse_additional_operations(NULL, &path, &spec));
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_parse_additional_operations(jo, NULL, &spec));
+  ASSERT_EQ(CDD_C_SUCCESS, parse_additional_operations(NULL, &path, &spec));
+  ASSERT_EQ(CDD_C_SUCCESS, parse_additional_operations(jo, NULL, &spec));
 
   /* 10. parse_additional_operations empty object */
   jv = json_parse_string("{}");
   jo = json_value_get_object(jv);
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_parse_additional_operations(jo, &path, &spec));
+  ASSERT_EQ(CDD_C_SUCCESS, parse_additional_operations(jo, &path, &spec));
   json_value_free(jv);
 
   /* 10b. additionalOperations empty object */
   jv = json_parse_string("{\"additionalOperations\": {}}");
   jo = json_value_get_object(jv);
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_parse_additional_operations(jo, &path, &spec));
+  ASSERT_EQ(CDD_C_SUCCESS, parse_additional_operations(jo, &path, &spec));
   json_value_free(jv);
 
   /* 11. parse_additional_operations alloc failure */
@@ -524,24 +498,21 @@ TEST test_openapi_paths_parsing_branches(void) {
       "{\"description\": \"OK\"}}}}}");
   jo = json_value_get_object(jv);
   g_cdd_alloc_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY,
-            cdd_test_parse_additional_operations(jo, &path, &spec));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_additional_operations(jo, &path, &spec));
   g_cdd_alloc_fail = 0;
 
   /* 11b. additionalOperations invalid operation */
-  path.route = (char *)(size_t) "/test-route";
+  path.route = cdd_test_mut_str("/test-route");
   jv = json_parse_string(
       "{\"additionalOperations\": {\"customMethod\": {\"responses\": {}}}}");
   jo = json_value_get_object(jv);
-  ASSERT_NEQ(CDD_C_SUCCESS,
-             cdd_test_parse_additional_operations(jo, &path, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_additional_operations(jo, &path, &spec));
   json_value_free(jv);
-  path.route = (char *)(size_t) "";
+  path.route = cdd_test_mut_str("");
   jv = json_parse_string(
       "{\"additionalOperations\": {\"customMethod\": {\"responses\": {}}}}");
   jo = json_value_get_object(jv);
-  ASSERT_NEQ(CDD_C_SUCCESS,
-             cdd_test_parse_additional_operations(jo, &path, &spec));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_additional_operations(jo, &path, &spec));
   json_value_free(jv);
   path.route = NULL;
 
@@ -550,9 +521,8 @@ TEST test_openapi_paths_parsing_branches(void) {
       "{\"additionalOperations\": {\"customMethod\": {\"responses\": {\"200\": "
       "{\"description\": \"OK\"}}}}}");
   jo = json_value_get_object(jv);
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_parse_additional_operations(jo, &path, &spec));
-  cdd_test_free_path_item(&path);
+  ASSERT_EQ(CDD_C_SUCCESS, parse_additional_operations(jo, &path, &spec));
+  free_path_item(&path);
   memset(&path, 0, sizeof(path));
   json_value_free(jv);
 
@@ -561,7 +531,7 @@ TEST test_openapi_paths_parsing_branches(void) {
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
-            cdd_test_parse_operation("post", jo, &op, &spec, 0));
+            parse_operation("post", jo, &op, &spec, 0, NULL));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -571,8 +541,7 @@ TEST test_openapi_paths_parsing_branches(void) {
       "{\"type\": \"string\"}}}}}");
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 2;
-  ASSERT_NEQ(CDD_C_SUCCESS,
-             cdd_test_parse_operation("post", jo, &op, &spec, 0));
+  ASSERT_NEQ(CDD_C_SUCCESS, parse_operation("post", jo, &op, &spec, 0, NULL));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -581,7 +550,7 @@ TEST test_openapi_paths_parsing_branches(void) {
   jo = json_value_get_object(jv);
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
-            cdd_test_parse_operation("get", jo, &op, &spec, 0));
+            parse_operation("get", jo, &op, &spec, 0, NULL));
   g_cdd_alloc_fail = 0;
   json_value_free(jv);
 
@@ -592,7 +561,7 @@ TEST test_openapi_paths_parsing_branches(void) {
   jo = json_value_get_object(jv);
   for (i = 1; i <= 5; ++i) {
     g_cdd_strdup_fail = (int)i;
-    cdd_test_parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0);
+    parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0);
     g_cdd_strdup_fail = 0;
   }
   json_value_free(jv);
@@ -604,7 +573,7 @@ TEST test_openapi_paths_parsing_branches(void) {
   jo = json_value_get_object(jv);
   for (i = 1; i <= 5; ++i) {
     g_cdd_strdup_fail = (int)i;
-    cdd_test_parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0);
+    parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0);
     g_cdd_strdup_fail = 0;
   }
   json_value_free(jv);
@@ -614,7 +583,7 @@ TEST test_openapi_paths_parsing_branches(void) {
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
-            cdd_test_parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
+            parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
   g_cdd_strdup_fail = 0;
   json_value_free(jv);
 
@@ -625,7 +594,7 @@ TEST test_openapi_paths_parsing_branches(void) {
   for (i = 1; i <= 8; ++i) {
     g_cdd_strdup_fail = (int)i;
     memset(&op, 0, sizeof(op));
-    cdd_test_parse_operation("post", jo, &op, &spec, 0);
+    parse_operation("post", jo, &op, &spec, 0, NULL);
     g_cdd_strdup_fail = 0;
   }
   json_value_free(jv);
@@ -634,22 +603,22 @@ TEST test_openapi_paths_parsing_branches(void) {
   jv = json_parse_string("{}");
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_parse_operation(NULL, jo, &op, &spec, 0));
+            parse_operation(NULL, jo, &op, &spec, 0, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_test_parse_operation("get", jo, NULL, &spec, 0));
+            parse_operation("get", jo, NULL, &spec, 0, NULL));
 
   /* 20. parse_operation empty tags array */
   jv2 = json_parse_string("{\"tags\": []}");
   jo2 = json_value_get_object(jv2);
   memset(&op, 0, sizeof(op));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_operation("get", jo2, &op, &spec, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, parse_operation("get", jo2, &op, &spec, 0, NULL));
   json_value_free(jv2);
 
   /* 21. parse_operation tag with null/non-string item */
   jv2 = json_parse_string("{\"tags\": [123]}");
   jo2 = json_value_get_object(jv2);
   memset(&op, 0, sizeof(op));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_operation("get", jo2, &op, &spec, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, parse_operation("get", jo2, &op, &spec, 0, NULL));
   json_value_free(jv2);
   json_value_free(jv);
 
@@ -658,10 +627,10 @@ TEST test_openapi_paths_parsing_branches(void) {
       "{\"/users\": {\"$ref\": \"#/components/pathItems/Users\"}}");
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_parse_paths_object(jo, &paths, &n_paths, NULL, 1, 1));
+            parse_paths_object(jo, &paths, &n_paths, NULL, 1, 1));
   if (paths) {
     for (i = 0; i < n_paths; ++i)
-      cdd_test_free_path_item(&paths[i]);
+      free_path_item(&paths[i]);
     free(paths);
     paths = NULL;
   }
@@ -673,10 +642,10 @@ TEST test_openapi_paths_parsing_branches(void) {
       "{\"responses\": {\"200\": {\"description\": \"OK\"}}}}}");
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_test_parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
+            parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
   if (paths) {
     for (i = 0; i < n_paths; ++i)
-      cdd_test_free_path_item(&paths[i]);
+      free_path_item(&paths[i]);
     free(paths);
     paths = NULL;
   }
@@ -687,7 +656,7 @@ TEST test_openapi_paths_parsing_branches(void) {
       "{\"requestBody\": {\"$ref\": \"#/components/requestBodies/MyBody\"}}");
   jo = json_value_get_object(jv);
   memset(&op, 0, sizeof(op));
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_operation("post", jo, &op, &spec, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, parse_operation("post", jo, &op, &spec, 0, NULL));
   json_value_free(jv);
 
   PASS();

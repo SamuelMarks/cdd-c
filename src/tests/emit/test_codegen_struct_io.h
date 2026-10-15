@@ -133,7 +133,7 @@ TEST test_struct_exhaustive_io(void) {
 
   sf.is_union = 1;
   sf.union_is_anyof = 0;
-  sf.union_discriminator = (char *)(size_t)malloc(5);
+  sf.union_discriminator = (char *)malloc(5);
 #if defined(_MSC_VER)
   strcpy_s(sf.union_discriminator, 5, "type");
 #else
@@ -144,7 +144,7 @@ TEST test_struct_exhaustive_io(void) {
       (struct UnionVariantMeta *)calloc(1, sizeof(struct UnionVariantMeta));
   sf.union_variants[0].n_property_names = 1;
   sf.union_variants[0].property_names = (char **)calloc(1, sizeof(char *));
-  sf.union_variants[0].property_names[0] = (char *)(size_t)malloc(2);
+  sf.union_variants[0].property_names[0] = (char *)malloc(2);
 #if defined(_MSC_VER)
   strcpy_s(sf.union_variants[0].property_names[0], 2, "a");
 #else
@@ -152,13 +152,13 @@ TEST test_struct_exhaustive_io(void) {
 #endif
   sf.union_variants[0].n_required_props = 1;
   sf.union_variants[0].required_props = (char **)calloc(1, sizeof(char *));
-  sf.union_variants[0].required_props[0] = (char *)(size_t)malloc(2);
+  sf.union_variants[0].required_props[0] = (char *)malloc(2);
 #if defined(_MSC_VER)
   strcpy_s(sf.union_variants[0].required_props[0], 2, "a");
 #else
   strcpy(sf.union_variants[0].required_props[0], "a");
 #endif
-  sf.union_variants[0].disc_value = (char *)(size_t)malloc(5);
+  sf.union_variants[0].disc_value = (char *)malloc(5);
 #if defined(_MSC_VER)
   strcpy_s(sf.union_variants[0].disc_value, 5, "val1");
 #else
