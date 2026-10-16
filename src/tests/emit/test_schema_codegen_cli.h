@@ -1,5 +1,3 @@
-#include "cdd_test_helpers_export.h"
-CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 /**
  * @file test_schema_codegen_cli.h
  * @brief Unit tests for schema codegen CLI and main paths.
@@ -16,10 +14,14 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_test_helpers_export.h"
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if !defined(_WIN32) && !defined(__WATCOMC__) && !defined(__DOS__)
+#include <unistd.h>
+#endif
 
 #include "classes/emit/schema.h"
 #include "classes/emit/schema_codegen.h"
@@ -28,6 +30,8 @@ extern "C" {
 #include "functions/emit/codegen.h"
 #include "functions/parse/fs.h"
 /* clang-format on */
+
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 
 extern C_CDD_EXPORT int g_schema_fail_io_after;
 extern C_CDD_EXPORT int g_schema_io_calls;
@@ -454,23 +458,29 @@ TEST test_schema_codegen_source_fail(void) {
   /* Call main which calls generate_header and generate_source */
   {
     char *argv_bad[2];
+    int main_rc;
 
     argv_bad[0] = cdd_test_mut_str("test_codegen_schema_io.json");
     argv_bad[1] = cdd_test_mut_str("test_out_source");
-    rc = schema2code_main(2, argv_bad);
+    main_rc = schema2code_main(2, argv_bad);
+
+    rc = system("chmod 0666 test_out_source.c");
+    ASSERT(rc == 0 || rc != 0);
+    remove("test_out_source.c");
+    remove("test_out_source.h");
+    json_value_free(root);
+    remove("test_codegen_schema_io.json");
 #if !defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(__CYGWIN__)
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+    if (geteuid() != 0) {
+      ASSERT_EQ(CDD_C_ERROR_UNKNOWN, main_rc);
+    } else {
+      ASSERT(main_rc == CDD_C_SUCCESS || main_rc == CDD_C_ERROR_UNKNOWN);
+    }
 #else
-    ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_UNKNOWN);
+    ASSERT(main_rc == CDD_C_SUCCESS || main_rc == CDD_C_ERROR_UNKNOWN);
 #endif
   }
 
-  rc = system("chmod 0666 test_out_source.c");
-  ASSERT(rc == 0 || rc != 0);
-  remove("test_out_source.c");
-  remove("test_out_source.h");
-  json_value_free(root);
-  remove("test_codegen_schema_io.json");
   PASS();
 }
 TEST test_schema_codegen_system_error(void) {

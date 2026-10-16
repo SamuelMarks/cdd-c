@@ -1,12 +1,13 @@
 
-#include "c_cdd/memory.h"
 /**
  * @file schema2tests.c
  * @brief Implementation of test generation logic.
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/memory.h"
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <ctype.h>
 #include <errno.h>

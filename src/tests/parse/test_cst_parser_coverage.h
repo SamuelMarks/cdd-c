@@ -78,6 +78,7 @@ TEST test_cst_full_coverage(void) {
   ASSERT_EQ(64, list.capacity);
 
   /* Force realloc growth (capacity > 0) */
+  memset(list.nodes + 1, 0, (list.capacity - 1) * sizeof(struct CstNode));
   list.size = list.capacity;
   rc = cst_list_add(&list, CST_NODE_FUNCTION, (const uint8_t *)"f", 1, 1, 2);
   ASSERT_EQ(CDD_C_SUCCESS, rc);

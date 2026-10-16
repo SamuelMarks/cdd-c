@@ -485,9 +485,8 @@ TEST test_cdd_transform_safe_crt_oom_all(void) {
       "void f10() { FILE *f; FILE *f2; FILE *f3; f = fopen(\"a\", \"b\"); f2 = "
       "_wfopen(L\"a\", L\"b\"); f3 = freopen(\"a\", \"b\", f); f = tmpfile(); "
       "}",
-      /* clang-format off */
-      "void f11() { char buf[10]; _splitpath(\"a\", buf, buf, buf, buf, \"extra\"); _makepath(buf, \"a\", \"a\", \"a\", \"a\", \"extra\"); }",
-      /* clang-format on */
+      "void f11() { char buf[10]; _splitpath(\"a\", buf, buf, buf, buf, "
+      "\"extra\"); _makepath(buf, \"a\", \"a\", \"a\", \"a\", \"extra\"); }",
       "void f12() { char buf[10]; _itoa(1, buf, 10); }",
       "void f13() { char buf[10]; _snprintf(buf, 10); }",
       "void f14() { char buf[10]; scanf(\"%s\"); }",
@@ -500,13 +499,18 @@ TEST test_cdd_transform_safe_crt_oom_all(void) {
 
   for (j = 0; j < 15; j++) {
     for (i = 1; i <= 30000; i++) {
+      int rem;
       cdd_cst_tree_free(tree);
       tree = NULL;
       ASSERT_EQ(0,
                 cdd_cst_parse(az_span_create_from_str(oom_snippets[j]), &tree));
       g_mock_safe_crt_rules_fail = i;
       cdd_transform_safe_crt(tree, &config);
+      rem = g_mock_safe_crt_rules_fail;
       g_mock_safe_crt_rules_fail = 0;
+      if (rem > 0) {
+        break;
+      }
     }
   }
   cdd_cst_tree_free(tree);

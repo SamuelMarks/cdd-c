@@ -70,19 +70,17 @@ typedef int cdd_socket_t;
 
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_serve_json_rpc_fail_handle;
-int g_serve_json_rpc_fail_handle = 0;
-#endif
-#if !defined(__WATCOMC__) && !defined(__DOS__) && !defined(__EMSCRIPTEN__)
-#ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_serve_json_rpc_fail_socket;
 extern C_CDD_EXPORT int g_serve_json_rpc_fail_listen;
 extern C_CDD_EXPORT int g_serve_json_rpc_fail_accept;
 extern C_CDD_EXPORT int g_serve_json_rpc_fail_send;
+int g_serve_json_rpc_fail_handle = 0;
 int g_serve_json_rpc_fail_socket = 0;
 int g_serve_json_rpc_fail_listen = 0;
 int g_serve_json_rpc_fail_accept = 0;
 int g_serve_json_rpc_fail_send = 0;
 #endif
+#if !defined(__WATCOMC__) && !defined(__DOS__) && !defined(__EMSCRIPTEN__)
 
 /**
  * @brief Creates a socket descriptor with error checking.

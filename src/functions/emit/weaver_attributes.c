@@ -63,12 +63,10 @@ cdd_c_error_t weaver_translate_gcc_attributes(struct PatchList *patches,
                          "defined(_MSC_VER)\n__declspec(dllexport)\n#else\n__"
                          "attribute__((visibility(\"default\")))\n#endif\n",
                          &replacement);
-        /* LCOV_EXCL_START */
         if (r != CDD_C_SUCCESS) {
           C_CDD_FREE(attr_text);
           return r;
         }
-        /* LCOV_EXCL_STOP */
       } else if (strstr(attr_text, "unused")) {
         /* Unused variables are usually handled by (void)var; but as an
          * attribute it can be tricky. */
@@ -78,35 +76,29 @@ cdd_c_error_t weaver_translate_gcc_attributes(struct PatchList *patches,
                          "defined(_MSC_VER)\n__declspec(noreturn)\n#else\n__"
                          "attribute__((noreturn))\n#endif\n",
                          &replacement);
-        /* LCOV_EXCL_START */
         if (r != CDD_C_SUCCESS) {
           C_CDD_FREE(attr_text);
           return r;
         }
-        /* LCOV_EXCL_STOP */
       } else if (strstr(attr_text, "format") && strstr(attr_text, "printf")) {
         cdd_c_error_t r =
             c_cdd_strdup("#if "
                          "defined(_MSC_VER)\n_Printf_format_string_\n#else\n__"
                          "attribute__((format(printf)))\n#endif\n",
                          &replacement);
-        /* LCOV_EXCL_START */
         if (r != CDD_C_SUCCESS) {
           C_CDD_FREE(attr_text);
           return r;
         }
-        /* LCOV_EXCL_STOP */
       }
 
       if (replacement) {
         cdd_c_error_t rc = patch_list_add(patches, node->start_token,
                                           node->end_token, replacement);
-        /* LCOV_EXCL_START */
         if (rc != CDD_C_SUCCESS) {
           C_CDD_FREE(attr_text);
           return rc;
         }
-        /* LCOV_EXCL_STOP */
       }
       C_CDD_FREE(attr_text);
     }

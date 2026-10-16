@@ -141,10 +141,8 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
   size_t i, j;
-  /* LCOV_EXCL_BR_START */
   const char *lib_name =
       (config->library_name) ? config->library_name : "mylib";
-  /* LCOV_EXCL_BR_STOP */
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.dart", config->output_dir,
@@ -179,9 +177,7 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         fprintf(f, "/// %s\n", node->doc);
       fprintf(f, "final class %s extends Struct {\n", node->name);
 
-      /* LCOV_EXCL_BR_START */
-      /* LCOV_EXCL_BR_STOP */
-      for (j = 0; j < node->fields_count; j++) { /* LCOV_EXCL_BR_LINE */
+      for (j = 0; j < node->fields_count; j++) {
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
         const char *ftype = NULL;
@@ -217,43 +213,30 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       fprintf(f, "  late final _%sPtr = _dylib.lookup<NativeFunction<\n",
               node->name);
       fprintf(f, "      %s Function(", ret_ftype);
-      /* LCOV_EXCL_BR_START */
-      /* LCOV_EXCL_BR_STOP */
-      for (j = 0; j < node->fields_count; j++) { /* LCOV_EXCL_BR_LINE */
+      for (j = 0; j < node->fields_count; j++) {
         const char *ft = NULL;
         get_dart_ffi_type(node->fields[j].type, &ft);
         fprintf(f, "%s", ft);
-        /* LCOV_EXCL_BR_START */
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
-        /* LCOV_EXCL_BR_STOP */
       }
       fprintf(f, ")>>('%s');\n", node->name);
 
       fprintf(f, "  late final _%s = _%sPtr.asFunction<\n", node->name,
               node->name);
       fprintf(f, "      %s Function(", ret_ntype);
-      /* LCOV_EXCL_BR_START */
-      /* LCOV_EXCL_BR_STOP */
-      for (j = 0; j < node->fields_count; j++) { /* LCOV_EXCL_BR_LINE */
+      for (j = 0; j < node->fields_count; j++) {
         const char *nt = NULL;
         get_dart_native_type(node->fields[j].type, &nt);
         fprintf(f, "%s", nt);
-        /* LCOV_EXCL_BR_START */
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
-        /* LCOV_EXCL_BR_STOP */
       }
       fprintf(f, ")>();\n\n");
-      /* LCOV_EXCL_BR_START */
 
       /* Wrapper method */
       fprintf(f, "  %s %s(", ret_ntype, node->name);
-      /* LCOV_EXCL_BR_STOP */
-      /* LCOV_EXCL_BR_START */
-      /* LCOV_EXCL_BR_STOP */
-      for (j = 0; j < node->fields_count; j++) { /* LCOV_EXCL_BR_LINE */
-        /* LCOV_EXCL_BR_START */
+      for (j = 0; j < node->fields_count; j++) {
         const char *arg_name =
             node->fields[j].name ? node->fields[j].name : "arg";
         const char *nt = NULL;
@@ -261,33 +244,24 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
           arg_name = "clazz";
         if (strcmp(arg_name, "in") == 0)
           arg_name = "in_";
-        /* LCOV_EXCL_BR_STOP */
         get_dart_native_type(node->fields[j].type, &nt);
         fprintf(f, "%s %s", nt, arg_name);
-        /* LCOV_EXCL_BR_START */
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
-        /* LCOV_EXCL_BR_STOP */
       }
       fprintf(f, ") {\n");
 
       fprintf(f, "    return _%s(", node->name);
-      /* LCOV_EXCL_BR_START */
-      /* LCOV_EXCL_BR_STOP */
-      for (j = 0; j < node->fields_count; j++) { /* LCOV_EXCL_BR_LINE */
-        /* LCOV_EXCL_BR_START */
+      for (j = 0; j < node->fields_count; j++) {
         const char *arg_name =
             node->fields[j].name ? node->fields[j].name : "arg";
         if (strcmp(arg_name, "class") == 0)
           arg_name = "clazz";
         if (strcmp(arg_name, "in") == 0)
           arg_name = "in_";
-        /* LCOV_EXCL_BR_STOP */
         fprintf(f, "%s", arg_name);
-        /* LCOV_EXCL_BR_START */
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
-        /* LCOV_EXCL_BR_STOP */
       }
       fprintf(f, ");\n");
       fprintf(f, "  }\n\n");

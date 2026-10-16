@@ -19,6 +19,7 @@ extern "C" {
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
 /* clang-format on */
@@ -152,7 +153,6 @@ extern C_CDD_EXPORT int g_io_calls;
 /** @brief Fault injection step selector for client generator tests */
 extern C_CDD_EXPORT int g_client_gen_fail;
 
-#include <stdarg.h>
 /**
  * @brief Centralized stream fprintf wrapper with test fault injection.
  *

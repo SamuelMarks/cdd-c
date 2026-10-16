@@ -25,7 +25,7 @@ cdd_c_error_t gnu_malloc(size_t sz, void **out_ptr) {
     return CDD_C_ERROR_MEMORY;
   }
 #endif
-  *out_ptr = malloc(sz);
+  *out_ptr = C_CDD_MALLOC(sz);
   if (!*out_ptr)
     return CDD_C_ERROR_MEMORY;
   return CDD_C_SUCCESS;

@@ -24,6 +24,11 @@ extern "C" {
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include "openapi/parse/openapi.h"
+#ifdef CDD_BUILD_TESTS
+#include "functions/emit/patcher.h"
+#include "functions/parse/cst.h"
+#include "functions/parse/tokenizer.h"
+#endif
 /* clang-format on */
 
 /**
@@ -62,10 +67,6 @@ api_sync_file(const char *filename, const struct OpenAPI_Spec *spec,
               const struct ApiSyncConfig *config);
 
 #ifdef CDD_BUILD_TESTS
-#include "functions/emit/patcher.h"
-#include "functions/parse/cst.h"
-#include "functions/parse/tokenizer.h"
-
 /**
  * @brief Test wrapper for make_cdd_tmpfile.
  * @param[out] out_file Output file pointer.

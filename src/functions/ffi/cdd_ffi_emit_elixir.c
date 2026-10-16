@@ -173,14 +173,12 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
           lib_name); /* Assuming the main library header is lib_name.h */
 
   /* Generate Erlang resource type globals for structs */
-  for (i = 0; i < ir->nodes_count; i++) { /* LCOV_EXCL_BR_LINE */
+  for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
-    /* LCOV_EXCL_BR_START */
     if (node->kind == CDD_FFI_NODE_STRUCT || node->kind == CDD_FFI_NODE_UNION ||
         node->kind == CDD_FFI_NODE_TYPEDEF) {
       if (node->kind == CDD_FFI_NODE_TYPEDEF &&
           node->return_or_base_type.pointer_depth == 0)
-        /* LCOV_EXCL_BR_STOP */
         continue;
       fprintf(c_f, "ErlNifResourceType* %s_RES_TYPE;\n", node->name);
     }
@@ -193,7 +191,7 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
   fprintf(c_f, "}\n\n");
 
   /* Generate NIF C wrappers for functions */
-  for (i = 0; i < ir->nodes_count; i++) { /* LCOV_EXCL_BR_LINE */
+  for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       cdd_ffi_emit_trivia(c_f, node->leading_trivia);
@@ -203,7 +201,7 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
               "ERL_NIF_TERM argv[]) {\n",
               node->name);
 
-      if (node->fields_count > 0) { /* LCOV_EXCL_BR_LINE */
+      if (node->fields_count > 0) {
         fprintf(c_f, "    if (argc != %lu) {\n",
                 (unsigned long)node->fields_count);
         fprintf(c_f, "        return enif_make_badarg(env);\n");
@@ -337,7 +335,7 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
 
   /* ERL_NIF_INIT */
   fprintf(c_f, "static ErlNifFunc nif_funcs[] = {\n");
-  for (i = 0; i < ir->nodes_count; i++) { /* LCOV_EXCL_BR_LINE */
+  for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       cdd_ffi_emit_trivia(c_f, node->leading_trivia);
@@ -353,14 +351,12 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
 
   fprintf(c_f, "static int load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM "
                "load_info) {\n");
-  /* LCOV_EXCL_BR_START */
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT || node->kind == CDD_FFI_NODE_UNION ||
         node->kind == CDD_FFI_NODE_TYPEDEF) {
       if (node->kind == CDD_FFI_NODE_TYPEDEF &&
           node->return_or_base_type.pointer_depth == 0)
-        /* LCOV_EXCL_BR_STOP */
         continue;
       fprintf(c_f,
               "    %s_RES_TYPE = enif_open_resource_type(env, NULL, \"%s\", "
@@ -387,13 +383,13 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
   fprintf(ex_f, "    :erlang.load_nif(nif_file, 0)\n");
   fprintf(ex_f, "  end\n\n");
 
-  for (i = 0; i < ir->nodes_count; i++) { /* LCOV_EXCL_BR_LINE */
+  for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       cdd_ffi_emit_trivia(ex_f, node->leading_trivia);
       snake_case_name(node->name, snake_node_name, sizeof(snake_node_name));
       fprintf(ex_f, "  def %s(", snake_node_name);
-      for (j = 0; j < node->fields_count; j++) { /* LCOV_EXCL_BR_LINE */
+      for (j = 0; j < node->fields_count; j++) {
         fprintf(ex_f, "%sarg%lu", j > 0 ? ", " : "", (unsigned long)j);
       }
       fprintf(ex_f, ") do\n");

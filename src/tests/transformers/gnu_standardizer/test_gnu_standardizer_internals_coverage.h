@@ -27,6 +27,7 @@ extern C_CDD_EXPORT volatile int g_gnu_replace_fail;
 extern C_CDD_EXPORT volatile int g_gnu_bld_fail;
 extern C_CDD_EXPORT volatile int g_gnu_malloc_fail;
 extern C_CDD_EXPORT volatile int g_gnu_find_fail;
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
 TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
   cdd_cst_tree_t *tree = NULL;
@@ -673,7 +674,9 @@ TEST test_gnu_standardizer_final_branches(void) {
   memset(&config, 0, sizeof(config));
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, gnu_malloc(10, NULL));
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, gnu_malloc((size_t)-1, &m_ptr));
+  g_cdd_alloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, gnu_malloc(10, &m_ptr));
+  g_cdd_alloc_fail = 0;
 
   /* 1. L1710 & L1712: is_cast_lvalue == 2 loop without closing ; or = */
   if (cdd_cst_parse(

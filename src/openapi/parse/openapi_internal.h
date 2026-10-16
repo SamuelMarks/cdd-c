@@ -31,6 +31,7 @@ extern "C" {
 #include "openapi/parse/openapi_schema.h"
 #include "openapi/parse/openapi_uri.h"
 #include "openapi/parse/openapi_validate.h"
+#include "openapi/parse/openapi_internal_components.h"
 /* clang-format on */
 
 #undef C_CDD_MALLOC
@@ -439,8 +440,6 @@ find_component_callback(const struct OpenAPI_Spec *spec, const char *ref,
 extern C_CDD_EXPORT cdd_c_error_t
 find_component_path_item(const struct OpenAPI_Spec *spec, const char *ref,
                          struct OpenAPI_Path **_out_val);
-
-#include "openapi/parse/openapi_internal_components.h"
 
 #ifdef __cplusplus
 }

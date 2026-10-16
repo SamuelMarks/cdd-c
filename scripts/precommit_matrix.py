@@ -143,6 +143,13 @@ def main():
                 cwd=build_dir,
                 env=env,
             )
+            for root_gcda, _, files_gcda in os.walk(build_dir):
+                for fg in files_gcda:
+                    if fg.endswith(".gcda"):
+                        try:
+                            os.remove(os.path.join(root_gcda, fg))
+                        except OSError:
+                            pass
             run_cmd(["cmake", "--build", "."], cwd=build_dir, env=env)
             # copy binary to bin/ so we can run audit later
             os.makedirs("bin", exist_ok=True)
@@ -521,7 +528,7 @@ def main():
                         "../src/tests/",
                         "--exclude",
                         "../src/mocks/",
-                        "--gcov-ignore-parse-errors=negative_hits.warn",
+                        "--merge-mode-functions=separate",
                         "--print-summary",
                     ]
                     if candidate != "gcov":

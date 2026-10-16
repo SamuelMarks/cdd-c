@@ -77,6 +77,7 @@ TEST test_macro_overlay_with_nodes(void) {
   cst.capacity = 10;
   cst.nodes = realloc(cst.nodes, 10 * sizeof(struct CstNode));
   for (i = 0; i < 10; i++) {
+    memset(&cst.nodes[i], 0, sizeof(struct CstNode));
     cst.nodes[i].kind = CST_NODE_MACRO;
   }
 

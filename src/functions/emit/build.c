@@ -76,9 +76,7 @@ static cdd_c_error_t generate_cmake(FILE *fp,
 
   /* 3. Library Target */
   CHECK_IO(fprintf(fp, "add_library(%s", config->target_name));
-  /* LCOV_EXCL_BR_START */
   if (config->src_files != NULL) {
-    /* LCOV_EXCL_BR_STOP */
     if (config->src_count > 0) {
       for (i = 0; i < config->src_count; ++i) {
         CHECK_IO(fprintf(fp, " %s", config->src_files[i]));
@@ -144,23 +142,15 @@ static cdd_c_error_t generate_cmake(FILE *fp,
 /**
  * @brief Emits generated C code for codegen build generate.
  */
-/* LCOV_EXCL_BR_START */
 cdd_c_error_t codegen_build_generate(enum CodegenBuildSystem type, FILE *fp,
                                      const struct CodegenBuildConfig *config) {
-  /* LCOV_EXCL_BR_STOP */
-  /* LCOV_EXCL_BR_START */
   if (fp == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_BR_STOP */
-  /* LCOV_EXCL_BR_START */
   if (config == (const struct CodegenBuildConfig *)0) {
-    /* LCOV_EXCL_BR_STOP */
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  /* LCOV_EXCL_BR_START */
   if (type == BUILD_SYS_CMAKE) {
-    /* LCOV_EXCL_BR_STOP */
     return generate_cmake(fp, config);
   }
   return CDD_C_ERROR_SYSTEM;

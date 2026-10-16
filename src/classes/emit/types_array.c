@@ -65,7 +65,6 @@ write_root_array_cleanup_func(FILE *fp, const char *name, const char *item_type,
                           name));
   } else if (strcmp(item_type, "object") == 0) {
     /* Array of pointers to structs */
-    /* LCOV_EXCL_START */
     const char *tn = NULL;
     get_type_from_ref(item_ref, &tn);
     CHECK_IO(
@@ -77,7 +76,6 @@ write_root_array_cleanup_func(FILE *fp, const char *name, const char *item_type,
                      "  free(in);\n"
                      "}\n",
                      name, tn, tn));
-    /* LCOV_EXCL_STOP */
   } else {
     /* Fallback generic void* */
     CHECK_IO(FPRINTF_HOOK(fp,
@@ -111,12 +109,10 @@ write_root_array_to_json_func(FILE *fp, const char *name, const char *item_type,
                           "len, char **json_out) {\n",
                           name));
   } else if (strcmp(item_type, "string") == 0) {
-    /* LCOV_EXCL_START */
     CHECK_IO(FPRINTF_HOOK(fp,
                           "cdd_c_error_t %s_to_json(char **const in, size_t "
                           "len, char **json_out) {\n",
                           name));
-    /* LCOV_EXCL_STOP */
   } else if (strcmp(item_type, "object") == 0) {
     {
       const char *tn = NULL;

@@ -270,6 +270,7 @@ TEST test_openapi_header_object_full_branches(void) {
   memset(&hdr, 0, sizeof(hdr));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_header_object(jo, &hdr, NULL, 0));
+  free_header(&hdr);
   json_value_free(jv);
 
   /* 11b. Examples only */
@@ -315,6 +316,7 @@ TEST test_openapi_header_object_full_branches(void) {
   jo = json_value_get_object(jv);
   memset(&hdr, 0, sizeof(hdr));
   rc = parse_header_object(jo, &hdr, NULL, 0);
+  free_header(&hdr);
   json_value_free(jv);
 
   /* 14. OOM sweeps for header schema and copy */

@@ -11,6 +11,7 @@
 extern "C" {
 #endif /* __cplusplus */
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd/safe_crt_msvc.h"
 #include "c_cdd/safe_crt.h"
 #include "c_cdd/format_specifiers.h"

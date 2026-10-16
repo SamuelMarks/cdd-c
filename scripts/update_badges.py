@@ -204,8 +204,7 @@ def get_test_coverage():
                     os.path.join(repo_root, "src", "tests") + os.sep,
                     "--exclude",
                     os.path.join(repo_root, "src", "mocks") + os.sep,
-                    "--gcov-ignore-parse-errors=all",
-                    "--gcov-suspicious-hits-threshold=999999999999999",
+                    "--merge-mode-functions=separate",
                     "--print-summary",
                 ]
                 if candidate != "gcov":

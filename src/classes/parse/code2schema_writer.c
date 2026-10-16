@@ -140,7 +140,9 @@ cdd_c_error_t c2s_write_type_union(JSON_Object *obj, const char *type,
       if (type_union[i])
         json_array_append_string(arr, type_union[i]);
     }
-    json_object_set_value(obj, "type", arr_val);
+    if (json_object_set_value(obj, "type", arr_val) != JSONSuccess) {
+      json_value_free(arr_val);
+    }
     return CDD_C_SUCCESS;
   }
 

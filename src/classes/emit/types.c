@@ -312,12 +312,10 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
       CHECK_IO(FPRINTF_HOOK(fp, "    if ("));
       for (k = 0; k < meta->n_property_names; ++k) {
         const char *prop = meta->property_names[k];
-        /* LCOV_EXCL_START */
         if (!prop)
           continue;
         if (k > 0)
           CHECK_IO(FPRINTF_HOOK(fp, " || "));
-        /* LCOV_EXCL_STOP */
         CHECK_IO(FPRINTF_HOOK(fp, "json_object_has_value(jsonObject, \"%s\")",
                               prop));
       }
@@ -646,15 +644,11 @@ write_union_from_json_func(FILE *fp, const char *union_name,
 
   CHECK_IO(FPRINTF_HOOK(fp, "    case JSONNumber:\n"));
   if (int_count == 0 && num_count == 0) {
-    /* LCOV_EXCL_START */
     CHECK_IO(FPRINTF_HOOK(fp, "      json_value_free(val);\n"
                               "      return CDD_C_ERROR_INVALID_ARGUMENT;\n"));
-    /* LCOV_EXCL_STOP */
   } else if (!sf->union_is_anyof && (int_count > 1 || num_count > 1)) {
-    /* LCOV_EXCL_START */
     CHECK_IO(FPRINTF_HOOK(fp, "      json_value_free(val);\n"
                               "      return CDD_C_ERROR_INVALID_ARGUMENT;\n"));
-    /* LCOV_EXCL_STOP */
   } else {
     CHECK_IO(
         FPRINTF_HOOK(fp, "      {\n"
@@ -679,7 +673,6 @@ write_union_from_json_func(FILE *fp, const char *union_name,
                        union_name, union_name, union_name, name, name));
     } else if (int_count == 0) {
       const char *name = sf->fields[num_idx].name;
-      /* LCOV_EXCL_START */
       CHECK_IO(
           FPRINTF_HOOK(fp,
                        "        { struct %s *ret = malloc(sizeof(struct %s));\n"
@@ -693,7 +686,6 @@ write_union_from_json_func(FILE *fp, const char *union_name,
                        "          return CDD_C_SUCCESS; }\n"
                        "      }\n",
                        union_name, union_name, union_name, name, name));
-      /* LCOV_EXCL_STOP */
     } else {
       const char *int_name = sf->fields[int_idx].name;
       const char *num_name = sf->fields[num_idx].name;
@@ -730,15 +722,11 @@ write_union_from_json_func(FILE *fp, const char *union_name,
 
   CHECK_IO(FPRINTF_HOOK(fp, "    case JSONBoolean:\n"));
   if (bool_count == 0) {
-    /* LCOV_EXCL_START */
     CHECK_IO(FPRINTF_HOOK(fp, "      json_value_free(val);\n"
                               "      return CDD_C_ERROR_INVALID_ARGUMENT;\n"));
-    /* LCOV_EXCL_STOP */
   } else if (!sf->union_is_anyof && bool_count > 1) {
-    /* LCOV_EXCL_START */
     CHECK_IO(FPRINTF_HOOK(fp, "      json_value_free(val);\n"
                               "      return CDD_C_ERROR_INVALID_ARGUMENT;\n"));
-    /* LCOV_EXCL_STOP */
   } else {
     const char *name = sf->fields[bool_idx].name;
     CHECK_IO(FPRINTF_HOOK(
