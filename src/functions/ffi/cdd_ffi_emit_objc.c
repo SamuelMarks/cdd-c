@@ -206,7 +206,7 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
         fprintf(h_file, "@property (nonatomic%s) %s%s%s;\n",
                 is_obj ? ", strong" : ", assign", t_str,
                 is_obj && !strstr(t_str, "*") ? " *" : " ",
-                node->fields[j].name);
+                node->fields[j].name ? node->fields[j].name : "arg");
       }
       fprintf(h_file, "@end\n\n");
     }
@@ -242,14 +242,12 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
 
           if (j > 0) {
             capitalize_first(arg_name_cap);
-            fprintf(h_file, " %s:(%s%s)%s", node->fields[j].name, arg_type,
-                    arg_is_obj && !strstr(arg_type, "*") ? " *" : "",
-                    node->fields[j].name);
+            fprintf(h_file, " %s:(%s%s)%s", arg_name, arg_type,
+                    arg_is_obj && !strstr(arg_type, "*") ? " *" : "", arg_name);
           } else {
             /* First arg format: + (void)doSomethingWithArg:(int)arg; */
             fprintf(h_file, "With%s:(%s%s)%s", arg_name_cap, arg_type,
-                    arg_is_obj && !strstr(arg_type, "*") ? " *" : "",
-                    node->fields[j].name);
+                    arg_is_obj && !strstr(arg_type, "*") ? " *" : "", arg_name);
           }
         }
       }
@@ -306,13 +304,11 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
 
           if (j > 0) {
             capitalize_first(arg_name_cap);
-            fprintf(m_file, " %s:(%s%s)%s", node->fields[j].name, arg_type,
-                    arg_is_obj && !strstr(arg_type, "*") ? " *" : "",
-                    node->fields[j].name);
+            fprintf(m_file, " %s:(%s%s)%s", arg_name, arg_type,
+                    arg_is_obj && !strstr(arg_type, "*") ? " *" : "", arg_name);
           } else {
             fprintf(m_file, "With%s:(%s%s)%s", arg_name_cap, arg_type,
-                    arg_is_obj && !strstr(arg_type, "*") ? " *" : "",
-                    node->fields[j].name);
+                    arg_is_obj && !strstr(arg_type, "*") ? " *" : "", arg_name);
           }
         }
       }
@@ -321,10 +317,12 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
       /* Argument marshaling */
       for (j = 0; j < node->fields_count; j++) {
         const char *arg_type = NULL;
+        const char *arg_name =
+            node->fields[j].name ? node->fields[j].name : "arg";
         map_objc_type(&node->fields[j].type, 0, &arg_type);
         if (strstr(arg_type, "NSString") != NULL) {
           fprintf(m_file, "    const char * _c_%s = [%s UTF8String];\n",
-                  node->fields[j].name, node->fields[j].name);
+                  arg_name, arg_name);
         }
       }
 
@@ -343,16 +341,18 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
       fprintf(m_file, "%s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *arg_type = NULL;
+        const char *arg_name =
+            node->fields[j].name ? node->fields[j].name : "arg";
         map_objc_type(&node->fields[j].type, 0, &arg_type);
         if (j > 0)
           fprintf(m_file, ", ");
 
         if (strstr(arg_type, "NSString") != NULL) {
-          fprintf(m_file, "_c_%s", node->fields[j].name);
+          fprintf(m_file, "_c_%s", arg_name);
         } else if (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF) {
-          fprintf(m_file, "(__bridge void *)%s", node->fields[j].name);
+          fprintf(m_file, "(__bridge void *)%s", arg_name);
         } else {
-          fprintf(m_file, "%s", node->fields[j].name);
+          fprintf(m_file, "%s", arg_name);
         }
       }
       fprintf(m_file, ");\n");

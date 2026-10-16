@@ -685,6 +685,13 @@ TEST test_code2schema_merge_struct_field_exhaustive(void) {
     rc = merge_struct_field(&dest, &src);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
+    dest.schema_extra_json = cdd_test_mut_str("{\"a\":1}");
+    src.schema_extra_json = cdd_test_mut_str("{\"b\":2}");
+    g_cdd_fail_json_serialize = 1;
+    rc = merge_struct_field(&dest, &src);
+    g_cdd_fail_json_serialize = 0;
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+
     dest.schema_extra_json = NULL;
     src.schema_extra_json = NULL;
     dest.items_extra_json = cdd_test_mut_str("{\"a\":1}");
@@ -695,6 +702,49 @@ TEST test_code2schema_merge_struct_field_exhaustive(void) {
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     dest.items_extra_json = NULL;
     src.items_extra_json = NULL;
+
+    /* resolve_schema_ref_object failure in json_object_to_struct_fields and
+     * apply_union_to_struct_fields_fallback */
+    {
+      extern C_CDD_EXPORT int g_cdd_fail_str_after_last;
+      JSON_Value *jv = json_parse_string(
+          "{\"allOf\":[{\"$ref\":\"#/definitions/Sub\"}],"
+          "\"oneOf\":[{\"$ref\":\"#/definitions/Sub\"}],"
+          "\"Sub\":{\"type\":\"object\",\"properties\":{\"x\":{\"type\":"
+          "\"integer\"}}}}");
+      const JSON_Object *jo = json_value_get_object(jv);
+      const JSON_Array *one_of = json_object_get_array(jo, "oneOf");
+      struct StructFields sfs;
+      struct_fields_init(&sfs);
+      g_cdd_fail_str_after_last = 1;
+      ASSERT_NEQ(CDD_C_SUCCESS, json_object_to_struct_fields(jo, &sfs, jo));
+      g_cdd_fail_str_after_last = 1;
+      ASSERT_NEQ(CDD_C_SUCCESS,
+                 apply_union_to_struct_fields_fallback(one_of, &sfs, jo));
+      g_cdd_fail_str_after_last = 0;
+      struct_fields_free(&sfs);
+      json_value_free(jv);
+    }
+
+    /* c2s_read_line with newline-only line so len becomes 0 */
+    {
+      FILE *fp = fopen("build/test_empty_line.txt", "wb");
+      char lbuf[16];
+      int has_line = 0;
+      if (fp) {
+        fputs("\n", fp);
+        fclose(fp);
+      }
+      fp = fopen("build/test_empty_line.txt", "rb");
+      if (fp) {
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  c2s_read_line(fp, lbuf, sizeof(lbuf), &has_line));
+        ASSERT_EQ(1, has_line);
+        ASSERT_STR_EQ("", lbuf);
+        fclose(fp);
+      }
+      remove("build/test_empty_line.txt");
+    }
 
     /* type_union copy failure via OOM */
     {

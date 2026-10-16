@@ -423,8 +423,13 @@ C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
                 }
               }
 
+#if defined(_MSC_VER) || defined(_WIN32)
+              if (_access(path_to_check ? path_to_check : include_name, F_OK) ==
+                  0) {
+#else
               if (access(path_to_check ? path_to_check : include_name, F_OK) ==
                   0) {
+#endif
                 FPRINTF(f, "#include \"%s\"\n", include_name);
               }
               if (path_to_check)

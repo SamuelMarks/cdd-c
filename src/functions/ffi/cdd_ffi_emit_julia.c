@@ -34,7 +34,7 @@ static cdd_c_error_t to_camel_case(const char *snake, char *out,
       up = 1;
     } else {
       if (up) {
-        out[j++] = (char)toupper(snake[i]);
+        out[j++] = (char)toupper((unsigned char)snake[i]);
         up = 0;
       } else {
         out[j++] = snake[i];

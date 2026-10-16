@@ -259,11 +259,16 @@ TEST test_ffi_ir_extract_error_paths(void) {
                                                        &config));
 
     /* cdd_cst_parse failure in extract_single_file_exports */
-    write_to_file("test_cst_fail.h", "struct B : virtual A { int x; };");
+    write_to_file("test_cst_fail.h",
+                  "enum E { E_A = 1 }; struct B : virtual A { int x; }; "
+                  "int foo(int a) { return a; }");
     g_cdd_cst_alloc_token_fail = 1;
-    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_extract_single_file_exports_test(
-                                 &test_ir, "test_cst_fail.h",
-                                 "struct B : virtual A { int x; };", &config));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_extract_single_file_exports_test(
+                  &test_ir, "test_cst_fail.h",
+                  "enum E { E_A = 1 }; struct B : virtual A { int x; }; "
+                  "int foo(int a) { return a; }",
+                  &config));
     g_cdd_cst_alloc_token_fail = 0;
     remove("test_cst_fail.h");
     cdd_ffi_ir_free(&test_ir);

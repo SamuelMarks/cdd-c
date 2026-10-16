@@ -71,21 +71,10 @@ extern int g_io_calls;
 #include <libgen.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#if defined(_MSC_VER)
-#include <io.h>
-#else
-#include "c_cdd/log.h"
-#if defined(_MSC_VER)
-#include <io.h>
-#else
-#if defined(_WIN32)
-#include <io.h>
-#else
+#if !defined(_MSC_VER) && !defined(_WIN32)
 #include <unistd.h>
 #endif
-#endif
 /* clang-format on */
-#endif
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -369,7 +358,11 @@ cdd_c_error_t mktmpfilegetnameandfile(const char *prefix, const char *suffix,
     }
 #endif
 
+#if defined(_MSC_VER) || defined(_WIN32)
+    access_res = _access(tmpfilename, F_OK);
+#else
     access_res = access(tmpfilename, F_OK);
+#endif
 #ifdef CDD_BUILD_TESTS
     if (g_fail_io_after == 44) {
       g_fail_io_after = -1;

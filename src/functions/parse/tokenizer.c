@@ -407,7 +407,7 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
           peek_logical(base, len, pos + consumed + u_con, &hex_con, &h);
 
-          if (!isxdigit(h)) {
+          if (h == -1 || !isxdigit(h)) {
 
             /* Invalid UCN start: \u not followed by hex */
 
@@ -450,7 +450,7 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
               peek_logical(base, len, pos + nc_con + u_con, &hex_con, &h);
 
-              if (!isxdigit(h)) {
+              if (h == -1 || !isxdigit(h)) {
 
                 break; /* Not a valid UCN, break ID here */
               }
@@ -516,7 +516,8 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
         rc = token_list_add(list, k, base + start, id_len);
       }
 
-    } else if (isdigit(c) || (c == '.' && isdigit(peek_dot_c))) {
+    } else if (isdigit(c) ||
+               (c == '.' && peek_dot_c != -1 && isdigit(peek_dot_c))) {
 
       if (c == '.') {
         int dummy_c = -1;
@@ -543,7 +544,7 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
           peek_logical(base, len, pos + consumed, &next_peek_con, &next_peek);
 
-          if (isalnum(next_peek)) {
+          if (next_peek != -1 && isalnum(next_peek)) {
 
             /* Valid separator `123'456` */
 

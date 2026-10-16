@@ -21,18 +21,10 @@
 
 /** @brief Safely sets a JSON object property and frees the value on failure */
 #define json_object_set_value(obj, name, val)                                  \
-  do {                                                                         \
-    JSON_Value *_cdd_jv = (val);                                               \
-    if ((json_object_set_value)((obj), (name), _cdd_jv) != JSONSuccess)        \
-      json_value_free(_cdd_jv);                                                \
-  } while (0)
+  cdd_json_object_set_value_safe((obj), (name), (val))
 /** @brief Safely appends a JSON array element and frees the value on failure */
 #define json_array_append_value(arr, val)                                      \
-  do {                                                                         \
-    JSON_Value *_cdd_jv = (val);                                               \
-    if ((json_array_append_value)((arr), _cdd_jv) != JSONSuccess)              \
-      json_value_free(_cdd_jv);                                                \
-  } while (0)
+  cdd_json_array_append_value_safe((arr), (val))
 
 /**
  * @brief Write security schemes to components.

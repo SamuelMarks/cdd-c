@@ -486,7 +486,7 @@ copy_item_schema_as_array_inner(struct OpenAPI_SchemaRef *dst,
 cdd_c_error_t copy_item_schema_as_array(struct OpenAPI_SchemaRef *dst,
                                         const struct OpenAPI_SchemaRef *item) {
   cdd_c_error_t rc = copy_item_schema_as_array_inner(dst, item);
-  if (rc != CDD_C_SUCCESS && dst)
+  if (rc != CDD_C_SUCCESS)
     free_schema_ref_content(dst);
   return rc;
 }

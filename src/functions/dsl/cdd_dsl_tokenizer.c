@@ -184,8 +184,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
     char c = state.source[state.current_pos];
     size_t start_pos = state.current_pos;
 
-    if (isspace(c)) {
-      while (!IS_AT_END(&state) && isspace(state.source[state.current_pos])) {
+    if (isspace((unsigned char)c)) {
+      while (!IS_AT_END(&state) &&
+             isspace((unsigned char)state.source[state.current_pos])) {
         {
           rc = advance(&state);
           if (rc != CDD_C_SUCCESS)
@@ -544,9 +545,10 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
       continue;
     }
 
-    if (isalpha(c) || c == '_') {
-      while (!IS_AT_END(&state) && (isalnum(state.source[state.current_pos]) ||
-                                    state.source[state.current_pos] == '_')) {
+    if (isalpha((unsigned char)c) || c == '_') {
+      while (!IS_AT_END(&state) &&
+             (isalnum((unsigned char)state.source[state.current_pos]) ||
+              state.source[state.current_pos] == '_')) {
         {
           rc = advance(&state);
           if (rc != CDD_C_SUCCESS)
@@ -562,11 +564,13 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
       continue;
     }
 
-    if (isdigit(c) ||
-        (c == '\'' && isdigit(state.source[state.current_pos + 1]))) {
-      while (!IS_AT_END(&state) && (isalnum(state.source[state.current_pos]) ||
-                                    state.source[state.current_pos] == '\'' ||
-                                    state.source[state.current_pos] == '.')) {
+    if (isdigit((unsigned char)c) ||
+        (c == '\'' &&
+         isdigit((unsigned char)state.source[state.current_pos + 1]))) {
+      while (!IS_AT_END(&state) &&
+             (isalnum((unsigned char)state.source[state.current_pos]) ||
+              state.source[state.current_pos] == '\'' ||
+              state.source[state.current_pos] == '.')) {
         {
           rc = advance(&state);
           if (rc != CDD_C_SUCCESS)

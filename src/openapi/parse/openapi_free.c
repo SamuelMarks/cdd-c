@@ -424,8 +424,7 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
             free(flow->extensions_json);
           if (flow->scopes) {
             for (s = 0; s < flow->n_scopes; ++s) {
-              if (flow->scopes[s].name)
-                free(flow->scopes[s].name);
+              free(flow->scopes[s].name);
               if (flow->scopes[s].description)
                 free(flow->scopes[s].description);
             }

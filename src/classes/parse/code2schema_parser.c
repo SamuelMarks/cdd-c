@@ -272,26 +272,28 @@ cdd_c_error_t c2s_parse_union_tokens_and_write(const struct TokenList *tl,
     const struct Token *first_tok = NULL;
     const struct Token *last_ident = NULL;
     size_t k;
+    enum TokenKind k_cur;
 
-    while (i < tl->size && (tl->tokens[i].kind == TOKEN_WHITESPACE ||
-                            tl->tokens[i].kind == TOKEN_COMMENT ||
-                            tl->tokens[i].kind == TOKEN_SEMICOLON)) {
+    while ((c2s_tok_kind(tl, i, &k_cur), k_cur == TOKEN_WHITESPACE ||
+                                             k_cur == TOKEN_COMMENT ||
+                                             k_cur == TOKEN_SEMICOLON)) {
       i++;
     }
-    if (i >= tl->size)
+    if (k_cur == TOKEN_UNKNOWN)
       break;
-    if (tl->tokens[i].kind == TOKEN_RBRACE) {
+    if (k_cur == TOKEN_RBRACE) {
       i++;
       break;
     }
 
     stmt_start = i;
-    while (i < tl->size && tl->tokens[i].kind != TOKEN_SEMICOLON &&
-           tl->tokens[i].kind != TOKEN_RBRACE) {
+    while ((c2s_tok_kind(tl, i, &k_cur), k_cur != TOKEN_UNKNOWN &&
+                                             k_cur != TOKEN_SEMICOLON &&
+                                             k_cur != TOKEN_RBRACE)) {
       i++;
     }
     stmt_end = i;
-    if (i < tl->size && tl->tokens[i].kind == TOKEN_SEMICOLON) {
+    if (k_cur == TOKEN_SEMICOLON) {
       i++;
     }
 
@@ -305,11 +307,9 @@ cdd_c_error_t c2s_parse_union_tokens_and_write(const struct TokenList *tl,
         last_ident = &tl->tokens[k];
     }
 
-    if (first_tok && last_ident && first_tok != last_ident) {
+    if (last_ident && first_tok != last_ident) {
       char typebuf[64] = {0};
       char namebuf[64] = {0};
-      size_t tlen = first_tok->length < 63 ? first_tok->length : 63;
-      size_t nlen = last_ident->length < 63 ? last_ident->length : 63;
       JSON_Value *option_val = json_value_init_object();
       JSON_Object *option_obj = json_value_get_object(option_val);
       JSON_Value *props_val = json_value_init_object();
@@ -317,10 +317,8 @@ cdd_c_error_t c2s_parse_union_tokens_and_write(const struct TokenList *tl,
       JSON_Value *field_val = json_value_init_object();
       JSON_Object *field_obj = json_value_get_object(field_val);
 
-      memcpy(typebuf, first_tok->start, tlen);
-      typebuf[tlen] = '\0';
-      memcpy(namebuf, last_ident->start, nlen);
-      namebuf[nlen] = '\0';
+      c2s_copy_token_ident(typebuf, first_tok);
+      c2s_copy_token_ident(namebuf, last_ident);
 
       if (strcmp(typebuf, "int") == 0)
         json_object_set_string(field_obj, "type", "integer");

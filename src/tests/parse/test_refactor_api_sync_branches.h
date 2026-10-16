@@ -627,9 +627,13 @@ TEST test_sync_remaining_branches(void) {
   PASS();
 }
 
-SUITE(api_sync_branches_suite) { RUN_TEST(test_sync_remaining_branches); }
-
 #endif /* !__EMSCRIPTEN__ */
+
+SUITE(api_sync_branches_suite) {
+#ifndef __EMSCRIPTEN__
+  RUN_TEST(test_sync_remaining_branches);
+#endif
+}
 
 #ifdef __cplusplus
 }

@@ -21,7 +21,7 @@ extern "C" {
 #include <c_cdd_export.h>
 
 /* Windows compatibility macros and types */
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(_MSC_VER)
 #define PATH_SEP "\\"
 #define PATH_SEP_C '\\'
 
@@ -44,7 +44,6 @@ typedef struct stat c_stat;
 #define W_OK 2
 #endif /* !W_OK */
 
-#define access _access
 #define rmdir _rmdir
 
 #ifndef PATH_MAX

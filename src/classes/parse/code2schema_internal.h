@@ -58,6 +58,26 @@ cdd_c_error_t c2s_parse_union_tokens_and_write(const struct TokenList *tl,
                                                JSON_Object *schemas_obj,
                                                const char *union_name);
 
+/**
+ * @brief Copies up to 63 characters from a token into a 64-byte buffer.
+ *
+ * @param[out] dst Target 64-byte buffer.
+ * @param[in] tok Source token.
+ * @return CDD_C_SUCCESS on success.
+ */
+cdd_c_error_t c2s_copy_token_ident(char *dst, const struct Token *tok);
+
+/**
+ * @brief Retrieves token kind at index or TOKEN_UNKNOWN if out of bounds.
+ *
+ * @param[in] tl Token list.
+ * @param[in] idx Token index.
+ * @param[out] out_kind Output token kind.
+ * @return CDD_C_SUCCESS on success.
+ */
+cdd_c_error_t c2s_tok_kind(const struct TokenList *tl, size_t idx,
+                           enum TokenKind *out_kind);
+
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT volatile int g_cdd_fail_json_set_value;
 extern C_CDD_EXPORT int g_cdd_fail_json_serialize;

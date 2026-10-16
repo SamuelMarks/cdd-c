@@ -558,13 +558,13 @@ TEST test_dsl_parser_missing_branches(void) {
       "/* block */\n"
       "/// doc\n"
       "// line\n"
-      "func arr_func([@size=123] i32 arg) = 0;\n"
+      "func arr_func([@size=123] i32 arg; i32 b) = 0;\n"
       "struct S { i32 a; };\n"
       "namespace ns { virtual func f() = 0; pure func g() = 0; }\n"
-      "macro_expr M() = body %{%};\n"
-      "macro_stmt MS() = body %{%};\n"
-      "func f() body %{%};\n"
-      "func h() body ;\n"
+      "macro_expr M() = body %{ }%;\n"
+      "macro_stmt MS() = body %{ }%;\n"
+      "func f() { body %{ }% }\n"
+      "func h() { body ; }\n"
       "virtual func f2() = 0;\n"
       "pure func p() = 0;\n"
       "virtual \n";
@@ -580,6 +580,33 @@ TEST test_dsl_parser_missing_branches(void) {
     cdd_ffi_ir_free(ir);
     free(ir);
     ir = NULL;
+  }
+
+  /* Empty token list (tokens->count == 0) */
+  {
+    cdd_dsl_token_list_t empty_list;
+    memset(&empty_list, 0, sizeof(empty_list));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_dsl_parse(&empty_list, &ir));
+  }
+
+  /* RAW_START directly followed by RAW_END (no RAW_TEXT token) in macro_expr
+   * and func body */
+  rc = cdd_dsl_tokenize("macro_expr M() = body %{ }%; func f() { body %{ }% }",
+                        &list);
+  if (rc == CDD_C_SUCCESS) {
+    size_t ti;
+    for (ti = 0; ti < list.count; ++ti) {
+      if (list.tokens[ti].kind == CDD_DSL_TOKEN_RAW_TEXT) {
+        list.tokens[ti].kind = CDD_DSL_TOKEN_WHITESPACE;
+      }
+    }
+    rc = cdd_dsl_parse(&list, &ir);
+    cdd_dsl_token_list_free(&list);
+    if (ir) {
+      cdd_ffi_ir_free(ir);
+      free(ir);
+      ir = NULL;
+    }
   }
 
   /* EOF tests */

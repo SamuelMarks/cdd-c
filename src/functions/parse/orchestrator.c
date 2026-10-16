@@ -733,22 +733,12 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
                     allocs.sites[k].token_index < end_idx) {
                   struct AllocationSite site = allocs.sites[k];
                   site.token_index -= node->body_start; /* Relativize */
-                  if (site.var_name) {
-                    rc = c_cdd_strdup(site.var_name, &site.var_name);
-                    if (rc != CDD_C_SUCCESS) {
-                      allocation_site_list_free(&local_allocs);
-                      C_CDD_FREE(new_sig);
-                      goto cleanup;
-                    }
-                  }
                   if (local_allocs.size >= local_allocs.capacity) {
                     struct AllocationSite *new_sites;
                     size_t nc = local_allocs.capacity * 2;
                     new_sites = (struct AllocationSite *)C_CDD_REALLOC(
                         local_allocs.sites, nc * sizeof(struct AllocationSite));
                     if (!new_sites) {
-                      if (site.var_name)
-                        C_CDD_FREE(site.var_name);
                       allocation_site_list_free(&local_allocs);
                       C_CDD_FREE(new_sig);
                       rc = CDD_C_ERROR_MEMORY;
@@ -756,6 +746,14 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
                     }
                     local_allocs.sites = new_sites;
                     local_allocs.capacity = nc;
+                  }
+                  if (site.var_name) {
+                    rc = c_cdd_strdup(site.var_name, &site.var_name);
+                    if (rc != CDD_C_SUCCESS) {
+                      allocation_site_list_free(&local_allocs);
+                      C_CDD_FREE(new_sig);
+                      goto cleanup;
+                    }
                   }
                   local_allocs.sites[local_allocs.size++] = site;
                 }

@@ -74,7 +74,7 @@ extern C_CDD_EXPORT volatile int g_gnu_find_fail;
  * @param[out] out_ptr Pointer to receive allocated memory.
  * @return CDD_C_SUCCESS on success or CDD_C_ERROR_MEMORY on failure.
  */
-cdd_c_error_t gnu_malloc(size_t sz, void **out_ptr);
+C_CDD_EXPORT cdd_c_error_t gnu_malloc(size_t sz, void **out_ptr);
 
 /**
  * @brief Allocates a CST node of the specified kind.
@@ -82,8 +82,8 @@ cdd_c_error_t gnu_malloc(size_t sz, void **out_ptr);
  * @param[out] out_node Pointer to receive allocated CST node.
  * @return CDD_C_SUCCESS on success or CDD_C_ERROR_MEMORY on failure.
  */
-cdd_c_error_t gnu_alloc_node(enum cdd_cst_node_kind_t kind,
-                             cdd_cst_node_t **out_node);
+C_CDD_EXPORT cdd_c_error_t gnu_alloc_node(enum cdd_cst_node_kind_t kind,
+                                          cdd_cst_node_t **out_node);
 
 /**
  * @brief Finds the parent CST node and child index containing a given token.
@@ -93,8 +93,9 @@ cdd_c_error_t gnu_alloc_node(enum cdd_cst_node_kind_t kind,
  * @param[out] out_node Found parent CST node.
  * @return CDD_C_SUCCESS on success or error code.
  */
-cdd_c_error_t gnu_find_node(cdd_cst_node_t *root, cdd_token_t *tok,
-                            size_t *out_idx, cdd_cst_node_t **out_node);
+C_CDD_EXPORT cdd_c_error_t gnu_find_node(cdd_cst_node_t *root, cdd_token_t *tok,
+                                         size_t *out_idx,
+                                         cdd_cst_node_t **out_node);
 
 /**
  * @brief Safely pools a string duplicate into the CST tree's string pool.
@@ -105,8 +106,9 @@ cdd_c_error_t gnu_find_node(cdd_cst_node_t *root, cdd_token_t *tok,
  * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT or
  * CDD_C_ERROR_MEMORY on error.
  */
-cdd_c_error_t cdd_pool_string_safe(cdd_cst_tree_t *tree, const char *str,
-                                   const char **out_pooled);
+C_CDD_EXPORT cdd_c_error_t cdd_pool_string_safe(cdd_cst_tree_t *tree,
+                                                const char *str,
+                                                const char **out_pooled);
 
 /**
  * @brief Safely pools a string of given length into the CST tree's string pool.
@@ -118,8 +120,9 @@ cdd_c_error_t cdd_pool_string_safe(cdd_cst_tree_t *tree, const char *str,
  * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT or
  * CDD_C_ERROR_MEMORY on error.
  */
-cdd_c_error_t cdd_pool_string_safe_len(cdd_cst_tree_t *tree, const char *str,
-                                       size_t len, const char **out_pooled);
+C_CDD_EXPORT cdd_c_error_t cdd_pool_string_safe_len(cdd_cst_tree_t *tree,
+                                                    const char *str, size_t len,
+                                                    const char **out_pooled);
 
 /**
  * @brief Appends an integer as string to the buffer.
@@ -130,7 +133,7 @@ cdd_c_error_t cdd_pool_string_safe_len(cdd_cst_tree_t *tree, const char *str,
  * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT on NULL
  * pointers.
  */
-cdd_c_error_t cdd_append_int(char *p, int v, char **out_p);
+C_CDD_EXPORT cdd_c_error_t cdd_append_int(char *p, int v, char **out_p);
 
 /**
  * @brief Replaces a token child in the CST with a new token holding text.
@@ -142,9 +145,11 @@ cdd_c_error_t cdd_append_int(char *p, int v, char **out_p);
  * @param[in] len Length of replacement text.
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
-cdd_c_error_t replace_token_with_text(cdd_cst_tree_t *tree, cdd_token_t *tok,
-                                      enum cdd_token_kind_t kind,
-                                      const char *text, size_t len);
+C_CDD_EXPORT cdd_c_error_t replace_token_with_text(cdd_cst_tree_t *tree,
+                                                   cdd_token_t *tok,
+                                                   enum cdd_token_kind_t kind,
+                                                   const char *text,
+                                                   size_t len);
 
 /**
  * @brief Parses a decimal 128-bit literal into high and low 64-bit words.
@@ -156,8 +161,9 @@ cdd_c_error_t replace_token_with_text(cdd_cst_tree_t *tree, cdd_token_t *tok,
  * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT on NULL
  * pointers.
  */
-cdd_c_error_t cdd_parse_128_literal(const char *str, size_t len,
-                                    uint64_t *out_high, uint64_t *out_low);
+C_CDD_EXPORT cdd_c_error_t cdd_parse_128_literal(const char *str, size_t len,
+                                                 uint64_t *out_high,
+                                                 uint64_t *out_low);
 
 /**
  * @brief Parses a hexadecimal 128-bit literal into high and low 64-bit words.
@@ -169,8 +175,10 @@ cdd_c_error_t cdd_parse_128_literal(const char *str, size_t len,
  * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT on NULL
  * pointers.
  */
-cdd_c_error_t cdd_parse_hex_128_literal(const char *str, size_t len,
-                                        uint64_t *out_high, uint64_t *out_low);
+C_CDD_EXPORT cdd_c_error_t cdd_parse_hex_128_literal(const char *str,
+                                                     size_t len,
+                                                     uint64_t *out_high,
+                                                     uint64_t *out_low);
 
 /**
  * @brief CST node visitor for standardizing magic macro identifiers.
@@ -179,7 +187,8 @@ cdd_c_error_t cdd_parse_hex_128_literal(const char *str, size_t len,
  * @param[in,out] user_data Pointer to magic context.
  * @return CDD_C_SUCCESS on success, or error code.
  */
-cdd_c_error_t cdd_magic_visitor(cdd_cst_node_t *node, void *user_data);
+C_CDD_EXPORT cdd_c_error_t cdd_magic_visitor(cdd_cst_node_t *node,
+                                             void *user_data);
 
 /**
  * @brief CST node visitor to detect trampoline function calls.
@@ -189,7 +198,8 @@ cdd_c_error_t cdd_magic_visitor(cdd_cst_node_t *node, void *user_data);
  * @return CDD_C_SUCCESS on success, or error code on trampoline detection or
  * error.
  */
-cdd_c_error_t cdd_tramp_visitor(cdd_cst_node_t *node, void *user_data);
+C_CDD_EXPORT cdd_c_error_t cdd_tramp_visitor(cdd_cst_node_t *node,
+                                             void *user_data);
 
 /**
  * @brief CST node visitor for validating inline assembly statements.
@@ -198,7 +208,8 @@ cdd_c_error_t cdd_tramp_visitor(cdd_cst_node_t *node, void *user_data);
  * @param[in,out] user_data User data context pointer.
  * @return CDD_C_SUCCESS on success, or error code.
  */
-cdd_c_error_t cdd_asm_visitor(cdd_cst_node_t *node, void *user_data);
+C_CDD_EXPORT cdd_c_error_t cdd_asm_visitor(cdd_cst_node_t *node,
+                                           void *user_data);
 
 /**
  * @brief Infers the C type from a sequence of tokens.
@@ -209,8 +220,9 @@ cdd_c_error_t cdd_asm_visitor(cdd_cst_node_t *node, void *user_data);
  * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT on NULL
  * out_type.
  */
-cdd_c_error_t cdd_infer_type(const cdd_token_t *tokens, size_t num_tokens,
-                             const char **out_type);
+C_CDD_EXPORT cdd_c_error_t cdd_infer_type(const cdd_token_t *tokens,
+                                          size_t num_tokens,
+                                          const char **out_type);
 
 /**
  * @brief Standardizes GNU function attributes and nested functions in a CST
@@ -226,7 +238,7 @@ C_CDD_EXPORT cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree);
  * @param[in,out] tree Target CST tree.
  * @return CDD_C_SUCCESS on success or error code.
  */
-cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree);
+C_CDD_EXPORT cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree);
 
 /**
  * @brief Standardizes GNU expression extensions (statement expressions, ?:
@@ -234,7 +246,7 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree);
  * @param[in,out] tree Target CST tree.
  * @return CDD_C_SUCCESS on success or error code.
  */
-cdd_c_error_t gnu_standardize_expr(cdd_cst_tree_t *tree);
+C_CDD_EXPORT cdd_c_error_t gnu_standardize_expr(cdd_cst_tree_t *tree);
 
 /**
  * @brief Unrolls loops annotated with \#pragma GCC unroll in a CST tree.
@@ -242,15 +254,15 @@ cdd_c_error_t gnu_standardize_expr(cdd_cst_tree_t *tree);
  * @param[in] config Transformer configuration.
  * @return CDD_C_SUCCESS on success or error code.
  */
-cdd_c_error_t gnu_standardize_unroll(cdd_cst_tree_t *tree,
-                                     const cdd_transform_config_t *config);
+C_CDD_EXPORT cdd_c_error_t gnu_standardize_unroll(
+    cdd_cst_tree_t *tree, const cdd_transform_config_t *config);
 
 /**
  * @brief Expands GNU case range statements (case A ... B:) in a CST tree.
  * @param[in,out] tree Target CST tree.
  * @return CDD_C_SUCCESS on success or error code.
  */
-cdd_c_error_t gnu_standardize_ranges(cdd_cst_tree_t *tree);
+C_CDD_EXPORT cdd_c_error_t gnu_standardize_ranges(cdd_cst_tree_t *tree);
 
 #ifdef __cplusplus
 }

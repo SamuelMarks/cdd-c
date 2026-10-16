@@ -18,6 +18,18 @@ extern "C" {
 #include "../mocks/emit/simple_json.h"
 /* clang-format on */
 
+static FILE *open_simple_json_tmp(void) {
+  FILE *f = NULL;
+  remove("simple_json_test_tmp.txt");
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "simple_json_test_tmp.txt", "w+b") != 0)
+    f = NULL;
+#else
+  f = fopen("simple_json_test_tmp.txt", "w+b");
+#endif
+  return f;
+}
+
 /**
  * @brief Tests basic null handling of cleanup.
  * @return TEST
@@ -171,13 +183,7 @@ TEST test_foo_e_full_coverage(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_json("invalid", &haz_e2));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_json("[]", &haz_e2));
 
-#if defined(_MSC_VER)
-  if (tmpfile_s(&f) != 0)
-    f = NULL;
-#else
-  f = tmpfile();
-#endif
-  ASSERT(f);
+  f = open_simple_json_tmp();
   ASSERT(f);
   ASSERT_EQ(0, HazE_display(haz_e, f));
   ASSERT_EQ(0, HazE_debug(haz_e, f));
@@ -333,12 +339,7 @@ TEST test_foo_e_full_coverage(void) {
     haz_e->bzr = malloc(4);
     memcpy(haz_e->bzr, "foo", 4);
 
-#if defined(_MSC_VER)
-    if (tmpfile_s(&f) != 0)
-      f = NULL;
-#else
-    f = tmpfile();
-#endif
+    f = open_simple_json_tmp();
     ASSERT(f);
     g_simple_json_fail_alloc = i;
     HazE_display(haz_e, f);
@@ -392,12 +393,7 @@ TEST test_foo_e_full_coverage(void) {
       foo_e2 = NULL;
     }
 
-#if defined(_MSC_VER)
-    if (tmpfile_s(&f) != 0)
-      f = NULL;
-#else
-    f = tmpfile();
-#endif
+    f = open_simple_json_tmp();
     ASSERT(f);
     g_simple_json_fail_alloc = i;
     FooE_display(foo_e, f);
@@ -439,6 +435,7 @@ TEST test_foo_e_full_coverage(void) {
   }
   g_simple_json_fail_alloc = 0;
 #endif
+  remove("simple_json_test_tmp.txt");
 
   rc += 0;
   PASS();
@@ -447,14 +444,13 @@ TEST test_foo_e_full_coverage(void) {
 TEST test_run_mocks_test(void) {
   int i;
   cdd_c_error_t rc = 0;
-  (void)rc;
 
   rc = run_mocks_test();
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   for (i = 1; i <= 35; ++i) {
     g_simple_json_fail_alloc = i;
-    run_mocks_test();
+    rc = run_mocks_test();
     g_simple_json_fail_alloc = 0;
   }
 

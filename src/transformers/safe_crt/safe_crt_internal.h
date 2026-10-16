@@ -80,9 +80,9 @@ typedef struct {
 } emit_ctx_t;
 
 /** @brief Global MSC emission context pointer */
-extern emit_ctx_t *g_msc_ctx;
+extern C_CDD_EXPORT emit_ctx_t *g_msc_ctx;
 /** @brief Current CST tree being transformed by Safe CRT pass */
-extern cdd_cst_tree_t *safe_crt_current_tree;
+extern C_CDD_EXPORT cdd_cst_tree_t *safe_crt_current_tree;
 /** @brief Alias for safe_crt_current_tree */
 #define current_tree safe_crt_current_tree
 
@@ -102,7 +102,7 @@ C_CDD_EXPORT cdd_c_error_t arena_alloc(size_t len, void **out_ptr);
 /**
  * @brief Frees all memory allocated in the safe CRT arena.
  */
-void arena_free_all(void);
+C_CDD_EXPORT void arena_free_all(void);
 
 /**
  * @brief Parses an expression AST from CST statement node tokens.
@@ -141,7 +141,8 @@ C_CDD_EXPORT cdd_c_error_t check_unsupported_calls(expr_t *head);
  * @param[out] out_size Pointer to receive inferred size metadata structure.
  * @return CDD_C_SUCCESS on success.
  */
-cdd_c_error_t infer_buffer_size(expr_t *node, inferred_size_t *out_size);
+C_CDD_EXPORT cdd_c_error_t infer_buffer_size(expr_t *node,
+                                             inferred_size_t *out_size);
 
 /**
  * @brief Checks if any call in the expression tree requires safe CRT
@@ -237,8 +238,8 @@ C_CDD_EXPORT cdd_c_error_t emit_inferred_size(cdd_cst_builder_t *bld,
  * emitted.
  * @return CDD_C_SUCCESS on success or error code.
  */
-cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
-                           int *out_changes);
+C_CDD_EXPORT cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
+                                        int is_msc, int *out_changes);
 
 /**
  * @brief Extracts the indentation string from a token's leading trivia.

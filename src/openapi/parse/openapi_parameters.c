@@ -359,7 +359,7 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
                                      int resolve_refs) {
   cdd_c_error_t rc =
       parse_parameter_object_inner(p_obj, out_param, spec, resolve_refs);
-  if (rc != CDD_C_SUCCESS && out_param)
+  if (rc != CDD_C_SUCCESS)
     free_parameter(out_param);
   return rc;
 }

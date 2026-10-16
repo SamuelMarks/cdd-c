@@ -196,15 +196,21 @@ cdd_c_error_t cdd_code_writer_printf(cdd_code_writer_t *writer, const char *fmt,
   va_start(args, fmt);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   n = vsnprintf_s(stack_buf, sizeof(stack_buf), _TRUNCATE, fmt, args);
-#else
-  n = vsnprintf(stack_buf, sizeof(stack_buf), fmt, args);
-#endif
   va_end(args);
 
   if (n >= 0 && (size_t)n < sizeof(stack_buf)) {
     return cdd_code_writer_write(writer, stack_buf);
   } else {
-    size_t dyn_cap = (n > 0) ? ((size_t)n + 1) : 8192;
+    size_t dyn_cap = 8192;
+#else
+  n = vsnprintf(stack_buf, sizeof(stack_buf), fmt, args);
+  va_end(args);
+
+  if ((size_t)n < sizeof(stack_buf)) {
+    return cdd_code_writer_write(writer, stack_buf);
+  } else {
+    size_t dyn_cap = (size_t)n + 1;
+#endif
     char *dyn_buf = (char *)C_CDD_MALLOC(dyn_cap);
     cdd_c_error_t rc;
     if (!dyn_buf) {

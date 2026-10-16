@@ -223,7 +223,7 @@ cdd_c_error_t parse_request_body_object(const JSON_Object *rb_obj,
                                         int resolve_refs, const char *op_id) {
   cdd_c_error_t rc = parse_request_body_object_inner(rb_obj, out_rb, spec,
                                                      resolve_refs, op_id);
-  if (rc != CDD_C_SUCCESS && out_rb)
+  if (rc != CDD_C_SUCCESS)
     free_request_body(out_rb);
   return rc;
 }
@@ -458,7 +458,7 @@ cdd_c_error_t parse_response_object(const JSON_Object *resp_obj,
                                     const char *op_id, const char *resp_code) {
   cdd_c_error_t rc = parse_response_object_inner(
       resp_obj, out_resp, spec, resolve_refs, op_id, resp_code);
-  if (rc != CDD_C_SUCCESS && out_resp)
+  if (rc != CDD_C_SUCCESS)
     free_response(out_resp);
   return rc;
 }
@@ -546,7 +546,7 @@ cdd_c_error_t parse_responses(const JSON_Object *responses,
                               struct OpenAPI_Operation *out_op,
                               struct OpenAPI_Spec *spec, const char *op_id) {
   cdd_c_error_t rc = parse_responses_inner(responses, out_op, spec, op_id);
-  if (rc != CDD_C_SUCCESS && out_op)
+  if (rc != CDD_C_SUCCESS)
     free_operation(out_op);
   return rc;
 }
@@ -617,7 +617,7 @@ cdd_c_error_t parse_callback_object(const JSON_Object *cb_obj,
                                     int resolve_refs) {
   cdd_c_error_t rc =
       parse_callback_object_inner(cb_obj, out_cb, spec, resolve_refs);
-  if (rc != CDD_C_SUCCESS && out_cb)
+  if (rc != CDD_C_SUCCESS)
     free_callback(out_cb);
   return rc;
 }

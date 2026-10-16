@@ -21,18 +21,10 @@
 
 /** @brief Safely sets a JSON object property and frees the value on failure */
 #define json_object_set_value(obj, name, val)                                  \
-  do {                                                                         \
-    JSON_Value *_cdd_jv = (val);                                               \
-    if ((json_object_set_value)((obj), (name), _cdd_jv) != JSONSuccess)        \
-      json_value_free(_cdd_jv);                                                \
-  } while (0)
+  cdd_json_object_set_value_safe((obj), (name), (val))
 /** @brief Safely appends a JSON array element and frees the value on failure */
 #define json_array_append_value(arr, val)                                      \
-  do {                                                                         \
-    JSON_Value *_cdd_jv = (val);                                               \
-    if ((json_array_append_value)((arr), _cdd_jv) != JSONSuccess)              \
-      json_value_free(_cdd_jv);                                                \
-  } while (0)
+  cdd_json_array_append_value_safe((arr), (val))
 
 /**
  * @brief Serializes the OpenAPI callback object into the target JSON object.
@@ -373,20 +365,27 @@ C_CDD_EXPORT cdd_c_error_t write_paths(JSON_Object *root_obj,
   for (i = 0; i < spec->n_paths; ++i) {
     const struct OpenAPI_Path *p = &spec->paths[i];
     const char *route = p->route ? p->route : "/";
-    JSON_Value *item_val;
+    JSON_Value *item_val = NULL;
     JSON_Object *item_obj;
+    int is_new = 0;
 
     if (json_object_has_value(paths_obj, route)) {
       item_obj = json_object_get_object(paths_obj, route);
     } else {
       item_val = json_value_init_object();
       item_obj = json_value_get_object(item_val);
-      json_object_set_value(paths_obj, route, item_val);
+      is_new = 1;
     }
 
     rc = write_path_item_object(item_obj, p);
-    if (rc != CDD_C_SUCCESS)
+    if (rc != CDD_C_SUCCESS) {
+      json_value_free(item_val);
       break;
+    }
+
+    if (is_new) {
+      json_object_set_value(paths_obj, route, item_val);
+    }
   }
 
   if (rc == CDD_C_SUCCESS) {

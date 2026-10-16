@@ -122,7 +122,7 @@ static cdd_c_error_t parse_info_inner(const JSON_Object *root_obj,
 cdd_c_error_t parse_info(const JSON_Object *root_obj,
                          struct OpenAPI_Spec *out) {
   cdd_c_error_t rc = parse_info_inner(root_obj, out);
-  if (rc != CDD_C_SUCCESS && out)
+  if (rc != CDD_C_SUCCESS)
     openapi_spec_free(out);
   return rc;
 }
@@ -162,7 +162,7 @@ parse_external_docs_inner(const JSON_Object *obj,
 cdd_c_error_t parse_external_docs(const JSON_Object *obj,
                                   struct OpenAPI_ExternalDocs *out) {
   cdd_c_error_t rc = parse_external_docs_inner(obj, out);
-  if (rc != CDD_C_SUCCESS && out) {
+  if (rc != CDD_C_SUCCESS) {
     free(out->url);
     free(out->description);
     free(out->extensions_json);
@@ -247,7 +247,7 @@ parse_discriminator_object_inner(const JSON_Object *obj,
 cdd_c_error_t parse_discriminator_object(const JSON_Object *obj,
                                          struct OpenAPI_Discriminator *out) {
   cdd_c_error_t rc = parse_discriminator_object_inner(obj, out);
-  if (rc != CDD_C_SUCCESS && out) {
+  if (rc != CDD_C_SUCCESS) {
     size_t i;
     free(out->property_name);
     free(out->default_mapping);
@@ -325,7 +325,7 @@ static cdd_c_error_t parse_xml_object_inner(const JSON_Object *obj,
 cdd_c_error_t parse_xml_object(const JSON_Object *obj,
                                struct OpenAPI_Xml *out) {
   cdd_c_error_t rc = parse_xml_object_inner(obj, out);
-  if (rc != CDD_C_SUCCESS && out) {
+  if (rc != CDD_C_SUCCESS) {
     free(out->name);
     free(out->namespace_uri);
     free(out->prefix);
@@ -419,7 +419,7 @@ static cdd_c_error_t parse_tags_inner(const JSON_Object *root_obj,
 cdd_c_error_t parse_tags(const JSON_Object *root_obj,
                          struct OpenAPI_Spec *out) {
   cdd_c_error_t rc = parse_tags_inner(root_obj, out);
-  if (rc != CDD_C_SUCCESS && out)
+  if (rc != CDD_C_SUCCESS)
     openapi_spec_free(out);
   return rc;
 }
@@ -712,14 +712,28 @@ static cdd_c_error_t parse_server_object_inner(const JSON_Object *srv_obj,
 cdd_c_error_t parse_server_object(const JSON_Object *srv_obj,
                                   struct OpenAPI_Server *out_srv) {
   cdd_c_error_t rc = parse_server_object_inner(srv_obj, out_srv);
-  if (rc != CDD_C_SUCCESS && out_srv) {
-    struct OpenAPI_Server *tmp =
-        (struct OpenAPI_Server *)malloc(sizeof(struct OpenAPI_Server));
-    if (tmp) {
-      *tmp = *out_srv;
-      openapi_free_servers_array(tmp, 1);
-      memset(out_srv, 0, sizeof(*out_srv));
+  if (rc != CDD_C_SUCCESS) {
+    size_t v, e;
+    free(out_srv->url);
+    free(out_srv->description);
+    free(out_srv->name);
+    free(out_srv->extensions_json);
+    if (out_srv->variables) {
+      for (v = 0; v < out_srv->n_variables; ++v) {
+        struct OpenAPI_ServerVariable *var = &out_srv->variables[v];
+        free(var->name);
+        free(var->default_value);
+        free(var->description);
+        free(var->extensions_json);
+        if (var->enum_values) {
+          for (e = 0; e < var->n_enum_values; ++e)
+            free(var->enum_values[e]);
+          free(var->enum_values);
+        }
+      }
+      free(out_srv->variables);
     }
+    memset(out_srv, 0, sizeof(*out_srv));
   }
   return rc;
 }
@@ -787,11 +801,10 @@ cdd_c_error_t parse_servers_array(const JSON_Object *parent, const char *key,
                                   size_t *out_count) {
   cdd_c_error_t rc =
       parse_servers_array_inner(parent, key, out_servers, out_count);
-  if (rc != CDD_C_SUCCESS && out_servers && *out_servers) {
-    openapi_free_servers_array(*out_servers, out_count ? *out_count : 0);
+  if (rc != CDD_C_SUCCESS && *out_servers) {
+    openapi_free_servers_array(*out_servers, *out_count);
     *out_servers = NULL;
-    if (out_count)
-      *out_count = 0;
+    *out_count = 0;
   }
   return rc;
 }

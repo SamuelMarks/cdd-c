@@ -19,13 +19,33 @@
 #include "openapi/emit/openapi.h"
 /* clang-format on */
 
+/**
+ * @brief Safely sets a JSON object property and frees the value on failure.
+ */
+cdd_c_error_t cdd_json_object_set_value_safe(JSON_Object *obj, const char *name,
+                                             JSON_Value *val) {
+  if ((json_object_set_value)(obj, name, val) != JSONSuccess) {
+    json_value_free(val);
+    return CDD_C_ERROR_MEMORY;
+  }
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Safely appends a JSON array element and frees the value on failure.
+ */
+cdd_c_error_t cdd_json_array_append_value_safe(JSON_Array *arr,
+                                               JSON_Value *val) {
+  if ((json_array_append_value)(arr, val) != JSONSuccess) {
+    json_value_free(val);
+    return CDD_C_ERROR_MEMORY;
+  }
+  return CDD_C_SUCCESS;
+}
+
 /** @brief Safely sets a JSON object property and frees the value on failure */
 #define json_object_set_value(obj, name, val)                                  \
-  do {                                                                         \
-    JSON_Value *_cdd_jv = (val);                                               \
-    if ((json_object_set_value)((obj), (name), _cdd_jv) != JSONSuccess)        \
-      json_value_free(_cdd_jv);                                                \
-  } while (0)
+  cdd_json_object_set_value_safe((obj), (name), (val))
 
 /**
  * @brief Serializes an in-memory OpenAPI_Spec structure to a JSON string or

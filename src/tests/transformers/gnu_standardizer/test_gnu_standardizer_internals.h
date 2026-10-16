@@ -14,6 +14,7 @@ extern "C" {
 #include "c_cdd_export.h"
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_parser.h"
+#include "../../../transformers/gnu_standardizer/gnu_standardizer_internal.h"
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>

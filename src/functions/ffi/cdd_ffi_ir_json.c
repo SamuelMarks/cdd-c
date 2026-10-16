@@ -122,7 +122,7 @@ static cdd_c_error_t type_to_json(const cdd_ffi_type_t *type,
     json_object_set_number(obj, "array_size", (double)type->array_size);
   }
 
-  if (type->template_args_count > 0 && type->template_args) {
+  if (type->template_args) {
     JSON_Value *arr_val = json_value_init_array();
     JSON_Array *arr = json_value_get_array(arr_val);
     size_t i;
@@ -211,7 +211,7 @@ static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
   SET_STR(obj, "name", node->name);
   SET_STR(obj, "doc", node->doc);
 
-  if (node->fields_count > 0 && node->fields) {
+  if (node->fields) {
     JSON_Value *arr_val = json_value_init_array();
     JSON_Array *arr = json_value_get_array(arr_val);
     for (i = 0; i < node->fields_count; ++i) {
@@ -229,7 +229,7 @@ static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
     json_object_set_value(obj, "fields", arr_val);
   }
 
-  if (node->base_classes_count > 0 && node->base_classes) {
+  if (node->base_classes) {
     JSON_Value *arr_val = json_value_init_array();
     JSON_Array *arr = json_value_get_array(arr_val);
     for (i = 0; i < node->base_classes_count; ++i) {
@@ -251,7 +251,7 @@ static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
     json_object_set_value(obj, "base_classes", arr_val);
   }
 
-  if (node->variants_count > 0 && node->variants) {
+  if (node->variants) {
     JSON_Value *arr_val = json_value_init_array();
     JSON_Array *arr = json_value_get_array(arr_val);
     for (i = 0; i < node->variants_count; ++i) {
@@ -314,7 +314,7 @@ static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
     json_object_set_value(obj, "variants", arr_val);
   }
 
-  if (node->macro_expansions_count > 0 && node->macro_expansions) {
+  if (node->macro_expansions) {
     JSON_Value *arr_val = json_value_init_array();
     JSON_Array *arr = json_value_get_array(arr_val);
     for (i = 0; i < node->macro_expansions_count; ++i) {
@@ -508,20 +508,17 @@ static cdd_c_error_t parse_type(JSON_Object *obj, cdd_ffi_type_t *type) {
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  if (json_object_has_value(obj, "template_args")) {
-    t_arr = json_object_get_array(obj, "template_args");
-    if (t_arr) {
-      type->template_args_count = json_array_get_count(t_arr);
-      type->template_args =
-          C_CDD_CALLOC(type->template_args_count, sizeof(cdd_ffi_type_t));
-      if (!type->template_args && type->template_args_count > 0)
-        return CDD_C_ERROR_MEMORY;
-      for (i = 0; i < type->template_args_count; ++i) {
-        rc = parse_type(json_array_get_object(t_arr, i),
-                        &type->template_args[i]);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-      }
+  t_arr = json_object_get_array(obj, "template_args");
+  if (t_arr) {
+    type->template_args_count = json_array_get_count(t_arr);
+    type->template_args =
+        C_CDD_CALLOC(type->template_args_count, sizeof(cdd_ffi_type_t));
+    if (!type->template_args)
+      return CDD_C_ERROR_MEMORY;
+    for (i = 0; i < type->template_args_count; ++i) {
+      rc = parse_type(json_array_get_object(t_arr, i), &type->template_args[i]);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
   }
 
@@ -558,11 +555,9 @@ static cdd_c_error_t parse_field(JSON_Object *obj, cdd_ffi_field_t *field) {
     field->intent =
         (cdd_ffi_param_intent_t)json_object_get_number(obj, "intent");
 
-  if (json_object_has_value(obj, "type")) {
-    rc = parse_type(json_object_get_object(obj, "type"), &field->type);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-  }
+  rc = parse_type(json_object_get_object(obj, "type"), &field->type);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   parse_trivia(json_object_get_array(obj, "leading_trivia"),
                &field->leading_trivia);
@@ -590,96 +585,87 @@ static cdd_c_error_t parse_node(JSON_Object *obj, cdd_ffi_ir_node_t *node) {
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  if (json_object_has_value(obj, "fields")) {
-    arr = json_object_get_array(obj, "fields");
-    if (arr) {
-      node->fields_count = json_array_get_count(arr);
-      node->fields = C_CDD_CALLOC(node->fields_count, sizeof(cdd_ffi_field_t));
-      if (!node->fields && node->fields_count > 0)
-        return CDD_C_ERROR_MEMORY;
-      for (i = 0; i < node->fields_count; ++i) {
-        rc = parse_field(json_array_get_object(arr, i), &node->fields[i]);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-      }
+  arr = json_object_get_array(obj, "fields");
+  if (arr) {
+    node->fields_count = json_array_get_count(arr);
+    node->fields = C_CDD_CALLOC(node->fields_count, sizeof(cdd_ffi_field_t));
+    if (!node->fields)
+      return CDD_C_ERROR_MEMORY;
+    for (i = 0; i < node->fields_count; ++i) {
+      rc = parse_field(json_array_get_object(arr, i), &node->fields[i]);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
   }
 
-  if (json_object_has_value(obj, "base_classes")) {
-    arr = json_object_get_array(obj, "base_classes");
-    if (arr) {
-      node->base_classes_count = json_array_get_count(arr);
-      node->base_classes =
-          C_CDD_CALLOC(node->base_classes_count, sizeof(cdd_ffi_base_class_t));
-      if (!node->base_classes && node->base_classes_count > 0)
-        return CDD_C_ERROR_MEMORY;
-      for (i = 0; i < node->base_classes_count; ++i) {
-        JSON_Object *bc_obj = json_array_get_object(arr, i);
-        rc = strdup_safe(json_object_get_string(bc_obj, "name"),
-                         &node->base_classes[i].name);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-        rc = strdup_safe(json_object_get_string(bc_obj, "access"),
-                         &node->base_classes[i].access);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-        if (json_object_has_value(bc_obj, "is_virtual"))
-          node->base_classes[i].is_virtual =
-              (int)json_object_get_number(bc_obj, "is_virtual");
-      }
+  arr = json_object_get_array(obj, "base_classes");
+  if (arr) {
+    node->base_classes_count = json_array_get_count(arr);
+    node->base_classes =
+        C_CDD_CALLOC(node->base_classes_count, sizeof(cdd_ffi_base_class_t));
+    if (!node->base_classes)
+      return CDD_C_ERROR_MEMORY;
+    for (i = 0; i < node->base_classes_count; ++i) {
+      JSON_Object *bc_obj = json_array_get_object(arr, i);
+      rc = strdup_safe(json_object_get_string(bc_obj, "name"),
+                       &node->base_classes[i].name);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = strdup_safe(json_object_get_string(bc_obj, "access"),
+                       &node->base_classes[i].access);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      if (json_object_has_value(bc_obj, "is_virtual"))
+        node->base_classes[i].is_virtual =
+            (int)json_object_get_number(bc_obj, "is_virtual");
     }
   }
 
-  if (json_object_has_value(obj, "variants")) {
-    arr = json_object_get_array(obj, "variants");
-    if (arr) {
-      node->variants_count = json_array_get_count(arr);
-      node->variants =
-          C_CDD_CALLOC(node->variants_count, sizeof(cdd_ffi_enum_variant_t));
-      if (!node->variants && node->variants_count > 0)
-        return CDD_C_ERROR_MEMORY;
-      for (i = 0; i < node->variants_count; ++i) {
-        JSON_Object *v_obj = json_array_get_object(arr, i);
-        rc = strdup_safe(json_object_get_string(v_obj, "name"),
-                         &node->variants[i].name);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-        rc = strdup_safe(json_object_get_string(v_obj, "value"),
-                         &node->variants[i].value);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-        rc = strdup_safe(json_object_get_string(v_obj, "doc"),
-                         &node->variants[i].doc);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-        rc = strdup_safe(json_object_get_string(v_obj, "raw_spelling"),
-                         &node->variants[i].raw_spelling);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+  arr = json_object_get_array(obj, "variants");
+  if (arr) {
+    node->variants_count = json_array_get_count(arr);
+    node->variants =
+        C_CDD_CALLOC(node->variants_count, sizeof(cdd_ffi_enum_variant_t));
+    if (!node->variants)
+      return CDD_C_ERROR_MEMORY;
+    for (i = 0; i < node->variants_count; ++i) {
+      JSON_Object *v_obj = json_array_get_object(arr, i);
+      rc = strdup_safe(json_object_get_string(v_obj, "name"),
+                       &node->variants[i].name);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = strdup_safe(json_object_get_string(v_obj, "value"),
+                       &node->variants[i].value);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = strdup_safe(json_object_get_string(v_obj, "doc"),
+                       &node->variants[i].doc);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = strdup_safe(json_object_get_string(v_obj, "raw_spelling"),
+                       &node->variants[i].raw_spelling);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
 
-        parse_number(json_object_get_object(v_obj, "number_details"),
-                     &node->variants[i].number_details);
-        parse_trivia(json_object_get_array(v_obj, "leading_trivia"),
-                     &node->variants[i].leading_trivia);
-        parse_trivia(json_object_get_array(v_obj, "trailing_trivia"),
-                     &node->variants[i].trailing_trivia);
-      }
+      parse_number(json_object_get_object(v_obj, "number_details"),
+                   &node->variants[i].number_details);
+      parse_trivia(json_object_get_array(v_obj, "leading_trivia"),
+                   &node->variants[i].leading_trivia);
+      parse_trivia(json_object_get_array(v_obj, "trailing_trivia"),
+                   &node->variants[i].trailing_trivia);
     }
   }
 
-  if (json_object_has_value(obj, "macro_expansions")) {
-    arr = json_object_get_array(obj, "macro_expansions");
-    if (arr) {
-      node->macro_expansions_count = json_array_get_count(arr);
-      node->macro_expansions =
-          C_CDD_CALLOC(node->macro_expansions_count,
-                       sizeof(struct cdd_ffi_macro_expansion_t));
-      if (!node->macro_expansions && node->macro_expansions_count > 0)
-        return CDD_C_ERROR_MEMORY;
-      for (i = 0; i < node->macro_expansions_count; ++i) {
-        parse_macro_expansion(json_array_get_object(arr, i),
-                              &node->macro_expansions[i]);
-      }
+  arr = json_object_get_array(obj, "macro_expansions");
+  if (arr) {
+    node->macro_expansions_count = json_array_get_count(arr);
+    node->macro_expansions = C_CDD_CALLOC(
+        node->macro_expansions_count, sizeof(struct cdd_ffi_macro_expansion_t));
+    if (!node->macro_expansions)
+      return CDD_C_ERROR_MEMORY;
+    for (i = 0; i < node->macro_expansions_count; ++i) {
+      parse_macro_expansion(json_array_get_object(arr, i),
+                            &node->macro_expansions[i]);
     }
   }
 

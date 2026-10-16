@@ -203,7 +203,7 @@ cdd_c_error_t tokenize_punct(const uint8_t *base, size_t len, size_t *pos,
       k = TOKEN_RBRACE;
       extra = next_con;
     } else if (next_c == ':') {
-      size_t c3_con, c4_con;
+      size_t c3_con = 0, c4_con = 0;
       int c3 = -1, c4 = -1;
       peek_logical(base, len, cur_pos + next_con, &c3_con, &c3);
       if (c3 == '%') {
@@ -301,7 +301,7 @@ cdd_c_error_t tokenize_punct(const uint8_t *base, size_t len, size_t *pos,
     break;
 
   case '.': {
-    size_t peek_con;
+    size_t peek_con = 0;
     int peek_c = -1;
     if (next_c == '.') {
       peek_logical(base, len, cur_pos + next_con, &peek_con, &peek_c);

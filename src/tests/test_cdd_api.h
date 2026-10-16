@@ -81,6 +81,15 @@ TEST test_cdd_generate_to_openapi(void) {
   config.output = cdd_test_mut_str("build/out.json");
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_generate_to_openapi(&config));
 
+  config.output = NULL;
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_generate_to_openapi(&config));
+  remove("openapi.json");
+
+  config.output = cdd_test_mut_str("build/out.json");
+  config.base_file = cdd_test_mut_str("nonexistent_base.json");
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_generate_to_openapi(&config));
+  config.base_file = NULL;
+
 #ifdef CDD_BUILD_TESTS
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_generate_to_openapi(&config));
@@ -395,6 +404,13 @@ TEST test_code_writer_and_ffi_common(void) {
     g_fail_io_after = 1;
     ASSERT_EQ(CDD_C_ERROR_IO,
               cdd_ffi_open_output_file("build", "test_open_out.txt", &fp));
+    g_fail_io_after = 2;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_open_output_file("build", "test_open_out.txt", &fp));
+    if (fp) {
+      fclose(fp);
+      fp = NULL;
+    }
     g_fail_io_after = -1;
 #endif
     ASSERT_EQ(CDD_C_ERROR_IO,
@@ -642,17 +658,51 @@ TEST test_cdd_generate_bindings_json(void) {
   ASSERT_NEQ(CDD_C_SUCCESS, cdd_generate_bindings(&config));
 
   /* len <= 5 */
-  f = fopen("build/a.c", "w");
+  f = fopen("a.c", "w");
   if (f) {
     fprintf(f, "/* dummy */");
     fclose(f);
   }
-  config.input = "build/a.c";
+  config.input = "a.c";
   ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_bindings(&config));
 
   remove("build/test_dummy.json");
   remove("build/test_dummy_invalid.json");
-  remove("build/a.c");
+  remove("a.c");
+
+  /* cdd_ffi_ir_json.c additional branch coverage */
+  {
+    cdd_ffi_ir_t ir_tmp;
+    cdd_ffi_ir_node_t node_tmp;
+    cdd_ffi_ir_t *parsed_ir = NULL;
+    char *json_str = NULL;
+    memset(&ir_tmp, 0, sizeof(ir_tmp));
+    memset(&node_tmp, 0, sizeof(node_tmp));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_ffi_ir_to_json(&ir_tmp, NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_ffi_ir_from_json("{}", NULL));
+    node_tmp.kind = CDD_FFI_NODE_FUNCTION;
+    node_tmp.return_or_base_type.array_size = -1;
+    ir_tmp.nodes = &node_tmp;
+    ir_tmp.nodes_count = 1;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_ir_to_json(&ir_tmp, &json_str));
+    free(json_str);
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_ir_from_json("{}", &parsed_ir));
+    if (parsed_ir) {
+      cdd_ffi_ir_free(parsed_ir);
+      free(parsed_ir);
+      parsed_ir = NULL;
+    }
+    ASSERT_EQ(
+        CDD_C_SUCCESS,
+        cdd_ffi_ir_from_json(
+            "{\"nodes\":[{\"fields\":[{\"type\":{}}],\"base_classes\":[{}]}]}",
+            &parsed_ir));
+    if (parsed_ir) {
+      cdd_ffi_ir_free(parsed_ir);
+      free(parsed_ir);
+      parsed_ir = NULL;
+    }
+  }
   PASS();
 }
 

@@ -2,6 +2,9 @@
  * @file stdint.h
  * @brief MSVC stdint port.
  */
+#ifndef C_CDD_MSVC_STDINT_H
+#define C_CDD_MSVC_STDINT_H
+
 #if defined(_MSC_VER) && _MSC_VER < 1600
 
 #ifdef __cplusplus
@@ -22,3 +25,5 @@ typedef unsigned __int64 uint64_t;
 #endif /* __cplusplus */
 
 #endif
+
+#endif /* !C_CDD_MSVC_STDINT_H */

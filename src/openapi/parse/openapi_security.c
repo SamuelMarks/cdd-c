@@ -150,7 +150,7 @@ static cdd_c_error_t parse_security_schemes_inner(const JSON_Object *components,
 cdd_c_error_t parse_security_schemes(const JSON_Object *components,
                                      struct OpenAPI_Spec *out) {
   cdd_c_error_t rc = parse_security_schemes_inner(components, out);
-  if (rc != CDD_C_SUCCESS && out)
+  if (rc != CDD_C_SUCCESS)
     openapi_spec_free(out);
   return rc;
 }

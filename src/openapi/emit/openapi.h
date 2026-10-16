@@ -39,6 +39,27 @@ extern C_CDD_EXPORT cdd_c_error_t
 openapi_write_spec_to_json(const struct OpenAPI_Spec *spec, char **json_out);
 
 /**
+ * @brief Safely sets a JSON object property and frees the value on failure.
+ *
+ * @param[in,out] obj The target JSON object.
+ * @param[in] name The property key name.
+ * @param[in] val The JSON value to set (transferred or freed).
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_MEMORY on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_json_object_set_value_safe(
+    JSON_Object *obj, const char *name, JSON_Value *val);
+
+/**
+ * @brief Safely appends a JSON array element and frees the value on failure.
+ *
+ * @param[in,out] arr The target JSON array.
+ * @param[in] val The JSON value to append (transferred or freed).
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_MEMORY on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_json_array_append_value_safe(JSON_Array *arr, JSON_Value *val);
+
+/**
  * @brief Converts verb to string.
  *
  * @param verb The verb.

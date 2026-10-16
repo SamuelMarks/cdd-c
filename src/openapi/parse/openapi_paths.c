@@ -176,14 +176,13 @@ cdd_c_error_t parse_paths_object(const JSON_Object *paths_obj,
   cdd_c_error_t rc =
       parse_paths_object_inner(paths_obj, out_paths, out_count, spec,
                                require_leading_slash, resolve_refs);
-  if (rc != CDD_C_SUCCESS && out_paths && *out_paths) {
+  if (rc != CDD_C_SUCCESS && *out_paths) {
     size_t i;
-    for (i = 0; out_count && i < *out_count; ++i)
+    for (i = 0; i < *out_count; ++i)
       free_path_item(&(*out_paths)[i]);
     free(*out_paths);
     *out_paths = NULL;
-    if (out_count)
-      *out_count = 0;
+    *out_count = 0;
   }
   return rc;
 }
@@ -745,7 +744,7 @@ cdd_c_error_t parse_additional_operations(const JSON_Object *path_obj,
                                           struct OpenAPI_Path *path,
                                           struct OpenAPI_Spec *spec) {
   cdd_c_error_t rc = parse_additional_operations_inner(path_obj, path, spec);
-  if (rc != CDD_C_SUCCESS && path && path->additional_operations) {
+  if (rc != CDD_C_SUCCESS && path->additional_operations) {
     size_t i;
     for (i = 0; i < path->n_additional_operations; ++i)
       free_operation(&path->additional_operations[i]);

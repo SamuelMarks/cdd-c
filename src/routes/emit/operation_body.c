@@ -85,7 +85,6 @@ cdd_c_error_t any_from_json_value(const JSON_Value *val,
     if (rc != CDD_C_SUCCESS)
       return rc;
     return CDD_C_SUCCESS;
-  case JSONNull:
   default:
     out->type = OA_ANY_NULL;
     return CDD_C_SUCCESS;

@@ -129,6 +129,10 @@ cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
+  if ((int)key_len < 0) {
+    return CDD_C_ERROR_IO;
+  }
+
   if (key_len == 0) {
     static const unsigned char zero_pad[16] = {0};
     key = zero_pad;

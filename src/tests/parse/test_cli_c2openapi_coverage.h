@@ -13,6 +13,8 @@ extern "C" {
 /* clang-format off */
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "c_cdd/memory.h"
+#include "docstrings/parse/doc_internal.h"
+#include "openapi/parse/openapi_internal.h"
 #include "routes/parse/cli.h"
 #include <greatest.h>
 #include <parson.h>
@@ -262,6 +264,15 @@ TEST test_c2openapi_full_coverage_100(void) {
   doc_scopes[0].name = cdd_test_mut_str("read");
   doc_scopes[0].description = cdd_test_mut_str("read desc");
   ASSERT_EQ(CDD_C_SUCCESS, merge_scopes(&flow_dst, &doc_flow));
+  /* n_scopes > 0 when strdup fails for name and desc */
+  doc_scopes[0].name = cdd_test_mut_str("write");
+  doc_scopes[0].description = cdd_test_mut_str("write desc");
+  g_cdd_strdup_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, merge_scopes(&flow_dst, &doc_flow));
+  g_cdd_strdup_fail = 0;
+  g_cdd_strdup_fail = 2;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, merge_scopes(&flow_dst, &doc_flow));
+  g_cdd_strdup_fail = 0;
   if (flow_dst.scopes) {
     size_t si;
     for (si = 0; si < flow_dst.n_scopes; si++) {
@@ -326,6 +337,43 @@ TEST test_c2openapi_full_coverage_100(void) {
   g_cdd_strdup_fail = 6;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, add_oauth_flows(&scheme, &doc_sec));
   g_cdd_strdup_fail = 0;
+  /* succeed once so scheme.n_flows == 1, then test failures when n_flows > 0 */
+  ASSERT_EQ(CDD_C_SUCCESS, add_oauth_flows(&scheme, &doc_sec));
+  doc_flow.type = DOC_OAUTH_FLOW_PASSWORD;
+  g_cdd_strdup_fail = 1; /* authorization_url fail when n_flows > 0 */
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, add_oauth_flows(&scheme, &doc_sec));
+  g_cdd_strdup_fail = 0;
+  g_cdd_strdup_fail = 2; /* token_url fail when n_flows > 0 */
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, add_oauth_flows(&scheme, &doc_sec));
+  g_cdd_strdup_fail = 0;
+  g_cdd_strdup_fail = 3; /* refresh_url fail when n_flows > 0 */
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, add_oauth_flows(&scheme, &doc_sec));
+  g_cdd_strdup_fail = 0;
+  g_cdd_strdup_fail = 4; /* device_auth fail when n_flows > 0 */
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, add_oauth_flows(&scheme, &doc_sec));
+  g_cdd_strdup_fail = 0;
+  g_cdd_alloc_fail = 2; /* scopes calloc fail when n_flows > 0 */
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, add_oauth_flows(&scheme, &doc_sec));
+  g_cdd_alloc_fail = 0;
+  if (scheme.flows) {
+    size_t fi, si;
+    for (fi = 0; fi < scheme.n_flows; ++fi) {
+      free(scheme.flows[fi].authorization_url);
+      free(scheme.flows[fi].token_url);
+      free(scheme.flows[fi].refresh_url);
+      free(scheme.flows[fi].device_authorization_url);
+      if (scheme.flows[fi].scopes) {
+        for (si = 0; si < scheme.flows[fi].n_scopes; ++si) {
+          free(scheme.flows[fi].scopes[si].name);
+          free(scheme.flows[fi].scopes[si].description);
+        }
+        free(scheme.flows[fi].scopes);
+      }
+    }
+    free(scheme.flows);
+    scheme.flows = NULL;
+    scheme.n_flows = 0;
+  }
 
   /* 13. spec_add_security_scheme */
   memset(&spec, 0, sizeof(spec));
@@ -342,7 +390,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_add_security_scheme(&spec, &doc_sec));
   g_cdd_alloc_fail = 0;
-  /* name strdup fail */
+  /* name strdup fail when n_security_schemes == 0 */
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_add_security_scheme(&spec, &doc_sec));
   g_cdd_strdup_fail = 0;
@@ -350,6 +398,12 @@ TEST test_c2openapi_full_coverage_100(void) {
   doc_sec.deprecated_set = 1;
   doc_sec.deprecated = 1;
   ASSERT_EQ(CDD_C_SUCCESS, spec_add_security_scheme(&spec, &doc_sec));
+  /* name strdup fail when n_security_schemes > 0 */
+  doc_sec.name = cdd_test_mut_str("MySecSecond");
+  g_cdd_strdup_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_add_security_scheme(&spec, &doc_sec));
+  g_cdd_strdup_fail = 0;
+  doc_sec.name = cdd_test_mut_str("MySec");
   doc_sec.deprecated = 0;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             spec_add_security_scheme(&spec, &doc_sec));
@@ -940,6 +994,206 @@ TEST test_c2openapi_full_coverage_100(void) {
     free(types.items);
     enum_members_free(&em);
     openapi_spec_free(&spec);
+  }
+
+  /* 50. Additional branch coverage across modules */
+  {
+    /* cli_meta.c: spec_add_tag strdup fail when spec.n_tags > 0 */
+    memset(&spec, 0, sizeof(spec));
+    ASSERT_EQ(CDD_C_SUCCESS, spec_add_tag(&spec, "tag1"));
+    g_cdd_strdup_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_add_tag(&spec, "tag2"));
+    g_cdd_strdup_fail = 0;
+    openapi_spec_free(&spec);
+
+    /* cli.c: c2openapi_generate config->input == NULL and config->output ==
+     * NULL */
+    {
+      cdd_to_openapi_config_t cfg;
+      memset(&cfg, 0, sizeof(cfg));
+      ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c2openapi_generate(&cfg));
+      cfg.input = "src_dir";
+      ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c2openapi_generate(&cfg));
+    }
+
+    /* cli.c: to_docs_json_cli_main with --output and trailing -o, plus
+     * CDD_OUTPUT env */
+    {
+      char *d_argv[3];
+      d_argv[0] = cdd_test_mut_str("to_docs_json");
+      d_argv[1] = cdd_test_mut_str("--output");
+      d_argv[2] = cdd_test_mut_str("-o");
+#if defined(_MSC_VER)
+      _putenv_s("CDD_OUTPUT", "build/dummy_out.json");
+#else
+      setenv("CDD_OUTPUT", "build/dummy_out.json", 1);
+#endif
+      to_docs_json_cli_main(2, d_argv);
+      to_docs_json_cli_main(3, d_argv);
+#if defined(_MSC_VER)
+      _putenv_s("CDD_OUTPUT", "");
+#else
+      unsetenv("CDD_OUTPUT");
+#endif
+    }
+
+    /* doc_tags.c: doc_add_tag_meta(NULL, NULL) */
+    ASSERT_EQ(CDD_C_SUCCESS, doc_add_tag_meta(NULL, NULL));
+
+    /* initializer.c: skip_ws failure when desig_str == NULL and != NULL */
+    {
+      extern C_CDD_EXPORT int g_initializer_fail_skip_ws;
+      struct TokenList *tl = NULL;
+      struct InitList il;
+      init_list_init(&il);
+      if (tokenize(az_span_create_from_str("{ 1 }"), &tl) == CDD_C_SUCCESS &&
+          tl) {
+        g_initializer_fail_skip_ws = 3;
+        parse_initializer(tl, 0, tl->size, &il, NULL);
+        g_initializer_fail_skip_ws = 0;
+        free_token_list(tl);
+      }
+      init_list_free(&il);
+      init_list_init(&il);
+      if (tokenize(az_span_create_from_str("{ .a = 1 }"), &tl) ==
+              CDD_C_SUCCESS &&
+          tl) {
+        g_initializer_fail_skip_ws = 3;
+        parse_initializer(tl, 0, tl->size, &il, NULL);
+        g_initializer_fail_skip_ws = 0;
+        free_token_list(tl);
+      }
+      init_list_free(&il);
+    }
+
+    /* tokenizer.c: UCN at EOF ("\\u", "a\\u") and digit separator at EOF
+     * ("123'") */
+    {
+      struct TokenList *tl = NULL;
+      if (tokenize(az_span_create_from_str("\\u"), &tl) == CDD_C_SUCCESS &&
+          tl) {
+        free_token_list(tl);
+        tl = NULL;
+      }
+      if (tokenize(az_span_create_from_str("a\\u"), &tl) == CDD_C_SUCCESS &&
+          tl) {
+        free_token_list(tl);
+        tl = NULL;
+      }
+      if (tokenize(az_span_create_from_str("123'"), &tl) == CDD_C_SUCCESS &&
+          tl) {
+        free_token_list(tl);
+        tl = NULL;
+      }
+    }
+
+    /* openapi_schema_registry.c: register_inline_schema with base_name == NULL
+     */
+    {
+      char *out_name = NULL;
+      JSON_Value *jv = json_value_init_object();
+      const JSON_Object *jo = json_value_get_object(jv);
+      memset(&spec, 0, sizeof(spec));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                register_inline_schema(&spec, NULL, jo, jv, &out_name));
+      json_value_free(jv);
+    }
+
+    /* openapi_schemas.c: parse_schema_constraints pattern strdup fail when
+     * target->example != NULL and == NULL */
+    {
+      JSON_Value *jv =
+          json_parse_string("{\"type\":\"string\",\"example\":\"abc\","
+                            "\"pattern\":\"^[a-z]+$\"}");
+      const JSON_Object *jo = json_value_get_object(jv);
+      struct SchemaConstraintTarget tgt;
+      char *pat = NULL;
+      struct OpenAPI_Any ex;
+      int ex_set = 0;
+      memset(&tgt, 0, sizeof(tgt));
+      memset(&ex, 0, sizeof(ex));
+      tgt.pattern = &pat;
+      tgt.example = &ex;
+      tgt.example_set = &ex_set;
+      g_cdd_strdup_fail = 2; /* 1st strdup is example "abc", 2nd is pattern */
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_schema_constraints(jo, &tgt));
+      g_cdd_strdup_fail = 0;
+      tgt.example = NULL;
+      tgt.example_set = NULL;
+      g_cdd_strdup_fail = 1;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_schema_constraints(jo, &tgt));
+      g_cdd_strdup_fail = 0;
+      json_value_free(jv);
+    }
+
+    /* code2schema.c & code2schema_parser.c: 64-char identifier, union comments,
+     * and EOF inside brace blocks */
+    {
+      const char *c2s_in = "build/test_c2s_eof.h";
+      const char *c2s_out = "build/test_c2s_eof.json";
+      char *c2s_argv[2];
+      FILE *fp = fopen(c2s_in, "w");
+      if (fp) {
+        fputs("struct "
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              " { int x;int y; struct { int z; }; };\n"
+              "union U1 { /* c1 */ ; int /* c2 */ a; + ; my_ident; }\n"
+              "union ; struct ; enum ;\n"
+              "struct { int a",
+              fp);
+        fclose(fp);
+      }
+      c2s_argv[0] = cdd_test_mut_str(c2s_in);
+      c2s_argv[1] = cdd_test_mut_str(c2s_out);
+      code2schema_main(2, c2s_argv);
+
+      fp = fopen(c2s_in, "w");
+      if (fp) {
+        fputs("union U2 { int a", fp);
+        fclose(fp);
+      }
+      code2schema_main(2, c2s_argv);
+
+      fp = fopen(c2s_in, "w");
+      if (fp) {
+        fputs("struct NamedUnclosed { int a", fp);
+        fclose(fp);
+      }
+      code2schema_main(2, c2s_argv);
+
+      remove(c2s_in);
+      remove(c2s_out);
+    }
+
+    /* operation_body.c: any_from_json_value with JSONArray and JSONObject */
+    {
+      JSON_Value *arr_v = json_parse_string("[1,2]");
+      JSON_Value *obj_v = json_parse_string("{\"a\":1}");
+      struct OpenAPI_Any any_out;
+      memset(&any_out, 0, sizeof(any_out));
+      ASSERT_EQ(CDD_C_SUCCESS, any_from_json_value(arr_v, &any_out));
+      free_any_value(&any_out);
+      memset(&any_out, 0, sizeof(any_out));
+      ASSERT_EQ(CDD_C_SUCCESS, any_from_json_value(obj_v, &any_out));
+      free_any_value(&any_out);
+      json_value_free(arr_v);
+      json_value_free(obj_v);
+    }
+
+    /* operation_response.c: add_link_to_response when dl->server_url != NULL &&
+     * dl->server_description == NULL */
+    {
+      struct OpenAPI_Response resp;
+      struct DocLink dl;
+      memset(&resp, 0, sizeof(resp));
+      memset(&dl, 0, sizeof(dl));
+      dl.name = cdd_test_mut_str("MyLink");
+      dl.operation_id = cdd_test_mut_str("getOp");
+      dl.server_url = cdd_test_mut_str("https://api.example.com");
+      dl.server_description = NULL;
+      ASSERT_EQ(CDD_C_SUCCESS, add_link_to_response(&resp, &dl));
+      free_response(&resp);
+    }
   }
 
   openapi_spec_free(&spec);

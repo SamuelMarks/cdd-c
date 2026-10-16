@@ -132,7 +132,7 @@ cdd_c_error_t parse_media_type_object(const JSON_Object *media_obj,
                                       int resolve_refs) {
   cdd_c_error_t rc =
       parse_media_type_object_inner(media_obj, out, spec, resolve_refs);
-  if (rc != CDD_C_SUCCESS && out)
+  if (rc != CDD_C_SUCCESS)
     free_media_type(out);
   return rc;
 }

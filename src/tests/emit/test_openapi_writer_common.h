@@ -21,6 +21,7 @@ extern "C" {
 #include "functions/parse/str.h"
 #include "openapi/emit/openapi.h"
 #include "openapi/parse/openapi.h"
+#include "routes/parse/cli.h"
 /* clang-format on */
 
 /* Global OOM injection state and mock allocator */
@@ -35,6 +36,16 @@ static void *mock_parson_oom_malloc(size_t sz) {
   return malloc(sz);
 }
 static void mock_parson_oom_free(void *ptr) { free(ptr); }
+
+static void set_both_parson_allocators(void *(*malloc_fun)(size_t),
+                                       void (*free_fun)(void *)) {
+  (json_set_allocation_functions)(malloc_fun, free_fun);
+  c2openapi_set_json_allocators(malloc_fun, free_fun);
+}
+#ifdef json_set_allocation_functions
+#undef json_set_allocation_functions
+#endif
+#define json_set_allocation_functions set_both_parson_allocators
 
 #define ASSERT_WRITER_RC(expr)                                                 \
   do {                                                                         \

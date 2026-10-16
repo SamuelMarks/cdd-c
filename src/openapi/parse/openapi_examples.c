@@ -205,7 +205,7 @@ cdd_c_error_t parse_example_object(const JSON_Object *ex_obj, const char *name,
                                    int resolve_refs) {
   cdd_c_error_t rc =
       parse_example_object_inner(ex_obj, name, out, spec, resolve_refs);
-  if (rc != CDD_C_SUCCESS && out)
+  if (rc != CDD_C_SUCCESS)
     free_example(out);
   return rc;
 }
@@ -282,7 +282,7 @@ parse_media_examples(const JSON_Object *media_obj, struct OpenAPI_Any *example,
                                  resolve_refs);
   }
   rc = parse_any_field(media_obj, "example", example, example_set);
-  if (rc != CDD_C_SUCCESS && example)
+  if (rc != CDD_C_SUCCESS)
     free_any_value(example);
   return rc;
 }
@@ -440,7 +440,7 @@ parse_oauth_flows_inner(const JSON_Object *flows_obj,
 cdd_c_error_t parse_oauth_flows(const JSON_Object *flows_obj,
                                 struct OpenAPI_SecurityScheme *out) {
   cdd_c_error_t rc = parse_oauth_flows_inner(flows_obj, out);
-  if (rc != CDD_C_SUCCESS && out && out->flows) {
+  if (rc != CDD_C_SUCCESS && out->flows) {
     size_t f, s;
     for (f = 0; f < out->n_flows; ++f) {
       free(out->flows[f].authorization_url);

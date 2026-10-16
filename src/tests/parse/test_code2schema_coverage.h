@@ -9,9 +9,20 @@ extern "C" {
 #include "c_cdd/memory.h"
 #include "classes/parse/code2schema.h"
 #include "functions/parse/str.h"
+#include "routes/parse/cli.h"
 #include <greatest.h>
 #include <parson.h>
 /* clang-format on */
+
+static void set_both_parson_allocs_c2s(void *(*malloc_fun)(size_t),
+                                       void (*free_fun)(void *)) {
+  (json_set_allocation_functions)(malloc_fun, free_fun);
+  c2openapi_set_json_allocators(malloc_fun, free_fun);
+}
+#ifdef json_set_allocation_functions
+#undef json_set_allocation_functions
+#endif
+#define json_set_allocation_functions set_both_parson_allocs_c2s
 
 static int g_parson_fail_at = -1;
 static void *mock_parson_malloc(size_t sz) {

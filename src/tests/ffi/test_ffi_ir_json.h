@@ -5,9 +5,20 @@
 #include "../../../include/ffi/cdd_ffi_ir.h"
 #include "../../functions/ffi/cdd_ffi_emit_ir_json.h"
 #include "../../src/cdd_api.h"
+#include "routes/parse/cli.h"
 #include "greatest.h"
 #include <string.h>
 /* clang-format on */
+
+static void set_both_parson_allocs_ffi(void *(*malloc_fun)(size_t),
+                                       void (*free_fun)(void *)) {
+  (json_set_allocation_functions)(malloc_fun, free_fun);
+  c2openapi_set_json_allocators(malloc_fun, free_fun);
+}
+#ifdef json_set_allocation_functions
+#undef json_set_allocation_functions
+#endif
+#define json_set_allocation_functions set_both_parson_allocs_ffi
 
 TEST test_cdd_ffi_ir_json_basic(void) {
   cdd_ffi_ir_t ir = {0};
