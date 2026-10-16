@@ -7,12 +7,17 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd/memory.h"
+#include "c_cdd/safe_crt.h"
 #include "classes/parse/code2schema.h"
 #include "functions/parse/str.h"
 #include "routes/parse/cli.h"
 #include <greatest.h>
 #include <parson.h>
 /* clang-format on */
+
+extern C_CDD_EXPORT cdd_c_error_t c2s_parse_union_tokens_and_write(
+    const struct TokenList *tl, size_t *idx, JSON_Object *schemas_obj,
+    const char *union_name);
 
 static void set_both_parson_allocs_c2s(void *(*malloc_fun)(size_t),
                                        void (*free_fun)(void *)) {
@@ -72,15 +77,15 @@ TEST test_code2schema_write_struct_oom(void) {
     JSON_Object *schemas_obj = json_value_get_object(root);
 
     struct_fields_init(&sf);
-    c_cdd_strdup("{\"x-extra\":[1,2]}", &sf.schema_extra_json);
+    c_cdd_strdup("{\"x-extra\":1}", &sf.schema_extra_json);
     struct_fields_add(&sf, "arr_field", "array", "string", NULL, NULL);
-    c_cdd_strdup("{\"x-items\":[1,2]}", &sf.fields[0].items_extra_json);
+    c_cdd_strdup("{\"x-items\":1}", &sf.fields[0].items_extra_json);
     sf.fields[0].has_min_items = 1;
     sf.fields[0].min_items = 1;
 
     struct_fields_add(&sf, "obj_field", "object", "MyObj", NULL, NULL);
     struct_fields_add(&sf, "int_field", "integer", NULL, "42", NULL);
-    c_cdd_strdup("{\"x-prop\":[1,2]}", &sf.fields[2].schema_extra_json);
+    c_cdd_strdup("{\"x-prop\":1}", &sf.fields[2].schema_extra_json);
     sf.fields[2].has_min = 1;
     sf.fields[2].min_val = 0;
 
@@ -102,7 +107,7 @@ TEST test_code2schema_write_struct_oom(void) {
 
     struct_fields_init(&sf);
     struct_fields_add(&sf, "int_field", "integer", NULL, NULL, NULL);
-    c_cdd_strdup("{\"x-prop\":[1,2]}", &sf.fields[0].schema_extra_json);
+    c_cdd_strdup("{\"x-prop\":1}", &sf.fields[0].schema_extra_json);
 
     json_set_allocation_functions(mock_parson_malloc, mock_parson_free);
     g_parson_fail_at = i;
@@ -119,7 +124,7 @@ TEST test_code2schema_write_struct_oom(void) {
     JSON_Object *schemas_obj = json_value_get_object(root);
 
     struct_fields_init(&sf);
-    c_cdd_strdup("{\"x-struct\":[1,2]}", &sf.schema_extra_json);
+    c_cdd_strdup("{\"x-struct\":1}", &sf.schema_extra_json);
 
     json_set_allocation_functions(mock_parson_malloc, mock_parson_free);
     g_parson_fail_at = i;
@@ -399,18 +404,77 @@ TEST test_code2schema_cdd_alloc_fail_comprehensive(void) {
     json_value_free(root_val);
   }
 
-  {
+  for (i = 1; i <= 10; ++i) {
     JSON_Value *v = json_value_init_object();
     JSON_Object *o = json_value_get_object(v);
     char *types[2];
     types[0] = C_CDD_STR_LIT("string");
     types[1] = C_CDD_STR_LIT("null");
-    g_parson_fail_at = 1;
+    g_parson_fail_at = i;
     c2s_write_type_union(o, "string", types, 2);
     g_parson_fail_at = -1;
     json_value_free(v);
   }
+  {
+    for (i = 0; i <= 10; ++i) {
+      JSON_Value *v = json_value_init_object();
+      JSON_Object *o = json_value_get_object(v);
+      struct StructField sf_def;
+      memset(&sf_def, 0, sizeof(sf_def));
+      CDD_STRCPY(sf_def.default_val, sizeof(sf_def.default_val), "nullptr");
+      CDD_STRCPY(sf_def.type, sizeof(sf_def.type), "object");
+      g_parson_fail_at = i;
+      c2s_write_default_value(o, &sf_def);
+      g_parson_fail_at = -1;
+      json_value_free(v);
+    }
+  }
+  {
+    struct TokenList *utl = NULL;
+    json_set_allocation_functions(malloc, free);
+    tokenize(az_span_create_from_str("{ int u_i; char *u_s; };"), &utl);
+    if (utl) {
+      for (i = 0; i <= 35; ++i) {
+        size_t uidx = 1;
+        JSON_Value *v = json_value_init_object();
+        JSON_Object *o = json_value_get_object(v);
+        json_set_allocation_functions(mock_parson_malloc, mock_parson_free);
+        g_parson_fail_at = i;
+        c2s_parse_union_tokens_and_write(utl, &uidx, o, "MyUnion");
+        g_parson_fail_at = -1;
+        json_set_allocation_functions(malloc, free);
+        json_value_free(v);
+      }
+      free_token_list(utl);
+    }
+  }
   json_set_allocation_functions(malloc, free);
+
+  {
+    struct StructFields sf_null_sch;
+    struct_fields_init(&sf_null_sch);
+    struct_fields_add(&sf_null_sch, "int_field", "integer", NULL, NULL, NULL);
+    sf_null_sch.fields[0].required = 1;
+    write_struct_to_json_schema(NULL, "TestNullSchemas", &sf_null_sch);
+    struct_fields_free(&sf_null_sch);
+  }
+
+  /* Test c2s_merge_schema_extras_strings when g_cdd_fail_json_set_value is set
+   */
+  {
+    extern C_CDD_EXPORT volatile int g_cdd_fail_json_set_value;
+    char *dest = NULL;
+    JSON_Value *tv = json_value_init_object();
+    JSON_Object *to = json_value_get_object(tv);
+    c_cdd_strdup("{\"k1\":1}", &dest);
+    g_cdd_fail_json_set_value = 1;
+    c2s_merge_schema_extras_strings(&dest, "{\"k2\":2}");
+    g_cdd_fail_json_set_value = 1;
+    c2s_merge_schema_extras_object(to, "{\"k2\":2}");
+    g_cdd_fail_json_set_value = 0;
+    json_value_free(tv);
+    C_CDD_FREE(dest);
+  }
 
   PASS();
 }

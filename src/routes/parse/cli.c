@@ -35,6 +35,7 @@
 #include "functions/parse/tokenizer.h"
 #include "openapi/emit/openapi.h"
 #include "openapi/parse/openapi.h"
+#include "openapi/parse/openapi_internal.h"
 #include "routes/emit/aggregator.h"
 #include "routes/emit/operation.h"
 #include "routes/parse/cli_internal.h"
@@ -587,12 +588,19 @@ cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
                 ctx.func_name = psig.name;
 
                 if (c2openapi_build_operation(&ctx, &op) == CDD_C_SUCCESS) {
+                  cdd_c_error_t rc_add;
                   if (meta.is_webhook) {
-                    openapi_aggregator_add_webhook_operation(spec, meta.route,
-                                                             &op);
+                    rc_add = openapi_aggregator_add_webhook_operation(
+                        spec, meta.route, &op);
                   } else {
-                    openapi_aggregator_add_operation(spec, meta.route, &op);
+                    rc_add =
+                        openapi_aggregator_add_operation(spec, meta.route, &op);
                   }
+                  if (rc_add != CDD_C_SUCCESS) {
+                    free_operation(&op);
+                  }
+                } else {
+                  free_operation(&op);
                 }
                 free_parsed_sig(&psig);
               }
@@ -630,7 +638,12 @@ cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
               ctx.func_name = psig.name;
 
               if (c2openapi_build_operation(&ctx, &op) == CDD_C_SUCCESS) {
-                openapi_aggregator_add_operation(spec, meta.route, &op);
+                if (openapi_aggregator_add_operation(spec, meta.route, &op) !=
+                    CDD_C_SUCCESS) {
+                  free_operation(&op);
+                }
+              } else {
+                free_operation(&op);
               }
               free_parsed_sig(&psig);
             }

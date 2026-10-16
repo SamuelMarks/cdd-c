@@ -199,7 +199,6 @@ TEST test_sync_header_update(void) {
   g_fail_io_after = -1;
   PASS();
 }
-#endif
 
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_cdd_fail_make_tmpfile;
@@ -726,6 +725,7 @@ TEST test_sync_full_coverage(void) {
 
   PASS();
 }
+#endif
 
 SUITE(api_sync_suite) {
 #ifndef __EMSCRIPTEN__

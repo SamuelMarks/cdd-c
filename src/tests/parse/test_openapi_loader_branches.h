@@ -103,6 +103,13 @@ TEST test_openapi_loader_uri_and_schema_ref_branches(void) {
             openapi_spec_find_schema_for_ref(&spec, &sref, &sf_out));
   ASSERT(sf_out == NULL);
   free(sref.ref);
+  free(sref.all_of);
+  free(sref.any_of);
+  free(sref.one_of);
+  free(sref.not_schema);
+  free(sref.if_schema);
+  free(sref.then_schema);
+  free(sref.else_schema);
 
   sref.all_of = NULL;
   sref.n_all_of = 0;

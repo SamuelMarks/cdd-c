@@ -279,3 +279,12 @@ if(TARGET test_c_cdd)
         # Ensure tests use the same strict compiler flags
     endif()
 endif()
+
+foreach(_tgt IN ITEMS "${LIBRARY_NAME}" cdd-c cdd_test_helpers simple_mocks mocks test_c_cdd test_simple_json)
+    if(TARGET "${_tgt}")
+        set_target_properties("${_tgt}" PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+            LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+        )
+    endif()
+endforeach()

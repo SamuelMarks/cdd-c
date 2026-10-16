@@ -49,8 +49,8 @@ extern C_CDD_EXPORT int g_crypto_fail_hmac_len;
   (g_crypto_fail_hmac                                                          \
        ? NULL                                                                  \
        : (g_crypto_fail_hmac_len                                               \
-              ? (*(md_len) = 0,                                                \
-                 HMAC((evp_md), (key), (key_len), (d), (n), (md), (md_len)))   \
+              ? (HMAC((evp_md), (key), (key_len), (d), (n), (md), (md_len)),   \
+                 *(md_len) = 0, (md))                                          \
               : HMAC((evp_md), (key), (key_len), (d), (n), (md), (md_len))))
 
 #else

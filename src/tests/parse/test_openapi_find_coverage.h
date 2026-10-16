@@ -649,13 +649,21 @@ TEST test_openapi_schemas_all_branches(void) {
   ASSERT(pattern != NULL);
   free(pattern);
   pattern = NULL;
+  if (example_set) {
+    free_any_value(&example_val);
+    example_set = 0;
+  }
 
   target.example = &example_val;
   target.example_set = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, parse_schema_constraints(jo, &target));
+  free(pattern);
+  pattern = NULL;
   target.example = NULL;
   target.example_set = &example_set;
   ASSERT_EQ(CDD_C_SUCCESS, parse_schema_constraints(jo, &target));
+  free(pattern);
+  pattern = NULL;
   target.example = &example_val;
 
   json_value_free(jv);
@@ -1407,6 +1415,7 @@ TEST test_openapi_examples_all_branches(void) {
             parse_media_examples(jo, &example_any, &example_set, &examples_arr,
                                  &n_examples, &spec, 0));
   ASSERT_EQ(1, example_set);
+  free_any_value(&example_any);
   json_value_free(jv);
 
   /* 6. parse_oauth_scopes */

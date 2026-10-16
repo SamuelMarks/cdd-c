@@ -268,8 +268,11 @@ parse_parameter_object_inner(const JSON_Object *p_obj,
 
   if (style_str) {
     parse_param_style(style_str, &out_param->style);
-    if (out_param->style == OA_STYLE_UNKNOWN)
+    if (out_param->style == OA_STYLE_UNKNOWN) {
+      if (parsed_schema_set)
+        free_schema_ref_content(&parsed_schema);
       return CDD_C_ERROR_INVALID_ARGUMENT;
+    }
   } else {
     if (out_param->in == OA_PARAM_IN_QUERY)
       out_param->style = OA_STYLE_FORM;

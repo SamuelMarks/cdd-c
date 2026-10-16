@@ -90,7 +90,12 @@ TEST test_openapi_paths_name_list_and_template_names(void) {
   /* 9. realloc failure */
   for (i = 1; i <= 8; ++i) {
     g_cdd_alloc_fail = (int)i;
-    collect_path_template_names("/a/{b}/{c}/{d}/{e}/{f}", &names, &count);
+    if (collect_path_template_names("/a/{b}/{c}/{d}/{e}/{f}", &names, &count) ==
+        CDD_C_SUCCESS) {
+      free_name_list(names, count);
+      names = NULL;
+      count = 0;
+    }
     g_cdd_alloc_fail = 0;
   }
 
@@ -406,6 +411,7 @@ TEST test_openapi_paths_parsing_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             parse_paths_object(jo, &paths, &n_paths, &spec, 1, 1));
   g_cdd_alloc_fail = 0;
+  json_value_free(jv);
 
   /* 4. non-root path with template character (e.g. callback with {) */
   jv = json_parse_string("{\"/users/{id}\": {\"summary\": \"Users\"}}");
@@ -500,6 +506,7 @@ TEST test_openapi_paths_parsing_branches(void) {
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_additional_operations(jo, &path, &spec));
   g_cdd_alloc_fail = 0;
+  json_value_free(jv);
 
   /* 11b. additionalOperations invalid operation */
   path.route = cdd_test_mut_str("/test-route");
@@ -563,6 +570,14 @@ TEST test_openapi_paths_parsing_branches(void) {
     g_cdd_strdup_fail = (int)i;
     parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0);
     g_cdd_strdup_fail = 0;
+    if (paths) {
+      size_t p_idx;
+      for (p_idx = 0; p_idx < n_paths; ++p_idx)
+        free_path_item(&paths[p_idx]);
+      free(paths);
+      paths = NULL;
+      n_paths = 0;
+    }
   }
   json_value_free(jv);
 
@@ -575,6 +590,14 @@ TEST test_openapi_paths_parsing_branches(void) {
     g_cdd_strdup_fail = (int)i;
     parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0);
     g_cdd_strdup_fail = 0;
+    if (paths) {
+      size_t p_idx;
+      for (p_idx = 0; p_idx < n_paths; ++p_idx)
+        free_path_item(&paths[p_idx]);
+      free(paths);
+      paths = NULL;
+      n_paths = 0;
+    }
   }
   json_value_free(jv);
 
@@ -596,6 +619,7 @@ TEST test_openapi_paths_parsing_branches(void) {
     memset(&op, 0, sizeof(op));
     parse_operation("post", jo, &op, &spec, 0, NULL);
     g_cdd_strdup_fail = 0;
+    free_operation(&op);
   }
   json_value_free(jv);
 
@@ -612,6 +636,7 @@ TEST test_openapi_paths_parsing_branches(void) {
   jo2 = json_value_get_object(jv2);
   memset(&op, 0, sizeof(op));
   ASSERT_EQ(CDD_C_SUCCESS, parse_operation("get", jo2, &op, &spec, 0, NULL));
+  free_operation(&op);
   json_value_free(jv2);
 
   /* 21. parse_operation tag with null/non-string item */
@@ -619,6 +644,7 @@ TEST test_openapi_paths_parsing_branches(void) {
   jo2 = json_value_get_object(jv2);
   memset(&op, 0, sizeof(op));
   ASSERT_EQ(CDD_C_SUCCESS, parse_operation("get", jo2, &op, &spec, 0, NULL));
+  free_operation(&op);
   json_value_free(jv2);
   json_value_free(jv);
 
@@ -657,7 +683,41 @@ TEST test_openapi_paths_parsing_branches(void) {
   jo = json_value_get_object(jv);
   memset(&op, 0, sizeof(op));
   ASSERT_EQ(CDD_C_SUCCESS, parse_operation("post", jo, &op, &spec, 0, NULL));
+  free_operation(&op);
+  openapi_spec_free(&spec);
   json_value_free(jv);
+
+  /* 25. parse_parameter_object with unknown style and no schema
+   * (parsed_schema_set == 0) */
+  {
+    struct OpenAPI_Parameter param_unk;
+    jv = json_parse_string(
+        "{\"name\": \"p\", \"in\": \"query\", \"style\": \"unknown_style\"}");
+    jo = json_value_get_object(jv);
+    memset(&param_unk, 0, sizeof(param_unk));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              parse_parameter_object(jo, &param_unk, &spec, 0));
+    json_value_free(jv);
+  }
+
+  /* 26. openapi_spec_free with partial defined_schema arrays */
+  {
+    memset(&spec, 0, sizeof(spec));
+    spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
+    openapi_spec_free(&spec);
+
+    memset(&spec, 0, sizeof(spec));
+    spec.defined_schema_ids = (char **)calloc(1, sizeof(char *));
+    openapi_spec_free(&spec);
+
+    memset(&spec, 0, sizeof(spec));
+    spec.defined_schema_anchors = (char **)calloc(1, sizeof(char *));
+    openapi_spec_free(&spec);
+
+    memset(&spec, 0, sizeof(spec));
+    spec.defined_schema_dynamic_anchors = (char **)calloc(1, sizeof(char *));
+    openapi_spec_free(&spec);
+  }
 
   PASS();
 }

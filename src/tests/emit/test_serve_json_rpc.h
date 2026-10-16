@@ -266,7 +266,13 @@ TEST test_serve_json_rpc_bad_port(void) {
   ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
 
   g_serve_json_rpc_fail_listen = 1;
-  rc = serve_json_rpc_main(1, argv);
+  {
+    char *argv_listen_fail[3];
+    argv_listen_fail[0] = cdd_test_mut_str("serve_json_rpc_main");
+    argv_listen_fail[1] = cdd_test_mut_str("--port");
+    argv_listen_fail[2] = cdd_test_mut_str("12352");
+    rc = serve_json_rpc_main(3, argv_listen_fail);
+  }
   g_serve_json_rpc_fail_listen = 0;
   ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
 

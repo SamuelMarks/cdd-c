@@ -117,7 +117,14 @@ cdd_c_error_t c2s_merge_schema_extras_object(JSON_Object *target,
         return rc_c2s;
       }
     }
-    if (json_object_set_value(target, key, copy) != JSONSuccess) {
+    if (
+#ifdef CDD_BUILD_TESTS
+        g_cdd_fail_json_set_value ||
+#endif
+        json_object_set_value(target, key, copy) != JSONSuccess) {
+#ifdef CDD_BUILD_TESTS
+      g_cdd_fail_json_set_value = 0;
+#endif
       json_value_free(copy);
       json_value_free(extras_val);
       return CDD_C_ERROR_MEMORY;

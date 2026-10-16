@@ -406,9 +406,7 @@ TEST test_debug_and_display(void) {
 TEST test_display_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
-  int rc = 0;
 
-  rc += 0;
   FooE_default(&foo);
   fprintf(stderr, "B\n");
   HazE_default(&haz);
@@ -416,9 +414,9 @@ TEST test_display_fail(void) {
 
 #ifndef _WIN32
   {
+    int rc = 0;
     const char *const tmp_fname = "display_test.tmp";
     FILE *fh = NULL;
-    rc += 0;
     write_to_file(tmp_fname, "content");
 #if defined(_MSC_VER)
     if (fopen_s(&fh, tmp_fname, "r") != 0)
@@ -442,7 +440,6 @@ TEST test_display_fail(void) {
    * coverage. */
 #endif
 
-  rc += 0;
   FooE_cleanup(foo);
   fprintf(stderr, "J\n");
   HazE_cleanup(haz);
@@ -594,9 +591,7 @@ TEST test_to_json_with_null_fields(void) {
 TEST test_debug_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
-  int rc = 0;
 
-  rc += 0;
   FooE_default(&foo);
   fprintf(stderr, "B\n");
   HazE_default(&haz);
@@ -604,9 +599,9 @@ TEST test_debug_fail(void) {
 
 #ifndef _WIN32
   {
+    int rc = 0;
     const char *const tmp_fname = "debug_test.tmp";
     FILE *fh = NULL;
-    rc += 0;
     write_to_file(tmp_fname, "content");
 #if defined(_MSC_VER)
     if (fopen_s(&fh, tmp_fname, "r") != 0)
@@ -631,7 +626,6 @@ TEST test_debug_fail(void) {
   /* MSVC aborts on writing to read-only streams. */
 #endif
 
-  rc += 0;
   FooE_cleanup(foo);
   fprintf(stderr, "J\n");
   HazE_cleanup(haz);

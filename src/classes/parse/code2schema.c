@@ -159,8 +159,19 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
     return CDD_C_ERROR_IO;
   }
 
-  json_object_set_value(comp_obj, "schemas", schemas_val);
-  json_object_set_value(root_obj, "components", comp_val);
+  if (json_object_set_value(comp_obj, "schemas", schemas_val) != JSONSuccess) {
+    json_value_free(schemas_val);
+    json_value_free(comp_val);
+    json_value_free(root);
+    fclose(fp);
+    return CDD_C_ERROR_MEMORY;
+  }
+  if (json_object_set_value(root_obj, "components", comp_val) != JSONSuccess) {
+    json_value_free(comp_val);
+    json_value_free(root);
+    fclose(fp);
+    return CDD_C_ERROR_MEMORY;
+  }
 
   ret_rc = read_from_fh(fp, &content, &content_sz);
   fclose(fp);

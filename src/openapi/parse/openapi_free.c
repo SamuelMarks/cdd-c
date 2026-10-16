@@ -440,9 +440,10 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
     spec->security_schemes = NULL;
   }
 
-  if (spec->component_parameters) {
+  if (spec->component_parameters || spec->component_parameter_names) {
     for (i = 0; i < spec->n_component_parameters; ++i) {
-      free_parameter(&spec->component_parameters[i]);
+      if (spec->component_parameters)
+        free_parameter(&spec->component_parameters[i]);
       if (spec->component_parameter_names)
         free(spec->component_parameter_names[i]);
     }
@@ -453,9 +454,10 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
     spec->n_component_parameters = 0;
   }
 
-  if (spec->component_responses) {
+  if (spec->component_responses || spec->component_response_names) {
     for (i = 0; i < spec->n_component_responses; ++i) {
-      free_response(&spec->component_responses[i]);
+      if (spec->component_responses)
+        free_response(&spec->component_responses[i]);
       if (spec->component_response_names)
         free(spec->component_response_names[i]);
     }
@@ -466,9 +468,10 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
     spec->n_component_responses = 0;
   }
 
-  if (spec->component_headers) {
+  if (spec->component_headers || spec->component_header_names) {
     for (i = 0; i < spec->n_component_headers; ++i) {
-      free_header(&spec->component_headers[i]);
+      if (spec->component_headers)
+        free_header(&spec->component_headers[i]);
       if (spec->component_header_names)
         free(spec->component_header_names[i]);
     }
@@ -479,9 +482,10 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
     spec->n_component_headers = 0;
   }
 
-  if (spec->component_request_bodies) {
+  if (spec->component_request_bodies || spec->component_request_body_names) {
     for (i = 0; i < spec->n_component_request_bodies; ++i) {
-      free_request_body(&spec->component_request_bodies[i]);
+      if (spec->component_request_bodies)
+        free_request_body(&spec->component_request_bodies[i]);
       if (spec->component_request_body_names)
         free(spec->component_request_body_names[i]);
     }
@@ -492,10 +496,12 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
     spec->n_component_request_bodies = 0;
   }
 
-  if (spec->component_media_types) {
+  if (spec->component_media_types || spec->component_media_type_names) {
     for (i = 0; i < spec->n_component_media_types; ++i) {
-      struct OpenAPI_MediaType *mt = &spec->component_media_types[i];
-      free_media_type(mt);
+      if (spec->component_media_types) {
+        struct OpenAPI_MediaType *mt = &spec->component_media_types[i];
+        free_media_type(mt);
+      }
       if (spec->component_media_type_names)
         free(spec->component_media_type_names[i]);
     }
@@ -506,9 +512,10 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
     spec->n_component_media_types = 0;
   }
 
-  if (spec->component_examples) {
+  if (spec->component_examples || spec->component_example_names) {
     for (i = 0; i < spec->n_component_examples; ++i) {
-      free_example(&spec->component_examples[i]);
+      if (spec->component_examples)
+        free_example(&spec->component_examples[i]);
       if (spec->component_example_names)
         free(spec->component_example_names[i]);
     }
@@ -551,9 +558,12 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
     spec->n_raw_schemas = 0;
   }
 
-  if (spec->defined_schemas) {
+  if (spec->defined_schemas || spec->defined_schema_names ||
+      spec->defined_schema_ids || spec->defined_schema_anchors ||
+      spec->defined_schema_dynamic_anchors) {
     for (i = 0; i < spec->n_defined_schemas; ++i) {
-      struct_fields_free(&spec->defined_schemas[i]);
+      if (spec->defined_schemas)
+        struct_fields_free(&spec->defined_schemas[i]);
       if (spec->defined_schema_names)
         free(spec->defined_schema_names[i]);
       if (spec->defined_schema_ids)

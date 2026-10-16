@@ -120,8 +120,10 @@ static cdd_c_error_t parse_request_body_object_inner(
                   free(primary->schema.inline_type);
                   primary->schema.inline_type = NULL;
                   rc = assign_schema_ref_name(&primary->schema, registered);
-                  if (rc != CDD_C_SUCCESS)
+                  if (rc != CDD_C_SUCCESS) {
+                    free(base);
                     return rc;
+                  }
                 }
                 free(base);
               }
@@ -138,8 +140,10 @@ static cdd_c_error_t parse_request_body_object_inner(
                   primary->schema.inline_type = NULL;
                 }
                 rc = assign_schema_ref_name(&primary->schema, registered);
-                if (rc != CDD_C_SUCCESS)
+                if (rc != CDD_C_SUCCESS) {
+                  free(base);
                   return rc;
+                }
               }
               free(base);
             }
@@ -159,8 +163,10 @@ static cdd_c_error_t parse_request_body_object_inner(
                 primary->item_schema.inline_type = NULL;
               }
               rc = assign_schema_ref_name(&primary->item_schema, registered);
-              if (rc != CDD_C_SUCCESS)
+              if (rc != CDD_C_SUCCESS) {
+                free(base);
                 return rc;
+              }
             }
             free(base);
           }
@@ -358,8 +364,10 @@ parse_response_object_inner(const JSON_Object *resp_obj,
                   free(primary->schema.inline_type);
                   primary->schema.inline_type = NULL;
                   rc = assign_schema_ref_name(&primary->schema, registered);
-                  if (rc != CDD_C_SUCCESS)
+                  if (rc != CDD_C_SUCCESS) {
+                    free(base);
                     return rc;
+                  }
                 }
                 free(base);
               }
@@ -376,8 +384,10 @@ parse_response_object_inner(const JSON_Object *resp_obj,
                   primary->schema.inline_type = NULL;
                 }
                 rc = assign_schema_ref_name(&primary->schema, registered);
-                if (rc != CDD_C_SUCCESS)
+                if (rc != CDD_C_SUCCESS) {
+                  free(base);
                   return rc;
+                }
               }
               free(base);
             }
@@ -397,8 +407,10 @@ parse_response_object_inner(const JSON_Object *resp_obj,
                 primary->item_schema.inline_type = NULL;
               }
               rc = assign_schema_ref_name(&primary->item_schema, registered);
-              if (rc != CDD_C_SUCCESS)
+              if (rc != CDD_C_SUCCESS) {
+                free(base);
                 return rc;
+              }
             }
             free(base);
           }

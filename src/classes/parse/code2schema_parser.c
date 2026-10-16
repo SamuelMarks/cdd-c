@@ -329,18 +329,24 @@ cdd_c_error_t c2s_parse_union_tokens_and_write(const struct TokenList *tl,
       else
         json_object_set_string(field_obj, "type", "object");
 
-      json_object_set_value(props_obj, namebuf, field_val);
+      if (json_object_set_value(props_obj, namebuf, field_val) != JSONSuccess)
+        json_value_free(field_val);
       json_object_set_string(option_obj, "type", "object");
-      json_object_set_value(option_obj, "properties", props_val);
+      if (json_object_set_value(option_obj, "properties", props_val) !=
+          JSONSuccess)
+        json_value_free(props_val);
       json_object_set_string(option_obj, "title", namebuf);
-      json_array_append_value(oneof_arr, option_val);
+      if (json_array_append_value(oneof_arr, option_val) != JSONSuccess)
+        json_value_free(option_val);
     }
   }
 
   *idx = i;
-  json_object_set_value(union_obj, "oneOf", oneof_val);
+  if (json_object_set_value(union_obj, "oneOf", oneof_val) != JSONSuccess)
+    json_value_free(oneof_val);
   json_object_set_string(union_obj, "type", "object");
-  json_object_set_value(schemas_obj, union_name, union_val);
+  if (json_object_set_value(schemas_obj, union_name, union_val) != JSONSuccess)
+    json_value_free(union_val);
 
   return CDD_C_SUCCESS;
 }

@@ -27,7 +27,7 @@ cdd_c_error_t c2s_write_default_value(JSON_Object *pobj,
   typ = field->type;
 
   if (strcmp(def, "nullptr") == 0) {
-    json_object_set_value(pobj, "default", json_value_init_null());
+    json_object_set_null(pobj, "default");
     return CDD_C_SUCCESS;
   }
 
@@ -204,7 +204,11 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
   }
 
   json_object_set_string(obj, "type", "object");
-  json_object_set_value(obj, "properties", props_val);
+  if (json_object_set_value(obj, "properties", props_val) != JSONSuccess) {
+    json_value_free(props_val);
+    json_value_free(val);
+    return CDD_C_ERROR_MEMORY;
+  }
 
   for (i = 0; i < sf->size; i++) {
     JSON_Value *pval = json_value_init_object();
@@ -245,7 +249,13 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
         json_value_free(val);
         return CDD_C_ERROR_MEMORY;
       }
-      json_object_set_value(pobj, "items", items_val);
+      if (json_object_set_value(pobj, "items", items_val) != JSONSuccess) {
+        json_value_free(items_val);
+        json_value_free(pval);
+        json_value_free(req_val);
+        json_value_free(val);
+        return CDD_C_ERROR_MEMORY;
+      }
       c2s_write_array_constraints(pobj, field);
     } else {
       if (strcmp(typ, "object") == 0 || strcmp(typ, "enum") == 0) {
@@ -285,7 +295,13 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
       json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
-    json_object_set_value(props_obj, sf->fields[i].name, pval);
+    if (json_object_set_value(props_obj, sf->fields[i].name, pval) !=
+        JSONSuccess) {
+      json_value_free(pval);
+      json_value_free(req_val);
+      json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
+    }
     if (field->required) {
       if (!req_val) {
         req_val = json_value_init_array();
@@ -295,8 +311,9 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
     }
   }
 
-  if (req_val)
+  if (req_val) {
     json_object_set_value(obj, "required", req_val);
+  }
 
   if (c2s_merge_schema_extras_object(obj, sf->schema_extra_json) != 0) {
     json_value_free(val);

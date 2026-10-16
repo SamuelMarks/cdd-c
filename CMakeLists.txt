@@ -1,6 +1,12 @@
 message(STATUS "RUNNING cdd-c CMakeLists.txt")
 
 cmake_minimum_required(VERSION 3.11)
+if(POLICY CMP0077)
+    cmake_policy(SET CMP0077 NEW)
+endif()
+if(POLICY CMP0092)
+    cmake_policy(SET CMP0092 NEW)
+endif()
 project(c_cdd VERSION 0.0.2 LANGUAGES C CXX)
 
 string(TOUPPER "${PROJECT_NAME}" PROJECT_PREFIX)
@@ -234,6 +240,8 @@ if(MSVC AND CMAKE_C_COMPILER_VERSION VERSION_LESS 19.0)
 endif()
 
 if(MSVC)
+    string(REGEX REPLACE "/W[0-4]" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+    string(REGEX REPLACE "/W[0-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE /W4 /Gy /WX)
 else()
     target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE -Wall -Wextra -Wcast-qual -Wdeclaration-after-statement -Werror -pedantic)

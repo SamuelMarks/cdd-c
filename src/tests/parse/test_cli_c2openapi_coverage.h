@@ -1025,6 +1025,8 @@ TEST test_c2openapi_full_coverage_100(void) {
       d_argv[2] = cdd_test_mut_str("-o");
 #if defined(_MSC_VER)
       _putenv_s("CDD_OUTPUT", "build/dummy_out.json");
+#elif defined(_WIN32)
+      _putenv("CDD_OUTPUT=build/dummy_out.json");
 #else
       setenv("CDD_OUTPUT", "build/dummy_out.json", 1);
 #endif
@@ -1032,6 +1034,8 @@ TEST test_c2openapi_full_coverage_100(void) {
       to_docs_json_cli_main(3, d_argv);
 #if defined(_MSC_VER)
       _putenv_s("CDD_OUTPUT", "");
+#elif defined(_WIN32)
+      _putenv("CDD_OUTPUT=");
 #else
       unsetenv("CDD_OUTPUT");
 #endif
@@ -1193,6 +1197,42 @@ TEST test_c2openapi_full_coverage_100(void) {
       dl.server_description = NULL;
       ASSERT_EQ(CDD_C_SUCCESS, add_link_to_response(&resp, &dl));
       free_response(&resp);
+    }
+
+    /* cli.c: process_file when c2openapi_build_operation or aggregator fails */
+    {
+      extern C_CDD_EXPORT int g_cdd_aggregator_fail_path_realloc;
+      int k;
+      const char *pf_in = "build/test_pf_op_fail.c";
+      FILE *pf = fopen(pf_in, "w");
+      if (pf) {
+        fputs("/**\n"
+              " * @route CUSTOMVERB /test_doc\n"
+              " */\n"
+              "int doc_route_fn(void) {\n"
+              "  return 0;\n"
+              "}\n"
+              "int inferred_route_fn(void) {\n"
+              "  HTTP_GET(\"/test_inferred\");\n"
+              "  return 0;\n"
+              "}\n",
+              pf);
+        fclose(pf);
+      }
+      memset(&spec, 0, sizeof(spec));
+      g_cdd_aggregator_fail_path_realloc = 1;
+      process_file(pf_in, &spec);
+      g_cdd_aggregator_fail_path_realloc = 0;
+      openapi_spec_free(&spec);
+
+      for (k = 1; k <= 30; ++k) {
+        memset(&spec, 0, sizeof(spec));
+        g_cdd_strdup_fail = k;
+        process_file(pf_in, &spec);
+        g_cdd_strdup_fail = 0;
+        openapi_spec_free(&spec);
+      }
+      remove(pf_in);
     }
   }
 

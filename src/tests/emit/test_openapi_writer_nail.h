@@ -305,6 +305,7 @@ TEST test_openapi_writer_nail_all_remaining(void) {
     json_set_allocation_functions(malloc, free);
     json_value_free(val);
   }
+  struct_fields_free(&defined_sch[0]);
 
   /* 17. Lines 3419-3445 */
   memset(&sec_req, 0, sizeof(sec_req));
