@@ -52,6 +52,8 @@ extern CDD_TEST_HELPERS_EXPORT int g_getsockname_fail;
 extern CDD_TEST_HELPERS_EXPORT int g_pthread_create_fail;
 extern CDD_TEST_HELPERS_EXPORT int g_accept_fail;
 
+#ifndef __EMSCRIPTEN__
+
 static cdd_c_error_t http_get(int port) {
   int sock;
   struct sockaddr_in server_addr;
@@ -474,7 +476,10 @@ TEST test_mock_server_client_errors(void) {
   PASS();
 }
 
+#endif /* !__EMSCRIPTEN__ */
+
 SUITE(c_cdd_mock_server_suite) {
+#ifndef __EMSCRIPTEN__
   RUN_TEST(test_mock_server_basic);
   RUN_TEST(test_mock_server_init_errors);
   RUN_TEST(test_mock_server_start_errors);
@@ -485,6 +490,7 @@ SUITE(c_cdd_mock_server_suite) {
   RUN_TEST(test_mock_server_thread_branches);
   RUN_TEST(test_mock_server_concurrent_wait);
   RUN_TEST(test_mock_server_client_errors);
+#endif
 }
 
 #ifdef __cplusplus

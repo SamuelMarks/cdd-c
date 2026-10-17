@@ -192,6 +192,7 @@ TEST test_serve_json_rpc_basic(void) {
  *
  * @return The result of the test.
  */
+#ifndef __EMSCRIPTEN__
 TEST test_serve_json_rpc_bad_port(void) {
   char *argv[1];
   char *argv_help[2];
@@ -284,7 +285,6 @@ TEST test_serve_json_rpc_bad_port(void) {
 /**
  * @brief Tests MCP stdio main.
  */
-#ifndef __EMSCRIPTEN__
 TEST test_serve_mcp_stdio_main(void) {
   char *argv[1];
   int argc = 1;
@@ -525,7 +525,6 @@ TEST test_serve_mcp_stdio_main(void) {
 
   PASS();
 }
-#endif
 
 /**
  * @brief JSON RPC Server test suite.
@@ -812,12 +811,13 @@ TEST test_serve_json_rpc_http_requests(void) {
   remove("build/simple_test_oas.json");
   PASS();
 }
+#endif /* !__EMSCRIPTEN__ */
 
 SUITE(serve_json_rpc_suite) {
-  RUN_TEST(test_serve_json_rpc_http_requests);
   RUN_TEST(test_serve_json_rpc_basic);
-  RUN_TEST(test_serve_json_rpc_bad_port);
 #ifndef __EMSCRIPTEN__
+  RUN_TEST(test_serve_json_rpc_http_requests);
+  RUN_TEST(test_serve_json_rpc_bad_port);
   RUN_TEST(test_serve_json_rpc_bind_fail);
   RUN_TEST(test_serve_json_rpc_listen_once);
   RUN_TEST(test_serve_mcp_stdio_main);

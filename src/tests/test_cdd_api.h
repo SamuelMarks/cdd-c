@@ -137,6 +137,7 @@ TEST test_cdd_serve_json_rpc(void) {
   PASS();
 }
 
+#ifndef __EMSCRIPTEN__
 TEST test_bin_cdd(void) {
   int rc = 1;
   const char *env_bin = getenv("CDD_C_BIN");
@@ -206,6 +207,7 @@ TEST test_bin_cdd(void) {
   ASSERT_EQ(0, rc);
   PASS();
 }
+#endif
 
 TEST test_code_writer_and_ffi_common(void) {
   cdd_code_writer_t w;
@@ -711,7 +713,9 @@ SUITE(cdd_api_suite) {
   RUN_TEST(test_cdd_generate_to_openapi);
   RUN_TEST(test_cdd_generate_docs_json);
   RUN_TEST(test_cdd_serve_json_rpc);
+#ifndef __EMSCRIPTEN__
   RUN_TEST(test_bin_cdd);
+#endif
   RUN_TEST(test_code_writer_and_ffi_common);
   RUN_TEST(test_cdd_generate_bindings);
   RUN_TEST(test_cdd_generate_bindings_from_dsl);
