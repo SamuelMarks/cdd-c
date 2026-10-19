@@ -9,6 +9,17 @@
 #include "c_cdd/memory.h"
 /* clang-format on */
 
+/**
+ * @brief Internal helper to parse a Paths map JSON object.
+ *
+ * @param[in] paths_obj The source paths map JSON object.
+ * @param[out] out_paths Output array of OpenAPI_Path structures.
+ * @param[out] out_count Output count of paths.
+ * @param[in,out] spec The parent OpenAPI specification.
+ * @param[in] require_leading_slash Non-zero if routes must begin with '/'.
+ * @param[in] resolve_refs Non-zero to resolve component references.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t parse_paths_object_inner(const JSON_Object *paths_obj,
                                               struct OpenAPI_Path **out_paths,
                                               size_t *out_count,
@@ -515,6 +526,17 @@ validate_path_template_collisions(const struct OpenAPI_Path *paths,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Internal helper to parse an OpenAPI Operation object.
+ *
+ * @param[in] verb_str The HTTP method string.
+ * @param[in] op_obj The source operation JSON object.
+ * @param[out] out_op Output OpenAPI_Operation structure.
+ * @param[in,out] spec The parent OpenAPI specification.
+ * @param[in] is_additional Non-zero if parsed from additionalOperations.
+ * @param[in] route_hint Route path string used for fallback naming.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t parse_operation_inner(const char *verb_str,
                                            const JSON_Object *op_obj,
                                            struct OpenAPI_Operation *out_op,
@@ -695,6 +717,14 @@ cdd_c_error_t parse_operation(const char *verb_str, const JSON_Object *op_obj,
   return rc;
 }
 
+/**
+ * @brief Internal helper to parse additionalOperations from a Path Item object.
+ *
+ * @param[in] path_obj The source path item JSON object.
+ * @param[in,out] path The target OpenAPI_Path structure.
+ * @param[in,out] spec The parent OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t
 parse_additional_operations_inner(const JSON_Object *path_obj,
                                   struct OpenAPI_Path *path,

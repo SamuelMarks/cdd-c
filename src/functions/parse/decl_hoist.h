@@ -51,12 +51,17 @@ struct HoistSiteList {
 
 /**
  * @brief Initialize a hoist site list.
+ *
+ * @param[out] list The hoist site list to initialize.
+ * @return `CDD_C_SUCCESS` on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t
 hoist_site_list_init(struct HoistSiteList *list);
 
 /**
  * @brief Free resources associated with a hoist site list.
+ *
+ * @param[in,out] list The hoist site list to free.
  */
 extern C_CDD_EXPORT void hoist_site_list_free(struct HoistSiteList *list);
 

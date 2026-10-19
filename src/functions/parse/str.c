@@ -16,6 +16,7 @@
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #ifndef strdup
+/** @brief Alias `strdup` to `_strdup` on MSVC. */
 #define strdup _strdup
 #endif
 #endif
@@ -29,11 +30,16 @@
 
 #ifdef CDD_BUILD_TESTS
 /**
- * @brief Allocates a duplicate of a null-terminated string.
+ * @brief Counter to simulate failure in `c_cdd_strdup`.
  */
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
 #endif
 
+/**
+ * @brief Allocates a duplicate of a null-terminated string.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
+ */
 cdd_c_error_t c_cdd_strdup(const char *s, char **out_s) {
   if (s == NULL) {
     *out_s = NULL;
@@ -55,6 +61,8 @@ cdd_c_error_t c_cdd_strdup(const char *s, char **out_s) {
 
 /**
  * @brief Checks whether a string begins with a specified prefix.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t c_cdd_str_starts_with(const char *str, const char *prefix,
                                     int *out_b) {
@@ -80,6 +88,8 @@ cdd_c_error_t c_cdd_str_starts_with(const char *str, const char *prefix,
 
 /**
  * @brief Compares two null-terminated strings for exact equality.
+ *
+ * @return `CDD_C_SUCCESS` on success.
  */
 cdd_c_error_t c_cdd_str_equal(const char *a, const char *b, int *out_b) {
   if (a == b) {
@@ -96,6 +106,8 @@ cdd_c_error_t c_cdd_str_equal(const char *a, const char *b, int *out_b) {
 
 /**
  * @brief Compares two null-terminated strings for case-insensitive equality.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t c_cdd_str_iequal(const char *a, const char *b, int *out_b) {
 #ifdef CDD_BUILD_TESTS
@@ -128,6 +140,8 @@ cdd_c_error_t c_cdd_str_iequal(const char *a, const char *b, int *out_b) {
 /**
  * @brief Returns a pointer to the substring following the last occurrence of a
  * delimiter.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t c_cdd_str_after_last(const char *str, int delimiter,
                                    const char **out_s) {
@@ -148,6 +162,8 @@ cdd_c_error_t c_cdd_str_after_last(const char *str, int delimiter,
 
 /**
  * @brief Checks whether a JSON reference points to a named schema component.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t c_cdd_ref_is_type(const char *ref, const char *type, int *out_b) {
   const char *extracted = NULL;
@@ -165,6 +181,9 @@ cdd_c_error_t c_cdd_ref_is_type(const char *ref, const char *type, int *out_b) {
 
 /**
  * @brief Trims trailing ASCII whitespace characters from a string in place.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 cdd_c_error_t c_cdd_str_trim_trailing_whitespace(char *str) {
   size_t len;
@@ -185,8 +204,9 @@ cdd_c_error_t c_cdd_str_trim_trailing_whitespace(char *str) {
 
 /**
  * @brief Unescapes a C string literal token into its raw character sequence.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
  */
-
 cdd_c_error_t c_cdd_destringize(const char *quoted, char **out_s) {
   size_t len, i, j;
   char *out;
@@ -247,6 +267,8 @@ cdd_c_error_t c_cdd_destringize(const char *quoted, char **out_s) {
 /**
  * @brief Performs a case-insensitive comparison of two strings.
  *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * `out_diff` is NULL.
  */
 cdd_c_error_t c_cdd_stricmp(const char *a, const char *b, int *out_diff) {
   int diff;

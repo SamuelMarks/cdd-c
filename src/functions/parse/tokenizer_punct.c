@@ -27,6 +27,8 @@
 
 /**
  * @brief Tokenizes punctuators and comments starting with character c.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t tokenize_punct(const uint8_t *base, size_t len, size_t *pos,
                              size_t start, int c, size_t consumed,

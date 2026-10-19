@@ -24,6 +24,15 @@
 
 /* --- Implementation Helpers --- */
 
+/**
+ * @brief Looks up a `RefactoredFunction` descriptor by function name.
+ *
+ * @param[in] funcs Array of refactored function descriptors.
+ * @param[in] func_count Number of entries in `funcs`.
+ * @param[in] name Function identifier name to search for.
+ * @param[out] _out_val Pointer to receive the matching descriptor (or NULL).
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t
 find_refactored_func(const struct RefactoredFunction *funcs, size_t func_count,
                      const char *name,
@@ -50,6 +59,10 @@ find_refactored_func(const struct RefactoredFunction *funcs, size_t func_count,
 
 /**
  * @brief Extracts token text.
+ *
+ * @param[in] tok Source token.
+ * @param[out] _out_val Pointer to receive the newly allocated token text.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
  */
 static cdd_c_error_t extract_token_text(const struct Token *tok,
                                         char **_out_val) {
@@ -68,6 +81,12 @@ static cdd_c_error_t extract_token_text(const struct Token *tok,
 
 /**
  * @brief Retrieves the semicolon.
+ *
+ * @param[in] tokens Token list.
+ * @param[in] start Starting token index.
+ * @param[out] _out_val Pointer to receive the semicolon token index (or
+ * `tokens->size`).
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 static cdd_c_error_t find_semicolon(const struct TokenList *tokens,
                                     size_t start, size_t *_out_val) {
@@ -96,6 +115,12 @@ static cdd_c_error_t find_semicolon(const struct TokenList *tokens,
 
 /**
  * @brief Retrieves the stmt start.
+ *
+ * @param[in] tokens Token list.
+ * @param[in] pos Token index inside a statement.
+ * @param[out] _out_val Pointer to receive the start token index of the
+ * statement.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 static cdd_c_error_t find_stmt_start(const struct TokenList *tokens, size_t pos,
                                      size_t *_out_val) {
@@ -124,6 +149,12 @@ static cdd_c_error_t find_stmt_start(const struct TokenList *tokens, size_t pos,
 
 /**
  * @brief Concatenates a range of tokens into a newly allocated string.
+ *
+ * @param[in] tokens Token list.
+ * @param[in] start Inclusive start token index.
+ * @param[in] end Exclusive end token index.
+ * @param[out] _out_val Pointer to receive the concatenated string.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
  */
 static cdd_c_error_t join_tokens_range(const struct TokenList *tokens,
                                        size_t start, size_t end,
@@ -166,6 +197,8 @@ static cdd_c_error_t join_tokens_range(const struct TokenList *tokens,
 
 /**
  * @brief Rewrites a C function body to propagate error return codes.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                            const struct AllocationSiteList *allocs,
@@ -234,14 +267,11 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
 
           if (next < tokens->size &&
               tokens->tokens[next].kind == TOKEN_LPAREN) {
-            size_t call_start = i;
             size_t lparen = next;
             size_t rparen;
             size_t k;
             size_t arg_depth = 1;
             size_t prev;
-
-            (void)call_start;
 
             /* Find RPAREN */
             k = lparen + 1;

@@ -89,6 +89,7 @@ struct cdd_sha256_ctx {
   uint32_t datalen;  /**< Number of bytes currently in buffer */
 };
 
+/** @brief SHA-256 round constants K[0..63]. */
 static const uint32_t cdd_k[64] = {
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1,
     0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
@@ -119,6 +120,13 @@ static const uint32_t cdd_k[64] = {
 /** @brief SHA-256 sigma1 function */
 #define CDD_SIG1(x) (CDD_ROTRIGHT(x, 17) ^ CDD_ROTRIGHT(x, 19) ^ ((x) >> 10))
 
+/**
+ * @brief Compresses a single 512-bit (64-byte) block into the SHA-256 state.
+ *
+ * @param[in,out] ctx SHA-256 state context.
+ * @param[in] data 64-byte input message block.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t cdd_sha256_transform(struct cdd_sha256_ctx *ctx,
                                           const uint8_t data[]) {
   uint32_t a, b, c, d, e, f, g, h, i, j, t1, t2, m[64];
@@ -162,6 +170,12 @@ static cdd_c_error_t cdd_sha256_transform(struct cdd_sha256_ctx *ctx,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Initializes a `cdd_sha256_ctx` state structure with standard IVs.
+ *
+ * @param[out] ctx SHA-256 context to initialize.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t cdd_sha256_init(struct cdd_sha256_ctx *ctx) {
   ctx->datalen = 0;
   ctx->bitlen = 0;
@@ -176,6 +190,14 @@ static cdd_c_error_t cdd_sha256_init(struct cdd_sha256_ctx *ctx) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Feeds a message byte slice into an active SHA-256 state context.
+ *
+ * @param[in,out] ctx Active SHA-256 context.
+ * @param[in] data Input message bytes.
+ * @param[in] len Number of bytes in `data`.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t cdd_sha256_update(struct cdd_sha256_ctx *ctx,
                                        const uint8_t data[], size_t len) {
   size_t i;
@@ -195,6 +217,13 @@ static cdd_c_error_t cdd_sha256_update(struct cdd_sha256_ctx *ctx,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Finalizes SHA-256 padding and writes the 32-byte digest into `hash`.
+ *
+ * @param[in,out] ctx Active SHA-256 context.
+ * @param[out] hash 32-byte output buffer receiving the big-endian digest.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t cdd_sha256_final(struct cdd_sha256_ctx *ctx,
                                       uint8_t hash[]) {
   uint32_t i;
@@ -241,6 +270,12 @@ static cdd_c_error_t cdd_sha256_final(struct cdd_sha256_ctx *ctx,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Computes a 32-byte SHA-256 digest in WebAssembly or pure-C fallback
+ * mode.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
                             unsigned char *out_digest) {
   const uint8_t *d = data ? (const uint8_t *)data : (const uint8_t *)"";
@@ -289,6 +324,8 @@ cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
 
 /**
  * @brief Computes HMAC-SHA-256 in WebAssembly / fallback environment.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
                                  const void *data, size_t data_len,

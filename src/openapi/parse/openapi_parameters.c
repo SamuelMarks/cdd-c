@@ -8,6 +8,15 @@
 #include "openapi/parse/openapi_internal.h"
 /* clang-format on */
 
+/**
+ * @brief Internal helper to parse an OpenAPI Parameter object.
+ *
+ * @param[in] p_obj The source parameter JSON object.
+ * @param[out] out_param Output OpenAPI_Parameter structure.
+ * @param[in,out] spec The parent OpenAPI specification.
+ * @param[in] resolve_refs Non-zero to resolve component references.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t
 parse_parameter_object_inner(const JSON_Object *p_obj,
                              struct OpenAPI_Parameter *out_param,

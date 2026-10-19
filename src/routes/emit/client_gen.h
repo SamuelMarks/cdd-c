@@ -95,29 +95,117 @@ struct OpenApiClientConfig {
 extern C_CDD_EXPORT cdd_c_error_t openapi_client_generate(
     const struct OpenAPI_Spec *spec, const struct OpenApiClientConfig *config);
 
+/**
+ * @brief Finds a server variable by name in an OpenAPI Server object.
+ *
+ * @param[in] srv The OpenAPI Server structure.
+ * @param[in] name The variable name to find.
+ * @param[out] _out_val Output pointer to the found variable, or NULL.
+ * @return CDD_C_SUCCESS on success.
+ */
 extern C_CDD_EXPORT cdd_c_error_t
 find_server_variable(const struct OpenAPI_Server *srv, const char *name,
                      const struct OpenAPI_ServerVariable **_out_val);
+
+/**
+ * @brief Renders a Server URL substituting default values for template
+ * variables.
+ *
+ * @param[in] srv The OpenAPI Server structure.
+ * @param[out] _out_val Newly allocated rendered URL string.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 extern C_CDD_EXPORT cdd_c_error_t
 render_server_url_default(const struct OpenAPI_Server *srv, char **_out_val);
+
+/**
+ * @brief Escapes backslashes and quotes in a string for C string literal
+ * emission.
+ *
+ * @param[in] s Input string.
+ * @param[out] _out_val Newly allocated escaped string.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 extern C_CDD_EXPORT cdd_c_error_t escape_c_string_literal(const char *s,
                                                           char **_out_val);
+
+/**
+ * @brief Selects the effective OpenAPI Server for an operation (operation-level
+ * or path-level).
+ *
+ * @param[in] path Enclosing OpenAPI Path item.
+ * @param[in] op OpenAPI Operation structure.
+ * @param[out] _out_val Output pointer to the selected Server, or NULL.
+ * @return CDD_C_SUCCESS on success.
+ */
 extern C_CDD_EXPORT cdd_c_error_t select_operation_server(
     const struct OpenAPI_Path *path, const struct OpenAPI_Operation *op,
     struct OpenAPI_Server **_out_val);
+
+/**
+ * @brief Builds a C string literal expression for a base URL.
+ *
+ * @param[in] url Raw URL string.
+ * @param[out] _out_val Newly allocated C string literal expression.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 extern C_CDD_EXPORT cdd_c_error_t build_base_url_literal(const char *url,
                                                          char **_out_val);
+
+/**
+ * @brief Generates an uppercase C header include guard from a base name.
+ *
+ * @param[in] base Base filename string.
+ * @param[out] _out_val Newly allocated include guard string.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 extern C_CDD_EXPORT cdd_c_error_t generate_guard(const char *base,
                                                  char **_out_val);
+
+/**
+ * @brief Derives the default model header filename from a base name.
+ *
+ * @param[in] base Base filename string.
+ * @param[out] _out_val Newly allocated model header filename.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 extern C_CDD_EXPORT cdd_c_error_t derive_model_header(const char *base,
                                                       char **_out_val);
+
+/**
+ * @brief Sanitizes an OpenAPI tag name into a valid C identifier segment.
+ *
+ * @param[in] tag Raw tag string.
+ * @param[out] _out_val Newly allocated sanitized tag string.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 extern C_CDD_EXPORT cdd_c_error_t sanitize_tag(const char *tag,
                                                char **_out_val);
+
+/**
+ * @brief Checks if two OpenAPI parameters share the same name and location.
+ *
+ * @param[in] a First OpenAPI parameter.
+ * @param[in] b Second OpenAPI parameter.
+ * @return Non-zero if matching, CDD_C_SUCCESS otherwise.
+ */
 extern C_CDD_EXPORT cdd_c_error_t param_keys_match(
     const struct OpenAPI_Parameter *a, const struct OpenAPI_Parameter *b);
+
+/**
+ * @brief Merges path-level and operation-level parameters into an effective
+ * parameter list.
+ *
+ * @param[in] path Enclosing OpenAPI Path item.
+ * @param[in] op OpenAPI Operation structure.
+ * @param[out] out_params Output array of merged parameters.
+ * @param[out] out_count Output count of merged parameters.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 extern C_CDD_EXPORT cdd_c_error_t build_effective_parameters(
     const struct OpenAPI_Path *path, const struct OpenAPI_Operation *op,
     struct OpenAPI_Parameter **out_params, size_t *out_count);
+
 /**
  * @brief Converts an OpenAPI HTTP verb enum into its uppercase string literal.
  *
@@ -151,11 +239,43 @@ write_docblock(FILE *fp, const struct OpenAPI_Path *path,
 extern C_CDD_EXPORT cdd_c_error_t write_header_preamble(FILE *fp,
                                                         const char *guard,
                                                         const char *model_decl);
+
+/**
+ * @brief Writes the C source preamble for a generated OpenAPI client
+ * implementation.
+ *
+ * @param[in,out] fp Output file stream.
+ * @param[in] header_name Header filename to include.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
 extern C_CDD_EXPORT cdd_c_error_t
 write_source_preamble(FILE *fp, const char *header_name);
+
+/**
+ * @brief Writes client lifecycle (`_init`, `_cleanup`, `ApiError`) functions.
+ *
+ * @param[in,out] h Output header file stream.
+ * @param[in,out] c Output source file stream.
+ * @param[in] prefix Function name prefix.
+ * @param[in] spec Parsed OpenAPI specification.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
 extern C_CDD_EXPORT cdd_c_error_t write_lifecycle_funcs(
     FILE *h, FILE *c, const char *prefix, const struct OpenAPI_Spec *spec);
 
+/**
+ * @brief Emits the declaration and implementation for a single OpenAPI
+ * operation.
+ *
+ * @param[in,out] hfile Output header file stream.
+ * @param[in,out] cfile Output source file stream.
+ * @param[in] path Enclosing OpenAPI path item.
+ * @param[in] op OpenAPI operation descriptor.
+ * @param[in] spec Parsed OpenAPI specification.
+ * @param[in] config Client generator configuration.
+ * @param[in] prefix Function name prefix.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
 extern C_CDD_EXPORT cdd_c_error_t emit_operation(
     FILE *hfile, FILE *cfile, const struct OpenAPI_Path *path,
     const struct OpenAPI_Operation *op, const struct OpenAPI_Spec *spec,

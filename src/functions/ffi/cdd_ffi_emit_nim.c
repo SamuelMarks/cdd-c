@@ -19,6 +19,13 @@ extern volatile int g_fail_io_after;
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI IR type to its corresponding Nim `importc` type string.
+ *
+ * @param[in] t FFI type descriptor to map.
+ * @param[out] out_type Output pointer receiving the resolved Nim type string.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t map_nim_type(cdd_ffi_type_t *t, const char **out_type) {
   static const cdd_ffi_type_map_table_t k_nim_types = {
       "void",    "bool",    "int8",      "uint8",      "int16",  "uint16",
@@ -28,6 +35,12 @@ static cdd_c_error_t map_nim_type(cdd_ffi_type_t *t, const char **out_type) {
   return cdd_ffi_map_type_from_table(&k_nim_types, *t, out_type);
 }
 
+/**
+ * @brief Emits Nim `.nim` FFI bindings and `.nimble` package metadata for the
+ * given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t cdd_ffi_emit_nim(cdd_ffi_ir_t *ir,
                                const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;

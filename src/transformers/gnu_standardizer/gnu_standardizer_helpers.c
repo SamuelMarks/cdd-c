@@ -16,6 +16,11 @@ C_CDD_EXPORT volatile int g_gnu_malloc_fail = 0;
 C_CDD_EXPORT volatile int g_gnu_find_fail = 0;
 #endif
 
+/**
+ * @brief Allocates memory for GNU standardizer transformations.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on failure.
+ */
 cdd_c_error_t gnu_malloc(size_t sz, void **out_ptr) {
   if (!out_ptr)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -31,6 +36,11 @@ cdd_c_error_t gnu_malloc(size_t sz, void **out_ptr) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Allocates a new CST node with fault-injection support.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on failure.
+ */
 cdd_c_error_t gnu_alloc_node(enum cdd_cst_node_kind_t kind,
                              cdd_cst_node_t **out_node) {
 #ifdef CDD_BUILD_TESTS
@@ -40,6 +50,11 @@ cdd_c_error_t gnu_alloc_node(enum cdd_cst_node_kind_t kind,
   return cdd_cst_alloc_node(kind, out_node);
 }
 
+/**
+ * @brief Finds the parent CST node and child index for a given token.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_NOT_FOUND if not found.
+ */
 cdd_c_error_t gnu_find_node(cdd_cst_node_t *root, cdd_token_t *tok,
                             size_t *out_idx, cdd_cst_node_t **out_node) {
 #ifdef CDD_BUILD_TESTS
@@ -447,8 +462,7 @@ cdd_c_error_t cdd_tramp_visitor(cdd_cst_node_t *node, void *user_data) {
  * @return CDD_C_SUCCESS on success, or error code.
  */
 cdd_c_error_t cdd_asm_visitor(cdd_cst_node_t *node, void *user_data) {
-  (void)user_data;
-  if (!node)
+  if (!node && !user_data)
     return CDD_C_SUCCESS;
   return CDD_C_SUCCESS;
 }

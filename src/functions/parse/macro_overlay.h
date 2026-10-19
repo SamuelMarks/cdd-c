@@ -45,12 +45,18 @@ struct MacroOverlayList {
 
 /**
  * @brief Initialize a macro overlay list.
+ *
+ * @param[out] list The macro overlay list to initialize.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 C_CDD_EXPORT cdd_c_error_t
 macro_overlay_list_init(struct MacroOverlayList *list);
 
 /**
  * @brief Free resources associated with a macro overlay list.
+ *
+ * @param[in,out] list The macro overlay list to free.
  */
 C_CDD_EXPORT void macro_overlay_list_free(struct MacroOverlayList *list);
 

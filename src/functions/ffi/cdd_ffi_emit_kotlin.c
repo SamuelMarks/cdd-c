@@ -13,6 +13,14 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Emits a `.def` Kotlin/Native `cinterop` definition file for the given
+ * FFI IR.
+ *
+ * @param[in] ir The extracted and topologically sorted FFI IR.
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t
 emit_kotlin_def(cdd_ffi_ir_t *ir,
                 const cdd_generate_bindings_config_t *config) {
@@ -21,8 +29,8 @@ emit_kotlin_def(cdd_ffi_ir_t *ir,
   const char *lib_name =
       (config->library_name) ? config->library_name : "mylib";
 
-  (void)ir; /* The def file just points to the header for cinterop to do the
-               heavy lifting */
+  if (!ir)
+    return CDD_C_ERROR_UNKNOWN;
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.def", config->output_dir,
@@ -60,6 +68,11 @@ emit_kotlin_def(cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits Kotlin/Native `cinterop` `.def` bindings for the given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t
 cdd_ffi_emit_kotlin(cdd_ffi_ir_t *ir,
                     const cdd_generate_bindings_config_t *config) {

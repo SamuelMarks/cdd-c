@@ -20,6 +20,8 @@
 
 /**
  * @brief Initializes a C-to-OpenAPI type mapping table.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c_mapping_init(struct OpenApiTypeMapping *out) {
 #ifdef CDD_BUILD_TESTS
@@ -53,6 +55,11 @@ void c_mapping_free(struct OpenApiTypeMapping *out) {
 
 /**
  * @brief Adds or sets primitive.
+ *
+ * @param[out] out Target `OpenApiTypeMapping` structure.
+ * @param[in] type OpenAPI primitive type string.
+ * @param[in] fmt Optional OpenAPI format string.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 static cdd_c_error_t set_primitive(struct OpenApiTypeMapping *out,
                                    const char *type, const char *fmt) {
@@ -74,13 +81,23 @@ static cdd_c_error_t set_primitive(struct OpenApiTypeMapping *out,
 
 /**
  * @brief Adds or sets ref.
+ *
+ * @param[out] out Target `OpenApiTypeMapping` structure.
+ * @param[in] ref Schema reference name.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 static cdd_c_error_t set_ref(struct OpenApiTypeMapping *out, const char *ref) {
   out->kind = OA_TYPE_OBJECT;
   return c_cdd_strdup(ref, &out->ref_name);
 }
 
-/* Strip qualifiers like const, volatile, struct, enum */
+/**
+ * @brief Strips leading C type qualifiers (`const`, `volatile`) and whitespace.
+ *
+ * @param[in] type Input C type string.
+ * @param[out] _out_val Pointer to receive the unqualified substring pointer.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t skip_qualifiers(const char *type, const char **_out_val) {
   const char *p;
 #ifdef CDD_BUILD_TESTS
@@ -110,6 +127,11 @@ static cdd_c_error_t skip_qualifiers(const char *type, const char **_out_val) {
 
 /**
  * @brief Normalizes whitespace and qualifiers in a C type string.
+ *
+ * @param[in] in Input C type string.
+ * @param[out] _out_val Pointer to receive the newly allocated cleaned type
+ * string.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 static cdd_c_error_t clean_type_str(const char *in, char **_out_val) {
   char *p;
@@ -136,6 +158,8 @@ static cdd_c_error_t clean_type_str(const char *in, char **_out_val) {
 /**
  * @brief Maps a C type declaration string to its corresponding OpenAPI type and
  * format.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
                                  struct OpenApiTypeMapping *out) {

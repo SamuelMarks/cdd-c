@@ -50,12 +50,18 @@ struct DesigInitList {
 
 /**
  * @brief Initialize a list of designated initializers.
+ *
+ * @param[out] list The designated initializer list to initialize.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 extern C_CDD_EXPORT cdd_c_error_t
 desig_init_list_init(struct DesigInitList *list);
 
 /**
  * @brief Free resources associated with a designated initializer list.
+ *
+ * @param[in,out] list The designated initializer list to free.
  */
 extern C_CDD_EXPORT void desig_init_list_free(struct DesigInitList *list);
 

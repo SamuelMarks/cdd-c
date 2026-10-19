@@ -48,18 +48,33 @@ codegen_security_write_apply(FILE *fp, const struct OpenAPI_Operation *op,
 
 /**
  * @brief Determine whether the active security schemes require query params.
+ *
+ * @param[in] op The operation context.
+ * @param[in] spec The full OpenAPI specification.
+ * @return Non-zero if query security params are required, CDD_C_SUCCESS
+ * otherwise.
  */
 extern C_CDD_EXPORT cdd_c_error_t codegen_security_requires_query(
     const struct OpenAPI_Operation *op, const struct OpenAPI_Spec *spec);
 
 /**
  * @brief Determine whether the active security schemes require cookie params.
+ *
+ * @param[in] op The operation context.
+ * @param[in] spec The full OpenAPI specification.
+ * @return Non-zero if cookie security params are required, CDD_C_SUCCESS
+ * otherwise.
  */
 extern C_CDD_EXPORT cdd_c_error_t codegen_security_requires_cookie(
     const struct OpenAPI_Operation *op, const struct OpenAPI_Spec *spec);
 
 /**
- * @brief Generate middleware check for servers
+ * @brief Generate middleware check for servers.
+ *
+ * @param[in,out] fp Output file stream.
+ * @param[in] op The operation context.
+ * @param[in] spec The full OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t codegen_security_write_server_apply(
     FILE *fp, const struct OpenAPI_Operation *op,

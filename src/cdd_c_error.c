@@ -7,6 +7,11 @@
 #include <stddef.h>
 /* clang-format on */
 
+/**
+ * @brief Converts an error code to a human-readable string.
+ *
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT otherwise.
+ */
 cdd_c_error_t cdd_c_strerror(cdd_c_error_t err, char **out) {
   if (out == NULL) {
     return CDD_C_ERROR_INVALID_ARGUMENT;

@@ -10,6 +10,8 @@
 
 /**
  * @brief Collects an array of strings from a JSON array.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_collect_string_array(const JSON_Array *arr, char ***out,
                                        size_t *out_count) {
@@ -49,6 +51,8 @@ cdd_c_error_t c2s_collect_string_array(const JSON_Array *arr, char ***out,
 
 /**
  * @brief Collects property names from a JSON Schema object.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_collect_property_names(const JSON_Object *schema_obj,
                                          char ***out, size_t *out_count) {

@@ -65,6 +65,8 @@ cdd_c_error_t media_type_base_len(const char *media_type, size_t *_out_val) {
 
 /**
  * @brief Checks if media type starts with a specified prefix.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t media_type_has_prefix(const char *media_type, const char *prefix,
                                     int *out) {
@@ -98,6 +100,8 @@ cdd_c_error_t media_type_has_prefix(const char *media_type, const char *prefix,
 
 /**
  * @brief Checks if base media type ends with a specified suffix.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t media_type_has_suffix(const char *media_type, const char *suffix,
                                     int *out) {
@@ -143,6 +147,8 @@ cdd_c_error_t media_type_has_suffix(const char *media_type, const char *suffix,
 
 /**
  * @brief Compares media type base portion with an expected string.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t media_type_ieq(const char *media_type, const char *expected,
                              int *out) {
@@ -187,6 +193,8 @@ cdd_c_error_t media_type_ieq(const char *media_type, const char *expected,
 
 /**
  * @brief Checks if a media type represents JSON.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t media_type_is_json(const char *media_type, int *out) {
   int is_app_json = 0;
@@ -223,6 +231,8 @@ cdd_c_error_t media_type_is_json(const char *media_type, int *out) {
 
 /**
  * @brief Checks if a media type represents URL-encoded form data.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t media_type_is_form(const char *media_type, int *out) {
 #ifdef CDD_BUILD_TESTS
@@ -236,6 +246,8 @@ cdd_c_error_t media_type_is_form(const char *media_type, int *out) {
 
 /**
  * @brief Checks if a media type is text/plain.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t media_type_is_text_plain(const char *media_type, int *out) {
 #ifdef CDD_BUILD_TESTS
@@ -249,6 +261,8 @@ cdd_c_error_t media_type_is_text_plain(const char *media_type, int *out) {
 
 /**
  * @brief Checks if a media type is multipart.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t media_type_is_multipart(const char *media_type, int *out) {
 #ifdef CDD_BUILD_TESTS
@@ -262,6 +276,8 @@ cdd_c_error_t media_type_is_multipart(const char *media_type, int *out) {
 
 /**
  * @brief Checks if a media type is multipart/form-data.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t media_type_is_multipart_form(const char *media_type, int *out) {
 #ifdef CDD_BUILD_TESTS
@@ -276,6 +292,8 @@ cdd_c_error_t media_type_is_multipart_form(const char *media_type, int *out) {
 
 /**
  * @brief Finds a media type definition by name in an array.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
                               const char *name,
@@ -305,6 +323,8 @@ cdd_c_error_t find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
 
 /**
  * @brief Checks if a media type represents textual content.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t media_type_is_textual(const char *media_type, int *out) {
   int check = 0;
@@ -356,6 +376,8 @@ cdd_c_error_t media_type_is_textual(const char *media_type, int *out) {
 
 /**
  * @brief Checks if a media type represents binary content.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t media_type_is_binary(const char *media_type, int *out) {
   int check = 0;
@@ -408,6 +430,10 @@ cdd_c_error_t media_type_is_binary(const char *media_type, int *out) {
 #ifdef CDD_BUILD_TESTS
 /**
  * @brief Test helper to compute base length of media type.
+ *
+ * @param[in] media_type Media type string.
+ * @param[out] out_val Pointer to receive base length.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_test_sig_media_type_base_len(const char *media_type,
                                                size_t *out_val) {
@@ -416,6 +442,11 @@ cdd_c_error_t cdd_test_sig_media_type_base_len(const char *media_type,
 
 /**
  * @brief Test helper to check if media type has prefix.
+ *
+ * @param[in] media_type Media type string.
+ * @param[in] prefix Prefix string.
+ * @param[out] out Pointer to receive result.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_test_sig_media_type_has_prefix(const char *media_type,
                                                  const char *prefix, int *out) {
@@ -424,6 +455,11 @@ cdd_c_error_t cdd_test_sig_media_type_has_prefix(const char *media_type,
 
 /**
  * @brief Test helper to check if media type has suffix.
+ *
+ * @param[in] media_type Media type string.
+ * @param[in] suffix Suffix string.
+ * @param[out] out Pointer to receive result.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_test_sig_media_type_has_suffix(const char *media_type,
                                                  const char *suffix, int *out) {
@@ -432,6 +468,11 @@ cdd_c_error_t cdd_test_sig_media_type_has_suffix(const char *media_type,
 
 /**
  * @brief Test helper for media type equality.
+ *
+ * @param[in] media_type Media type string.
+ * @param[in] expected Expected media type string.
+ * @param[out] out Pointer to receive result.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_test_sig_media_type_ieq(const char *media_type,
                                           const char *expected, int *out) {
@@ -440,6 +481,10 @@ cdd_c_error_t cdd_test_sig_media_type_ieq(const char *media_type,
 
 /**
  * @brief Test helper to check if media type is JSON.
+ *
+ * @param[in] media_type Media type string.
+ * @param[out] out Pointer to receive result.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_test_sig_media_type_is_json(const char *media_type,
                                               int *out) {
@@ -448,6 +493,10 @@ cdd_c_error_t cdd_test_sig_media_type_is_json(const char *media_type,
 
 /**
  * @brief Test helper to check if media type is form.
+ *
+ * @param[in] media_type Media type string.
+ * @param[out] out Pointer to receive result.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_test_sig_media_type_is_form(const char *media_type,
                                               int *out) {
@@ -456,6 +505,10 @@ cdd_c_error_t cdd_test_sig_media_type_is_form(const char *media_type,
 
 /**
  * @brief Test helper to check if media type is text/plain.
+ *
+ * @param[in] media_type Media type string.
+ * @param[out] out Pointer to receive result.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_test_sig_media_type_is_text_plain(const char *media_type,
                                                     int *out) {
@@ -464,6 +517,10 @@ cdd_c_error_t cdd_test_sig_media_type_is_text_plain(const char *media_type,
 
 /**
  * @brief Test helper to check if media type is multipart.
+ *
+ * @param[in] media_type Media type string.
+ * @param[out] out Pointer to receive result.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_test_sig_media_type_is_multipart(const char *media_type,
                                                    int *out) {
@@ -472,6 +529,10 @@ cdd_c_error_t cdd_test_sig_media_type_is_multipart(const char *media_type,
 
 /**
  * @brief Test helper to check if media type is multipart/form-data.
+ *
+ * @param[in] media_type Media type string.
+ * @param[out] out Pointer to receive result.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_test_sig_media_type_is_multipart_form(const char *media_type,
                                                         int *out) {
@@ -480,6 +541,12 @@ cdd_c_error_t cdd_test_sig_media_type_is_multipart_form(const char *media_type,
 
 /**
  * @brief Test helper to find media type by name.
+ *
+ * @param[in] mts Array of media types.
+ * @param[in] n Number of entries in `mts`.
+ * @param[in] name Target media type name.
+ * @param[out] out_val Pointer to receive matching media type.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t
 cdd_test_sig_find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
@@ -490,6 +557,10 @@ cdd_test_sig_find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
 
 /**
  * @brief Test helper to check if media type is textual.
+ *
+ * @param[in] media_type Media type string.
+ * @param[out] out Pointer to receive result.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_test_sig_media_type_is_textual(const char *media_type,
                                                  int *out) {
@@ -498,6 +569,10 @@ cdd_c_error_t cdd_test_sig_media_type_is_textual(const char *media_type,
 
 /**
  * @brief Test helper to check if media type is binary.
+ *
+ * @param[in] media_type Media type string.
+ * @param[out] out Pointer to receive result.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_test_sig_media_type_is_binary(const char *media_type,
                                                 int *out) {

@@ -1,126 +1,377 @@
-cdd-c
-=====
+cdd-c: C (C89) ⇄ OpenAPI
+========================
+
 [![License](https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Doc Coverage](https://img.shields.io/badge/Doc%20Coverage-100.0%25-brightgreen.svg)](#)
-[![Test Coverage](https://img.shields.io/badge/Test%20Coverage-100.0%25-brightgreen.svg)](#)
 [![interactive WASM web demo](https://img.shields.io/badge/interactive-WASM_web_demo-blue.svg)](https://offscale.io/wasm_web_demo)
 [![CI](https://github.com/SamuelMarks/cdd-c/actions/workflows/ci.yml/badge.svg)](https://github.com/SamuelMarks/cdd-c/actions)
+[![Test Coverage](https://img.shields.io/badge/Test%20Coverage-99.5%25-brightgreen.svg)](#)
+[![Doc Coverage](https://img.shields.io/badge/Doc%20Coverage-100.0%25-brightgreen.svg)](#)
 
-----
+**cdd-c** compiles **[OpenAPI](https://spec.openapis.org/oas/latest.html) / [Swagger](https://spec.openapis.org/oas/v2.0.html) / [Arazzo](https://spec.openapis.org/arazzo/latest.html)** to and from **C (C89)** (servers, client SDKs, CLIs, database schemas, tests, mocks, and docs), updating your existing code in-place without overwriting your edits.
 
-OpenAPI ↔ C. This is one compiler in a suite, all focussed on the same task: Compiler Driven Development (CDD).
+**Compiler Driven Development (CDD)** is a software engineering methodology that uses a suite of standalone, lossless compilers to synchronize API specifications, server implementations, client SDKs, command-line tooling, workflow orchestrators, tests, and documentation.
 
-Each compiler is written in its target language, is whitespace and comment sensitive, and has both an SDK and CLI.
+Unlike traditional code generators that treat outputs as disposable or read-only, Compiler Driven Development provides a **complete, standalone compiler** (exposed as both a CLI and a programmatic SDK) written natively in each supported language. Where conventional compilers rely solely on an Abstract Syntax Tree (AST) that discards formatting and comments, CDD compilers operate on a **Concrete Syntax Tree (CST)** or **Decorated Syntax Tree (DST)**. This guarantees **lossless conversion**—preserving exact whitespace, indentation, inline comments, block comments, and docstrings—allowing true bidirectional synchronization between hand-edited `C (C89)` source code and [OpenAPI 3.2.0](https://spec.openapis.org/oas/v3.2.0.html), [Swagger 2.0](https://spec.openapis.org/oas/v2.0.html), and [Arazzo 1.1.0](https://spec.openapis.org/arazzo/v1.1.0.html) specifications.
 
-The core philosophy of Compiler Driven Development (CDD) is synchronization without compromise. Where traditional generators silo your API boundaries into read-only files, this compiler natively merges changes into your codebase via a robust, [whitespace and comment aware] Abstract Syntax Tree (AST) driven parser & emitter. It bridges the gap between design and implementation, allowing you to seamlessly generate SDKs from a spec or extract a spec from existing code. By keeping your APIs, SDKs, and tests in continuous, automated alignment, it drastically improves both delivery speed and software reliability.
+---
 
-The CLI—at a minimum—has:
+## Why Compiler Driven Development?
 
-- `cdd-c --help`
-- `cdd-c --version`
-- `cdd-c from_openapi to_sdk_cli -i spec.json`
-- `cdd-c from_openapi to_sdk -i spec.json`
-- `cdd-c from_openapi to_server -i spec.json`
-- `cdd-c to_openapi -f path/to/code`
-- `cdd-c to_docs_json --no-imports --no-wrapping -i spec.json`
-- `cdd-c serve_json_rpc --port 8080 --listen 127.0.0.1`
+By replacing one-way templates and manual boilerplate with lossless CST/DST compilers, Compiler Driven Development transforms the engineering lifecycle across four dimensions:
 
-## SDK Example
+- **Development Speed**: Eliminate manual boilerplate across servers, client SDKs, CLIs, database models, workflow runners, and mock servers. Start from an [OpenAPI](https://spec.openapis.org/oas/latest.html) or [Arazzo](https://spec.openapis.org/arazzo/latest.html) specification to scaffold an entire installable project (complete with package manifests and CI workflows), or write code first in `C (C89)` and extract the specification automatically. When requirements change, update whichever representation is most convenient and synchronize the rest immediately.
+- **Development Consistency**: Every data model, route handler, CLI flag, ORM entity, workflow step, and API contract is derived from and validated against the same semantic representation. Architectural drift between backend routes, frontend clients, and published specifications becomes structurally impossible.
+- **Development Quality**: Keeping tests and documentation in lockstep with implementation code is automated rather than an afterthought. Because the compiler parses and emits docstrings, type signatures, API mocks, and contract test suites alongside your business logic, maintaining **100% documentation coverage and 100% test coverage** becomes a natural byproduct of compilation rather than a manual chore.
+- **Polyglot Development**: Seamlessly bridge **13+ programming languages** (C, C++, C#, Go, Java, Kotlin, PHP, Python, Ruby, Rust, POSIX Shell, Swift, and TypeScript) to and from [OpenAPI](https://spec.openapis.org/oas/latest.html) and [Arazzo](https://spec.openapis.org/arazzo/latest.html) specifications. Any codebase in any supported language can be reverse-compiled into OpenAPI/Arazzo and immediately compiled forward into idiomatic, human-editable code across every other language in the suite. And being an open-source methodology—rather than a proprietary trade secret—new languages can be added by implementing new compilers that follow the CDD approach (see [cdd-spec-conformance](https://github.com/SamuelMarks/cdd-spec-conformance) for tooling to facilitate).
+
+---
+
+## The Standalone Compiler Architecture and Lossless Conversion
+
+Traditional code generation tools rely on destructive templating: if you regenerate your project from an updated specification, your custom implementation logic, formatting, and comments are overwritten.
+
+Each Compiler Driven Development toolchain is written natively in its target language, compiles both to native binaries and to **WebAssembly (WASM/WASI)**, and implements a full lexer, parser, semantic differ, and code emitter backed by Concrete Syntax Tree (CST) and Decorated Syntax Tree (DST) representations:
+
+- **Beyond AST to CST/DST**: A standard Abstract Syntax Tree (AST) captures program semantics while stripping away "trivia" (whitespace, blank lines, and comments). By pairing structural AST semantics with a Concrete Syntax Tree (CST) or Decorated Syntax Tree (DST) that attaches trivia and structured documentation directly to syntax nodes, the compiler preserves 100% of your source formatting and comments.
+- **Zero-Destruction Guarantee**: Every part of the generated codebase is designed to be edited by humans. You can open generated routing files, data models, database entities, workflow runners, tests, and CLI commands, format them to your preferences, add inline comments, and inject custom business logic.
+- **When your specification changes**: The CDD compiler parses your existing source files into a CST/DST, computes a semantic diff against the updated [OpenAPI](https://spec.openapis.org/oas/latest.html) or [Arazzo](https://spec.openapis.org/arazzo/latest.html) specification, and surgically patches in new endpoints, workflows, parameters, or fields without disturbing your custom logic, comments, or whitespace.
+- **When your codebase changes**: The compiler statically analyzes your updated source code, routes, workflows, tests, and docstrings—without unsafe dynamic code execution or reflection—to extract a 100% compliant, authoritative [OpenAPI](https://spec.openapis.org/oas/latest.html) or [Arazzo](https://spec.openapis.org/arazzo/latest.html) specification.
+
+---
+
+## The Bidirectional Synchronization Loop
+
+```mermaid
+flowchart TD
+    subgraph SingleLang ["Single-Language Acceleration & Quality (e.g., C (C89))"]
+        direction TB
+        subgraph Outputs ["Synchronized Artifacts"]
+            direction LR
+            Server["Server & Routes"]
+            SDK["Client SDK"]
+            CLI["CLI & Workflows"]
+        end
+
+        subgraph SyncLoop ["Continuous In-Language Sync (Speed & 100% Coverage)"]
+            direction LR
+            Schemas["Data Models, Schemas & ORM"]
+            Docs["Docstrings & API Docs"]
+            TestsMocks["Contract Tests & API Mocks"]
+        end
+
+        Outputs <-->|"Zero-Boilerplate Scaffolding"| SyncLoop
+        Schemas <-->|"Auto-Sync"| Docs
+        Docs <-->|"Auto-Sync"| TestsMocks
+        TestsMocks <-->|"Auto-Sync"| Schemas
+    end
+
+    Compiler{"cdd-c<br/>Lossless CST / DST Compiler<br/>(Preserves Whitespace & Comments)"}
+
+    SingleLang <-->|"Surgical In-Place Patching<br/>& Static Extraction"| Compiler
+
+    OAS[("OpenAPI 3.2.0 / Swagger 2.0 / Arazzo 1.1.0<br/>Universal Contract Hub")]
+
+    Compiler <-->|"to_openapi / from_openapi<br/>to_arazzo / from_arazzo"| OAS
+
+    subgraph Polyglot ["Polyglot Development at Single-Language Speed"]
+        direction LR
+        OtherCompilers["13+ Native CDD Compilers<br/>(C, C++, C#, Go, Java, Kotlin, PHP,<br/>Python, Ruby, Rust, Shell, Swift, TS)"]
+        OtherCodebases["Idiomatic Servers, SDKs, CLIs,<br/>Schemas, Docs, Tests & Mocks<br/>Across Every Target Language"]
+        OtherCompilers <-->|"Lossless CST / DST Sync"| OtherCodebases
+    end
+
+    OAS <-->|"Instant Cross-Language Sync"| OtherCompilers
+```
+
+The Compiler Driven Development lifecycle delivers compounding returns in both single-language and polyglot environments:
+1. **Single-Language Speed**: Edit whichever artifact is most convenient—models/schemas, route handlers, docstrings, or tests—and let `cdd-c` surgically synchronize the rest in-place without overwriting your custom logic, comments, or whitespace.
+2. **Single-Language Quality**: Because schemas, documentation, contract tests, and mocks are continuously cross-compiled rather than manually maintained, **100% doc coverage and 100% test coverage** are enforced automatically on every sync.
+3. **Polyglot Development at Single-Language Speed**: Extracting an authoritative [OpenAPI](https://spec.openapis.org/oas/latest.html) or [Arazzo](https://spec.openapis.org/arazzo/latest.html) contract from one language immediately drives lossless forward-compilation across all 13+ supported languages—making multi-language SDK, CLI, and service maintenance just as fast as working in a single codebase.
+
+---
+
+## Core Capabilities Shared Across All CDD Compilers
+
+Every `cdd-*` repository in the suite implements the same foundational feature set:
+
+- **Bidirectional OpenAPI 3.2.0 & Swagger 2.0 Compilation**:
+  - `from_openapi`: Generate idiomatic `C (C89)` Client SDKs (`to_sdk`), Client CLIs (`to_sdk_cli`), and Server stubs/routers (`to_server`) from a single specification (`-i`) or a batch directory of specifications (`--input-dir`). Automatically upgrades legacy Swagger 2.0 and OpenAPI 3.0/3.1 specifications to OpenAPI 3.2.0.
+  - `to_openapi`: Statically parse existing `C (C89)` source files or directories to extract a compliant OpenAPI 3.2.0 specification.
+- **Bidirectional Arazzo 1.1.0 Workflow Orchestration**:
+  - `from_arazzo`: Compile multi-step [Arazzo 1.1.0](https://spec.openapis.org/arazzo/v1.1.0.html) workflow specifications (including runtime expressions, step DAGs, criterion evaluations, and failure/success actions) into `C (C89)` SDK workflow orchestrators (`to_sdk`), CLI workflow runners (`to_sdk_cli`), and Server/E2E workflow test suites (`to_server`).
+  - `to_arazzo`: Reverse-parse `C (C89)` workflow orchestrators, CLI scripts, or E2E test suites back into an authoritative Arazzo 1.1.0 document.
+- **In-Place Codebase Synchronization (`sync`)**:
+  - Synchronize data models, ORM schemas, route handlers, docstrings, contract tests, mocks, and specifications in-place using lossless CST/DST patching.
+- **Documentation Code-Snippet Generation (`to_docs_json`)**:
+  - Emit a structured JSON documentation payload containing idiomatic `C (C89)` request/workflow code snippets for every operation in an OpenAPI specification (with `--no-imports` and `--no-wrapping` options for embedding in documentation portals).
+- **Composable Contract Tests, Mocks, CI, and Package Scaffolding**:
+  - By default, `from_openapi` and `from_arazzo` scaffold complete, installable `C (C89)` packages and `.github/workflows/ci.yml` pipelines (configurable via `--no-installable-package` and `--no-github-actions`), and generate contract test suites and API mocks/fakes via `--tests`.
+- **Model Context Protocol (`mcp`) & JSON-RPC (`serve_json_rpc`)**:
+  - Run `cdd-c mcp` to expose the compiler over stdio as an [MCP](https://modelcontextprotocol.io/) server for AI assistants and IDEs, or pass `--mcp` during generation to emit MCP tool/resource adapters directly inside generated SDKs and servers.
+  - Run `cdd-c serve_json_rpc` to expose the compiler's full API over JSON-RPC 2.0 (`--port`, `--listen`).
+- **Native CLI, Programmatic SDK, and WebAssembly (WASM/WASI)**:
+  - Use `cdd-c` from the command line, import its programmatic SDK directly into `C (C89)` applications, or run it in the browser and WASI runtimes via its WebAssembly build (see [WASM.md](WASM.md)).
+
+---
+
+## The Global Polyglot Ecosystem
+
+Every supported language operates on the same core Compiler Driven Development principles and is powered by a dedicated, native compiler tailored to that language's syntax tree, idioms, and package manager.
+
+All implementations expose a standardized command-line interface (`cdd-c <subcommand>`) and programmatic SDK.
+
+| Repository | Language | Targets (`to_sdk`; `to_sdk_cli`; `to_server`) | Special Features Beyond Common Subset | Standards | CI Status |
+|---|---|---|---|---|---|
+| [`cdd-c`](https://github.com/SamuelMarks/cdd-c) | C (C89) | Client; Client CLI; Server | 42-Language FFI Generator (`bind`); GNU-to-C89 AST Lowering; Safe CRT & Memory Security Auditor; `c-orm` Migrations | [Arazzo 1.1.0](https://spec.openapis.org/arazzo/v1.1.0.html); [Swagger 2.0](https://spec.openapis.org/oas/v2.0.html); [OpenAPI 3.2.0](https://spec.openapis.org/oas/v3.2.0.html); [MCP](https://modelcontextprotocol.io/) | [![CI](https://github.com/SamuelMarks/cdd-c/actions/workflows/ci.yml/badge.svg)](https://github.com/SamuelMarks/cdd-c/actions/workflows/ci.yml) |
+| [`cdd-cpp`](https://github.com/SamuelMarks/cdd-cpp) | C++ | Client; Client CLI; Server | [Google Discovery](https://developers.google.com/discovery) (`from_google_discovery`); PostgreSQL `libpq` ORM & Faker Support | [Google Discovery](https://developers.google.com/discovery); [Arazzo 1.1.0](https://spec.openapis.org/arazzo/v1.1.0.html); [Swagger 2.0](https://spec.openapis.org/oas/v2.0.html); [OpenAPI 3.2.0](https://spec.openapis.org/oas/v3.2.0.html); [MCP](https://modelcontextprotocol.io/) | [![CI](https://github.com/SamuelMarks/cdd-cpp/actions/workflows/ci.yml/badge.svg)](https://github.com/SamuelMarks/cdd-cpp/actions/workflows/ci.yml) |
+| [`cdd-csharp`](https://github.com/SamuelMarks/cdd-csharp) | C# | Client; Client CLI; Server | CLR & Roslyn CST/DST Trivia-Preserving Sync; Entity Framework & Minimal API Targets | [Arazzo 1.1.0](https://spec.openapis.org/arazzo/v1.1.0.html); [Swagger 2.0](https://spec.openapis.org/oas/v2.0.html); [OpenAPI 3.2.0](https://spec.openapis.org/oas/v3.2.0.html); [MCP](https://modelcontextprotocol.io/) | [![CI](https://github.com/SamuelMarks/cdd-csharp/actions/workflows/ci.yml/badge.svg)](https://github.com/SamuelMarks/cdd-csharp/actions/workflows/ci.yml) |
+| [`cdd-go`](https://github.com/SamuelMarks/cdd-go) | Go | Client; Client CLI; Server | Go `dst`/`ast` Surgical Patching; Multi-Source Truth Sync (`code` ⇄ `openapi`) | [Arazzo 1.1.0](https://spec.openapis.org/arazzo/v1.1.0.html); [Swagger 2.0](https://spec.openapis.org/oas/v2.0.html); [OpenAPI 3.2.0](https://spec.openapis.org/oas/v3.2.0.html); [MCP](https://modelcontextprotocol.io/) | [![CI](https://github.com/SamuelMarks/cdd-go/actions/workflows/ci.yml/badge.svg)](https://github.com/SamuelMarks/cdd-go/actions/workflows/ci.yml) |
+| [`cdd-java`](https://github.com/SamuelMarks/cdd-java) | Java | Client; Client CLI; Server | JavaParser CST Lexical Preservation; WASI JSON-RPC Mode; In-Memory Compiler Pipeline | [Arazzo 1.1.0](https://spec.openapis.org/arazzo/v1.1.0.html); [Swagger 2.0](https://spec.openapis.org/oas/v2.0.html); [OpenAPI 3.2.0](https://spec.openapis.org/oas/v3.2.0.html); [MCP](https://modelcontextprotocol.io/) | [![CI](https://github.com/SamuelMarks/cdd-java/actions/workflows/ci.yml/badge.svg)](https://github.com/SamuelMarks/cdd-java/actions/workflows/ci.yml) |
+| [`cdd-kotlin`](https://github.com/offscale/cdd-kotlin) | Kotlin (Ktor Multiplatform) | Client; Client CLI; Server | Multiplatform Auto-Admin UI; Ephemeral & Seeded Mock Server Modes; Webhook Triggers | [Arazzo 1.1.0](https://spec.openapis.org/arazzo/v1.1.0.html); [Swagger 2.0](https://spec.openapis.org/oas/v2.0.html); [OpenAPI 3.2.0](https://spec.openapis.org/oas/v3.2.0.html); [MCP](https://modelcontextprotocol.io/) | [![CI](https://github.com/offscale/cdd-kotlin/actions/workflows/ci.yml/badge.svg)](https://github.com/offscale/cdd-kotlin/actions/workflows/ci.yml) |
+| [`cdd-php`](https://github.com/SamuelMarks/cdd-php) | PHP | Client; Client CLI; Server | Multi-Tiered DAO (`StubDao` / `ConcreteDao`); Ephemeral & Faker-Seeded SQLite Server Modes | [Arazzo 1.1.0](https://spec.openapis.org/arazzo/v1.1.0.html); [Swagger 2.0](https://spec.openapis.org/oas/v2.0.html); [OpenAPI 3.2.0](https://spec.openapis.org/oas/v3.2.0.html); [MCP](https://modelcontextprotocol.io/) | [![CI](https://github.com/SamuelMarks/cdd-php/actions/workflows/ci.yml/badge.svg)](https://github.com/SamuelMarks/cdd-php/actions/workflows/ci.yml) |
+| [`cdd-python`](https://github.com/offscale/cdd-python) | Python | N/A (server building blocks) | CLI ⇄ SQLAlchemy ⇄ Pydantic ⇄ Docs ⇄ JSON Schema | N/A | [![Linting, testing, coverage, and release](https://github.com/offscale/cdd-python/workflows/Linting,%20testing,%20coverage,%20and%20release/badge.svg)](https://github.com/offscale/cdd-python/actions) |
+| [`cdd-python-all`](https://github.com/offscale/cdd-python-all) | Python | Client; Client CLI; Server | `LibCST` Lossless Sync; Multi-Truth Sync (`class`, `sqlalchemy`, `function`, `openapi`); FastAPI + SQLAlchemy | [Arazzo 1.1.0](https://spec.openapis.org/arazzo/v1.1.0.html); [Swagger 2.0](https://spec.openapis.org/oas/v2.0.html); [OpenAPI 3.2.0](https://spec.openapis.org/oas/v3.2.0.html); [MCP](https://modelcontextprotocol.io/) | [![CI](https://github.com/offscale/cdd-python-all/actions/workflows/ci.yml/badge.svg)](https://github.com/offscale/cdd-python-all/actions/workflows/ci.yml) |
+| [`cdd-ruby`](https://github.com/SamuelMarks/cdd-ruby) | Ruby | Client; Client CLI; Server | ActiveRecord Sync (`class`, `activerecord`, `function`); Ephemeral & Seeded Server Generation | [Arazzo 1.1.0](https://spec.openapis.org/arazzo/v1.1.0.html); [Swagger 2.0](https://spec.openapis.org/oas/v2.0.html); [OpenAPI 3.2.0](https://spec.openapis.org/oas/v3.2.0.html); [MCP](https://modelcontextprotocol.io/) | [![CI](https://github.com/SamuelMarks/cdd-ruby/actions/workflows/ci.yml/badge.svg)](https://github.com/SamuelMarks/cdd-ruby/actions/workflows/ci.yml) |
+| [`cdd-rust`](https://github.com/SamuelMarks/cdd-rust) | Rust | Client; Client CLI; Server | Actix-Web, Axum & Reqwest Targets; Diesel Schema Sync; Standalone `schema-gen`, `scaffold` & `test-gen` | [Arazzo 1.1.0](https://spec.openapis.org/arazzo/v1.1.0.html); [Swagger 2.0](https://spec.openapis.org/oas/v2.0.html); [OpenAPI 3.2.0](https://spec.openapis.org/oas/v3.2.0.html); [MCP](https://modelcontextprotocol.io/) | [![CI](https://github.com/SamuelMarks/cdd-rust/actions/workflows/ci.yml/badge.svg)](https://github.com/SamuelMarks/cdd-rust/actions/workflows/ci.yml) |
+| [`cdd-sh`](https://github.com/SamuelMarks/cdd-sh) | Shell (`/bin/sh`) | Client; Client CLI; Server | Zero-Dependency Embedded `sh`/`jq`/`awk` Cross-Platform Binary; Direct AST `parse` & `emit` Subcommands | [Arazzo 1.1.0](https://spec.openapis.org/arazzo/v1.1.0.html); [Swagger 2.0](https://spec.openapis.org/oas/v2.0.html); [OpenAPI 3.2.0](https://spec.openapis.org/oas/v3.2.0.html); [MCP](https://modelcontextprotocol.io/) | [![CI](https://github.com/SamuelMarks/cdd-sh/actions/workflows/ci.yml/badge.svg)](https://github.com/SamuelMarks/cdd-sh/actions/workflows/ci.yml) |
+| [`cdd-swift`](https://github.com/SamuelMarks/cdd-swift) | Swift | Client; Client CLI; Server | `SwiftSyntax` Lossless Merging (`merge_swift`); Vapor + Fluent ORM Scaffolding; `sync_arazzo` | [Arazzo 1.1.0](https://spec.openapis.org/arazzo/v1.1.0.html); [Swagger 2.0](https://spec.openapis.org/oas/v2.0.html); [OpenAPI 3.2.0](https://spec.openapis.org/oas/v3.2.0.html); [MCP](https://modelcontextprotocol.io/) | [![CI](https://github.com/SamuelMarks/cdd-swift/actions/workflows/ci.yml/badge.svg)](https://github.com/SamuelMarks/cdd-swift/actions/workflows/ci.yml) |
+| [`cdd-ts`](https://github.com/offscale/cdd-ts) | TypeScript | Client; Client CLI; Server | Auto-Admin UI; Angular, React, Vue, Vanilla; Fetch, Axios, Node; Express, Bun, Deno; TypeORM Sync | [Arazzo 1.1.0](https://spec.openapis.org/arazzo/v1.1.0.html); [Swagger 2.0](https://spec.openapis.org/oas/v2.0.html); [OpenAPI 3.2.0](https://spec.openapis.org/oas/v3.2.0.html); [MCP](https://modelcontextprotocol.io/) | [![Tests and coverage](https://github.com/offscale/cdd-ts/actions/workflows/ci.yml/badge.svg)](https://github.com/offscale/cdd-ts/actions/workflows/ci.yml) |
+
+---
+
+## Programmatic SDK & CLI Quickstart
+
+Every `cdd-*` toolchain can be invoked either as a standalone CLI binary or imported as a native `C (C89)` library.
+
+### Minimal CLI Usage
+
+```sh
+# Print help and version
+cdd-c --help
+cdd-c --version
+
+# Generate a C (C89) Client SDK, Client CLI, or Server from an OpenAPI spec
+cdd-c from_openapi to_sdk -i spec.json -o ./sdk --tests
+cdd-c from_openapi to_sdk_cli -i spec.json -o ./cli --tests
+cdd-c from_openapi to_server -i spec.json -o ./server --tests
+
+# Extract an OpenAPI 3.2.0 spec from existing C (C89) source code
+cdd-c to_openapi -i ./src -o openapi.json
+
+# Generate and extract Arazzo 1.1.0 multi-step workflows
+cdd-c from_arazzo to_sdk -i workflow.arazzo.json -o ./workflows --tests
+cdd-c from_arazzo to_sdk_cli -i workflow.arazzo.json -o ./workflow-cli --tests
+cdd-c from_arazzo to_server -i workflow.arazzo.json -o ./workflow-server --tests
+cdd-c to_arazzo -i ./workflows -o extracted.arazzo.json
+
+# Synchronize codebase models, routes, tests, docs, and OpenAPI in-place
+cdd-c sync -i ./src -o openapi.json
+
+# Generate documentation-ready C (C89) code snippets JSON for an OpenAPI spec
+cdd-c to_docs_json --no-imports --no-wrapping -i spec.json -o docs.json
+
+# Run as a Model Context Protocol (MCP) server over stdio or JSON-RPC 2.0 server
+cdd-c mcp
+cdd-c serve_json_rpc --port 8080 --listen 127.0.0.1
+```
+
+### Programmatic SDK Example
+
+#### 1. Compiler Programmatic SDK (`cdd_api.h` & `functions/emit/sync.h`)
+
+Link against `libc_cdd` and include `cdd_api.h` and `functions/emit/sync.h` to invoke the `cdd-c` compiler, Arazzo workflow generator, and lossless CST header/source synchronizer directly from C89/C++ applications:
 
 ```c
 #include "cdd_api.h"
-#include "cdd_c_error.h"
+#include "functions/emit/sync.h"
 #include <stdio.h>
+#include <stdlib.h>
 
-int main() {
-    cdd_c_error_t rc;
-    cdd_config config = {
-        .input_path = "spec.json",
-        .output_dir = "src/models"
-    };
+int main(void) {
+  cdd_from_openapi_config_t sdk_cfg;
+  cdd_to_openapi_config_t oas_cfg;
+  cdd_from_arazzo_config_t arazzo_cfg;
+  cdd_docs_json_config_t docs_cfg;
+  char *docs_json = NULL;
+  cdd_c_error_t rc;
 
-    rc = cdd_generate_sdk(&config);
-    if (rc != CDD_C_SUCCESS) {
-        fprintf(stderr, "SDK generation failed with error code: %d\n", rc);
-        return rc;
-    }
+  /* 1. Generate a C89 Client SDK + contract tests from an OpenAPI 3.2.0 spec */
+  sdk_cfg.subcommand = "to_sdk";
+  sdk_cfg.input = "openapi.json";
+  sdk_cfg.input_dir = NULL;
+  sdk_cfg.output = "./generated_sdk";
+  sdk_cfg.no_github_actions = 0;
+  sdk_cfg.no_installable_package = 0;
+  sdk_cfg.generate_tests = 1;
+  rc = cdd_generate_from_openapi(&sdk_cfg);
+  if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
 
-    printf("SDK generation complete.\n");
-    return 0;
+  /* 2. Extract an OpenAPI 3.2.0 specification from C source/header files */
+  oas_cfg.input_dir = "./src";
+  oas_cfg.output = "./extracted_openapi.json";
+  rc = cdd_generate_to_openapi(&oas_cfg);
+  if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
+
+  /* 3. Compile Arazzo 1.1.0 multi-step workflows into C SDK orchestrators */
+  arazzo_cfg.subcommand = "to_sdk";
+  arazzo_cfg.input = "petstore.arazzo.json";
+  arazzo_cfg.output = "./workflows";
+  rc = cdd_generate_from_arazzo(&arazzo_cfg);
+  if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
+
+  /* 4. Synchronize C implementation and header files in-place via CST diffing */
+  rc = sync_file("src/client.h", "src/client.c");
+  if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
+
+  /* 5. Generate documentation-ready C code snippets JSON in-memory */
+  docs_cfg.input = "openapi.json";
+  docs_cfg.no_imports = 0;
+  docs_cfg.no_wrapping = 0;
+  rc = cdd_generate_docs_json(&docs_cfg, &docs_json);
+  if (rc == CDD_C_SUCCESS && docs_json != NULL) {
+    printf("%s\n", docs_json);
+    free(docs_json);
+  }
+
+  return EXIT_SUCCESS;
 }
 ```
 
-## Installation
+#### 2. Generated Client SDK Usage (`from_openapi to_sdk`)
 
-```bash
-cmake -B build && cmake --build build
+When you run `cdd-c from_openapi to_sdk -i petstore.json -o ./sdk`, `cdd-c` emits an idiomatic, strictly typed C89 client library (`petstore_client.h`, `petstore_models.h`, and JSON codecs) backed by pluggable native transports (WinHTTP, WinInet, Apple CFNetwork, Android/Java JNI, libcurl, Libuv, or PicoHTTPParser):
+
+```c
+#include "petstore_client.h"
+#include "petstore_models.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(void) {
+  struct HttpClient client;
+  struct ApiError *api_err = NULL;
+  struct Pet *pet = NULL;
+  cdd_c_error_t rc;
+
+  /* Initialize HTTP client & configure Bearer token authentication */
+  rc = api_init(&client, "https://petstore3.swagger.io/api/v3");
+  if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
+  client.bearer_token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...";
+
+  /* Execute typed operation: GET /pet/{petId} */
+  rc = api_pet_getPetById(&client, 42, &pet, &api_err);
+  if (rc == CDD_C_SUCCESS && pet != NULL) {
+    printf("Fetched pet: id=%d, name=%s\n", pet->id,
+           pet->name ? pet->name : "(unnamed)");
+    Pet_cleanup(pet);
+    free(pet);
+  } else if (api_err != NULL) {
+    fprintf(stderr, "API error (HTTP %d)\n", api_err->status_code);
+    ApiError_cleanup(api_err);
+    free(api_err);
+  }
+
+  api_cleanup(&client);
+  return rc == CDD_C_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+}
 ```
 
-## Development
+### Installation & Development
 
-You can use standard tooling commands or the included cross-platform Makefiles to fetch dependencies, build, and test:
+All `cdd-*` repositories support both native language build tools and a standardized cross-platform `Makefile` / `make.bat` interface (`deps`, `build`, `test`):
 
-```bash
-cmake -B build && cmake --build build
-ctest --test-dir build
-# or
+```sh
 make deps
 make build
 make test
-# or on Windows
+# or on Windows:
 .\make.bat deps
 .\make.bat build
 .\make.bat test
 ```
 
-See [PUBLISH.md](PUBLISH.md) for packaging and releasing.
+#### Prerequisites
 
-## Features
+- **C89 / C90 or later compiler**: `clang`, `gcc`, or `MSVC` (`cl.exe`)
+- **CMake**: `>= 3.10` (or `>= 3.14` when using `FetchContent`)
+- **Optional**: `vcpkg` (manifest mode via `vcpkg.json`), `emsdk` / `wasi-sdk` (for WebAssembly builds), `doxygen` (for API documentation), `gcovr` / `llvm-cov` (for coverage verification)
 
-The `cdd-c` compiler leverages a unified architecture to support various facets of API and code lifecycle management. For a deep dive into the compiler's design, see [ARCHITECTURE.md](ARCHITECTURE.md).
+#### Building Directly with CMake
 
-- **Compilation**:
-    - **OpenAPI → `C`**: Generate idiomatic native models, network routes, client SDKs, and boilerplate directly from OpenAPI (`.json` / `.yaml`) specifications.
-    - **`C` → OpenAPI**: Statically parse existing `C` source code and emit compliant OpenAPI specifications.
-- **Universal FFI Bindings**: Using the `bind` command, leverage a normalized Intermediate Representation (IR) to statically analyze C code and generate native bindings for 40+ languages (Python, Rust, C#, etc.) without writing manual SWIG rules.
-- **Model Context Protocol (MCP)**: Run `cdd-c serve_json_rpc` to expose an MCP-compliant server via stdio or HTTP, allowing LLMs to seamlessly interface with your C codebase, understand types, and interact with the compiler.
-- **AST-Driven & Safe**: Employs static analysis instead of unsafe dynamic execution or reflection, allowing it to safely parse and emit code even for incomplete or un-compilable project states.
-- **Seamless Sync**: Keep your docs, tests, database, clients, and routing in perfect harmony. Update your code, and generate the docs; or update the docs, and generate the code.
+```sh
+cmake -S . -B build_cmake -DCMAKE_BUILD_TYPE=Release
+cmake --build build_cmake --config Release
+./build_cmake/cdd-c --version
+```
 
-**Uncommon Features:**
+#### Running the Test Suite & Coverage
 
-`cdd-c` is strictly a **superset** of the standard `cdd-${LANGUAGE}` features. In addition to standard OpenAPI code generation, it features a native, lossless C Concrete Syntax Tree (CST) and Abstract Syntax Tree (AST) engine targeting strict ISO C90 compliance.
+```sh
+cmake -S . -B build_cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
+cmake --build build_cmake --config Debug
+ctest --test-dir build_cmake -C Debug --output-on-failure
+```
 
-> 📖 **Deep-Dive Reference**: For an exhaustive technical breakdown of every transformer phase, language emitter, AST query API, and the Model Context Protocol, see [**CAPABILITIES.md**](CAPABILITIES.md).
+#### Installing via `vcpkg` or CMake `FetchContent`
 
-- **Lossless AST Manipulation (Zero-Destruction Rule):** Unlike standard preprocessors or regex-based rewriters, `cdd-c` preserves 100% of "trivia"—leading/trailing whitespace, exact indentation, single-line comments (`//`), block comments (`/* ... */`), and Doxygen docstrings. When nodes are transformed, their trivia remains anchored to the syntax tree.
-- **Source-to-Source AST Transformation Suite (`transformer` & `standardize-gnu`):**
-  - **`gnu_standardizer`**: Methodically lowers non-standard GNU C extensions across 8 phases (including `__int128`, `typeof`, Variable Length Arrays, zero-length struct arrays, `__complex__`, vector types, statement expressions `({ ... })`, case ranges `case 1 ... 5:`, omitted conditionals `x ? : y`, `cleanup` attribute unwinding, and bitwise `__builtin_*` intrinsics) into strictly compliant ISO C90 (C89) or C99 code.
-  - **`safe_crt`**: Automatically scans and rewrites vulnerable legacy C runtime calls (`strcpy`, `strcat`, `sprintf`, `gets`, `memcpy`) to bounds-checked ISO/IEC TR 24731-1 Safe CRT equivalents (`strcpy_s`, `sprintf_s`, `memcpy_s`) with static buffer capacity inference.
-  - **`msvc_port`**: Transpiles POSIX/GNU primitives (`strcasecmp` -> `_stricmp`, `strdup` -> `_strdup`, `ssize_t` -> `SSIZE_T`, `off_t` -> `_off_t`) and injects required MSVC headers (`BaseTsd.h`).
-  - **`extern_c`**: Detects unprotected C declarations and surgically wraps headers with `#ifdef __cplusplus \n extern "C" { \n #endif` guards.
-  - **`error_percolator`**: Refactors legacy functions returning raw data or `void` into robust error-handling architectures returning `cdd_c_error_t`, promoting original return types to typed out-pointers and rewriting all caller sites.
-  - **`macros`**: Expands function-like macros and macro operators (`#` stringification, `##` token concatenation) directly into canonical AST nodes for downstream inspection without external preprocessors.
-- **Universal Multi-Language FFI Generator (`bind`):**
-  - Generates native, idiomatic bindings for **42 programming languages and targets** (Rust, Python, Go, TypeScript, C#, Java, Swift, Kotlin, Zig, Odin, Dart, Ruby, PHP, Lua, Haskell, OCaml, Elixir, Erlang, WebAssembly, and more) from C headers without writing manual SWIG rules.
-  - Features an format-specifier analyzer (`cdd_ffi_variadic`) that parses `printf`/`scanf` format strings to synthesize strongly typed trampoline functions for languages without native C variadic support.
-  - Includes a human-readable, lossless **FFI Intermediate Representation DSL** with left-to-right type composition and first-class memory data-flow intents (`[in]`, `[out]`, `[inout]`, `len=target`). See [**DSL.md**](DSL.md).
-- **Native Model Context Protocol (MCP) & AI Gateway:**
-  - **Meta-MCP Server (`mcp`)**: Runs an MCP-compliant JSON-RPC server via stdio, exposing compiler tools (`cdd_generate`, `cdd_inspect`, `cdd_sync`) directly to local AI assistants (Claude Desktop, Cursor, Windsurf).
-  - **Generated Client MCP Adapters**: Automatically equips generated C client SDKs with native MCP adapters, allowing LLMs to discover and call OpenAPI endpoints as tools (`tools/list`, `tools/call`, `resources/list`, `prompts/list`). See [**mcp-1.0.0/**](mcp-1.0.0/).
-- **Built-in Static Security & Memory Safety Auditing (`audit`):** Scans C source trees to detect unchecked dynamic allocations (`malloc`, `calloc`, `realloc`, `strdup`), missing NULL pointer guards, unsafe CRT functions, and dangling pointer escapes, emitting structured JSON reports.
-- **Bidirectional Schema & Database Migration Suite:**
-  - **`code2schema` & `schema2code`**: Convert bidirectionally between C struct headers and JSON Schema definitions (OpenAPI 3.2.0 / draft 2020-12).
-  - **`to_docs_json`**: Generates full documentation matrices with runnable, self-contained C client snippets for every HTTP verb.
-  - **`client_gui_gen`**: Generates native Material 3 / C-based desktop OAuth2 authentication dialogs and views.
-  - **Database Migrations & `c-orm`**: Manages forward and rollback migrations (`cdd-c migrate up|down|create`), CI test database setup (`setup_test_db`, `db reset`, `seed`), and live schema extraction (`schema dump`) for PostgreSQL, SQLite3, and MySQL/MariaDB. See [**USAGE.md**](USAGE.md).
-- **Cross-Platform Scaffolding & WebAssembly Runtime:**
-  - Automatically generates platform-aware `CMakeLists.txt` build definitions (WinHTTP vs libcurl).
-  - Compiles cleanly to WebAssembly via Emscripten for zero-dependency execution in web browsers and Node.js. See [**WASM.md**](WASM.md).
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+  cdd_c
+  GIT_REPOSITORY https://github.com/SamuelMarks/cdd-c.git
+  GIT_TAG        master
+)
+FetchContent_MakeAvailable(cdd_c)
+target_link_libraries(your_target PRIVATE c_cdd)
+```
+
+> **Further Documentation**:
+> - [**ARCHITECTURE.md**](ARCHITECTURE.md) — Compiler pipeline (Lexer → CST/DST/AST → Semantic Diff → Emitter).
+> - [**COMPLIANCE.md**](COMPLIANCE.md) — Swagger 2.0, OpenAPI 3.2.0, Arazzo 1.1.0, and MCP support matrices.
+> - [**USAGE.md**](USAGE.md) — Detailed CLI, SDK, ORM, and roundtrip usage guide.
+> - [**DEVELOPING.md**](DEVELOPING.md) — Local development, linting, testing, and coverage guide.
+> - [**WASM.md**](WASM.md) — WebAssembly / WASI build and browser/Node.js execution instructions.
+> - [**PUBLISH.md**](PUBLISH.md) — Package publishing and release workflow.
 
 ---
 
-## CLI Options
+## Universal CLI Toolchain
+
+Once you learn the Compiler Driven Development CLI in one language, you can use the exact same commands, flags, and environment variables across the entire polyglot stack.
+
+### Common Arguments & Environment Variables
+
+| Flag | Short | Environment Variable | Description |
+|---|---|---|---|
+| `--help` | `-h` | — | Print help information for the CLI or subcommand. |
+| `--version` | `-v` / `-V` | — | Print version information. |
+| `--input <path>` | `-i` / `-f` | `CDD_INPUT` | Path or URL to the input OpenAPI/Arazzo spec or source file/directory. |
+| `--input-dir <dir>` | `-d` | `CDD_INPUT_DIR` | Directory containing multiple OpenAPI/Arazzo specifications for batch generation. |
+| `--output <path>` | `-o` | `CDD_OUTPUT` | Destination file or directory path for generated code or extracted specifications. |
+| `--tests` | `-t` | `CDD_TESTS` | Generate composable contract/integration tests and API mocks alongside code. |
+| `--mcp` | `-m` | `CDD_MCP` | Generate Model Context Protocol (MCP) server and client adapters. |
+| `--no-github-actions` | — | `CDD_NO_GITHUB_ACTIONS` | Do not generate `.github/workflows/ci.yml` scaffolding in target output. |
+| `--no-installable-package` | — | `CDD_NO_INSTALLABLE_PACKAGE` | Do not generate package manifest/build files in target output. |
+| `--no-imports` | — | `CDD_NO_IMPORTS` | (`to_docs_json`) Omit import/include statements from generated documentation snippets. |
+| `--no-wrapping` | — | `CDD_NO_WRAPPING` | (`to_docs_json`) Omit boilerplate wrapper functions/classes from documentation snippets. |
+| `--port <port>` | `-p` | `CDD_PORT` | (`serve_json_rpc`) TCP port to listen on (default: `8080`). |
+| `--listen <addr>` | `-l` | `CDD_LISTEN` | (`serve_json_rpc`) Host/IP address to bind to (default: `127.0.0.1`). |
+| `--truth <source>` | `-t` | `CDD_TRUTH` | (`sync`) Designate the single source of truth when synchronizing. |
+
+### Core Subcommands
+
+- **`from_openapi [to_sdk | to_sdk_cli | to_server]`**: Compile an OpenAPI 3.2.0 or Swagger 2.0 specification into an idiomatic `C (C89)` Client SDK, Client CLI, or HTTP Server (patching existing files losslessly if the target directory already exists).
+- **`to_openapi`**: Statically parse `C (C89)` models, routes, client calls, and docstrings into an authoritative OpenAPI 3.2.0 specification.
+- **`from_arazzo [to_sdk | to_sdk_cli | to_server]`**: Compile an Arazzo 1.1.0 workflow specification into `C (C89)` workflow orchestrators, CLI workflow runners, or server/E2E workflow test suites.
+- **`to_arazzo`**: Statically parse `C (C89)` workflow code, CLI scripts, or E2E tests into an Arazzo 1.1.0 specification.
+- **`sync`**: Bidirectionally synchronize `C (C89)` source files (models, ORM entities, routes, functions, tests, and docstrings) with OpenAPI/Arazzo specifications in-place.
+- **`to_docs_json`**: Generate documentation-optimized JSON containing `C (C89)` code snippets for each operation in an OpenAPI specification.
+- **`serve_json_rpc`**: Expose the `cdd-c` compiler over a JSON-RPC 2.0 server for IDE integrations and external tooling.
+- **`mcp`**: Run the `cdd-c` compiler as a Model Context Protocol (MCP) server over standard I/O (`stdio`).
+
+### Verbatim CLI Help Output
+
+#### `cdd-c --help`
 
 ```text
 Usage: cdd-c [OPTIONS] <COMMAND>
@@ -138,21 +389,25 @@ Commands:
   to_docs_json [--no-imports] [--no-wrapping] -i|--input <spec.json> [-o <docs.json>]
       Generate JSON documentation with code snippets for an OpenAPI specification.
   bind [OPTIONS]
-      Generate SWIG-like FFI bindings for 42 languages.
+      Generate SWIG-like FFI bindings for 40 languages.
   serve_json_rpc [-p|--port <int>] [-l|--listen <address>]
       Expose CLI interface as a JSON-RPC server.
   mcp
       Expose CLI interface as an MCP server via stdio.
 
 Language-Specific Commands:
+  from_arazzo [to_sdk|to_sdk_cli|to_server] -i <arazzo.json> [-o <output>]
+      Generate C workflow orchestrators from an Arazzo 1.1.0 specification.
+  to_arazzo -i <dir_or_file> [-o <arazzo.json>] [--self <uri>]
+      Extract an Arazzo 1.1.0 specification from C source code.
   audit <directory>
       Scan directory for memory safety issues.
   c2openapi <dir> <out.json>
       Generate OpenAPI spec from C source code.
   standardize-gnu [OPTIONS] <files...>
-      Standardize GNU C extensions to ISO C (C89/C99).
+      Standardize GNU C extensions to ISO C.
   transformer <toolname> [--audit|--fix] [--dry-run] <files...>
-      Run syntax tree transformations (extern_c, msvc_port, gnu_standardizer, error_percolator, safe_crt).
+      Run syntax tree transformations.
   code2schema <header.h> <schema.json>
       Convert C header to JSON Schema.
   generate_build_system <type> <out_dir> <name> [test_file]
@@ -161,9 +416,7 @@ Language-Specific Commands:
       Generate C code from JSON schema.
 ```
 
-### `from_openapi`
-
-Generate C SDK, Server, and optionally CLI from OpenAPI spec.
+#### `cdd-c from_openapi --help`
 
 ```text
 Usage: cdd-c from_openapi [to_sdk|to_sdk_cli|to_server] [args]
@@ -182,15 +435,12 @@ Options:
   --tests                   Generate composable tests and mocks
 ```
 
-#### `from_openapi to_sdk`
+#### `cdd-c from_openapi to_sdk --help`
 
 ```text
-Usage: cdd-c from_openapi [to_sdk|to_sdk_cli|to_server] [args]
+Usage: cdd-c from_openapi to_sdk [args]
 
-Commands:
-  to_sdk         Generate a Client SDK from an OpenAPI specification.
-  to_sdk_cli     Generate a Client SDK CLI from an OpenAPI specification.
-  to_server      Generate a Server stub from an OpenAPI specification.
+Generate a C Client SDK from an OpenAPI specification.
 
 Options:
   -i, --input <spec.json>   Input OpenAPI spec file
@@ -201,15 +451,12 @@ Options:
   --tests                   Generate composable tests and mocks
 ```
 
-#### `from_openapi to_sdk_cli`
+#### `cdd-c from_openapi to_sdk_cli --help`
 
 ```text
-Usage: cdd-c from_openapi [to_sdk|to_sdk_cli|to_server] [args]
+Usage: cdd-c from_openapi to_sdk_cli [args]
 
-Commands:
-  to_sdk         Generate a Client SDK from an OpenAPI specification.
-  to_sdk_cli     Generate a Client SDK CLI from an OpenAPI specification.
-  to_server      Generate a Server stub from an OpenAPI specification.
+Generate a C Client SDK CLI from an OpenAPI specification.
 
 Options:
   -i, --input <spec.json>   Input OpenAPI spec file
@@ -220,15 +467,12 @@ Options:
   --tests                   Generate composable tests and mocks
 ```
 
-#### `from_openapi to_server`
+#### `cdd-c from_openapi to_server --help`
 
 ```text
-Usage: cdd-c from_openapi [to_sdk|to_sdk_cli|to_server] [args]
+Usage: cdd-c from_openapi to_server [args]
 
-Commands:
-  to_sdk         Generate a Client SDK from an OpenAPI specification.
-  to_sdk_cli     Generate a Client SDK CLI from an OpenAPI specification.
-  to_server      Generate a Server stub from an OpenAPI specification.
+Generate a C Server stub from an OpenAPI specification.
 
 Options:
   -i, --input <spec.json>   Input OpenAPI spec file
@@ -239,9 +483,7 @@ Options:
   --tests                   Generate composable tests and mocks
 ```
 
-### `to_openapi`
-
-Generate OpenAPI spec from C source code.
+#### `cdd-c to_openapi --help`
 
 ```text
 Usage: cdd-c to_openapi [args]
@@ -251,17 +493,50 @@ Options:
   -o, --output <out.json> Output OpenAPI spec file (default: openapi.json)
 ```
 
-### `to_docs_json`
-
-Generate JSON code examples for doc sites.
+#### `cdd-c to_docs_json --help`
 
 ```text
-Usage: cdd-c to_docs_json [--no-imports] [--no-wrapping] -i|--input <spec.json> [-o <docs.json>]
+Usage: cdd-c to_docs_json [args]
+
+Options:
+  -i, --input <spec.json>   Input OpenAPI spec file
+  -o, --output <docs.json>  Output docs JSON file (default: stdout)
+  --no-imports              Omit #include statements from generated snippets
+  --no-wrapping             Omit main() wrapper from generated snippets
 ```
 
-### `bind`
+#### `cdd-c serve_json_rpc --help`
 
-Generate SWIG-like FFI bindings for 40 languages.
+```text
+Usage: cdd-c serve_json_rpc [args]
+
+Options:
+  -p, --port <port>       Port to listen on (default: 8080)
+  -l, --listen <address>  Address or connection limit to bind
+```
+
+---
+
+## Special Features Beyond the Common Compiler Driven Development Subset
+
+While all compilers in this suite implement the full shared baseline above, `cdd-c` implements additional capabilities tailored to the `C (C89)` ecosystem:
+
+### 1. Universal 42-Language SWIG-like FFI Binding Generator (`cdd-c bind` & DSL)
+
+`cdd-c` includes a zero-dependency Foreign Function Interface (FFI) compiler (`src/functions/ffi/` and `src/functions/dsl/`) that parses standard C headers or a compact C-FFI Domain Specific Language (DSL, documented in [DSL.md](DSL.md)) into an intermediate representation (`CddFfiModule`) and emits idiomatic, memory-safe wrapper bindings across **42 target languages and runtimes**:
+
+- **Systems & Native**: Rust (`extern "C"`), C++ (`std::string`/`std::vector` RAII wrappers), Zig, D, Nim, Ada, Fortran (`iso_c_binding`), Pascal, V, Odin, Crystal, Objective-C, Swift.
+- **Managed & Enterprise**: Java (Project Panama `java.lang.foreign` / JNI), Kotlin (Kotlin/Native `cinterop` & JVM), Scala, Groovy, Clojure, C# (`[DllImport]` / `[LibraryImport]`), F#, Visual Basic .NET.
+- **Scripting & Dynamic**: Python (`ctypes`), Ruby (`Fiddle`/`FFI`), PHP (`FFI::cdef`), Perl (`FFI::Platypus`), Lua (LuaJIT `ffi`), R (`Rcpp`/`.Call`), Julia (`@ccall`), Tcl, Raku.
+- **Web, Functional & BEAM**: TypeScript / Node.js (`koffi`/`ffi-napi`), WebAssembly (`WASM` imports/exports), Go (`cgo`), Haskell (`foreign import ccall`), OCaml (`Ctypes`), Erlang (NIFs), Elixir (`Rustler`/NIFs), Dart (`dart:ffi`), Scheme, Common Lisp (`CFFI`), Prolog, AssemblyScript.
+
+```sh
+# Generate Python, Rust, Go, and TypeScript FFI bindings from a C header or directory
+cdd-c bind -i include/my_lib.h -o ./bindings -l python,rust,go,typescript -n my_lib -m MyLib --generate-tests
+
+# Generate bindings for all 42 supported target languages at once
+cdd-c bind -i include/ -o ./all_bindings -l "*" -n my_lib -m MyLib
+```
 
 ```text
 Usage: cdd-c bind [OPTIONS]
@@ -278,41 +553,15 @@ Options:
   -h, --help                Show this help message
 ```
 
-### `serve_json_rpc`
+### 2. Lossless CST Transformation Suite (`cdd-c transformer` & `cdd-c standardize-gnu`)
 
-Expose CLI interface as a JSON-RPC server.
+`cdd-c` provides five specialized Concrete Syntax Tree (CST) refactoring engines (`src/transformers/`) that modernize or backport C codebases in-place while preserving comments, preprocessor directives, and formatting:
 
-```text
-Usage: cdd-c serve_json_rpc [-p|--port <int>] [-l|--listen <address>]
-```
-
-### `mcp`
-
-Expose CLI interface as an MCP server via stdio.
-
-```text
-Usage: cdd-c mcp
-```
-
-### `audit`
-
-Scan directory for memory safety issues.
-
-```text
-Usage: cdd-c audit <directory>
-```
-
-### `c2openapi`
-
-Generate OpenAPI spec from C source code.
-
-```text
-Usage: c2openapi [--base <openapi.json>] [--self <uri>] [--dialect <uri>] <src_dir> <out.json>
-```
-
-### `transformer`
-
-Run syntax tree transformations.
+- **`gnu_standardizer` (`cdd-c standardize-gnu`)**: Lowers 16+ GNU C extensions—including `__auto_type`, `typeof`, statement expressions `({...})`, Variable Length Arrays (VLAs), nested functions (via explicit context struct hoisting), case ranges (`case 1 ... 5:`), designated initializer ranges, `__attribute__((cleanup(...)))` (via control-flow `goto` unwinding), `__int128` (lowered to portable `c_cdd_int128_t` / `c_cdd_uint128_t` math), `0b` binary literals, and complex numbers—into strict ISO C89/C90 (`--target-c89`) or C99 (`--target-c99`).
+- **`error_percolator`**: Rewrites functions returning pointers or raw status values into safe `cdd_c_error_t` return codes with out-parameter pointer hoisting and automatic Doxygen `@param[out]` / `@return` tag updates.
+- **`safe_crt`**: Migrates legacy C string and I/O calls (`strcpy`, `strcat`, `sprintf`, `fopen`, `getenv`, `fscanf`) to bounds-checked C11 Annex K / MSVC Safe CRT (`_s`) equivalents or portable `c_cdd` wrappers.
+- **`msvc_port`**: Normalizes GCC/Clang constructs (`__attribute__((packed))`, `__alignof__`, `__builtin_bswap*`, POSIX headers/types like `ssize_t` and `<unistd.h>`) to MSVC-compatible `#pragma pack`, `__declspec(align)`, `<intrin.h>`, and Windows SDK equivalents.
+- **`extern_c`**: Automatically wraps C header declarations in `#ifdef __cplusplus extern "C" { #endif` guards.
 
 ```text
 Usage: cdd-c transformer <toolname> [--audit | --fix] [--dry-run] <files...>
@@ -324,77 +573,47 @@ Tools:
   safe_crt
 ```
 
-### `code2schema`
-
-Convert C header to JSON Schema.
-
 ```text
-Usage: cdd-c code2schema <header.h> <schema.json>
+Usage: cdd-c standardize-gnu [OPTIONS] <files...>
+Options:
+  --target-c89       Strictly target C89 semantics
+  --target-c99       Target C99 semantics
+  --fallback-alloca  Rewrite VLAs to use malloc/free instead of alloca
+  --audit            Check if files need formatting/fixes
+  --fix              Apply fixes in-place
+  --dry-run          Show what would be fixed without modifying files
 ```
 
-### `generate_build_system`
+### 3. Static Memory Safety & Security Auditor (`cdd-c audit`)
 
-Generate build system files.
+The `audit` command statically analyzes C source trees to identify unbounded memory operations, unchecked allocations, format-string vulnerabilities, and unsafe CRT calls, producing a structured security and allocation audit report:
 
-```text
-Usage: generate_build_system <type> <out_dir> <name> [test]
+```sh
+cdd-c audit ./src
 ```
 
-### `schema2code`
+### 4. Standalone Schema, OpenAPI & Build System Compilers (`c2openapi`, `code2schema`, `schema2code`, `generate_build_system`)
 
-Generate C code from JSON schema.
+In addition to the unified `from_openapi` and `to_openapi` subcommands, `cdd-c` exposes direct low-level pipeline commands:
 
-```text
-Usage: cdd-c schema2code <schema.json> <out_dir> [--guard-enum=...] [--guard-json=...] [--guard-utils=...]
-```
+- **`cdd-c c2openapi [--base <openapi.json>] [--self <uri>] [--dialect <uri>] <src_dir> <out.json>`**: Directly extract OpenAPI 3.2.0 specifications from C source directories, merging into an optional `--base` specification and setting `$self` and `jsonSchemaDialect` URIs.
+- **`cdd-c code2schema <header.h> <schema.json>`**: Parse C structs, enums, and bitfields from a C header into a standalone JSON Schema (Draft 2020-12).
+- **`cdd-c schema2code [-gGuardPrefix] <schema.json> <output_file_prefix>`**: Compile a standalone JSON Schema into C89 structs, enums, array helpers, and Parson JSON serialization/deserialization codecs.
+- **`cdd-c generate_build_system <cmake> <out_dir> <project_name> [test_file]`**: Generate cross-platform `CMakeLists.txt` build scaffolding with automatic platform networking detection (`ws2_32`, `wininet`, `winhttp`, `CFNetwork`, `libcurl`).
 
-## Extensive Features & Functionality
+### 5. `c-orm` Database Schema & Migration Integration
 
-`cdd-c` is not just a standard parser; it is a full-fledged **Compiler Driven Development (CDD)** suite tailored specifically for `C` (strictly targeting ISO C90 compliance). It deeply understands C down to its comments and whitespace, treating codebase refactoring, code generation, and API alignment as first-class, lossless operations.
+`cdd-c` integrates with [`c-orm`](https://github.com/offscale/c-orm) and [`c-rest-framework`](https://github.com/offscale/c-rest-framework) to bridge OpenAPI 3.2.0 schemas, SQL DDL (`CREATE TABLE`, foreign keys, indexes), and C89 ORM entity structs across **PostgreSQL**, **SQLite**, and **MySQL/MariaDB** (see [USAGE.md](USAGE.md) and [CAPABILITIES.md](CAPABILITIES.md)).
 
-> 📚 For comprehensive documentation of all compiler subsystems, lowering rules, and architecture, refer to:
-> - [**CAPABILITIES.md**](CAPABILITIES.md) — Comprehensive capabilities guide covering all transformers, FFI emitters, and MCP integration.
-> - [**DSL.md**](DSL.md) — Specification and grammar for the CDD FFI IR Domain Specific Language.
-> - [**ARCHITECTURE.md**](ARCHITECTURE.md) — High-level compiler design, Frontend $\to$ IR $\to$ Backend pipelines.
-> - [**COMPLIANCE.md**](COMPLIANCE.md) — OpenAPI 3.2.0 and Swagger 2.0 specification support matrix.
-> - [**USAGE.md**](USAGE.md) — Database migrations, CI/CD database provisioning, and `c-orm` schema extraction.
-> - [**WASM.md**](WASM.md) — WebAssembly compilation with Emscripten for web browser and Node.js environments.
-> - [**mcp-1.0.0/**](mcp-1.0.0/) — Model Context Protocol conformance and integration specs.
+### 6. Pluggable Cross-Platform HTTP & TLS Backends (`c-abstract-http`)
 
-### Lossless AST Manipulation (Zero-Destruction Rule)
-Unlike standard preprocessors or regex-based refactoring tools, `cdd-c` uses a custom, highly robust **Concrete Syntax Tree (CST)** and **Abstract Syntax Tree (AST)** pipeline.
-- **Trivia Preservation:** It perfectly captures and preserves "trivia"—inline comments, block comments, and exact whitespace (indentation, newlines).
-- **Format-Safe Rewrites:** When you mutate a tree (for instance, converting a GNU compiler extension into a standard C89 equivalent), `cdd-c` applies the change surgically. Your code does not get butchered, formatted entirely differently, or stripped of its documentation. The generated ISO C code is meant for human developers, not just compilers.
+SDKs, CLIs, and servers generated by `cdd-c` compile cleanly under strict ANSI C89 (`-std=c89 -pedantic`) across Linux, macOS, Windows (MSVC x86/x64/ARM64), iOS, Android, DOS, and WebAssembly (WASI/Emscripten) by targeting [`c-abstract-http`](https://github.com/offscale/c-abstract-http), which provides selectable compile-time backends for `libcurl`, Windows `WinHTTP` / `WinInet`, Apple `CFNetwork`, Android/Java `HttpURLConnection` (via JNI), `libuv`, and raw POSIX/Winsock sockets with `PicoHTTPParser`.
 
-### AST Lowering & Source Refactoring Suite
-Run source-to-source refactoring transformations via `cdd-c transformer <toolname>` or `cdd-c standardize-gnu` with `--audit`, `--fix`, or `--dry-run`:
-- **`gnu_standardizer`**: 8-phase lowering of GNU C extensions (`__int128`, `typeof`, VLAs, zero-length arrays, `__complex__`, SIMD vectors, statement expressions, case ranges, `__attribute__`, `__builtin_*`, comma-swallowing macros, and inline assembly) to standard ISO C. See [GNU Transformer README](src/transformers/gnu_standardizer/README.md).
-- **`safe_crt`**: Automated migration from legacy unbounded CRT calls (`strcpy`, `sprintf`, `memcpy`) to bounds-checked ISO/IEC TR 24731-1 Safe CRT functions.
-- **`msvc_port`**: Cross-compiler porting from POSIX/GNU primitives to Microsoft Visual C++ equivalents.
-- **`extern_c`**: Automated injection of C++ `extern "C"` declaration guards.
-- **`error_percolator`**: Architectural refactoring from value-returning functions to `cdd_c_error_t` return conventions with typed out-pointers and call-site rewrites.
+---
 
-### Multi-Directional Code Generation
-`cdd-c` acts as the master sync tool between your abstractions:
-- **API to Native C (SDK & Server):** Generate production-ready, memory-safe C clients, routing servers, and CLI argument parsers straight from OpenAPI 3.2.0 JSON/YAML.
-- **Native C to OpenAPI:** Write your C functions, document them with standard block comments, and let `cdd-c` statically analyze the types and routes to reverse-engineer a compliant OpenAPI spec.
-- **SQL / JSON Schema Sync:** Seamlessly sync SQL DDL statements to C ORM layers, or JSON schemas directly into C structs and validation logic (`code2schema` / `schema2code`).
+## The End of Specification Drift
 
-### Universal FFI Bindings & IR DSL
-`cdd-c` features a universal Foreign Function Interface (FFI) Intermediate Representation (IR). Instead of writing manual SWIG bindings or using fragile regex replacements:
-- The `cdd-c bind` command statically analyzes your C codebase and generates seamless native bindings for **42 languages and platforms** (Rust, Python, Go, TypeScript, C#, Java, Swift, Kotlin, Zig, Odin, Dart, Ruby, PHP, Lua, Haskell, OCaml, WebAssembly, etc.).
-- Intelligently maps complex C concepts like structs, enums, format-specifier variadic trampolines (`cdd_ffi_variadic`), function pointers, and opaque pointers.
-- Provides a human-readable, lossless **FFI IR DSL** with left-to-right typing and explicit memory flow intents. See [**DSL.md**](DSL.md).
-
-### Model Context Protocol (MCP) & AI Integration
-- **Meta-MCP Server (`cdd-c mcp`)**: Exposes compiler capabilities over stdio to AI desktop assistants (Claude Desktop, Cursor, Windsurf) for autonomous code scaffolding, schema inspection, and bidirectional synchronization.
-- **Generated Client MCP Adapters**: Generated C client SDKs automatically include native MCP tools and resource handlers, enabling LLMs to call backend APIs directly. See [**mcp-1.0.0/**](mcp-1.0.0/).
-
-### Built-in Security & Auditing
-- **Memory Safety Audits:** Utilize the built-in `audit` command to run static analysis directly over your C directories. Detect dangerous CRT functions (`strcpy`, `sprintf`), dangling pointer risks, unchecked `malloc`/`calloc`/`realloc`/`strdup` returns, and missing initializations before they hit production. Emits structured JSON reports.
-
-### Database Migrations & c-orm Integration
-- Integrated database migration manager (`cdd-c migrate up|down|create`), CI test database setup (`setup_test_db`, `db reset`, `seed`), and active schema dumper (`schema dump`) supporting dynamic drivers for PostgreSQL (`libpq`), SQLite3, and MySQL/MariaDB. See [**USAGE.md**](USAGE.md).
+With Compiler Driven Development, API specifications, source code, database schemas, documentation, and tests are no longer loosely coupled artifacts that drift apart over time. Because the compiler preserves every comment, docstring, and whitespace token via Concrete and Decorated Syntax Trees (CST/DST), your specifications and your implementations remain strict, lossless reflections of one another across all 13+ languages throughout the entire software lifecycle.
 
 ---
 

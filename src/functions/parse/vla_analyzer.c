@@ -19,10 +19,12 @@
 extern int g_fail_io_after;
 extern int g_io_calls;
 #undef malloc
+/** @brief Fault-injecting `malloc` macro for VLA analyzer tests. */
 #define malloc(sz)                                                             \
   ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? NULL             \
                                                             : (malloc)(sz))
 #undef realloc
+/** @brief Fault-injecting `realloc` macro for VLA analyzer tests. */
 #define realloc(ptr, sz)                                                       \
   ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)                    \
        ? NULL                                                                  \
@@ -32,6 +34,10 @@ extern int g_io_calls;
 /**
  * @brief Duplicates a string up to a specified number of characters.
  *
+ * @param[in] s Source string buffer.
+ * @param[in] n Maximum number of characters to copy.
+ * @param[out] _out_val Output pointer receiving the newly allocated string.
+ * @return `CDD_C_SUCCESS` on success.
  */
 static cdd_c_error_t c_cdd_strndup(const char *s, size_t n, char **_out_val) {
   char *d = (char *)malloc(n + 1);
@@ -50,6 +56,8 @@ static cdd_c_error_t c_cdd_strndup(const char *s, size_t n, char **_out_val) {
 /**
  * @brief Initializes a VLA site list.
  *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 cdd_c_error_t vla_site_list_init(struct VLASiteList *list) {
   if (!list)
@@ -62,7 +70,6 @@ cdd_c_error_t vla_site_list_init(struct VLASiteList *list) {
 
 /**
  * @brief Frees a VLA site list.
- *
  */
 void vla_site_list_free(struct VLASiteList *list) {
   size_t i;
@@ -85,6 +92,10 @@ void vla_site_list_free(struct VLASiteList *list) {
 /**
  * @brief Checks if a token kind is a basic type keyword.
  *
+ * @param[in] k Token kind to test.
+ * @param[out] out_is_basic Output pointer receiving 1 if basic type keyword, 0
+ * otherwise.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 static cdd_c_error_t is_basic_type_keyword(enum TokenKind k,
                                            int *out_is_basic) {
@@ -116,6 +127,7 @@ static cdd_c_error_t is_basic_type_keyword(enum TokenKind k,
 /**
  * @brief Scans for VLA (Variable Length Array) sites in a token list.
  *
+ * @return 0 on success.
  */
 cdd_c_error_t scan_for_vlas(const struct TokenList *tokens,
                             struct VLASiteList *list) {
@@ -327,6 +339,14 @@ cdd_c_error_t scan_for_vlas(const struct TokenList *tokens,
 }
 
 #ifdef CDD_BUILD_TESTS
+/**
+ * @brief Unit test wrapper for `is_basic_type_keyword`.
+ *
+ * @param[in] k Token kind to test.
+ * @param[out] out_is_basic Output pointer receiving 1 if basic type keyword, 0
+ * otherwise.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t is_basic_type_keyword_test(enum TokenKind k,
                                                       int *out_is_basic);
 

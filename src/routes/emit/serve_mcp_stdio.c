@@ -100,7 +100,7 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
   }
 
   if (strcmp(method, "version") == 0) {
-    rc = send_stdio_rpc_response(id_val, "\"0.0.2\"");
+    rc = send_stdio_rpc_response(id_val, "\"0.0.4\"");
   } else if (strcmp(method, "initialize") == 0) {
     rc = send_stdio_rpc_response(
         id_val,
@@ -108,7 +108,7 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
         "\"tools\":{\"listChanged\":true},\"resources\":{\"subscribe\":"
         "true,\"listChanged\":true},\"prompts\":{\"listChanged\":true},"
         "\"logging\":{}},\"serverInfo\":{\"name\":\"cdd-c\",\"version\":"
-        "\"0.0.2\"}}");
+        "\"0.0.4\"}}");
   } else if (strcmp(method, "notifications/initialized") == 0) {
   } else if (strcmp(method, "notifications/progress") == 0) {
   } else if (strcmp(method, "notifications/message") == 0) {
@@ -230,6 +230,31 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
               id_val, "{\"content\":[{\"type\":\"text\",\"text\":\"Docs "
                       "generation successful\"}],\"isError\":false}");
         }
+      }
+    } else if (strcmp(name, "to_arazzo") == 0) {
+      cdd_to_arazzo_config_t cfg;
+      memset(&cfg, 0, sizeof(cfg));
+      cfg.input = json_object_get_string(arguments, "input");
+      cfg.output = json_object_get_string(arguments, "output");
+      if (cdd_generate_to_arazzo(&cfg) != CDD_C_SUCCESS) {
+        rc = send_stdio_rpc_error(id_val, -32603, "Arazzo extraction failed");
+      } else {
+        rc = send_stdio_rpc_response(
+            id_val, "{\"content\":[{\"type\":\"text\",\"text\":\"Arazzo "
+                    "extraction successful\"}],\"isError\":false}");
+      }
+    } else if (strcmp(name, "from_arazzo") == 0) {
+      cdd_from_arazzo_config_t cfg;
+      memset(&cfg, 0, sizeof(cfg));
+      cfg.subcommand = json_object_get_string(arguments, "subcommand");
+      cfg.input = json_object_get_string(arguments, "input");
+      cfg.output = json_object_get_string(arguments, "output");
+      if (cdd_generate_from_arazzo(&cfg) != CDD_C_SUCCESS) {
+        rc = send_stdio_rpc_error(id_val, -32603, "Arazzo generation failed");
+      } else {
+        rc = send_stdio_rpc_response(
+            id_val, "{\"content\":[{\"type\":\"text\",\"text\":\"Arazzo "
+                    "generation successful\"}],\"isError\":false}");
       }
     } else {
       rc = send_stdio_rpc_error(id_val, -32601, "Tool not found");

@@ -16,6 +16,12 @@
 #include "win_compat_sym.h"
 /* clang-format on */
 
+/**
+ * @brief Generates a C function that Base64URL-decodes a JWT payload and
+ * parses it into a struct.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t write_struct_from_jwt_func(FILE *fp, const char *struct_name,
                                          const struct StructFields *sf) {
   if (!fp || !struct_name || !sf)

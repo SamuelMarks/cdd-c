@@ -16,6 +16,8 @@ extern C_CDD_EXPORT int g_cdd_fail_is_primitive_type;
 
 /**
  * @brief Maps an OpenAPI HTTP verb enum to its C HTTP method constant name.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t client_body_verb_to_enum_str(enum OpenAPI_Verb v,
                                            const char **_out_val) {
@@ -67,6 +69,8 @@ cdd_c_error_t client_body_verb_to_enum_str(enum OpenAPI_Verb v,
 
 /**
  * @brief Maps an HTTP method string to its C HTTP method constant name.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t client_body_method_str_to_enum_str(const char *method,
                                                  const char **_out_val) {
@@ -136,6 +140,10 @@ cdd_c_error_t client_body_method_str_to_enum_str(const char *method,
 /**
  * @brief Maps an HTTP status code to the corresponding cdd_c_error_t constant
  * name.
+ *
+ * @param[in] status Numeric HTTP status code.
+ * @param[out] _out_val Pointer to receive the `cdd_c_error_t` constant string.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t mapped_err_code(int status, const char **_out_val) {
   if (!_out_val) {
@@ -159,6 +167,8 @@ cdd_c_error_t mapped_err_code(int status, const char **_out_val) {
 
 /**
  * @brief Retrieves the media type.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
                               const char *name,
@@ -183,6 +193,11 @@ cdd_c_error_t find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
 
 /**
  * @brief Retrieves the encoding.
+ *
+ * @param[in] mt OpenAPI media type containing encoding rules.
+ * @param[in] name Property name to look up encoding for.
+ * @param[out] _out_val Pointer to receive the matching encoding descriptor.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t find_encoding(const struct OpenAPI_MediaType *mt,
                             const char *name,
@@ -207,6 +222,8 @@ cdd_c_error_t find_encoding(const struct OpenAPI_MediaType *mt,
 
 /**
  * @brief Checks if primitive type.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t is_primitive_type(const char *oa_type, int *out) {
 #ifdef CDD_BUILD_TESTS
@@ -229,6 +246,10 @@ cdd_c_error_t is_primitive_type(const char *oa_type, int *out) {
 
 /**
  * @brief Checks if object ref type.
+ *
+ * @param[in] type OpenAPI type or schema reference name.
+ * @param[out] out_is_obj Pointer to receive 1 if object reference, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t is_object_ref_type(const char *type, int *out_is_obj) {
   int is_prim = 0;
@@ -258,6 +279,11 @@ cdd_c_error_t is_object_ref_type(const char *type, int *out_is_obj) {
 /**
  * @brief Checks whether all fields in a StructFields container have primitive
  * types.
+ *
+ * @param[in] sf `StructFields` container to inspect.
+ * @param[out] out_all_prim Pointer to receive 1 if all fields are primitive, 0
+ * otherwise.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t struct_fields_all_primitive(const struct StructFields *sf,
                                           int *out_all_prim) {
@@ -283,6 +309,8 @@ cdd_c_error_t struct_fields_all_primitive(const struct StructFields *sf,
 /**
  * @brief Checks whether an OpenAPI schema reference defines an inline type or
  * enum.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t schema_has_inline(const struct OpenAPI_SchemaRef *schema,
                                 int *out) {
@@ -298,6 +326,8 @@ cdd_c_error_t schema_has_inline(const struct OpenAPI_SchemaRef *schema,
 /**
  * @brief Computes the length of the essence (type/subtype) portion of a media
  * type string.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t client_body_media_type_base_len(const char *media_type,
                                               size_t *_out_val) {
@@ -317,6 +347,8 @@ cdd_c_error_t client_body_media_type_base_len(const char *media_type,
 /**
  * @brief Checks case-insensitively whether a media type starts with a given
  * prefix.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t media_type_has_prefix(const char *media_type, const char *prefix,
                                     int *out) {
@@ -350,6 +382,12 @@ cdd_c_error_t media_type_has_prefix(const char *media_type, const char *prefix,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Checks case-insensitively whether a media type base ends with a given
+ * suffix.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t media_type_has_suffix(const char *media_type, const char *suffix,
                                     int *out) {
   size_t i;
@@ -384,6 +422,12 @@ cdd_c_error_t media_type_has_suffix(const char *media_type, const char *suffix,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Compares the base essence of a media type case-insensitively against
+ * `expected`.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t media_type_ieq(const char *media_type, const char *expected,
                              int *out) {
   size_t i;
@@ -416,6 +460,11 @@ cdd_c_error_t media_type_ieq(const char *media_type, const char *expected,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Checks if a media type is JSON (`application/json` or `*+json`).
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t media_type_is_json(const char *media_type, int *out) {
   int eq = 0;
   int suf = 0;
@@ -437,6 +486,11 @@ cdd_c_error_t media_type_is_json(const char *media_type, int *out) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Checks if a media type is `application/x-www-form-urlencoded`.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t media_type_is_form(const char *media_type, int *out) {
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -446,6 +500,11 @@ cdd_c_error_t media_type_is_form(const char *media_type, int *out) {
   return media_type_ieq(media_type, "application/x-www-form-urlencoded", out);
 }
 
+/**
+ * @brief Checks if a media type is `text/plain`.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t media_type_is_text_plain(const char *media_type, int *out) {
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -455,6 +514,11 @@ cdd_c_error_t media_type_is_text_plain(const char *media_type, int *out) {
   return media_type_ieq(media_type, "text/plain", out);
 }
 
+/**
+ * @brief Checks if a media type starts with `multipart/`.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t media_type_is_multipart(const char *media_type, int *out) {
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -464,6 +528,11 @@ cdd_c_error_t media_type_is_multipart(const char *media_type, int *out) {
   return media_type_has_prefix(media_type, "multipart/", out);
 }
 
+/**
+ * @brief Checks if a media type is `multipart/form-data`.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t media_type_is_multipart_form(const char *media_type, int *out) {
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -475,6 +544,12 @@ cdd_c_error_t media_type_is_multipart_form(const char *media_type, int *out) {
 
 /**
  * @brief Selects the primary media type entry from a Content-Type map.
+ *
+ * @param[in] content_type Comma-separated Content-Type header string.
+ * @param[out] buf Scratch buffer to hold the extracted primary media type.
+ * @param[in] buf_sz Capacity of `buf` in bytes.
+ * @param[out] _out_val Pointer to receive `buf`.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t first_content_type_entry(const char *content_type, char *buf,
                                        size_t buf_sz, const char **_out_val) {
@@ -496,6 +571,8 @@ cdd_c_error_t first_content_type_entry(const char *content_type, char *buf,
 
 /**
  * @brief Sanitizes an arbitrary string into a valid C identifier.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t sanitize_ident(char *out, size_t outsz, const char *in) {
   size_t i = 0;
@@ -518,6 +595,8 @@ cdd_c_error_t sanitize_ident(char *out, size_t outsz, const char *in) {
 
 /**
  * @brief Builds the C parameter name for a multipart part header.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t multipart_header_param_name(char *out, size_t outsz,
                                           const char *field,
@@ -533,6 +612,8 @@ cdd_c_error_t multipart_header_param_name(char *out, size_t outsz,
 
 /**
  * @brief Checks case-insensitively whether a header name is Content-Type.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t header_name_is_content_type(const char *name, int *out) {
   int eq = 0;
@@ -548,6 +629,8 @@ cdd_c_error_t header_name_is_content_type(const char *name, int *out) {
 
 /**
  * @brief Determines whether a media type represents textual payload content.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t media_type_is_textual(const char *media_type, int *out) {
   int res = 0;
@@ -583,6 +666,8 @@ cdd_c_error_t media_type_is_textual(const char *media_type, int *out) {
 
 /**
  * @brief Determines whether a media type represents raw binary payload content.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t media_type_is_binary(const char *media_type, int *out) {
   int res = 0;
@@ -615,6 +700,11 @@ cdd_c_error_t media_type_is_binary(const char *media_type, int *out) {
 
 /**
  * @brief Checks whether an OpenAPI schema reference is an inline string type.
+ *
+ * @param[in] schema OpenAPI schema reference to check.
+ * @param[out] out_is_string Pointer to receive 1 if inline non-array string, 0
+ * otherwise.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t schema_inline_is_string(const struct OpenAPI_SchemaRef *schema,
                                       int *out_is_string) {
@@ -630,6 +720,11 @@ cdd_c_error_t schema_inline_is_string(const struct OpenAPI_SchemaRef *schema,
 /**
  * @brief Determines whether an OpenAPI response returns a plain text string
  * body.
+ *
+ * @param[in] resp OpenAPI response descriptor to inspect.
+ * @param[out] out_is_textual_string Pointer to receive 1 if textual string
+ * body, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t response_is_textual_string(const struct OpenAPI_Response *resp,
                                          int *out_is_textual_string) {
@@ -650,6 +745,10 @@ cdd_c_error_t response_is_textual_string(const struct OpenAPI_Response *resp,
 
 /**
  * @brief Determines whether an OpenAPI response returns a binary body.
+ *
+ * @param[in] resp OpenAPI response descriptor to inspect.
+ * @param[out] out_is_binary Pointer to receive 1 if binary body, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t response_is_binary(const struct OpenAPI_Response *resp,
                                  int *out_is_binary) {
@@ -664,6 +763,11 @@ cdd_c_error_t response_is_binary(const struct OpenAPI_Response *resp,
 /**
  * @brief Checks whether an OpenAPI schema reference describes a non-empty
  * payload.
+ *
+ * @param[in] schema OpenAPI schema reference to inspect.
+ * @param[out] out_has_payload Pointer to receive 1 if payload exists, 0
+ * otherwise.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t schema_has_payload(const struct OpenAPI_SchemaRef *schema,
                                  int *out_has_payload) {

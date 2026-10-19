@@ -135,6 +135,8 @@ cdd_c_error_t peek_logical(const uint8_t *base, size_t len, size_t pos,
 
 /**
  * @brief Appends a token to a dynamic token list.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
  */
 cdd_c_error_t token_list_add(struct TokenList *tl, const enum TokenKind kind,
                              const uint8_t *start, const size_t length) {
@@ -177,6 +179,9 @@ cdd_c_error_t token_list_add(struct TokenList *tl, const enum TokenKind kind,
 
 /**
  * @brief Searches forward in a token list for the next token of a given kind.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 cdd_c_error_t token_find_next(const struct TokenList *list, size_t start_idx,
                               size_t end_idx, const enum TokenKind kind,
@@ -227,6 +232,9 @@ void free_token_list(struct TokenList *tl) {
 
 /**
  * @brief Checks whether a token at a given index matches a literal string.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 cdd_c_error_t token_matches_string(const struct Token *tok, const char *match,
                                    int *_out_val) {
@@ -283,6 +291,8 @@ cdd_c_error_t token_matches_string(const struct Token *tok, const char *match,
 
 /**
  * @brief Lexes a C source string into a list of tokens including trivia.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
   struct TokenList *list = NULL;

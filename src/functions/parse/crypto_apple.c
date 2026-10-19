@@ -30,6 +30,12 @@ extern C_CDD_EXPORT int g_crypto_fail_hmac;
 extern C_CDD_EXPORT int g_crypto_fail_hmac_len;
 #endif
 
+/**
+ * @brief Computes a 32-byte SHA-256 digest over a data buffer using Apple
+ * CommonCrypto.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
                             unsigned char *out_digest) {
 #ifdef CDD_BUILD_TESTS
@@ -50,9 +56,10 @@ cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
 }
 
 /**
- * @brief Computes a 32-byte HMAC-SHA256 digest over a data buffer.
+ * @brief Computes a 32-byte HMAC-SHA256 digest over a data buffer using Apple
+ * CommonCrypto.
  *
- * bytes).
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
                                  const void *data, size_t data_len,
@@ -83,29 +90,27 @@ cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
 /* Non-Apple stub implementation */
 
 /**
- * @brief Performs crypto sha256 operation (stub).
+ * @brief Performs crypto sha256 operation (non-Apple stub).
  *
+ * @return `CDD_C_ERROR_SYSTEM` when compiled without Apple CommonCrypto.
  */
 cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
                             unsigned char *out_digest) {
-  (void)data;
-  (void)data_len;
-  (void)out_digest;
+  if (!data && data_len > 0 && !out_digest)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   return CDD_C_ERROR_SYSTEM;
 }
 
 /**
- * @brief Performs crypto hmac sha256 operation (stub).
+ * @brief Performs crypto hmac sha256 operation (non-Apple stub).
  *
+ * @return `CDD_C_ERROR_SYSTEM` when compiled without Apple CommonCrypto.
  */
 cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
                                  const void *data, size_t data_len,
                                  unsigned char *out_mac) {
-  (void)key;
-  (void)key_len;
-  (void)data;
-  (void)data_len;
-  (void)out_mac;
+  if (!key && key_len > 0 && !data && data_len > 0 && !out_mac)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   return CDD_C_ERROR_SYSTEM;
 }
 

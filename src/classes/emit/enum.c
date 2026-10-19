@@ -36,11 +36,18 @@
 
 /* Select correct strdup function name for generated code */
 #if defined(_MSC_VER)
+/** @brief Platform-specific strdup function name for emitted code */
 static const char *kStrDupFunc = "_strdup";
 #else
+/** @brief Platform-specific strdup function name for emitted code */
 static const char *kStrDupFunc = "strdup";
 #endif
 
+/**
+ * @brief Initialize an EnumMembers container.
+ *
+ * @return CDD_C_SUCCESS on success, error code on allocation failure.
+ */
 cdd_c_error_t enum_members_init(struct EnumMembers *em) {
   if (!em)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -55,6 +62,9 @@ cdd_c_error_t enum_members_init(struct EnumMembers *em) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Free the memory associated with an EnumMembers structure.
+ */
 void enum_members_free(struct EnumMembers *em) {
   size_t i;
   if (!em)
@@ -71,6 +81,11 @@ void enum_members_free(struct EnumMembers *em) {
   em->capacity = 0;
 }
 
+/**
+ * @brief Add a member name to the EnumMembers list.
+ *
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 cdd_c_error_t enum_members_add(struct EnumMembers *em, const char *name) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!em || !name)
@@ -94,6 +109,11 @@ cdd_c_error_t enum_members_add(struct EnumMembers *em, const char *name) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Generate the C code for converting an enum value to a string.
+ *
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 cdd_c_error_t write_enum_to_str_func(FILE *fp, const char *enum_name,
                                      const struct EnumMembers *em,
                                      const struct CodegenEnumConfig *config) {
@@ -134,6 +154,11 @@ cdd_c_error_t write_enum_to_str_func(FILE *fp, const char *enum_name,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Generate the C code for parsing a string into an enum value.
+ *
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 cdd_c_error_t write_enum_from_str_func(FILE *fp, const char *enum_name,
                                        const struct EnumMembers *em,
                                        const struct CodegenEnumConfig *config) {

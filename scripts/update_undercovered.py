@@ -49,11 +49,16 @@ for file in files:
         "branch_str": bp_str,
     }
 
-    is_test_runner = fn in ("src/tests/test_c_cdd.c", "src/tests/parse/test_simple_json.c")
+    is_test_runner = fn in (
+        "src/tests/test_c_cdd.c",
+        "src/tests/parse/test_simple_json.c",
+    )
     is_test_file = fn.startswith("src/tests/")
     if is_test_file:
         continue
-    if not is_test_runner and (lp < 100.0 or fp < 100.0 or (not is_test_file and bp_val < 100.0)):
+    if not is_test_runner and (
+        lp < 100.0 or fp < 100.0 or (not is_test_file and bp_val < 100.0)
+    ):
         undercovered.append(entry)
     else:
         covered.append(entry)
@@ -64,14 +69,20 @@ covered.sort(key=lambda x: x["filename"])
 lines = []
 lines.append("# Undercovered Files (< 100% Test Coverage)")
 lines.append("")
-lines.append("This document tracks all files in `cdd-c` with less than **100% test coverage** across **functions**, **lines**, or **branches**.")
+lines.append(
+    "This document tracks all files in `cdd-c` with less than **100% test coverage** across **functions**, **lines**, or **branches**."
+)
 lines.append("")
-lines.append("> **Coverage Methodology:** Measured using GCC coverage instrumentation (`--coverage`) and analyzed with `gcovr` across the full test suite (`test_c_cdd`, `test_simple_json`, `test_cdd_c_help`, `test_cdd_c_fail`).")
+lines.append(
+    "> **Coverage Methodology:** Measured using GCC coverage instrumentation (`--coverage`) and analyzed with `gcovr` across the full test suite (`test_c_cdd`, `test_simple_json`, `test_cdd_c_help`, `test_cdd_c_fail`)."
+)
 lines.append("")
 lines.append("## Coverage Summary")
 lines.append("")
 lines.append("- **Total Files Evaluated:** {0}".format(len(files)))
-lines.append("- **Undercovered Files (< 100% Coverage):** {0}".format(len(undercovered)))
+lines.append(
+    "- **Undercovered Files (< 100% Coverage):** {0}".format(len(undercovered))
+)
 lines.append("- **Fully Covered Files (100% Coverage):** {0}".format(len(covered)))
 lines.append("")
 lines.append("---")
@@ -79,8 +90,11 @@ lines.append("")
 lines.append("## Undercovered Files (< 100% Coverage)")
 lines.append("")
 for u in undercovered:
-    lines.append("- [ ] `{0}` — Lines: {1}, Functions: {2}, Branches: {3}".format(
-        u["filename"], u["line_str"], u["func_str"], u["branch_str"]))
+    lines.append(
+        "- [ ] `{0}` — Lines: {1}, Functions: {2}, Branches: {3}".format(
+            u["filename"], u["line_str"], u["func_str"], u["branch_str"]
+        )
+    )
 lines.append("")
 lines.append("---")
 lines.append("")
@@ -89,13 +103,19 @@ lines.append("")
 
 categories = [
     ("Headers (`include/`)", lambda fn: fn.startswith("include/")),
-    ("Core Library API (`src/`)", lambda fn: fn.startswith("src/") and fn.count("/") == 1),
+    (
+        "Core Library API (`src/`)",
+        lambda fn: fn.startswith("src/") and fn.count("/") == 1,
+    ),
     ("CST Classes (`src/classes/`)", lambda fn: fn.startswith("src/classes/")),
     ("Docstrings (`src/docstrings/`)", lambda fn: fn.startswith("src/docstrings/")),
     ("Functions (`src/functions/`)", lambda fn: fn.startswith("src/functions/")),
     ("OpenAPI (`src/openapi/`)", lambda fn: fn.startswith("src/openapi/")),
     ("Routes (`src/routes/`)", lambda fn: fn.startswith("src/routes/")),
-    ("Transformers (`src/transformers/`)", lambda fn: fn.startswith("src/transformers/")),
+    (
+        "Transformers (`src/transformers/`)",
+        lambda fn: fn.startswith("src/transformers/"),
+    ),
 ]
 
 for title, pred in categories:
@@ -104,8 +124,11 @@ for title, pred in categories:
         lines.append("### {0}".format(title))
         lines.append("")
         for u in cat_files:
-            lines.append("- [ ] `{0}` — Lines: {1}, Functions: {2}, Branches: {3}".format(
-                u["filename"], u["line_str"], u["func_str"], u["branch_str"]))
+            lines.append(
+                "- [ ] `{0}` — Lines: {1}, Functions: {2}, Branches: {3}".format(
+                    u["filename"], u["line_str"], u["func_str"], u["branch_str"]
+                )
+            )
         lines.append("")
 
 lines.append("---")
@@ -113,8 +136,11 @@ lines.append("")
 lines.append("## Fully Covered Files (100% Coverage)")
 lines.append("")
 for c in covered:
-    lines.append("- [x] `{0}` — Lines: {1}, Functions: {2}, Branches: {3}".format(
-        c["filename"], c["line_str"], c["func_str"], c["branch_str"]))
+    lines.append(
+        "- [x] `{0}` — Lines: {1}, Functions: {2}, Branches: {3}".format(
+            c["filename"], c["line_str"], c["func_str"], c["branch_str"]
+        )
+    )
 lines.append("")
 
 with open("UNDERCOVERED.md", "w") as f:

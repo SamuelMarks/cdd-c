@@ -68,8 +68,11 @@ c2openapi_map_doc_security_type(enum DocSecurityType type,
 }
 
 /**
- * @brief Maps a docstring security location string (query, header, cookie) to
- * OpenAPI_SecurityIn.
+ * @brief Maps a docstring security location enum to OpenAPI_SecurityIn.
+ *
+ * @param[in] in Input doc security location.
+ * @param[out] _out_val Output OpenAPI security location.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t map_doc_security_in(enum DocSecurityIn in,
                                   enum OpenAPI_SecurityIn *_out_val) {
@@ -97,7 +100,11 @@ cdd_c_error_t map_doc_security_in(enum DocSecurityIn in,
 }
 
 /**
- * @brief Maps a docstring OAuth2 flow name to an OpenAPI_OAuthFlowType enum.
+ * @brief Maps a docstring OAuth2 flow type to an OpenAPI_OAuthFlowType enum.
+ *
+ * @param[in] type Input doc OAuth flow type.
+ * @param[out] _out_val Output OpenAPI OAuth flow type.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t map_doc_flow_type(enum DocOAuthFlowType type,
                                 enum OpenAPI_OAuthFlowType *_out_val) {
@@ -152,7 +159,11 @@ spec_find_security_scheme(struct OpenAPI_Spec *spec, const char *name,
 }
 
 /**
- * @brief Merges scopes.
+ * @brief Merges scopes into an OpenAPI OAuth flow.
+ *
+ * @param[in,out] dst Destination OpenAPI OAuth flow.
+ * @param[in] src Source docstring OAuth flow.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t merge_scopes(struct OpenAPI_OAuthFlow *dst,
                            const struct DocOAuthFlow *src) {
@@ -210,7 +221,12 @@ cdd_c_error_t merge_scopes(struct OpenAPI_OAuthFlow *dst,
 }
 
 /**
- * @brief Retrieves the oauth flow.
+ * @brief Retrieves the oauth flow of a given type from a security scheme.
+ *
+ * @param[in] scheme Security scheme to search.
+ * @param[in] type OAuth flow type to find.
+ * @param[out] _out_val Output pointer to matching OAuth flow, or NULL.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t find_oauth_flow(struct OpenAPI_SecurityScheme *scheme,
                               enum OpenAPI_OAuthFlowType type,
@@ -235,7 +251,11 @@ cdd_c_error_t find_oauth_flow(struct OpenAPI_SecurityScheme *scheme,
 }
 
 /**
- * @brief Merges oauth flow.
+ * @brief Merges oauth flow URLs and scopes.
+ *
+ * @param[in,out] dst Destination OpenAPI OAuth flow.
+ * @param[in] src Source docstring OAuth flow.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t merge_oauth_flow(struct OpenAPI_OAuthFlow *dst,
                                const struct DocOAuthFlow *src) {
@@ -258,6 +278,9 @@ cdd_c_error_t merge_oauth_flow(struct OpenAPI_OAuthFlow *dst,
 
 /**
  * @brief Validates required URLs on a docstring-extracted OAuth2 flow.
+ *
+ * @param[in] flow Docstring OAuth flow to validate.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t validate_doc_oauth_flow(const struct DocOAuthFlow *flow) {
   if (!flow)
@@ -293,7 +316,11 @@ cdd_c_error_t validate_doc_oauth_flow(const struct DocOAuthFlow *flow) {
 }
 
 /**
- * @brief Adds or sets oauth flows.
+ * @brief Adds or sets oauth flows on a security scheme.
+ *
+ * @param[in,out] scheme Target OpenAPI security scheme.
+ * @param[in] doc Source docstring security scheme.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
                               const struct DocSecurityScheme *doc) {
@@ -452,6 +479,10 @@ cdd_c_error_t add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
 
 /**
  * @brief Adds or merges a SecurityScheme definition into an OpenAPI_Spec.
+ *
+ * @param[in,out] spec Target OpenAPI specification.
+ * @param[in] doc Source docstring security scheme definition.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t spec_add_security_scheme(struct OpenAPI_Spec *spec,
                                        const struct DocSecurityScheme *doc) {
@@ -577,7 +608,11 @@ cdd_c_error_t spec_add_security_scheme(struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Applies doc security schemes.
+ * @brief Applies doc security schemes to an OpenAPI_Spec.
+ *
+ * @param[in,out] spec Target OpenAPI specification.
+ * @param[in] meta Docstring metadata containing security schemes.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t apply_doc_security_schemes(struct OpenAPI_Spec *spec,
                                          const struct DocMetadata *meta) {
@@ -600,6 +635,10 @@ cdd_c_error_t apply_doc_security_schemes(struct OpenAPI_Spec *spec,
 /**
  * @brief Appends docstring-extracted global security requirements to an
  * OpenAPI_Spec.
+ *
+ * @param[in,out] spec Target OpenAPI specification.
+ * @param[in] meta Docstring metadata containing security requirements.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t append_root_security(struct OpenAPI_Spec *spec,
                                    const struct DocMetadata *meta) {

@@ -10,6 +10,8 @@
 
 /**
  * @brief Strips enclosing quotes from a string.
+ *
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t c2s_strip_quotes(const char *in, char *buf, size_t bufsz,
                                const char **_out_val) {
@@ -38,6 +40,9 @@ cdd_c_error_t c2s_strip_quotes(const char *in, char *buf, size_t bufsz,
 
 /**
  * @brief Parses a boolean default value from a string.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
+ * `out_has_val` is NULL.
  */
 cdd_c_error_t c2s_parse_bool_default(const char *in, int *out,
                                      int *out_has_val) {
@@ -62,6 +67,9 @@ cdd_c_error_t c2s_parse_bool_default(const char *in, int *out,
 
 /**
  * @brief Parses a numeric default value from a string.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
+ * `out_has_val` is NULL.
  */
 cdd_c_error_t c2s_parse_number_default(const char *in, double *out,
                                        int *out_has_val) {
@@ -88,6 +96,9 @@ cdd_c_error_t c2s_parse_number_default(const char *in, double *out,
 
 /**
  * @brief Detects the underlying JSON type of a union schema object.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
+ * `_out_val` is NULL.
  */
 cdd_c_error_t c2s_detect_union_json_type(const JSON_Object *schema_obj,
                                          enum UnionVariantJsonType *_out_val) {

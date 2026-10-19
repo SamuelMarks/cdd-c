@@ -51,6 +51,11 @@ cdd_c_error_t is_source_file(const char *path, int *out_is_source) {
 /**
  * @brief Checks whether an OpenAPI_Spec already contains a tag with the given
  * name.
+ *
+ * @param[in] spec OpenAPI specification to inspect.
+ * @param[in] name Tag name to look for.
+ * @param[out] out_has_tag Pointer receiving 1 if found, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t spec_has_tag(const struct OpenAPI_Spec *spec, const char *name,
                            int *out_has_tag) {
@@ -72,6 +77,10 @@ cdd_c_error_t spec_has_tag(const struct OpenAPI_Spec *spec, const char *name,
 
 /**
  * @brief Adds a new Tag definition to an OpenAPI_Spec.
+ *
+ * @param[in,out] spec Target OpenAPI specification.
+ * @param[in] name Tag name to add.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t spec_add_tag(struct OpenAPI_Spec *spec, const char *name) {
   struct OpenAPI_Tag *new_tags;
@@ -110,6 +119,11 @@ cdd_c_error_t spec_add_tag(struct OpenAPI_Spec *spec, const char *name) {
 
 /**
  * @brief Finds a mutable Tag definition by name in an OpenAPI_Spec.
+ *
+ * @param[in] spec OpenAPI specification to search.
+ * @param[in] name Tag name to find.
+ * @param[out] _out_val Output pointer to matching tag, or NULL.
+ * @return CDD_C_SUCCESS on success, error code if not found.
  */
 cdd_c_error_t spec_find_tag(struct OpenAPI_Spec *spec, const char *name,
                             struct OpenAPI_Tag **_out_val) {
@@ -152,6 +166,8 @@ cdd_c_error_t set_str_if_missing(char **dst, const char *src) {
 
 /**
  * @brief Frees the memory associated with openapi server variables.
+ *
+ * @param[in,out] srv OpenAPI server whose variables are freed.
  */
 void free_openapi_server_variables(struct OpenAPI_Server *srv) {
   size_t i;
@@ -180,6 +196,10 @@ void free_openapi_server_variables(struct OpenAPI_Server *srv) {
 
 /**
  * @brief Creates a deep copy of doc server variables.
+ *
+ * @param[in,out] dst Destination OpenAPI server structure.
+ * @param[in] src Source docstring server structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t copy_doc_server_variables(struct OpenAPI_Server *dst,
                                         const struct DocServer *src) {
@@ -258,6 +278,10 @@ cdd_c_error_t copy_doc_server_variables(struct OpenAPI_Server *dst,
 
 /**
  * @brief Appends docstring-extracted Server definitions to an OpenAPI_Spec.
+ *
+ * @param[in,out] spec Target OpenAPI specification.
+ * @param[in] meta Docstring metadata containing server definitions.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t append_root_servers(struct OpenAPI_Spec *spec,
                                   const struct DocMetadata *meta) {
@@ -318,6 +342,10 @@ cdd_c_error_t append_root_servers(struct OpenAPI_Spec *spec,
 
 /**
  * @brief Applies doc global meta.
+ *
+ * @param[in,out] spec Target OpenAPI specification.
+ * @param[in] meta Docstring metadata containing global fields.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t apply_doc_global_meta(struct OpenAPI_Spec *spec,
                                     const struct DocMetadata *meta) {
@@ -489,6 +517,10 @@ cdd_c_error_t spec_apply_tag_meta(struct OpenAPI_Spec *spec,
 
 /**
  * @brief Applies doc tag meta.
+ *
+ * @param[in,out] spec Target OpenAPI specification.
+ * @param[in] meta Docstring metadata containing tag metadata entries.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t apply_doc_tag_meta(struct OpenAPI_Spec *spec,
                                  const struct DocMetadata *meta) {
@@ -507,6 +539,10 @@ cdd_c_error_t apply_doc_tag_meta(struct OpenAPI_Spec *spec,
 
 /**
  * @brief Collects tags from op.
+ *
+ * @param[in,out] spec Target OpenAPI specification.
+ * @param[in] op OpenAPI operation whose tags are collected.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t collect_tags_from_op(struct OpenAPI_Spec *spec,
                                    const struct OpenAPI_Operation *op) {
@@ -524,6 +560,11 @@ cdd_c_error_t collect_tags_from_op(struct OpenAPI_Spec *spec,
 
 /**
  * @brief Collects tags from paths.
+ *
+ * @param[in,out] spec Target OpenAPI specification.
+ * @param[in] paths Array of OpenAPI paths to scan.
+ * @param[in] n_paths Number of paths in `paths`.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t collect_tags_from_paths(struct OpenAPI_Spec *spec,
                                       const struct OpenAPI_Path *paths,
@@ -552,6 +593,9 @@ cdd_c_error_t collect_tags_from_paths(struct OpenAPI_Spec *spec,
 
 /**
  * @brief Collects spec tags.
+ *
+ * @param[in,out] spec Target OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t collect_spec_tags(struct OpenAPI_Spec *spec) {
   cdd_c_error_t rc;

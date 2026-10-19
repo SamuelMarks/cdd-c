@@ -34,6 +34,8 @@
 
 /**
  * @brief Initializes a list of discovered C type definitions.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t type_def_list_init(struct TypeDefList *list) {
 #ifdef CDD_BUILD_TESTS
@@ -81,6 +83,12 @@ void type_def_list_free(struct TypeDefList *list) {
 
 /**
  * @brief Adds or sets type def.
+ *
+ * @param[in,out] list Target `TypeDefList` to append to.
+ * @param[in] kind Type definition kind (`KIND_ENUM` or `KIND_STRUCT`).
+ * @param[in] name Type identifier name.
+ * @param[in] details Pointer to `EnumMembers` or `StructFields` details.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
  */
 static cdd_c_error_t add_type_def(struct TypeDefList *list,
                                   const enum TypeDefinitionKind kind,
@@ -119,6 +127,8 @@ static cdd_c_error_t add_type_def(struct TypeDefList *list,
 /**
  * @brief Scans a C source or header file for struct, enum, and typedef
  * declarations.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                                           struct TypeDefList *out) {
@@ -423,6 +433,8 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
 
 /**
  * @brief Initializes a list of extracted C function signatures.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t func_sig_list_init(struct FuncSigList *list) {
   if (!list)
@@ -456,6 +468,12 @@ void func_sig_list_free(struct FuncSigList *list) {
 
 /**
  * @brief Extracts span text.
+ *
+ * @param[in] tokens Token list containing the span.
+ * @param[in] start Inclusive start token index.
+ * @param[in] end Exclusive end token index.
+ * @param[out] _out_val Pointer to receive the allocated concatenated text.
+ * @return CDD_C_SUCCESS on success.
  */
 static cdd_c_error_t extract_span_text(const struct TokenList *tokens,
                                        size_t start, size_t end,
@@ -487,6 +505,8 @@ static cdd_c_error_t extract_span_text(const struct TokenList *tokens,
 
 /**
  * @brief Extracts C function signatures and docstrings from a source file.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
                                              struct FuncSigList *out) {

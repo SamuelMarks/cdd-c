@@ -40,6 +40,9 @@
  * @brief Check if a character is unreserved per RFC 3986 Section 2.3.
  *
  * Unreserved characters: ALPHA, DIGIT, "-", ".", "_", "~".
+ *
+ * @param[in] c Character to inspect.
+ * @return Non-zero if unreserved, CDD_C_SUCCESS otherwise.
  */
 static cdd_c_error_t is_unreserved(unsigned char c) {
   if (isalnum(c))
@@ -51,6 +54,9 @@ static cdd_c_error_t is_unreserved(unsigned char c) {
 
 /**
  * @brief Check if a character is reserved per RFC 3986 Section 2.2.
+ *
+ * @param[in] c Character to inspect.
+ * @return Non-zero if reserved, CDD_C_SUCCESS otherwise.
  */
 static cdd_c_error_t is_reserved(unsigned char c) {
   switch (c) {
@@ -79,12 +85,18 @@ static cdd_c_error_t is_reserved(unsigned char c) {
 }
 
 /**
- * @brief Checks if hex.
+ * @brief Checks if a character is a hexadecimal digit.
+ *
+ * @param[in] c Character to inspect.
+ * @return Non-zero if hexadecimal digit, 0 otherwise.
  */
 static cdd_c_error_t is_hex(unsigned char c) { return isxdigit(c) ? 1 : 0; }
 
 /**
- * @brief Checks if pct encoded.
+ * @brief Checks if a string starts with a valid %HH percent-encoded sequence.
+ *
+ * @param[in] p String pointer to inspect.
+ * @return Non-zero if percent-encoded triple, CDD_C_SUCCESS otherwise.
  */
 static cdd_c_error_t is_pct_encoded(const char *p) {
   if (!p)
@@ -94,7 +106,11 @@ static cdd_c_error_t is_pct_encoded(const char *p) {
 }
 
 /**
- * @brief Convert a nibble to hexagonal character.
+ * @brief Convert a nibble to hexadecimal character.
+ *
+ * @param[in] code 4-bit nibble value.
+ * @param[out] _out_val Output uppercase hex character.
+ * @return CDD_C_SUCCESS on success.
  */
 static cdd_c_error_t to_hex(char code, char *_out_val) {
   static const char hex[] = "0123456789ABCDEF";
@@ -105,7 +121,11 @@ static cdd_c_error_t to_hex(char code, char *_out_val) {
 }
 
 /**
- * @brief Checks if unreserved form.
+ * @brief Checks if a character is unreserved in
+ * application/x-www-form-urlencoded.
+ *
+ * @param[in] c Character to inspect.
+ * @return Non-zero if unreserved in form encoding, CDD_C_SUCCESS otherwise.
  */
 static cdd_c_error_t is_unreserved_form(unsigned char c) {
   if (isalnum(c))
@@ -679,6 +699,12 @@ cdd_c_error_t url_query_build_form(const struct UrlQueryParams *qp,
 /**
  * @brief Appends a null-terminated string to a dynamically resized character
  * buffer.
+ *
+ * @param[in,out] buf Pointer to dynamic character buffer.
+ * @param[in,out] len Pointer to current string length in `buf`.
+ * @param[in,out] cap Pointer to allocated capacity of `buf`.
+ * @param[in] s Null-terminated string to append.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 static cdd_c_error_t append_str(char **buf, size_t *len, size_t *cap,
                                 const char *s) {
@@ -711,6 +737,12 @@ static cdd_c_error_t append_str(char **buf, size_t *len, size_t *cap,
 
 /**
  * @brief Formats a typed OpenAPI_KV value into a string representation.
+ *
+ * @param[in] kv Key-value pair structure.
+ * @param[out] buf Scratch buffer for numeric formatting.
+ * @param[in] buf_len Size of `buf` in bytes.
+ * @param[out] _out_val Output pointer to formatted string.
+ * @return CDD_C_SUCCESS on success.
  */
 static cdd_c_error_t kv_value_to_string(const struct OpenAPI_KV *kv, char *buf,
                                         size_t buf_len, const char **_out_val) {

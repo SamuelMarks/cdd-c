@@ -31,6 +31,8 @@ extern C_CDD_EXPORT int g_cdd_fail_qs_raw;
 
 /**
  * @brief Checks if a parameter represents an object Key-Value structure.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t param_is_object_kv(const struct OpenAPI_Parameter *p, int *out) {
   if (!out) {
@@ -57,6 +59,8 @@ cdd_c_error_t param_is_object_kv(const struct OpenAPI_Parameter *p, int *out) {
 /**
  * @brief Checks if a querystring parameter is a form object for client
  * signatures.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t
 sig_querystring_param_is_form_object(const struct OpenAPI_Parameter *p,
@@ -93,6 +97,8 @@ sig_querystring_param_is_form_object(const struct OpenAPI_Parameter *p,
 /**
  * @brief Checks if a querystring parameter is a JSON schema reference for
  * client signatures.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t
 sig_querystring_param_is_json_ref(const struct OpenAPI_Parameter *p, int *out) {
@@ -120,6 +126,8 @@ sig_querystring_param_is_json_ref(const struct OpenAPI_Parameter *p, int *out) {
 /**
  * @brief Determines the JSON primitive type of a querystring parameter for
  * client signatures.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t
 sig_querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
@@ -179,6 +187,8 @@ sig_querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
 /**
  * @brief Determines the JSON array item type of a querystring parameter for
  * client signatures.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t
 sig_querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
@@ -239,6 +249,8 @@ sig_querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
 /**
  * @brief Determines the JSON array item reference of a querystring parameter
  * for client signatures.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t
 sig_querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
@@ -304,6 +316,8 @@ sig_querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
 /**
  * @brief Determines raw primitive type for non-JSON/form querystring
  * parameters for client signatures.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t
 sig_querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
@@ -369,6 +383,10 @@ sig_querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
 #ifdef CDD_BUILD_TESTS
 /**
  * @brief Test helper to check if param is object KV.
+ *
+ * @param[in] p OpenAPI parameter descriptor.
+ * @param[out] out Pointer to receive result.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_test_sig_param_is_object_kv(const struct OpenAPI_Parameter *p,
                                               int *out) {
@@ -377,6 +395,10 @@ cdd_c_error_t cdd_test_sig_param_is_object_kv(const struct OpenAPI_Parameter *p,
 
 /**
  * @brief Test helper to check if querystring param is form object.
+ *
+ * @param[in] p OpenAPI parameter descriptor.
+ * @param[out] out Pointer to receive result.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t
 cdd_test_sig_querystring_param_is_form_object(const struct OpenAPI_Parameter *p,
@@ -386,6 +408,10 @@ cdd_test_sig_querystring_param_is_form_object(const struct OpenAPI_Parameter *p,
 
 /**
  * @brief Test helper to check if querystring param is JSON ref.
+ *
+ * @param[in] p OpenAPI parameter descriptor.
+ * @param[out] out Pointer to receive result.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t
 cdd_test_sig_querystring_param_is_json_ref(const struct OpenAPI_Parameter *p,
@@ -395,6 +421,10 @@ cdd_test_sig_querystring_param_is_json_ref(const struct OpenAPI_Parameter *p,
 
 /**
  * @brief Test helper to determine querystring param JSON primitive type.
+ *
+ * @param[in] p OpenAPI parameter descriptor.
+ * @param[out] out_val Pointer to receive primitive type string.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_test_sig_querystring_param_json_primitive_type(
     const struct OpenAPI_Parameter *p, const char **out_val) {
@@ -403,6 +433,10 @@ cdd_c_error_t cdd_test_sig_querystring_param_json_primitive_type(
 
 /**
  * @brief Test helper to determine querystring param JSON array item type.
+ *
+ * @param[in] p OpenAPI parameter descriptor.
+ * @param[out] out_val Pointer to receive array item type string.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_test_sig_querystring_param_json_array_item_type(
     const struct OpenAPI_Parameter *p, const char **out_val) {
@@ -411,6 +445,10 @@ cdd_c_error_t cdd_test_sig_querystring_param_json_array_item_type(
 
 /**
  * @brief Test helper to determine querystring param JSON array item ref.
+ *
+ * @param[in] p OpenAPI parameter descriptor.
+ * @param[out] out_val Pointer to receive array item ref string.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_test_sig_querystring_param_json_array_item_ref(
     const struct OpenAPI_Parameter *p, const char **out_val) {
@@ -419,6 +457,10 @@ cdd_c_error_t cdd_test_sig_querystring_param_json_array_item_ref(
 
 /**
  * @brief Test helper to determine querystring param raw primitive type.
+ *
+ * @param[in] p OpenAPI parameter descriptor.
+ * @param[out] out_val Pointer to receive raw primitive type string.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_test_sig_querystring_param_raw_primitive_type(
     const struct OpenAPI_Parameter *p, const char **out_val) {

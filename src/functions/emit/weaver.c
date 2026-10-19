@@ -20,6 +20,8 @@
 
 /**
  * @brief Wraps a region of C code in a preprocessor conditional guard.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t weaver_wrap_ifdef(struct PatchList *patches,
                                 const struct TokenList *tokens,
@@ -101,6 +103,8 @@ cdd_c_error_t weaver_wrap_ifdef(struct PatchList *patches,
 
 /**
  * @brief Injects MSVC compatibility headers into a C source file.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t weaver_inject_msvc_headers(struct PatchList *patches,
                                          const struct TokenList *tokens,
@@ -221,6 +225,8 @@ cdd_c_error_t weaver_inject_msvc_headers(struct PatchList *patches,
 /**
  * @brief Rewrites C99 variable-length arrays into portable heap/alloca
  * allocations.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t weaver_vla_to_alloca(struct PatchList *patches,
                                    const struct TokenList *tokens,

@@ -16,6 +16,12 @@
 #include "win_compat_sym.h"
 /* clang-format on */
 
+/**
+ * @brief Generates an RFC 6749 OAuth2 error enum and parser function for a
+ * struct.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t write_oauth2_error_parser_func(FILE *fp, const char *struct_name,
                                              const struct StructFields *sf) {
   size_t i;

@@ -27,10 +27,18 @@
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #ifndef strdup
+/** @brief Alias `strdup` to `_strdup` on MSVC. */
 #define strdup _strdup
 #endif
 #endif
 
+/**
+ * @brief Parses a primary preprocessor expression (parenthesized expression,
+ * integer literal, `__has_include`, `__has_embed`, `__has_c_attribute`, or
+ * macro identifier).
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t pp_parse_primary(struct ExprState *s, long *out_val) {
   int matched = 0;
   int is_id_or_kw = 0;
@@ -158,6 +166,12 @@ cdd_c_error_t pp_parse_primary(struct ExprState *s, long *out_val) {
   return CDD_C_ERROR_INVALID_ARGUMENT;
 }
 
+/**
+ * @brief Parses a unary preprocessor expression (`!`, `~`, `-`, `+`, or
+ * `defined`).
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t pp_parse_unary(struct ExprState *s, long *out_val) {
   int matched = 0;
   cdd_c_error_t rc;
@@ -279,6 +293,11 @@ cdd_c_error_t pp_parse_unary(struct ExprState *s, long *out_val) {
   return parse_primary(s, out_val);
 }
 
+/**
+ * @brief Parses a multiplicative preprocessor expression (`*`, `/`, `%`).
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t pp_parse_multiplicative(struct ExprState *s, long *out_val) {
   long val = 0;
   int matched = 0;
@@ -348,6 +367,11 @@ cdd_c_error_t pp_parse_multiplicative(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses an additive preprocessor expression (`+`, `-`).
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t pp_parse_additive(struct ExprState *s, long *out_val) {
   long val = 0;
   int matched = 0;
@@ -399,6 +423,11 @@ cdd_c_error_t pp_parse_additive(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses a bitwise shift preprocessor expression (`<<`, `>>`).
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t pp_parse_shift(struct ExprState *s, long *out_val) {
   long val = 0;
   int matched = 0;
@@ -450,6 +479,11 @@ cdd_c_error_t pp_parse_shift(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses a relational preprocessor expression (`<=`, `>=`, `<`, `>`).
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t pp_parse_relational(struct ExprState *s, long *out_val) {
   long val = 0;
   enum TokenKind k;
@@ -520,6 +554,11 @@ cdd_c_error_t pp_parse_relational(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses an equality preprocessor expression (`==`, `!=`).
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t pp_parse_equality(struct ExprState *s, long *out_val) {
   long val = 0;
   int matched = 0;
@@ -571,6 +610,11 @@ cdd_c_error_t pp_parse_equality(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses a logical AND preprocessor expression (`&&`).
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t pp_parse_logic_and(struct ExprState *s, long *out_val) {
   long val = 0;
   int matched = 0;
@@ -609,6 +653,11 @@ cdd_c_error_t pp_parse_logic_and(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses a logical OR preprocessor expression (`||`).
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t pp_parse_logic_or(struct ExprState *s, long *out_val) {
   long val = 0;
   int matched = 0;
@@ -642,12 +691,24 @@ cdd_c_error_t pp_parse_logic_or(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses a top-level preprocessor expression.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t pp_parse_expr(struct ExprState *s, long *out_val) {
   if (!s || !out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   return parse_logic_or(s, out_val);
 }
 
+/**
+ * @brief Evaluates a preprocessor conditional expression over `[start_idx,
+ * end_idx)`.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` on
+ * syntax error.
+ */
 cdd_c_error_t pp_eval_expression(const struct TokenList *tokens,
                                  size_t start_idx, size_t end_idx,
                                  const struct PreprocessorContext *ctx,

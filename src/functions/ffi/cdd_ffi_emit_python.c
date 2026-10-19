@@ -19,7 +19,13 @@ extern volatile int g_fail_io_after;
 /* clang-format on */
 
 /**
- * @brief Emits Python ctypes wrapper for a specific C primitive type.
+ * @brief Maps a C primitive kind to its corresponding Python `ctypes` type
+ * string.
+ *
+ * @param[in] kind FFI primitive kind enum value.
+ * @param[out] out_type Output pointer receiving the resolved `ctypes` type
+ * string.
+ * @return `CDD_C_SUCCESS` on success.
  */
 static cdd_c_error_t get_ctypes_primitive(cdd_ffi_primitive_kind_t kind,
                                           const char **out_type) {
@@ -73,6 +79,13 @@ static cdd_c_error_t get_ctypes_primitive(cdd_ffi_primitive_kind_t kind,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Writes the Python `ctypes` representation of an FFI IR type to `f`.
+ *
+ * @param[in,out] f Output file stream.
+ * @param[in] type FFI type descriptor to emit.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t emit_type(FILE *f, const cdd_ffi_type_t *type) {
   const char *prim = NULL;
   if (type->pointer_depth > 0) {
@@ -108,6 +121,12 @@ static cdd_c_error_t emit_type(FILE *f, const cdd_ffi_type_t *type) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits Python `ctypes` bindings, C extension GIL wrappers, and optional
+ * pytest suites for the given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 enum cdd_c_error
 cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
                     const cdd_generate_bindings_config_t *config) {

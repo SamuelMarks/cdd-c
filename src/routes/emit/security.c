@@ -16,6 +16,13 @@
 #include "routes/emit/security.h"
 /* clang-format on */
 
+/**
+ * @brief Checks if a URI string starts with a scheme prefix (`scheme:`).
+ *
+ * @param[in] uri The URI string to check.
+ * @param[in] len Length of the URI prefix to inspect.
+ * @return Non-zero if a scheme prefix is present, CDD_C_SUCCESS otherwise.
+ */
 static cdd_c_error_t uri_has_scheme_prefix(const char *uri, size_t len) {
   size_t i;
   if (!uri || len == 0)
@@ -33,6 +40,11 @@ static cdd_c_error_t uri_has_scheme_prefix(const char *uri, size_t len) {
 /**
  * @brief Compares the base part of a reference URI with a self URI to
  * determine if they match.
+ *
+ * @param[in] self_uri The document self URI.
+ * @param[in] ref The reference URI string.
+ * @param[in] base_len Length of the base portion of `ref` before `#`.
+ * @return Non-zero if matching, CDD_C_SUCCESS otherwise.
  */
 static cdd_c_error_t ref_base_matches_self_uri(const char *self_uri,
                                                const char *ref,
@@ -75,6 +87,11 @@ static cdd_c_error_t ref_base_matches_self_uri(const char *self_uri,
 /**
  * @brief Checks if a requested security scheme reference matches a given
  * scheme name, resolving relative refs.
+ *
+ * @param[in] req_scheme Requested security scheme name or reference.
+ * @param[in] scheme_name Defined security scheme name.
+ * @param[in] spec The parent OpenAPI specification.
+ * @return Non-zero if matching, CDD_C_SUCCESS otherwise.
  */
 static cdd_c_error_t scheme_ref_matches_name(const char *req_scheme,
                                              const char *scheme_name,
@@ -107,6 +124,12 @@ static cdd_c_error_t scheme_ref_matches_name(const char *req_scheme,
 /**
  * @brief Evaluates whether a specific security scheme name exists within
  * an array of requirement sets.
+ *
+ * @param[in] sets Array of OpenAPI_SecurityRequirementSet structures.
+ * @param[in] n_sets Number of requirement sets.
+ * @param[in] scheme_name Security scheme name to look for.
+ * @param[in] spec The parent OpenAPI specification.
+ * @return Non-zero if present, CDD_C_SUCCESS otherwise.
  */
 static cdd_c_error_t
 scheme_in_security_sets(const struct OpenAPI_SecurityRequirementSet *sets,
@@ -129,6 +152,13 @@ scheme_in_security_sets(const struct OpenAPI_SecurityRequirementSet *sets,
 /**
  * @brief Determines the active security requirements for an operation,
  * falling back to global spec requirements.
+ *
+ * @param[in] op The operation context.
+ * @param[in] spec The parent OpenAPI specification.
+ * @param[out] out_sets Output pointer to the active security requirement sets.
+ * @param[out] out_count Output count of active security requirement sets.
+ * @param[out] out_set_flag Output flag set to 1 if security was explicitly set.
+ * @return CDD_C_SUCCESS or status code.
  */
 static cdd_c_error_t
 resolve_active_security(const struct OpenAPI_Operation *op,
@@ -168,6 +198,13 @@ resolve_active_security(const struct OpenAPI_Operation *op,
 /**
  * @brief Evaluates whether a given security scheme is currently active
  * within a set of requirements.
+ *
+ * @param[in] sch The security scheme to check.
+ * @param[in] sets Active security requirement sets.
+ * @param[in] n_sets Number of active security requirement sets.
+ * @param[in] security_set Non-zero if explicit security requirements are set.
+ * @param[in] spec The parent OpenAPI specification.
+ * @return Non-zero if active, CDD_C_SUCCESS otherwise.
  */
 static cdd_c_error_t
 scheme_is_active(const struct OpenAPI_SecurityScheme *sch,
@@ -379,7 +416,6 @@ codegen_security_write_server_apply(FILE *fp,
                                     const struct OpenAPI_Operation *op,
                                     const struct OpenAPI_Spec *spec) {
   size_t i;
-  int has_security = 0;
   const struct OpenAPI_SecurityRequirementSet *active_sets = NULL;
   size_t n_active_sets = 0;
   int security_set = 0;
@@ -412,7 +448,6 @@ codegen_security_write_server_apply(FILE *fp,
                   "Unauthorized\\r\\nContent-Length: 0\\r\\n\\r\\n\");\n");
       fprintf(fp, "      return CDD_C_ERROR_SYSTEM; /* 401 */\n");
       fprintf(fp, "    }\n");
-      has_security = 1;
     } else if (sch->type == OA_SEC_HTTP && sch->scheme &&
                strcmp(sch->scheme, "basic") == 0) {
       fprintf(fp, "    /* Validate Basic Auth */\n");
@@ -421,11 +456,8 @@ codegen_security_write_server_apply(FILE *fp,
                   "Unauthorized\\r\\nContent-Length: 0\\r\\n\\r\\n\");\n");
       fprintf(fp, "      return CDD_C_ERROR_SYSTEM; /* 401 */\n");
       fprintf(fp, "    }\n");
-      has_security = 1;
     }
   }
-
-  (void)has_security;
 
   return CDD_C_SUCCESS;
 }

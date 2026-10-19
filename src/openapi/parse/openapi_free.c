@@ -10,8 +10,6 @@
 
 /**
  * @brief Free servers array.
- * @param servers Array of servers
- * @param n_servers Number of servers
  */
 void openapi_free_servers_array(struct OpenAPI_Server *servers,
                                 size_t n_servers) {

@@ -26,6 +26,9 @@
 
 /**
  * @brief Checks whether a byte span equals a null-terminated literal string.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 cdd_c_error_t span_equals_str(const az_span span, const char *str,
                               int *_out_val) {
@@ -46,11 +49,17 @@ cdd_c_error_t span_equals_str(const az_span span, const char *str,
 
 /**
  * @brief Classifies an identifier token span as a C keyword or user identifier.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 cdd_c_error_t identify_keyword_or_id(const uint8_t *start, size_t len,
                                      enum TokenKind *_out_val) {
+  /** @brief Entry mapping a C keyword string to its `TokenKind`. */
   static const struct {
+    /** @brief Keyword literal string */
     const char *word;
+    /** @brief Corresponding token kind */
     enum TokenKind kind;
   } keywords[] = {/* C89/C90/C99/C11/C23 Keywords */
                   {"auto", TOKEN_KEYWORD_AUTO},

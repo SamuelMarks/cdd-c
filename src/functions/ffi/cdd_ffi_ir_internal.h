@@ -72,10 +72,6 @@ cdd_c_error_t parse_template_type(const char *c_type, cdd_ffi_type_t *out_type);
  * @brief Generate a flattened C-compatible FFI symbol from C++ namespace,
  * class, and method names.
  *
- * @param ns_name The namespace (can be NULL).
- * @param class_name The class name (can be NULL).
- * @param method_name The method name.
- * @param out_mangled Pointer to receive the allocated mangled name.
  * @return 0 on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_mangle_cpp_name(const char *ns_name,

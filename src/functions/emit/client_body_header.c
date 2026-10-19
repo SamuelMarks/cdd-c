@@ -10,6 +10,13 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
+/**
+ * @brief Mock hook for `fputs` to simulate I/O failures during testing.
+ *
+ * @param[in] s Null-terminated string to write.
+ * @param[in] stream Output file stream.
+ * @return Non-negative value on success, or -1 on simulated failure.
+ */
 static int test_cdd_fputs_hook(const char *s, FILE *stream) {
   if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
     return -1;
@@ -20,6 +27,10 @@ static int test_cdd_fputs_hook(const char *s, FILE *stream) {
 
 /**
  * @brief Emits C source code for header param logic.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] op OpenAPI operation descriptor.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t write_header_param_logic(FILE *fp,
                                        const struct OpenAPI_Operation *op) {

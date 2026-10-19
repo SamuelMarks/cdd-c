@@ -16,6 +16,12 @@
 #include "win_compat_sym.h"
 /* clang-format on */
 
+/**
+ * @brief Generates a C function to serialize a struct into an
+ * `application/x-www-form-urlencoded` string.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t
 write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
                                      const struct StructFields *sf) {

@@ -8,6 +8,15 @@
 #include "openapi/parse/openapi_internal.h"
 /* clang-format on */
 
+/**
+ * @brief Internal helper to parse a Media Type object.
+ *
+ * @param[in] media_obj The source media type JSON object.
+ * @param[out] out Output OpenAPI_MediaType structure.
+ * @param[in] spec The parent OpenAPI specification.
+ * @param[in] resolve_refs Non-zero to resolve component references.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t parse_media_type_object_inner(
     const JSON_Object *media_obj, struct OpenAPI_MediaType *out,
     const struct OpenAPI_Spec *spec, int resolve_refs) {

@@ -288,7 +288,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
   if (strcmp(method, "version") == 0) {
     const char *resp =
         "HTTP/1.1 200 OK\r\nContent-Type: "
-        "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":\"0.0.2\","
+        "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":\"0.0.4\","
         "\"id\":null}";
     rc = send_rpc_response(client_fd, resp);
   } else if (strcmp(method, "initialize") == 0) {
@@ -307,7 +307,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
         "\"protocolVersion\":\"2024-11-05\",\"capabilities\":{\"tools\":{"
         "\"listChanged\":true},\"resources\":{\"listChanged\":true,"
         "\"subscribe\":false},\"prompts\":{\"listChanged\":true},\"logging\":{"
-        "}},\"serverInfo\":{\"name\":\"cdd-c\",\"version\":\"0.0.2\"}},\"id\":"
+        "}},\"serverInfo\":{\"name\":\"cdd-c\",\"version\":\"0.0.4\"}},\"id\":"
         "null}";
     rc = send_rpc_response(client_fd, resp);
   } else if (strcmp(method, "notifications/initialized") == 0) {
@@ -496,6 +496,27 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
                  "successful\"}],\"isError\":false},\"id\":null}";
           rc = send_rpc_response(client_fd, resp);
         }
+      }
+    } else if (strcmp(name, "to_arazzo") == 0) {
+      cdd_to_arazzo_config_t cfg;
+      memset(&cfg, 0, sizeof(cfg));
+      cfg.input = json_object_get_string(arguments, "input");
+      cfg.output = json_object_get_string(arguments, "output");
+      if (cdd_generate_to_arazzo(&cfg) != CDD_C_SUCCESS) {
+        rc = send_rpc_error(client_fd, -32603, "Arazzo extraction failed");
+      } else {
+        rc = send_rpc_success(client_fd);
+      }
+    } else if (strcmp(name, "from_arazzo") == 0) {
+      cdd_from_arazzo_config_t cfg;
+      memset(&cfg, 0, sizeof(cfg));
+      cfg.subcommand = json_object_get_string(arguments, "subcommand");
+      cfg.input = json_object_get_string(arguments, "input");
+      cfg.output = json_object_get_string(arguments, "output");
+      if (cdd_generate_from_arazzo(&cfg) != CDD_C_SUCCESS) {
+        rc = send_rpc_error(client_fd, -32603, "Arazzo generation failed");
+      } else {
+        rc = send_rpc_success(client_fd);
       }
     } else {
       rc = send_rpc_error(client_fd, -32601, "Tool not found");
@@ -754,8 +775,11 @@ C_CDD_EXPORT cdd_c_error_t serve_json_rpc_main(int argc, char **argv) {
         cfg.listen_host = argv[++i];
       }
     } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
-      printf("Usage: cdd-c serve_json_rpc [-p|--port <port>] [-l|--listen "
-             "<address>]\n");
+      puts("Usage: cdd-c serve_json_rpc [args]");
+      puts("");
+      puts("Options:");
+      puts("  -p, --port <port>       Port to listen on (default: 8080)");
+      puts("  -l, --listen <address>  Address or connection limit to bind");
       return CDD_C_SUCCESS;
     } else if (argv[i][0] == '-') {
       fprintf(stderr, "Unknown option for serve_json_rpc: %s\n", argv[i]);

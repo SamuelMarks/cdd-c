@@ -47,6 +47,11 @@ spec_find_security_scheme(struct OpenAPI_Spec *spec, const char *name,
 
 /**
  * @brief Test helper for c2openapi_infer_client_route.
+ *
+ * @param[in] func_node CST function node to inspect.
+ * @param[in] tokens Token list containing the function tokens.
+ * @param[out] out_route Output allocated route string, or NULL.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_infer_client_route(
     const struct CstNode *func_node, const struct TokenList *tokens,
@@ -54,12 +59,20 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_infer_client_route(
 
 /**
  * @brief Test helper for c2openapi_scan_server_routes.
+ *
+ * @param[in] tokens Token list to scan for server route registrations.
+ * @param[in,out] spec Target OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_server_routes(
     const struct TokenList *tokens, struct OpenAPI_Spec *spec);
 
 /**
  * @brief Test helper for c2openapi_scan_gui_views.
+ *
+ * @param[in] tokens Token list to scan for GUI view functions.
+ * @param[in,out] spec Target OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_gui_views(
     const struct TokenList *tokens, struct OpenAPI_Spec *spec);

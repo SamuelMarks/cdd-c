@@ -17,6 +17,13 @@ extern volatile int g_fail_io_after;
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI IR type to its corresponding Swift C-interop type string.
+ *
+ * @param[in] type FFI type descriptor to map.
+ * @param[out] out_type Output pointer receiving the resolved Swift type string.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t get_swift_type(cdd_ffi_type_t type,
                                     const char **out_type) {
   if (type.pointer_depth > 0) {
@@ -88,6 +95,14 @@ static cdd_c_error_t get_swift_type(cdd_ffi_type_t type,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits a `.swift` source file containing struct wrapper classes and
+ * static C interop methods for the given FFI IR.
+ *
+ * @param[in] ir The extracted and topologically sorted FFI IR.
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t
 emit_swift_file(cdd_ffi_ir_t *ir,
                 const cdd_generate_bindings_config_t *config) {
@@ -214,6 +229,12 @@ emit_swift_file(cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits a Clang `module.modulemap` file exposing the C header to Swift.
+ *
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t
 emit_module_map(const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
@@ -255,6 +276,12 @@ emit_module_map(const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits Swift `.swift` bindings and `module.modulemap` files for the
+ * given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t cdd_ffi_emit_swift(cdd_ffi_ir_t *ir,
                                  const cdd_generate_bindings_config_t *config) {
   cdd_c_error_t rc;

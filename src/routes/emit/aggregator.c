@@ -24,6 +24,12 @@ C_CDD_EXPORT int g_cdd_aggregator_fail_route_strdup = 0;
 
 /**
  * @brief Comparison function to find a path by route string.
+ *
+ * @param[in] paths Array of OpenAPI_Path items.
+ * @param[in] n_paths Number of paths in `paths`.
+ * @param[in] route Target route string to match.
+ * @param[out] _out_val Output pointer to matching path, or NULL.
+ * @return CDD_C_SUCCESS on success.
  */
 static cdd_c_error_t find_path_in_list(struct OpenAPI_Path *paths,
                                        size_t n_paths, const char *route,
@@ -45,6 +51,12 @@ static cdd_c_error_t find_path_in_list(struct OpenAPI_Path *paths,
 
 /**
  * @brief Append a new path object to a list.
+ *
+ * @param[in,out] paths Pointer to array of OpenAPI_Path items.
+ * @param[in,out] n_paths Pointer to count of paths.
+ * @param[in] route Route string for the new path.
+ * @param[out] out_ptr Output pointer to the newly appended path item.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 static cdd_c_error_t append_path_to_list(struct OpenAPI_Path **paths,
                                          size_t *n_paths, const char *route,
@@ -99,6 +111,11 @@ static cdd_c_error_t append_path_to_list(struct OpenAPI_Path **paths,
 
 /**
  * @brief Appends an OpenAPI_Operation to a PathItem operation array.
+ *
+ * @param[in,out] ops Pointer to array of OpenAPI_Operation items.
+ * @param[in,out] count Pointer to count of operations.
+ * @param[in,out] op Operation structure to move into the array.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 static cdd_c_error_t append_operation(struct OpenAPI_Operation **ops,
                                       size_t *count,

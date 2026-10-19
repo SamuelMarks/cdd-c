@@ -16,14 +16,19 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
+/** @brief Counter to simulate outer realloc failure in macro overlay tests. */
 C_CDD_EXPORT int g_cdd_macro_overlay_fail_realloc = 0;
+/** @brief Flag to simulate calloc failure in macro overlay tests. */
 C_CDD_EXPORT int g_cdd_macro_overlay_fail_calloc = 0;
+/** @brief Counter to simulate inner realloc failure in macro overlay tests. */
 C_CDD_EXPORT int g_cdd_macro_overlay_fail_inner_realloc = 0;
 #endif
 
 /**
  * @brief Initializes a macro overlay list.
  *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 cdd_c_error_t macro_overlay_list_init(struct MacroOverlayList *list) {
   if (!list)
@@ -36,7 +41,6 @@ cdd_c_error_t macro_overlay_list_init(struct MacroOverlayList *list) {
 
 /**
  * @brief Frees a macro overlay list.
- *
  */
 void macro_overlay_list_free(struct MacroOverlayList *list) {
   size_t i;
@@ -59,6 +63,10 @@ void macro_overlay_list_free(struct MacroOverlayList *list) {
 /**
  * @brief Adds an element to the macro overlay list.
  *
+ * @param[in,out] list The macro overlay list to append to.
+ * @param[in] node Raw invocation CST node.
+ * @param[in] expanded Expanded CST node list.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
  */
 static cdd_c_error_t list_add(struct MacroOverlayList *list,
                               const struct CstNode *node,
@@ -103,6 +111,7 @@ static cdd_c_error_t list_add(struct MacroOverlayList *list,
 /**
  * @brief Builds the macro overlay mapping from a given CST.
  *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t cst_build_macro_overlay(const struct CstNodeList *cst,
                                       const struct TokenList *tokens,

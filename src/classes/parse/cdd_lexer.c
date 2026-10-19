@@ -18,11 +18,23 @@ extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
+/** @brief Mock flag to simulate trivia append failure */
 C_CDD_EXPORT int g_cdd_lexer_trivia_fail = 0;
+/** @brief Mock flag to simulate identifier start check failure */
 C_CDD_EXPORT int g_cdd_lexer_id_fail = 0;
+/** @brief Mock flag to simulate identifier part check failure */
 C_CDD_EXPORT int g_cdd_lexer_id2_fail = 0;
 #endif
 
+/**
+ * @brief Allocates and initializes a single lexical trivia node.
+ *
+ * @param[in] kind Trivia kind (whitespace, newline, line/block comment).
+ * @param[in] start Pointer to the trivia start byte in the source buffer.
+ * @param[in] length Length of the trivia span in bytes.
+ * @param[out] out_trivia Pointer to receive the allocated trivia node.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
+ */
 static cdd_c_error_t alloc_trivia(enum cdd_trivia_kind_t kind,
                                   const uint8_t *start, size_t length,
                                   cdd_trivia_t **out_trivia) {
@@ -48,6 +60,14 @@ static cdd_c_error_t alloc_trivia(enum cdd_trivia_kind_t kind,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Appends a trivia node `t` to a singly linked trivia list.
+ *
+ * @param[in,out] head Pointer to the list head pointer.
+ * @param[in,out] tail Pointer to the list tail pointer.
+ * @param[in] t Trivia node to append.
+ * @return CDD_C_SUCCESS on success.
+ */
 static cdd_c_error_t append_trivia(cdd_trivia_t **head, cdd_trivia_t **tail,
                                    cdd_trivia_t *t) {
   if (!*head) {
@@ -60,16 +80,42 @@ static cdd_c_error_t append_trivia(cdd_trivia_t **head, cdd_trivia_t **tail,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Checks whether character `c` is a valid C/GNU identifier start
+ * character.
+ *
+ * @param[in] c Character code to test.
+ * @param[out] out_result Pointer to receive non-zero if valid start character,
+ * 0 otherwise.
+ * @return CDD_C_SUCCESS on success.
+ */
 static cdd_c_error_t is_identifier_start(int c, int *out_result) {
   *out_result = (isalpha(c) || c == '_' || c == '$');
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Checks whether character `c` is a valid C/GNU identifier continuation
+ * character.
+ *
+ * @param[in] c Character code to test.
+ * @param[out] out_result Pointer to receive non-zero if valid continuation
+ * character, 0 otherwise.
+ * @return CDD_C_SUCCESS on success.
+ */
 static cdd_c_error_t is_identifier_part(int c, int *out_result) {
   *out_result = (isalnum(c) || c == '_' || c == '$');
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Classifies an identifier slice as either a specific C/C++/GNU keyword
+ * or `CDD_TOKEN_IDENTIFIER`.
+ *
+ * @param[in] start Pointer to the identifier bytes.
+ * @param[in] len Length of the identifier in bytes.
+ * @return The classified `cdd_token_kind_t`.
+ */
 static enum cdd_token_kind_t classify_identifier(const uint8_t *start,
                                                  size_t len) {
   if (len == 3 && memcmp(start, "int", 3) == 0)
@@ -157,6 +203,12 @@ static enum cdd_token_kind_t classify_identifier(const uint8_t *start,
   return CDD_TOKEN_IDENTIFIER;
 }
 
+/**
+ * @brief Tokenizes a C source span into a full-fidelity token list with
+ * attached leading and trailing trivia.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
 #ifdef CDD_BUILD_TESTS
 
@@ -599,6 +651,10 @@ error:
   return rc != CDD_C_SUCCESS ? rc : CDD_C_ERROR_MEMORY;
 }
 
+/**
+ * @brief Frees a lexical token list and all attached leading and trailing
+ * trivia chains.
+ */
 void cdd_lexer_free_token_list(cdd_token_list_t *list) {
   size_t i;
   if (!list)

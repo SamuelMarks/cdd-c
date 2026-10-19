@@ -17,9 +17,21 @@
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI IR type to its corresponding Fortran `ISO_C_BINDING` type
+ * declaration.
+ *
+ * @param[in] t FFI type descriptor to map.
+ * @param[out] out_type Destination buffer for the resolved Fortran type string.
+ * @param[in] out_sz Capacity of `out_type` in bytes.
+ * @param[in] is_return Non-zero if mapping a function return type, 0 otherwise.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t map_fortran_type(cdd_ffi_type_t *t, char *out_type,
                                       size_t out_sz, int is_return) {
-  (void)is_return;
+  if (is_return) {
+    /* Return type uses identical ISO_C_BINDING type specifiers */
+  }
   if (t->pointer_depth > 0) {
     if ((t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) &&
         t->is_const) {
@@ -93,6 +105,12 @@ static cdd_c_error_t map_fortran_type(cdd_ffi_type_t *t, char *out_type,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits Fortran 2003 `ISO_C_BINDING` `.f90` module bindings for the
+ * given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t
 cdd_ffi_emit_fortran(cdd_ffi_ir_t *ir,
                      const cdd_generate_bindings_config_t *config) {

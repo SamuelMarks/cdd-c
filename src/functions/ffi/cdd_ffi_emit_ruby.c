@@ -20,6 +20,15 @@ extern volatile int g_fail_io_after;
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI IR type to its corresponding Ruby `Fiddle` type constant
+ * string.
+ *
+ * @param[in] type FFI type descriptor to map.
+ * @param[out] out_type Output pointer receiving the resolved `Fiddle` type
+ * string.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t get_ruby_type(cdd_ffi_type_t type, const char **out_type) {
   static const cdd_ffi_type_map_table_t k_ruby_types = {
       "Fiddle::TYPE_VOID",
@@ -44,6 +53,15 @@ static cdd_c_error_t get_ruby_type(cdd_ffi_type_t type, const char **out_type) {
   return cdd_ffi_map_type_from_table(&k_ruby_types, type, out_type);
 }
 
+/**
+ * @brief Converts a `snake_case` C identifier into a `PascalCase` Ruby module
+ * name.
+ *
+ * @param[in] snake Source `snake_case` string.
+ * @param[out] out Destination buffer for the PascalCase string.
+ * @param[in] out_size Capacity of `out` in bytes.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t to_camel_case(const char *snake, char *out,
                                    size_t out_size) {
   size_t i, j = 0;
@@ -64,6 +82,14 @@ static cdd_c_error_t to_camel_case(const char *snake, char *out,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits a `.rb` Ruby `Fiddle` bindings module, C GVL extension wrapper,
+ * and optional test suite for the given FFI IR.
+ *
+ * @param[in] ir The extracted and topologically sorted FFI IR.
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t
 emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
@@ -284,6 +310,11 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits Ruby Fiddle FFI bindings for the given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t cdd_ffi_emit_ruby(cdd_ffi_ir_t *ir,
                                 const cdd_generate_bindings_config_t *config) {
   if (!ir || !config || !config->output_dir) {

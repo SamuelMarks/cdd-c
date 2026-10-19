@@ -13,6 +13,11 @@
 #include "cdd_ffi_emit_ir_json.h"
 /* clang-format on */
 
+/**
+ * @brief Emits the FFI IR as a serialized JSON file (`ir_dump.json`).
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_emit_ir_json(
     cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char *json_str = NULL;

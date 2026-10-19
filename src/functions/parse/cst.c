@@ -49,6 +49,8 @@ extern C_CDD_EXPORT int g_cdd_fail_token_matches_string;
 
 /**
  * @brief Append a node to CST node list.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
  */
 cdd_c_error_t cst_list_add(struct CstNodeList *list, enum CstNodeKind kind,
                            const uint8_t *start, size_t length,
@@ -485,6 +487,8 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
 
 /**
  * @brief Parses tokens from the given input.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t parse_tokens(const struct TokenList *tokens,
                            struct CstNodeList *out) {
@@ -515,6 +519,9 @@ void free_cst_node_list(struct CstNodeList *list) {
 
 /**
  * @brief Finds the first CST node matching a specified node kind.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * `out_node` is NULL.
  */
 cdd_c_error_t cst_find_first(struct CstNodeList *list,
                              const enum CstNodeKind kind,
@@ -537,6 +544,15 @@ cdd_c_error_t cst_find_first(struct CstNodeList *list,
 }
 
 #ifdef CDD_BUILD_TESTS
+/**
+ * @brief Test wrapper for `parse_recursive`.
+ *
+ * @param[in] tokens Token list.
+ * @param[in] start Start token index.
+ * @param[in] end End token index.
+ * @param[in,out] out CST node list to populate.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t cdd_test_cst_parse_recursive(const struct TokenList *tokens,
                                            size_t start, size_t end,
                                            struct CstNodeList *out) {

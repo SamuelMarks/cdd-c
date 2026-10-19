@@ -201,6 +201,8 @@ get_success_schema(const struct OpenAPI_Operation *op,
 
 /**
  * @brief Emits generated C code for codegen client write signature.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t
 codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,

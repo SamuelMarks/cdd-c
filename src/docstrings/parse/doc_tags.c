@@ -22,6 +22,11 @@
 #include "functions/parse/str.h"
 /* clang-format on */
 
+/**
+ * @brief Appends a single tag string to `out->tags`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_add_tag(struct DocMetadata *out, const char *tag) {
   char **new_tags;
   cdd_c_error_t rc;
@@ -44,6 +49,11 @@ cdd_c_error_t doc_add_tag(struct DocMetadata *out, const char *tag) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Appends a `DocTagMeta` entry to `out->tag_meta`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_add_tag_meta(struct DocMetadata *out,
                                struct DocTagMeta *meta) {
   struct DocTagMeta *new_meta;
@@ -71,6 +81,11 @@ cdd_c_error_t doc_add_tag_meta(struct DocMetadata *out,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses an `@tag` or `@tags` directive line into `out->tags`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_tags_line(const char *line, const char *end,
                                   struct DocMetadata *out) {
   char *rest = NULL;
@@ -111,6 +126,11 @@ cdd_c_error_t doc_parse_tags_line(const char *line, const char *end,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses an `@tagMeta` directive line into `out->tag_meta`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_tag_meta_line(const char *line, const char *end,
                                       struct DocMetadata *out) {
   const char *cur = line;
@@ -270,6 +290,11 @@ cleanup_meta:
   return rc;
 }
 
+/**
+ * @brief Parses an `@deprecated` directive line into `out`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_deprecated_line(const char *line, const char *end,
                                         struct DocMetadata *out) {
   char *rest = NULL;
@@ -290,6 +315,11 @@ cdd_c_error_t doc_parse_deprecated_line(const char *line, const char *end,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses an `@externalDocs` directive line into `out`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_external_docs_line(const char *line, const char *end,
                                            struct DocMetadata *out) {
   const char *cur = line;
@@ -315,6 +345,11 @@ cdd_c_error_t doc_parse_external_docs_line(const char *line, const char *end,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses an `@contact` directive line into `out`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_contact_line(const char *line, const char *end,
                                      struct DocMetadata *out) {
   char *rest = NULL;
@@ -424,6 +459,11 @@ fail_contact:
   return rc;
 }
 
+/**
+ * @brief Parses an `@license` directive line into `out`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_license_line(const char *line, const char *end,
                                      struct DocMetadata *out) {
   char *rest = NULL;
@@ -546,6 +586,11 @@ fail_license:
   return rc;
 }
 
+/**
+ * @brief Parses an `@server` directive line into `out->servers`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_server_line(const char *line, const char *end,
                                     struct DocMetadata *out) {
   const char *cur = line;
@@ -672,6 +717,12 @@ cdd_c_error_t doc_parse_server_line(const char *line, const char *end,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses an `@serverVar` directive line and attaches it to the most
+ * recent server in `out->servers`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_server_var_line(const char *line, const char *end,
                                         struct DocMetadata *out) {
   const char *cur = line;
@@ -830,6 +881,12 @@ fail_server_var:
   return rc;
 }
 
+/**
+ * @brief Parses an `@encoding`, `@prefixEncoding`, or `@itemEncoding`
+ * directive line into `out->encodings`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_encoding_line(const char *line, const char *end,
                                       struct DocMetadata *out, int kind) {
   cdd_c_error_t rc_opt;
@@ -940,6 +997,12 @@ cdd_c_error_t doc_parse_encoding_line(const char *line, const char *end,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses an `@route` or `@webhook` directive line into `out->verb` and
+ * `out->route`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_route_line(const char *line, const char *end,
                                    struct DocMetadata *out) {
   const char *cur = line;

@@ -71,13 +71,13 @@ jobs:
           git config user.email "github-actions@github.com"
           git tag -f latest
       - name: Release Versioned WASM Artifact
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@master
         with:
           tag_name: ${{ github.ref_name }}
           files: "*.wasm"
           prerelease: false
       - name: Release Latest WASM Artifact
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@master
         with:
           tag_name: latest
           files: "*.wasm"

@@ -31,8 +31,10 @@
 
 /* Select correct strdup function name for generated code */
 #if defined(_MSC_VER)
+/** @brief Platform-specific strdup function name for emitted code */
 static const char *kStrDupFunc = "_strdup";
 #else
+/** @brief Platform-specific strdup function name for emitted code */
 static const char *kStrDupFunc = "strdup";
 #endif
 #ifdef CDD_BUILD_TESTS
@@ -50,7 +52,10 @@ static const char *kStrDupFunc = "strdup";
   return CDD_C_ERROR_IO
 
 /**
- * @brief Frees the memory associated with string array.
+ * @brief Frees the memory associated with a dynamically allocated string array.
+ *
+ * @param[in,out] arr Array of heap-allocated strings.
+ * @param[in] n Number of elements in the array.
  */
 static void free_string_array(char **arr, size_t n) {
   size_t i;
@@ -64,7 +69,9 @@ static void free_string_array(char **arr, size_t n) {
 }
 
 /**
- * @brief Retrieves the type from ref.
+ * @brief Extracts the type name from a JSON Schema `$ref` path.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t get_type_from_ref(const char *ref, const char **_out_val) {
   if (ref == NULL) {
@@ -86,6 +93,8 @@ cdd_c_error_t get_type_from_ref(const char *ref, const char **_out_val) {
 
 /**
  * @brief Initializes a dynamic array of struct field descriptors.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t struct_fields_init(struct StructFields *sf) {
   if (!sf)
@@ -173,6 +182,8 @@ void struct_fields_free(struct StructFields *sf) {
 
 /**
  * @brief Appends a new field descriptor to a StructFields container.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t struct_fields_add(struct StructFields *sf, const char *name,
                                 const char *type, const char *ref,
@@ -235,6 +246,8 @@ cdd_c_error_t struct_fields_add(struct StructFields *sf, const char *name,
 
 /**
  * @brief Finds a struct field descriptor by name.
+ *
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t struct_fields_get(const struct StructFields *sf, const char *name,
                                 struct StructField **_out_val) {
@@ -259,6 +272,8 @@ cdd_c_error_t struct_fields_get(const struct StructFields *sf, const char *name,
 
 /**
  * @brief Emits C source code for struct cleanup func.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
 write_struct_cleanup_func(FILE *fp, const char *struct_name,
@@ -339,6 +354,8 @@ write_struct_cleanup_func(FILE *fp, const char *struct_name,
 
 /**
  * @brief Emits C source code for struct deepcopy func.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
 write_struct_deepcopy_func(FILE *fp, const char *struct_name,
@@ -390,6 +407,8 @@ write_struct_deepcopy_func(FILE *fp, const char *struct_name,
 
 /**
  * @brief Emits C source code for struct eq func.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t write_struct_eq_func(FILE *fp, const char *struct_name,
                                    const struct StructFields *sf,
@@ -486,6 +505,8 @@ cdd_c_error_t write_struct_eq_func(FILE *fp, const char *struct_name,
 
 /**
  * @brief Emits C source code for struct default func.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
 write_struct_default_func(FILE *fp, const char *struct_name,
@@ -587,6 +608,8 @@ write_struct_default_func(FILE *fp, const char *struct_name,
 
 /**
  * @brief Emits C source code for struct debug func.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
 write_struct_debug_func(FILE *fp, const char *struct_name,
@@ -716,6 +739,8 @@ write_struct_debug_func(FILE *fp, const char *struct_name,
 
 /**
  * @brief Emits C source code for struct display func.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
 write_struct_display_func(FILE *fp, const char *struct_name,

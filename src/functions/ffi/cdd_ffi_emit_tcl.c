@@ -21,6 +21,12 @@ extern volatile int g_fail_io_after;
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Emits a Tcl C extension (`*_tcl.c`) and `pkgIndex.tcl` package index
+ * for the given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
                                const cdd_generate_bindings_config_t *config) {
   FILE *c_f = NULL;

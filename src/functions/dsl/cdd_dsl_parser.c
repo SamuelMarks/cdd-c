@@ -24,6 +24,13 @@ typedef struct {
   cdd_ffi_trivia_t *pending_trivia;   /**< Accumulated leading trivia list */
 } parser_state_t;
 
+/**
+ * @brief Peeks at the raw token at `state->current` without consuming trivia.
+ *
+ * @param[in] state Current parser state.
+ * @param[out] out_tok Pointer to receive the current DSL token.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t peek_raw(const parser_state_t *state,
                               cdd_dsl_token_t *out_tok) {
 #ifdef CDD_BUILD_TESTS
@@ -41,6 +48,14 @@ static cdd_c_error_t peek_raw(const parser_state_t *state,
 
 static cdd_c_error_t collect_trivia(parser_state_t *state);
 
+/**
+ * @brief Collects any pending trivia and peeks at the next non-trivia DSL
+ * token.
+ *
+ * @param[in,out] state Current parser state.
+ * @param[out] out_tok Pointer to receive the peeked DSL token.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t peek(parser_state_t *state, cdd_dsl_token_t *out_tok) {
   cdd_c_error_t rc;
   rc = collect_trivia(state);
@@ -49,6 +64,14 @@ static cdd_c_error_t peek(parser_state_t *state, cdd_dsl_token_t *out_tok) {
   return peek_raw(state, out_tok);
 }
 
+/**
+ * @brief Consumes and returns the raw token at `state->current` without
+ * collecting trivia.
+ *
+ * @param[in,out] state Current parser state.
+ * @param[out] out_tok Pointer to receive the consumed DSL token.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t advance_raw(parser_state_t *state,
                                  cdd_dsl_token_t *out_tok) {
   cdd_c_error_t rc;
@@ -64,6 +87,13 @@ static cdd_c_error_t advance_raw(parser_state_t *state,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Consumes and returns the current DSL token, advancing the cursor.
+ *
+ * @param[in,out] state Current parser state.
+ * @param[out] out_tok Pointer to receive the consumed DSL token.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t advance(parser_state_t *state, cdd_dsl_token_t *out_tok) {
   cdd_c_error_t rc;
   rc = peek_raw(state, out_tok);
@@ -73,6 +103,16 @@ static cdd_c_error_t advance(parser_state_t *state, cdd_dsl_token_t *out_tok) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Checks if the next non-trivia token matches `kind` and consumes it if
+ * so.
+ *
+ * @param[in,out] state Current parser state.
+ * @param[in] kind Expected token kind to match.
+ * @param[out] out_match Pointer to receive 1 if matched and consumed, 0
+ * otherwise.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t match(parser_state_t *state, cdd_dsl_token_kind_t kind,
                            int *out_match) {
   cdd_dsl_token_t tok;
@@ -92,6 +132,13 @@ static cdd_c_error_t match(parser_state_t *state, cdd_dsl_token_kind_t kind,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Consumes consecutive whitespace, comment, and escape trivia tokens
+ * into `state->pending_trivia`.
+ *
+ * @param[in,out] state Current parser state.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t collect_trivia(parser_state_t *state) {
   cdd_dsl_token_t tok;
   cdd_c_error_t rc;
@@ -171,6 +218,13 @@ static cdd_c_error_t collect_trivia(parser_state_t *state) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Detaches and returns accumulated leading trivia from `state`.
+ *
+ * @param[in,out] state Current parser state.
+ * @param[out] out_trivia Pointer to receive the detached trivia list.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t take_pending_trivia(parser_state_t *state,
                                          cdd_ffi_trivia_t **out_trivia) {
 #ifdef CDD_BUILD_TESTS
@@ -183,6 +237,13 @@ static cdd_c_error_t take_pending_trivia(parser_state_t *state,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses a numeric literal token into a `cdd_ffi_number_t` descriptor.
+ *
+ * @param[in,out] state Current parser state.
+ * @param[out] out_num Pointer to receive the allocated number descriptor.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t parse_number(parser_state_t *state,
                                   struct cdd_ffi_number_t **out_num) {
   struct cdd_ffi_number_t *num;
@@ -230,6 +291,14 @@ static cdd_c_error_t parse_number(parser_state_t *state,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses a DSL type specification (pointer prefixes, array bounds, and
+ * base type).
+ *
+ * @param[in,out] state Current parser state.
+ * @param[out] out_type Pointer to the `cdd_ffi_type_t` structure to populate.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t parse_type(parser_state_t *state,
                                 cdd_ffi_type_t *out_type) {
   cdd_c_error_t rc;
@@ -322,6 +391,13 @@ static cdd_c_error_t parse_type(parser_state_t *state,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses a single DSL function parameter or struct field declaration.
+ *
+ * @param[in,out] state Current parser state.
+ * @param[out] out_field Pointer to the `cdd_ffi_field_t` structure to populate.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t parse_field(parser_state_t *state,
                                  cdd_ffi_field_t *out_field) {
   cdd_c_error_t rc;
@@ -457,6 +533,14 @@ static cdd_c_error_t parse_macro_decl(parser_state_t *state, cdd_ffi_ir_t *ir);
 static cdd_c_error_t parse_namespace_decl(parser_state_t *state,
                                           cdd_ffi_ir_t *ir);
 
+/**
+ * @brief Parses a DSL `namespace <name> { ... }` declaration block into the FFI
+ * IR.
+ *
+ * @param[in,out] state Current parser state.
+ * @param[in,out] ir Target FFI IR structure to populate.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t parse_namespace_decl(parser_state_t *state,
                                           cdd_ffi_ir_t *ir) {
   cdd_c_error_t rc;
@@ -567,6 +651,13 @@ cleanup:
   return rc;
 }
 
+/**
+ * @brief Parses a DSL `enum <name> { ... }` declaration into the FFI IR.
+ *
+ * @param[in,out] state Current parser state.
+ * @param[in,out] ir Target FFI IR structure to populate.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t parse_enum_decl(parser_state_t *state, cdd_ffi_ir_t *ir) {
   cdd_ffi_ir_node_t *node;
   cdd_c_error_t rc;
@@ -687,6 +778,14 @@ cleanup:
   return rc;
 }
 
+/**
+ * @brief Parses a DSL `macro_const`, `macro_expr`, or `macro_stmt` declaration
+ * into the FFI IR.
+ *
+ * @param[in,out] state Current parser state.
+ * @param[in,out] ir Target FFI IR structure to populate.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t parse_macro_decl(parser_state_t *state, cdd_ffi_ir_t *ir) {
   cdd_ffi_ir_node_t *node;
   cdd_c_error_t rc;
@@ -815,6 +914,14 @@ static cdd_c_error_t parse_macro_decl(parser_state_t *state, cdd_ffi_ir_t *ir) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses a DSL `func` declaration (and optional raw body) into the FFI
+ * IR.
+ *
+ * @param[in,out] state Current parser state.
+ * @param[in,out] ir Target FFI IR structure to populate.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t parse_func_decl(parser_state_t *state, cdd_ffi_ir_t *ir) {
   cdd_ffi_ir_node_t *node;
   cdd_c_error_t rc;
@@ -979,6 +1086,12 @@ static cdd_c_error_t parse_func_decl(parser_state_t *state, cdd_ffi_ir_t *ir) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses a CDD DSL token stream into a newly allocated FFI Intermediate
+ * Representation (`cdd_ffi_ir_t`).
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 C_CDD_EXPORT cdd_c_error_t cdd_dsl_parse(const cdd_dsl_token_list_t *tokens,
                                          cdd_ffi_ir_t **out_ir) {
   parser_state_t state;

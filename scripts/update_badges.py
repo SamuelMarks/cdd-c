@@ -33,17 +33,29 @@ def get_doc_coverage():
                 doxy = f.read()
             with tempfile.TemporaryDirectory() as tmpdir:
                 doxy = doxy.replace("@PROJECT_NAME@", "c_cdd")
-                doxy = doxy.replace("@PROJECT_VERSION@", "0.0.2")
+                doxy = doxy.replace("@PROJECT_VERSION@", "0.0.4")
                 doxy = doxy.replace("@CMAKE_SOURCE_DIR@", repo_root)
-                doxy = doxy.replace("OUTPUT_DIRECTORY       = docs", f"OUTPUT_DIRECTORY       = {tmpdir}")
-                doxy = doxy.replace("GENERATE_HTML          = YES", "GENERATE_HTML          = NO\nGENERATE_XML           = YES")
-                doxy = doxy.replace("WARN_AS_ERROR          = YES", "WARN_AS_ERROR          = NO\nQUIET                  = YES")
+                doxy = doxy.replace(
+                    "OUTPUT_DIRECTORY       = docs",
+                    f"OUTPUT_DIRECTORY       = {tmpdir}",
+                )
+                doxy = doxy.replace(
+                    "GENERATE_HTML          = YES",
+                    "GENERATE_HTML          = NO\nGENERATE_XML           = YES",
+                )
+                doxy = doxy.replace(
+                    "WARN_AS_ERROR          = YES",
+                    "WARN_AS_ERROR          = NO\nQUIET                  = YES",
+                )
                 doxy_path = os.path.join(tmpdir, "Doxyfile")
                 with open(doxy_path, "w", encoding="utf-8") as f:
                     f.write(doxy)
-                res = subprocess.run(["doxygen", doxy_path], cwd=tmpdir, capture_output=True, text=True)
+                res = subprocess.run(
+                    ["doxygen", doxy_path], cwd=tmpdir, capture_output=True, text=True
+                )
                 warnings = [
-                    line for line in (res.stderr + "\n" + res.stdout).splitlines()
+                    line
+                    for line in (res.stderr + "\n" + res.stdout).splitlines()
                     if "warning:" in line
                 ]
                 total_files = 0
@@ -52,16 +64,23 @@ def get_doc_coverage():
                     if not os.path.exists(root_dir):
                         continue
                     for root, _, files in os.walk(root_dir):
-                        if "/tests" in root or "/mocks" in root:
+                        norm_root = root.replace("\\", "/")
+                        if "/tests" in norm_root or "/mocks" in norm_root:
                             continue
                         for file in files:
                             if file.endswith(".h") or file.endswith(".c"):
                                 total_files += 1
-                                with open(os.path.join(root, file), "r", encoding="utf-8") as fp:
+                                with open(
+                                    os.path.join(root, file), "r", encoding="utf-8"
+                                ) as fp:
                                     c = fp.read()
                                 if "@file" in c or "/**" in c:
                                     files_with_file_tag += 1
-                if len(warnings) == 0 and total_files > 0 and files_with_file_tag == total_files:
+                if (
+                    len(warnings) == 0
+                    and total_files > 0
+                    and files_with_file_tag == total_files
+                ):
                     return 100.0
                 penalty = len(warnings) + (total_files - files_with_file_tag)
                 return max(0.0, round(100.0 - (penalty * 0.5), 1))
@@ -78,6 +97,9 @@ def get_doc_coverage():
         if not os.path.exists(root_dir):
             continue
         for root, _, files in os.walk(root_dir):
+            norm_root = root.replace("\\", "/")
+            if "/tests" in norm_root or "/mocks" in norm_root:
+                continue
             for file in files:
                 if file.endswith(".h") or file.endswith(".c"):
                     with open(os.path.join(root, file), "r", encoding="utf-8") as f:
@@ -88,11 +110,11 @@ def get_doc_coverage():
                         documented_funcs += docs
 
     if total_funcs == 0:
-        return 100
+        return 100.0
     cov = (
-        min(100, int((documented_funcs / total_funcs) * 100))
+        min(100.0, round((documented_funcs / total_funcs) * 100.0, 1))
         if total_funcs > 0
-        else 100
+        else 100.0
     )
     return cov
 
@@ -106,9 +128,7 @@ def get_test_coverage():
 
     build_dirs = ["build_gcc", "build_cov", "build"]
 
-    existing_dirs = [
-        d for d in build_dirs if os.path.isdir(os.path.join(repo_root, d))
-    ]
+    existing_dirs = [d for d in build_dirs if os.path.isdir(os.path.join(repo_root, d))]
     if not existing_dirs:
         bdir = os.path.join(repo_root, "build_gcc")
         os.makedirs(bdir, exist_ok=True)
@@ -175,6 +195,8 @@ def get_test_coverage():
         candidates.append("gcov")
         if shutil.which("llvm-cov"):
             candidates.append("llvm-cov gcov")
+        if shutil.which("xcrun"):
+            candidates.append("xcrun llvm-cov gcov")
 
         seen = set()
         unique_candidates = []
@@ -211,15 +233,13 @@ def get_test_coverage():
                     cmd.extend(["--gcov-executable", candidate])
 
                 try:
-                    res = subprocess.run(
-                        cmd, cwd=bdir, capture_output=True, text=True
-                    )
+                    res = subprocess.run(cmd, cwd=bdir, capture_output=True, text=True)
                     if res.returncode == 0:
                         m = re.search(
                             r"lines:\s+([0-9.]+)%\s+\((\d+)\s+out\s+of\s+(\d+)\)",
                             res.stdout,
                         )
-                        if m and int(m.group(3)) > 0:
+                        if m and int(m.group(3)) > 0 and int(m.group(2)) > 0:
                             return float(m.group(1))
                         m_simple = re.search(r"lines:\s+([0-9.]+)%", res.stdout)
                         if m_simple and float(m_simple.group(1)) > 0.0:
@@ -290,9 +310,16 @@ def main():
         else:
             doc_badge_pattern = r"(\[\!\[Doc Coverage\].*?\]\(.*?\)\n?)"
             if re.search(doc_badge_pattern, content):
-                content = re.sub(doc_badge_pattern, r"\1" + test_badge + "\n", content, count=1)
+                content = re.sub(
+                    doc_badge_pattern, r"\1" + test_badge + "\n", content, count=1
+                )
             elif "[![License]" in content:
-                content = re.sub(r"(\[!\[License\].*?\]\(.*?\)\n?)", r"\1" + test_badge + "\n", content, count=1)
+                content = re.sub(
+                    r"(\[!\[License\].*?\]\(.*?\)\n?)",
+                    r"\1" + test_badge + "\n",
+                    content,
+                    count=1,
+                )
 
     doc_badge = f"[![Doc Coverage](https://img.shields.io/badge/Doc%20Coverage-{doc_cov}%25-{doc_color}.svg)](#)"
     doc_badge_pattern = r"\[\!\[Doc Coverage\]\(.*?\)\]\(.*?\)"
@@ -300,7 +327,12 @@ def main():
         content = re.sub(doc_badge_pattern, doc_badge, content)
     else:
         if "[![License]" in content:
-            content = re.sub(r"(\[!\[License\].*?\]\(.*?\)\n?)", r"\1" + doc_badge + "\n", content, count=1)
+            content = re.sub(
+                r"(\[!\[License\].*?\]\(.*?\)\n?)",
+                r"\1" + doc_badge + "\n",
+                content,
+                count=1,
+            )
 
     with open(readme_path, "w", encoding="utf-8", newline="\n") as f:
         f.write(content)

@@ -14,6 +14,15 @@
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI IR type to its corresponding `dart:ffi` native C type
+ * annotation string.
+ *
+ * @param[in] type FFI type descriptor to map.
+ * @param[out] out_type Output pointer receiving the resolved `dart:ffi` type
+ * string.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t get_dart_ffi_type(cdd_ffi_type_t type,
                                        const char **out_type) {
   if (type.pointer_depth > 0) {
@@ -84,6 +93,15 @@ static cdd_c_error_t get_dart_ffi_type(cdd_ffi_type_t type,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Maps an FFI IR type to its corresponding Dart language runtime type
+ * string.
+ *
+ * @param[in] type FFI type descriptor to map.
+ * @param[out] out_type Output pointer receiving the resolved Dart runtime type
+ * string.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t get_dart_native_type(cdd_ffi_type_t type,
                                           const char **out_type) {
   if (type.pointer_depth > 0) {
@@ -136,6 +154,14 @@ static cdd_c_error_t get_dart_native_type(cdd_ffi_type_t type,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits a `.dart` source file containing `dart:ffi` struct and dynamic
+ * library bindings for the given FFI IR.
+ *
+ * @param[in] ir The extracted and topologically sorted FFI IR.
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t
 emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
@@ -273,6 +299,11 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits Dart FFI bindings for the given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t cdd_ffi_emit_dart(cdd_ffi_ir_t *ir,
                                 const cdd_generate_bindings_config_t *config) {
   if (!ir || !config || !config->output_dir) {

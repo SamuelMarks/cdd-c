@@ -15,6 +15,13 @@
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI IR type to its corresponding Julia `ccall` type string.
+ *
+ * @param[in] type FFI type descriptor to map.
+ * @param[out] out_type Output pointer receiving the resolved Julia type string.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t get_julia_type(cdd_ffi_type_t type,
                                     const char **out_type) {
   static const cdd_ffi_type_map_table_t k_julia_types = {
@@ -25,6 +32,15 @@ static cdd_c_error_t get_julia_type(cdd_ffi_type_t type,
   return cdd_ffi_map_type_from_table(&k_julia_types, type, out_type);
 }
 
+/**
+ * @brief Converts a `snake_case` C identifier into a `PascalCase` Julia module
+ * name.
+ *
+ * @param[in] snake Source `snake_case` string.
+ * @param[out] out Destination buffer for the PascalCase string.
+ * @param[in] out_size Capacity of `out` in bytes.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t to_camel_case(const char *snake, char *out,
                                    size_t out_size) {
   size_t i, j = 0;
@@ -45,6 +61,14 @@ static cdd_c_error_t to_camel_case(const char *snake, char *out,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits a `.jl` Julia module file containing `ccall` wrappers for the
+ * given FFI IR.
+ *
+ * @param[in] ir The extracted and topologically sorted FFI IR.
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t
 emit_julia_file(cdd_ffi_ir_t *ir,
                 const cdd_generate_bindings_config_t *config) {
@@ -181,6 +205,11 @@ emit_julia_file(cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits Julia FFI bindings for the given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t cdd_ffi_emit_julia(cdd_ffi_ir_t *ir,
                                  const cdd_generate_bindings_config_t *config) {
   if (!ir || !config || !config->output_dir) {

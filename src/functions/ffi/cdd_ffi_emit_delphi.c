@@ -16,6 +16,15 @@
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI IR type to its corresponding Delphi / Object Pascal type
+ * string.
+ *
+ * @param[in] t FFI type descriptor to map.
+ * @param[out] out_type Destination buffer for the resolved Delphi type string.
+ * @param[in] out_sz Capacity of `out_type` in bytes.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t map_delphi_type(cdd_ffi_type_t *t, char *out_type,
                                      size_t out_sz) {
   if (t->pointer_depth > 0) {
@@ -80,6 +89,12 @@ static cdd_c_error_t map_delphi_type(cdd_ffi_type_t *t, char *out_type,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits Delphi / Object Pascal `.pas` unit bindings for the given FFI
+ * IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t
 cdd_ffi_emit_delphi(cdd_ffi_ir_t *ir,
                     const cdd_generate_bindings_config_t *config) {

@@ -87,6 +87,12 @@ static cdd_int128_t cdd_make_int128(int64_t high, uint64_t low) {
 __extension__ typedef __int128 cdd_native_int128_t;
 __extension__ typedef unsigned __int128 cdd_native_uint128_t;
 
+/**
+ * @brief Converts a compiler-native 128-bit integer to `cdd_int128_t`.
+ *
+ * @param val Compiler-native 128-bit signed integer.
+ * @return The constructed `cdd_int128_t` value.
+ */
 static cdd_int128_t cdd_make_int128_from_native(cdd_native_int128_t val) {
   return cdd_make_int128((int64_t)(val >> 64), (uint64_t)val);
 }

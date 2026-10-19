@@ -15,9 +15,16 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
+/** @brief Flag to enable power-of-two capacity growth during CST parser tests
+ */
 C_CDD_EXPORT int g_cdd_cst_parser_fast_grow = 0;
 #endif
 
+/**
+ * @brief Allocates a new CST node with the specified kind and parent pointer.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
+ */
 cdd_c_error_t alloc_node(enum cdd_cst_node_kind_t kind, cdd_cst_node_t *parent,
                          cdd_cst_node_t **out_node) {
   cdd_cst_node_t *n;
@@ -32,6 +39,11 @@ cdd_c_error_t alloc_node(enum cdd_cst_node_kind_t kind, cdd_cst_node_t *parent,
   return CDD_C_ERROR_MEMORY;
 }
 
+/**
+ * @brief Appends a lexical token child to a CST node.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
+ */
 cdd_c_error_t append_child_token(cdd_cst_node_t *node, cdd_token_t *tok) {
   if (node->num_children >= node->capacity) {
 #ifdef CDD_BUILD_TESTS
@@ -64,6 +76,11 @@ cdd_c_error_t append_child_token(cdd_cst_node_t *node, cdd_token_t *tok) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Appends a CST node child to a parent CST node.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
+ */
 cdd_c_error_t append_child_node(cdd_cst_node_t *node, cdd_cst_node_t *child) {
   if (node->num_children >= node->capacity) {
 #ifdef CDD_BUILD_TESTS
@@ -97,6 +114,9 @@ cdd_c_error_t append_child_node(cdd_cst_node_t *node, cdd_cst_node_t *child) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Recursively frees a CST node and all of its child CST nodes.
+ */
 void free_node(cdd_cst_node_t *node) {
   size_t i;
   if (!node)
@@ -111,6 +131,12 @@ void free_node(cdd_cst_node_t *node) {
   C_CDD_FREE(node);
 }
 
+/**
+ * @brief Peeks at the current lexical token without advancing the parser
+ * cursor.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_NOT_FOUND at EOF.
+ */
 C_CDD_EXPORT cdd_c_error_t peek(parser_state_t *s, cdd_token_t **out_tok);
 C_CDD_EXPORT cdd_c_error_t peek(parser_state_t *s, cdd_token_t **out_tok) {
   if (!s || !out_tok)
@@ -130,6 +156,12 @@ C_CDD_EXPORT cdd_c_error_t peek(parser_state_t *s, cdd_token_t **out_tok) {
   return CDD_C_ERROR_NOT_FOUND;
 }
 
+/**
+ * @brief Consumes and returns the current lexical token, advancing the parser
+ * cursor.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_NOT_FOUND at EOF.
+ */
 C_CDD_EXPORT cdd_c_error_t advance(parser_state_t *s, cdd_token_t **out_tok);
 C_CDD_EXPORT cdd_c_error_t advance(parser_state_t *s, cdd_token_t **out_tok) {
   if (!s || !out_tok)
@@ -158,6 +190,11 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
 static cdd_c_error_t parse_declaration_or_statement_internal(
     parser_state_t *s, cdd_cst_node_t *parent, cdd_cst_node_t **out_node);
 
+/**
+ * @brief Parses a brace-delimited block `{ ... }` into a `CDD_CST_BLOCK` node.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t parse_block(parser_state_t *s, cdd_cst_node_t *parent,
                           cdd_cst_node_t **out_node) {
   cdd_cst_node_t *node = NULL;
@@ -174,6 +211,15 @@ cdd_c_error_t parse_block(parser_state_t *s, cdd_cst_node_t *parent,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses a single declaration, preprocessor directive, or statement,
+ * cleaning up partial nodes on error.
+ *
+ * @param[in,out] s Parser state.
+ * @param[in] parent Parent CST node.
+ * @param[out] out_node Pointer to receive the parsed CST node.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
                                                     cdd_cst_node_t *parent,
                                                     cdd_cst_node_t **out_node) {
@@ -191,6 +237,14 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Internal implementation of brace-delimited block parsing.
+ *
+ * @param[in,out] s Parser state.
+ * @param[in] parent Parent CST node.
+ * @param[out] out_node Pointer to receive the parsed block CST node.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t parse_block_internal(parser_state_t *s,
                                           cdd_cst_node_t *parent,
                                           cdd_cst_node_t **out_node) {
@@ -285,6 +339,15 @@ cdd_c_error_t get_class_name(cdd_cst_node_t *node, cdd_token_t **out_tok) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Internal implementation of declaration, directive, or statement
+ * parsing.
+ *
+ * @param[in,out] s Parser state.
+ * @param[in] parent Parent CST node.
+ * @param[out] out_node Pointer to receive the parsed CST node.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t parse_declaration_or_statement_internal(
     parser_state_t *s, cdd_cst_node_t *parent, cdd_cst_node_t **out_node) {
   cdd_c_error_t rc = CDD_C_SUCCESS, app_rc;
@@ -733,6 +796,13 @@ static cdd_c_error_t parse_declaration_or_statement_internal(
 
   return parse_class_or_statement(s, parent, t, out_node);
 }
+
+/**
+ * @brief Parses a C/C++ source span into a full-fidelity Concrete Syntax Tree
+ * (CST).
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
   cdd_c_error_t rc = CDD_C_SUCCESS, app_rc = CDD_C_SUCCESS;
 
@@ -811,6 +881,10 @@ cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Frees a CST tree, its root node hierarchy, base tokens, synthesized
+ * tokens, and string pool.
+ */
 void cdd_cst_tree_free(cdd_cst_tree_t *tree) {
   size_t i;
   if (!tree)

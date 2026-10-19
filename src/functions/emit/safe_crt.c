@@ -17,6 +17,8 @@
 
 /**
  * @brief Initializes a Safe CRT refactoring patch list.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t safe_crt_patch_list_init(struct SafeCrtPatchList *list) {
   if (!list)
@@ -29,6 +31,8 @@ cdd_c_error_t safe_crt_patch_list_init(struct SafeCrtPatchList *list) {
 
 /**
  * @brief Releases memory held by a Safe CRT patch list.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t safe_crt_patch_list_free(struct SafeCrtPatchList *list) {
   size_t i;
@@ -51,6 +55,8 @@ cdd_c_error_t safe_crt_patch_list_free(struct SafeCrtPatchList *list) {
 
 /**
  * @brief Adds a patch to the patch list.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t safe_crt_add_patch(struct SafeCrtPatchList *list, size_t start,
                                  size_t end, const char *text) {
@@ -85,6 +91,8 @@ cdd_c_error_t safe_crt_add_patch(struct SafeCrtPatchList *list, size_t start,
 
 /**
  * @brief Extracts token text.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t safe_crt_extract_token_text(const struct TokenList *tokens,
                                           size_t start, size_t end,
@@ -120,6 +128,8 @@ cdd_c_error_t safe_crt_extract_token_text(const struct TokenList *tokens,
 
 /**
  * @brief Generates strcpy patch.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t safe_crt_generate_strcpy_patch(const struct TokenList *tokens,
                                              size_t call_start, size_t call_end,
@@ -191,6 +201,8 @@ cdd_c_error_t safe_crt_generate_strcpy_patch(const struct TokenList *tokens,
 
 /**
  * @brief Generates fopen patch.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t safe_crt_generate_fopen_patch(const struct TokenList *tokens,
                                             size_t call_start, size_t call_end,
@@ -297,6 +309,8 @@ cdd_c_error_t safe_crt_generate_fopen_patch(const struct TokenList *tokens,
 
 /**
  * @brief Generates strncpy patch.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t safe_crt_generate_strncpy_patch(const struct TokenList *tokens,
                                               size_t call_start,
@@ -376,6 +390,8 @@ cdd_c_error_t safe_crt_generate_strncpy_patch(const struct TokenList *tokens,
 
 /**
  * @brief Generates sprintf patch.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t safe_crt_generate_sprintf_patch(const struct TokenList *tokens,
                                               size_t call_start,
@@ -445,6 +461,8 @@ cdd_c_error_t safe_crt_generate_sprintf_patch(const struct TokenList *tokens,
 /**
  * @brief Scans a CST and generates patches replacing unsafe CRT calls with Safe
  * CRT equivalents.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t
 cst_generate_safe_crt_patches(const struct CstNodeList *cst,

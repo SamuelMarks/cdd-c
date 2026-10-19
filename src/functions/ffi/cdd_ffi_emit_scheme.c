@@ -18,6 +18,14 @@
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Converts a C identifier into a kebab-case Chez Scheme symbol name.
+ *
+ * @param[in] c_name Source C identifier string.
+ * @param[out] out_name Destination buffer for the formatted Scheme symbol.
+ * @param[in] out_sz Capacity of `out_name` in bytes.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t schemify_name(const char *c_name, char *out_name,
                                    size_t out_sz) {
   size_t i = 0, j = 0;
@@ -35,6 +43,15 @@ static cdd_c_error_t schemify_name(const char *c_name, char *out_name,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Maps an FFI IR type to its corresponding Chez Scheme
+ * `foreign-procedure` / `define-ftype` type string.
+ *
+ * @param[in] t FFI type descriptor to map.
+ * @param[out] out_type Destination buffer for the resolved Scheme type string.
+ * @param[in] out_sz Capacity of `out_type` in bytes.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t map_scheme_type(cdd_ffi_type_t *t, char *out_type,
                                      size_t out_sz) {
   if (t->pointer_depth > 0) {
@@ -109,6 +126,12 @@ static cdd_c_error_t map_scheme_type(cdd_ffi_type_t *t, char *out_type,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits Chez Scheme `.ss` `foreign-procedure` bindings for the given FFI
+ * IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t
 cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
                     const cdd_generate_bindings_config_t *config) {

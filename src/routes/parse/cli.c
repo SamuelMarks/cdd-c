@@ -51,6 +51,10 @@
 /**
  * @brief Simple signature parser to split "int foo(int x, char
  * *y)" Populates `out`. Caller must free internals.
+ *
+ * @param[in] sig_str C function signature string.
+ * @param[out] out Output parsed signature structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_c_signature_string(const char *sig_str,
                                        struct C2OpenAPI_ParsedSig *out) {
@@ -236,6 +240,8 @@ cleanup:
 
 /**
  * @brief Frees the memory associated with parsed sig.
+ *
+ * @param[in,out] sig Parsed signature structure to clean.
  */
 void free_parsed_sig(struct C2OpenAPI_ParsedSig *sig) {
   size_t i;
@@ -255,6 +261,15 @@ void free_parsed_sig(struct C2OpenAPI_ParsedSig *sig) {
   memset(sig, 0, sizeof(*sig));
 }
 
+/**
+ * @brief Infers an HTTP verb and route path from a C client function CST node.
+ *
+ * @param[in] func_node CST function node to inspect.
+ * @param[in] tokens Token list containing the function tokens.
+ * @param[out] out_route Output allocated route string (e.g. "GET /pets"), or
+ * NULL.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t
 c2openapi_infer_client_route(const struct CstNode *func_node,
                              const struct TokenList *tokens, char **out_route) {
@@ -336,6 +351,14 @@ c2openapi_infer_client_route(const struct CstNode *func_node,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Scans a token list for `c_rest_router_add` calls and registers server
+ * routes.
+ *
+ * @param[in] tokens Token list to scan.
+ * @param[in,out] spec Target OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t
 c2openapi_scan_server_routes(const struct TokenList *tokens,
                              struct OpenAPI_Spec *spec) {
@@ -431,6 +454,14 @@ c2openapi_scan_server_routes(const struct TokenList *tokens,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Scans a token list for `render_<op>_view` identifiers and registers
+ * GUI routes.
+ *
+ * @param[in] tokens Token list to scan.
+ * @param[in,out] spec Target OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t c2openapi_scan_gui_views(const struct TokenList *tokens,
                                               struct OpenAPI_Spec *spec) {
   size_t i;
@@ -481,6 +512,10 @@ static cdd_c_error_t c2openapi_scan_gui_views(const struct TokenList *tokens,
 /**
  * @brief Parses a single C source/header file and extracts schemas and route
  * operations.
+ *
+ * @param[in] path Path to the C source or header file.
+ * @param[in,out] spec Target OpenAPI specification to populate.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
   char *content = NULL;
@@ -718,6 +753,10 @@ cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
 /**
  * @brief Directory traversal callback that processes C source and header files
  * for c2openapi.
+ *
+ * @param[in] path File path encountered during traversal.
+ * @param[in,out] user_data Pointer to target `OpenAPI_Spec` structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t walker_cb(const char *path, void *user_data) {
   struct OpenAPI_Spec *spec = (struct OpenAPI_Spec *)user_data;
@@ -748,6 +787,10 @@ cdd_c_error_t walker_cb(const char *path, void *user_data) {
 /**
  * @brief Loads an existing base OpenAPI JSON file to merge extracted C routes
  * into.
+ *
+ * @param[in] path Path to the base OpenAPI JSON file.
+ * @param[out] spec Target OpenAPI specification to populate.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t load_base_spec(const char *path, struct OpenAPI_Spec *spec) {
   JSON_Value *root = NULL;
@@ -945,6 +988,16 @@ C_CDD_EXPORT cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
 
   for (i = 0; i < argc; i++) {
     if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+      puts("Usage: cdd-c to_docs_json [args]");
+      puts("");
+      puts("Options:");
+      puts("  -i, --input <spec.json>   Input OpenAPI spec file");
+      puts("  -o, --output <docs.json>  Output docs JSON file (default: "
+           "stdout)");
+      puts("  --no-imports              Omit #include statements from "
+           "generated snippets");
+      puts("  --no-wrapping             Omit main() wrapper from generated "
+           "snippets");
       return CDD_C_SUCCESS;
     } else if (strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--input") == 0) {
       if (i + 1 < argc)

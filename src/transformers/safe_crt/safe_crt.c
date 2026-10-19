@@ -27,6 +27,7 @@
 #include "c_cdd/safe_crt.h"
 /* clang-format on */
 
+/** @brief Global linked list head of allocated Safe CRT arena blocks */
 static safe_crt_arena_t *global_arena = NULL;
 cdd_cst_tree_t *safe_crt_current_tree = NULL;
 emit_ctx_t *g_msc_ctx = NULL;

@@ -265,11 +265,3 @@ cdd_c_error_t write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
 
   return CDD_C_SUCCESS;
 }
-
-/**
- * @brief Generate DocBlock for an operation.
- */
-/**
- * @brief Converts an OpenAPI_Verb enum value to its uppercase HTTP method
- * string.
- */

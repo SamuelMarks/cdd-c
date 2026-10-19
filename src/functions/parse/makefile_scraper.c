@@ -20,6 +20,13 @@
 #include "functions/parse/makefile_scraper.h"
 /* clang-format on */
 
+/**
+ * @brief Duplicates a null-terminated string into `*out_val`.
+ *
+ * @param[in] s Source string to duplicate.
+ * @param[out] out_val Output pointer receiving the newly allocated copy.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t my_strdup(const char *s, char **out_val) {
   size_t len;
   char *d;
@@ -39,6 +46,9 @@ static cdd_c_error_t my_strdup(const char *s, char **out_val) {
 
 /**
  * @brief Initializes a scraped build-system metadata structure.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 cdd_c_error_t build_info_init(struct ExtractedBuildInfo *info) {
   if (!info)
@@ -82,7 +92,12 @@ void build_info_free(struct ExtractedBuildInfo *info) {
 }
 
 /**
- * @brief Adds or sets string to array.
+ * @brief Appends a unique string to a dynamically allocated string array.
+ *
+ * @param[in,out] arr Pointer to the string array pointer.
+ * @param[in,out] n Pointer to the element count.
+ * @param[in] str String to duplicate and append if not already present.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
  */
 static cdd_c_error_t add_string_to_array(char ***arr, size_t *n,
                                          const char *str) {
@@ -107,6 +122,10 @@ static cdd_c_error_t add_string_to_array(char ***arr, size_t *n,
 
 /**
  * @brief Processes a single Makefile/autoconf token during build scraping.
+ *
+ * @param[in,out] info Scraped build info structure to update.
+ * @param[in] tok Token string to classify.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 static cdd_c_error_t process_token(struct ExtractedBuildInfo *info,
                                    const char *tok) {
@@ -147,6 +166,8 @@ static cdd_c_error_t process_token(struct ExtractedBuildInfo *info,
 
 /**
  * @brief Extracts source files, include paths, and flags from a Makefile.
+ *
+ * @return 0 on success.
  */
 cdd_c_error_t scrape_makefile(struct ExtractedBuildInfo *info,
                               const char *makefile_content) {
@@ -189,6 +210,8 @@ cdd_c_error_t scrape_makefile(struct ExtractedBuildInfo *info,
 /**
  * @brief Extracts package metadata and checks from an Autoconf configure.ac
  * file.
+ *
+ * @return 0 on success.
  */
 cdd_c_error_t scrape_configure_ac(
     struct ExtractedBuildInfo *info,
@@ -234,6 +257,8 @@ cdd_c_error_t scrape_configure_ac(
 /**
  * @brief Generates a CMakeLists.txt file from scraped Makefile/Autoconf
  * metadata.
+ *
+ * @return 0 on success.
  */
 cdd_c_error_t build_info_to_cmake(const struct ExtractedBuildInfo *info,
                                   const char *project_name, char **out_cmake) {
@@ -341,6 +366,12 @@ cdd_c_error_t build_info_to_cmake(const struct ExtractedBuildInfo *info,
 }
 
 #ifdef CDD_BUILD_TESTS
+/**
+ * @brief Unit test helper verifying `my_strdup` error paths.
+ *
+ * @return `CDD_C_SUCCESS` if both NULL checks return
+ * `CDD_C_ERROR_INVALID_ARGUMENT`.
+ */
 C_CDD_EXPORT cdd_c_error_t test_my_strdup_errors(void);
 C_CDD_EXPORT cdd_c_error_t test_my_strdup_errors(void) {
   char *out = NULL;

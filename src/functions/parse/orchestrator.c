@@ -39,6 +39,7 @@
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #ifndef strdup
+/** @brief Alias `strdup` to `_strdup` on MSVC. */
 #define strdup _strdup
 #endif
 #endif
@@ -61,6 +62,9 @@ extern C_CDD_EXPORT int g_cdd_fail_propagate;
 /**
  * @brief Extract a slice of tokens into a temporary view.
  * Does not copy token data, just pointers.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * invalid.
  */
 C_CDD_EXPORT cdd_c_error_t get_token_slice(const struct TokenList *src,
                                            size_t start, size_t end,
@@ -82,7 +86,10 @@ C_CDD_EXPORT cdd_c_error_t get_token_slice(const struct TokenList *src,
 
 /* Helper to find specific token type within range */
 /**
- * @brief Retrieves the token in range.
+ * @brief Retrieves the first token of `kind` within `[start, end)`.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 C_CDD_EXPORT cdd_c_error_t find_token_in_range(const struct TokenList *tokens,
                                                size_t start, size_t end,
@@ -108,6 +115,9 @@ C_CDD_EXPORT cdd_c_error_t find_token_in_range(const struct TokenList *tokens,
 /* Helper for token string comparison */
 /**
  * @brief Checks whether a token slice exactly matches a null-terminated string.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 C_CDD_EXPORT cdd_c_error_t token_eq_str(const struct Token *tok, const char *s,
                                         int *out_eq) {
@@ -131,6 +141,8 @@ C_CDD_EXPORT cdd_c_error_t token_eq_str(const struct Token *tok, const char *s,
 /**
  * @brief Extract function name from tokens.
  * Finds the identifier immediately preceding the argument list LPAREN.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t extract_func_name(const struct TokenList *tokens,
                                              size_t start, size_t body_start,
@@ -177,6 +189,8 @@ C_CDD_EXPORT cdd_c_error_t extract_func_name(const struct TokenList *tokens,
 
 /**
  * @brief Join tokens into a single string.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t join_tokens_str(const struct TokenList *tokens,
                                            size_t start, size_t end,
@@ -274,6 +288,8 @@ C_CDD_EXPORT cdd_c_error_t concat_strings(const char *s1, const char *delim,
 
 /**
  * @brief Analyze return type tokens to determine void/int/pointer status.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t analyze_signature_tokens(
     const struct TokenList *tokens, size_t start, size_t body_start,
@@ -336,6 +352,8 @@ C_CDD_EXPORT cdd_c_error_t analyze_signature_tokens(
 
 /**
  * @brief Adds or retrieves a function node in the call dependency graph.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t graph_add_node(struct DependencyGraph *g, size_t idx,
                                           const char *name) {
@@ -360,6 +378,8 @@ C_CDD_EXPORT cdd_c_error_t graph_add_node(struct DependencyGraph *g, size_t idx,
 
 /**
  * @brief Adds a directed caller-to-callee edge in the call dependency graph.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t graph_add_edge(struct DependencyGraph *g,
                                           size_t caller_idx,
@@ -394,6 +414,8 @@ C_CDD_EXPORT cdd_c_error_t graph_add_edge(struct DependencyGraph *g,
 
 /**
  * @brief Releases all nodes and edges in a call dependency graph.
+ *
+ * @return `CDD_C_SUCCESS` on success.
  */
 C_CDD_EXPORT cdd_c_error_t graph_free_contents(struct DependencyGraph *g) {
   size_t i;
@@ -415,6 +437,8 @@ C_CDD_EXPORT cdd_c_error_t graph_free_contents(struct DependencyGraph *g) {
 /**
  * @brief Propagates error-percolation refactoring marks transitively through
  * callers.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t propagate_refactor_mark(struct DependencyGraph *g,
                                                    size_t idx) {
@@ -456,6 +480,8 @@ C_CDD_EXPORT cdd_c_error_t propagate_refactor_mark(struct DependencyGraph *g,
 /**
  * @brief Runs multi-file error-percolation refactoring across a set of C
  * sources.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
   struct TokenList *tokens = NULL;
@@ -832,7 +858,9 @@ cleanup:
 /* --- CLI Integration --- */
 
 /**
- * @brief Checks if c source.
+ * @brief Checks if `path` ends with a `.c` source extension.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t is_c_source(const char *path, int *out_is_src) {
   const char *dot;
@@ -854,6 +882,8 @@ C_CDD_EXPORT cdd_c_error_t is_c_source(const char *path, int *out_is_src) {
 
 /**
  * @brief Directory-walker callback that refactors a single C source file.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t fix_file_callback(const char *path,
                                              void *user_data) {
@@ -921,6 +951,8 @@ C_CDD_EXPORT cdd_c_error_t fix_file_callback(const char *path,
 
 /**
  * @brief CLI entry point for automated C code refactoring.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t fix_code_main(int argc, char **argv) {
   struct FixWalkContext ctx = {0};

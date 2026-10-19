@@ -11,6 +11,8 @@
 
 /**
  * @brief Emits C source code for cookie param logic.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t
 client_body_write_cookie_param_logic(FILE *fp,

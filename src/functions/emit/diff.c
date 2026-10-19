@@ -296,6 +296,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_test_split_lines(const char *str, size_t len,
 
 /**
  * @brief Generates a unified diff string from a list of source patches.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t patch_list_to_diff(struct PatchList *list,
                                  const struct TokenList *tokens,

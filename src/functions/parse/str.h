@@ -138,19 +138,20 @@ extern C_CDD_EXPORT cdd_c_error_t c_cdd_ref_is_type(const char *ref,
  * @brief Remove trailing whitespace from a string in-place.
  *
  * @param[in,out] str The string to modify.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_str_trim_trailing_whitespace(char *str);
 
 /**
- * @brief Decode a string literal token for _Pragma usage.
- * @param[out] out_s Pointer to store the result
+ * @brief Decode a string literal token for `_Pragma` usage.
  *
- * Performs "destringizing" (6.10.9) to convert a string literal token into
- * the corresponding preprocessing tokens text.
- * 1. Removes surrounding quotes.
- * 2. Unescapes `\"` to `"` and `\\` to `\`.
+ * Performs destringizing (C99 6.10.9) to convert a string literal token into
+ * the corresponding preprocessing tokens text by removing surrounding quotes
+ * and unescaping escaped quotes and backslashes.
  *
  * @param[in] quoted The string literal (with quotes).
+ * @param[out] out_s Pointer to store the result.
  * @return Allocated string containing the decoded content, or NULL on error.
  */
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_destringize(const char *quoted,

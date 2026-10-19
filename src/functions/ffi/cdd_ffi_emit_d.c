@@ -19,6 +19,13 @@ extern volatile int g_fail_io_after;
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI IR type to its corresponding D `extern(C)` type string.
+ *
+ * @param[in] t FFI type descriptor to map.
+ * @param[out] out_type Output pointer receiving the resolved D type string.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t map_d_type(cdd_ffi_type_t *t, const char **out_type) {
   if (t->pointer_depth > 0) {
     if (t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) {
@@ -89,6 +96,12 @@ static cdd_c_error_t map_d_type(cdd_ffi_type_t *t, const char **out_type) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits D `extern(C)` module bindings and `dub.json` package manifest
+ * for the given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t cdd_ffi_emit_d(cdd_ffi_ir_t *ir,
                              const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;

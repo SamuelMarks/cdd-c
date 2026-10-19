@@ -19,6 +19,13 @@
 #include "functions/parse/cmake_parser.h"
 /* clang-format on */
 
+/**
+ * @brief Duplicates a null-terminated string with test OOM injection support.
+ *
+ * @param[in] s Source string to duplicate.
+ * @param[out] out_val Output pointer receiving the newly allocated copy.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
+ */
 static cdd_c_error_t my_strdup(const char *s, char **out_val) {
   size_t len;
   char *d;
@@ -44,6 +51,8 @@ static cdd_c_error_t my_strdup(const char *s, char **out_val) {
 
 /**
  * @brief Initializes a CMakeLists.txt modification context.
+ *
+ * @return 0 on success, ENOMEM on failure.
  */
 cdd_c_error_t cmake_modifier_init(struct CMakeModifier *mod,
                                   const char *filepath,
@@ -72,6 +81,8 @@ cdd_c_error_t cmake_modifier_init(struct CMakeModifier *mod,
 
 /**
  * @brief Registers a compiler option to inject into a CMake target.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t cmake_modifier_add_compile_opt(struct CMakeModifier *mod,
                                              const char *opt) {
@@ -109,6 +120,8 @@ cdd_c_error_t cmake_modifier_add_compile_opt(struct CMakeModifier *mod,
 
 /**
  * @brief Registers a link library to inject into a CMake target.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t cmake_modifier_add_link_lib(struct CMakeModifier *mod,
                                           const char *lib) {
@@ -172,6 +185,11 @@ void cmake_modifier_free(struct CMakeModifier *mod) {
 
 /**
  * @brief Reads the entire contents of a file into a null-terminated string.
+ *
+ * @param[in] filename Path to the file to read.
+ * @param[out] out_len Output pointer receiving the number of bytes read.
+ * @param[out] out_val Output pointer receiving the allocated file contents.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
  */
 static cdd_c_error_t read_file_to_string(const char *filename, size_t *out_len,
                                          char **out_val) {
@@ -242,6 +260,8 @@ static cdd_c_error_t read_file_to_string(const char *filename, size_t *out_len,
 /**
  * @brief Applies registered compile options and libraries to a CMakeLists.txt
  * file.
+ *
+ * @return 0 on success.
  */
 cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
                                         char **out_diff) {

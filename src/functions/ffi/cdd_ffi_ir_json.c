@@ -46,6 +46,14 @@
     }                                                                          \
   } while (0)
 
+/**
+ * @brief Sets a string property on a Parson `JSON_Object` if `val` is non-NULL.
+ *
+ * @param[in,out] obj Target JSON object.
+ * @param[in] name Property key name.
+ * @param[in] val String value to set (ignored if NULL).
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_UNKNOWN` on failure.
+ */
 static cdd_c_error_t set_string(JSON_Object *obj, const char *name,
                                 const char *val) {
   if (val) {
@@ -56,6 +64,14 @@ static cdd_c_error_t set_string(JSON_Object *obj, const char *name,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Sets an integer property on a Parson `JSON_Object`.
+ *
+ * @param[in,out] obj Target JSON object.
+ * @param[in] name Property key name.
+ * @param[in] val Integer value to set.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_UNKNOWN` on failure.
+ */
 static cdd_c_error_t set_int(JSON_Object *obj, const char *name, int val) {
   if (json_object_set_number(obj, name, (double)val) != JSONSuccess) {
     return CDD_C_ERROR_UNKNOWN;
@@ -63,6 +79,13 @@ static cdd_c_error_t set_int(JSON_Object *obj, const char *name, int val) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Serializes a linked list of `cdd_ffi_trivia_t` into a JSON array.
+ *
+ * @param[in] trivia Head of trivia linked list.
+ * @param[out] out_val Output pointer receiving the allocated `JSON_Value *`.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on failure.
+ */
 static cdd_c_error_t trivia_to_json(const cdd_ffi_trivia_t *trivia,
                                     JSON_Value **out_val) {
   JSON_Value *val = json_value_init_array();
@@ -84,6 +107,13 @@ static cdd_c_error_t trivia_to_json(const cdd_ffi_trivia_t *trivia,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Serializes a `cdd_ffi_number_t` structure into a JSON object.
+ *
+ * @param[in] num Numeric literal metadata structure.
+ * @param[out] out_val Output pointer receiving the allocated `JSON_Value *`.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on failure.
+ */
 static cdd_c_error_t number_to_json(const struct cdd_ffi_number_t *num,
                                     JSON_Value **out_val) {
   JSON_Value *val;
@@ -97,6 +127,13 @@ static cdd_c_error_t number_to_json(const struct cdd_ffi_number_t *num,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Serializes a `cdd_ffi_macro_expansion_t` structure into a JSON object.
+ *
+ * @param[in] m Macro expansion metadata structure.
+ * @param[out] out_val Output pointer receiving the allocated `JSON_Value *`.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on failure.
+ */
 static cdd_c_error_t
 macro_expansion_to_json(const struct cdd_ffi_macro_expansion_t *m,
                         JSON_Value **out_val) {
@@ -109,6 +146,13 @@ macro_expansion_to_json(const struct cdd_ffi_macro_expansion_t *m,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Serializes a `cdd_ffi_type_t` structure into a JSON object.
+ *
+ * @param[in] type FFI type descriptor to serialize.
+ * @param[out] out_val Output pointer receiving the allocated `JSON_Value *`.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t type_to_json(const cdd_ffi_type_t *type,
                                   JSON_Value **out_val) {
   JSON_Value *val = json_value_init_object();
@@ -161,6 +205,13 @@ static cdd_c_error_t type_to_json(const cdd_ffi_type_t *type,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Serializes a `cdd_ffi_field_t` structure into a JSON object.
+ *
+ * @param[in] field FFI field or parameter descriptor.
+ * @param[out] out_val Output pointer receiving the allocated `JSON_Value *`.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t field_to_json(const cdd_ffi_field_t *field,
                                    JSON_Value **out_val) {
   JSON_Value *val = json_value_init_object();
@@ -201,6 +252,13 @@ static cdd_c_error_t field_to_json(const cdd_ffi_field_t *field,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Serializes a `cdd_ffi_ir_node_t` structure into a JSON object.
+ *
+ * @param[in] node FFI IR node to serialize.
+ * @param[out] out_val Output pointer receiving the allocated `JSON_Value *`.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
                                   JSON_Value **out_val) {
   JSON_Value *val = json_value_init_object();
@@ -374,6 +432,11 @@ static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Serializes an entire `cdd_ffi_ir_t` into a pretty-printed JSON string.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_to_json(const cdd_ffi_ir_t *ir,
                                               char **out_json) {
   JSON_Value *root_val;
@@ -419,6 +482,14 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_to_json(const cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Safely duplicates a nullable C string.
+ *
+ * @param[in] in Input string (may be NULL).
+ * @param[out] out Output pointer receiving the duplicated string (or NULL if
+ * `in` is NULL).
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
+ */
 static cdd_c_error_t strdup_safe(const char *in, char **out) {
   if (!in) {
     *out = NULL;
@@ -427,6 +498,14 @@ static cdd_c_error_t strdup_safe(const char *in, char **out) {
   return (*out = C_CDD_STRDUP(in)) ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
+/**
+ * @brief Deserializes a JSON array of trivia objects into a linked list of
+ * `cdd_ffi_trivia_t`.
+ *
+ * @param[in] arr Source JSON array (may be NULL).
+ * @param[out] out Output pointer receiving the head of the trivia list.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
+ */
 static cdd_c_error_t parse_trivia(JSON_Array *arr, cdd_ffi_trivia_t **out) {
   size_t i, count;
   cdd_ffi_trivia_t *head = NULL, *tail = NULL, *node = NULL;
@@ -461,6 +540,13 @@ static cdd_c_error_t parse_trivia(JSON_Array *arr, cdd_ffi_trivia_t **out) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Deserializes a JSON object into a newly allocated `cdd_ffi_number_t`.
+ *
+ * @param[in] obj Source JSON object (may be NULL).
+ * @param[out] out Output pointer receiving the allocated `cdd_ffi_number_t`.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
+ */
 static cdd_c_error_t parse_number(JSON_Object *obj,
                                   struct cdd_ffi_number_t **out) {
   struct cdd_ffi_number_t *num;
@@ -476,6 +562,13 @@ static cdd_c_error_t parse_number(JSON_Object *obj,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Deserializes a JSON object into a `cdd_ffi_macro_expansion_t`.
+ *
+ * @param[in] obj Source JSON object.
+ * @param[out] m Destination macro expansion structure.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t
 parse_macro_expansion(JSON_Object *obj, struct cdd_ffi_macro_expansion_t *m) {
   strdup_safe(json_object_get_string(obj, "macro_name"), &m->macro_name);
@@ -484,6 +577,13 @@ parse_macro_expansion(JSON_Object *obj, struct cdd_ffi_macro_expansion_t *m) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Deserializes a JSON object into a `cdd_ffi_type_t` structure.
+ *
+ * @param[in] obj Source JSON object (may be NULL).
+ * @param[out] type Destination FFI type structure.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
+ */
 static cdd_c_error_t parse_type(JSON_Object *obj, cdd_ffi_type_t *type) {
   JSON_Array *t_arr;
   size_t i;
@@ -534,6 +634,13 @@ static cdd_c_error_t parse_type(JSON_Object *obj, cdd_ffi_type_t *type) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Deserializes a JSON object into a `cdd_ffi_field_t` structure.
+ *
+ * @param[in] obj Source JSON object.
+ * @param[out] field Destination FFI field structure.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
+ */
 static cdd_c_error_t parse_field(JSON_Object *obj, cdd_ffi_field_t *field) {
   cdd_c_error_t rc;
   memset(field, 0, sizeof(cdd_ffi_field_t));
@@ -567,6 +674,13 @@ static cdd_c_error_t parse_field(JSON_Object *obj, cdd_ffi_field_t *field) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Deserializes a JSON object into a `cdd_ffi_ir_node_t` structure.
+ *
+ * @param[in] obj Source JSON object.
+ * @param[out] node Destination FFI IR node structure.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
+ */
 static cdd_c_error_t parse_node(JSON_Object *obj, cdd_ffi_ir_node_t *node) {
   cdd_c_error_t rc;
   JSON_Array *arr;
@@ -702,6 +816,13 @@ static cdd_c_error_t parse_node(JSON_Object *obj, cdd_ffi_ir_node_t *node) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Deserializes a JSON string into a newly allocated `cdd_ffi_ir_t`
+ * structure.
+ *
+ * @return `CDD_C_SUCCESS` on success, `CDD_C_ERROR_PARSE` on malformed JSON, or
+ * `CDD_C_ERROR_MEMORY` on OOM.
+ */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_from_json(const char *json_str,
                                                 cdd_ffi_ir_t **out_ir) {
   JSON_Value *root_val;

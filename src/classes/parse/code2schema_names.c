@@ -10,6 +10,8 @@
 
 /**
  * @brief Sanitizes a string to be used as a valid C identifier.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t sanitize_identifier(const char *in, char **_out_val) {
   size_t i, len;
@@ -48,6 +50,8 @@ cdd_c_error_t sanitize_identifier(const char *in, char **_out_val) {
 
 /**
  * @brief Generates a unique variant name for a union type.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
                                        const char *base, size_t index,
@@ -101,6 +105,8 @@ cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
 
 /**
  * @brief Generates a schema name for an inline anonymous struct/union.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t make_inline_schema_name(const char *schema_name,
                                       const char *variant_name,
@@ -127,6 +133,8 @@ cdd_c_error_t make_inline_schema_name(const char *schema_name,
 
 /**
  * @brief Registers an inline schema within the root OpenAPI components.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t
 register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
@@ -169,6 +177,8 @@ register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
 /**
  * @brief Retrieves the discriminator mapping value for a given schema
  * variant.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t discriminator_value_for_variant(const JSON_Object *disc_obj,
                                               const char *schema_name,

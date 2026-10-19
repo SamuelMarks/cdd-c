@@ -11,6 +11,8 @@
 
 /**
  * @brief Checks if status range code.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t client_body_is_status_range_code(const char *code,
                                                int *out_is_range) {
@@ -28,6 +30,8 @@ cdd_c_error_t client_body_is_status_range_code(const char *code,
 /**
  * @brief Checks whether an HTTP status code matches a wildcard range such as
  * 2XX.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t client_body_status_range_prefix(const char *code,
                                               int *out_prefix) {
@@ -46,6 +50,8 @@ cdd_c_error_t client_body_status_range_prefix(const char *code,
 
 /**
  * @brief Checks if status code literal.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t client_body_is_status_code_literal(const char *code,
                                                  int *out_is_lit) {
@@ -62,6 +68,8 @@ cdd_c_error_t client_body_is_status_code_literal(const char *code,
 
 /**
  * @brief Emits generated C code for codegen client write body.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t codegen_client_write_body(FILE *fp,
                                         const struct OpenAPI_Operation *op,

@@ -13,6 +13,16 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Recursively extracts the first identifier token name from a CST
+ * subtree.
+ *
+ * @param[in] node Root CST node to search.
+ * @param[out] out_name Pointer to receive the newly allocated identifier
+ * string.
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_NOT_FOUND if none, or
+ * CDD_C_ERROR_MEMORY on OOM.
+ */
 static cdd_c_error_t extract_identifier(cdd_cst_node_t *node, char **out_name) {
   size_t i;
   cdd_c_error_t rc;
@@ -47,6 +57,14 @@ static cdd_c_error_t extract_identifier(cdd_cst_node_t *node, char **out_name) {
   return CDD_C_ERROR_NOT_FOUND;
 }
 
+/**
+ * @brief Recursively walks a CST subtree to populate lexical scopes and
+ * symbols.
+ *
+ * @param[in,out] env Scope environment to populate.
+ * @param[in] node Current CST node being visited.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
                                   cdd_cst_node_t *node) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
@@ -138,9 +156,15 @@ static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
 }
 
 #ifdef CDD_BUILD_TESTS
+/** @brief Mock flag to simulate cdd_cst_scope_leave failure */
 C_CDD_EXPORT int g_cdd_semantic_leave_fail = 0;
 #endif
 
+/**
+ * @brief Builds semantic scope and symbol information for an entire CST tree.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_build_semantic_info(cdd_cst_tree_t *tree,
                                           cdd_cst_scope_env_t **out_env) {
   cdd_cst_scope_env_t *env = NULL;

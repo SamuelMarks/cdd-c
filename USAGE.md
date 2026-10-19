@@ -1,5 +1,43 @@
 # CDD-C Usage & c-orm Integration
 
+`cdd-c` is both a command-line compiler and a programmatic C89 library (`libc_cdd`) for bidirectional compilation between C (C89), [OpenAPI 3.2.0](https://spec.openapis.org/oas/v3.2.0.html), [Swagger 2.0](https://spec.openapis.org/oas/v2.0.html), and [Arazzo 1.1.0](https://spec.openapis.org/arazzo/v1.1.0.html), as well as 42-language FFI binding generation, CST refactoring, and `c-orm` database schema integration.
+
+## Core CLI Workflows
+
+```bash
+# 1. Compile OpenAPI 3.2.0 / Swagger 2.0 to C Client SDK, CLI, or Server
+cdd-c from_openapi to_sdk -i openapi.json -o ./sdk --tests
+cdd-c from_openapi to_sdk_cli -i openapi.json -o ./cli --tests
+cdd-c from_openapi to_server -i openapi.json -o ./server --tests
+
+# 2. Extract OpenAPI 3.2.0 from C source/header files
+cdd-c to_openapi -i ./src -o openapi.json
+
+# 3. Compile and extract Arazzo 1.1.0 multi-step workflows
+cdd-c from_arazzo to_sdk -i workflow.arazzo.json -o ./workflows
+cdd-c from_arazzo to_sdk_cli -i workflow.arazzo.json -o ./workflow-cli
+cdd-c from_arazzo to_server -i workflow.arazzo.json -o ./workflow-server
+cdd-c to_arazzo -i ./workflows -o extracted.arazzo.json
+
+# 4. Generate documentation code snippets JSON
+cdd-c to_docs_json --no-imports --no-wrapping -i openapi.json -o docs.json
+
+# 5. Generate 42-language FFI bindings from C headers
+cdd-c bind -i include/my_lib.h -o ./bindings -l python,rust,go,typescript -n my_lib -m MyLib
+
+# 6. Run lossless CST transformers and GNU-to-C89 lowering
+cdd-c standardize-gnu --target-c89 --fix src/*.c
+cdd-c transformer safe_crt --audit src/*.c
+
+# 7. Expose cdd-c over MCP (stdio) or JSON-RPC 2.0 (HTTP/TCP)
+cdd-c mcp
+cdd-c serve_json_rpc --port 8080 --listen 127.0.0.1
+```
+
+---
+
+## Database Migration Management & `c-orm` Integration
+
 `cdd-c` provides a complete database migration management system out of the box to securely prepare target development schemas prior to `c-orm` code generation.
 
 The code generator strictly introspects database schema artifacts locally to ensure C type safety, which mandates a live running database equipped with identical schema profiles.

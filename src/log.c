@@ -9,6 +9,12 @@
 #include <stdarg.h>
 #include <stdio.h>
 /* clang-format on */
+
+/**
+ * @brief Logs a debug message to stderr when DEBUG is enabled.
+ *
+ * @return CDD_C_SUCCESS on success.
+ */
 C_CDD_EXPORT cdd_c_error_t c_cdd_log_debug(const char *fmt, ...) {
 #ifdef DEBUG
   va_list args;
@@ -16,8 +22,9 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_log_debug(const char *fmt, ...) {
   vfprintf(stderr, fmt, args);
   va_end(args);
 #else
-  /* Do nothing */
-  (void)fmt;
+  if (!fmt) {
+    return CDD_C_SUCCESS;
+  }
 #endif
   return CDD_C_SUCCESS;
 }

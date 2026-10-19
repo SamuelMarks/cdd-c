@@ -8,6 +8,16 @@
 #include "openapi/parse/openapi_internal.h"
 /* clang-format on */
 
+/**
+ * @brief Internal helper to parse an OpenAPI RequestBody object.
+ *
+ * @param[in] rb_obj The source request body JSON object.
+ * @param[out] out_rb Output OpenAPI_RequestBody structure.
+ * @param[in,out] spec The parent OpenAPI specification.
+ * @param[in] resolve_refs Non-zero to resolve component references.
+ * @param[in] op_id Optional operationId for inline schema naming.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t parse_request_body_object_inner(
     const JSON_Object *rb_obj, struct OpenAPI_RequestBody *out_rb,
     struct OpenAPI_Spec *spec, int resolve_refs, const char *op_id) {
@@ -234,6 +244,17 @@ cdd_c_error_t parse_request_body_object(const JSON_Object *rb_obj,
   return rc;
 }
 
+/**
+ * @brief Internal helper to parse an OpenAPI Response object.
+ *
+ * @param[in] resp_obj The source response JSON object.
+ * @param[out] out_resp Output OpenAPI_Response structure.
+ * @param[in,out] spec The parent OpenAPI specification.
+ * @param[in] resolve_refs Non-zero to resolve component references.
+ * @param[in] op_id Optional operationId for inline schema naming.
+ * @param[in] resp_code Optional HTTP status code string.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t
 parse_response_object_inner(const JSON_Object *resp_obj,
                             struct OpenAPI_Response *out_resp,
@@ -495,6 +516,15 @@ cdd_c_error_t is_valid_response_code_key(const char *code) {
   return CDD_C_ERROR_UNKNOWN;
 }
 
+/**
+ * @brief Internal helper to parse an operation's Responses map object.
+ *
+ * @param[in] responses The source responses map JSON object.
+ * @param[in,out] out_op The target OpenAPI_Operation structure.
+ * @param[in,out] spec The parent OpenAPI specification.
+ * @param[in] op_id Optional operationId for inline schema naming.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t parse_responses_inner(const JSON_Object *responses,
                                            struct OpenAPI_Operation *out_op,
                                            struct OpenAPI_Spec *spec,
@@ -563,6 +593,15 @@ cdd_c_error_t parse_responses(const JSON_Object *responses,
   return rc;
 }
 
+/**
+ * @brief Internal helper to parse an OpenAPI Callback object.
+ *
+ * @param[in] cb_obj The source callback JSON object.
+ * @param[out] out_cb Output OpenAPI_Callback structure.
+ * @param[in,out] spec The parent OpenAPI specification.
+ * @param[in] resolve_refs Non-zero to resolve component references.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t
 parse_callback_object_inner(const JSON_Object *cb_obj,
                             struct OpenAPI_Callback *out_cb,

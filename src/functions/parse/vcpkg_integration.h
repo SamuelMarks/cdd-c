@@ -52,6 +52,14 @@ struct VcpkgManifestBuilder {
 
 /**
  * @brief Initialize a vcpkg manifest builder.
+ *
+ * @param[out] builder The vcpkg manifest builder to initialize.
+ * @param[in] project_name Name of the vcpkg package.
+ * @param[in] version_string Optional version string (defaults to `"0.0.1"` if
+ * NULL).
+ * @param[in] description Optional package description (defaults to `""` if
+ * NULL).
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t vcpkg_builder_init(
     struct VcpkgManifestBuilder *builder, const char *project_name,
@@ -59,6 +67,8 @@ extern C_CDD_EXPORT cdd_c_error_t vcpkg_builder_init(
 
 /**
  * @brief Free resources associated with a vcpkg manifest builder.
+ *
+ * @param[in,out] builder The vcpkg manifest builder to free.
  */
 extern C_CDD_EXPORT void
 vcpkg_builder_free(struct VcpkgManifestBuilder *builder);

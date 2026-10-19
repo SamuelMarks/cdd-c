@@ -8,6 +8,7 @@
 #include "openapi/parse/openapi_internal.h"
 /* clang-format on */
 
+/** @brief Keys skipped when collecting extra schema reference fields */
 static const char *k_schema_skip_keys[] = {"$ref",
                                            "$dynamicRef",
                                            "$anchor",
@@ -52,6 +53,8 @@ static const char *k_schema_skip_keys[] = {"$ref",
                                            "readOnly",
                                            "writeOnly"};
 
+/** @brief Keys skipped when collecting extra array items schema reference
+ * fields */
 static const char *k_items_skip_keys[] = {"$ref",
                                           "$dynamicRef",
                                           "$anchor",
@@ -82,6 +85,14 @@ static const char *k_items_skip_keys[] = {"$ref",
                                           "readOnly",
                                           "writeOnly"};
 
+/**
+ * @brief Internal helper to parse an OpenAPI Schema or Reference object.
+ *
+ * @param[in] schema The source schema JSON object.
+ * @param[out] out Output OpenAPI_SchemaRef structure.
+ * @param[in] spec The parent OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t parse_schema_ref_inner(const JSON_Object *schema,
                                             struct OpenAPI_SchemaRef *out,
                                             const struct OpenAPI_Spec *spec) {

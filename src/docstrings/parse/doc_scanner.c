@@ -22,6 +22,11 @@
 #include "functions/parse/str.h"
 /* clang-format on */
 
+/**
+ * @brief Advances `p` past non-newline horizontal whitespace.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_skip_ws(const char *p, const char **out_pos) {
 #ifdef CDD_BUILD_TESTS
   extern C_CDD_EXPORT int g_doc_fail_skip_ws;
@@ -45,6 +50,11 @@ cdd_c_error_t doc_skip_ws(const char *p, const char **out_pos) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Extracts a whitespace-delimited word from `[str, end)`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_extract_word(const char *str, const char *end,
                                const char **next_out, char **out_val) {
   const char *p = NULL;
@@ -88,6 +98,12 @@ cdd_c_error_t doc_extract_word(const char *str, const char *end,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Extracts the trimmed remainder of `[str, end)` as a newly allocated
+ * string.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_extract_rest(const char *str, const char *end,
                                char **out_val) {
   const char *p = NULL;
@@ -128,6 +144,11 @@ cdd_c_error_t doc_extract_rest(const char *str, const char *end,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Trims leading and trailing whitespace in-place from a mutable string.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_trim_segment(char *s, char **out_val) {
   char *start;
   char *end;
@@ -157,6 +178,12 @@ cdd_c_error_t doc_trim_segment(char *s, char **out_val) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses a boolean literal (`"1"`, `"0"`, `"true"`, `"false"`, `"yes"`,
+ * `"no"`).
+ *
+ * @return CDD_C_SUCCESS on success, or error code if unrecognized.
+ */
 cdd_c_error_t doc_parse_bool_text(const char *s, int *out) {
   int diff;
   cdd_c_error_t rc;
@@ -208,6 +235,11 @@ cdd_c_error_t doc_parse_bool_text(const char *s, int *out) {
   return CDD_C_ERROR_UNKNOWN;
 }
 
+/**
+ * @brief Parses a parameter serialization style name into `enum DocParamStyle`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code if unrecognized.
+ */
 cdd_c_error_t doc_parse_style_text(const char *s, enum DocParamStyle *out) {
   int diff;
   cdd_c_error_t rc;
@@ -282,6 +314,12 @@ cdd_c_error_t doc_parse_style_text(const char *s, enum DocParamStyle *out) {
   return CDD_C_ERROR_UNKNOWN;
 }
 
+/**
+ * @brief Parses an optional boolean attribute token (`key`, `key:true`,
+ * `key=false`).
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_optional_bool_attr(char *attr, const char *key,
                                            int *out_set, int *out_val) {
   size_t key_len;
@@ -321,6 +359,11 @@ cdd_c_error_t doc_parse_optional_bool_attr(char *attr, const char *key,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses an optional `example:<val>` or `example=<val>` attribute token.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_optional_example_attr(char *attr, char **out_example) {
   char *val = NULL;
   char *dup_val = NULL;
@@ -348,6 +391,11 @@ cdd_c_error_t doc_parse_optional_example_attr(char *attr, char **out_example) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Locates a `key:` or `key=` token within a string `s`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_find_key_token(char *s, const char *key, size_t *key_len,
                                  char **out_val) {
   char *p;
@@ -382,6 +430,12 @@ cdd_c_error_t doc_find_key_token(char *s, const char *key, size_t *key_len,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Splits a comma-separated list of OAuth scopes into an array of
+ * strings.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_split_scopes(const char *input, char ***out_scopes,
                                size_t *out_count) {
   char *buf = NULL;
@@ -462,6 +516,12 @@ cdd_c_error_t doc_split_scopes(const char *input, char ***out_scopes,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Splits a comma- or pipe-separated list of enum values into an array of
+ * strings.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_split_enum_values(const char *input, char ***out_vals,
                                     size_t *out_count) {
   char *buf = NULL;

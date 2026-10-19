@@ -33,6 +33,7 @@ C_CDD_EXPORT int g_cdd_audit_fail_find = 0;
 #if defined(_WIN32)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #ifndef strdup
+/** @brief Alias `strdup` to `_strdup` on MSVC. */
 #define strdup _strdup
 #endif
 #endif
@@ -41,6 +42,8 @@ C_CDD_EXPORT int g_cdd_audit_fail_find = 0;
 
 /**
  * @brief Initializes codebase audit statistics counters.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t audit_stats_init(struct AuditStats *stats) {
 #ifdef CDD_BUILD_TESTS
@@ -81,7 +84,15 @@ void audit_stats_free(struct AuditStats *stats) {
 }
 
 /**
- * @brief Adds or sets violation.
+ * @brief Records an unchecked allocation violation in `stats`.
+ *
+ * @param[in,out] stats Audit statistics structure to update.
+ * @param[in] file_path Path to the source file containing the violation.
+ * @param[in] line 1-based line number of the violation.
+ * @param[in] col 1-based column number of the violation.
+ * @param[in] var_name Assigned variable name, or NULL if unassigned.
+ * @param[in] allocator Name of the allocator function called.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
  */
 static cdd_c_error_t add_violation(struct AuditStats *stats,
                                    const char *file_path, size_t line,
@@ -185,6 +196,7 @@ static cdd_c_error_t add_violation(struct AuditStats *stats,
  * @param[in] token_ptr Pointer to the token within the buffer.
  * @param[out] line 1-based line number.
  * @param[out] col 1-based column number.
+ * @return `CDD_C_SUCCESS` on success.
  */
 static cdd_c_error_t get_line_col(const char *content, const uint8_t *token_ptr,
                                   size_t *line, size_t *col) {
@@ -205,7 +217,12 @@ static cdd_c_error_t get_line_col(const char *content, const uint8_t *token_ptr,
 }
 
 /**
- * @brief Check if filename ends with .c extension.
+ * @brief Check if filename ends with `.c` extension.
+ *
+ * @param[in] path File path string to check.
+ * @param[out] out_is_source Pointer to receive 1 if path ends with `.c`, 0
+ * otherwise.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 static cdd_c_error_t is_c_source(const char *path, int *out_is_source) {
   const char *dot;
@@ -225,6 +242,11 @@ static cdd_c_error_t is_c_source(const char *path, int *out_is_source) {
 
 /**
  * @brief Helper to detect functions returning allocations directly.
+ *
+ * @param[in] tokens Token stream to scan.
+ * @param[out] out_count Output pointer receiving the number of direct-return
+ * allocations.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT cdd_c_error_t
@@ -287,8 +309,12 @@ static cdd_c_error_t count_returning_allocs(const struct TokenList *tokens,
 }
 
 /**
- * @brief Callback for directory walker.
- * Parses file and updates stats.
+ * @brief Callback for directory walker that parses a file and updates audit
+ * stats.
+ *
+ * @param[in] path Path to the visited file.
+ * @param[in,out] user_data Pointer to `struct AuditStats`.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
   struct AuditStats *stats = (struct AuditStats *)user_data;
@@ -390,6 +416,8 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
 /**
  * @brief Scans a project directory to collect safety, allocation, and macro
  * audit metrics.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t audit_project(const char *root_path, struct AuditStats *stats) {
   if (!root_path || !stats)
@@ -400,6 +428,8 @@ cdd_c_error_t audit_project(const char *root_path, struct AuditStats *stats) {
 
 /**
  * @brief Serializes collected audit statistics as a JSON report.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t audit_print_json(const struct AuditStats *stats,
                                char **out_json) {
@@ -479,6 +509,11 @@ cdd_c_error_t audit_print_json(const struct AuditStats *stats,
 }
 
 #ifdef CDD_BUILD_TESTS
+/**
+ * @brief Unit test helper verifying `get_line_col` boundary termination.
+ *
+ * @return `CDD_C_SUCCESS` on success.
+ */
 C_CDD_EXPORT cdd_c_error_t test_audit_get_line_col_boundary(void) {
   const char *content = "short";
   size_t line = 0, col = 0;

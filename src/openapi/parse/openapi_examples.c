@@ -106,6 +106,16 @@ cdd_c_error_t find_component_example(const struct OpenAPI_Spec *spec,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Internal helper to parse an OpenAPI Example object.
+ *
+ * @param[in] ex_obj The source JSON example object.
+ * @param[in] name The example key name.
+ * @param[out] out Output OpenAPI_Example structure.
+ * @param[in] spec The parent OpenAPI specification.
+ * @param[in] resolve_refs Non-zero to resolve component references.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t parse_example_object_inner(const JSON_Object *ex_obj,
                                                 const char *name,
                                                 struct OpenAPI_Example *out,
@@ -341,6 +351,13 @@ cdd_c_error_t parse_oauth_scopes(const JSON_Object *scopes_obj,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Internal helper to parse OAuth flows into a security scheme.
+ *
+ * @param[in] flows_obj The source OAuth flows JSON object.
+ * @param[in,out] out The target OpenAPI_SecurityScheme structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t
 parse_oauth_flows_inner(const JSON_Object *flows_obj,
                         struct OpenAPI_SecurityScheme *out) {

@@ -20,6 +20,7 @@
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #ifndef strdup
+/** @brief Alias `strdup` to `_strdup` on MSVC. */
 #define strdup _strdup
 #endif
 #endif
@@ -30,12 +31,16 @@
 #endif
 
 #ifdef CDD_BUILD_TESTS
+/** @brief Flag to simulate allocation failure in
+ * `refactor_context_add_function`. */
 C_CDD_EXPORT int g_cdd_fail_alloc_refactor_add = 0;
 #endif
 
 /**
  * @brief Initializes a refactor context.
  *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 cdd_c_error_t refactor_context_init(struct RefactorContext *ctx) {
   if (!ctx)
@@ -47,7 +52,6 @@ cdd_c_error_t refactor_context_init(struct RefactorContext *ctx) {
 
 /**
  * @brief Frees a refactor context.
- *
  */
 void refactor_context_free(struct RefactorContext *ctx) {
   /* Note: func names and return types are shallow copies/refs in this design,
@@ -64,7 +68,8 @@ void refactor_context_free(struct RefactorContext *ctx) {
 /**
  * @brief Adds a function to the refactor context.
  *
- * allocation fails.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` if allocation
+ * fails.
  */
 cdd_c_error_t refactor_context_add_function(struct RefactorContext *ctx,
                                             const char *name,
@@ -102,6 +107,7 @@ cdd_c_error_t refactor_context_add_function(struct RefactorContext *ctx,
 /**
  * @brief Applies refactoring to a string of source code.
  *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t apply_refactoring_to_string(const struct RefactorContext *ctx,
                                           const char *source_code,

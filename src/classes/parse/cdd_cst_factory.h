@@ -77,6 +77,15 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_append_child_token(cdd_cst_node_t *parent,
  */
 C_CDD_EXPORT void cdd_cst_free_node(cdd_cst_node_t *node);
 
+/**
+ * @brief Formats a C code snippet via printf-style format string and parses it
+ * into a CST node attached to `dest_tree`.
+ *
+ * @param[in,out] dest_tree Destination CST tree to own synthesized tokens.
+ * @param[out] out_node Pointer to receive the newly parsed CST node.
+ * @param[in] fmt Printf-style format string.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 #if defined(__GNUC__) || defined(__clang__)
 C_CDD_EXPORT cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
                                                 cdd_cst_node_t **out_node,
@@ -87,6 +96,13 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
                                                 cdd_cst_node_t **out_node,
                                                 const char *fmt, ...);
 #endif
+
+/**
+ * @brief Frees a CST node structure and its children array without freeing
+ * child nodes.
+ *
+ * @param[in] node The CST node to free.
+ */
 C_CDD_EXPORT void cdd_cst_free_node_only(cdd_cst_node_t *node);
 
 #ifdef __cplusplus

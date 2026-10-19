@@ -57,6 +57,11 @@ C_CDD_EXPORT cdd_c_error_t test_build_system_mock_io_negative(void) {
 
 /**
  * @brief Emits C source code for cmake content.
+ *
+ * @param[in] fp Output file stream for `src/CMakeLists.txt`.
+ * @param[in] project_name Target CMake project and library name.
+ * @param[in] has_tests Non-zero to emit CTest and `greatest` test targets.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_IO on write failure.
  */
 static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
                                          int has_tests) {
@@ -453,6 +458,8 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
 
 /**
  * @brief Generates cmake project.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t generate_cmake_project(const char *output_path,
                                      const char *project_name, int has_tests) {
@@ -602,6 +609,8 @@ cleanup_src:
 
 /**
  * @brief Generates build system main.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t generate_build_system_main(int argc, char **argv) {
   const char *sys_type;

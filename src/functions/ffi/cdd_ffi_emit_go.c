@@ -18,6 +18,13 @@ extern volatile int g_fail_io_after;
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI IR type to its corresponding Go language type string.
+ *
+ * @param[in] type FFI type descriptor to map.
+ * @param[out] out_type Output pointer receiving the resolved Go type string.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t get_go_type(cdd_ffi_type_t type, const char **out_type) {
   static const cdd_ffi_type_map_table_t k_go_types = {
       "",        "bool",           "int8",  "uint8",  "int16",   "uint16",
@@ -27,6 +34,13 @@ static cdd_c_error_t get_go_type(cdd_ffi_type_t type, const char **out_type) {
   return cdd_ffi_map_type_from_table(&k_go_types, type, out_type);
 }
 
+/**
+ * @brief Maps an FFI IR type to its corresponding cgo (`C.*`) type string.
+ *
+ * @param[in] type FFI type descriptor to map.
+ * @param[out] out_type Output pointer receiving the resolved cgo type string.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t get_go_c_type(cdd_ffi_type_t type, const char **out_type) {
   static const cdd_ffi_type_map_table_t k_go_c_types = {"",
                                                         "C.bool",
@@ -50,6 +64,14 @@ static cdd_c_error_t get_go_c_type(cdd_ffi_type_t type, const char **out_type) {
   return cdd_ffi_map_type_from_table(&k_go_c_types, type, out_type);
 }
 
+/**
+ * @brief Emits a `.go` source file containing cgo wrappers for the given FFI
+ * IR.
+ *
+ * @param[in] ir The extracted and topologically sorted FFI IR.
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t
 emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
@@ -214,6 +236,12 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits a `go.mod` module manifest file in `config->output_dir`.
+ *
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t emit_go_mod(const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
@@ -266,6 +294,11 @@ static cdd_c_error_t emit_go_mod(const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits Go (cgo) bindings and `go.mod` manifest for the given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t cdd_ffi_emit_go(cdd_ffi_ir_t *ir,
                               const cdd_generate_bindings_config_t *config) {
   cdd_c_error_t rc;

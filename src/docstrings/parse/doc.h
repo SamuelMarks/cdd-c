@@ -315,6 +315,108 @@ struct DocTagMeta {
 };
 
 /**
+ * @brief Represents an Arazzo `@sourceDescription` annotation.
+ */
+struct DocArazzoSource {
+  char *name; /**< Source identifier */
+  char *url;  /**< Source URL or path */
+  char *type; /**< Optional source type (`openapi`, `asyncapi`, `arazzo`) */
+};
+
+/**
+ * @brief Key-value pair for Arazzo outputs or specification extensions.
+ */
+struct DocArazzoKeyVal {
+  char *key;   /**< Output key or `x-` extension key */
+  char *value; /**< Runtime expression or JSON value string */
+};
+
+/**
+ * @brief Parameter annotation for `@workflowParam` or `@stepParam`.
+ */
+struct DocArazzoParam {
+  char *name;      /**< Parameter name */
+  char *in_loc;    /**< Parameter location (`path`, `query`, `header`, etc.) */
+  char *value;     /**< Parameter literal or runtime expression value */
+  char *reference; /**< Optional reusable `$components.parameters.*` ref */
+};
+
+/**
+ * @brief Payload replacement annotation (`@stepReplacement`).
+ */
+struct DocArazzoReplacement {
+  char *target; /**< JSON Pointer, JSONPath, or XPath target */
+  char *value;  /**< Replacement value or runtime expression */
+};
+
+/**
+ * @brief Criterion annotation (`@stepCriterion`).
+ */
+struct DocArazzoCriterion {
+  char *context;   /**< Optional runtime expression context */
+  char *condition; /**< Condition assertion expression */
+  char *type;      /**< Optional criterion type (`simple`, `regex`, etc.) */
+  char *version;   /**< Optional expression type version */
+};
+
+/**
+ * @brief Success or Failure action annotation (`@stepOnSuccess`,
+ * `@stepOnFailure`).
+ */
+struct DocArazzoAction {
+  char *name;          /**< Action name */
+  char *type;          /**< Action type (`end`, `goto`, `retry`) */
+  char *workflow_id;   /**< Optional target workflowId */
+  char *step_id;       /**< Optional target stepId */
+  double retry_after;  /**< Retry delay in seconds */
+  int has_retry_after; /**< Non-zero if retryAfter is set */
+  int retry_limit;     /**< Maximum retry attempts */
+  int has_retry_limit; /**< Non-zero if retryLimit is set */
+  char *reference;     /**< Optional reusable `$components.*` reference */
+};
+
+/**
+ * @brief Step annotation (`@step` and associated `@step*` directives).
+ */
+struct DocArazzoStep {
+  char *step_id;                   /**< Unique step identifier */
+  char *description;               /**< Optional step description */
+  char *operation_id;              /**< Target operationId */
+  char *operation_path;            /**< Target operationPath */
+  char *channel_path;              /**< Target channelPath */
+  char *workflow_id;               /**< Target nested workflowId */
+  int timeout_ms;                  /**< Step execution timeout in ms */
+  int has_timeout;                 /**< Non-zero if timeout is set */
+  char *correlation_id;            /**< Async correlationId expression */
+  char *action;                    /**< Async action (`send` or `receive`) */
+  char **depends_on;               /**< Prerequisite stepIds */
+  size_t n_depends_on;             /**< Number of prerequisite stepIds */
+  struct DocArazzoParam *params;   /**< Step parameters */
+  size_t n_params;                 /**< Number of step parameters */
+  char *request_body_content_type; /**< Request body contentType */
+  char *request_body_payload;      /**< Request body payload JSON/expr */
+  struct DocArazzoReplacement *replacements; /**< Payload replacements */
+  size_t n_replacements;                     /**< Replacement count */
+  struct DocArazzoCriterion *criteria;       /**< Step successCriteria */
+  size_t n_criteria;                         /**< Criteria count */
+  struct DocArazzoAction *on_success;        /**< Step onSuccess actions */
+  size_t n_on_success;                       /**< onSuccess count */
+  struct DocArazzoAction *on_failure;        /**< Step onFailure actions */
+  size_t n_on_failure;                       /**< onFailure count */
+  struct DocArazzoKeyVal *outputs;           /**< Step outputs map */
+  size_t n_outputs;                          /**< Step outputs count */
+};
+
+/**
+ * @brief Reusable Arazzo component annotation (`@arazzoComponent`).
+ */
+struct DocArazzoComponent {
+  char *kind; /**< Component group (`inputs`, `parameters`, etc.) */
+  char *name; /**< Component key */
+  char *json; /**< Raw JSON representation of component */
+};
+
+/**
  * @brief Container for extracted metadata.
  */
 struct DocMetadata {
@@ -377,6 +479,27 @@ struct DocMetadata {
   int request_body_required;       /**< Request body required flag */
   int request_body_required_set;   /**< 1 if required explicitly set */
   char *request_body_content_type; /**< Request body content type */
+
+  /* Arazzo 1.1.0 annotations */
+  char *arazzo_version;                     /**< `@arazzo` version override */
+  char *self_uri;                           /**< `@self` URI override */
+  struct DocArazzoSource *arazzo_sources;   /**< `@sourceDescription` entries */
+  size_t n_arazzo_sources;                  /**< Source description count */
+  char *workflow_id;                        /**< `@workflow` identifier */
+  char *workflow_summary;                   /**< `@workflowSummary` text */
+  char **workflow_depends_on;               /**< `@workflowDependsOn` list */
+  size_t n_workflow_depends_on;             /**< Workflow dependsOn count */
+  char *workflow_inputs_json;               /**< `@workflowInput` JSON schema */
+  struct DocArazzoKeyVal *workflow_outputs; /**< `@workflowOutput` entries */
+  size_t n_workflow_outputs;                /**< Workflow output count */
+  struct DocArazzoParam *workflow_params;   /**< `@workflowParam` entries */
+  size_t n_workflow_params;                 /**< Workflow parameter count */
+  struct DocArazzoStep *arazzo_steps;       /**< `@step` entries */
+  size_t n_arazzo_steps;                    /**< Step count */
+  struct DocArazzoComponent *arazzo_components; /**< `@arazzoComponent` list */
+  size_t n_arazzo_components;                   /**< Component count */
+  struct DocArazzoKeyVal *arazzo_extensions;    /**< `@x-*` extension entries */
+  size_t n_arazzo_extensions;                   /**< Extension count */
 };
 
 /**

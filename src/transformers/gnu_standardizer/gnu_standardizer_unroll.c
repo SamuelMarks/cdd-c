@@ -43,6 +43,14 @@ typedef struct {
   int depth;
 } cleanup_t;
 
+/**
+ * @brief Standardizes GNU scope/statement extensions
+ * (`__attribute__((cleanup))`,
+ * `__label__` local labels, statement expressions `({...})`, VLAs, and
+ * zero-length arrays).
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t gnu_standardize_unroll(cdd_cst_tree_t *tree,
                                      const cdd_transform_config_t *config) {
   local_label_t local_labels[MAX_LOCAL_LABELS];

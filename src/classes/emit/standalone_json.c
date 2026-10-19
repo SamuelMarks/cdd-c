@@ -15,6 +15,14 @@
 #include "classes/emit/struct.h"
 /* clang-format on */
 
+/**
+ * @brief Emits a standalone zero-allocation JSON parser function for a struct.
+ *
+ * @param[in] fp Output stream.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Fields descriptor.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t
 write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
                                        const struct StructFields *sf) {

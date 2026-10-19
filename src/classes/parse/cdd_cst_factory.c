@@ -21,6 +21,11 @@ C_CDD_EXPORT int g_cdd_cst_realloc_fail = 0;
 /** @brief Global flag to simulate node allocation failure */
 C_CDD_EXPORT int g_cdd_cst_alloc_node_fail = 0;
 
+/**
+ * @brief Allocates a new empty CST node of the given kind.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_alloc_node(enum cdd_cst_node_kind_t kind,
                                  cdd_cst_node_t **out_node) {
   cdd_cst_node_t *n;
@@ -43,6 +48,11 @@ cdd_c_error_t cdd_cst_alloc_node(enum cdd_cst_node_kind_t kind,
 
 /**
  * @brief Tracks synthesized token memory to allow tree cleanup later.
+ *
+ * @param[in,out] tree The CST tree owning the synthesized token.
+ * @param[in] tok The synthesized token to track.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on allocation
+ * failure.
  */
 static cdd_c_error_t track_synthesized(cdd_cst_tree_t *tree, cdd_token_t *tok) {
   if (tree->num_synthesized >= tree->synthesized_capacity) {
@@ -67,6 +77,11 @@ static cdd_c_error_t track_synthesized(cdd_cst_tree_t *tree, cdd_token_t *tok) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Creates a synthetic token from a buffer and explicit byte length.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_create_token_len(cdd_cst_tree_t *tree,
                                        enum cdd_token_kind_t kind,
                                        const char *text, size_t length,
@@ -103,6 +118,11 @@ cdd_c_error_t cdd_cst_create_token_len(cdd_cst_tree_t *tree,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Creates a synthetic token from a null-terminated string.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_create_token(cdd_cst_tree_t *tree,
                                    enum cdd_token_kind_t kind, const char *text,
                                    cdd_token_t **out_token) {
@@ -110,6 +130,11 @@ cdd_c_error_t cdd_cst_create_token(cdd_cst_tree_t *tree,
                                   out_token);
 }
 
+/**
+ * @brief Appends a child CST node to a parent CST node.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_append_child_node(cdd_cst_node_t *parent,
                                         cdd_cst_node_t *child) {
   if (!parent || !child)
@@ -145,8 +170,14 @@ cdd_c_error_t cdd_cst_append_child_node(cdd_cst_node_t *parent,
 }
 
 #ifdef CDD_BUILD_TESTS
+/** @brief Mock failure counter for cdd_cst_append_child_token */
 C_CDD_EXPORT int g_mock_cdd_cst_append_child_token_fail = 0;
 #endif
+/**
+ * @brief Appends a child lexical token to a parent CST node.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_append_child_token(cdd_cst_node_t *parent,
                                          cdd_token_t *token) {
 #ifdef CDD_BUILD_TESTS
@@ -189,7 +220,6 @@ cdd_c_error_t cdd_cst_append_child_token(cdd_cst_node_t *parent,
 
 /**
  * @brief Frees a node structure, but not its children.
- * @param node The node to free.
  */
 void cdd_cst_free_node_only(cdd_cst_node_t *node) {
   if (!node)
@@ -199,6 +229,9 @@ void cdd_cst_free_node_only(cdd_cst_node_t *node) {
   free(node);
 }
 
+/**
+ * @brief Recursively frees a CST node and all of its descendant child nodes.
+ */
 void cdd_cst_free_node(cdd_cst_node_t *node) {
   size_t i;
   if (!node)

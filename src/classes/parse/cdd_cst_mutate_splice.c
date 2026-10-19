@@ -16,12 +16,6 @@
 
 /**
  * @brief Splice children of a node.
- * @param tree The syntax tree.
- * @param node_ptr Pointer to the node pointer.
- * @param start_idx The start index.
- * @param consume_count Number of children to consume.
- * @param new_children Array of new children.
- * @param new_children_count Count of new children.
  * @return 0 on success.
  */
 cdd_c_error_t cdd_cst_splice_children(cdd_cst_tree_t *tree,
@@ -122,10 +116,6 @@ cdd_c_error_t cdd_cst_splice_children(cdd_cst_tree_t *tree,
 
 /**
  * @brief Finds a node containing a given token.
- * @param root The root node.
- * @param tok The token to find.
- * @param out_idx Output index.
- * @param out_node Output node.
  * @return 0 on success.
  */
 cdd_c_error_t cdd_cst_find_node_for_token(cdd_cst_node_t *root,

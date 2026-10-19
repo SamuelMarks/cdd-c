@@ -325,6 +325,9 @@ cdd_c_error_t schema_ref_has_data_basic(const struct OpenAPI_SchemaRef *ref,
 
 /**
  * @brief Frees schema reference fields.
+ *
+ * @param[in,out] ref The OpenAPI_SchemaRef structure whose basic fields are
+ * freed.
  */
 static void free_schema_ref_fields(struct OpenAPI_SchemaRef *ref) {
   if (ref->ref_name) {

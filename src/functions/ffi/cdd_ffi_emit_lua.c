@@ -15,6 +15,14 @@
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI IR type to its corresponding LuaJIT `ffi.cdef` C type
+ * string.
+ *
+ * @param[in] type FFI type descriptor to map.
+ * @param[out] out_type Output pointer receiving the resolved C type string.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t get_luajit_c_type(cdd_ffi_type_t type,
                                        const char **out_type) {
   if (type.pointer_depth > 0) {
@@ -85,6 +93,14 @@ static cdd_c_error_t get_luajit_c_type(cdd_ffi_type_t type,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits a `.lua` file containing LuaJIT `ffi.cdef` declarations and
+ * module wrappers for the given FFI IR.
+ *
+ * @param[in] ir The extracted and topologically sorted FFI IR.
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t
 emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
@@ -215,6 +231,11 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits LuaJIT FFI bindings for the given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t cdd_ffi_emit_lua(cdd_ffi_ir_t *ir,
                                const cdd_generate_bindings_config_t *config) {
   if (!ir || !config || !config->output_dir) {

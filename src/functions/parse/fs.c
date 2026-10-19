@@ -34,6 +34,8 @@ extern int g_io_calls;
 
 /**
  * @brief Join directory and filename into a path.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t fs_path_join(const char *dir, const char *name,
                            char **out_path) {
@@ -60,6 +62,8 @@ cdd_c_error_t fs_path_join(const char *dir, const char *name,
 
 /**
  * @brief Format a temporary file path with prefix, number, and suffix.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t format_tmp_filename(const char *dir, const char *prefix,
                                   unsigned long num, const char *suffix,
@@ -95,6 +99,8 @@ cdd_c_error_t format_tmp_filename(const char *dir, const char *prefix,
 
 /**
  * @brief Helper to convert internal standard library errno to cdd_c_error_t.
+ *
+ * @return Mapped `cdd_c_error_t` value.
  */
 cdd_c_error_t errno_to_cdd_error(int err) {
   if (err == 0) return CDD_C_SUCCESS;
@@ -105,7 +111,10 @@ cdd_c_error_t errno_to_cdd_error(int err) {
 }
 
 #ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+/** @brief Exclude rarely-used stuff from Windows headers. */
 #define WIN32_LEAN_AND_MEAN
+#endif
 #if !defined(_MSC_VER) || defined(__INTEL_COMPILER)
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -134,9 +143,8 @@ cdd_c_error_t errno_to_cdd_error(int err) {
 
 /* <windows_utils> */
 #ifndef strdup
-#ifndef strdup
+/** @brief Alias `strdup` to `_strdup` on MSVC. */
 #define strdup _strdup
-#endif
 #endif
 
 #ifdef PATHCCH_LIB
@@ -188,6 +196,13 @@ cdd_c_error_t errno_to_cdd_error(int err) {
 #if defined(_WIN32)
 /**
  * @brief Converts a UTF-8/ASCII string to a Windows wide-character string.
+ *
+ * @param[in] s Source narrow string.
+ * @param[out] ws Destination wide-character buffer.
+ * @param[in] buf_cap Capacity of `ws` in `wchar_t` elements.
+ * @param[out] out_len Output pointer receiving the number of wide characters
+ * written (excluding null terminator).
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t ascii_to_wide(const char *s, wchar_t *ws, size_t buf_cap,
                             size_t *out_len) {
@@ -215,6 +230,13 @@ cdd_c_error_t ascii_to_wide(const char *s, wchar_t *ws, size_t buf_cap,
 
 /**
  * @brief Converts a Windows wide-character string to a UTF-8/ASCII string.
+ *
+ * @param[in] ws Source wide-character string.
+ * @param[out] s Destination narrow character buffer.
+ * @param[in] buf_cap Capacity of `s` in bytes.
+ * @param[out] out_len Output pointer receiving the number of bytes written
+ * (excluding null terminator).
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t wide_to_ascii(const wchar_t *ws, char *s, size_t buf_cap,
                             size_t *out_len) {
@@ -251,9 +273,12 @@ cdd_c_error_t wide_to_ascii(const wchar_t *ws, char *s, size_t buf_cap,
  */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+/** @brief Platform stat function alias */
 #define c_stat_func _stat32
+/** @brief Checks if stat mode corresponds to a directory */
 #define IS_DIR(mode) (((mode) & _S_IFMT) == _S_IFDIR)
 #else
+/** @brief Platform stat function alias */
 #define c_stat_func stat
 /** @brief IS_DIR definition */
 #define IS_DIR(mode) S_ISDIR(mode)
@@ -261,6 +286,9 @@ cdd_c_error_t wide_to_ascii(const wchar_t *ws, char *s, size_t buf_cap,
 
 /**
  * @brief Checks whether a filesystem path refers to an existing directory.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 cdd_c_error_t fs_is_directory(const char *path, int *out_is_dir) {
   c_stat st;
@@ -277,7 +305,9 @@ cdd_c_error_t fs_is_directory(const char *path, int *out_is_dir) {
 }
 
 /**
- * @brief Retrieves the basename.
+ * @brief Retrieves the basename component of a filesystem path.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t get_basename(const char *path, char **out) {
   const char *start_p, *p;
@@ -328,7 +358,9 @@ cdd_c_error_t get_basename(const char *path, char **out) {
 }
 
 /**
- * @brief Retrieves the dirname.
+ * @brief Retrieves the parent directory component of a filesystem path.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t get_dirname(const char *path, char **out) {
   const char *p;
@@ -394,10 +426,14 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
   return CDD_C_SUCCESS;
 }
 
+/** @brief Chunk size in bytes for buffered file reading */
 enum { READ_CHUNK_SIZE = 4096 };
 
 /**
- * @brief Maps a C errno value from fopen into a cdd_c_error_t code.
+ * @brief Maps a C errno value from fopen into a `FopenError_t` code.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 cdd_c_error_t fopen_error_from(int fopen_error, FopenError_t *_out_val) {
   if (!_out_val)
@@ -440,6 +476,8 @@ cdd_c_error_t fopen_error_from(int fopen_error, FopenError_t *_out_val) {
 
 /**
  * @brief Writes a byte buffer to a file path, overwriting any existing file.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t fs_write_to_file(const char *path, const char *content) {
   FILE *f;
@@ -510,6 +548,8 @@ cdd_c_error_t fs_write_to_file(const char *path, const char *content) {
 
 /**
  * @brief Reads the contents of a file path into a newly allocated buffer.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t read_to_file(const char *path, const char *mode, char **out_data,
                            size_t *out_size) {
@@ -598,6 +638,8 @@ cdd_c_error_t read_to_file(const char *path, const char *mode, char **out_data,
 /**
  * @brief Reads all bytes from an open FILE stream into a newly allocated
  * buffer.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
   char *buffer = NULL;
@@ -655,6 +697,8 @@ cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
 
 /**
  * @brief Copies a file from a source path to a destination path.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t cp(const char *dst, const char *src) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

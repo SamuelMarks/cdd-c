@@ -93,94 +93,149 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_token(cdd_cst_builder_t *builder,
 
 /**
  * @brief Appends a space character.
+ *
+ * @param[in,out] builder The CST builder.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_space(cdd_cst_builder_t *builder);
 
 /**
  * @brief Appends a newline character.
+ *
+ * @param[in,out] builder The CST builder.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_newline(cdd_cst_builder_t *builder);
 
 /**
  * @brief Appends indentation spaces based on the depth level.
  *
- * @param builder The builder
- * @param depth_level The number of indentation levels (e.g. 1 level = 2 spaces)
+ * @param[in,out] builder The builder
+ * @param[in] depth_level The number of indentation levels (e.g. 1 level = 2
+ * spaces)
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_indent(cdd_cst_builder_t *builder,
                                               int depth_level);
 
 /**
  * @brief Appends an identifier token.
+ *
+ * @param[in,out] builder The CST builder.
+ * @param[in] text Identifier text string.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_ident(cdd_cst_builder_t *builder,
                                              const char *text);
 
 /**
  * @brief Appends a string literal token.
+ *
+ * @param[in,out] builder The CST builder.
+ * @param[in] text String literal text.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_string(cdd_cst_builder_t *builder,
                                               const char *text);
 
 /**
  * @brief Appends an integer literal token.
+ *
+ * @param[in,out] builder The CST builder.
+ * @param[in] value Integer value to format and append.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_int(cdd_cst_builder_t *builder,
                                            int value);
 
 /**
  * @brief Appends a punctuation token.
+ *
+ * @param[in,out] builder The CST builder.
+ * @param[in] text Punctuation token text.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_punct(cdd_cst_builder_t *builder,
                                              const char *text);
 
 /**
  * @brief Appends an \#include directive.
+ *
+ * @param[in,out] builder The CST builder.
+ * @param[in] path Header path to include.
+ * @param[in] is_system Non-zero for angle-bracket system include, 0 for quotes.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_include(cdd_cst_builder_t *builder,
                                                const char *path, int is_system);
 
 /**
  * @brief Appends an \#ifndef macro_name directive.
+ *
+ * @param[in,out] builder The CST builder.
+ * @param[in] macro_name Macro identifier for the `#ifndef` guard.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_ifndef(cdd_cst_builder_t *builder,
                                               const char *macro_name);
 
 /**
  * @brief Appends an \#ifdef macro_name directive.
+ *
+ * @param[in,out] builder The CST builder.
+ * @param[in] macro_name Macro identifier for the `#ifdef` guard.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_ifdef(cdd_cst_builder_t *builder,
                                              const char *macro_name);
 
 /**
  * @brief Appends an \#else directive.
+ *
+ * @param[in,out] builder The CST builder.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_else(cdd_cst_builder_t *builder);
 
 /**
  * @brief Appends an \#endif directive.
+ *
+ * @param[in,out] builder The CST builder.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_endif(cdd_cst_builder_t *builder);
 
 /**
  * @brief Appends extern "C" { block opening.
+ *
+ * @param[in,out] builder The CST builder.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t
 cdd_cst_bld_extern_c_open(cdd_cst_builder_t *builder);
 
 /**
  * @brief Appends extern "C" } block closing.
+ *
+ * @param[in,out] builder The CST builder.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t
 cdd_cst_bld_extern_c_close(cdd_cst_builder_t *builder);
 
 /**
  * @brief Appends a block opening brace { and increases internal indent state.
+ *
+ * @param[in,out] builder The CST builder.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_block_open(cdd_cst_builder_t *builder);
 
 /**
  * @brief Appends a block closing brace } and decreases internal indent state.
+ *
+ * @param[in,out] builder The CST builder.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_block_close(cdd_cst_builder_t *builder);
 

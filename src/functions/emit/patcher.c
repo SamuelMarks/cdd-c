@@ -22,13 +22,16 @@
 #include "functions/parse/str.h" /* For c_cdd_strdup, though we use raw memcpy here mostly */
 /* clang-format on */
 
-/**
- * @brief Initializes a source code patch list.
- */
 #ifdef CDD_BUILD_TESTS
+/** @brief Mock flag to initialize PatchList with zero capacity for testing */
 C_CDD_EXPORT int g_patcher_test_cap_1 = 0;
 #endif
 
+/**
+ * @brief Initializes a source code patch list.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t patch_list_init(struct PatchList *list) {
   if (!list)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -72,6 +75,8 @@ void patch_list_free(struct PatchList *list) {
 
 /**
  * @brief Appends a replacement span patch to a patch list.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t patch_list_add(struct PatchList *list, size_t start_idx,
                              size_t end_idx, char *text) {
@@ -126,6 +131,10 @@ cdd_c_error_t patch_list_add(struct PatchList *list, size_t start_idx,
 /**
  * @brief Comparator for qsort.
  * Sorts primarily by start index.
+ *
+ * @param[in] a Pointer to the first `Patch` element.
+ * @param[in] b Pointer to the second `Patch` element.
+ * @return Negative if `a < b`, positive if `a > b`, or 0 if equal.
  */
 static int compare_patches(const void *a, const void *b) {
   const struct Patch *pa = (const struct Patch *)a;
@@ -144,6 +153,8 @@ static int compare_patches(const void *a, const void *b) {
 
 /**
  * @brief Sorts patches in ascending order of token start index.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t patch_list_sort(struct PatchList *list) {
 #ifdef CDD_BUILD_TESTS
@@ -160,6 +171,8 @@ cdd_c_error_t patch_list_sort(struct PatchList *list) {
 /**
  * @brief Applies a sorted list of patches to a token stream and emits the
  * result.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t patch_list_apply(struct PatchList *list,
                                const struct TokenList *tokens,

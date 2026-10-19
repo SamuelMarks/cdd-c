@@ -141,6 +141,8 @@ static cdd_c_error_t generate_cmake(FILE *fp,
 
 /**
  * @brief Emits generated C code for codegen build generate.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t codegen_build_generate(enum CodegenBuildSystem type, FILE *fp,
                                      const struct CodegenBuildConfig *config) {

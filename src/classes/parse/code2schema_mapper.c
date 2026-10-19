@@ -8,9 +8,11 @@
 #include "code2schema_internal.h"
 /* clang-format on */
 
+/** @brief Keys skipped when collecting extra root schema fields */
 static const char *k_schema_skip_keys[] = {
     "type", "$ref", "properties", "required", "allOf", "anyOf", "oneOf"};
 
+/** @brief Keys skipped when collecting extra property schema fields */
 static const char *k_property_skip_keys[] = {"type",
                                              "$ref",
                                              "items",
@@ -32,11 +34,14 @@ static const char *k_property_skip_keys[] = {"type",
                                              "writeOnly",
                                              "x-c-bitwidth"};
 
+/** @brief Keys skipped when collecting extra array items schema fields */
 static const char *k_items_skip_keys[] = {"type", "$ref"};
 
 /**
  * @brief Internal helper to convert a JSON Schema object to
  * StructFields.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_json_object_to_struct_fields_internal_mut(
     const JSON_Object *o, struct StructFields *f, const JSON_Object *root,
@@ -381,11 +386,14 @@ cdd_c_error_t c2s_json_object_to_struct_fields_internal_mut(
 }
 
 #ifdef CDD_BUILD_TESTS
+/** @brief Mock failure counter for json_object_to_struct_fields */
 C_CDD_EXPORT int g_json_object_to_struct_fields_fail = 0;
 #endif
 
 /**
  * @brief Extended function to convert a JSON Schema object to StructFields.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_json_object_to_struct_fields_internal(
     const JSON_Object *o, struct StructFields *f, const JSON_Object *root,
@@ -394,6 +402,12 @@ cdd_c_error_t c2s_json_object_to_struct_fields_internal(
       o, f, root, NULL, schema_name, allow_inline_union);
 }
 
+/**
+ * @brief Converts a JSON Schema object to `StructFields` with an explicit
+ * schema name.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t json_object_to_struct_fields_ex(
     const JSON_Object *schema_obj, struct StructFields *fields,
     const JSON_Object *schemas_obj_root, const char *schema_name) {
@@ -410,6 +424,8 @@ cdd_c_error_t json_object_to_struct_fields_ex(
 /**
  * @brief Extended code generation function to convert JSON Schema to
  * StructFields.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t json_object_to_struct_fields_ex_codegen(
     const JSON_Object *schema_obj, struct StructFields *fields,
@@ -426,6 +442,8 @@ cdd_c_error_t json_object_to_struct_fields_ex_codegen(
 
 /**
  * @brief Converts a JSON Schema object to a StructFields structure.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t
 json_object_to_struct_fields(const JSON_Object *schema_obj,

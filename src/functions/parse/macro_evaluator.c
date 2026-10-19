@@ -66,6 +66,11 @@ typedef struct {
   macro_tok_t cur; /**< Current token */
 } macro_lexer_t;
 
+/**
+ * @brief Frees any dynamically allocated string payload in `tok`.
+ *
+ * @param[in,out] tok Macro token whose payload will be freed.
+ */
 static void free_tok(macro_tok_t *tok) {
   if (tok->kind == TOK_STR || tok->kind == TOK_IDENT) {
     C_CDD_FREE(tok->str_val);
@@ -73,6 +78,12 @@ static void free_tok(macro_tok_t *tok) {
   }
 }
 
+/**
+ * @brief Advances the macro lexer to the next token in `lex->str`.
+ *
+ * @param[in,out] lex Macro lexer state.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t next_tok(macro_lexer_t *lex) {
   free_tok(&lex->cur);
 
@@ -298,27 +309,137 @@ typedef struct {
   int err; /**< Error flag: 0 on success, non-zero on error */
 } parser_t;
 
+/**
+ * @brief Parses a top-level macro expression.
+ *
+ * @param[in,out] p Macro parser state.
+ * @param[out] out Evaluated expression result.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t parse_expr(parser_t *p, cdd_macro_eval_result_t *out);
+
+/**
+ * @brief Parses a logical OR (`||`) macro expression.
+ *
+ * @param[in,out] p Macro parser state.
+ * @param[out] out Evaluated expression result.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t parse_logical_or(parser_t *p,
                                       cdd_macro_eval_result_t *out);
+
+/**
+ * @brief Parses a logical AND (`&&`) macro expression.
+ *
+ * @param[in,out] p Macro parser state.
+ * @param[out] out Evaluated expression result.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t parse_logical_and(parser_t *p,
                                        cdd_macro_eval_result_t *out);
+
+/**
+ * @brief Parses a bitwise OR (`|`) macro expression.
+ *
+ * @param[in,out] p Macro parser state.
+ * @param[out] out Evaluated expression result.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t parse_bitwise_or(parser_t *p,
                                       cdd_macro_eval_result_t *out);
+
+/**
+ * @brief Parses a bitwise XOR (`^`) macro expression.
+ *
+ * @param[in,out] p Macro parser state.
+ * @param[out] out Evaluated expression result.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t parse_bitwise_xor(parser_t *p,
                                        cdd_macro_eval_result_t *out);
+
+/**
+ * @brief Parses a bitwise AND (`&`) macro expression.
+ *
+ * @param[in,out] p Macro parser state.
+ * @param[out] out Evaluated expression result.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t parse_bitwise_and(parser_t *p,
                                        cdd_macro_eval_result_t *out);
+
+/**
+ * @brief Parses an equality (`==`, `!=`) macro expression.
+ *
+ * @param[in,out] p Macro parser state.
+ * @param[out] out Evaluated expression result.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t parse_equality(parser_t *p, cdd_macro_eval_result_t *out);
+
+/**
+ * @brief Parses a relational (`<`, `<=`, `>`, `>=`) macro expression.
+ *
+ * @param[in,out] p Macro parser state.
+ * @param[out] out Evaluated expression result.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t parse_relational(parser_t *p,
                                       cdd_macro_eval_result_t *out);
+
+/**
+ * @brief Parses a bitwise shift (`<<`, `>>`) macro expression.
+ *
+ * @param[in,out] p Macro parser state.
+ * @param[out] out Evaluated expression result.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t parse_shift(parser_t *p, cdd_macro_eval_result_t *out);
+
+/**
+ * @brief Parses an additive (`+`, `-`) macro expression.
+ *
+ * @param[in,out] p Macro parser state.
+ * @param[out] out Evaluated expression result.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t parse_additive(parser_t *p, cdd_macro_eval_result_t *out);
+
+/**
+ * @brief Parses a multiplicative (`*`, `/`, `%`) macro expression.
+ *
+ * @param[in,out] p Macro parser state.
+ * @param[out] out Evaluated expression result.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t parse_multiplicative(parser_t *p,
                                           cdd_macro_eval_result_t *out);
+
+/**
+ * @brief Parses a unary (`+`, `-`, `~`, `!`) macro expression.
+ *
+ * @param[in,out] p Macro parser state.
+ * @param[out] out Evaluated expression result.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t parse_unary(parser_t *p, cdd_macro_eval_result_t *out);
+
+/**
+ * @brief Parses a primary literal, identifier, or parenthesized macro
+ * expression.
+ *
+ * @param[in,out] p Macro parser state.
+ * @param[out] out Evaluated expression result.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t parse_primary(parser_t *p, cdd_macro_eval_result_t *out);
 
+/**
+ * @brief Initializes `r` as an unknown/error macro evaluation result.
+ *
+ * @param[out] r Evaluation result structure to reset.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t make_err(cdd_macro_eval_result_t *r) {
   r->type = MACRO_EVAL_TYPE_UNKNOWN;
   r->int_val = 0;
@@ -327,6 +448,13 @@ static cdd_c_error_t make_err(cdd_macro_eval_result_t *r) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Initializes `r` as an integer macro evaluation result.
+ *
+ * @param[in] v 64-bit integer value.
+ * @param[out] r Evaluation result structure to populate.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t make_int(int64_t v, cdd_macro_eval_result_t *r) {
   make_err(r);
   r->type = MACRO_EVAL_TYPE_INT;
@@ -334,6 +462,13 @@ static cdd_c_error_t make_int(int64_t v, cdd_macro_eval_result_t *r) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Initializes `r` as a floating-point macro evaluation result.
+ *
+ * @param[in] v Double-precision floating-point value.
+ * @param[out] r Evaluation result structure to populate.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t make_float(double v, cdd_macro_eval_result_t *r) {
   make_err(r);
   r->type = MACRO_EVAL_TYPE_FLOAT;
@@ -341,6 +476,13 @@ static cdd_c_error_t make_float(double v, cdd_macro_eval_result_t *r) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Promotes mixed integer/float operands to floating-point.
+ *
+ * @param[in,out] a Left operand evaluation result.
+ * @param[in,out] b Right operand evaluation result.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t promote(cdd_macro_eval_result_t *a,
                              cdd_macro_eval_result_t *b) {
   if (a->type == MACRO_EVAL_TYPE_FLOAT && b->type == MACRO_EVAL_TYPE_INT) {
@@ -730,6 +872,13 @@ static cdd_c_error_t parse_primary(parser_t *p, cdd_macro_eval_result_t *out) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Evaluates a C macro value expression into an integer, float, or string
+ * constant.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` on
+ * parse/evaluation failure.
+ */
 cdd_c_error_t cdd_macro_evaluate(struct PreprocessorContext *ctx,
                                  const char *expression,
                                  cdd_macro_eval_result_t *out_result) {
@@ -766,6 +915,9 @@ cdd_c_error_t cdd_macro_evaluate(struct PreprocessorContext *ctx,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Frees any dynamically allocated string payload in `result`.
+ */
 void cdd_macro_eval_result_free(cdd_macro_eval_result_t *result) {
   if (result->str_val) {
     C_CDD_FREE(result->str_val);

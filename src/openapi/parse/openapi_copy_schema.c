@@ -461,6 +461,13 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Internal helper to copy an item schema into an array schema reference.
+ *
+ * @param[out] dst Destination array OpenAPI_SchemaRef structure.
+ * @param[in] item Source item OpenAPI_SchemaRef structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t
 copy_item_schema_as_array_inner(struct OpenAPI_SchemaRef *dst,
                                 const struct OpenAPI_SchemaRef *item) {

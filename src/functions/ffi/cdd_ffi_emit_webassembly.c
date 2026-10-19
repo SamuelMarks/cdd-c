@@ -21,6 +21,15 @@ extern volatile int g_fail_io_after;
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI IR type to its corresponding Emscripten WebIDL type
+ * string.
+ *
+ * @param[in] t FFI type descriptor to map.
+ * @param[out] out_type Destination buffer for the resolved WebIDL type string.
+ * @param[in] out_sz Capacity of `out_type` in bytes.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t map_idl_type(cdd_ffi_type_t *t, char *out_type,
                                   size_t out_sz) {
   if (t->pointer_depth > 0) {
@@ -79,6 +88,16 @@ static cdd_c_error_t map_idl_type(cdd_ffi_type_t *t, char *out_type,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Maps an FFI IR type to its corresponding TypeScript `.d.ts` type
+ * string for Emscripten modules.
+ *
+ * @param[in] t FFI type descriptor to map.
+ * @param[out] out_type Destination buffer for the resolved TypeScript type
+ * string.
+ * @param[in] out_sz Capacity of `out_type` in bytes.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t map_ts_type(cdd_ffi_type_t *t, char *out_type,
                                  size_t out_sz) {
   if (t->pointer_depth > 0) {
@@ -133,6 +152,12 @@ static cdd_c_error_t map_ts_type(cdd_ffi_type_t *t, char *out_type,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits Emscripten WebIDL (`.idl`), C++ glue (`*_glue.cpp`), and
+ * TypeScript ambient declarations (`.d.ts`) for the given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t
 cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
                          const cdd_generate_bindings_config_t *config) {

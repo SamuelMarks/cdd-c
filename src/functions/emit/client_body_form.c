@@ -11,6 +11,8 @@
 
 /**
  * @brief Emits C source code for form urlencoded body.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t
 client_body_write_form_urlencoded_body(FILE *fp,

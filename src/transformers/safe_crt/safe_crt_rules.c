@@ -86,9 +86,6 @@ C_CDD_EXPORT cdd_c_error_t emit_ast_bld_strip_ampersand(expr_t *node,
 
 /**
  * @brief Emits the inferred buffer size expression into builder.
- *
- * @param[in,out] bld CST builder.
- * @param[in] dest Destination buffer expression.
  */
 C_CDD_EXPORT cdd_c_error_t emit_inferred_size(cdd_cst_builder_t *bld,
                                               expr_t *dest) {

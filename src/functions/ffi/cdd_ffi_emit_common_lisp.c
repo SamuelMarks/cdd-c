@@ -22,6 +22,14 @@ extern volatile int g_fail_io_after;
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Converts a C identifier into a kebab-case Common Lisp symbol name.
+ *
+ * @param[in] c_name Source C identifier string.
+ * @param[out] out_name Destination buffer for the formatted Lisp symbol.
+ * @param[in] out_sz Capacity of `out_name` in bytes.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t lispify_name(const char *c_name, char *out_name,
                                   size_t out_sz) {
   size_t i = 0, j = 0;
@@ -39,6 +47,15 @@ static cdd_c_error_t lispify_name(const char *c_name, char *out_name,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Maps an FFI IR type to its corresponding Common Lisp CFFI type
+ * specifier.
+ *
+ * @param[in] t FFI type descriptor to map.
+ * @param[out] out_type Destination buffer for the resolved CFFI type string.
+ * @param[in] out_sz Capacity of `out_type` in bytes.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t map_lisp_type(cdd_ffi_type_t *t, char *out_type,
                                    size_t out_sz) {
   if (t->pointer_depth > 0) {
@@ -113,6 +130,12 @@ static cdd_c_error_t map_lisp_type(cdd_ffi_type_t *t, char *out_type,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits Common Lisp (CFFI) bindings and ASDF system definitions for the
+ * given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t
 cdd_ffi_emit_common_lisp(cdd_ffi_ir_t *ir,
                          const cdd_generate_bindings_config_t *config) {

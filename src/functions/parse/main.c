@@ -29,6 +29,7 @@
 #include "functions/parse/main.h"
 #include "functions/parse/orchestrator.h"
 #include "functions/parse/str.h"
+#include "arazzo/parse/c2arazzo.h"
 #include "openapi/parse/openapi.h"
 #include "routes/emit/cli_gen.h"
 #include "routes/emit/client_gen.h"
@@ -124,9 +125,20 @@ C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv) {
  * commands.
  *
  * @param[in] program_name The program executable name (usually argv[0])
+ * @return `CDD_C_SUCCESS` on success.
  */
 C_CDD_EXPORT cdd_c_error_t print_help(const char *program_name) {
-  printf("Usage: %s [OPTIONS] <COMMAND>\n\n", program_name);
+  const char *display_name = program_name ? program_name : "cdd-c";
+  if (display_name &&
+      (strchr(display_name, '/') || strchr(display_name, '\\'))) {
+    const char *slash = strrchr(display_name, '/');
+    const char *bslash = strrchr(display_name, '\\');
+    const char *last = slash > bslash ? slash : bslash;
+    if (last && *(last + 1)) {
+      display_name = last + 1;
+    }
+  }
+  printf("Usage: %s [OPTIONS] <COMMAND>\n\n", display_name);
   puts("Commands:");
   puts("  from_openapi to_sdk -i <spec.json> [-o <dir>] [--no-github-actions] "
        "[--no-installable-package] [--tests]");
@@ -155,6 +167,12 @@ C_CDD_EXPORT cdd_c_error_t print_help(const char *program_name) {
   puts("      Expose CLI interface as an MCP server via stdio.");
   puts("");
   puts("Language-Specific Commands:");
+  puts("  from_arazzo [to_sdk|to_sdk_cli|to_server] -i <arazzo.json> "
+       "[-o <output>]");
+  puts("      Generate C workflow orchestrators from an Arazzo 1.1.0 "
+       "specification.");
+  puts("  to_arazzo -i <dir_or_file> [-o <arazzo.json>] [--self <uri>]");
+  puts("      Extract an Arazzo 1.1.0 specification from C source code.");
   puts("  audit <directory>");
   puts("      Scan directory for memory safety issues.");
   puts("  c2openapi <dir> <out.json>");
@@ -178,9 +196,12 @@ C_CDD_EXPORT cdd_c_error_t print_help(const char *program_name) {
  * Loads the provided OpenAPI specification and acts as a router to the
  * correct sub-command: `to_sdk`, `to_sdk_cli`, or `to_server`.
  * Generates C bindings, structs, and implementations.
+ *
+ * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
   cdd_from_openapi_config_t api_cfg;
+  int has_subcommand = 0;
   int i;
 
   memset(&api_cfg, 0, sizeof(api_cfg));
@@ -195,14 +216,17 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
   if (argc > 1) {
     if (strcmp(argv[1], "to_sdk") == 0) {
       api_cfg.subcommand = "to_sdk";
+      has_subcommand = 1;
       argc--;
       argv++;
     } else if (strcmp(argv[1], "to_sdk_cli") == 0) {
       api_cfg.subcommand = "to_sdk_cli";
+      has_subcommand = 1;
       argc--;
       argv++;
     } else if (strcmp(argv[1], "to_server") == 0) {
       api_cfg.subcommand = "to_server";
+      has_subcommand = 1;
       argc--;
       argv++;
     }
@@ -210,15 +234,26 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
 
   for (i = 1; i < argc; i++) {
     if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
-      puts("Usage: cdd-c from_openapi [to_sdk|to_sdk_cli|to_server] [args]");
-      puts("");
-      puts("Commands:");
-      puts("  to_sdk         Generate a Client SDK from an OpenAPI "
-           "specification.");
-      puts("  to_sdk_cli     Generate a Client SDK CLI from an OpenAPI "
-           "specification.");
-      puts("  to_server      Generate a Server stub from an OpenAPI "
-           "specification.");
+      if (has_subcommand) {
+        printf("Usage: cdd-c from_openapi %s [args]\n\n", api_cfg.subcommand);
+        if (strcmp(api_cfg.subcommand, "to_sdk") == 0) {
+          puts("Generate a C Client SDK from an OpenAPI specification.");
+        } else if (strcmp(api_cfg.subcommand, "to_sdk_cli") == 0) {
+          puts("Generate a C Client SDK CLI from an OpenAPI specification.");
+        } else {
+          puts("Generate a C Server stub from an OpenAPI specification.");
+        }
+      } else {
+        puts("Usage: cdd-c from_openapi [to_sdk|to_sdk_cli|to_server] [args]");
+        puts("");
+        puts("Commands:");
+        puts("  to_sdk         Generate a Client SDK from an OpenAPI "
+             "specification.");
+        puts("  to_sdk_cli     Generate a Client SDK CLI from an OpenAPI "
+             "specification.");
+        puts("  to_server      Generate a Server stub from an OpenAPI "
+             "specification.");
+      }
       puts("");
       puts("Options:");
       puts("  -i, --input <spec.json>   Input OpenAPI spec file");
@@ -259,6 +294,8 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
  *
  * Invokes the internal C-to-OpenAPI translation logic and writes the
  * result.
+ *
+ * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
   cdd_to_openapi_config_t api_cfg;
@@ -297,9 +334,72 @@ C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
 }
 
 /**
+ * @brief Handles the `from_arazzo` command generating C SDK workflows, CLI, or
+ * Server orchestrator from an Arazzo v1.1.0 specification.
+ *
+ * @return `CDD_C_SUCCESS` on success, or error code on failure.
+ */
+C_CDD_EXPORT cdd_c_error_t from_arazzo_cli_main(int argc, char **argv) {
+  cdd_from_arazzo_config_t cfg;
+  int i;
+
+  memset(&cfg, 0, sizeof(cfg));
+  cfg.subcommand = "to_sdk";
+
+  if (argc >= 2 && argv[1][0] != '-') {
+    if (strcmp(argv[1], "to_sdk") == 0 || strcmp(argv[1], "to_sdk_cli") == 0 ||
+        strcmp(argv[1], "to_server") == 0) {
+      cfg.subcommand = argv[1];
+      argc--;
+      argv++;
+    }
+  }
+
+  for (i = 1; i < argc; ++i) {
+    if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+      puts("Usage: cdd-c from_arazzo [to_sdk|to_sdk_cli|to_server] -i "
+           "<arazzo.json> [-o <output>]");
+      return CDD_C_SUCCESS;
+    } else if ((strcmp(argv[i], "-i") == 0 ||
+                strcmp(argv[i], "--input") == 0) &&
+               i + 1 < argc) {
+      cfg.input = argv[++i];
+    } else if (strcmp(argv[i], "--openapi") == 0 && i + 1 < argc) {
+      cfg.openapi_input = argv[++i];
+    } else if ((strcmp(argv[i], "-o") == 0 ||
+                strcmp(argv[i], "--output") == 0) &&
+               i + 1 < argc) {
+      cfg.output = argv[++i];
+    }
+  }
+
+  return cdd_generate_from_arazzo(&cfg);
+}
+
+/**
+ * @brief Handles the `to_arazzo` command extracting an Arazzo v1.1.0
+ * specification from C source/header files.
+ *
+ * @return `CDD_C_SUCCESS` on success, or error code on failure.
+ */
+C_CDD_EXPORT cdd_c_error_t to_arazzo_cli_main(int argc, char **argv) {
+  int i;
+  for (i = 0; i < argc; ++i) {
+    if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+      puts("Usage: cdd-c to_arazzo -i <dir_or_file> [-o <arazzo.json>] "
+           "[--self <uri>]");
+      return CDD_C_SUCCESS;
+    }
+  }
+  return c2arazzo_cli_main(argc, argv);
+}
+
+/**
  * @brief Main entry point dispatcher execution logic.
  *
  * Implements the command routing and prints help or error outputs as needed.
+ *
+ * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
@@ -330,6 +430,16 @@ C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {
     return CDD_C_SUCCESS;
   } else if (strcmp(cmd, "c2openapi") == 0) {
     rc = c2openapi_cli_main(argc - 1, argv + 1);
+    if (rc != CDD_C_SUCCESS)
+      goto handle_err;
+    return CDD_C_SUCCESS;
+  } else if (strcmp(cmd, "c2arazzo") == 0 || strcmp(cmd, "to_arazzo") == 0) {
+    rc = to_arazzo_cli_main(argc - 1, argv + 1);
+    if (rc != CDD_C_SUCCESS)
+      goto handle_err;
+    return CDD_C_SUCCESS;
+  } else if (strcmp(cmd, "from_arazzo") == 0) {
+    rc = from_arazzo_cli_main(argc - 1, argv + 1);
     if (rc != CDD_C_SUCCESS)
       goto handle_err;
     return CDD_C_SUCCESS;

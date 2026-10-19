@@ -16,6 +16,15 @@
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI IR type to its corresponding Scala Native `unsafe` type
+ * string.
+ *
+ * @param[in] t FFI type descriptor to map.
+ * @param[out] out_type Output pointer receiving the resolved Scala Native type
+ * string.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t map_scala_type(cdd_ffi_type_t *t, const char **out_type) {
   static const cdd_ffi_type_map_table_t k_scala_types = {"Unit",
                                                          "CBool",
@@ -39,6 +48,11 @@ static cdd_c_error_t map_scala_type(cdd_ffi_type_t *t, const char **out_type) {
   return cdd_ffi_map_type_from_table(&k_scala_types, *t, out_type);
 }
 
+/**
+ * @brief Emits Scala Native `.scala` `@extern` bindings for the given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t cdd_ffi_emit_scala(cdd_ffi_ir_t *ir,
                                  const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;

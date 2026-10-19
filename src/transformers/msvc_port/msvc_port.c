@@ -205,8 +205,6 @@ C_CDD_EXPORT int g_msvc_port_find_fail = 0;
 /**
  * @brief Ports POSIX/GNU specific syntax to MSVC equivalents.
  *
- * @param tree The CST tree.
- * @param config Optional configuration for trivia generation.
  * @return 0 on success, or an error code.
  */
 cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,

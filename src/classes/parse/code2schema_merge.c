@@ -10,6 +10,8 @@
 
 /**
  * @brief Merges a source struct field into a destination struct field.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t merge_struct_field(struct StructField *dest,
                                  const struct StructField *src) {
@@ -131,6 +133,8 @@ cdd_c_error_t merge_struct_field(struct StructField *dest,
 
 /**
  * @brief Merges source struct fields into destination struct fields.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t merge_struct_fields(struct StructFields *dest,
                                   const struct StructFields *src) {
@@ -211,6 +215,8 @@ cdd_c_error_t merge_struct_fields(struct StructFields *dest,
 
 /**
  * @brief Applies an allOf JSON Schema array to a StructFields object.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t apply_allof_to_struct_fields(const JSON_Array *all_of,
                                            struct StructFields *dest,

@@ -8,6 +8,13 @@
 #include "openapi/parse/openapi_internal.h"
 /* clang-format on */
 
+/**
+ * @brief Internal helper to parse the OpenAPI Info object.
+ *
+ * @param[in] root_obj The root OpenAPI JSON object.
+ * @param[in,out] out The target OpenAPI_Spec structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t parse_info_inner(const JSON_Object *root_obj,
                                       struct OpenAPI_Spec *out) {
   const JSON_Object *info_obj;
@@ -127,6 +134,13 @@ cdd_c_error_t parse_info(const JSON_Object *root_obj,
   return rc;
 }
 
+/**
+ * @brief Internal helper to parse an ExternalDocs object.
+ *
+ * @param[in] obj The source externalDocs JSON object.
+ * @param[out] out Output OpenAPI_ExternalDocs structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t
 parse_external_docs_inner(const JSON_Object *obj,
                           struct OpenAPI_ExternalDocs *out) {
@@ -171,6 +185,13 @@ cdd_c_error_t parse_external_docs(const JSON_Object *obj,
   return rc;
 }
 
+/**
+ * @brief Internal helper to parse a Discriminator object.
+ *
+ * @param[in] obj The source discriminator JSON object.
+ * @param[out] out Output OpenAPI_Discriminator structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t
 parse_discriminator_object_inner(const JSON_Object *obj,
                                  struct OpenAPI_Discriminator *out) {
@@ -264,6 +285,13 @@ cdd_c_error_t parse_discriminator_object(const JSON_Object *obj,
   return rc;
 }
 
+/**
+ * @brief Internal helper to parse an XML metadata object.
+ *
+ * @param[in] obj The source XML JSON object.
+ * @param[out] out Output OpenAPI_Xml structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t parse_xml_object_inner(const JSON_Object *obj,
                                             struct OpenAPI_Xml *out) {
   const char *node_type;
@@ -335,6 +363,13 @@ cdd_c_error_t parse_xml_object(const JSON_Object *obj,
   return rc;
 }
 
+/**
+ * @brief Internal helper to parse top-level OpenAPI tags.
+ *
+ * @param[in] root_obj The root OpenAPI JSON object.
+ * @param[in,out] out The target OpenAPI_Spec structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t parse_tags_inner(const JSON_Object *root_obj,
                                       struct OpenAPI_Spec *out) {
   const JSON_Array *tags_arr;
@@ -594,6 +629,13 @@ oom:
   return CDD_C_ERROR_MEMORY;
 }
 
+/**
+ * @brief Internal helper to parse an OpenAPI Server object.
+ *
+ * @param[in] srv_obj The source server JSON object.
+ * @param[out] out_srv Output OpenAPI_Server structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t parse_server_object_inner(const JSON_Object *srv_obj,
                                                struct OpenAPI_Server *out_srv) {
   const char *url;
@@ -738,6 +780,15 @@ cdd_c_error_t parse_server_object(const JSON_Object *srv_obj,
   return rc;
 }
 
+/**
+ * @brief Internal helper to parse an array of OpenAPI Server objects.
+ *
+ * @param[in] parent The parent JSON object.
+ * @param[in] key The servers array key name.
+ * @param[out] out_servers Output array of OpenAPI_Server structures.
+ * @param[out] out_count Output count of servers.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t
 parse_servers_array_inner(const JSON_Object *parent, const char *key,
                           struct OpenAPI_Server **out_servers,

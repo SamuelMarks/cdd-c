@@ -16,6 +16,14 @@
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI IR type to its corresponding Crystal `LibC` type string.
+ *
+ * @param[in] t FFI type descriptor to map.
+ * @param[out] out_type Output pointer receiving the resolved Crystal type
+ * string.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t map_crystal_type(cdd_ffi_type_t *t,
                                       const char **out_type) {
   if (t->pointer_depth > 0) {
@@ -79,6 +87,11 @@ static cdd_c_error_t map_crystal_type(cdd_ffi_type_t *t,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits Crystal `lib` bindings for the given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t
 cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
                      const cdd_generate_bindings_config_t *config) {

@@ -97,6 +97,11 @@ static cdd_c_error_t parse_int_suffixes(const char *str,
 /**
  * @brief Manually parse binary string to integer.
  * stdlib lacks `strtoull` for base 2 in strict C89 (and `0b` is an extension).
+ *
+ * @param[in] str Pointer to the start of binary digits (`0`/`1`).
+ * @param[out] endptr Pointer to receive the first non-binary character.
+ * @param[out] _out_val Pointer to receive the parsed 64-bit unsigned value.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_PARSE on failure.
  */
 static cdd_c_error_t parse_binary_str(const char *str, const char **endptr,
                                       uint64_t *_out_val) {
@@ -125,6 +130,8 @@ static cdd_c_error_t parse_binary_str(const char *str, const char **endptr,
 
 /**
  * @brief Parses numeric literal from the given input.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t parse_numeric_literal(const char *str, struct NumericValue *out) {
   int is_hex = 0;

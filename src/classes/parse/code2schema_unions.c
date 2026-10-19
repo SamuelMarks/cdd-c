@@ -10,6 +10,8 @@
 
 /**
  * @brief Fallback method to apply a union (oneOf/anyOf) to StructFields.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
                                                     struct StructFields *dest,
@@ -66,6 +68,8 @@ cdd_c_error_t apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
 
 /**
  * @brief Checks if array items within a union are supported.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_union_array_items_supported(const JSON_Object *schema_obj,
                                               const JSON_Object *root,
@@ -138,6 +142,8 @@ cdd_c_error_t c2s_union_array_items_supported(const JSON_Object *schema_obj,
 
 /**
  * @brief Extended method to apply a union (oneOf/anyOf) to StructFields.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t apply_union_to_struct_fields_ex_mut(
     const JSON_Array *union_arr, struct StructFields *dest,
@@ -413,6 +419,12 @@ cdd_c_error_t apply_union_to_struct_fields_ex_mut(
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Applies a `oneOf`/`anyOf` JSON array to `StructFields` using `root` as
+ * both read and mutable root.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t apply_union_to_struct_fields_ex(
     const JSON_Array *union_arr, struct StructFields *dest, JSON_Object *root,
     const char *schema_name, int is_anyof, const JSON_Object *schema_obj,

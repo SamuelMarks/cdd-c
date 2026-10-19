@@ -22,12 +22,16 @@ extern "C" {
 
 /* Windows compatibility macros and types */
 #if defined(_WIN32) || defined(_MSC_VER)
+/** @brief Platform path separator string */
 #define PATH_SEP "\\"
+/** @brief Platform path separator character */
 #define PATH_SEP_C '\\'
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+/** @brief Platform stat structure typedef */
 typedef struct _stat32 c_stat;
 #else
+/** @brief Platform stat structure typedef */
 typedef struct stat c_stat;
 #endif
 
@@ -37,20 +41,26 @@ typedef struct stat c_stat;
 
 /* Map POSIX constants/functions to MSVC equivalents */
 #ifndef F_OK
+/** @brief Existence test flag for `access()` */
 #define F_OK 0
 #endif /* !F_OK */
 
 #ifndef W_OK
+/** @brief Write permission test flag for `access()` */
 #define W_OK 2
 #endif /* !W_OK */
 
+/** @brief Alias `rmdir` to `_rmdir` on Windows */
 #define rmdir _rmdir
 
 #ifndef PATH_MAX
+/** @brief Maximum path length on Windows */
 #define PATH_MAX _MAX_PATH
 #endif /* !PATH_MAX */
 
+/** @brief Alias `delete_file` to `remove` */
 #define delete_file remove
+/** @brief Alias `unlink` to `_unlink` on Windows */
 #define unlink _unlink
 
 /**
@@ -294,6 +304,8 @@ extern C_CDD_EXPORT cdd_c_error_t tempdir(char **out_path);
  * @brief Cleanup FilenameAndPtr struct (close file and free filename).
  *
  * @param[in] file Pointer to struct to clean.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 extern C_CDD_EXPORT cdd_c_error_t
 FilenameAndPtr_cleanup(struct FilenameAndPtr *file);
@@ -302,6 +314,8 @@ FilenameAndPtr_cleanup(struct FilenameAndPtr *file);
  * @brief Cleanup struct and delete the file from the filesystem.
  *
  * @param[in] file Pointer to struct.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 extern C_CDD_EXPORT cdd_c_error_t
 FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file);

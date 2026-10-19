@@ -21,6 +21,13 @@ extern volatile int g_fail_io_after;
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI IR type to its corresponding Ada `Interfaces.C` type name.
+ *
+ * @param[in] t FFI type descriptor to map.
+ * @param[out] out_type Output pointer receiving the resolved Ada type string.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t map_ada_type(cdd_ffi_type_t *t, const char **out_type) {
   if (t->pointer_depth > 0) {
     if ((t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) &&
@@ -82,6 +89,12 @@ static cdd_c_error_t map_ada_type(cdd_ffi_type_t *t, const char **out_type) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits Ada `Interfaces.C` package specifications and GPR project files
+ * for the given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
                                const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;

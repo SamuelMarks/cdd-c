@@ -1,3 +1,12 @@
+/**
+ * @file full_code.c
+ * @brief Test fixture for Safe CRT transformations.
+ */
+
+/* clang-format off */
+/* Test fixture without external headers */
+/* clang-format on */
+
 void f() {
   char buf[100];
   char *str = "dummy";

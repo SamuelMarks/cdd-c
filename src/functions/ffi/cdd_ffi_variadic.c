@@ -10,6 +10,13 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Parses a `printf`-style format string to infer variadic argument
+ * types.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if any
+ * argument is NULL.
+ */
 cdd_c_error_t cdd_ffi_parse_printf_format(const char *fmt,
                                           cdd_ffi_type_t *out_types,
                                           size_t max_types, size_t *out_count) {
@@ -125,6 +132,12 @@ cdd_c_error_t cdd_ffi_parse_printf_format(const char *fmt,
    "fallback", we do our best.
 */
 
+/**
+ * @brief Invokes a C variadic function with up to 8 unpacked arguments.
+ *
+ * @return Error code returned by `fn`, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * `argc > 8`.
+ */
 cdd_c_error_t cdd_ffi_invoke_variadic(cdd_c_error_t (*fn)(const char *, ...),
                                       const char *fmt, cdd_ffi_var_arg_t *args,
                                       size_t argc) {

@@ -42,12 +42,30 @@ extern C_CDD_EXPORT int g_cdd_fail_is_grouping_paren;
 #define SIZE_MAX ((size_t) - 1)
 #endif
 
+/**
+ * @brief Appends a type node to the end of a type chain.
+ *
+ * @param[in,out] info Parent DeclInfo structure.
+ * @param[in,out] current_tail Pointer to tail pointer.
+ * @param[in] node Node to append.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t add_type_node(struct DeclInfo *info,
-                                         struct DeclType **tail,
+                                         struct DeclType **current_tail,
                                          struct DeclType *node);
+
+/**
+ * @brief Checks if a parenthesis indicates grouping in a declarator.
+ *
+ * @param[in] tokens Token list.
+ * @param[in] paren_idx Index of opening parenthesis.
+ * @param[in] limit Index limit in token list.
+ * @param[out] out_is_grouping Pointer to receive 1 if grouping, 0 otherwise.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
 C_CDD_EXPORT cdd_c_error_t is_grouping_paren(const struct TokenList *tokens,
-                                             size_t start, size_t end,
-                                             int *out_res);
+                                             size_t paren_idx, size_t limit,
+                                             int *out_is_grouping);
 
 /* --- Helpers --- */
 
@@ -211,6 +229,9 @@ static cdd_c_error_t skip_group(const struct TokenList *tokens, size_t start,
 
 /**
  * @brief Initializes a DeclInfo structure.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 cdd_c_error_t decl_info_init(struct DeclInfo *info) {
   if (!info)
@@ -544,6 +565,8 @@ static cdd_c_error_t find_pivot(const struct TokenList *tokens, size_t start,
 
 /**
  * @brief Parses a C declaration token range into a DeclInfo structure.
+ *
+ * @return 0 on success, EINVAL on syntax error, ENOMEM on alloc failure.
  */
 cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,
                                 size_t end, struct DeclInfo *out_info) {

@@ -18,6 +18,14 @@ extern volatile int g_fail_io_after;
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI primitive kind to its corresponding C# primitive type
+ * string.
+ *
+ * @param[in] kind FFI primitive kind enum value.
+ * @param[out] out_type Output pointer receiving the resolved C# type string.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t get_csharp_primitive(cdd_ffi_primitive_kind_t kind,
                                           const char **out_type) {
   switch (kind) {
@@ -67,6 +75,15 @@ static cdd_c_error_t get_csharp_primitive(cdd_ffi_primitive_kind_t kind,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Writes the C# P/Invoke type representation of an FFI IR type to `f`.
+ *
+ * @param[in,out] f Output file stream.
+ * @param[in] type FFI type descriptor to emit.
+ * @param[in] is_return Non-zero if emitting a function return type, 0 for
+ * parameter/field.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t emit_csharp_type(FILE *f, const cdd_ffi_type_t *type,
                                       int is_return) {
   const char *prim = NULL;
@@ -107,6 +124,14 @@ static cdd_c_error_t emit_csharp_type(FILE *f, const cdd_ffi_type_t *type,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits `Bindings.cs` containing C# P/Invoke declarations for the given
+ * FFI IR.
+ *
+ * @param[in] ir The extracted and topologically sorted FFI IR.
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_IO` on file error.
+ */
 static cdd_c_error_t
 emit_csharp_bindings(cdd_ffi_ir_t *ir,
                      const cdd_generate_bindings_config_t *config) {
@@ -292,6 +317,14 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits `BindingsTests.cs` containing NUnit struct layout tests for the
+ * given FFI IR.
+ *
+ * @param[in] ir The extracted and topologically sorted FFI IR.
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_IO` on file error.
+ */
 static cdd_c_error_t
 emit_csharp_tests(cdd_ffi_ir_t *ir,
                   const cdd_generate_bindings_config_t *config) {
@@ -369,6 +402,13 @@ emit_csharp_tests(cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits the `.csproj` MSBuild project file for the generated C#
+ * bindings.
+ *
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_IO` on file error.
+ */
 static cdd_c_error_t emit_csproj(const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;
   char filepath[1024];
@@ -435,6 +475,12 @@ static cdd_c_error_t emit_csproj(const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits C# P/Invoke bindings, project files, and optional unit tests for
+ * the given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t
 cdd_ffi_emit_csharp(cdd_ffi_ir_t *ir,
                     const cdd_generate_bindings_config_t *config) {

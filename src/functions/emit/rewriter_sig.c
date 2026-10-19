@@ -25,15 +25,7 @@
 
 #include "c_cdd/log.h"
 #include "functions/emit/rewriter_sig.h"
-
-#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#endif
-#else
-#include "c_cdd/log.h"
-#include <errno.h>
 /* clang-format on */
-#endif
 
 /**
  * @brief Internal component structure for a parsed signature.
@@ -50,6 +42,9 @@ struct ParsedSig {
 
 /**
  * @brief Initialize ParsedSig to NULLs.
+ *
+ * @param[out] sig Pointer to the `ParsedSig` structure to initialize.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 static cdd_c_error_t parsed_sig_init(struct ParsedSig *sig) {
 #ifdef CDD_BUILD_TESTS
@@ -69,6 +64,8 @@ static cdd_c_error_t parsed_sig_init(struct ParsedSig *sig) {
 
 /**
  * @brief Free ParsedSig resources.
+ *
+ * @param[in,out] sig Pointer to the `ParsedSig` structure to free.
  */
 static void parsed_sig_C_CDD_FREE(struct ParsedSig *sig) {
   if (sig->attributes)
@@ -87,6 +84,12 @@ static void parsed_sig_C_CDD_FREE(struct ParsedSig *sig) {
 
 /**
  * @brief Join tokens into a string.
+ *
+ * @param[in] tokens Token list.
+ * @param[in] start Inclusive start token index.
+ * @param[in] end Exclusive end token index.
+ * @param[out] out Pointer to receive the newly allocated joined string.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
  */
 static cdd_c_error_t join_tokens(const struct TokenList *tokens, size_t start,
                                  size_t end, char **out) {
@@ -117,6 +120,10 @@ static cdd_c_error_t join_tokens(const struct TokenList *tokens, size_t start,
 
 /**
  * @brief Check if token is a storage class specifier.
+ *
+ * @param[in] tok Token to inspect.
+ * @return Non-zero (`CDD_C_ERROR_UNKNOWN`) if storage specifier, 0
+ * (`CDD_C_SUCCESS`) otherwise.
  */
 static cdd_c_error_t is_storage_specifier(const struct Token *tok) {
   switch (tok->kind) {
@@ -174,6 +181,12 @@ static cdd_c_error_t find_balanced_end(const struct TokenList *tokens,
 
 /**
  * @brief Identify if return type is logically 'void' (no pointers).
+ *
+ * @param[in] tokens Token list.
+ * @param[in] start Inclusive start token index of the return type.
+ * @param[in] end Exclusive end token index of the return type.
+ * @param[out] out_is_void Pointer to receive 1 if simple `void`, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 static cdd_c_error_t check_is_void(const struct TokenList *tokens, size_t start,
                                    size_t end, int *out_is_void) {
@@ -214,6 +227,11 @@ static cdd_c_error_t check_is_void(const struct TokenList *tokens, size_t start,
 
 /**
  * @brief Convert 'void' args string to empty string, or detect if empty.
+ *
+ * @param[in] args Parameter list string inside parentheses.
+ * @param[out] out_is_empty Pointer to receive 1 if empty or `"void"`, 0
+ * otherwise.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 static cdd_c_error_t args_represent_void(const char *args, int *out_is_empty) {
   const char *p = args;
@@ -247,6 +265,10 @@ static cdd_c_error_t args_represent_void(const char *args, int *out_is_empty) {
 #ifdef CDD_BUILD_TESTS
 /**
  * @brief Test helper to check if args represent void.
+ *
+ * @param[in] args Parameter list string.
+ * @param[out] out_is_empty Pointer to receive 1 if empty/void, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t test_args_represent_void(const char *args,
                                                     int *out_is_empty) {
@@ -255,6 +277,12 @@ C_CDD_EXPORT cdd_c_error_t test_args_represent_void(const char *args,
 
 /**
  * @brief Test helper to verify if a token range represents a void return type.
+ *
+ * @param[in] tokens Token list.
+ * @param[in] start Inclusive start token index.
+ * @param[in] end Exclusive end token index.
+ * @param[out] out_is_void Pointer to receive 1 if void, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t test_check_is_void(const struct TokenList *tokens,
                                               size_t start, size_t end,
@@ -266,6 +294,12 @@ C_CDD_EXPORT cdd_c_error_t test_check_is_void(const struct TokenList *tokens,
 /**
  * @brief Check if a range contains meaningful tokens (not just
  * whitespace/comments).
+ *
+ * @param[in] tokens Token list.
+ * @param[in] start Inclusive start token index.
+ * @param[in] end Exclusive end token index.
+ * @return Non-zero (`CDD_C_ERROR_UNKNOWN`) if meaningful tokens exist, 0
+ * (`CDD_C_SUCCESS`) otherwise.
  */
 static cdd_c_error_t has_meaningful_tokens(const struct TokenList *tokens,
                                            size_t start, size_t end) {
@@ -282,6 +316,8 @@ static cdd_c_error_t has_meaningful_tokens(const struct TokenList *tokens,
 /**
  * @brief Rewrites a C function signature to return an error enum and output
  * pointer.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
                                 char **out_code) {

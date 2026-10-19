@@ -17,6 +17,12 @@
 #include "functions/emit/diff_generator.h"
 /* clang-format on */
 
+/**
+ * @brief Generates a CST patch diff string comparing old token spans with patch
+ * replacement text.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t patch_list_generate_diff(const struct TokenList *tokens,
                                        const struct PatchList *list,
                                        const char *filename, char **out_diff) {

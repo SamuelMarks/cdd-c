@@ -22,6 +22,11 @@
 #include "functions/parse/str.h"
 /* clang-format on */
 
+/**
+ * @brief Parses an `@param` directive line into `out->params`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_param_line(const char *line, const char *end,
                                    struct DocMetadata *out) {
   cdd_c_error_t rc_opt;
@@ -163,6 +168,11 @@ cdd_c_error_t doc_parse_param_line(const char *line, const char *end,
   return rc;
 }
 
+/**
+ * @brief Parses an `@return` or `@returns` directive line into `out->returns`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_return_line(const char *line, const char *end,
                                     struct DocMetadata *out) {
   struct DocResponse *new_resps;
@@ -266,6 +276,12 @@ cdd_c_error_t doc_parse_return_line(const char *line, const char *end,
   return rc;
 }
 
+/**
+ * @brief Parses an `@responseHeader` directive line into
+ * `out->response_headers`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_response_header_line(const char *line, const char *end,
                                              struct DocMetadata *out) {
   cdd_c_error_t rc_opt;
@@ -407,6 +423,11 @@ cdd_c_error_t doc_parse_response_header_line(const char *line, const char *end,
   return rc;
 }
 
+/**
+ * @brief Parses an `@link` directive line into `out->links`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_link_line(const char *line, const char *end,
                                   struct DocMetadata *out) {
   struct DocLink *new_links;
@@ -635,6 +656,11 @@ cdd_c_error_t doc_parse_link_line(const char *line, const char *end,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses an `@requestBody` directive line into `out->request_bodies`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_request_body_line(const char *line, const char *end,
                                           struct DocMetadata *out) {
   cdd_c_error_t rc_opt;

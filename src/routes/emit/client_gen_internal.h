@@ -51,6 +51,13 @@ extern "C" {
 
 /**
  * @brief Emit OpenAPI models into models header and source.
+ *
+ * @param[in,out] mhfile Output models header file stream.
+ * @param[in,out] mcfile Output models source file stream.
+ * @param[in] model_guard Include guard macro for models header.
+ * @param[in] mh_name Models header filename.
+ * @param[in] spec Parsed OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t
 client_gen_emit_models(FILE *mhfile, FILE *mcfile, const char *model_guard,
@@ -58,6 +65,13 @@ client_gen_emit_models(FILE *mhfile, FILE *mcfile, const char *model_guard,
 
 /**
  * @brief Emit MCP adapters into client header and source.
+ *
+ * @param[in,out] hfile Output client header file stream.
+ * @param[in,out] cfile Output client source file stream.
+ * @param[in] guard Include guard macro for client header.
+ * @param[in] prefix Function name prefix.
+ * @param[in] spec Parsed OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t
 client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
@@ -65,22 +79,35 @@ client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
 
 /**
  * @brief Emit url_utils.h for installable package.
+ *
+ * @param[in] dir_name Output directory path.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t
 client_gen_emit_url_utils_h(const char *dir_name);
 
 /**
  * @brief Emit url_utils.c (part 1) for installable package.
+ *
+ * @param[in,out] uc Output url_utils.c file stream.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc);
 
 /**
  * @brief Emit url_utils.c (part 2) for installable package.
+ *
+ * @param[in,out] uc Output url_utils.c file stream.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc);
 
 /**
  * @brief Emit test_sdk.c mocks for testing client.
+ *
+ * @param[in] dir_name Output directory path.
+ * @param[in] spec Parsed OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t
 client_gen_emit_mocks(const char *dir_name, const struct OpenAPI_Spec *spec);

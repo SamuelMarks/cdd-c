@@ -21,6 +21,15 @@ extern volatile int g_fail_io_after;
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI IR type to its corresponding Clojure JNA interop type
+ * string.
+ *
+ * @param[in] t FFI type descriptor to map.
+ * @param[out] out_type Output pointer receiving the resolved Clojure JNA type
+ * string.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t map_clojure_jna_type(cdd_ffi_type_t *t,
                                           const char **out_type) {
   if (t->pointer_depth > 0) {
@@ -78,6 +87,12 @@ static cdd_c_error_t map_clojure_jna_type(cdd_ffi_type_t *t,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits Clojure JNA interop bindings and `deps.edn` for the given FFI
+ * IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t
 cdd_ffi_emit_clojure(cdd_ffi_ir_t *ir,
                      const cdd_generate_bindings_config_t *config) {

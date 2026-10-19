@@ -187,6 +187,14 @@ set(Header_Files
         "parse/test_query_projection.h"
         "parse/test_cli_parser.h"
         "parse/test_fs_coverage.h"
+        "parse/test_arazzo_types.h"
+        "parse/test_arazzo_expr.h"
+        "parse/test_arazzo_eval.h"
+        "parse/test_arazzo_parser.h"
+        "parse/test_c2arazzo.h"
+        "emit/test_arazzo_client_gen.h"
+        "emit/test_arazzo_cli_gen.h"
+        "emit/test_arazzo_server_gen.h"
 )
 source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}")
 

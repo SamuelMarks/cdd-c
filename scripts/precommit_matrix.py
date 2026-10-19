@@ -443,32 +443,39 @@ def main():
         doc_cov = 0.0
         total_decls = 0
         doc_decls = 0
-        if os.path.exists("include"):
-            for root, _, files in os.walk("include"):
-                for file in files:
-                    if file.endswith(".h"):
-                        with open(
-                            os.path.join(root, file),
-                            "r",
-                            encoding="utf-8",
-                            errors="ignore",
-                        ) as f:
-                            lines = f.readlines()
-                        for i, line in enumerate(lines):
-                            if (
-                                "_API " in line
-                                or line.startswith("void ")
-                                or line.startswith("int ")
-                                or line.startswith("char ")
-                            ):
-                                total_decls += 1
-                                j = i - 1
-                                while j >= 0 and lines[j].strip() == "":
-                                    j -= 1
-                                if j >= 0 and ("*/" in lines[j] or "//" in lines[j]):
-                                    doc_decls += 1
+        for d in ["include", "src"]:
+            if os.path.exists(d):
+                for root, _, files in os.walk(d):
+                    norm_root = root.replace("\\", "/")
+                    if "/tests" in norm_root or "/mocks" in norm_root:
+                        continue
+                    for file in files:
+                        if file.endswith(".h") or file.endswith(".c"):
+                            with open(
+                                os.path.join(root, file),
+                                "r",
+                                encoding="utf-8",
+                                errors="ignore",
+                            ) as f:
+                                lines = f.readlines()
+                            for i, line in enumerate(lines):
+                                if (
+                                    "_API " in line
+                                    or "C_CDD_EXPORT " in line
+                                    or line.startswith("extern ")
+                                    or line.startswith("void ")
+                                    or line.startswith("int ")
+                                    or line.startswith("char ")
+                                    or line.startswith("cdd_c_error_t ")
+                                ):
+                                    total_decls += 1
+                                    j = i - 1
+                                    while j >= 0 and lines[j].strip() == "":
+                                        j -= 1
+                                    if j >= 0 and ("*/" in lines[j] or "//" in lines[j]):
+                                        doc_decls += 1
         if total_decls > 0:
-            doc_cov = (doc_decls / total_decls) * 100.0
+            doc_cov = round((doc_decls / total_decls) * 100.0, 1)
 
         test_cov = None
         if os.name != "nt" and is_tool("gcovr"):
@@ -480,7 +487,9 @@ def main():
                 cache_path = os.path.join(bdir, "CMakeCache.txt")
                 if os.path.exists(cache_path):
                     try:
-                        with open(cache_path, "r", encoding="utf-8", errors="ignore") as f:
+                        with open(
+                            cache_path, "r", encoding="utf-8", errors="ignore"
+                        ) as f:
                             for line in f:
                                 if line.startswith("CMAKE_C_COMPILER:"):
                                     compiler = line.split("=", 1)[1].strip()
@@ -489,7 +498,9 @@ def main():
                                     if "gcc" in c_basename:
                                         gcov_name = c_basename.replace("gcc", "gcov")
                                         if c_dirname:
-                                            candidates.append(os.path.join(c_dirname, gcov_name))
+                                            candidates.append(
+                                                os.path.join(c_dirname, gcov_name)
+                                            )
                                         candidates.append(gcov_name)
                                     elif "clang" in c_basename:
                                         candidates.append("llvm-cov gcov")
@@ -541,8 +552,11 @@ def main():
                         text=True,
                     )
                     if res.returncode == 0:
-                        m = re.search(r"lines:\s+([0-9.]+)%\s+\((\d+)\s+out\s+of\s+(\d+)\)", res.stdout)
-                        if m and int(m.group(3)) > 0:
+                        m = re.search(
+                            r"lines:\s+([0-9.]+)%\s+\((\d+)\s+out\s+of\s+(\d+)\)",
+                            res.stdout,
+                        )
+                        if m and int(m.group(3)) > 0 and int(m.group(2)) > 0:
                             test_cov = float(m.group(1))
                             break
                         m_simple = re.search(r"lines:\s+([0-9.]+)%", res.stdout)
@@ -564,12 +578,12 @@ def main():
             return "red"
 
         doc_color = get_color(doc_cov)
-        doc_shield = f"[![Doc Coverage](https://img.shields.io/badge/docs-{doc_cov:.0f}%25-{doc_color}.svg)](#)"
+        doc_shield = f"[![Doc Coverage](https://img.shields.io/badge/Doc%20Coverage-{doc_cov}%25-{doc_color}.svg)](#)"
 
         test_shield = ""
         if test_cov is not None:
             test_color = get_color(test_cov)
-            test_shield = f"[![Test Coverage](https://img.shields.io/badge/coverage-{test_cov:.0f}%25-{test_color}.svg)](#)"
+            test_shield = f"[![Test Coverage](https://img.shields.io/badge/Test%20Coverage-{test_cov}%25-{test_color}.svg)](#)"
 
         if os.path.exists("README.md"):
             with open("README.md", "r", encoding="utf-8") as f:

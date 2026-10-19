@@ -18,17 +18,26 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
+/** @brief Flag to simulate `asprintf` failure in strategy tests. */
 C_CDD_EXPORT int g_cdd_fail_asprintf = 0;
 #endif
 
 /* Common constants */
 /* Note: In a larger system these might be configurable via context struct */
+/** @brief Default error enum constant injected on allocation failure. */
 static const char *DEFAULT_ERROR_CODE = "CDD_C_ERROR_MEMORY";
 
 /* Internal helpers */
 
 /**
  * @brief Find explicit token indices for range extractions.
+ *
+ * @param[in] tokens Token stream.
+ * @param[in] start Starting token index.
+ * @param[in] kind Target token kind to locate.
+ * @param[out] _out_val Output pointer receiving the matched token index (or
+ * `tokens->size`).
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 static cdd_c_error_t find_next_token_idx(const struct TokenList *tokens,
                                          size_t start, enum TokenKind kind,
@@ -53,6 +62,12 @@ static cdd_c_error_t find_next_token_idx(const struct TokenList *tokens,
 
 /**
  * @brief Extracts a contiguous range of tokens into a newly allocated string.
+ *
+ * @param[in] tokens Token stream.
+ * @param[in] start Inclusive start token index.
+ * @param[in] end Exclusive end token index.
+ * @param[out] out_val Output pointer receiving the newly allocated string.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
  */
 static cdd_c_error_t range_to_string(const struct TokenList *tokens,
                                      size_t start, size_t end, char **out_val) {
@@ -84,6 +99,8 @@ static cdd_c_error_t range_to_string(const struct TokenList *tokens,
 /**
  * @brief Rewrites unchecked realloc calls into safe temporary-pointer
  * assignments.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
                                        const struct AllocationSite *site,
@@ -268,6 +285,8 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
 
 /**
  * @brief Injects null-pointer and error-return checks after fallible calls.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t
 strategy_inject_safety_checks(const struct TokenList *tokens,

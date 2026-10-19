@@ -20,11 +20,18 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
+/** @brief Counter to simulate allocation failure in
+ * `allocation_site_list_init`. */
 C_CDD_EXPORT int g_cdd_analysis_fail_alloc_init = 0;
+/** @brief Counter to simulate allocation failure in `allocation_site_list_add`.
+ */
 C_CDD_EXPORT int g_cdd_analysis_fail_alloc_add = 0;
+/** @brief Counter to simulate variable name allocation failure in
+ * `allocation_site_list_add`. */
 C_CDD_EXPORT int g_cdd_analysis_fail_alloc_varname = 0;
 #endif
 
+/** @brief Table of known C memory allocator specifications. */
 static const struct AllocatorSpec ALLOCATOR_SPECS[] = {
     {"malloc", ALLOC_STYLE_RETURN_PTR, CHECK_PTR_NULL, 0},
     {"calloc", ALLOC_STYLE_RETURN_PTR, CHECK_PTR_NULL, 0},
@@ -39,6 +46,8 @@ static const struct AllocatorSpec ALLOCATOR_SPECS[] = {
 
 /**
  * @brief Initializes a list of tracked memory allocation sites.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t allocation_site_list_init(struct AllocationSiteList *list) {
   if (!list)
@@ -91,6 +100,8 @@ void allocation_site_list_free(struct AllocationSiteList *list) {
 
 /**
  * @brief Records a newly discovered memory allocation site.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t allocation_site_list_add(struct AllocationSiteList *list,
                                        size_t index, const char *var_name,
@@ -162,7 +173,14 @@ cdd_c_error_t allocation_site_list_add(struct AllocationSiteList *list,
 }
 
 /**
- * @brief Retrieves the assigned var.
+ * @brief Retrieves the variable identifier on the left-hand side of an
+ * assignment token.
+ *
+ * @param[in] tokens Token stream.
+ * @param[in] assign_idx Index of the `=` assignment token.
+ * @param[out] _out_val Output pointer receiving the newly allocated variable
+ * name (or NULL).
+ * @return `CDD_C_SUCCESS` on success.
  */
 static cdd_c_error_t get_assigned_var(const struct TokenList *tokens,
                                       size_t assign_idx, char **_out_val) {
@@ -213,7 +231,14 @@ static cdd_c_error_t get_assigned_var(const struct TokenList *tokens,
 }
 
 /**
- * @brief Checks if inside condition.
+ * @brief Checks if the token at `idx` appears inside an `if` or `while`
+ * condition expression.
+ *
+ * @param[in] tokens Token stream.
+ * @param[in] idx Token index to inspect.
+ * @param[out] out_is_inside Output pointer receiving 1 if inside condition, 0
+ * otherwise.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 static cdd_c_error_t is_inside_condition(const struct TokenList *tokens,
                                          size_t idx, int *out_is_inside) {
@@ -264,7 +289,14 @@ static cdd_c_error_t is_inside_condition(const struct TokenList *tokens,
 }
 
 /**
- * @brief Checks if dereference use.
+ * @brief Checks if the identifier token at `i` is being dereferenced (`*x`,
+ * `x->`, or `x[`).
+ *
+ * @param[in] tokens Token stream.
+ * @param[in] i Token index of the identifier.
+ * @param[out] out_is_deref Output pointer receiving 1 if dereferenced, 0
+ * otherwise.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 static cdd_c_error_t is_dereference_use(const struct TokenList *tokens,
                                         size_t i, int *out_is_deref) {
@@ -307,7 +339,10 @@ static cdd_c_error_t is_dereference_use(const struct TokenList *tokens,
 }
 
 /**
- * @brief Checks if checked.
+ * @brief Determines whether an allocated variable is checked for NULL before
+ * being dereferenced.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t is_checked(const struct TokenList *tokens, size_t alloc_idx,
                          const char *var_name, const struct AllocatorSpec *spec,
@@ -389,7 +424,10 @@ cdd_c_error_t is_checked(const struct TokenList *tokens, size_t alloc_idx,
 }
 
 /**
- * @brief Retrieves the allocations.
+ * @brief Scans a token stream to identify all memory allocation calls and their
+ * check status.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t find_allocations(const struct TokenList *tokens,
                                struct AllocationSiteList *out) {

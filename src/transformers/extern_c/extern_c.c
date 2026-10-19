@@ -30,6 +30,13 @@ C_CDD_EXPORT volatile int g_extern_c_bot_node_fail = 0;
 C_CDD_EXPORT volatile int g_extern_c_helper_fail = 0;
 #endif
 
+/**
+ * @brief Checks if a CST node is at the top-level global file scope.
+ *
+ * @param[in] node CST node to inspect.
+ * @param[out] out_is_global Pointer to int receiving 1 if global, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 static cdd_c_error_t is_global_wrapper(cdd_cst_node_t *node,
                                        int *out_is_global) {
 #ifdef CDD_BUILD_TESTS
@@ -168,8 +175,6 @@ C_CDD_EXPORT cdd_c_error_t cdd_check_node_is_cpp_guard(cdd_cst_node_t *dir,
 /**
  * @brief Adds extern "C" wrapping to the parsed syntax tree.
  *
- * @param tree The CST tree.
- * @param config Optional configuration for trivia generation.
  * @return 0 on success, or an error code.
  */
 cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
@@ -182,9 +187,8 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
   cdd_cst_node_t *target_parent = NULL;
   cdd_token_t *first_token_of_file = NULL;
   int has_decl = 0;
-  (void)config;
 
-  if (!tree || !tree->root)
+  if (!tree || !tree->root || (config && config->indent_width < 0))
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Verify there are actual C declarations to wrap */

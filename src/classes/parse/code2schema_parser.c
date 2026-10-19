@@ -10,6 +10,8 @@
 
 /**
  * @brief Parses a struct member line and populates a StructFields object.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t parse_struct_member_line(const char *line,
                                        struct StructFields *sf) {
@@ -255,6 +257,8 @@ cdd_c_error_t parse_struct_member_line(const char *line,
 /**
  * @brief Parses union member tokens from a TokenList starting after '{' and
  * writes the resulting oneOf schema to schemas_obj.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_parse_union_tokens_and_write(const struct TokenList *tl,
                                                size_t *idx,
@@ -354,6 +358,8 @@ cdd_c_error_t c2s_parse_union_tokens_and_write(const struct TokenList *tl,
 /**
  * @brief Parses a union definition and writes it to a JSON Schema
  * object.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_parse_union_and_write(FILE *fp, JSON_Object *schemas_obj,
                                         const char *union_name) {

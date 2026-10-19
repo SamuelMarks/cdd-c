@@ -18,6 +18,12 @@
 /** @brief CHECK_IO definition */
 #ifdef CDD_BUILD_TESTS
 extern int g_cdd_fprintf_fail;
+/**
+ * @brief Test helper to simulate `fprintf` I/O failures in `make.c`.
+ *
+ * @param[in] rc Return value from `FPRINTF_HOOK`.
+ * @return `rc`, or -1 when a simulated failure is triggered.
+ */
 static int test_cdd_check_io_helper_make(int rc) {
   if (g_cdd_fprintf_fail && --g_cdd_fprintf_fail == 0)
     return -1;
@@ -40,6 +46,11 @@ static int test_cdd_check_io_helper_make(int rc) {
 #define FPRINTF_HOOK fprintf
 #endif
 
+/**
+ * @brief Emits a standalone `CMakeLists.txt` build configuration to `fp`.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t codegen_make_generate(FILE *fp, const struct MakeConfig *config) {
   size_t i;
 
@@ -50,7 +61,7 @@ cdd_c_error_t codegen_make_generate(FILE *fp, const struct MakeConfig *config) {
   CHECK_IO(FPRINTF_HOOK(fp, "cmake_minimum_required(VERSION %s)\n",
                         config->min_cmake_version ? config->min_cmake_version
                                                   : "3.10"));
-  CHECK_IO(FPRINTF_HOOK(fp, "project(%s VERSION 0.0.2 LANGUAGES C)\n\n",
+  CHECK_IO(FPRINTF_HOOK(fp, "project(%s VERSION 0.0.4 LANGUAGES C)\n\n",
                         config->project_name));
 
   /* Core Sources */

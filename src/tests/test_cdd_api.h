@@ -165,6 +165,7 @@ TEST test_bin_cdd(void) {
   candidates[n_cands++] = "./build_gcc/bin/cdd-c";
   candidates[n_cands++] = "./build_clang/bin/cdd-c";
   candidates[n_cands++] = "./build/bin/cdd-c";
+  candidates[n_cands++] = "./build/cdd-c";
   candidates[n_cands++] = "./build_cov/bin/cdd-c";
   candidates[n_cands++] = "../bin/cdd-c";
 #endif

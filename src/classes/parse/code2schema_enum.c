@@ -10,6 +10,8 @@
 
 /**
  * @brief Converts a JSON array of strings to an EnumMembers structure.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t json_array_to_enum_members(const JSON_Array *enum_arr,
                                          struct EnumMembers *em) {
@@ -30,6 +32,9 @@ cdd_c_error_t json_array_to_enum_members(const JSON_Array *enum_arr,
 
 /**
  * @brief Determines if a JSON Schema object represents a string enum.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
+ * `out_is_enum` is NULL.
  */
 cdd_c_error_t schema_object_is_string_enum(const JSON_Object *schema_obj,
                                            const JSON_Array **enum_arr_out,
@@ -71,6 +76,8 @@ cdd_c_error_t schema_object_is_string_enum(const JSON_Object *schema_obj,
 
 /**
  * @brief Checks if a JSON Schema $ref points to a string enum.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t ref_points_to_string_enum(const JSON_Object *root,
                                         const char *ref,
@@ -99,6 +106,9 @@ cdd_c_error_t ref_points_to_string_enum(const JSON_Object *root,
 /**
  * @brief Checks if a given property name is present in a required
  * properties list.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
+ * `out_in_list` is NULL.
  */
 cdd_c_error_t required_name_in_list(const JSON_Array *required,
                                     const char *name, int *out_in_list) {
@@ -121,6 +131,8 @@ cdd_c_error_t required_name_in_list(const JSON_Array *required,
 
 /**
  * @brief Resolves a JSON Schema $ref to its corresponding object.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t resolve_schema_ref_object(const JSON_Object *root,
                                         const char *ref,

@@ -150,6 +150,13 @@ C_CDD_EXPORT int g_schema_codegen_force_fail = 0;
 #endif
 
 /* Write Header Guard Start */
+/**
+ * @brief Emits the opening `#ifndef` / `#define` header include guard.
+ *
+ * @param[in] hfile Output header file stream.
+ * @param[in] basename Base name used to construct the guard macro.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_IO on write failure.
+ */
 static cdd_c_error_t print_header_guard(FILE *hfile, const char *basename) {
   CHECK_IO(FPRINTF_HOOK(hfile, "#ifndef %s_H\n", basename));
   CHECK_IO(FPRINTF_HOOK(hfile, "#define %s_H\n\n", basename));
@@ -158,7 +165,11 @@ static cdd_c_error_t print_header_guard(FILE *hfile, const char *basename) {
 
 /* Write Header Guard End */
 /**
- * @brief Emits the closing C++ extern guard and header include guard.
+ * @brief Emits the closing `#endif` header include guard.
+ *
+ * @param[in] hfile Output header file stream.
+ * @param[in] basename Base name used to construct the guard macro.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_IO on write failure.
  */
 static cdd_c_error_t print_header_guard_end(FILE *hfile, const char *basename) {
   CHECK_IO(FPRINTF_HOOK(hfile, "#endif /* !%s_H */\n", basename));
@@ -166,7 +177,13 @@ static cdd_c_error_t print_header_guard_end(FILE *hfile, const char *basename) {
 }
 
 /**
- * @brief Generates header.
+ * @brief Generates a C header file (`<prefix>.h`) for the given JSON Schemas.
+ *
+ * @param[in] prefix Output path prefix (without `.h` extension).
+ * @param[in] basename Base filename used for include guards.
+ * @param[in] schemas_obj Parson `JSON_Object` mapping schema names to schemas.
+ * @param[in] config Optional code generation configuration.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
                                            const char *basename,
@@ -313,7 +330,13 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
 }
 
 /**
- * @brief Generates source.
+ * @brief Generates a C source file (`<prefix>.c`) for the given JSON Schemas.
+ *
+ * @param[in] prefix Output path prefix (without `.c` extension).
+ * @param[in] basename Base filename used to `#include "<basename>.h"`.
+ * @param[in] schemas_obj Parson `JSON_Object` mapping schema names to schemas.
+ * @param[in] config Optional code generation configuration.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t generate_source(const char *prefix,
                                            const char *basename,
@@ -447,6 +470,8 @@ C_CDD_EXPORT cdd_c_error_t generate_source(const char *prefix,
 /**
  * @brief CLI entry point for generating C structs and JSON codecs from a JSON
  * Schema.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t schema2code_main(int argc, char **argv) {
   const char *schema_file, *prefix;

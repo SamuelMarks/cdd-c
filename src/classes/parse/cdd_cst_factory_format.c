@@ -20,10 +20,6 @@
 
 /**
  * @brief Parses a format string into a CST node.
- * @param dest_tree The destination tree.
- * @param out_node The parsed node output.
- * @param fmt The format string.
- * @param ... Additional arguments for format.
  * @return 0 on success.
  */
 cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,

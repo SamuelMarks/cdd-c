@@ -38,6 +38,8 @@
 
 /**
  * @brief Emits C source code for union to json func.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
 write_union_to_json_func(FILE *fp, const char *union_name,
@@ -208,6 +210,8 @@ write_union_to_json_func(FILE *fp, const char *union_name,
 
 /**
  * @brief Emits C source code for union from jsonObject func.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
 write_union_from_jsonObject_func(FILE *fp, const char *union_name,
@@ -376,6 +380,8 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
 
 /**
  * @brief Emits C source code for union from json func.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
 write_union_from_json_func(FILE *fp, const char *union_name,
@@ -784,6 +790,8 @@ write_union_from_json_func(FILE *fp, const char *union_name,
 
 /**
  * @brief Emits C source code for union cleanup func.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
 write_union_cleanup_func(FILE *fp, const char *union_name,

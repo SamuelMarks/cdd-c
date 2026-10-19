@@ -19,6 +19,13 @@ C_CDD_EXPORT int g_cdd_query_err_fail = 0;
 #include "c_cdd/log.h"
 /* clang-format on */
 
+/**
+ * @brief Traverses a CST in pre-order, invoking `visitor` on each node before
+ * its children.
+ *
+ * @return CDD_C_SUCCESS on success, or the first non-zero error returned by
+ * `visitor`.
+ */
 cdd_c_error_t cdd_cst_traverse_preorder(cdd_cst_node_t *root,
                                         cdd_cst_visitor_fn visitor,
                                         void *user_data) {
@@ -45,6 +52,13 @@ cdd_c_error_t cdd_cst_traverse_preorder(cdd_cst_node_t *root,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Traverses a CST in post-order, invoking `visitor` on each node after
+ * its children.
+ *
+ * @return CDD_C_SUCCESS on success, or the first non-zero error returned by
+ * `visitor`.
+ */
 cdd_c_error_t cdd_cst_traverse_postorder(cdd_cst_node_t *root,
                                          cdd_cst_visitor_fn visitor,
                                          void *user_data) {
@@ -65,6 +79,13 @@ cdd_c_error_t cdd_cst_traverse_postorder(cdd_cst_node_t *root,
   return visitor(root, user_data);
 }
 
+/**
+ * @brief Appends a matching CST node pointer to a query result set.
+ *
+ * @param[in,out] res Query result container to append to.
+ * @param[in] node Matching CST node pointer.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
+ */
 static cdd_c_error_t append_result(cdd_cst_query_result_t *res,
                                    cdd_cst_node_t *node) {
   if (res->size >= res->capacity) {
@@ -93,6 +114,13 @@ typedef struct type_query_ctx_t {
   cdd_c_error_t err; /**< err */
 } type_query_ctx_t;
 
+/**
+ * @brief Visitor callback that collects CST nodes matching `ctx->target_kind`.
+ *
+ * @param[in] node Current CST node being visited.
+ * @param[in,out] user_data Pointer to `type_query_ctx_t`.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t type_visitor(cdd_cst_node_t *node, void *user_data) {
   type_query_ctx_t *ctx = (type_query_ctx_t *)user_data;
   if (node->kind == ctx->target_kind) {
@@ -110,6 +138,11 @@ static cdd_c_error_t type_visitor(cdd_cst_node_t *node, void *user_data) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Finds all CST nodes of a specific `kind` within a subtree.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_find_nodes_by_type(cdd_cst_node_t *root,
                                          enum cdd_cst_node_kind_t kind,
                                          cdd_cst_query_result_t *out_result) {
@@ -155,6 +188,14 @@ typedef struct call_query_ctx_t {
   cdd_c_error_t err; /**< err */
 } call_query_ctx_t;
 
+/**
+ * @brief Visitor callback that collects function call CST nodes matching
+ * `ctx->func_name`.
+ *
+ * @param[in] node Current CST node being visited.
+ * @param[in,out] user_data Pointer to `call_query_ctx_t`.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t call_visitor(cdd_cst_node_t *node, void *user_data) {
   call_query_ctx_t *ctx = (call_query_ctx_t *)user_data;
   if (node->kind == CDD_CST_CALL_EXPR) {
@@ -232,6 +273,12 @@ static cdd_c_error_t call_visitor(cdd_cst_node_t *node, void *user_data) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Finds all CST nodes representing calls to a function named
+ * `func_name`.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t
 cdd_cst_find_function_calls_named(cdd_cst_node_t *root, const char *func_name,
                                   cdd_cst_query_result_t *out_result) {

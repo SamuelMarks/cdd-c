@@ -23,6 +23,16 @@ extern volatile int g_fail_io_after;
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI IR type to its corresponding Perl `FFI::Platypus` type
+ * string.
+ *
+ * @param[in] t FFI type descriptor to map.
+ * @param[out] out_type Destination buffer for the resolved Platypus type
+ * string.
+ * @param[in] out_sz Capacity of `out_type` in bytes.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t map_perl_type(cdd_ffi_type_t *t, char *out_type,
                                    size_t out_sz) {
   if (t->pointer_depth > 0) {
@@ -95,6 +105,14 @@ static cdd_c_error_t map_perl_type(cdd_ffi_type_t *t, char *out_type,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Maps an FFI IR type to its corresponding Perl XS C type string.
+ *
+ * @param[in] t FFI type descriptor to map.
+ * @param[out] out_type Destination buffer for the resolved XS C type string.
+ * @param[in] out_sz Capacity of `out_type` in bytes.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t map_xs_type(cdd_ffi_type_t *t, char *out_type,
                                  size_t out_sz) {
   if (t->pointer_depth > 0) {
@@ -163,6 +181,12 @@ static cdd_c_error_t map_xs_type(cdd_ffi_type_t *t, char *out_type,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits Perl `FFI::Platypus` `.pm` modules, `.xs` extensions,
+ * `Makefile.PL`, and `typemap` files for the given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
                                 const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;

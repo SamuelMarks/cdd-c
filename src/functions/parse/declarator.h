@@ -52,15 +52,19 @@ struct DeclType {
 
   /** @brief Type variant payload */
   union {
+    /** @brief Base type payload structure */
     struct {
       char *name; /**< Full text of base type specifiers */
     } base;       /**< Base type payload */
+    /** @brief Pointer type payload structure */
     struct {
       char *qualifiers; /**< Pointer qualifiers, or NULL */
     } ptr;              /**< Pointer type payload */
+    /** @brief Array type payload structure */
     struct {
       char *size_expr; /**< Dimension expression, or NULL */
     } array;           /**< Array type payload */
+    /** @brief Function type payload structure */
     struct {
       char *args_str; /**< Raw text of argument list */
     } func;           /**< Function type payload */
@@ -78,6 +82,8 @@ struct DeclInfo {
 /**
  * @brief Initialize a DeclInfo structure.
  * @param[out] info The structure to zero.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 extern C_CDD_EXPORT cdd_c_error_t decl_info_init(struct DeclInfo *info);
 

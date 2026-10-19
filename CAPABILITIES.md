@@ -225,7 +225,7 @@ For full grammar specifications and examples, see [`DSL.md`](DSL.md).
 
 `cdd-c` implements the **Model Context Protocol (MCP)** specification across both the **compiler tooling** itself and the **generated artifacts**.
 
-For complete compliance tables and schemas, consult [`mcp-1.0.0/`](mcp-1.0.0/).
+For complete compliance tables and schemas, consult [`mcp-1.0.0/`](conformance/mcp-1.0.0/).
 
 ```
                  ┌──────────────────────────────────────────────────────────┐
@@ -353,6 +353,7 @@ For build and integration instructions, see [`WASM.md`](WASM.md).
 | **Model Context Protocol** | `cdd-c mcp` | AI code scaffolding via stdio; client SDKs emitted as native MCP tools. |
 | **Security Auditing** | `cdd-c audit` | Static analysis for unchecked allocations, missing NULL guards, and unsafe CRT calls. |
 | **Schema Interop** | `code2schema`, `schema2code` | Symmetric C struct $\leftrightarrow$ JSON Schema conversion with validation logic. |
+| **Arazzo 1.1.0 Workflows** | `from_arazzo`, `to_arazzo` | Bidirectional C SDK, CLI runner, and Server E2E workflow orchestration (`C <-> Arazzo 1.1.0`). |
 | **Developer Docs** | `cdd-c to_docs_json` | Generates self-contained C snippet catalogs for developer portals. |
 | **Database & ORM** | `cdd-c migrate`, `schema dump` | PostgreSQL, SQLite, and MySQL dynamic drivers for `c-orm`. |
 | **WebAssembly** | `make build_wasm` | Fully portable browser and Node.js execution via Emscripten. |

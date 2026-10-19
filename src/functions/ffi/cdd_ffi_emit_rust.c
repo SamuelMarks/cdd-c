@@ -17,6 +17,14 @@ extern volatile int g_fail_io_after;
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI primitive kind to its corresponding Rust primitive type
+ * string.
+ *
+ * @param[in] kind FFI primitive kind enum value.
+ * @param[out] out_type Output pointer receiving the resolved Rust type string.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t get_rust_primitive(cdd_ffi_primitive_kind_t kind,
                                         const char **out_type) {
   switch (kind) {
@@ -66,6 +74,16 @@ static cdd_c_error_t get_rust_primitive(cdd_ffi_primitive_kind_t kind,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Writes the Rust raw FFI (`sys`) type representation of an FFI IR type
+ * to `f`.
+ *
+ * @param[in,out] f Output file stream.
+ * @param[in] type FFI type descriptor to emit.
+ * @param[in] is_return Non-zero if emitting a function return type, 0
+ * otherwise.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t emit_rust_sys_type(FILE *f, const cdd_ffi_type_t *type,
                                         int is_return) {
   const char *prim = NULL;
@@ -105,6 +123,14 @@ static cdd_c_error_t emit_rust_sys_type(FILE *f, const cdd_ffi_type_t *type,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits `src/sys.rs` containing `#[repr(C)]` struct definitions and
+ * `extern "C"` declarations for the given FFI IR.
+ *
+ * @param[in] ir The extracted and topologically sorted FFI IR.
+ * @param[in] dir_path Output crate root directory path.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_IO` on file failure.
+ */
 static cdd_c_error_t emit_sys_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
   FILE *f = NULL;
   char filepath[1024];
@@ -196,6 +222,14 @@ static cdd_c_error_t emit_sys_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits `src/lib.rs` containing safe Rust `Result<T, FfiError>` wrappers
+ * around `sys` functions.
+ *
+ * @param[in] ir The extracted and topologically sorted FFI IR.
+ * @param[in] dir_path Output crate root directory path.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_IO` on file failure.
+ */
 static cdd_c_error_t emit_lib_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
   FILE *f = NULL;
   char filepath[1024];
@@ -319,6 +353,12 @@ static cdd_c_error_t emit_lib_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits `Cargo.toml` for the generated Rust bindings crate.
+ *
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_IO` on file failure.
+ */
 static cdd_c_error_t
 emit_cargo_toml(const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;
@@ -362,6 +402,14 @@ emit_cargo_toml(const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits `tests/integration_test.rs` containing struct size assertions
+ * for the given FFI IR.
+ *
+ * @param[in] ir The extracted and topologically sorted FFI IR.
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_IO` on file failure.
+ */
 static cdd_c_error_t
 emit_integration_tests(cdd_ffi_ir_t *ir,
                        const cdd_generate_bindings_config_t *config) {
@@ -412,6 +460,13 @@ emit_integration_tests(cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Creates a directory at `path`, succeeding if it already exists.
+ *
+ * @param[in] path Directory path to create.
+ * @return `CDD_C_SUCCESS` on success or if `EEXIST`, or an error code on
+ * failure.
+ */
 static cdd_c_error_t maybe_mkdir(const char *path) {
   cdd_c_error_t rc = makedir(path);
   if (rc == CDD_C_SUCCESS)
@@ -422,6 +477,12 @@ static cdd_c_error_t maybe_mkdir(const char *path) {
   return rc;
 }
 
+/**
+ * @brief Emits a complete Rust Cargo crate (`Cargo.toml`, `src/sys.rs`,
+ * `src/lib.rs`, and optional integration tests) for the given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t cdd_ffi_emit_rust(cdd_ffi_ir_t *ir,
                                 const cdd_generate_bindings_config_t *config) {
   cdd_c_error_t rc;

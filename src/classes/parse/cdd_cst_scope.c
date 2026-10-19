@@ -17,9 +17,16 @@
 
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_cdd_scope_alloc_fail;
+/** @brief Mock allocation failure counter for CST scope tests */
 C_CDD_EXPORT int g_cdd_scope_alloc_fail = 0;
 #endif
 
+/**
+ * @brief Initializes a new CST lexical scope environment with a root file
+ * scope.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
   cdd_cst_scope_env_t *env;
   cdd_cst_scope_t *global;
@@ -47,6 +54,11 @@ cdd_c_error_t cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Frees a linked list of scope symbols.
+ *
+ * @param[in] sym Head of the symbol linked list to free.
+ */
 static void free_symbols(cdd_cst_symbol_t *sym) {
   while (sym) {
     cdd_cst_symbol_t *next = sym->next;
@@ -56,6 +68,12 @@ static void free_symbols(cdd_cst_symbol_t *sym) {
   }
 }
 
+/**
+ * @brief Recursively frees a lexical scope and all its child scopes and
+ * symbols.
+ *
+ * @param[in] scope Scope to free.
+ */
 static void free_scope(cdd_cst_scope_t *scope) {
   size_t i;
   if (!scope)
@@ -69,6 +87,9 @@ static void free_scope(cdd_cst_scope_t *scope) {
   C_CDD_FREE(scope);
 }
 
+/**
+ * @brief Frees a CST lexical scope environment and all scopes within it.
+ */
 void cdd_cst_scope_env_free(cdd_cst_scope_env_t *env) {
   if (!env)
     return;
@@ -76,6 +97,11 @@ void cdd_cst_scope_env_free(cdd_cst_scope_env_t *env) {
   C_CDD_FREE(env);
 }
 
+/**
+ * @brief Enters a new nested lexical scope of the specified kind.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
                                   enum cdd_cst_scope_kind_t kind) {
   cdd_cst_scope_t *new_scope;
@@ -114,6 +140,11 @@ cdd_c_error_t cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Leaves the current lexical scope and returns to its parent scope.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if at root.
+ */
 cdd_c_error_t cdd_cst_scope_leave(cdd_cst_scope_env_t *env) {
   if (!env || !env->current_scope || !env->current_scope->parent)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -122,6 +153,13 @@ cdd_c_error_t cdd_cst_scope_leave(cdd_cst_scope_env_t *env) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Duplicates a null-terminated string using `C_CDD_MALLOC`.
+ *
+ * @param[in] s Source string to duplicate.
+ * @param[out] out_s Pointer to receive the duplicated string.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
+ */
 static cdd_c_error_t cdd_strdup(const char *s, char **out_s) {
   size_t len;
   char *d;
@@ -136,6 +174,11 @@ static cdd_c_error_t cdd_strdup(const char *s, char **out_s) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Adds a symbol entry to the current lexical scope.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env,
                                        const char *name,
                                        enum cdd_cst_symbol_kind_t kind,
@@ -166,6 +209,12 @@ cdd_c_error_t cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Checks whether a symbol kind belongs to the C tag namespace
+ * (`struct`, `union`, or `enum`).
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT.
+ */
 cdd_c_error_t cdd_cst_symbol_is_tag(enum cdd_cst_symbol_kind_t kind,
                                     int *out_is_tag) {
   if (!out_is_tag || (int)kind < 0 || kind > CDD_CST_SYMBOL_FUNCTION)
@@ -176,6 +225,13 @@ cdd_c_error_t cdd_cst_symbol_is_tag(enum cdd_cst_symbol_kind_t kind,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Looks up a symbol by name and namespace starting from the current
+ * scope outward.
+ *
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_NOT_FOUND if not found, or
+ * error code.
+ */
 cdd_c_error_t cdd_cst_scope_lookup_symbol(cdd_cst_scope_env_t *env,
                                           const char *name,
                                           enum cdd_cst_symbol_kind_t kind,

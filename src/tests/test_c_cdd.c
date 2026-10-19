@@ -362,6 +362,14 @@ static FILE *mock_tmpfile_fuzzer(void) {
 #include "transformers/safe_crt/test_safe_crt_branches.h"
 #include "transformers/safe_crt/test_safe_crt_internals.h"
 #include "transformers/safe_crt/test_safe_crt_internals_coverage.h"
+#include "parse/test_arazzo_types.h"
+#include "parse/test_arazzo_expr.h"
+#include "parse/test_arazzo_eval.h"
+#include "parse/test_arazzo_parser.h"
+#include "parse/test_c2arazzo.h"
+#include "emit/test_arazzo_client_gen.h"
+#include "emit/test_arazzo_cli_gen.h"
+#include "emit/test_arazzo_server_gen.h"
 /* clang-format on */
 
 GREATEST_MAIN_DEFS();
@@ -985,6 +993,14 @@ int main(int argc, char **argv) {
   RUN_SUITE_RESET(transformer_gnu_standardizer_internals_suite);
   RUN_SUITE_RESET(transformer_gnu_standardizer_internals_coverage_suite);
   RUN_SUITE_RESET(cdd_c_error_suite);
+  RUN_SUITE_RESET(arazzo_types_suite);
+  RUN_SUITE_RESET(arazzo_expr_suite);
+  RUN_SUITE_RESET(arazzo_eval_suite);
+  RUN_SUITE_RESET(arazzo_parser_suite);
+  RUN_SUITE_RESET(c2arazzo_suite);
+  RUN_SUITE_RESET(arazzo_client_gen_suite);
+  RUN_SUITE_RESET(arazzo_cli_gen_suite);
+  RUN_SUITE_RESET(arazzo_server_gen_suite);
   reset_mocks();
   cdd_test_tmpfile_cleanup();
 

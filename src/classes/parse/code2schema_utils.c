@@ -13,6 +13,8 @@
  *
  * Reads up to `bufsz - 1` characters from the file into the buffer
  * `buf`. Any trailing carriage return or newline characters are removed.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t c2s_read_line(FILE *fp, char *buf, size_t bufsz, int *has_line) {
   size_t len;
@@ -77,6 +79,9 @@ cdd_c_error_t str_starts_with(const char *str, const char *prefix,
  *
  * Iterates linearly over a null-safe list to find a string-matched key.
  * Returns early if either the key or the list are NULL.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
+ * `out_found` is NULL.
  */
 cdd_c_error_t c2s_key_in_list(const char *key, const char **list, size_t count,
                               int *out_found) {
@@ -100,6 +105,8 @@ cdd_c_error_t c2s_key_in_list(const char *key, const char **list, size_t count,
  *
  * Provides deep cloning of JSON values. Will fail (set _out_val to NULL)
  * if the input value is NULL or serialization fails.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_clone_json_value(const JSON_Value *val,
                                    JSON_Value **_out_val) {
@@ -155,6 +162,8 @@ void free_string_array_code2schema(char **arr, size_t n) {
  * Allocates memory for both the array pointers and the underlying
  * strings. Handles cleanup via `free_string_array` if memory exhaustion
  * occurs.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t copy_string_array_code2schema(char ***dst, size_t *dst_count,
                                             char **src, size_t src_count) {
@@ -195,6 +204,8 @@ cdd_c_error_t copy_string_array_code2schema(char ***dst, size_t *dst_count,
  * In OpenAPI/JSON schema, `type` can be an array like `["string",
  * "null"]`. Extracts each distinct type, determining the primary C type,
  * while flagging nullability if `"null"` is encountered in the list.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
                                                  char ***out_union,

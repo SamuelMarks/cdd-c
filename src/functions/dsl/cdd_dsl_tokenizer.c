@@ -26,6 +26,13 @@ typedef struct {
   size_t col;         /**< Current 1-based column number */
 } tokenizer_state_t;
 
+/**
+ * @brief Advances the tokenizer cursor by one character, updating line and
+ * column counters.
+ *
+ * @param[in,out] state Current tokenizer state.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on mock failure.
+ */
 static cdd_c_error_t advance(tokenizer_state_t *state) {
 #ifdef CDD_BUILD_TESTS
   extern C_CDD_EXPORT int g_ffi_extractor_alloc_fail;
@@ -46,6 +53,16 @@ static cdd_c_error_t advance(tokenizer_state_t *state) {
  * terminator */
 #define IS_AT_END(st) ((st)->source[(st)->current_pos] == '\0')
 
+/**
+ * @brief Appends a newly scanned token to the DSL token list.
+ *
+ * @param[in,out] list Target DSL token list.
+ * @param[in] kind Token kind.
+ * @param[in] state Current tokenizer state.
+ * @param[in] start_pos Byte offset where the token begins in `state->source`.
+ * @param[in] length Length of the token in bytes.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
+ */
 static cdd_c_error_t add_token(cdd_dsl_token_list_t *list,
                                cdd_dsl_token_kind_t kind,
                                const tokenizer_state_t *state, size_t start_pos,
@@ -79,6 +96,14 @@ static cdd_c_error_t add_token(cdd_dsl_token_list_t *list,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Classifies an identifier lexeme as a CDD DSL keyword, built-in type,
+ * or general identifier.
+ *
+ * @param[in] text Pointer to the identifier characters.
+ * @param[in] length Length of the identifier in bytes.
+ * @return The classified `cdd_dsl_token_kind_t`.
+ */
 static cdd_dsl_token_kind_t match_keyword(const char *text, size_t length) {
   if (length == 4 && strncmp(text, "func", 4) == 0)
     return CDD_DSL_TOKEN_KW_FUNC;
@@ -149,6 +174,9 @@ static cdd_dsl_token_kind_t match_keyword(const char *text, size_t length) {
   return CDD_DSL_TOKEN_IDENTIFIER;
 }
 
+/**
+ * @brief Frees all tokens and text copies within a CDD DSL token list.
+ */
 C_CDD_EXPORT void cdd_dsl_token_list_free(cdd_dsl_token_list_t *list) {
   if (list) {
     size_t i;
@@ -165,6 +193,11 @@ C_CDD_EXPORT void cdd_dsl_token_list_free(cdd_dsl_token_list_t *list) {
   }
 }
 
+/**
+ * @brief Tokenizes a null-terminated CDD DSL source string into `out_tokens`.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
                                             cdd_dsl_token_list_t *out_tokens) {
   tokenizer_state_t state;

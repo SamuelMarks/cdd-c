@@ -9,6 +9,7 @@
 #include "c_cdd/memory.h"
 #include "functions/parse/cst.h"
 #include "functions/parse/fs.h"
+#include "functions/parse/str.h"
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_scope.h"
 #include "classes/parse/cdd_cst_semantic.h"
@@ -57,7 +58,13 @@
 #include "functions/ffi/cdd_ffi_emit_zig.h"
 #include "functions/ffi/cdd_ffi_emit_ir_json.h"
 #include "functions/ffi/cdd_ffi_ir_extractor.h"
+#include "arazzo/emit/arazzo.h"
+#include "arazzo/parse/arazzo.h"
+#include "arazzo/parse/c2arazzo.h"
 #include "openapi/parse/openapi.h"
+#include "routes/emit/arazzo_cli_gen.h"
+#include "routes/emit/arazzo_client_gen.h"
+#include "routes/emit/arazzo_server_gen.h"
 #include "routes/emit/cli_gen.h"
 #include "routes/emit/client_gen.h"
 #include "routes/emit/client_gui_gen.h"
@@ -70,6 +77,11 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Generate C code (SDK, CLI, or Server) from an OpenAPI specification.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code on failure.
+ */
 cdd_c_error_t
 cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
   const char *subcmd;
@@ -143,6 +155,11 @@ cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
   return rc;
 }
 
+/**
+ * @brief Generate an OpenAPI specification from existing C source code.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code on failure.
+ */
 cdd_c_error_t cdd_generate_to_openapi(const cdd_to_openapi_config_t *config) {
   const char *input_dir;
   const char *out_file;
@@ -189,6 +206,12 @@ cdd_c_error_t cdd_generate_to_openapi(const cdd_to_openapi_config_t *config) {
   return c2openapi_generate(&run_cfg);
 }
 
+/**
+ * @brief Generate documentation JSON containing C code snippets for an OpenAPI
+ * specification.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code on failure.
+ */
 cdd_c_error_t cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
   const char *input_file;
   int no_imports;
@@ -309,13 +332,14 @@ cdd_c_error_t cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Start the JSON-RPC server exposing the CDD functionality.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code on failure.
+ */
 cdd_c_error_t cdd_serve_json_rpc(const cdd_serve_json_rpc_config_t *config) {
   return serve_json_rpc_run(config);
 }
-
-/**
- * @brief Generate SWIG-like FFI bindings for multiple target languages.
- */
 
 /**
  * @brief Checks if a comma-separated list of target languages contains `lang`.
@@ -354,6 +378,7 @@ struct FfiEmitterEntry {
   ffi_emitter_fn_t emit; /**< Emitter callback function */
 };
 
+/** @brief Static registry of supported FFI target language emitters */
 static const struct FfiEmitterEntry EMITTERS[] = {
     {"python", NULL, cdd_ffi_emit_python},
     {"rust", NULL, cdd_ffi_emit_rust},
@@ -398,6 +423,11 @@ static const struct FfiEmitterEntry EMITTERS[] = {
     {"crystal", NULL, cdd_ffi_emit_crystal},
     {"ir", "json", cdd_ffi_emit_ir_json}};
 
+/**
+ * @brief Generate FFI bindings directly from an IR DSL string.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
     const char *source, const cdd_generate_bindings_config_t *config) {
   cdd_dsl_token_list_t tokens;
@@ -426,6 +456,11 @@ C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
   return rc;
 }
 
+/**
+ * @brief Generate SWIG-like FFI bindings for multiple target languages.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t
 cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
 
@@ -479,13 +514,25 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         should_emit = 1;
       } else {
         int out_result = 0;
-        cdd_target_langs_contains(config->target_langs, EMITTERS[i].name,
-                                  &out_result);
+        rc = cdd_target_langs_contains(config->target_langs, EMITTERS[i].name,
+                                       &out_result);
+        if (rc != CDD_C_SUCCESS) {
+          cdd_ffi_ir_free(ir);
+          C_CDD_FREE(ir);
+          C_CDD_FREE(file_content);
+          return rc;
+        }
         if (out_result) {
           should_emit = 1;
         } else if (EMITTERS[i].alias) {
-          cdd_target_langs_contains(config->target_langs, EMITTERS[i].alias,
-                                    &out_result);
+          rc = cdd_target_langs_contains(config->target_langs,
+                                         EMITTERS[i].alias, &out_result);
+          if (rc != CDD_C_SUCCESS) {
+            cdd_ffi_ir_free(ir);
+            C_CDD_FREE(ir);
+            C_CDD_FREE(file_content);
+            return rc;
+          }
           if (out_result)
             should_emit = 1;
         }
@@ -509,4 +556,118 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
   C_CDD_FREE(file_content);
 
   return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Generate C SDK workflows, CLI workflow runner, or Backend Server
+ * orchestrator from an Arazzo v1.1.0 specification.
+ *
+ * @return `CDD_C_SUCCESS` on success, or error code on failure.
+ */
+cdd_c_error_t cdd_generate_from_arazzo(const cdd_from_arazzo_config_t *config) {
+  struct Arazzo_Spec arazzo_spec;
+  struct OpenAPI_Spec openapi_spec;
+  int has_openapi = 0;
+  struct OpenApiClientConfig client_cfg;
+  const char *subcmd;
+  JSON_Value *root = NULL;
+  cdd_c_error_t rc;
+
+  if (!config || !config->input) {
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+
+  subcmd = config->subcommand ? config->subcommand : "to_sdk";
+  memset(&arazzo_spec, 0, sizeof(arazzo_spec));
+  memset(&openapi_spec, 0, sizeof(openapi_spec));
+  memset(&client_cfg, 0, sizeof(client_cfg));
+
+  root = json_parse_file(config->input);
+  if (!root) {
+    return CDD_C_ERROR_IO;
+  }
+  rc = arazzo_load_from_json_value(root, &arazzo_spec);
+  json_value_free(root);
+  if (rc != CDD_C_SUCCESS) {
+    return rc;
+  }
+
+  if (config->openapi_input) {
+    JSON_Value *oa_root = json_parse_file(config->openapi_input);
+    if (oa_root) {
+      if (openapi_load_from_json(oa_root, &openapi_spec) == CDD_C_SUCCESS) {
+        has_openapi = 1;
+      }
+      json_value_free(oa_root);
+    }
+  }
+
+  client_cfg.filename_base =
+      config->output ? config->output : "generated_arazzo";
+  client_cfg.func_prefix = config->func_prefix ? config->func_prefix : "api_";
+
+  if (strcmp(subcmd, "to_sdk_cli") == 0) {
+    rc = arazzo_cli_generate(&arazzo_spec, has_openapi ? &openapi_spec : NULL,
+                             &client_cfg);
+  } else if (strcmp(subcmd, "to_server") == 0) {
+    rc = arazzo_server_generate(
+        &arazzo_spec, has_openapi ? &openapi_spec : NULL, &client_cfg);
+  } else if (strcmp(subcmd, "to_sdk") == 0) {
+    rc = arazzo_client_generate(
+        &arazzo_spec, has_openapi ? &openapi_spec : NULL, &client_cfg);
+  } else {
+    rc = CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+
+  if (has_openapi) {
+    openapi_spec_free(&openapi_spec);
+  }
+  arazzo_spec_free(&arazzo_spec);
+  return rc;
+}
+
+/**
+ * @brief Extract an Arazzo v1.1.0 specification from annotated C source/header
+ * files.
+ *
+ * @return `CDD_C_SUCCESS` on success, or error code on failure.
+ */
+cdd_c_error_t cdd_generate_to_arazzo(const cdd_to_arazzo_config_t *config) {
+  struct Arazzo_Spec spec;
+  char *json = NULL;
+  const char *out_path;
+  cdd_c_error_t rc;
+
+  if (!config || !config->input) {
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+  out_path = config->output ? config->output : "arazzo.json";
+  memset(&spec, 0, sizeof(spec));
+  rc = arazzo_spec_init(&spec);
+  if (rc != CDD_C_SUCCESS) {
+    return rc;
+  }
+  rc = c2arazzo_parse_dir(config->input, &spec);
+  if (rc != CDD_C_SUCCESS) {
+    arazzo_spec_free(&spec);
+    return rc;
+  }
+  if (config->self_uri && *config->self_uri) {
+    if (spec.self_uri)
+      C_CDD_FREE(spec.self_uri);
+    spec.self_uri = NULL;
+    rc = c_cdd_strdup(config->self_uri, &spec.self_uri);
+    if (rc != CDD_C_SUCCESS) {
+      arazzo_spec_free(&spec);
+      return rc;
+    }
+  }
+  rc = arazzo_write_spec_to_json(&spec, &json);
+  arazzo_spec_free(&spec);
+  if (rc != CDD_C_SUCCESS) {
+    return rc;
+  }
+  rc = fs_write_to_file(out_path, json);
+  C_CDD_FREE(json);
+  return rc;
 }

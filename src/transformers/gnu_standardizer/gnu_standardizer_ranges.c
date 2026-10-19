@@ -7,6 +7,12 @@
 #include "gnu_standardizer_internal.h"
 /* clang-format on */
 
+/**
+ * @brief Standardizes GNU case ranges (`case A ... B:`), array range
+ * designators (`[A ... B] = V`), empty braces (`{}`), and `__builtin_expect`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t gnu_standardize_ranges(cdd_cst_tree_t *tree) {
   size_t i;
   cdd_c_error_t rc = CDD_C_SUCCESS;

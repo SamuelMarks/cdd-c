@@ -33,7 +33,10 @@ extern int g_io_calls;
 #endif
 
 #ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+/** @brief Exclude rarely-used stuff from Windows headers. */
 #define WIN32_LEAN_AND_MEAN
+#endif
 #if !defined(_MSC_VER) || defined(__INTEL_COMPILER)
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -91,6 +94,9 @@ extern int g_io_calls;
 
 /**
  * @brief Creates a single directory if it does not already exist.
+ *
+ * @param[in] path Directory path to create.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 static cdd_c_error_t maybe_mkdir(const char *path) {
   c_stat st;
@@ -143,6 +149,8 @@ static cdd_c_error_t maybe_mkdir(const char *path) {
 /**
  * @brief Recursively creates a directory path and all missing parent
  * directories.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t makedirs(const char *path) {
   char *dup_path = NULL, *p;
@@ -202,6 +210,8 @@ cdd_c_error_t makedirs(const char *path) {
 
 /**
  * @brief Creates a single directory at the specified path.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t makedir(const char *path) {
   if (path == NULL || *path == '\0')
@@ -221,6 +231,8 @@ cdd_c_error_t makedir(const char *path) {
 
 /**
  * @brief Obtains the system temporary directory path.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t tempdir(char **out_path) {
   const char *env;
@@ -277,6 +289,9 @@ cdd_c_error_t tempdir(char **out_path) {
 /**
  * @brief Closes the file handle and frees the filename in a FilenameAndPtr
  * struct.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 cdd_c_error_t FilenameAndPtr_cleanup(struct FilenameAndPtr *file) {
   if (!file)
@@ -295,6 +310,9 @@ cdd_c_error_t FilenameAndPtr_cleanup(struct FilenameAndPtr *file) {
 /**
  * @brief Closes the file handle, deletes the file from disk, and frees the
  * filename.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 cdd_c_error_t FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file) {
   if (!file)
@@ -309,6 +327,8 @@ cdd_c_error_t FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file) {
 /**
  * @brief Creates a unique temporary file and returns both its path and open
  * FILE stream.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t mktmpfilegetnameandfile(const char *prefix, const char *suffix,
                                       const char *mode,
@@ -412,6 +432,11 @@ cdd_c_error_t mktmpfilegetnameandfile(const char *prefix, const char *suffix,
 #ifdef _MSC_VER
 /**
  * @brief Checks whether a path string uses Windows UNC prefix syntax.
+ *
+ * @param[in] path Path string to inspect.
+ * @param[out] out_is_unc Output pointer receiving 1 if UNC path, 0 otherwise.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 cdd_c_error_t path_is_unc(const char *path, int *out_is_unc) {
   if (!out_is_unc)
@@ -430,12 +455,16 @@ cdd_c_error_t path_is_unc(const char *path, int *out_is_unc) {
 /**
  * @brief Recursively traverses a directory tree and invokes a callback for each
  * entry.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
   char *full_path = NULL;
   c_stat st;
   cdd_c_error_t rc = CDD_C_SUCCESS;
-  int stat_res;
+#if !defined(_MSC_VER) || defined(__INTEL_COMPILER)
+  int stat_res = 0;
+#endif
 
   if (!path || !cb)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -450,9 +479,6 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
        If user passed a file, we process it. */
     return cb(path, user_data);
   }
-
-  (void)full_path;
-  (void)stat_res;
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   {

@@ -14,9 +14,17 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
+/** @brief Mock flag to simulate pointer type evaluation failure */
 C_CDD_EXPORT int g_cdd_type_eval_ptr_fail = 0;
 #endif
 
+/**
+ * @brief Evaluates the byte size and alignment of a C primitive type under a
+ * target ABI model.
+ *
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_NOT_FOUND if unknown, or
+ * CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t cdd_cst_eval_primitive_type(const char *type_name,
                                           enum cdd_cst_abi_model_t abi,
                                           cdd_cst_type_info_t *out_info) {
@@ -110,6 +118,16 @@ cdd_c_error_t cdd_cst_eval_primitive_type(const char *type_name,
   return CDD_C_ERROR_NOT_FOUND;
 }
 
+/**
+ * @brief Extracts the normalized type name and pointer indicator from a CST
+ * type node.
+ *
+ * @param[in] node CST node representing the type specifier.
+ * @param[out] out_name Pointer to receive the allocated type name string.
+ * @param[out] is_pointer Pointer to receive 1 if pointer declarator `*` is
+ * present, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t extract_type_name(cdd_cst_node_t *node, char **out_name,
                                        int *is_pointer) {
   size_t i;
@@ -160,6 +178,11 @@ static cdd_c_error_t extract_type_name(cdd_cst_node_t *node, char **out_name,
   return CDD_C_ERROR_NOT_FOUND;
 }
 
+/**
+ * @brief Evaluates `sizeof` for a CST type node under the specified ABI model.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env,
                                   cdd_cst_node_t *type_node,
                                   enum cdd_cst_abi_model_t abi,
@@ -210,6 +233,11 @@ cdd_c_error_t cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Evaluates `alignof` for a CST type node under the specified ABI model.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_eval_alignof(cdd_cst_scope_env_t *env,
                                    cdd_cst_node_t *type_node,
                                    enum cdd_cst_abi_model_t abi,

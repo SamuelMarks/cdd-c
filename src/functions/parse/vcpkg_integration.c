@@ -20,6 +20,13 @@
 #include "functions/parse/vcpkg_integration.h"
 /* clang-format on */
 
+/**
+ * @brief Duplicates a null-terminated string into `*out_val`.
+ *
+ * @param[in] s Source string to duplicate.
+ * @param[out] out_val Output pointer receiving the newly allocated copy.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t my_strdup(const char *s, char **out_val) {
   size_t len;
   char *d;
@@ -39,6 +46,8 @@ static cdd_c_error_t my_strdup(const char *s, char **out_val) {
 
 /**
  * @brief Initializes a vcpkg manifest builder context.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
                                  const char *project_name,
@@ -119,6 +128,8 @@ void vcpkg_builder_free(struct VcpkgManifestBuilder *builder) {
 
 /**
  * @brief Adds a package dependency to a vcpkg manifest builder.
+ *
+ * @return 0 on success, ENOMEM on failure.
  */
 cdd_c_error_t vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
                                     const char *dep_name) {
@@ -159,6 +170,8 @@ cdd_c_error_t vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
 
 /**
  * @brief Scans C source includes to infer required vcpkg dependencies.
+ *
+ * @return 0 on success.
  */
 cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
                                         const char *file_content) {
@@ -254,6 +267,8 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
 
 /**
  * @brief Serializes a vcpkg.json manifest file from collected dependencies.
+ *
+ * @return 0 on success, ENOMEM on failure.
  */
 cdd_c_error_t vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
                                      char **out_json) {
@@ -329,6 +344,13 @@ cdd_c_error_t vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
 }
 
 #ifdef CDD_BUILD_TESTS
+/**
+ * @brief Unit test helper verifying `my_strdup` error paths in
+ * `vcpkg_integration.c`.
+ *
+ * @return `CDD_C_SUCCESS` if both NULL checks return
+ * `CDD_C_ERROR_INVALID_ARGUMENT`.
+ */
 C_CDD_EXPORT cdd_c_error_t test_vcpkg_my_strdup_errors(void);
 C_CDD_EXPORT cdd_c_error_t test_vcpkg_my_strdup_errors(void) {
   char *out = NULL;

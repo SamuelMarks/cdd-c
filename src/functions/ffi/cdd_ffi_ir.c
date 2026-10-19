@@ -51,6 +51,7 @@ extern C_CDD_EXPORT int g_cdd_ffi_ir_toposort_fail;
  * @brief DFS function for topological sorting.
  * @param ctx The sort context.
  * @param node_idx The index of the current node.
+ * @return CDD_C_SUCCESS on success, or an error code on failure.
  */
 static cdd_c_error_t toposort_dfs(toposort_ctx_t *ctx, size_t node_idx) {
   cdd_ffi_ir_node_t *node;
@@ -122,11 +123,21 @@ static cdd_c_error_t toposort_dfs(toposort_ctx_t *ctx, size_t node_idx) {
 }
 
 #ifdef CDD_BUILD_TESTS
+/** @brief Flag to simulate calloc failure in `cdd_ffi_ir_topological_sort`. */
 C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail = 0;
+/** @brief Flag to simulate malloc failure in `cdd_ffi_ir_topological_sort`. */
 C_CDD_EXPORT int g_cdd_ffi_ir_malloc_fail = 0;
+/** @brief Counter to simulate DFS failure in `cdd_ffi_ir_topological_sort`. */
 C_CDD_EXPORT int g_cdd_ffi_ir_toposort_fail = 0;
 #endif
 
+/**
+ * @brief Topologically sorts the nodes in `ir` so dependencies precede
+ * dependents.
+ *
+ * @return `CDD_C_SUCCESS` on success, `CDD_C_ERROR_INVALID_ARGUMENT` if `ir` is
+ * NULL, or `CDD_C_ERROR_MEMORY` on allocation failure.
+ */
 cdd_c_error_t cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir) {
   toposort_ctx_t ctx;
   size_t i;
@@ -184,6 +195,11 @@ cdd_c_error_t cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Frees a linked list of `cdd_ffi_trivia_t` nodes.
+ *
+ * @param[in,out] trivia Head of the trivia chain to free (may be NULL).
+ */
 static void free_trivia_chain(cdd_ffi_trivia_t *trivia) {
   while (trivia) {
     cdd_ffi_trivia_t *next = trivia->next;
@@ -194,6 +210,12 @@ static void free_trivia_chain(cdd_ffi_trivia_t *trivia) {
   }
 }
 
+/**
+ * @brief Recursively frees dynamically allocated fields of a `cdd_ffi_type_t`.
+ *
+ * @param[in,out] type Pointer to the FFI type structure whose members will be
+ * freed.
+ */
 static void free_type_recursive(cdd_ffi_type_t *type) {
   if (type->ref_name) {
     free(type->ref_name);

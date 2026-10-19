@@ -36,6 +36,8 @@
 
 /**
  * @brief Emits C source code for root array cleanup func.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
 write_root_array_cleanup_func(FILE *fp, const char *name, const char *item_type,
@@ -92,6 +94,8 @@ write_root_array_cleanup_func(FILE *fp, const char *name, const char *item_type,
 
 /**
  * @brief Emits C source code for root array to json func.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
 write_root_array_to_json_func(FILE *fp, const char *name, const char *item_type,
@@ -174,6 +178,8 @@ write_root_array_to_json_func(FILE *fp, const char *name, const char *item_type,
 
 /**
  * @brief Emits C source code for root array from json func.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
 write_root_array_from_json_func(FILE *fp, const char *name,

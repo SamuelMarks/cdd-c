@@ -20,6 +20,7 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
+/** @brief Mock failure counter for skip_ws in initializer parser tests */
 C_CDD_EXPORT int g_initializer_fail_skip_ws = 0;
 #endif
 
@@ -28,6 +29,12 @@ C_CDD_EXPORT int g_initializer_fail_skip_ws = 0;
 /**
  * @brief Join tokens into a string, skipping whitespace and comments.
  * Matches test expectations for normalization.
+ *
+ * @param[in] tokens Token list containing the span.
+ * @param[in] start Inclusive start token index.
+ * @param[in] end Exclusive end token index.
+ * @param[out] _out_val Pointer to receive the allocated joined string.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
  */
 static cdd_c_error_t join_tokens_skipping_ws(const struct TokenList *tokens,
                                              size_t start, size_t end,
@@ -70,6 +77,8 @@ static cdd_c_error_t join_tokens_skipping_ws(const struct TokenList *tokens,
 
 /**
  * @brief Initializes a C initializer list container.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t init_list_init(struct InitList *list) {
   if (!list)
@@ -82,6 +91,8 @@ cdd_c_error_t init_list_init(struct InitList *list) {
 
 /**
  * @brief Releases memory owned by an initializer value node.
+ *
+ * @param[in,out] val Initializer value node to free.
  */
 static void init_value_free(struct InitValue *val);
 
@@ -110,6 +121,8 @@ void init_list_free(struct InitList *list) {
 
 /**
  * @brief Releases memory owned by an initializer value node.
+ *
+ * @param[in,out] val Initializer value node to free.
  */
 static void init_value_free(struct InitValue *val) {
   if (val->kind == INIT_KIND_SCALAR) {
@@ -122,6 +135,12 @@ static void init_value_free(struct InitValue *val) {
 
 /**
  * @brief Appends an initializer entry to an initializer list.
+ *
+ * @param[in,out] list Target initializer list.
+ * @param[in] desig Optional allocated designator string (ownership
+ * transferred).
+ * @param[in] val Allocated initializer value node (ownership transferred).
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
  */
 static cdd_c_error_t init_list_add(struct InitList *list, char *desig,
                                    struct InitValue *val) {
@@ -144,6 +163,16 @@ static cdd_c_error_t init_list_add(struct InitList *list, char *desig,
 
 /* --- Parsing Logic --- */
 
+/**
+ * @brief Advances token index `idx` past any `TOKEN_WHITESPACE` tokens up to
+ * `limit`.
+ *
+ * @param[in] tokens Token list.
+ * @param[in] idx Starting token index.
+ * @param[in] limit Exclusive upper bound token index.
+ * @param[out] _out_val Pointer to receive the advanced token index.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t skip_ws(const struct TokenList *tokens, size_t idx,
                              size_t limit, size_t *_out_val) {
 #ifdef CDD_BUILD_TESTS
@@ -159,7 +188,10 @@ static cdd_c_error_t skip_ws(const struct TokenList *tokens, size_t idx,
 }
 
 /**
- * @brief Checks if designator start.
+ * @brief Checks if a token kind starts a C99 designator (`.` or `[`).
+ *
+ * @param[in] k Token kind to test.
+ * @return Non-zero if designator start, 0 otherwise.
  */
 static cdd_c_error_t is_designator_start(enum TokenKind k) {
   return (k == TOKEN_DOT || k == TOKEN_LBRACKET);
@@ -168,6 +200,14 @@ static cdd_c_error_t is_designator_start(enum TokenKind k) {
 /**
  * @brief Parse the designator part: `.x`, `[0]`, `.x[1].y`.
  * Ends at `=` token.
+ *
+ * @param[in] tokens Token list.
+ * @param[in] start Start token index of the designator.
+ * @param[in] limit Exclusive upper bound token index.
+ * @param[out] out_str Pointer to receive the normalized designator string.
+ * @param[out] out_next Pointer to receive the token index immediately after
+ * `=`.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 static cdd_c_error_t parse_designator(const struct TokenList *tokens,
                                       size_t start, size_t limit,
@@ -207,6 +247,13 @@ static cdd_c_error_t parse_designator(const struct TokenList *tokens,
 /**
  * @brief Parse a single expression (scalar value) until comma or brace.
  * Respects nested parens/blocks.
+ *
+ * @param[in] tokens Token list.
+ * @param[in] start Start token index of the expression.
+ * @param[in] limit Exclusive upper bound token index.
+ * @param[out] out_str Pointer to receive the normalized expression string.
+ * @param[out] out_next Pointer to receive the token index after the expression.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 static cdd_c_error_t parse_expression_str(const struct TokenList *tokens,
                                           size_t start, size_t limit,
@@ -259,6 +306,8 @@ static cdd_c_error_t parse_expression_str(const struct TokenList *tokens,
 
 /**
  * @brief Parses initializer from the given input.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t parse_initializer(const struct TokenList *tokens,
                                 size_t start_idx, size_t end_idx,

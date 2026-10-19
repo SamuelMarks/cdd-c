@@ -21,6 +21,14 @@ extern volatile int g_fail_io_after;
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Converts a C identifier into a PascalCase Elixir module name.
+ *
+ * @param[in] c_name Source C identifier string.
+ * @param[out] out_name Destination buffer for the formatted Elixir module name.
+ * @param[in] out_sz Capacity of `out_name` in bytes.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t elixirify_name(const char *c_name, char *out_name,
                                     size_t out_sz) {
   size_t i = 0, j = 0;
@@ -38,6 +46,14 @@ static cdd_c_error_t elixirify_name(const char *c_name, char *out_name,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Converts a C identifier into a `snake_case` Elixir function name.
+ *
+ * @param[in] c_name Source C identifier string.
+ * @param[out] out_name Destination buffer for the formatted snake_case name.
+ * @param[in] out_sz Capacity of `out_name` in bytes.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t snake_case_name(const char *c_name, char *out_name,
                                      size_t out_sz) {
   size_t i = 0, j = 0;
@@ -54,6 +70,12 @@ static cdd_c_error_t snake_case_name(const char *c_name, char *out_name,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits Elixir NIF C89 glue code and `.ex` module wrappers for the given
+ * FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t
 cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
                     const cdd_generate_bindings_config_t *config) {

@@ -15,6 +15,11 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Initializes a `SchemaConstraints` structure.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t schema_constraints_init(struct SchemaConstraints *sc) {
   if (!sc)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -31,6 +36,11 @@ C_CDD_EXPORT int g_schema_strdup_fail = 0;
 C_CDD_EXPORT int g_schema_realloc_fail = 0;
 #endif
 
+/**
+ * @brief Adds a required field name to a `SchemaConstraints` structure.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t schema_constraints_add_required(struct SchemaConstraints *sc,
                                               const char *field) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
@@ -79,6 +89,10 @@ cdd_c_error_t schema_constraints_add_required(struct SchemaConstraints *sc,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Frees all dynamically allocated memory inside a `SchemaConstraints`
+ * structure.
+ */
 void schema_constraints_free(struct SchemaConstraints *sc) {
   size_t i;
   if (!sc)

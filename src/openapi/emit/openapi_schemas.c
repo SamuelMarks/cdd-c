@@ -134,6 +134,10 @@ C_CDD_EXPORT cdd_c_error_t write_schema_type_union(JSON_Object *obj,
     write_schema_type(obj, type, nullable);
   return CDD_C_SUCCESS;
 }
+
+/**
+ * @brief Serializes an array of OpenAPI_Any enum values into a JSON object.
+ */
 C_CDD_EXPORT cdd_c_error_t
 write_enum_any_values(JSON_Object *obj, const char *key,
                       const struct OpenAPI_Any *values, size_t n_values) {
@@ -220,6 +224,11 @@ C_CDD_EXPORT cdd_c_error_t any_to_json_value(const struct OpenAPI_Any *val,
 
 /**
  * @brief Construct an inline schema definition for Multipart fields.
+ *
+ * @param[in,out] parent The parent JSON object.
+ * @param[in] key The property key name.
+ * @param[in] ref The schema reference holding multipart fields.
+ * @return CDD_C_SUCCESS on success.
  */
 static cdd_c_error_t
 write_multipart_schema(JSON_Object *parent, const char *key,
@@ -256,6 +265,11 @@ write_multipart_schema(JSON_Object *parent, const char *key,
 
 /**
  * @brief Serializes the OpenAPI schema example into the target JSON object.
+ *
+ * @param[in,out] obj The target JSON object.
+ * @param[in] example The example value structure.
+ * @param[in] example_set Non-zero if the example is set.
+ * @return CDD_C_SUCCESS on success.
  */
 static cdd_c_error_t write_schema_example(JSON_Object *obj,
                                           const struct OpenAPI_Any *example,

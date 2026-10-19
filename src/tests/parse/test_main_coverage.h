@@ -54,6 +54,10 @@ TEST test_main_coverage_print_version(void) {
 
 TEST test_main_coverage_print_help(void) {
   ASSERT_EQ(CDD_C_SUCCESS, print_help("cdd-c"));
+  ASSERT_EQ(CDD_C_SUCCESS, print_help(NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, print_help("./bin/cdd-c"));
+  ASSERT_EQ(CDD_C_SUCCESS, print_help("C:\\bin\\cdd-c"));
+  ASSERT_EQ(CDD_C_SUCCESS, print_help("./bin/"));
   {
     char *empty_argv[1];
     empty_argv[0] = cdd_test_mut_str("cdd-c");
@@ -159,6 +163,17 @@ TEST test_main_coverage_from_openapi_opts(void) {
   argv_long_out[4] = cdd_test_mut_str("--output");
   argv_long_out[5] = cdd_test_mut_str("out_dir");
   ASSERT_EQ(CDD_C_SUCCESS, from_openapi_cli_main(2, argv_help));
+  {
+    char *argv_sub_help[3];
+    argv_sub_help[0] = cdd_test_mut_str("from_openapi");
+    argv_sub_help[1] = cdd_test_mut_str("to_sdk");
+    argv_sub_help[2] = cdd_test_mut_str("--help");
+    ASSERT_EQ(CDD_C_SUCCESS, from_openapi_cli_main(3, argv_sub_help));
+    argv_sub_help[1] = cdd_test_mut_str("to_sdk_cli");
+    ASSERT_EQ(CDD_C_SUCCESS, from_openapi_cli_main(3, argv_sub_help));
+    argv_sub_help[1] = cdd_test_mut_str("to_server");
+    ASSERT_EQ(CDD_C_SUCCESS, from_openapi_cli_main(3, argv_sub_help));
+  }
   ASSERT_EQ(CDD_C_ERROR_PARSE, from_openapi_cli_main(7, argv_opts));
   ASSERT_EQ(CDD_C_ERROR_PARSE, from_openapi_cli_main(6, argv_out));
   ASSERT_EQ(CDD_C_ERROR_PARSE, from_openapi_cli_main(6, argv_long_out));

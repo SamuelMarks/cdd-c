@@ -13,6 +13,14 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Emits a Node.js N-API C addon source file (`*_napi.c`) and optional JS
+ * test suite for the given FFI IR.
+ *
+ * @param[in] ir The extracted and topologically sorted FFI IR.
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t emit_napi_c(cdd_ffi_ir_t *ir,
                                  const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
@@ -368,6 +376,13 @@ static cdd_c_error_t emit_napi_c(cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits a `binding.gyp` build file for `node-gyp` compilation of the
+ * generated N-API addon.
+ *
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t
 emit_binding_gyp(const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
@@ -408,6 +423,12 @@ emit_binding_gyp(const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits Node.js N-API C addon bindings and `binding.gyp` manifest for
+ * the given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t cdd_ffi_emit_napi(cdd_ffi_ir_t *ir,
                                 const cdd_generate_bindings_config_t *config) {
   cdd_c_error_t rc;

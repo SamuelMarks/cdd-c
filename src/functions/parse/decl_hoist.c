@@ -16,12 +16,15 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
+/** @brief Counter to simulate allocation failure in
+ * `scan_for_mixed_declarations`. */
 C_CDD_EXPORT int g_cdd_fail_alloc_decl_hoist = 0;
 #endif
 
 /**
  * @brief Initializes a hoist site list.
  *
+ * @return `CDD_C_SUCCESS` on success.
  */
 cdd_c_error_t hoist_site_list_init(struct HoistSiteList *list) {
   if (list) {
@@ -34,7 +37,6 @@ cdd_c_error_t hoist_site_list_init(struct HoistSiteList *list) {
 
 /**
  * @brief Frees a hoist site list.
- *
  */
 void hoist_site_list_free(struct HoistSiteList *list) {
   if (!list)
@@ -48,6 +50,10 @@ void hoist_site_list_free(struct HoistSiteList *list) {
 /**
  * @brief Checks if a token kind is a basic type keyword.
  *
+ * @param[in] k Token kind to test.
+ * @param[out] out_is_basic Output pointer receiving 1 if basic type keyword, 0
+ * otherwise.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 static cdd_c_error_t is_basic_type_keyword(enum TokenKind k,
                                            int *out_is_basic) {
@@ -80,6 +86,7 @@ static cdd_c_error_t is_basic_type_keyword(enum TokenKind k,
  * Mixed declarations are variable declarations that occur after non-declaration
  * statements within the same block (not strictly conforming to C89/C90).
  *
+ * @return 0 on success.
  */
 cdd_c_error_t scan_for_mixed_declarations(const struct TokenList *tokens,
                                           struct HoistSiteList *list) {

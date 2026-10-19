@@ -18,6 +18,17 @@
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
+
+/**
+ * @brief Parses, transforms, and optionally writes or audits a single C file.
+ *
+ * @param[in] filepath Path to the C file to process.
+ * @param[in] transform_fn CST transformation function to apply.
+ * @param[in] config Transformation configuration options.
+ * @param[in] is_audit Non-zero to check if file needs changes without writing.
+ * @param[in] is_dry_run Non-zero to report changes without writing to disk.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t
 process_file(const char *filepath,
              cdd_c_error_t (*transform_fn)(cdd_cst_tree_t *,
@@ -123,7 +134,9 @@ process_file(const char *filepath,
   return rc;
 }
 
-/** @brief cli_cst_transformer_main */
+/**
+ * @brief CLI entry point for CST transformer subcommands.
+ */
 cdd_c_error_t cli_cst_transformer_main(int argc, char **argv) {
   int i;
   cdd_c_error_t rc = CDD_C_SUCCESS;
@@ -203,7 +216,9 @@ cdd_c_error_t cli_cst_transformer_main(int argc, char **argv) {
   return rc;
 }
 
-/** @brief cli_standardize_gnu_main */
+/**
+ * @brief CLI entry point for standardizing GNU C extensions into ISO C89/C99.
+ */
 cdd_c_error_t cli_standardize_gnu_main(int argc, char **argv) {
   int i;
   cdd_c_error_t rc = CDD_C_SUCCESS;

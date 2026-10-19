@@ -10,6 +10,12 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Analyzes a CST and populates variable escape information in the scope
+ * environment.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t cdd_cst_analyze_escapes(cdd_cst_tree_t *tree,
                                       cdd_cst_scope_env_t *env) {
   if (!tree || !env)
@@ -20,6 +26,11 @@ cdd_c_error_t cdd_cst_analyze_escapes(cdd_cst_tree_t *tree,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Checks whether a scoped symbol escapes its defining scope.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t cdd_cst_symbol_escapes(cdd_cst_symbol_t *symbol,
                                      int *out_escapes) {
   if (!symbol || !out_escapes)

@@ -130,6 +130,13 @@ cdd_c_error_t parse_template_type(const char *c_type,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Maps a C/C++ type spelling to its `cdd_ffi_primitive_kind_t` enum
+ * value.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * invalid.
+ */
 cdd_c_error_t map_c_type_to_ffi_kind(const char *c_type,
                                      cdd_ffi_primitive_kind_t *out_kind) {
   if (!out_kind)
@@ -220,6 +227,13 @@ cdd_c_error_t map_c_type_to_ffi_kind(const char *c_type,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Mangles a C++ namespace, class name, and method name into a flat C ABI
+ * identifier (`ns_class_method`).
+ *
+ * @return `CDD_C_SUCCESS` on success, `CDD_C_ERROR_INVALID_ARGUMENT` if NULL,
+ * or `CDD_C_ERROR_MEMORY` on OOM.
+ */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_mangle_cpp_name(const char *ns_name,
                                                    const char *class_name,
                                                    const char *method_name,
@@ -268,11 +282,25 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_mangle_cpp_name(const char *ns_name,
 }
 
 #ifdef CDD_BUILD_TESTS
+/**
+ * @brief Test wrapper for `map_c_type_to_ffi_kind`.
+ *
+ * @param[in] c_type C/C++ type string.
+ * @param[out] out_kind Output pointer receiving the resolved primitive kind.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_map_c_type_to_ffi_kind_test(
     const char *c_type, cdd_ffi_primitive_kind_t *out_kind) {
   return map_c_type_to_ffi_kind(c_type, out_kind);
 }
 
+/**
+ * @brief Test wrapper for `parse_template_type`.
+ *
+ * @param[in] c_type C++ template type string.
+ * @param[out] out_type Destination FFI type descriptor.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t
 cdd_ffi_parse_template_type_test(const char *c_type, cdd_ffi_type_t *out_type) {
   return parse_template_type(c_type, out_type);

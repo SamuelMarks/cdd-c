@@ -22,6 +22,14 @@ extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_cdd_fprintf_fail;
 #endif
 
+/**
+ * @brief Appends raw bytes to the code writer stream or dynamic buffer.
+ *
+ * @param[in,out] writer Active code writer instance.
+ * @param[in] data Pointer to raw character bytes.
+ * @param[in] data_len Number of bytes to write.
+ * @return CDD_C_SUCCESS on success, or error code on I/O or allocation failure.
+ */
 static cdd_c_error_t writer_raw_append(cdd_code_writer_t *writer,
                                        const char *data, size_t data_len) {
 #ifdef CDD_BUILD_TESTS
@@ -69,6 +77,13 @@ static cdd_c_error_t writer_raw_append(cdd_code_writer_t *writer,
   }
 }
 
+/**
+ * @brief Emits leading indentation spaces when positioned at the start of a
+ * line.
+ *
+ * @param[in,out] writer Active code writer instance.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 static cdd_c_error_t writer_emit_indent_if_needed(cdd_code_writer_t *writer) {
   size_t spaces;
   size_t i;
@@ -84,6 +99,11 @@ static cdd_c_error_t writer_emit_indent_if_needed(cdd_code_writer_t *writer) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Initializes a code writer backed by an open `FILE *` stream.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t cdd_code_writer_init_stream(cdd_code_writer_t *writer, FILE *fp) {
   if (!writer || !fp)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -95,6 +115,11 @@ cdd_c_error_t cdd_code_writer_init_stream(cdd_code_writer_t *writer, FILE *fp) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Initializes a code writer backed by a dynamically growing heap buffer.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t cdd_code_writer_init_buffer(cdd_code_writer_t *writer) {
   if (!writer)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -105,6 +130,11 @@ cdd_c_error_t cdd_code_writer_init_buffer(cdd_code_writer_t *writer) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Releases any heap buffer owned by the code writer.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t cdd_code_writer_free(cdd_code_writer_t *writer) {
   if (!writer)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -117,6 +147,11 @@ cdd_c_error_t cdd_code_writer_free(cdd_code_writer_t *writer) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Increases the current indentation level by one step.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t cdd_code_writer_indent(cdd_code_writer_t *writer) {
   if (!writer)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -124,6 +159,11 @@ cdd_c_error_t cdd_code_writer_indent(cdd_code_writer_t *writer) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Decreases the current indentation level by one step (clamped to 0).
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t cdd_code_writer_dedent(cdd_code_writer_t *writer) {
   if (!writer)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -132,6 +172,12 @@ cdd_c_error_t cdd_code_writer_dedent(cdd_code_writer_t *writer) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Writes a raw string, automatically applying indentation at line
+ * starts.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on I/O or OOM failure.
+ */
 cdd_c_error_t cdd_code_writer_write(cdd_code_writer_t *writer,
                                     const char *text) {
   const char *p;
@@ -171,6 +217,11 @@ cdd_c_error_t cdd_code_writer_write(cdd_code_writer_t *writer,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Writes a string followed by a newline character (`\n`).
+ *
+ * @return CDD_C_SUCCESS on success, or error code on I/O or OOM failure.
+ */
 cdd_c_error_t cdd_code_writer_writeln(cdd_code_writer_t *writer,
                                       const char *line) {
   cdd_c_error_t rc;
@@ -182,6 +233,11 @@ cdd_c_error_t cdd_code_writer_writeln(cdd_code_writer_t *writer,
   return cdd_code_writer_write(writer, "\n");
 }
 
+/**
+ * @brief Formats and writes a `printf`-style string to the code writer.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on I/O or OOM failure.
+ */
 cdd_c_error_t cdd_code_writer_printf(cdd_code_writer_t *writer, const char *fmt,
                                      ...) {
   char stack_buf[2048];
@@ -230,6 +286,11 @@ cdd_c_error_t cdd_code_writer_printf(cdd_code_writer_t *writer, const char *fmt,
   }
 }
 
+/**
+ * @brief Checks if any sticky error occurred on the code writer.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t cdd_code_writer_check_error(const cdd_code_writer_t *writer,
                                           cdd_c_error_t *out_err) {
   if (!writer || !out_err)
@@ -238,6 +299,13 @@ cdd_c_error_t cdd_code_writer_check_error(const cdd_code_writer_t *writer,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Transfers ownership of the dynamically allocated string buffer to the
+ * caller.
+ *
+ * @return CDD_C_SUCCESS on success, or error code if the writer encountered an
+ * error.
+ */
 cdd_c_error_t cdd_code_writer_take_string(cdd_code_writer_t *writer,
                                           char **out_str) {
   if (!writer || !out_str)

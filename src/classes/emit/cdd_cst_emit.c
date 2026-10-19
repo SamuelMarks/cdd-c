@@ -145,6 +145,12 @@ static cdd_c_error_t emit_node(emit_ctx_t *ctx, cdd_cst_node_t *node) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits a Concrete Syntax Tree (CST) back into a newly allocated C
+ * source string.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {
   emit_ctx_t ctx = {0};
   cdd_c_error_t rc;

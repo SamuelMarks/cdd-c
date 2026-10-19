@@ -43,6 +43,9 @@ static cdd_c_error_t c_cdd_strndup(const char *s, size_t n, char **_out_val) {
 
 /**
  * @brief Initializes a designated initializer list.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 cdd_c_error_t desig_init_list_init(struct DesigInitList *list) {
   if (!list)
@@ -74,6 +77,8 @@ void desig_init_list_free(struct DesigInitList *list) {
 
 /**
  * @brief Scans a token stream for C99 designated initializers.
+ *
+ * @return 0 on success.
  */
 cdd_c_error_t scan_for_designated_initializers(const struct TokenList *tokens,
                                                struct DesigInitList *list) {

@@ -405,6 +405,30 @@ extern C_CDD_EXPORT cdd_c_error_t doc_parse_security_line(
 extern C_CDD_EXPORT cdd_c_error_t doc_parse_security_scheme_line(
     const char *line, const char *end, struct DocMetadata *out);
 
+/**
+ * @brief Frees all Arazzo-specific fields within a `DocMetadata` structure.
+ *
+ * @param[in,out] meta Metadata structure whose Arazzo fields should be freed.
+ */
+extern C_CDD_EXPORT void doc_free_arazzo_metadata(struct DocMetadata *meta);
+
+/**
+ * @brief Dispatches and parses Arazzo 1.1.0 docstring directives (`@arazzo`,
+ * `@workflow`, `@step`, `@x-*`, etc.).
+ *
+ * @param[in] cmd Directive command name without `@` prefix.
+ * @param[in] line Pointer to remainder of directive line.
+ * @param[in] end Pointer to end of line.
+ * @param[in,out] out Metadata structure to populate.
+ * @param[out] out_handled Set to 1 if `cmd` is a recognized Arazzo directive,
+ * 0 otherwise.
+ * @return `CDD_C_SUCCESS` on success, or error code on allocation/parse
+ * failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+doc_parse_arazzo_directive(const char *cmd, const char *line, const char *end,
+                           struct DocMetadata *out, int *out_handled);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

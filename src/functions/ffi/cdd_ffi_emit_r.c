@@ -18,6 +18,14 @@ extern volatile int g_fail_io_after;
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI IR type to its corresponding R `.C()` coercion type
+ * string.
+ *
+ * @param[in] type FFI type descriptor to map.
+ * @param[out] out_type Output pointer receiving the resolved R type string.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t get_r_type(cdd_ffi_type_t type, const char **out_type) {
   static const cdd_ffi_type_map_table_t k_r_types = {
       "void",    "logical", "integer",   "integer", "integer",
@@ -27,6 +35,14 @@ static cdd_c_error_t get_r_type(cdd_ffi_type_t type, const char **out_type) {
   return cdd_ffi_map_type_from_table(&k_r_types, type, out_type);
 }
 
+/**
+ * @brief Emits an `.R` script containing `dyn.load` and `.C()` function
+ * wrappers for the given FFI IR.
+ *
+ * @param[in] ir The extracted and topologically sorted FFI IR.
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
                                  const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
@@ -148,6 +164,11 @@ static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits R FFI bindings for the given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t cdd_ffi_emit_r(cdd_ffi_ir_t *ir,
                              const cdd_generate_bindings_config_t *config) {
   if (!ir || !config || !config->output_dir) {

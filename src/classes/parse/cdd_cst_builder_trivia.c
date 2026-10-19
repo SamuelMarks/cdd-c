@@ -24,6 +24,12 @@
 static cdd_c_error_t get_first_token(cdd_cst_node_t *node,
                                      cdd_token_t **out_tok);
 
+/**
+ * @brief Appends a line comment (mapped to a C89 block comment) to the builder
+ * target node.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_line_comment(cdd_cst_builder_t *builder,
                                        const char *text) {
   /* Line comments aren't standard C89 but commonly accepted or we can just
@@ -37,6 +43,15 @@ cdd_c_error_t cdd_cst_bld_line_comment(cdd_cst_builder_t *builder,
   }
 }
 
+/**
+ * @brief Allocates a block comment trivia node and pools its text in the CST
+ * tree.
+ *
+ * @param[in,out] tree The CST tree to pool the trivia text in.
+ * @param[in] text Null-terminated comment string.
+ * @param[out] out_trivia Pointer to receive the allocated trivia node.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t create_trivia(cdd_cst_tree_t *tree, const char *text,
                                    cdd_trivia_t **out_trivia) {
 #ifdef CDD_BUILD_TESTS
@@ -73,6 +88,12 @@ static cdd_c_error_t create_trivia(cdd_cst_tree_t *tree, const char *text,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Appends a C89 block comment as trivia on the builder's current target
+ * node.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
                                         const char *text) {
   char buf[1024];
@@ -137,6 +158,14 @@ cdd_c_error_t cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
   }
 }
 
+/**
+ * @brief Finds the first lexical token in a CST subtree.
+ *
+ * @param[in] node Root CST node to search.
+ * @param[out] out_tok Pointer to receive the first lexical token.
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_NOT_FOUND if none, or error
+ * code.
+ */
 static cdd_c_error_t get_first_token(cdd_cst_node_t *node,
                                      cdd_token_t **out_tok) {
   size_t i;
@@ -161,6 +190,12 @@ static cdd_c_error_t get_first_token(cdd_cst_node_t *node,
   return CDD_C_ERROR_NOT_FOUND;
 }
 
+/**
+ * @brief Finds the last lexical token in a CST subtree.
+ *
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_NOT_FOUND if none, or error
+ * code.
+ */
 cdd_c_error_t cdd_cst_get_last_token(cdd_cst_node_t *node,
                                      cdd_token_t **out_tok) {
   int i;
@@ -185,6 +220,12 @@ cdd_c_error_t cdd_cst_get_last_token(cdd_cst_node_t *node,
   return CDD_C_ERROR_NOT_FOUND;
 }
 
+/**
+ * @brief Extracts and detaches leading trivia from the first token of a CST
+ * node.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_extract_leading_trivia(cdd_cst_node_t *node,
                                              cdd_trivia_t **out_trivia) {
   cdd_token_t *t = NULL;
@@ -202,6 +243,12 @@ cdd_c_error_t cdd_cst_extract_leading_trivia(cdd_cst_node_t *node,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Extracts and detaches trailing trivia from the last token of a CST
+ * node.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_extract_trailing_trivia(cdd_cst_node_t *node,
                                               cdd_trivia_t **out_trivia) {
   cdd_token_t *t = NULL;
@@ -219,6 +266,12 @@ cdd_c_error_t cdd_cst_extract_trailing_trivia(cdd_cst_node_t *node,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Transfers all leading and trailing trivia from `source_node` to
+ * `target_node`.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
                                       cdd_cst_node_t *target_node) {
   cdd_trivia_t *lead = NULL;
@@ -322,6 +375,12 @@ cdd_c_error_t cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Replaces `target_node` with `replacement_node` while preserving
+ * surrounding trivia.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t
 cdd_cst_replace_node_preserve_trivia(cdd_cst_builder_t *builder,
                                      cdd_cst_node_t *target_node,

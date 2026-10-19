@@ -53,6 +53,7 @@ struct AuditStats {
 /**
  * @brief Initialize audit statistics to zero.
  * @param[out] stats Pointer to structure.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t audit_stats_init(struct AuditStats *stats);
 

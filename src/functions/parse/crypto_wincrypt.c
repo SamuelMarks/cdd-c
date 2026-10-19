@@ -19,6 +19,7 @@
 #ifdef _WIN32
 #include "c_cddConfig.h"
 #ifndef WIN32_LEAN_AND_MEAN
+/** @brief Exclude rarely-used stuff from Windows headers. */
 #define WIN32_LEAN_AND_MEAN
 #endif
 /* windef.h must precede winbase.h to prevent DWORD redefinition errors */
@@ -68,6 +69,9 @@ extern C_CDD_EXPORT int g_crypto_fail_hmac_len;
 /**
  * @brief Helper to acquire a cryptographic provider context.
  * Uses MS_ENH_RSA_AES_PROV for SHA-256 support.
+ *
+ * @param[out] hProv Pointer receiving the acquired `HCRYPTPROV` handle.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_IO` on failure.
  */
 static cdd_c_error_t acquire_context(HCRYPTPROV *hProv) {
   if (!CryptAcquireContext(hProv, NULL, MS_ENH_RSA_AES_PROV, PROV_RSA_AES,
@@ -88,6 +92,8 @@ static cdd_c_error_t acquire_context(HCRYPTPROV *hProv) {
 
 /**
  * @brief Computes a 32-byte SHA-256 digest over a data buffer.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
                             unsigned char *out_digest) {
@@ -159,6 +165,8 @@ cleanup:
 
 /**
  * @brief Computes a 32-byte HMAC-SHA256 digest over a data buffer.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
                                  const void *data, size_t data_len,
@@ -264,27 +272,29 @@ cleanup:
 #else /* Non-Windows Support Stub */
 
 /**
- * @brief Computes a 32-byte SHA-256 digest over a data buffer.
+ * @brief Computes a 32-byte SHA-256 digest over a data buffer (non-Windows
+ * stub).
+ *
+ * @return `CDD_C_ERROR_SYSTEM` when compiled without Windows CAPI.
  */
 cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
                             unsigned char *out_digest) {
-  (void)data;
-  (void)data_len;
-  (void)out_digest;
+  if (!data && data_len > 0 && !out_digest)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   return CDD_C_ERROR_SYSTEM;
 }
 
 /**
- * @brief Computes a 32-byte HMAC-SHA256 digest over a data buffer.
+ * @brief Computes a 32-byte HMAC-SHA256 digest over a data buffer (non-Windows
+ * stub).
+ *
+ * @return `CDD_C_ERROR_SYSTEM` when compiled without Windows CAPI.
  */
 cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
                                  const void *data, size_t data_len,
                                  unsigned char *out_mac) {
-  (void)key;
-  (void)key_len;
-  (void)data;
-  (void)data_len;
-  (void)out_mac;
+  if (!key && key_len > 0 && !data && data_len > 0 && !out_mac)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   return CDD_C_ERROR_SYSTEM;
 }
 

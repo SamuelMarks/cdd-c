@@ -48,6 +48,7 @@ extern "C" {
 /**
  * @brief Initialize a Spec structure to zero.
  * @param[out] spec Pointer to spec structure to initialize.
+ * @return 0 on success, or an error code.
  */
 extern C_CDD_EXPORT cdd_c_error_t openapi_spec_init(struct OpenAPI_Spec *spec);
 
@@ -57,6 +58,12 @@ extern C_CDD_EXPORT cdd_c_error_t openapi_spec_init(struct OpenAPI_Spec *spec);
  */
 extern C_CDD_EXPORT void openapi_spec_free(struct OpenAPI_Spec *spec);
 
+/**
+ * @brief Free an array of OpenAPI_Server structures and their nested
+ * allocations.
+ * @param[in] servers Array of server structures to free.
+ * @param[in] n_servers Number of elements in the servers array.
+ */
 extern C_CDD_EXPORT void
 openapi_free_servers_array(struct OpenAPI_Server *servers, size_t n_servers);
 
@@ -65,6 +72,7 @@ openapi_free_servers_array(struct OpenAPI_Server *servers, size_t n_servers);
 /**
  * @brief Initialize a document registry.
  * @param[out] registry Pointer to registry to initialize.
+ * @return 0 on success, or an error code.
  */
 extern C_CDD_EXPORT cdd_c_error_t
 openapi_doc_registry_init(struct OpenAPI_DocRegistry *registry);

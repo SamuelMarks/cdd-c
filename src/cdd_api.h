@@ -151,6 +151,53 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config);
 C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
     const char *source, const cdd_generate_bindings_config_t *config);
 
+/**
+ * @brief Configuration for `cdd_generate_from_arazzo`.
+ */
+typedef struct {
+  /** @brief Target subcommand: `"to_sdk"`, `"to_sdk_cli"`, or `"to_server"` */
+  const char *subcommand;
+  /** @brief Path to input Arazzo v1.1.0 JSON/YAML file */
+  const char *input;
+  /** @brief Optional path to linked OpenAPI JSON/YAML file */
+  const char *openapi_input;
+  /** @brief Output directory or base path for generated C artifacts */
+  const char *output;
+  /** @brief Optional function name prefix (e.g. `"api_"`) */
+  const char *func_prefix;
+} cdd_from_arazzo_config_t;
+
+/**
+ * @brief Configuration for `cdd_generate_to_arazzo`.
+ */
+typedef struct {
+  /** @brief Input C source/header file or directory path */
+  const char *input;
+  /** @brief Output Arazzo v1.1.0 JSON file path */
+  const char *output;
+  /** @brief Optional `$self` canonical URI override */
+  const char *self_uri;
+} cdd_to_arazzo_config_t;
+
+/**
+ * @brief Generates C SDK workflows, CLI workflow runner, or Backend Server
+ * orchestrator & E2E tests from an Arazzo v1.1.0 specification.
+ *
+ * @param[in] config Arazzo code generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or error code on failure.
+ */
+C_CDD_EXPORT cdd_c_error_t
+cdd_generate_from_arazzo(const cdd_from_arazzo_config_t *config);
+
+/**
+ * @brief Extracts an Arazzo v1.1.0 specification from C source/header files.
+ *
+ * @param[in] config C-to-Arazzo extraction configuration.
+ * @return `CDD_C_SUCCESS` on success, or error code on failure.
+ */
+C_CDD_EXPORT cdd_c_error_t
+cdd_generate_to_arazzo(const cdd_to_arazzo_config_t *config);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

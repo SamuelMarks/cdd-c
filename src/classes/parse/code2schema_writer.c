@@ -11,6 +11,8 @@
 /**
  * @brief Writes the default value of a StructField to a JSON schema
  * object.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t c2s_write_default_value(JSON_Object *pobj,
                                       const struct StructField *field) {
@@ -59,6 +61,8 @@ cdd_c_error_t c2s_write_default_value(JSON_Object *pobj,
 /**
  * @brief Writes numeric constraints of a StructField to a JSON schema
  * object.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t c2s_write_numeric_constraints(JSON_Object *pobj,
                                             const struct StructField *field) {
@@ -85,6 +89,8 @@ cdd_c_error_t c2s_write_numeric_constraints(JSON_Object *pobj,
 /**
  * @brief Writes string constraints of a StructField to a JSON schema
  * object.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t c2s_write_string_constraints(JSON_Object *pobj,
                                            const struct StructField *field) {
@@ -104,6 +110,8 @@ cdd_c_error_t c2s_write_string_constraints(JSON_Object *pobj,
 /**
  * @brief Writes array constraints of a StructField to a JSON schema
  * object.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t c2s_write_array_constraints(JSON_Object *pobj,
                                           const struct StructField *field) {
@@ -122,6 +130,8 @@ cdd_c_error_t c2s_write_array_constraints(JSON_Object *pobj,
 
 /**
  * @brief Writes a type union array to a JSON schema object.
+ *
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t c2s_write_type_union(JSON_Object *obj, const char *type,
                                    char **type_union, size_t n_type_union) {
@@ -153,6 +163,8 @@ cdd_c_error_t c2s_write_type_union(JSON_Object *obj, const char *type,
 
 /**
  * @brief Writes a StructFields representation to a JSON Schema object.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
                                           const char *struct_name,

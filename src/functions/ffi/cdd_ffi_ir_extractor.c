@@ -26,36 +26,69 @@
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #ifndef strdup
+/** @brief Alias `strdup` to `_strdup` on MSVC. */
 #define strdup _strdup
 #endif
 #endif
 
 #ifdef CDD_BUILD_TESTS
+/** @brief Counter to simulate allocation failure in FFI IR extractor tests. */
 C_CDD_EXPORT int g_ffi_extractor_alloc_fail = 0;
+/** @brief Flag to simulate class name lookup failure in tests. */
 C_CDD_EXPORT int g_cdd_ffi_fail_class_name = 0;
+/** @brief Flag to simulate `is_visited` failure in tests. */
 C_CDD_EXPORT int g_cdd_ffi_fail_is_visited = 0;
+/** @brief Selector to simulate internal extractor step failures in tests. */
 C_CDD_EXPORT int g_cdd_ffi_extractor_fail = 0;
+/** @brief Flag to simulate CST node lookup failure in tests. */
 C_CDD_EXPORT int g_cdd_ffi_fail_cst_node = 0;
+/** @brief Flag to simulate CST token lookup failure in tests. */
 C_CDD_EXPORT int g_cdd_ffi_fail_token = 0;
 
+/**
+ * @brief Fault-injecting `malloc` wrapper for FFI extractor tests.
+ *
+ * @param[in] sz Number of bytes to allocate.
+ * @return Pointer to allocated memory, or NULL on simulated/actual OOM.
+ */
 void *cdd_ffi_malloc_impl(size_t sz) {
   if (g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)
     return NULL;
   return malloc(sz);
 }
 
+/**
+ * @brief Fault-injecting `calloc` wrapper for FFI extractor tests.
+ *
+ * @param[in] n Number of elements.
+ * @param[in] sz Size of each element in bytes.
+ * @return Pointer to zero-initialized memory, or NULL on simulated/actual OOM.
+ */
 void *cdd_ffi_calloc_impl(size_t n, size_t sz) {
   if (g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)
     return NULL;
   return calloc(n, sz);
 }
 
+/**
+ * @brief Fault-injecting `realloc` wrapper for FFI extractor tests.
+ *
+ * @param[in] ptr Existing allocation pointer.
+ * @param[in] sz New allocation size in bytes.
+ * @return Pointer to resized memory, or NULL on simulated/actual OOM.
+ */
 void *cdd_ffi_realloc_impl(void *ptr, size_t sz) {
   if (g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)
     return NULL;
   return realloc(ptr, sz);
 }
 
+/**
+ * @brief Fault-injecting `strdup` wrapper for FFI extractor tests.
+ *
+ * @param[in] s Null-terminated string to duplicate.
+ * @return Newly allocated copy of `s`, or NULL on simulated/actual OOM.
+ */
 char *cdd_ffi_strdup_impl(const char *s) {
   if (!s)
     return NULL;
@@ -344,6 +377,17 @@ static cdd_c_error_t copy_trivia_chain(const cdd_trivia_t *in_trivia,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Extracts types, functions, macros, base classes, and virtual method
+ * trampolines from a single header file into the FFI IR.
+ *
+ * @param[in,out] ir Target FFI IR structure to populate.
+ * @param[in] filename Path to the header file being analyzed.
+ * @param[in] content Raw source text of the header file.
+ * @param[in] config Optional bindings generation configuration.
+ * @param[in] tree_full Optional parsed CST tree for trivia attachment.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t extract_single_file_exports_impl(
     cdd_ffi_ir_t *ir, const char *filename, const char *content,
     const cdd_generate_bindings_config_t *config, cdd_cst_tree_t *tree_full) {
@@ -351,8 +395,9 @@ static cdd_c_error_t extract_single_file_exports_impl(
   size_t i;
   struct TypeDefList types;
   struct FuncSigList sigs;
-  (void)config;
-  (void)tree_full;
+  if (config) {
+    /* Reserved for configuration-specific single-file extraction flags */
+  }
 
   memset(&types, 0, sizeof(types));
 
@@ -951,6 +996,16 @@ static cdd_c_error_t extract_single_file_exports_impl(
   return rc;
 }
 
+/**
+ * @brief Parses `content` into a CST tree and extracts single-file FFI exports
+ * into `ir`.
+ *
+ * @param[in,out] ir Target FFI IR structure to populate.
+ * @param[in] filename Path to the header file being analyzed.
+ * @param[in] content Raw source text of the header file.
+ * @param[in] config Optional bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t
 extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                             const char *content,
@@ -1121,6 +1176,13 @@ static cdd_c_error_t include_visitor(const struct IncludeInfo *info,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Extracts all exported C/C++ types, functions, and macros from
+ * `filename` (and optionally its recursive includes) into a newly allocated
+ * `cdd_ffi_ir_t`.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t
 cdd_ffi_ir_extract_exports(const char *filename, const char *content,
                            const cdd_generate_bindings_config_t *config,
@@ -1130,7 +1192,6 @@ cdd_ffi_ir_extract_exports(const char *filename, const char *content,
   struct PreprocessorContext pp_ctx;
   size_t k;
   cdd_c_error_t rc;
-  (void)config;
 
   if (!filename || !content || !out_ir) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -1176,44 +1237,107 @@ cdd_ffi_ir_extract_exports(const char *filename, const char *content,
 }
 
 #ifdef CDD_BUILD_TESTS
+/**
+ * @brief Test wrapper for `int64_to_str`.
+ *
+ * @param[in] val 64-bit integer value to format.
+ * @param[out] buf Destination character buffer.
+ * @param[in] buf_sz Capacity of `buf` in bytes.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_int64_to_str_test(int64_t val, char *buf,
                                                      size_t buf_sz) {
   return int64_to_str(val, buf, buf_sz);
 }
 
+/**
+ * @brief Test wrapper for `extract_single_file_exports`.
+ *
+ * @param[in,out] ir Target FFI IR structure.
+ * @param[in] filename Header filename.
+ * @param[in] content Raw source text.
+ * @param[in] config Optional generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_extract_single_file_exports_test(
     cdd_ffi_ir_t *ir, const char *filename, const char *content,
     const cdd_generate_bindings_config_t *config) {
   return extract_single_file_exports(ir, filename, content, config);
 }
 
+/**
+ * @brief Test wrapper for `is_visited`.
+ *
+ * @param[in] ctx Pointer to `struct IncludeMergeCtx`.
+ * @param[in] path File path to check.
+ * @param[out] out_visited Receives 1 if visited, 0 otherwise.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_is_visited_test(void *ctx, const char *path,
                                                    int *out_visited) {
   return is_visited((struct IncludeMergeCtx *)ctx, path, out_visited);
 }
 
+/**
+ * @brief Test wrapper for `add_visited`.
+ *
+ * @param[in,out] ctx Pointer to `struct IncludeMergeCtx`.
+ * @param[in] path File path to mark as visited.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_add_visited_test(void *ctx,
                                                     const char *path) {
   return add_visited((struct IncludeMergeCtx *)ctx, path);
 }
 
+/**
+ * @brief Test wrapper for `include_visitor`.
+ *
+ * @param[in] info Pointer to `struct IncludeInfo`.
+ * @param[in,out] user_data Pointer to `struct IncludeMergeCtx`.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_include_visitor_test(const void *info,
                                                         void *user_data) {
   return include_visitor((const struct IncludeInfo *)info, user_data);
 }
 
+/**
+ * @brief Test wrapper for `extract_exports_recursive`.
+ *
+ * @param[in] filename Header filename.
+ * @param[in] content Raw source text.
+ * @param[in,out] ctx Pointer to `struct IncludeMergeCtx`.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_extract_exports_recursive_test(
     const char *filename, const char *content, void *ctx) {
   return extract_exports_recursive(filename, content,
                                    (struct IncludeMergeCtx *)ctx);
 }
 
+/**
+ * @brief Test wrapper for `ir_add_node`.
+ *
+ * @param[in,out] ir Target FFI IR structure.
+ * @param[in] kind Kind of node to add.
+ * @param[in] name Node identifier.
+ * @param[out] out_node Optional pointer to receive the added node.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t
 cdd_ffi_ir_add_node_test(cdd_ffi_ir_t *ir, cdd_ffi_node_kind_t kind,
                          const char *name, cdd_ffi_ir_node_t **out_node) {
   return ir_add_node(ir, kind, name, out_node);
 }
 
+/**
+ * @brief Test wrapper for `cdd_ffi_malloc_impl`.
+ *
+ * @param[in] sz Allocation size in bytes.
+ * @param[out] out_p Output pointer receiving the allocated memory.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_malloc_test(size_t sz, void **out_p) {
   if (!out_p)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -1221,6 +1345,14 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_malloc_test(size_t sz, void **out_p) {
   return *out_p ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
+/**
+ * @brief Test wrapper for `cdd_ffi_calloc_impl`.
+ *
+ * @param[in] n Number of elements.
+ * @param[in] sz Size of each element in bytes.
+ * @param[out] out_p Output pointer receiving the allocated memory.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_calloc_test(size_t n, size_t sz,
                                                void **out_p) {
   if (!out_p)
@@ -1229,6 +1361,14 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_calloc_test(size_t n, size_t sz,
   return *out_p ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
+/**
+ * @brief Test wrapper for `cdd_ffi_realloc_impl`.
+ *
+ * @param[in] p Existing allocation pointer.
+ * @param[in] sz New allocation size in bytes.
+ * @param[out] out_p Output pointer receiving the reallocated memory.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_realloc_test(void *p, size_t sz,
                                                 void **out_p) {
   if (!out_p)
@@ -1237,6 +1377,13 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_realloc_test(void *p, size_t sz,
   return *out_p ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
+/**
+ * @brief Test wrapper for `cdd_ffi_strdup_impl`.
+ *
+ * @param[in] s Source null-terminated string.
+ * @param[out] out_s Output pointer receiving the duplicated string.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_strdup_test(const char *s, char **out_s) {
   if (!out_s)
     return CDD_C_ERROR_INVALID_ARGUMENT;

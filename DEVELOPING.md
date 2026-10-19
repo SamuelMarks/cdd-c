@@ -41,14 +41,17 @@ if (rc != CDD_C_SUCCESS) {
 
 We use a modular architecture organized by semantic responsibilities:
 
-- `src/classes/{emit,parse}` - AST classes processing
-- `src/docstrings/{emit,parse}` - Comments and documentation analysis
-- `src/functions/{emit,parse}` - Function definitions
+- `src/arazzo/{emit,parse}` - Arazzo 1.1.0 workflow parsing, evaluation, and emission
+- `src/classes/{emit,parse}` - AST/CST classes, structs, enums, and JSON Schema processing
+- `src/docstrings/parse` - Comments and Doxygen documentation analysis (`@route`, `@workflow`, `@step`, etc.)
+- `src/functions/{dsl,emit,ffi,parse}` - Function definitions, CST/AST lifting, FFI binding generation (42 languages), and in-place sync
 - `src/mocks/{emit,parse}` - Mocks for test stubs
-- `src/openapi/{emit,parse}` - Main OpenAPI specification manipulation
-- `src/routes/{emit,parse}` - API server endpoints mapping
-- `src/tests/{emit,parse}` - Testing suites generation
-- `c/main.c` - CLI entry point
+- `src/openapi/{emit,parse}` - Main OpenAPI 3.2.0 / Swagger 2.0 specification manipulation
+- `src/routes/{emit,parse}` - API server endpoints, client SDKs, CLI, JSON-RPC, and MCP mapping
+- `src/tests/{emit,parse,transformers}` - Testing suites and test generators
+- `src/transformers/` - CST/AST refactoring passes (`gnu_standardizer`, `error_percolator`, `safe_crt`, `msvc_port`, `extern_c`, `macros`)
+- `src/bin_cdd.c` & `src/functions/parse/main.c` - CLI entry point (`cdd-c`)
+- `src/cdd_api.c` & `src/cdd_api.h` - Public programmatic C SDK
 
 When working on a specific feature, like emitting structs, look into `src/classes/emit/struct.c`.
 

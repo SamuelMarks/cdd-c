@@ -11,6 +11,8 @@
 
 /**
  * @brief Emits C source code for multipart part headers.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t
 client_body_write_multipart_part_headers(FILE *fp,
@@ -307,6 +309,8 @@ client_body_write_multipart_part_headers(FILE *fp,
 
 /**
  * @brief Emits C source code for multipart body.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t
 client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,

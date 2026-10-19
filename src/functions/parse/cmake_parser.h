@@ -47,18 +47,28 @@ extern C_CDD_EXPORT cdd_c_error_t cmake_modifier_init(struct CMakeModifier *mod,
 
 /**
  * @brief Add a compile option to be injected.
+ *
+ * @param[in,out] mod The CMake modifier context.
+ * @param[in] opt Compiler flag string to add (e.g. `"/W4"`).
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t
 cmake_modifier_add_compile_opt(struct CMakeModifier *mod, const char *opt);
 
 /**
  * @brief Add a link library to be injected.
+ *
+ * @param[in,out] mod The CMake modifier context.
+ * @param[in] lib Library name string to add (e.g. `"ws2_32.lib"`).
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t
 cmake_modifier_add_link_lib(struct CMakeModifier *mod, const char *lib);
 
 /**
  * @brief Free resources associated with a CMake modifier.
+ *
+ * @param[in,out] mod The CMake modifier context to free.
  */
 extern C_CDD_EXPORT void cmake_modifier_free(struct CMakeModifier *mod);
 

@@ -15,9 +15,17 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
+/** @brief Counter to simulate I/O failures after a specific number of calls in
+ * tests. */
 extern C_CDD_EXPORT int g_fail_io_after;
 #endif
 
+/**
+ * @brief Emits a linked list of FFI trivia tokens to an open file stream.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if `f`
+ * is NULL.
+ */
 cdd_c_error_t cdd_ffi_emit_trivia(FILE *f, const cdd_ffi_trivia_t *trivia) {
   if (!f)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -31,6 +39,13 @@ cdd_c_error_t cdd_ffi_emit_trivia(FILE *f, const cdd_ffi_trivia_t *trivia) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Maps a `cdd_ffi_type_t` to a target-language type string using a
+ * lookup table.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
+ */
 cdd_c_error_t cdd_ffi_map_type_from_table(const cdd_ffi_type_map_table_t *table,
                                           cdd_ffi_type_t type,
                                           const char **out_type) {
@@ -117,6 +132,12 @@ cdd_c_error_t cdd_ffi_map_type_from_table(const cdd_ffi_type_map_table_t *table,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Opens an output file inside `output_dir` for FFI code emission.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_IO` /
+ * `CDD_C_ERROR_INVALID_ARGUMENT` on failure.
+ */
 cdd_c_error_t cdd_ffi_open_output_file(const char *output_dir,
                                        const char *filename, FILE **out_fp) {
   char filepath[1024];

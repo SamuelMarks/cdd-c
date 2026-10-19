@@ -58,11 +58,17 @@ struct VLASiteList {
 
 /**
  * @brief Initialize a VLA site list.
+ *
+ * @param[out] list The VLA site list to initialize.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 extern C_CDD_EXPORT cdd_c_error_t vla_site_list_init(struct VLASiteList *list);
 
 /**
  * @brief Free resources associated with a VLA site list.
+ *
+ * @param[in,out] list The VLA site list to free.
  */
 extern C_CDD_EXPORT void vla_site_list_free(struct VLASiteList *list);
 

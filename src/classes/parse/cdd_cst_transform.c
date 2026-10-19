@@ -16,6 +16,12 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Wraps a CST header tree in `#ifdef __cplusplus extern "C" { #endif`
+ * guards if not already present.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
                                      const cdd_transform_config_t *config) {
   cdd_c_error_t rc;
@@ -132,6 +138,12 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Transforms POSIX headers and identifiers in a CST for MSVC
+ * compatibility.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
                                  const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
@@ -240,9 +252,16 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Transforms GNU C extensions in a CST into portable standard C
+ * constructs.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                                 const cdd_transform_config_t *config) {
   size_t i;
+  cdd_c_error_t rc;
 
   if (!tree || !tree->root) {
     rc = CDD_C_ERROR_INVALID_ARGUMENT;

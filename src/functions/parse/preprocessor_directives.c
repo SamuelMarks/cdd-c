@@ -28,6 +28,7 @@
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #ifndef strdup
+/** @brief Alias `strdup` to `_strdup` on MSVC. */
 #define strdup _strdup
 #endif
 #endif
@@ -81,6 +82,9 @@ cdd_c_error_t pp_expr_match(struct ExprState *s, enum TokenKind kind,
 
 /**
  * @brief Peeks at the next non-whitespace token kind.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 cdd_c_error_t pp_preprocessor_peek(struct ExprState *s,
                                    enum TokenKind *out_val) {
@@ -104,6 +108,11 @@ cdd_c_error_t pp_preprocessor_peek(struct ExprState *s,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Checks if an identifier token matches a macro defined in `ctx`.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t pp_is_defined_macro(const struct PreprocessorContext *ctx,
                                   const struct Token *tok, int *out_val) {
   size_t i;
@@ -365,6 +374,12 @@ cdd_c_error_t pp_handle_has_c_attribute(struct ExprState *s, long *out_val) {
 
 /* --- Embed Directive Parsing --- */
 
+/**
+ * @brief Parses C23 `#embed` directive parameters (`limit`, `prefix`, `suffix`,
+ * `if_empty`).
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t pp_parse_embed_params(const struct TokenList *tokens,
                                     size_t start, size_t end,
                                     struct PreprocessorContext *ctx,
@@ -511,6 +526,12 @@ cdd_c_error_t pp_parse_embed_params(const struct TokenList *tokens,
 
 /* --- Include Scanning & Conditional Logic --- */
 
+/**
+ * @brief Pushes a new conditional compilation state onto `st`.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
+ */
 cdd_c_error_t pp_stack_push(struct ConditionalStack *st, enum CondState s) {
   if (!st)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -521,6 +542,12 @@ cdd_c_error_t pp_stack_push(struct ConditionalStack *st, enum CondState s) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Pops the top conditional compilation state from `st`.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
+ */
 cdd_c_error_t pp_stack_pop(struct ConditionalStack *st) {
   if (!st)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -531,6 +558,12 @@ cdd_c_error_t pp_stack_pop(struct ConditionalStack *st) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Peeks at the top conditional compilation state on `st`.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
+ */
 cdd_c_error_t pp_stack_peek(const struct ConditionalStack *st,
                             enum CondState *out_val) {
   if (!st || !out_val)
@@ -544,6 +577,13 @@ cdd_c_error_t pp_stack_peek(const struct ConditionalStack *st,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Determines whether all enclosing `#if`/`#ifdef` blocks on `st` are
+ * active.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
+ */
 cdd_c_error_t pp_is_enabled(const struct ConditionalStack *st, int *out_val) {
   int i;
 

@@ -36,12 +36,18 @@ struct ExtractedBuildInfo {
 
 /**
  * @brief Initialize a build info structure.
+ *
+ * @param[out] info The build info structure to initialize.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
+ * NULL.
  */
 extern C_CDD_EXPORT cdd_c_error_t
 build_info_init(struct ExtractedBuildInfo *info);
 
 /**
  * @brief Free resources in a build info structure.
+ *
+ * @param[in,out] info The build info structure to free.
  */
 extern C_CDD_EXPORT void build_info_free(struct ExtractedBuildInfo *info);
 

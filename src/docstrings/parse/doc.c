@@ -22,6 +22,11 @@
 #include "functions/parse/str.h"
 /* clang-format on */
 
+/**
+ * @brief Initializes a `DocMetadata` structure to zero.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t doc_metadata_init(struct DocMetadata *meta) {
   if (!meta)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -29,6 +34,10 @@ cdd_c_error_t doc_metadata_init(struct DocMetadata *meta) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Releases all dynamically allocated memory inside a `DocMetadata`
+ * structure.
+ */
 void doc_metadata_free(struct DocMetadata *meta) {
   size_t i;
   if (!meta)
@@ -273,9 +282,16 @@ void doc_metadata_free(struct DocMetadata *meta) {
   if (meta->request_body_content_type)
     C_CDD_FREE(meta->request_body_content_type);
 
+  doc_free_arazzo_metadata(meta);
+
   memset(meta, 0, sizeof(*meta));
 }
 
+/**
+ * @brief Parses a C documentation comment block and populates `out`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_block(const char *comment, struct DocMetadata *out) {
   const char *p = comment;
   cdd_c_error_t rc = CDD_C_SUCCESS;
@@ -335,8 +351,16 @@ cdd_c_error_t doc_parse_block(const char *comment, struct DocMetadata *out) {
       const char *cmd_end = cmd_start;
       char *cmd = NULL;
 
-      while (cmd_end < line_end && isalpha((unsigned char)*cmd_end)) {
-        cmd_end++;
+      if (cmd_start + 1 < line_end && cmd_start[0] == 'x' &&
+          cmd_start[1] == '-') {
+        while (cmd_end < line_end && (isalnum((unsigned char)*cmd_end) ||
+                                      *cmd_end == '-' || *cmd_end == '_')) {
+          cmd_end++;
+        }
+      } else {
+        while (cmd_end < line_end && isalpha((unsigned char)*cmd_end)) {
+          cmd_end++;
+        }
       }
 
       {
@@ -443,6 +467,10 @@ cdd_c_error_t doc_parse_block(const char *comment, struct DocMetadata *out) {
           rc = doc_parse_contact_line(cmd_end, line_end, out);
         } else if (strcmp(cmd, "license") == 0) {
           rc = doc_parse_license_line(cmd_end, line_end, out);
+        } else {
+          int handled = 0;
+          rc =
+              doc_parse_arazzo_directive(cmd, cmd_end, line_end, out, &handled);
         }
 
         C_CDD_FREE(cmd);

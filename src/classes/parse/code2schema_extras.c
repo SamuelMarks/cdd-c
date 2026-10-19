@@ -8,6 +8,12 @@
 #include "code2schema_internal.h"
 /* clang-format on */
 
+/**
+ * @brief Collects non-standard/extra JSON Schema keys not present in
+ * `skip_keys` and serializes them to a JSON string.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t c2s_collect_schema_extras(const JSON_Object *obj,
                                         const char **skip_keys,
                                         size_t skip_count, char **out_json) {
@@ -83,6 +89,8 @@ cdd_c_error_t c2s_collect_schema_extras(const JSON_Object *obj,
  * Parses the JSON string `extras_json`, clones each value, and sets them
  * directly on `target`. Returns early if there are no extras. Does not
  * override existing keys on `target`.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_merge_schema_extras_object(JSON_Object *target,
                                              const char *extras_json) {
@@ -144,6 +152,8 @@ cdd_c_error_t c2s_merge_schema_extras_object(JSON_Object *target,
  * `src` object into `dest`, serializing the result back out into
  * `dest_json`. If `dest_json` was NULL, `src_json` is effectively
  * duplicated into it.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_merge_schema_extras_strings(char **dest_json,
                                               const char *src_json) {
@@ -245,6 +255,9 @@ cdd_c_error_t c2s_merge_schema_extras_strings(char **dest_json,
 
 /**
  * @brief Checks if an OpenAPI type is a primitive type.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
+ * `out_is_primitive` is NULL.
  */
 cdd_c_error_t c2s_openapi_type_is_primitive(const char *type,
                                             int *out_is_primitive) {

@@ -72,6 +72,8 @@ extern C_CDD_EXPORT int g_crypto_fail_hmac_len;
 
 /**
  * @brief Computes a 32-byte SHA-256 digest over a data buffer.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
                             unsigned char *out_digest) {
@@ -119,6 +121,8 @@ cleanup:
 
 /**
  * @brief Computes a 32-byte HMAC-SHA256 digest over a data buffer.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
                                  const void *data, size_t data_len,

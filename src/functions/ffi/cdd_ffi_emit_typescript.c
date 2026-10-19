@@ -12,6 +12,15 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Maps an FFI IR type to its corresponding Deno `Deno.dlopen` native
+ * type descriptor literal string.
+ *
+ * @param[in] type FFI type descriptor to map.
+ * @param[out] out_type Output pointer receiving the resolved Deno FFI type
+ * string.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t get_deno_ffi_type(cdd_ffi_type_t type,
                                        const char **out_type) {
   if (type.pointer_depth > 0) {
@@ -80,6 +89,15 @@ static cdd_c_error_t get_deno_ffi_type(cdd_ffi_type_t type,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Maps an FFI IR type to its corresponding TypeScript language type
+ * annotation string.
+ *
+ * @param[in] type FFI type descriptor to map.
+ * @param[out] out_type Output pointer receiving the resolved TypeScript type
+ * string.
+ * @return `CDD_C_SUCCESS` on success.
+ */
 static cdd_c_error_t get_ts_type(cdd_ffi_type_t type, const char **out_type) {
   if (type.pointer_depth > 0) {
     if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
@@ -125,6 +143,13 @@ static cdd_c_error_t get_ts_type(cdd_ffi_type_t type, const char **out_type) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits a `.ts` Deno FFI module file for the given FFI IR.
+ *
+ * @param[in] ir The extracted and topologically sorted FFI IR.
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t
 emit_deno_module(cdd_ffi_ir_t *ir,
                  const cdd_generate_bindings_config_t *config) {
@@ -351,6 +376,11 @@ emit_deno_module(cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits TypeScript (Deno FFI) bindings for the given FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t
 cdd_ffi_emit_typescript(cdd_ffi_ir_t *ir,
                         const cdd_generate_bindings_config_t *config) {

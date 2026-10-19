@@ -13,6 +13,11 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Finds the index of a child node within its parent's children array.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_NOT_FOUND if not found.
+ */
 cdd_c_error_t find_child_index_mutate(cdd_cst_node_t *parent,
                                       cdd_cst_node_t *child,
                                       size_t *out_index) {
@@ -27,6 +32,11 @@ cdd_c_error_t find_child_index_mutate(cdd_cst_node_t *parent,
   return CDD_C_ERROR_NOT_FOUND;
 }
 
+/**
+ * @brief Finds the first lexical token within a CST subtree.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_NOT_FOUND if none.
+ */
 cdd_c_error_t find_first_token_mutate(cdd_cst_node_t *node,
                                       cdd_token_t **out_token) {
   size_t i;
@@ -46,6 +56,13 @@ cdd_c_error_t find_first_token_mutate(cdd_cst_node_t *node,
   return CDD_C_ERROR_NOT_FOUND;
 }
 
+/**
+ * @brief Finds the last lexical token within a CST subtree.
+ *
+ * @param[in] node Root CST node of subtree.
+ * @param[out] out_tok Pointer to receive the last token.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_NOT_FOUND if none.
+ */
 static cdd_c_error_t find_last_token_mutate(cdd_cst_node_t *node,
                                             cdd_token_t **out_tok) {
   size_t i;
@@ -66,6 +83,11 @@ static cdd_c_error_t find_last_token_mutate(cdd_cst_node_t *node,
   return CDD_C_ERROR_NOT_FOUND;
 }
 
+/**
+ * @brief Frees a linked list of trivia nodes.
+ *
+ * @param[in] t Head of the trivia list to free.
+ */
 static void free_trivia_list_mutate(cdd_trivia_t *t) {
   while (t) {
     cdd_trivia_t *next = t->next;
@@ -74,6 +96,11 @@ static void free_trivia_list_mutate(cdd_trivia_t *t) {
   }
 }
 
+/**
+ * @brief Deep-clones a linked list of lexical trivia.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 C_CDD_EXPORT cdd_c_error_t clone_trivia_list_mutate(cdd_trivia_t *head,
                                                     cdd_trivia_t **out_trivia) {
   cdd_trivia_t *new_head = NULL;
@@ -116,6 +143,12 @@ C_CDD_EXPORT cdd_c_error_t clone_trivia_list_mutate(cdd_trivia_t *head,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Tracks a synthesized token in the CST tree's `synthesized_tokens`
+ * array.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
+ */
 cdd_c_error_t track_synthesized_token_mutate(cdd_cst_tree_t *tree,
                                              cdd_token_t *tok) {
   if (tree->num_synthesized >= tree->synthesized_capacity) {
@@ -141,6 +174,12 @@ cdd_c_error_t track_synthesized_token_mutate(cdd_cst_tree_t *tree,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Replaces `old_node` with `new_node` in its parent's children array,
+ * preserving boundary trivia.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_replace_node(cdd_cst_tree_t *tree,
                                    cdd_cst_node_t *old_node,
                                    cdd_cst_node_t *new_node) {
@@ -190,6 +229,11 @@ cdd_c_error_t cdd_cst_replace_node(cdd_cst_tree_t *tree,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Inserts a child CST node at a specific index in a parent node.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_insert_child_node_at(cdd_cst_node_t *parent, size_t idx,
                                            cdd_cst_node_t *new_node) {
   if (!parent || !new_node || idx > parent->num_children)
@@ -231,6 +275,12 @@ cdd_c_error_t cdd_cst_insert_child_node_at(cdd_cst_node_t *parent, size_t idx,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Inserts `new_node` into its parent's children array immediately before
+ * `target_node`.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_insert_node_before(cdd_cst_node_t *target_node,
                                          cdd_cst_node_t *new_node) {
   size_t idx;
@@ -245,6 +295,12 @@ cdd_c_error_t cdd_cst_insert_node_before(cdd_cst_node_t *target_node,
   return cdd_cst_insert_child_node_at(target_node->parent, idx, new_node);
 }
 
+/**
+ * @brief Inserts `new_node` into its parent's children array immediately after
+ * `target_node`.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_insert_node_after(cdd_cst_node_t *target_node,
                                         cdd_cst_node_t *new_node) {
   size_t idx;
@@ -259,6 +315,12 @@ cdd_c_error_t cdd_cst_insert_node_after(cdd_cst_node_t *target_node,
   return cdd_cst_insert_child_node_at(target_node->parent, idx + 1, new_node);
 }
 
+/**
+ * @brief Detaches `node` from its parent CST node and clears its boundary
+ * trivia.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_detach_node(cdd_cst_tree_t *tree, cdd_cst_node_t *node) {
   size_t idx;
   cdd_c_error_t rc;
@@ -300,6 +362,12 @@ cdd_c_error_t cdd_cst_detach_node(cdd_cst_tree_t *tree, cdd_cst_node_t *node) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Deep-clones a CST subtree (including tokens and trivia) and registers
+ * synthesized tokens in `tree`.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
                                  cdd_cst_node_t **out_clone) {
   cdd_cst_node_t *clone;
@@ -410,6 +478,13 @@ err:
   return rc;
 }
 
+/**
+ * @brief Removes a child entry at index `idx` from a CST node's children array
+ * in-place.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if out of
+ * bounds.
+ */
 cdd_c_error_t cdd_cst_remove_child(cdd_cst_node_t *node, size_t idx) {
   size_t i;
   if (!node || idx >= node->num_children)
@@ -421,6 +496,11 @@ cdd_c_error_t cdd_cst_remove_child(cdd_cst_node_t *node, size_t idx) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Replaces a token child at index `idx` with `new_tok` in-place.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT.
+ */
 cdd_c_error_t cdd_cst_replace_token_child(cdd_cst_node_t *node, size_t idx,
                                           cdd_token_t *new_tok) {
   if (!node || idx >= node->num_children || !new_tok)

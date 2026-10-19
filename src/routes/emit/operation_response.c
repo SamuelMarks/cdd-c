@@ -293,6 +293,8 @@ cdd_c_error_t ensure_response_for_code(struct OpenAPI_Operation *op,
 
 /**
  * @brief Frees header fields.
+ *
+ * @param[in,out] hdr The OpenAPI_Header structure whose fields are freed.
  */
 static void free_header_fields(struct OpenAPI_Header *hdr) {
   free(hdr->name);

@@ -11,9 +11,18 @@
 #include <stdlib.h>
 /* clang-format on */
 #ifdef CDD_BUILD_TESTS
+/** @brief Mock allocation failure counter for CFG tests */
 C_CDD_EXPORT int g_cdd_cfg_alloc_fail = 0;
 #endif
 
+/**
+ * @brief Allocates a new basic block and registers it in the CFG.
+ *
+ * @param[in,out] cfg Target Control Flow Graph.
+ * @param[in] kind Kind of basic block (entry, normal, exit).
+ * @param[out] out_block Pointer to receive the allocated basic block.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
+ */
 static cdd_c_error_t alloc_block(cdd_cst_cfg_t *cfg,
                                  enum cdd_cst_cfg_block_kind_t kind,
                                  cdd_cst_cfg_block_t **out_block) {
@@ -54,6 +63,16 @@ static cdd_c_error_t alloc_block(cdd_cst_cfg_t *cfg,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Adds a directed edge (and reverse predecessor edge) between two CFG
+ * basic blocks.
+ *
+ * @param[in,out] from Source basic block.
+ * @param[in,out] to Destination basic block.
+ * @param[in] is_cond Non-zero if the transition is conditional.
+ * @param[in] cond_val Branch condition value (e.g., 1 for true, 0 for false).
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
+ */
 static cdd_c_error_t add_edge(cdd_cst_cfg_block_t *from,
                               cdd_cst_cfg_block_t *to, int is_cond,
                               int cond_val) {
@@ -99,6 +118,15 @@ static cdd_c_error_t walk_stmt(cdd_cst_cfg_t *cfg, cdd_cst_node_t *stmt,
                                cdd_cst_cfg_block_t *break_target,
                                cdd_cst_cfg_block_t *continue_target);
 
+/**
+ * @brief Appends a statement node to a basic block and links return statements
+ * to the exit block.
+ *
+ * @param[in,out] cfg Target Control Flow Graph.
+ * @param[in,out] curr_block Current basic block receiving the statement.
+ * @param[in] stmt CST statement node to append.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
+ */
 static cdd_c_error_t build_block(cdd_cst_cfg_t *cfg,
                                  cdd_cst_cfg_block_t *curr_block,
                                  cdd_cst_node_t *stmt) {
@@ -139,6 +167,17 @@ static cdd_c_error_t build_block(cdd_cst_cfg_t *cfg,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Recursively traverses a CST statement or block to construct CFG basic
+ * blocks and edges.
+ *
+ * @param[in,out] cfg Target Control Flow Graph.
+ * @param[in] stmt Statement or block CST node to process.
+ * @param[in,out] curr_block_ptr Pointer to the active basic block pointer.
+ * @param[in] break_target Target block for `break` statements (if any).
+ * @param[in] continue_target Target block for `continue` statements (if any).
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t walk_stmt(cdd_cst_cfg_t *cfg, cdd_cst_node_t *stmt,
                                cdd_cst_cfg_block_t **curr_block_ptr,
                                cdd_cst_cfg_block_t *break_target,
@@ -235,6 +274,13 @@ static cdd_c_error_t walk_stmt(cdd_cst_cfg_t *cfg, cdd_cst_node_t *stmt,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Walks the body of a CST function definition to populate the CFG.
+ *
+ * @param[in,out] cfg Target Control Flow Graph.
+ * @param[in] function_node CST function definition node.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 static cdd_c_error_t walk_function_body(cdd_cst_cfg_t *cfg,
                                         cdd_cst_node_t *function_node) {
   cdd_cst_cfg_block_t *current = NULL;
@@ -268,6 +314,12 @@ static cdd_c_error_t walk_function_body(cdd_cst_cfg_t *cfg,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Constructs a Control Flow Graph (CFG) for a CST function definition
+ * node.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_cfg_build(cdd_cst_node_t *function_node,
                                 cdd_cst_cfg_t **out_cfg) {
   cdd_cst_cfg_t *cfg;
@@ -308,6 +360,9 @@ cdd_c_error_t cdd_cst_cfg_build(cdd_cst_node_t *function_node,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Frees a Control Flow Graph (CFG) and all of its blocks and edges.
+ */
 void cdd_cst_cfg_free(cdd_cst_cfg_t *cfg) {
   size_t i;
   if (!cfg)

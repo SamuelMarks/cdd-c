@@ -24,6 +24,11 @@
 extern C_CDD_EXPORT volatile int g_gnu_bld_fail;
 #endif
 
+/**
+ * @brief Initializes a CST builder bound to a tree and initial target node.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t cdd_cst_builder_init(cdd_cst_builder_t *builder,
                                    cdd_cst_tree_t *tree,
                                    cdd_cst_node_t *target_node) {
@@ -43,6 +48,11 @@ cdd_c_error_t cdd_cst_builder_init(cdd_cst_builder_t *builder,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Clears and releases resources associated with a CST builder.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t cdd_cst_builder_free(cdd_cst_builder_t *builder) {
   if (!builder) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -52,6 +62,11 @@ cdd_c_error_t cdd_cst_builder_free(cdd_cst_builder_t *builder) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Checks if the CST builder has encountered an error.
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t cdd_cst_builder_has_error(const cdd_cst_builder_t *builder,
                                         int *out_has_error) {
   if (out_has_error)
@@ -64,6 +79,11 @@ cdd_c_error_t cdd_cst_builder_has_error(const cdd_cst_builder_t *builder,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Sets the current insertion point node for the CST builder.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_builder_set_insert_point(cdd_cst_builder_t *builder,
                                                cdd_cst_node_t *node) {
   if (!builder || !node) {
@@ -76,6 +96,12 @@ cdd_c_error_t cdd_cst_builder_set_insert_point(cdd_cst_builder_t *builder,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Appends a synthetic lexical token to the builder's current target
+ * node.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_token(cdd_cst_builder_t *builder,
                                 enum cdd_token_kind_t kind, const char *text) {
   cdd_token_t *tok;
@@ -101,6 +127,11 @@ cdd_c_error_t cdd_cst_bld_token(cdd_cst_builder_t *builder,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Appends a single space token to the builder's target node.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_space(cdd_cst_builder_t *builder) {
   {
     cdd_c_error_t rc = cdd_cst_bld_token(builder, CDD_TOKEN_OTHER, " ");
@@ -110,6 +141,11 @@ cdd_c_error_t cdd_cst_bld_space(cdd_cst_builder_t *builder) {
   }
 }
 
+/**
+ * @brief Appends a newline token to the builder's target node.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_newline(cdd_cst_builder_t *builder) {
   {
     cdd_c_error_t rc = cdd_cst_bld_token(builder, CDD_TOKEN_OTHER, "\n");
@@ -119,6 +155,11 @@ cdd_c_error_t cdd_cst_bld_newline(cdd_cst_builder_t *builder) {
   }
 }
 
+/**
+ * @brief Appends indentation spaces for `depth_level` (2 spaces per level).
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_indent(cdd_cst_builder_t *builder, int depth_level) {
   int i;
   cdd_c_error_t rc = CDD_C_SUCCESS;
@@ -135,6 +176,11 @@ cdd_c_error_t cdd_cst_bld_indent(cdd_cst_builder_t *builder, int depth_level) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Appends an identifier token to the builder's target node.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_ident(cdd_cst_builder_t *builder, const char *text) {
   {
     cdd_c_error_t rc = cdd_cst_bld_token(builder, CDD_TOKEN_IDENTIFIER, text);
@@ -144,6 +190,11 @@ cdd_c_error_t cdd_cst_bld_ident(cdd_cst_builder_t *builder, const char *text) {
   }
 }
 
+/**
+ * @brief Appends a string literal token to the builder's target node.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_string(cdd_cst_builder_t *builder, const char *text) {
   {
     cdd_c_error_t rc = cdd_cst_bld_token(builder, CDD_TOKEN_STRING, text);
@@ -153,6 +204,12 @@ cdd_c_error_t cdd_cst_bld_string(cdd_cst_builder_t *builder, const char *text) {
   }
 }
 
+/**
+ * @brief Formats and appends an integer literal token to the builder's target
+ * node.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_int(cdd_cst_builder_t *builder, int value) {
   char buf[32];
   const char *pooled;
@@ -181,6 +238,12 @@ cdd_c_error_t cdd_cst_bld_int(cdd_cst_builder_t *builder, int value) {
   }
 }
 
+/**
+ * @brief Classifies and appends a punctuation token to the builder's target
+ * node.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_punct(cdd_cst_builder_t *builder, const char *text) {
   enum cdd_token_kind_t kind = CDD_TOKEN_OTHER;
   if (text) {
@@ -227,6 +290,12 @@ cdd_c_error_t cdd_cst_bld_punct(cdd_cst_builder_t *builder, const char *text) {
   }
 }
 
+/**
+ * @brief Appends an `#include` preprocessor directive to the builder's target
+ * node.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_include(cdd_cst_builder_t *builder, const char *path,
                                   int is_system) {
   cdd_c_error_t rc;
@@ -288,6 +357,11 @@ cdd_c_error_t cdd_cst_bld_include(cdd_cst_builder_t *builder, const char *path,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Appends an `#ifndef <macro_name>` preprocessor directive.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_ifndef(cdd_cst_builder_t *builder,
                                  const char *macro_name) {
   cdd_c_error_t rc;
@@ -313,6 +387,11 @@ cdd_c_error_t cdd_cst_bld_ifndef(cdd_cst_builder_t *builder,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Appends an `#ifdef <macro_name>` preprocessor directive.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_ifdef(cdd_cst_builder_t *builder,
                                 const char *macro_name) {
   cdd_c_error_t rc;
@@ -338,6 +417,11 @@ cdd_c_error_t cdd_cst_bld_ifdef(cdd_cst_builder_t *builder,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Appends an `#else` preprocessor directive.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_else(cdd_cst_builder_t *builder) {
   cdd_c_error_t rc;
   if (!builder)
@@ -354,6 +438,11 @@ cdd_c_error_t cdd_cst_bld_else(cdd_cst_builder_t *builder) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Appends an `#endif` preprocessor directive.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_endif(cdd_cst_builder_t *builder) {
   cdd_c_error_t rc;
   if (!builder)
@@ -370,6 +459,11 @@ cdd_c_error_t cdd_cst_bld_endif(cdd_cst_builder_t *builder) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Appends an `#ifdef __cplusplus extern "C" { #endif` opening guard.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_extern_c_open(cdd_cst_builder_t *builder) {
   cdd_c_error_t rc;
   if (!builder)
@@ -410,6 +504,11 @@ cdd_c_error_t cdd_cst_bld_extern_c_open(cdd_cst_builder_t *builder) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Appends an `#ifdef __cplusplus } #endif` closing guard.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_extern_c_close(cdd_cst_builder_t *builder) {
   cdd_c_error_t rc;
   if (!builder)
@@ -434,6 +533,12 @@ cdd_c_error_t cdd_cst_bld_extern_c_close(cdd_cst_builder_t *builder) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Appends a `{` token, a newline, and increments
+ * `builder->indent_level`.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_block_open(cdd_cst_builder_t *builder) {
   cdd_c_error_t rc;
   if (!builder)
@@ -451,6 +556,12 @@ cdd_c_error_t cdd_cst_bld_block_open(cdd_cst_builder_t *builder) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Decrements `builder->indent_level` and appends an indented `}` and
+ * newline.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_block_close(cdd_cst_builder_t *builder) {
   cdd_c_error_t rc;
   if (!builder)
@@ -473,6 +584,11 @@ cdd_c_error_t cdd_cst_bld_block_close(cdd_cst_builder_t *builder) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Duplicates a string and registers it in the CST tree's string pool.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_pool_string(cdd_cst_tree_t *tree, const char *str,
                                   const char **out_str) {
   char *dup;
@@ -507,6 +623,12 @@ cdd_c_error_t cdd_cst_pool_string(cdd_cst_tree_t *tree, const char *str,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Lexes a C snippet and appends its tokens and trivia to the builder's
+ * current target node.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
                                   const char *snippet) {
   cdd_token_list_t *list = NULL;
@@ -550,10 +672,8 @@ cdd_c_error_t cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
         break;
       {
         cdd_token_t *last = NULL;
-        cdd_cst_get_last_token(builder->target_node, &last);
-        /* last is guaranteed to be non-NULL since cdd_cst_bld_token succeeded
-         */
-        {
+        rc = cdd_cst_get_last_token(builder->target_node, &last);
+        if (rc == CDD_C_SUCCESS && last) {
           cdd_trivia_t *tr;
           last->leading_trivia = t->leading_trivia;
           last->trailing_trivia = t->trailing_trivia;
@@ -598,6 +718,12 @@ cdd_c_error_t cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
   return rc;
 }
 
+/**
+ * @brief Quasi-quotation formatter that parses a format string and appends CST
+ * fragments (`%s`, `%d`, `%n`, `%%`) to `builder`.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_quote(cdd_cst_builder_t *builder,
                             const char *format_string, ...) {
   va_list args;
@@ -680,6 +806,11 @@ cdd_c_error_t cdd_cst_quote(cdd_cst_builder_t *builder,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Splices an array of CST nodes into `parent` starting at `index`.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t cdd_cst_splice_nodes(cdd_cst_builder_t *builder,
                                    cdd_cst_node_t *parent, size_t index,
                                    cdd_cst_node_t **new_nodes, size_t count) {

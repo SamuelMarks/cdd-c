@@ -12,6 +12,9 @@
 
 /**
  * @brief Emits C source code for text plain success.
+ *
+ * @param[in] fp Output file stream.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t write_text_plain_success(FILE *fp) {
   if (!fp)
@@ -31,6 +34,9 @@ cdd_c_error_t write_text_plain_success(FILE *fp) {
 
 /**
  * @brief Emits C source code for binary success.
+ *
+ * @param[in] fp Output file stream.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t write_binary_success(FILE *fp) {
   if (!fp)
@@ -53,6 +59,10 @@ cdd_c_error_t write_binary_success(FILE *fp) {
 
 /**
  * @brief Emits C source code for inline json parse.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] schema Inline OpenAPI schema reference descriptor.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t write_inline_json_parse(FILE *fp,
                                       const struct OpenAPI_SchemaRef *schema) {
@@ -228,6 +238,16 @@ cdd_c_error_t write_inline_json_parse(FILE *fp,
 
 /**
  * @brief Emits C source code for joined form array.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] field Struct field name.
+ * @param[in] len_field Array length struct field name.
+ * @param[in] items_type Array element type or schema ref name.
+ * @param[in] delim Delimiter character (`','`, `' '`, or `'|'`).
+ * @param[in] encode_fn Optional URL encoding helper function name.
+ * @param[in] add_encoded Non-zero to call `url_query_add_encoded`.
+ * @param[in] items_is_object Non-zero if array elements are object references.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t write_joined_form_array(FILE *fp, const char *field,
                                       const char *len_field,

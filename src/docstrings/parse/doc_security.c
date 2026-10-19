@@ -22,6 +22,11 @@
 #include "functions/parse/str.h"
 /* clang-format on */
 
+/**
+ * @brief Parses a security scheme type string into `enum DocSecurityType`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_security_type_text(const char *text,
                                            enum DocSecurityType *out_val) {
   if (!out_val)
@@ -61,6 +66,11 @@ cdd_c_error_t doc_parse_security_type_text(const char *text,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses an `apiKey` location string into `enum DocSecurityIn`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_security_in_text(const char *text,
                                          enum DocSecurityIn *out_val) {
   if (!out_val)
@@ -92,6 +102,11 @@ cdd_c_error_t doc_parse_security_in_text(const char *text,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses an OAuth2 flow type string into `enum DocOAuthFlowType`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_oauth_flow_type_text(const char *text,
                                              enum DocOAuthFlowType *out_val) {
   if (!out_val)
@@ -131,6 +146,12 @@ cdd_c_error_t doc_parse_oauth_flow_type_text(const char *text,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses a comma-separated list of OAuth2 scope names into an array of
+ * `DocOAuthScope` structs.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_oauth_scopes(const char *input,
                                      struct DocOAuthScope **out,
                                      size_t *out_count) {
@@ -171,6 +192,11 @@ cdd_c_error_t doc_parse_oauth_scopes(const char *input,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses an `@security` directive line into `out->security`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_security_line(const char *line, const char *end,
                                       struct DocMetadata *out) {
   const char *cur = line;
@@ -226,6 +252,12 @@ cdd_c_error_t doc_parse_security_line(const char *line, const char *end,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Parses an `@securityScheme` directive line into
+ * `out->security_schemes`.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
 cdd_c_error_t doc_parse_security_scheme_line(const char *line, const char *end,
                                              struct DocMetadata *out) {
   cdd_c_error_t rc_opt;

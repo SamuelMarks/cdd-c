@@ -39,11 +39,16 @@ struct CliCommand {
 
 /**
  * @brief Initialize a CLI Command IR.
+ *
+ * @param[out] cmd Pointer to the CLI command structure to initialize.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cli_command_init(struct CliCommand *cmd);
 
 /**
  * @brief Free resources associated with a CLI Command IR.
+ *
+ * @param[in,out] cmd Pointer to the CLI command structure to free.
  */
 C_CDD_EXPORT void cli_command_free(struct CliCommand *cmd);
 

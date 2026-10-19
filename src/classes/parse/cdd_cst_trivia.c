@@ -14,6 +14,12 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Inspects a CST's base tokens to infer its indentation style (tabs vs
+ * spaces and width).
+ *
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
 cdd_c_error_t
 cdd_cst_detect_format_config(cdd_cst_tree_t *tree,
                              cdd_cst_format_config_t *out_config) {
@@ -82,6 +88,12 @@ cdd_cst_detect_format_config(cdd_cst_tree_t *tree,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Generates a newline + indentation trivia chain for a given indentation
+ * level.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 cdd_c_error_t
 cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
                                const cdd_cst_format_config_t *config,
@@ -94,7 +106,6 @@ cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
 #ifdef CDD_BUILD_TESTS
   extern int g_cdd_cst_alloc_node_fail;
 #endif
-  (void)tree;
   if (!config || !out_trivia)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 

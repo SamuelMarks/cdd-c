@@ -20,6 +20,14 @@ extern volatile int g_fail_io_after;
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/**
+ * @brief Emits a C source file (`*_mex.c`) containing a MATLAB `mexFunction`
+ * dispatcher for the given FFI IR.
+ *
+ * @param[in] ir The extracted and topologically sorted FFI IR.
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t
 emit_matlab_mex(cdd_ffi_ir_t *ir,
                 const cdd_generate_bindings_config_t *config) {
@@ -126,6 +134,14 @@ emit_matlab_mex(cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits a `.m` MATLAB `classdef` wrapper file calling the generated MEX
+ * gateway.
+ *
+ * @param[in] ir The extracted and topologically sorted FFI IR.
+ * @param[in] config The bindings generation configuration.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 static cdd_c_error_t
 emit_matlab_m(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
@@ -220,6 +236,12 @@ emit_matlab_m(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits MATLAB MEX C gateway and `.m` classdef bindings for the given
+ * FFI IR.
+ *
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
 cdd_c_error_t
 cdd_ffi_emit_matlab(cdd_ffi_ir_t *ir,
                     const cdd_generate_bindings_config_t *config) {

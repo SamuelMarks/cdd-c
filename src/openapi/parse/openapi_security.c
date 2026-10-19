@@ -17,6 +17,13 @@ cdd_c_error_t parse_servers(const JSON_Object *root_obj,
                              &out->n_servers);
 }
 
+/**
+ * @brief Internal helper to parse securitySchemes or securityDefinitions.
+ *
+ * @param[in] components The components or root JSON object.
+ * @param[in,out] out The target OpenAPI_Spec structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
 static cdd_c_error_t parse_security_schemes_inner(const JSON_Object *components,
                                                   struct OpenAPI_Spec *out) {
   const JSON_Object *schemes;

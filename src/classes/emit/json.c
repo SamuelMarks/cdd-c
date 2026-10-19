@@ -40,6 +40,8 @@
 
 /**
  * @brief Emits C source code for struct to json func.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
 write_struct_to_json_func(FILE *fp, const char *struct_name,
@@ -226,6 +228,8 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
 
 /**
  * @brief Emits C source code for struct from json func.
+ *
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
 write_struct_from_json_func(FILE *fp, const char *struct_name,
@@ -257,6 +261,7 @@ write_struct_from_json_func(FILE *fp, const char *struct_name,
 
 /**
  * @brief Emits C source code for struct array from json func.
+ *
  * @return 0 on success, or an error code.
  */
 cdd_c_error_t

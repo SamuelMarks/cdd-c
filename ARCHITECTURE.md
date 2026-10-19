@@ -3,8 +3,8 @@
 <!-- BADGES_START -->
 
 [![License](https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![CI/CD](https://github.com/offscale/cdd-c/workflows/CI/badge.svg)](https://github.com/offscale/cdd-c/actions)
-[![Coverage](https://codecov.io/gh/offscale/cdd-c/branch/master/graph/badge.svg)](https://codecov.io/gh/offscale/cdd-c)
+[![CI/CD](https://github.com/SamuelMarks/cdd-c/actions/workflows/ci.yml/badge.svg)](https://github.com/SamuelMarks/cdd-c/actions)
+[![Coverage](https://codecov.io/gh/SamuelMarks/cdd-c/branch/master/graph/badge.svg)](https://codecov.io/gh/SamuelMarks/cdd-c)
 
 <!-- BADGES_END -->
 
@@ -61,6 +61,7 @@ The Frontend's responsibility is to read an input source and translate it into t
 
 - **Static Analysis (AST-Driven)**: For `C` source code, the tool **does not** use dynamic reflection or execute the code. Instead, it reads the source files using a fully custom whitespace, comment, and macro sensitive parser, generates an Abstract Syntax Tree (AST), and navigates the tree to extract structures, functions, type signatures, API client definitions, server routes, and docstrings.
 - **OpenAPI Parsing**: For OpenAPI and JSON Schema inputs, the parser normalizes the structure, resolving internal `$ref`s and extracting properties, endpoints (client or server perspectives), and metadata into the IR.
+- **Arazzo 1.1.0 Parsing & Extraction**: Parses Arazzo v1.1.0 workflow specifications (including runtime expressions, criteria, JSONPath/XPath/JSONPointer selectors, payload replacements, and `$components.*`) or extracts them from C SDK workflow orchestrators and `@workflow`/`@step` Doxygen annotations (`c2arazzo`).
 
 ### 2. Intermediate Representation (IR)
 

@@ -16,6 +16,13 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Emits a linked list of FFI trivia nodes to a file stream.
+ *
+ * @param[in] f Output file stream.
+ * @param[in] trivia Head of the FFI trivia linked list.
+ * @return CDD_C_SUCCESS on success.
+ */
 static cdd_c_error_t emit_trivia(FILE *f, cdd_ffi_trivia_t *trivia) {
   while (trivia) {
     if (trivia->text) {
@@ -32,6 +39,13 @@ static cdd_c_error_t emit_trivia(FILE *f, cdd_ffi_trivia_t *trivia) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits an FFI type in CDD DSL syntax to a file stream.
+ *
+ * @param[in] f Output file stream.
+ * @param[in] type FFI type descriptor to emit.
+ * @return CDD_C_SUCCESS on success.
+ */
 static cdd_c_error_t emit_type(FILE *f, const cdd_ffi_type_t *type) {
   int i;
   for (i = 0; i < type->pointer_depth; i++) {
@@ -96,8 +110,19 @@ static cdd_c_error_t emit_type(FILE *f, const cdd_ffi_type_t *type) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits an FFI parameter or struct field in CDD DSL syntax to a file
+ * stream.
+ *
+ * @param[in] f Output file stream.
+ * @param[in] field FFI field descriptor to emit.
+ * @return CDD_C_SUCCESS on success.
+ */
 static cdd_c_error_t emit_field(FILE *f, const cdd_ffi_field_t *field) {
-  emit_trivia(f, field->leading_trivia);
+  cdd_c_error_t rc;
+  rc = emit_trivia(f, field->leading_trivia);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   if (field->intent != CDD_FFI_INTENT_UNKNOWN || field->array_length_ref) {
     fprintf(f, "[");
@@ -116,15 +141,25 @@ static cdd_c_error_t emit_field(FILE *f, const cdd_ffi_field_t *field) {
     fprintf(f, "] ");
   }
 
-  emit_type(f, &field->type);
+  rc = emit_type(f, &field->type);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (field->name) {
     fprintf(f, " %s", field->name);
   }
 
-  emit_trivia(f, field->trailing_trivia);
+  rc = emit_trivia(f, field->trailing_trivia);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits an FFI Intermediate Representation (`cdd_ffi_ir_t`) in CDD DSL
+ * format.
+ *
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_emit_dsl(
     cdd_ffi_ir_t *ir, const struct cdd_generate_bindings_config *config) {
   FILE *f;
@@ -149,15 +184,21 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_emit_dsl(
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
 
-    emit_trivia(f, node->leading_trivia);
+    rc = emit_trivia(f, node->leading_trivia);
+    if (rc != CDD_C_SUCCESS)
+      break;
 
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       fprintf(f, "func %s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        emit_field(f, &node->fields[j]);
+        rc = emit_field(f, &node->fields[j]);
+        if (rc != CDD_C_SUCCESS)
+          break;
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
       }
+      if (rc != CDD_C_SUCCESS)
+        break;
       fprintf(f, ") ");
 
       if (node->raw_body) {
