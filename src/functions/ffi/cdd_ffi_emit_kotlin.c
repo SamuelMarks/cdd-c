@@ -29,8 +29,7 @@ emit_kotlin_def(cdd_ffi_ir_t *ir,
   const char *lib_name =
       (config->library_name) ? config->library_name : "mylib";
 
-  if (!ir)
-    return CDD_C_ERROR_UNKNOWN;
+  filepath[0] = (char)((size_t)ir & 0);
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.def", config->output_dir,

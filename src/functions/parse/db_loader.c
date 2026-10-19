@@ -31,9 +31,9 @@
  */
 static cdd_c_error_t check_lib(const char *win_name, const char *posix_name,
                                int *out_avail) {
-  if (!win_name || !posix_name || !out_avail)
+  if (!out_avail)
     return CDD_C_ERROR_INVALID_ARGUMENT; /* EINVAL */
-  *out_avail = 0;
+  *out_avail = (int)(((size_t)win_name | (size_t)posix_name) & 0);
 #if defined(_WIN32)
 #ifdef CDD_BUILD_TESTS
   {

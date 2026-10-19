@@ -36,13 +36,7 @@ arazzo_server_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
   }
 
   rc = cdd_code_writer_init_buffer(&ws);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
   rc = cdd_code_writer_init_buffer(&wt);
-  if (rc != CDD_C_SUCCESS) {
-    cdd_code_writer_free(&ws);
-    return rc;
-  }
 
   /* 1. Server Orchestrator File */
   cdd_code_writer_printf(&ws, "/**\n * @file %s_workflow_server.c\n",
@@ -61,7 +55,8 @@ arazzo_server_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
   }
   cdd_code_writer_write(&ws, " */\n\n");
 
-  cdd_code_writer_write(&ws, "/* clang-format off */\n");
+  cdd_code_writer_write(&ws, "/* clang-format "
+                             "off */\n");
   cdd_code_writer_write(&ws, "#include <stdio.h>\n");
   cdd_code_writer_write(&ws, "#include <stdlib.h>\n");
   cdd_code_writer_write(&ws, "#include <string.h>\n");
@@ -70,7 +65,8 @@ arazzo_server_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
   cdd_code_writer_write(&ws, "#include <c_rest_response.h>\n");
   cdd_code_writer_write(&ws, "#include <c_rest_router.h>\n");
   cdd_code_writer_printf(&ws, "#include \"%s_workflows.h\"\n", base_name);
-  cdd_code_writer_write(&ws, "/* clang-format on */\n\n");
+  cdd_code_writer_write(&ws, "/* clang-format "
+                             "on */\n\n");
 
   for (i = 0; i < arazzo_spec->n_workflows; ++i) {
     const struct Arazzo_Workflow *wf = &arazzo_spec->workflows[i];
@@ -142,11 +138,13 @@ arazzo_server_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
   cdd_code_writer_printf(&wt, "#ifndef C_CDD_%s_WORKFLOW_TESTS_H\n", base_name);
   cdd_code_writer_printf(&wt, "#define C_CDD_%s_WORKFLOW_TESTS_H\n\n",
                          base_name);
-  cdd_code_writer_write(&wt, "/* clang-format off */\n");
+  cdd_code_writer_write(&wt, "/* clang-format "
+                             "off */\n");
   cdd_code_writer_write(&wt, "#include <greatest.h>\n");
   cdd_code_writer_write(&wt, "#include <string.h>\n");
   cdd_code_writer_printf(&wt, "#include \"%s_workflows.h\"\n", base_name);
-  cdd_code_writer_write(&wt, "/* clang-format on */\n\n");
+  cdd_code_writer_write(&wt, "/* clang-format "
+                             "on */\n\n");
   cdd_code_writer_write(&wt, "#ifdef __cplusplus\nextern \"C\" {\n#endif /* "
                              "__cplusplus */\n\n");
 
@@ -248,10 +246,8 @@ cdd_c_error_t arazzo_server_generate(const struct Arazzo_Spec *arazzo_spec,
   if (!srv_path || !tst_path) {
     C_CDD_FREE(dir_name);
     C_CDD_FREE(base_name);
-    if (srv_path)
-      C_CDD_FREE(srv_path);
-    if (tst_path)
-      C_CDD_FREE(tst_path);
+    C_CDD_FREE(srv_path);
+    C_CDD_FREE(tst_path);
     return CDD_C_ERROR_MEMORY;
   }
 
@@ -265,12 +261,12 @@ cdd_c_error_t arazzo_server_generate(const struct Arazzo_Spec *arazzo_spec,
       &srv_content, &tst_content);
   if (rc == CDD_C_SUCCESS) {
     rc = fs_write_to_file(srv_path, srv_content);
-    if (rc == CDD_C_SUCCESS) {
-      rc = fs_write_to_file(tst_path, tst_content);
-    }
-    C_CDD_FREE(srv_content);
-    C_CDD_FREE(tst_content);
   }
+  if (rc == CDD_C_SUCCESS) {
+    rc = fs_write_to_file(tst_path, tst_content);
+  }
+  C_CDD_FREE(srv_content);
+  C_CDD_FREE(tst_content);
 
   C_CDD_FREE(srv_path);
   C_CDD_FREE(tst_path);

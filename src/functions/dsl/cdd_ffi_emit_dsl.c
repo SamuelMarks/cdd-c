@@ -121,8 +121,6 @@ static cdd_c_error_t emit_type(FILE *f, const cdd_ffi_type_t *type) {
 static cdd_c_error_t emit_field(FILE *f, const cdd_ffi_field_t *field) {
   cdd_c_error_t rc;
   rc = emit_trivia(f, field->leading_trivia);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
 
   if (field->intent != CDD_FFI_INTENT_UNKNOWN || field->array_length_ref) {
     fprintf(f, "[");
@@ -142,16 +140,12 @@ static cdd_c_error_t emit_field(FILE *f, const cdd_ffi_field_t *field) {
   }
 
   rc = emit_type(f, &field->type);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
   if (field->name) {
     fprintf(f, " %s", field->name);
   }
 
   rc = emit_trivia(f, field->trailing_trivia);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -185,20 +179,14 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_emit_dsl(
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
 
     rc = emit_trivia(f, node->leading_trivia);
-    if (rc != CDD_C_SUCCESS)
-      break;
 
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       fprintf(f, "func %s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
         rc = emit_field(f, &node->fields[j]);
-        if (rc != CDD_C_SUCCESS)
-          break;
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
       }
-      if (rc != CDD_C_SUCCESS)
-        break;
       fprintf(f, ") ");
 
       if (node->raw_body) {

@@ -442,6 +442,20 @@ TEST test_serve_mcp_stdio_main(void) {
     fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
                  "call\",\"params\":{\"name\":\"to_docs_json\",\"arguments\":{"
                  "\"input\":\"build/simple_test_oas.json\"}},\"id\":116}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
+                 "call\",\"params\":{\"name\":\"to_arazzo\",\"arguments\":{}},"
+                 "\"id\":130}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
+                 "call\",\"params\":{\"name\":\"to_arazzo\",\"arguments\":{"
+                 "\"input\":\"build/my_empty_dir\",\"output\":\"build/"
+                 "arazzo_mcp.json\"}},\"id\":131}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
+                 "call\",\"params\":{\"name\":\"from_arazzo\",\"arguments\":{}}"
+                 ",\"id\":132}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
+                 "call\",\"params\":{\"name\":\"from_arazzo\",\"arguments\":{"
+                 "\"input\":\"build/arazzo_mcp.json\",\"output\":\"build/"
+                 "arazzo_mcp_out\"}},\"id\":133}\n");
     fclose(tmp);
     tmp = NULL;
 
@@ -538,7 +552,7 @@ static unsigned __stdcall rpc_server_http_thread_func(void *arg) {
   argv[1] = cdd_test_mut_str("--port");
   argv[2] = cdd_test_mut_str("19985");
   argv[3] = cdd_test_mut_str("--listen");
-  argv[4] = cdd_test_mut_str("58");
+  argv[4] = cdd_test_mut_str("62");
   (void)arg;
   serve_json_rpc_main(5, argv);
   return 0;
@@ -551,7 +565,7 @@ static void *rpc_server_http_thread_func(void *arg) {
   argv[1] = cdd_test_mut_str("--port");
   argv[2] = cdd_test_mut_str("19985");
   argv[3] = cdd_test_mut_str("--listen");
-  argv[4] = cdd_test_mut_str("58");
+  argv[4] = cdd_test_mut_str("62");
   (void)arg;
   serve_json_rpc_main(5, argv);
   return NULL;
@@ -660,6 +674,20 @@ TEST test_serve_json_rpc_http_requests(void) {
       "120\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
       "call\",\"params\":{\"name\":\"to_docs_json\",\"arguments\":{\"input\":"
       "\"build/simple_test_oas.json\"}}}",
+      "POST / HTTP/1.1\r\nContent-Length: "
+      "77\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
+      "call\",\"params\":{\"name\":\"to_arazzo\",\"arguments\":{}}}",
+      "POST / HTTP/1.1\r\nContent-Length: "
+      "128\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
+      "call\",\"params\":{\"name\":\"to_arazzo\",\"arguments\":{\"input\":"
+      "\"build/my_empty_dir\",\"output\":\"build/arazzo_mcp.json\"}}}",
+      "POST / HTTP/1.1\r\nContent-Length: "
+      "79\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
+      "call\",\"params\":{\"name\":\"from_arazzo\",\"arguments\":{}}}",
+      "POST / HTTP/1.1\r\nContent-Length: "
+      "133\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
+      "call\",\"params\":{\"name\":\"from_arazzo\",\"arguments\":{\"input\":"
+      "\"build/arazzo_mcp.json\",\"output\":\"build/arazzo_mcp_out\"}}}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "80\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
       "call\",\"params\":{\"name\":\"unknown\",\"arguments\":{}}}",

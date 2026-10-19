@@ -35,9 +35,6 @@ cdd_c_error_t arazzo_cli_render_to_string(const struct Arazzo_Spec *arazzo_spec,
   }
 
   rc = cdd_code_writer_init_buffer(&w);
-  if (rc != CDD_C_SUCCESS) {
-    return rc;
-  }
 
   cdd_code_writer_printf(&w, "/**\n * @file %s_workflow_cli.c\n", base_name);
   cdd_code_writer_printf(
@@ -54,12 +51,14 @@ cdd_c_error_t arazzo_cli_render_to_string(const struct Arazzo_Spec *arazzo_spec,
   }
   cdd_code_writer_write(&w, " */\n\n");
 
-  cdd_code_writer_write(&w, "/* clang-format off */\n");
+  cdd_code_writer_write(&w, "/* clang-format "
+                            "off */\n");
   cdd_code_writer_write(&w, "#include <stdio.h>\n");
   cdd_code_writer_write(&w, "#include <stdlib.h>\n");
   cdd_code_writer_write(&w, "#include <string.h>\n");
   cdd_code_writer_printf(&w, "#include \"%s_workflows.h\"\n", base_name);
-  cdd_code_writer_write(&w, "/* clang-format on */\n\n");
+  cdd_code_writer_write(&w, "/* clang-format "
+                            "on */\n\n");
 
   cdd_code_writer_write(
       &w, "/**\n * @brief Prints available Arazzo CLI workflows.\n */\n"

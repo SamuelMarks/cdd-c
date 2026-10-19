@@ -31,18 +31,11 @@
 static void free_doc_arazzo_params(struct DocArazzoParam *params,
                                    size_t n_params) {
   size_t i;
-  if (!params) {
-    return;
-  }
   for (i = 0; i < n_params; ++i) {
-    if (params[i].name)
-      C_CDD_FREE(params[i].name);
-    if (params[i].in_loc)
-      C_CDD_FREE(params[i].in_loc);
-    if (params[i].value)
-      C_CDD_FREE(params[i].value);
-    if (params[i].reference)
-      C_CDD_FREE(params[i].reference);
+    C_CDD_FREE(params[i].name);
+    C_CDD_FREE(params[i].in_loc);
+    C_CDD_FREE(params[i].value);
+    C_CDD_FREE(params[i].reference);
   }
   C_CDD_FREE(params);
 }
@@ -55,14 +48,9 @@ static void free_doc_arazzo_params(struct DocArazzoParam *params,
  */
 static void free_doc_arazzo_kvs(struct DocArazzoKeyVal *kvs, size_t n_kvs) {
   size_t i;
-  if (!kvs) {
-    return;
-  }
   for (i = 0; i < n_kvs; ++i) {
-    if (kvs[i].key)
-      C_CDD_FREE(kvs[i].key);
-    if (kvs[i].value)
-      C_CDD_FREE(kvs[i].value);
+    C_CDD_FREE(kvs[i].key);
+    C_CDD_FREE(kvs[i].value);
   }
   C_CDD_FREE(kvs);
 }
@@ -76,20 +64,12 @@ static void free_doc_arazzo_kvs(struct DocArazzoKeyVal *kvs, size_t n_kvs) {
 static void free_doc_arazzo_actions(struct DocArazzoAction *actions,
                                     size_t n_actions) {
   size_t i;
-  if (!actions) {
-    return;
-  }
   for (i = 0; i < n_actions; ++i) {
-    if (actions[i].name)
-      C_CDD_FREE(actions[i].name);
-    if (actions[i].type)
-      C_CDD_FREE(actions[i].type);
-    if (actions[i].workflow_id)
-      C_CDD_FREE(actions[i].workflow_id);
-    if (actions[i].step_id)
-      C_CDD_FREE(actions[i].step_id);
-    if (actions[i].reference)
-      C_CDD_FREE(actions[i].reference);
+    C_CDD_FREE(actions[i].name);
+    C_CDD_FREE(actions[i].type);
+    C_CDD_FREE(actions[i].workflow_id);
+    C_CDD_FREE(actions[i].step_id);
+    C_CDD_FREE(actions[i].reference);
   }
   C_CDD_FREE(actions);
 }
@@ -102,108 +82,65 @@ void doc_free_arazzo_metadata(struct DocMetadata *meta) {
   if (!meta) {
     return;
   }
-  if (meta->arazzo_version)
-    C_CDD_FREE(meta->arazzo_version);
-  if (meta->self_uri)
-    C_CDD_FREE(meta->self_uri);
-  if (meta->arazzo_sources) {
-    for (i = 0; i < meta->n_arazzo_sources; ++i) {
-      if (meta->arazzo_sources[i].name)
-        C_CDD_FREE(meta->arazzo_sources[i].name);
-      if (meta->arazzo_sources[i].url)
-        C_CDD_FREE(meta->arazzo_sources[i].url);
-      if (meta->arazzo_sources[i].type)
-        C_CDD_FREE(meta->arazzo_sources[i].type);
-    }
-    C_CDD_FREE(meta->arazzo_sources);
+  C_CDD_FREE(meta->arazzo_version);
+  C_CDD_FREE(meta->self_uri);
+  for (i = 0; i < meta->n_arazzo_sources; ++i) {
+    C_CDD_FREE(meta->arazzo_sources[i].name);
+    C_CDD_FREE(meta->arazzo_sources[i].url);
+    C_CDD_FREE(meta->arazzo_sources[i].type);
   }
-  if (meta->workflow_id)
-    C_CDD_FREE(meta->workflow_id);
-  if (meta->workflow_summary)
-    C_CDD_FREE(meta->workflow_summary);
-  if (meta->workflow_depends_on) {
-    for (i = 0; i < meta->n_workflow_depends_on; ++i) {
-      if (meta->workflow_depends_on[i])
-        C_CDD_FREE(meta->workflow_depends_on[i]);
-    }
-    C_CDD_FREE(meta->workflow_depends_on);
+  C_CDD_FREE(meta->arazzo_sources);
+  C_CDD_FREE(meta->workflow_id);
+  C_CDD_FREE(meta->workflow_summary);
+  for (i = 0; i < meta->n_workflow_depends_on; ++i) {
+    C_CDD_FREE(meta->workflow_depends_on[i]);
   }
-  if (meta->workflow_inputs_json)
-    C_CDD_FREE(meta->workflow_inputs_json);
+  C_CDD_FREE(meta->workflow_depends_on);
+  C_CDD_FREE(meta->workflow_inputs_json);
   free_doc_arazzo_kvs(meta->workflow_outputs, meta->n_workflow_outputs);
   free_doc_arazzo_params(meta->workflow_params, meta->n_workflow_params);
 
-  if (meta->arazzo_steps) {
-    for (i = 0; i < meta->n_arazzo_steps; ++i) {
-      struct DocArazzoStep *st = &meta->arazzo_steps[i];
-      if (st->step_id)
-        C_CDD_FREE(st->step_id);
-      if (st->description)
-        C_CDD_FREE(st->description);
-      if (st->operation_id)
-        C_CDD_FREE(st->operation_id);
-      if (st->operation_path)
-        C_CDD_FREE(st->operation_path);
-      if (st->channel_path)
-        C_CDD_FREE(st->channel_path);
-      if (st->workflow_id)
-        C_CDD_FREE(st->workflow_id);
-      if (st->correlation_id)
-        C_CDD_FREE(st->correlation_id);
-      if (st->action)
-        C_CDD_FREE(st->action);
-      if (st->depends_on) {
-        for (j = 0; j < st->n_depends_on; ++j) {
-          if (st->depends_on[j])
-            C_CDD_FREE(st->depends_on[j]);
-        }
-        C_CDD_FREE(st->depends_on);
-      }
-      free_doc_arazzo_params(st->params, st->n_params);
-      if (st->request_body_content_type)
-        C_CDD_FREE(st->request_body_content_type);
-      if (st->request_body_payload)
-        C_CDD_FREE(st->request_body_payload);
-      if (st->replacements) {
-        for (j = 0; j < st->n_replacements; ++j) {
-          if (st->replacements[j].target)
-            C_CDD_FREE(st->replacements[j].target);
-          if (st->replacements[j].value)
-            C_CDD_FREE(st->replacements[j].value);
-        }
-        C_CDD_FREE(st->replacements);
-      }
-      if (st->criteria) {
-        for (j = 0; j < st->n_criteria; ++j) {
-          if (st->criteria[j].context)
-            C_CDD_FREE(st->criteria[j].context);
-          if (st->criteria[j].condition)
-            C_CDD_FREE(st->criteria[j].condition);
-          if (st->criteria[j].type)
-            C_CDD_FREE(st->criteria[j].type);
-          if (st->criteria[j].version)
-            C_CDD_FREE(st->criteria[j].version);
-        }
-        C_CDD_FREE(st->criteria);
-      }
-      free_doc_arazzo_actions(st->on_success, st->n_on_success);
-      free_doc_arazzo_actions(st->on_failure, st->n_on_failure);
-      free_doc_arazzo_kvs(st->outputs, st->n_outputs);
+  for (i = 0; i < meta->n_arazzo_steps; ++i) {
+    struct DocArazzoStep *st = &meta->arazzo_steps[i];
+    C_CDD_FREE(st->step_id);
+    C_CDD_FREE(st->description);
+    C_CDD_FREE(st->operation_id);
+    C_CDD_FREE(st->operation_path);
+    C_CDD_FREE(st->channel_path);
+    C_CDD_FREE(st->workflow_id);
+    C_CDD_FREE(st->correlation_id);
+    C_CDD_FREE(st->action);
+    for (j = 0; j < st->n_depends_on; ++j) {
+      C_CDD_FREE(st->depends_on[j]);
     }
-    C_CDD_FREE(meta->arazzo_steps);
+    C_CDD_FREE(st->depends_on);
+    free_doc_arazzo_params(st->params, st->n_params);
+    C_CDD_FREE(st->request_body_content_type);
+    C_CDD_FREE(st->request_body_payload);
+    for (j = 0; j < st->n_replacements; ++j) {
+      C_CDD_FREE(st->replacements[j].target);
+      C_CDD_FREE(st->replacements[j].value);
+    }
+    C_CDD_FREE(st->replacements);
+    for (j = 0; j < st->n_criteria; ++j) {
+      C_CDD_FREE(st->criteria[j].context);
+      C_CDD_FREE(st->criteria[j].condition);
+      C_CDD_FREE(st->criteria[j].type);
+      C_CDD_FREE(st->criteria[j].version);
+    }
+    C_CDD_FREE(st->criteria);
+    free_doc_arazzo_actions(st->on_success, st->n_on_success);
+    free_doc_arazzo_actions(st->on_failure, st->n_on_failure);
+    free_doc_arazzo_kvs(st->outputs, st->n_outputs);
   }
+  C_CDD_FREE(meta->arazzo_steps);
 
-  if (meta->arazzo_components) {
-    for (i = 0; i < meta->n_arazzo_components; ++i) {
-      if (meta->arazzo_components[i].kind)
-        C_CDD_FREE(meta->arazzo_components[i].kind);
-      if (meta->arazzo_components[i].name)
-        C_CDD_FREE(meta->arazzo_components[i].name);
-      if (meta->arazzo_components[i].json)
-        C_CDD_FREE(meta->arazzo_components[i].json);
-    }
-    C_CDD_FREE(meta->arazzo_components);
+  for (i = 0; i < meta->n_arazzo_components; ++i) {
+    C_CDD_FREE(meta->arazzo_components[i].kind);
+    C_CDD_FREE(meta->arazzo_components[i].name);
+    C_CDD_FREE(meta->arazzo_components[i].json);
   }
+  C_CDD_FREE(meta->arazzo_components);
 
   free_doc_arazzo_kvs(meta->arazzo_extensions, meta->n_arazzo_extensions);
 }
@@ -231,15 +168,18 @@ static cdd_c_error_t parse_comma_list(const char *line, const char *end,
   cursor = rest;
   while (*cursor) {
     char *comma = strchr(cursor, ',');
-    char *item = NULL;
+    char *item = cursor;
+    char *item_end;
     if (comma)
       *comma = '\0';
 
-    rc = doc_trim_segment(cursor, &item);
-    if (rc != CDD_C_SUCCESS) {
-      C_CDD_FREE(rest);
-      return rc;
-    }
+    while (*item && isspace((unsigned char)*item))
+      item++;
+    item_end = item + strlen(item);
+    while (item_end > item && isspace((unsigned char)*(item_end - 1)))
+      item_end--;
+    *item_end = '\0';
+
     if (*item) {
       char **next_arr =
           (char **)C_CDD_REALLOC(*list, (*count + 1) * sizeof(char *));
@@ -296,8 +236,7 @@ static cdd_c_error_t parse_key_val_line(const char *line, const char *end,
       *list, (*count + 1) * sizeof(struct DocArazzoKeyVal));
   if (!next_arr) {
     C_CDD_FREE(key);
-    if (val)
-      C_CDD_FREE(val);
+    C_CDD_FREE(val);
     return CDD_C_ERROR_MEMORY;
   }
   *list = next_arr;
@@ -341,12 +280,10 @@ static cdd_c_error_t parse_arazzo_param_line(const char *line, const char *end,
   }
   (*count)++;
 
-  rc = doc_skip_ws(cur, &cur);
-  if (rc != CDD_C_SUCCESS) {
-    return rc;
-  }
+  while (*cur == ' ')
+    cur++;
 
-  while (cur < end && *cur == '[') {
+  while (*cur == '[') {
     const char *close_b = cur;
     while (close_b < end && *close_b != ']')
       close_b++;
@@ -359,16 +296,14 @@ static cdd_c_error_t parse_arazzo_param_line(const char *line, const char *end,
       memcpy(attr, cur + 1, len);
       attr[len] = '\0';
       if (strncmp(attr, "in:", 3) == 0) {
-        if (p->in_loc)
-          C_CDD_FREE(p->in_loc);
+        C_CDD_FREE(p->in_loc);
         rc = c_cdd_strdup(attr + 3, &p->in_loc);
         if (rc != CDD_C_SUCCESS) {
           C_CDD_FREE(attr);
           return rc;
         }
       } else if (strncmp(attr, "reference:", 10) == 0) {
-        if (p->reference)
-          C_CDD_FREE(p->reference);
+        C_CDD_FREE(p->reference);
         rc = c_cdd_strdup(attr + 10, &p->reference);
         if (rc != CDD_C_SUCCESS) {
           C_CDD_FREE(attr);
@@ -377,10 +312,8 @@ static cdd_c_error_t parse_arazzo_param_line(const char *line, const char *end,
       }
       C_CDD_FREE(attr);
       cur = close_b + 1;
-      rc = doc_skip_ws(cur, &cur);
-      if (rc != CDD_C_SUCCESS) {
-        return rc;
-      }
+      while (*cur == ' ')
+        cur++;
     } else {
       break;
     }
@@ -453,19 +386,16 @@ static cdd_c_error_t parse_source_description_line(const char *line,
     return rc;
   }
 
-  rc = doc_skip_ws(cur, &cur);
-  if (rc != CDD_C_SUCCESS) {
-    return rc;
-  }
-  while (cur < end && *cur == '[') {
+  while (*cur == ' ')
+    cur++;
+  while (*cur == '[') {
     const char *close_b = cur;
     while (close_b < end && *close_b != ']')
       close_b++;
     if (close_b < end) {
       size_t len = (size_t)(close_b - (cur + 1));
-      if (len > 5 && strncmp(cur + 1, "type:", 5) == 0) {
-        if (src->type)
-          C_CDD_FREE(src->type);
+      if (strncmp(cur + 1, "type:", 5) == 0) {
+        C_CDD_FREE(src->type);
         src->type = (char *)C_CDD_MALLOC(len - 5 + 1);
         if (!src->type) {
           return CDD_C_ERROR_MEMORY;
@@ -474,10 +404,8 @@ static cdd_c_error_t parse_source_description_line(const char *line,
         src->type[len - 5] = '\0';
       }
       cur = close_b + 1;
-      rc = doc_skip_ws(cur, &cur);
-      if (rc != CDD_C_SUCCESS) {
-        return rc;
-      }
+      while (*cur == ' ')
+        cur++;
     } else {
       break;
     }
@@ -503,23 +431,19 @@ static cdd_c_error_t parse_workflow_line(const char *line, const char *end,
   if (rc != CDD_C_SUCCESS || !wf_id) {
     return rc;
   }
-  if (out->workflow_id)
-    C_CDD_FREE(out->workflow_id);
+  C_CDD_FREE(out->workflow_id);
   out->workflow_id = wf_id;
 
-  rc = doc_skip_ws(cur, &cur);
-  if (rc != CDD_C_SUCCESS) {
-    return rc;
-  }
-  while (cur < end && *cur == '[') {
+  while (*cur == ' ')
+    cur++;
+  while (*cur == '[') {
     const char *close_b = cur;
     while (close_b < end && *close_b != ']')
       close_b++;
     if (close_b < end) {
       size_t len = (size_t)(close_b - (cur + 1));
-      if (len > 8 && strncmp(cur + 1, "summary:", 8) == 0) {
-        if (out->workflow_summary)
-          C_CDD_FREE(out->workflow_summary);
+      if (strncmp(cur + 1, "summary:", 8) == 0) {
+        C_CDD_FREE(out->workflow_summary);
         out->workflow_summary = (char *)C_CDD_MALLOC(len - 8 + 1);
         if (!out->workflow_summary) {
           return CDD_C_ERROR_MEMORY;
@@ -528,10 +452,8 @@ static cdd_c_error_t parse_workflow_line(const char *line, const char *end,
         out->workflow_summary[len - 8] = '\0';
       }
       cur = close_b + 1;
-      rc = doc_skip_ws(cur, &cur);
-      if (rc != CDD_C_SUCCESS) {
-        return rc;
-      }
+      while (*cur == ' ')
+        cur++;
     } else {
       break;
     }
@@ -543,11 +465,8 @@ static cdd_c_error_t parse_workflow_line(const char *line, const char *end,
     if (rc != CDD_C_SUCCESS) {
       return rc;
     }
-    if (desc) {
-      if (out->description)
-        C_CDD_FREE(out->description);
-      out->description = desc;
-    }
+    C_CDD_FREE(out->description);
+    out->description = desc;
   }
   return CDD_C_SUCCESS;
 }
@@ -585,11 +504,9 @@ static cdd_c_error_t parse_step_line(const char *line, const char *end,
   }
   out->n_arazzo_steps++;
 
-  rc = doc_skip_ws(cur, &cur);
-  if (rc != CDD_C_SUCCESS) {
-    return rc;
-  }
-  while (cur < end && *cur == '[') {
+  while (*cur == ' ')
+    cur++;
+  while (*cur == '[') {
     const char *close_b = cur;
     while (close_b < end && *close_b != ']')
       close_b++;
@@ -602,31 +519,25 @@ static cdd_c_error_t parse_step_line(const char *line, const char *end,
       memcpy(attr, cur + 1, len);
       attr[len] = '\0';
       if (strncmp(attr, "operationId:", 12) == 0) {
-        if (st->operation_id)
-          C_CDD_FREE(st->operation_id);
+        C_CDD_FREE(st->operation_id);
         rc = c_cdd_strdup(attr + 12, &st->operation_id);
       } else if (strncmp(attr, "operationPath:", 14) == 0) {
-        if (st->operation_path)
-          C_CDD_FREE(st->operation_path);
+        C_CDD_FREE(st->operation_path);
         rc = c_cdd_strdup(attr + 14, &st->operation_path);
       } else if (strncmp(attr, "channelPath:", 12) == 0) {
-        if (st->channel_path)
-          C_CDD_FREE(st->channel_path);
+        C_CDD_FREE(st->channel_path);
         rc = c_cdd_strdup(attr + 12, &st->channel_path);
       } else if (strncmp(attr, "workflowId:", 11) == 0) {
-        if (st->workflow_id)
-          C_CDD_FREE(st->workflow_id);
+        C_CDD_FREE(st->workflow_id);
         rc = c_cdd_strdup(attr + 11, &st->workflow_id);
       } else if (strncmp(attr, "timeout:", 8) == 0) {
         st->timeout_ms = atoi(attr + 8);
         st->has_timeout = 1;
       } else if (strncmp(attr, "correlationId:", 14) == 0) {
-        if (st->correlation_id)
-          C_CDD_FREE(st->correlation_id);
+        C_CDD_FREE(st->correlation_id);
         rc = c_cdd_strdup(attr + 14, &st->correlation_id);
       } else if (strncmp(attr, "action:", 7) == 0) {
-        if (st->action)
-          C_CDD_FREE(st->action);
+        C_CDD_FREE(st->action);
         rc = c_cdd_strdup(attr + 7, &st->action);
       }
       C_CDD_FREE(attr);
@@ -634,10 +545,8 @@ static cdd_c_error_t parse_step_line(const char *line, const char *end,
         return rc;
       }
       cur = close_b + 1;
-      rc = doc_skip_ws(cur, &cur);
-      if (rc != CDD_C_SUCCESS) {
-        return rc;
-      }
+      while (*cur == ' ')
+        cur++;
     } else {
       break;
     }
@@ -665,19 +574,16 @@ static cdd_c_error_t parse_step_request_body_line(const char *line,
   if (rc != CDD_C_SUCCESS) {
     return rc;
   }
-  rc = doc_skip_ws(cur, &cur);
-  if (rc != CDD_C_SUCCESS) {
-    return rc;
-  }
-  while (cur < end && *cur == '[') {
+  while (*cur == ' ')
+    cur++;
+  while (*cur == '[') {
     const char *close_b = cur;
     while (close_b < end && *close_b != ']')
       close_b++;
     if (close_b < end) {
       size_t len = (size_t)(close_b - (cur + 1));
-      if (len > 12 && strncmp(cur + 1, "contentType:", 12) == 0) {
-        if (st->request_body_content_type)
-          C_CDD_FREE(st->request_body_content_type);
+      if (strncmp(cur + 1, "contentType:", 12) == 0) {
+        C_CDD_FREE(st->request_body_content_type);
         st->request_body_content_type = (char *)C_CDD_MALLOC(len - 12 + 1);
         if (!st->request_body_content_type) {
           return CDD_C_ERROR_MEMORY;
@@ -686,16 +592,13 @@ static cdd_c_error_t parse_step_request_body_line(const char *line,
         st->request_body_content_type[len - 12] = '\0';
       }
       cur = close_b + 1;
-      rc = doc_skip_ws(cur, &cur);
-      if (rc != CDD_C_SUCCESS) {
-        return rc;
-      }
+      while (*cur == ' ')
+        cur++;
     } else {
       break;
     }
   }
-  if (st->request_body_payload)
-    C_CDD_FREE(st->request_body_payload);
+  C_CDD_FREE(st->request_body_payload);
   st->request_body_payload = NULL;
   return doc_extract_rest(cur, end, &st->request_body_payload);
 }
@@ -736,8 +639,7 @@ static cdd_c_error_t parse_step_replacement_line(const char *line,
       (st->n_replacements + 1) * sizeof(struct DocArazzoReplacement));
   if (!next_arr) {
     C_CDD_FREE(target);
-    if (val)
-      C_CDD_FREE(val);
+    C_CDD_FREE(val);
     return CDD_C_ERROR_MEMORY;
   }
   st->replacements = next_arr;
@@ -779,11 +681,9 @@ static cdd_c_error_t parse_step_criterion_line(const char *line,
   memset(crit, 0, sizeof(*crit));
   st->n_criteria++;
 
-  rc = doc_skip_ws(cur, &cur);
-  if (rc != CDD_C_SUCCESS) {
-    return rc;
-  }
-  while (cur < end && *cur == '[') {
+  while (*cur == ' ')
+    cur++;
+  while (*cur == '[') {
     const char *close_b = cur;
     while (close_b < end && *close_b != ']')
       close_b++;
@@ -796,16 +696,13 @@ static cdd_c_error_t parse_step_criterion_line(const char *line,
       memcpy(attr, cur + 1, len);
       attr[len] = '\0';
       if (strncmp(attr, "context:", 8) == 0) {
-        if (crit->context)
-          C_CDD_FREE(crit->context);
+        C_CDD_FREE(crit->context);
         rc = c_cdd_strdup(attr + 8, &crit->context);
       } else if (strncmp(attr, "type:", 5) == 0) {
-        if (crit->type)
-          C_CDD_FREE(crit->type);
+        C_CDD_FREE(crit->type);
         rc = c_cdd_strdup(attr + 5, &crit->type);
       } else if (strncmp(attr, "version:", 8) == 0) {
-        if (crit->version)
-          C_CDD_FREE(crit->version);
+        C_CDD_FREE(crit->version);
         rc = c_cdd_strdup(attr + 8, &crit->version);
       }
       C_CDD_FREE(attr);
@@ -813,10 +710,8 @@ static cdd_c_error_t parse_step_criterion_line(const char *line,
         return rc;
       }
       cur = close_b + 1;
-      rc = doc_skip_ws(cur, &cur);
-      if (rc != CDD_C_SUCCESS) {
-        return rc;
-      }
+      while (*cur == ' ')
+        cur++;
     } else {
       break;
     }
@@ -866,11 +761,9 @@ static cdd_c_error_t parse_step_action_line(const char *line, const char *end,
   }
   (*count_ptr)++;
 
-  rc = doc_skip_ws(cur, &cur);
-  if (rc != CDD_C_SUCCESS) {
-    return rc;
-  }
-  while (cur < end && *cur == '[') {
+  while (*cur == ' ')
+    cur++;
+  while (*cur == '[') {
     const char *close_b = cur;
     while (close_b < end && *close_b != ']')
       close_b++;
@@ -883,20 +776,16 @@ static cdd_c_error_t parse_step_action_line(const char *line, const char *end,
       memcpy(attr, cur + 1, len);
       attr[len] = '\0';
       if (strncmp(attr, "type:", 5) == 0) {
-        if (act->type)
-          C_CDD_FREE(act->type);
+        C_CDD_FREE(act->type);
         rc = c_cdd_strdup(attr + 5, &act->type);
       } else if (strncmp(attr, "stepId:", 7) == 0) {
-        if (act->step_id)
-          C_CDD_FREE(act->step_id);
+        C_CDD_FREE(act->step_id);
         rc = c_cdd_strdup(attr + 7, &act->step_id);
       } else if (strncmp(attr, "workflowId:", 11) == 0) {
-        if (act->workflow_id)
-          C_CDD_FREE(act->workflow_id);
+        C_CDD_FREE(act->workflow_id);
         rc = c_cdd_strdup(attr + 11, &act->workflow_id);
       } else if (strncmp(attr, "reference:", 10) == 0) {
-        if (act->reference)
-          C_CDD_FREE(act->reference);
+        C_CDD_FREE(act->reference);
         rc = c_cdd_strdup(attr + 10, &act->reference);
       } else if (strncmp(attr, "retryAfter:", 11) == 0) {
         act->retry_after = atof(attr + 11);
@@ -910,10 +799,8 @@ static cdd_c_error_t parse_step_action_line(const char *line, const char *end,
         return rc;
       }
       cur = close_b + 1;
-      rc = doc_skip_ws(cur, &cur);
-      if (rc != CDD_C_SUCCESS) {
-        return rc;
-      }
+      while (*cur == ' ')
+        cur++;
     } else {
       break;
     }
@@ -960,8 +847,7 @@ static cdd_c_error_t parse_arazzo_component_line(const char *line,
   if (!next_arr) {
     C_CDD_FREE(kind);
     C_CDD_FREE(name);
-    if (json)
-      C_CDD_FREE(json);
+    C_CDD_FREE(json);
     return CDD_C_ERROR_MEMORY;
   }
   out->arazzo_components = next_arr;
@@ -991,14 +877,12 @@ cdd_c_error_t doc_parse_arazzo_directive(const char *cmd, const char *line,
   *out_handled = 1;
 
   if (strcmp(cmd, "arazzo") == 0) {
-    if (out->arazzo_version)
-      C_CDD_FREE(out->arazzo_version);
+    C_CDD_FREE(out->arazzo_version);
     out->arazzo_version = NULL;
     return doc_extract_rest(line, end, &out->arazzo_version);
   }
   if (strcmp(cmd, "self") == 0) {
-    if (out->self_uri)
-      C_CDD_FREE(out->self_uri);
+    C_CDD_FREE(out->self_uri);
     out->self_uri = NULL;
     return doc_extract_rest(line, end, &out->self_uri);
   }
@@ -1011,8 +895,7 @@ cdd_c_error_t doc_parse_arazzo_directive(const char *cmd, const char *line,
   }
   if (strcmp(cmd, "workflowSummary") == 0 ||
       strcmp(cmd, "workflowsummary") == 0) {
-    if (out->workflow_summary)
-      C_CDD_FREE(out->workflow_summary);
+    C_CDD_FREE(out->workflow_summary);
     out->workflow_summary = NULL;
     return doc_extract_rest(line, end, &out->workflow_summary);
   }
@@ -1022,8 +905,7 @@ cdd_c_error_t doc_parse_arazzo_directive(const char *cmd, const char *line,
                             &out->n_workflow_depends_on);
   }
   if (strcmp(cmd, "workflowInput") == 0 || strcmp(cmd, "workflowinput") == 0) {
-    if (out->workflow_inputs_json)
-      C_CDD_FREE(out->workflow_inputs_json);
+    C_CDD_FREE(out->workflow_inputs_json);
     out->workflow_inputs_json = NULL;
     return doc_extract_rest(line, end, &out->workflow_inputs_json);
   }
@@ -1078,7 +960,7 @@ cdd_c_error_t doc_parse_arazzo_directive(const char *cmd, const char *line,
       strcmp(cmd, "arazzocomponent") == 0) {
     return parse_arazzo_component_line(line, end, out);
   }
-  if (strncmp(cmd, "x-", 2) == 0 && cmd[2] != '\0') {
+  if (strncmp(cmd, "x-", 2) == 0) {
     char *val = NULL;
     struct DocArazzoKeyVal *next_arr;
     rc = doc_extract_rest(line, end, &val);
@@ -1088,16 +970,14 @@ cdd_c_error_t doc_parse_arazzo_directive(const char *cmd, const char *line,
         out->arazzo_extensions,
         (out->n_arazzo_extensions + 1) * sizeof(struct DocArazzoKeyVal));
     if (!next_arr) {
-      if (val)
-        C_CDD_FREE(val);
+      C_CDD_FREE(val);
       return CDD_C_ERROR_MEMORY;
     }
     out->arazzo_extensions = next_arr;
     rc = c_cdd_strdup(cmd,
                       &out->arazzo_extensions[out->n_arazzo_extensions].key);
     if (rc != CDD_C_SUCCESS) {
-      if (val)
-        C_CDD_FREE(val);
+      C_CDD_FREE(val);
       return rc;
     }
     out->arazzo_extensions[out->n_arazzo_extensions].value = val;

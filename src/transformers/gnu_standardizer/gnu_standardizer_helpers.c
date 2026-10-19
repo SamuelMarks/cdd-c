@@ -462,7 +462,7 @@ cdd_c_error_t cdd_tramp_visitor(cdd_cst_node_t *node, void *user_data) {
  * @return CDD_C_SUCCESS on success, or error code.
  */
 cdd_c_error_t cdd_asm_visitor(cdd_cst_node_t *node, void *user_data) {
-  if (!node && !user_data)
+  if ((void *)node == user_data)
     return CDD_C_SUCCESS;
   return CDD_C_SUCCESS;
 }

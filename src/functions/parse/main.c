@@ -129,14 +129,11 @@ C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv) {
  */
 C_CDD_EXPORT cdd_c_error_t print_help(const char *program_name) {
   const char *display_name = program_name ? program_name : "cdd-c";
-  if (display_name &&
-      (strchr(display_name, '/') || strchr(display_name, '\\'))) {
-    const char *slash = strrchr(display_name, '/');
-    const char *bslash = strrchr(display_name, '\\');
-    const char *last = slash > bslash ? slash : bslash;
-    if (last && *(last + 1)) {
-      display_name = last + 1;
-    }
+  const char *slash = strrchr(display_name, '/');
+  const char *bslash = strrchr(display_name, '\\');
+  const char *last = slash > bslash ? slash : bslash;
+  if (last) {
+    display_name = last + 1;
   }
   printf("Usage: %s [OPTIONS] <COMMAND>\n\n", display_name);
   puts("Commands:");

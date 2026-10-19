@@ -516,23 +516,11 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         int out_result = 0;
         rc = cdd_target_langs_contains(config->target_langs, EMITTERS[i].name,
                                        &out_result);
-        if (rc != CDD_C_SUCCESS) {
-          cdd_ffi_ir_free(ir);
-          C_CDD_FREE(ir);
-          C_CDD_FREE(file_content);
-          return rc;
-        }
         if (out_result) {
           should_emit = 1;
         } else if (EMITTERS[i].alias) {
           rc = cdd_target_langs_contains(config->target_langs,
                                          EMITTERS[i].alias, &out_result);
-          if (rc != CDD_C_SUCCESS) {
-            cdd_ffi_ir_free(ir);
-            C_CDD_FREE(ir);
-            C_CDD_FREE(file_content);
-            return rc;
-          }
           if (out_result)
             should_emit = 1;
         }
@@ -653,8 +641,7 @@ cdd_c_error_t cdd_generate_to_arazzo(const cdd_to_arazzo_config_t *config) {
     return rc;
   }
   if (config->self_uri && *config->self_uri) {
-    if (spec.self_uri)
-      C_CDD_FREE(spec.self_uri);
+    C_CDD_FREE(spec.self_uri);
     spec.self_uri = NULL;
     rc = c_cdd_strdup(config->self_uri, &spec.self_uri);
     if (rc != CDD_C_SUCCESS) {

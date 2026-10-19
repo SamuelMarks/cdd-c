@@ -21,10 +21,8 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_log_debug(const char *fmt, ...) {
   va_start(args, fmt);
   vfprintf(stderr, fmt, args);
   va_end(args);
-#else
-  if (!fmt) {
-    return CDD_C_SUCCESS;
-  }
-#endif
   return CDD_C_SUCCESS;
+#else
+  return (cdd_c_error_t)((size_t)fmt & 0);
+#endif
 }

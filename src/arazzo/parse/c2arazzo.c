@@ -36,10 +36,8 @@
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
  */
 static cdd_c_error_t replace_str(const char *src, char **dst) {
-  if (*dst) {
-    C_CDD_FREE(*dst);
-    *dst = NULL;
-  }
+  C_CDD_FREE(*dst);
+  *dst = NULL;
   return c_cdd_strdup(src, dst);
 }
 
@@ -55,9 +53,6 @@ static cdd_c_error_t parse_str_to_any(const char *raw,
   JSON_Value *jv;
   cdd_c_error_t rc;
   memset(out_any, 0, sizeof(*out_any));
-  if (!raw || !*raw) {
-    return CDD_C_SUCCESS;
-  }
   jv = json_parse_string(raw);
   if (jv) {
     rc = parse_any_value(jv, out_any);
@@ -84,8 +79,7 @@ append_source_description(struct Arazzo_Spec *spec,
   cdd_c_error_t rc;
 
   for (i = 0; i < spec->n_source_descriptions; ++i) {
-    if (spec->source_descriptions[i].name && sDoc->name &&
-        strcmp(spec->source_descriptions[i].name, sDoc->name) == 0) {
+    if (strcmp(spec->source_descriptions[i].name, sDoc->name) == 0) {
       return CDD_C_SUCCESS;
     }
   }
@@ -156,7 +150,7 @@ static cdd_c_error_t convert_doc_params(const struct DocArazzoParam *src,
       if (rc != CDD_C_SUCCESS) {
         return rc;
       }
-      if (src[i].value && *src[i].value) {
+      if (src[i].value) {
         dst->reusable.has_value_override = 1;
         rc = parse_str_to_any(src[i].value, &dst->reusable.value);
         if (rc != CDD_C_SUCCESS) {
@@ -288,8 +282,7 @@ static cdd_c_error_t convert_doc_step(const struct DocArazzoStep *src,
     }
   } else {
     dst->target_kind = ARAZZO_STEP_TARGET_OPERATION_ID;
-    rc = c_cdd_strdup(src->step_id ? src->step_id : "step_1",
-                      &dst->operation_id);
+    rc = c_cdd_strdup(src->step_id, &dst->operation_id);
     if (rc != CDD_C_SUCCESS) {
       return rc;
     }
@@ -595,69 +588,74 @@ cdd_c_error_t c2arazzo_apply_doc_metadata(const struct DocMetadata *meta,
   }
 
   if (meta->workflow_id) {
-    struct Arazzo_Workflow *next_wfs;
-    struct Arazzo_Workflow *wf;
-
-    next_wfs = (struct Arazzo_Workflow *)C_CDD_REALLOC(
-        spec->workflows,
-        (spec->n_workflows + 1) * sizeof(struct Arazzo_Workflow));
-    if (!next_wfs) {
-      return CDD_C_ERROR_MEMORY;
-    }
-    spec->workflows = next_wfs;
-    wf = &spec->workflows[spec->n_workflows];
-    memset(wf, 0, sizeof(*wf));
-
-    rc = c_cdd_strdup(meta->workflow_id, &wf->workflow_id);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    spec->n_workflows++;
-
-    if (meta->workflow_summary || meta->summary) {
-      rc = c_cdd_strdup(meta->workflow_summary ? meta->workflow_summary
-                                               : meta->summary,
-                        &wf->summary);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
-    }
-    if (meta->description) {
-      rc = c_cdd_strdup(meta->description, &wf->description);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
-    }
-    if (meta->workflow_inputs_json) {
-      JSON_Value *in_val = json_parse_string(meta->workflow_inputs_json);
-      if (in_val && json_value_get_object(in_val)) {
-        if (parse_schema_ref(json_value_get_object(in_val), &wf->inputs,
-                             NULL) == CDD_C_SUCCESS) {
-          wf->has_inputs = 1;
-        }
+    struct Arazzo_Workflow *wf = NULL;
+    size_t k;
+    for (k = 0; k < spec->n_workflows; ++k) {
+      if (strcmp(spec->workflows[k].workflow_id, meta->workflow_id) == 0) {
+        wf = &spec->workflows[k];
+        break;
       }
-      if (in_val)
-        json_value_free(in_val);
     }
-    if (meta->n_workflow_depends_on > 0) {
-      wf->depends_on =
-          (char **)C_CDD_CALLOC(meta->n_workflow_depends_on, sizeof(char *));
-      if (!wf->depends_on)
+    if (!wf) {
+      struct Arazzo_Workflow *next_wfs =
+          (struct Arazzo_Workflow *)C_CDD_REALLOC(
+              spec->workflows,
+              (spec->n_workflows + 1) * sizeof(struct Arazzo_Workflow));
+      if (!next_wfs) {
         return CDD_C_ERROR_MEMORY;
-      for (i = 0; i < meta->n_workflow_depends_on; ++i) {
-        rc = c_cdd_strdup(meta->workflow_depends_on[i], &wf->depends_on[i]);
+      }
+      spec->workflows = next_wfs;
+      wf = &spec->workflows[spec->n_workflows];
+      memset(wf, 0, sizeof(*wf));
+
+      rc = c_cdd_strdup(meta->workflow_id, &wf->workflow_id);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      spec->n_workflows++;
+
+      if (meta->workflow_summary) {
+        rc = c_cdd_strdup(meta->workflow_summary, &wf->summary);
         if (rc != CDD_C_SUCCESS)
           return rc;
-        wf->n_depends_on++;
       }
+      if (meta->description) {
+        rc = c_cdd_strdup(meta->description, &wf->description);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+      }
+      if (meta->workflow_inputs_json) {
+        JSON_Value *in_val = json_parse_string(meta->workflow_inputs_json);
+        if (json_value_get_object(in_val)) {
+          if (parse_schema_ref(json_value_get_object(in_val), &wf->inputs,
+                               NULL) == CDD_C_SUCCESS) {
+            wf->has_inputs = 1;
+          }
+        }
+        json_value_free(in_val);
+      }
+      if (meta->n_workflow_depends_on > 0) {
+        wf->depends_on =
+            (char **)C_CDD_CALLOC(meta->n_workflow_depends_on, sizeof(char *));
+        if (!wf->depends_on)
+          return CDD_C_ERROR_MEMORY;
+        for (i = 0; i < meta->n_workflow_depends_on; ++i) {
+          rc = c_cdd_strdup(meta->workflow_depends_on[i], &wf->depends_on[i]);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
+          wf->n_depends_on++;
+        }
+      }
+      rc = convert_doc_params(meta->workflow_params, meta->n_workflow_params,
+                              &wf->parameters, &wf->n_parameters);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = convert_doc_outputs(meta->workflow_outputs, meta->n_workflow_outputs,
+                               &wf->outputs, &wf->n_outputs);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
-    rc = convert_doc_params(meta->workflow_params, meta->n_workflow_params,
-                            &wf->parameters, &wf->n_parameters);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    rc = convert_doc_outputs(meta->workflow_outputs, meta->n_workflow_outputs,
-                             &wf->outputs, &wf->n_outputs);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
 
-    if (meta->n_arazzo_steps > 0) {
+    if (wf->n_steps == 0 && meta->n_arazzo_steps > 0) {
       wf->steps = (struct Arazzo_Step *)C_CDD_CALLOC(
           meta->n_arazzo_steps, sizeof(struct Arazzo_Step));
       if (!wf->steps)
@@ -687,8 +685,7 @@ static cdd_c_error_t find_workflow_by_id(const struct Arazzo_Spec *spec,
   size_t i;
   *out_found = 0;
   for (i = 0; i < spec->n_workflows; ++i) {
-    if (spec->workflows[i].workflow_id &&
-        strcmp(spec->workflows[i].workflow_id, wf_id) == 0) {
+    if (strcmp(spec->workflows[i].workflow_id, wf_id) == 0) {
       *out_found = 1;
       break;
     }
@@ -716,34 +713,34 @@ extract_workflow_from_function_node(const struct CstNode *func_node,
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
   span = az_span_create((uint8_t *)(size_t)func_node->start, func_node->length);
-  if (tokenize(span, &tl) != 0 || !tl) {
+  if (tokenize(span, &tl) != 0) {
     return CDD_C_SUCCESS;
   }
 
-  for (i = 0; i < tl->size; ++i) {
+  for (i = 0; tl->tokens[i].kind != TOKEN_LBRACE; ++i) {
     if (tl->tokens[i].kind == TOKEN_IDENTIFIER) {
-      size_t len = tl->tokens[i].length;
-      char ident[256];
-      const char *wf_marker;
-      if (len >= sizeof(ident))
-        continue;
-      memcpy(ident, tl->tokens[i].start, len);
-      ident[len] = '\0';
-
-      wf_marker = strstr(ident, "workflow_");
-      if (wf_marker && wf_marker[9] != '\0') {
-        rc = c_cdd_strdup(wf_marker + 9, &wf_id);
-        break;
+      size_t k;
+      for (k = 0; k + 9 < tl->tokens[i].length; ++k) {
+        if (memcmp(tl->tokens[i].start + k, "workflow_", 9) == 0) {
+          size_t id_len = tl->tokens[i].length - (k + 9);
+          wf_id = (char *)C_CDD_MALLOC(id_len + 1);
+          if (!wf_id) {
+            free_token_list(tl);
+            return CDD_C_ERROR_MEMORY;
+          }
+          memcpy(wf_id, tl->tokens[i].start + k + 9, id_len);
+          wf_id[id_len] = '\0';
+          break;
+        }
       }
-    }
-    if (tl->tokens[i].kind == TOKEN_LBRACE) {
-      break;
+      if (wf_id)
+        break;
     }
   }
 
-  if (wf_id && rc == CDD_C_SUCCESS) {
-    rc = find_workflow_by_id(spec, wf_id, &found);
-    if (rc == CDD_C_SUCCESS && !found) {
+  if (wf_id) {
+    find_workflow_by_id(spec, wf_id, &found);
+    if (!found) {
       struct Arazzo_Workflow *next_wfs =
           (struct Arazzo_Workflow *)C_CDD_REALLOC(
               spec->workflows,
@@ -821,8 +818,7 @@ extract_workflow_from_function_node(const struct CstNode *func_node,
     }
   }
 
-  if (wf_id)
-    C_CDD_FREE(wf_id);
+  C_CDD_FREE(wf_id);
   free_token_list(tl);
   return rc;
 }
@@ -836,11 +832,6 @@ extract_workflow_from_function_node(const struct CstNode *func_node,
  */
 static cdd_c_error_t ensure_spec_defaults(struct Arazzo_Spec *spec) {
   cdd_c_error_t rc;
-  if (!spec->arazzo) {
-    rc = c_cdd_strdup("1.1.0", &spec->arazzo);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-  }
   if (!spec->info.title) {
     rc = c_cdd_strdup("Extracted Arazzo Workflow Specification",
                       &spec->info.title);
@@ -876,18 +867,27 @@ static cdd_c_error_t ensure_spec_defaults(struct Arazzo_Spec *spec) {
     rc = c_cdd_strdup("default_workflow", &spec->workflows[0].workflow_id);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    spec->workflows[0].steps =
-        (struct Arazzo_Step *)C_CDD_CALLOC(1, sizeof(struct Arazzo_Step));
-    if (!spec->workflows[0].steps)
-      return CDD_C_ERROR_MEMORY;
-    spec->workflows[0].n_steps = 1;
-    rc = c_cdd_strdup("step_1", &spec->workflows[0].steps[0].step_id);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    spec->workflows[0].steps[0].target_kind = ARAZZO_STEP_TARGET_OPERATION_ID;
-    rc = c_cdd_strdup("default_op", &spec->workflows[0].steps[0].operation_id);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+  }
+  {
+    size_t i;
+    for (i = 0; i < spec->n_workflows; ++i) {
+      if (spec->workflows[i].n_steps == 0) {
+        spec->workflows[i].steps =
+            (struct Arazzo_Step *)C_CDD_CALLOC(1, sizeof(struct Arazzo_Step));
+        if (!spec->workflows[i].steps)
+          return CDD_C_ERROR_MEMORY;
+        spec->workflows[i].n_steps = 1;
+        rc = c_cdd_strdup("step_1", &spec->workflows[i].steps[0].step_id);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        spec->workflows[i].steps[0].target_kind =
+            ARAZZO_STEP_TARGET_OPERATION_ID;
+        rc = c_cdd_strdup("default_op",
+                          &spec->workflows[i].steps[0].operation_id);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+      }
+    }
   }
   return CDD_C_SUCCESS;
 }
@@ -934,14 +934,12 @@ cdd_c_error_t c2arazzo_parse_source(const char *source,
       memcpy(doc_text, cst.nodes[i].start, cst.nodes[i].length);
       doc_text[cst.nodes[i].length] = '\0';
 
-      rc = doc_metadata_init(&meta);
+      doc_metadata_init(&meta);
+      rc = doc_parse_block(doc_text, &meta);
       if (rc == CDD_C_SUCCESS) {
-        rc = doc_parse_block(doc_text, &meta);
-        if (rc == CDD_C_SUCCESS) {
-          rc = c2arazzo_apply_doc_metadata(&meta, spec);
-        }
-        doc_metadata_free(&meta);
+        rc = c2arazzo_apply_doc_metadata(&meta, spec);
       }
+      doc_metadata_free(&meta);
       C_CDD_FREE(doc_text);
       if (rc != CDD_C_SUCCESS) {
         goto cleanup;
@@ -995,17 +993,12 @@ cdd_c_error_t c2arazzo_parse_file(const char *path, struct Arazzo_Spec *spec) {
 static cdd_c_error_t c2arazzo_walker_cb(const char *path, void *user_data) {
   struct Arazzo_Spec *spec = (struct Arazzo_Spec *)user_data;
   int is_src = 0;
-  cdd_c_error_t rc;
 
-  rc = c2openapi_is_source_file(path, &is_src);
-  if (rc != CDD_C_SUCCESS || !is_src) {
+  c2openapi_is_source_file(path, &is_src);
+  if (!is_src) {
     return CDD_C_SUCCESS;
   }
-  rc = c2arazzo_parse_file(path, spec);
-  if (rc == CDD_C_ERROR_MEMORY) {
-    return rc;
-  }
-  return CDD_C_SUCCESS;
+  return c2arazzo_parse_file(path, spec);
 }
 
 /**
@@ -1028,8 +1021,8 @@ cdd_c_error_t c2arazzo_parse_dir(const char *dir_path,
       return rc;
   }
 
-  rc = c2openapi_is_source_file(dir_path, &is_src);
-  if (rc == CDD_C_SUCCESS && is_src) {
+  c2openapi_is_source_file(dir_path, &is_src);
+  if (is_src) {
     return c2arazzo_parse_file(dir_path, spec);
   }
   rc = walk_directory(dir_path, c2arazzo_walker_cb, spec);
@@ -1097,7 +1090,7 @@ cdd_c_error_t c2arazzo_cli_main(int argc, char **argv) {
     return rc;
   }
 
-  if (self_uri && *self_uri) {
+  if (self_uri) {
     rc = replace_str(self_uri, &spec.self_uri);
     if (rc != CDD_C_SUCCESS) {
       arazzo_spec_free(&spec);

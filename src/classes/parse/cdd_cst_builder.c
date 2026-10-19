@@ -673,7 +673,7 @@ cdd_c_error_t cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
       {
         cdd_token_t *last = NULL;
         rc = cdd_cst_get_last_token(builder->target_node, &last);
-        if (rc == CDD_C_SUCCESS && last) {
+        {
           cdd_trivia_t *tr;
           last->leading_trivia = t->leading_trivia;
           last->trailing_trivia = t->trailing_trivia;

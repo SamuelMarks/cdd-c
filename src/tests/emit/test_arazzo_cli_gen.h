@@ -18,6 +18,7 @@
 
 #include "arazzo/parse/arazzo.h"
 #include "c_cdd/memory.h"
+#include "c_cdd/safe_crt.h"
 #include "routes/emit/arazzo_cli_gen.h"
 #include "cdd_test_helpers/cdd_helpers.h"
 /* clang-format on */
@@ -46,14 +47,49 @@ TEST test_arazzo_cli_gen_basic(void) {
       "}]"
       "}";
 
+  memset(&spec, 0, sizeof(spec));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             arazzo_cli_render_to_string(NULL, "b", "", &cli_src));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            arazzo_cli_render_to_string(&spec, NULL, "", &cli_src));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            arazzo_cli_render_to_string(&spec, "b", "", NULL));
   memset(&cfg, 0, sizeof(cfg));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             arazzo_cli_generate(NULL, NULL, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            arazzo_cli_generate(&spec, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            arazzo_cli_generate(&spec, NULL, &cfg));
+
+  {
+    struct Arazzo_Spec min_spec;
+    struct Arazzo_Workflow min_wf;
+    memset(&min_spec, 0, sizeof(min_spec));
+    memset(&min_wf, 0, sizeof(min_wf));
+    min_spec.workflows = &min_wf;
+    min_spec.n_workflows = 1;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              arazzo_cli_render_to_string(&min_spec, "min", NULL, &cli_src));
+    C_CDD_FREE(cli_src);
+    cli_src = NULL;
+  }
 
   memset(&spec, 0, sizeof(spec));
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_load_from_json(arazzo_json, &spec));
+
+  {
+    int f;
+    for (f = 1; f <= 15; ++f) {
+      g_cdd_alloc_fail = f;
+      if (arazzo_cli_render_to_string(&spec, "job", "api_", &cli_src) ==
+          CDD_C_SUCCESS) {
+        C_CDD_FREE(cli_src);
+        cli_src = NULL;
+      }
+      g_cdd_alloc_fail = 0;
+    }
+  }
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_cli_render_to_string(&spec, "job", "api_", &cli_src));
@@ -63,10 +99,30 @@ TEST test_arazzo_cli_gen_basic(void) {
          NULL);
   C_CDD_FREE(cli_src);
 
-  strcpy(base_path, "test_build_dir/arazzo_job/job");
+  CDD_STRCPY(base_path, sizeof(base_path), "test_build_dir/arazzo_job/job");
   memset(&cfg, 0, sizeof(cfg));
   cfg.filename_base = base_path;
+  cfg.func_prefix = NULL;
+  ASSERT_EQ(CDD_C_SUCCESS, arazzo_cli_generate(&spec, NULL, &cfg));
   cfg.func_prefix = "api_";
+  {
+    int f;
+    for (f = 1; f <= 20; ++f) {
+      g_cdd_alloc_fail = f;
+      arazzo_cli_generate(&spec, NULL, &cfg);
+      g_cdd_alloc_fail = 0;
+    }
+    for (f = 1; f <= 10; ++f) {
+      g_cdd_strdup_fail = f;
+      arazzo_cli_generate(&spec, NULL, &cfg);
+      g_cdd_strdup_fail = 0;
+    }
+    for (f = 0; f <= 3; ++f) {
+      g_fail_io_after = f;
+      arazzo_cli_generate(&spec, NULL, &cfg);
+      g_fail_io_after = -1;
+    }
+  }
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_cli_generate(&spec, NULL, &cfg));
   remove("test_build_dir/arazzo_job/src/job_workflows.h");
   remove("test_build_dir/arazzo_job/src/job_workflows.c");

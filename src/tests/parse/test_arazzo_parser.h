@@ -526,6 +526,8 @@ TEST test_arazzo_parse_and_validate_errors(void) {
   free(spec.arazzo);
   spec.arazzo = NULL;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, arazzo_validate_spec(&spec));
+  spec.n_workflows = 2;
+  spec.n_source_descriptions = 3;
   arazzo_spec_free(&spec);
 
   /* OOM sweep across full Arazzo load and emit */
@@ -552,16 +554,30 @@ TEST test_arazzo_parse_and_validate_errors(void) {
     g_cdd_alloc_fail = 0;
 
     /* Emit with empty components sub-objects */
-    spec.components.n_inputs = 0;
-    spec.components.n_success_actions = 0;
-    spec.components.n_failure_actions = 0;
-    ASSERT_EQ(CDD_C_SUCCESS, arazzo_write_spec_to_json(&spec, &json_out));
-    free(json_out);
-    spec.components.n_parameters = 0;
-    spec.workflows[1].steps[0].n_parameters = 0;
-    ASSERT_EQ(CDD_C_SUCCESS, arazzo_write_spec_to_json(&spec, &json_out));
-    free(json_out);
-    arazzo_spec_free(&spec);
+    {
+      size_t orig_n_inputs = spec.components.n_inputs;
+      size_t orig_n_sa = spec.components.n_success_actions;
+      size_t orig_n_fa = spec.components.n_failure_actions;
+      size_t orig_n_cp = spec.components.n_parameters;
+      size_t orig_n_sp = spec.workflows[1].steps[0].n_parameters;
+
+      spec.components.n_inputs = 0;
+      spec.components.n_success_actions = 0;
+      spec.components.n_failure_actions = 0;
+      ASSERT_EQ(CDD_C_SUCCESS, arazzo_write_spec_to_json(&spec, &json_out));
+      free(json_out);
+      spec.components.n_parameters = 0;
+      spec.workflows[1].steps[0].n_parameters = 0;
+      ASSERT_EQ(CDD_C_SUCCESS, arazzo_write_spec_to_json(&spec, &json_out));
+      free(json_out);
+
+      spec.components.n_inputs = orig_n_inputs;
+      spec.components.n_success_actions = orig_n_sa;
+      spec.components.n_failure_actions = orig_n_fa;
+      spec.components.n_parameters = orig_n_cp;
+      spec.workflows[1].steps[0].n_parameters = orig_n_sp;
+      arazzo_spec_free(&spec);
+    }
 
     ASSERT_EQ(CDD_C_SUCCESS, arazzo_load_from_json_value(root_val, &spec));
 
@@ -582,17 +598,24 @@ TEST test_arazzo_parse_and_validate_errors(void) {
     spec.workflows[1].steps[0].outputs[1].selector.context = NULL;
     free(spec.workflows[1].steps[0].request_body.content_type);
     spec.workflows[1].steps[0].request_body.content_type = NULL;
-    spec.workflows[1].steps[0].request_body.n_replacements = 0;
-    free(
-        spec.workflows[1].steps[0].success_criteria[4].expression_type.version);
-    spec.workflows[1].steps[0].success_criteria[4].expression_type.version =
-        NULL;
-    spec.workflows[1].steps[0].on_success[1].type = ARAZZO_ACTION_UNKNOWN;
-    spec.workflows[1].steps[0].on_failure[1].type = ARAZZO_ACTION_UNKNOWN;
-    spec.workflows[1].steps[0].parameters[1].in = ARAZZO_PARAM_IN_UNKNOWN;
-    ASSERT_EQ(CDD_C_SUCCESS, arazzo_write_spec_to_json(&spec, &json_out));
-    free(json_out);
-    arazzo_spec_free(&spec);
+    {
+      size_t orig_n_rep =
+          spec.workflows[1].steps[0].request_body.n_replacements;
+      spec.workflows[1].steps[0].request_body.n_replacements = 0;
+      free(spec.workflows[1]
+               .steps[0]
+               .success_criteria[4]
+               .expression_type.version);
+      spec.workflows[1].steps[0].success_criteria[4].expression_type.version =
+          NULL;
+      spec.workflows[1].steps[0].on_success[1].type = ARAZZO_ACTION_UNKNOWN;
+      spec.workflows[1].steps[0].on_failure[1].type = ARAZZO_ACTION_UNKNOWN;
+      spec.workflows[1].steps[0].parameters[1].in = ARAZZO_PARAM_IN_UNKNOWN;
+      ASSERT_EQ(CDD_C_SUCCESS, arazzo_write_spec_to_json(&spec, &json_out));
+      free(json_out);
+      spec.workflows[1].steps[0].request_body.n_replacements = orig_n_rep;
+      arazzo_spec_free(&spec);
+    }
   }
 
   /* Malformed sub-object JSON inputs */

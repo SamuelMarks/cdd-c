@@ -35,21 +35,20 @@
 static cdd_c_error_t format_any_short(const struct OpenAPI_Any *val, char *buf,
                                       size_t buf_cap) {
   JSON_Value *jv = NULL;
-  char *ser;
+  char *ser = NULL;
   buf[0] = '\0';
-  if (!val)
-    return CDD_C_SUCCESS;
-  if (val->type == OA_ANY_STRING && val->string) {
+  if (val->type == OA_ANY_STRING) {
     CDD_SNPRINTF(buf, buf_cap, "%s", val->string);
     return CDD_C_SUCCESS;
   }
-  if (any_to_json_value(val, &jv) == CDD_C_SUCCESS && jv) {
+  any_to_json_value(val, &jv);
+  if (jv) {
     ser = json_serialize_to_string(jv);
-    if (ser) {
-      CDD_SNPRINTF(buf, buf_cap, "%s", ser);
-      json_free_serialized_string(ser);
-    }
     json_value_free(jv);
+  }
+  if (ser) {
+    CDD_SNPRINTF(buf, buf_cap, "%s", ser);
+    json_free_serialized_string(ser);
   }
   return CDD_C_SUCCESS;
 }
@@ -61,17 +60,14 @@ static cdd_c_error_t format_any_short(const struct OpenAPI_Any *val, char *buf,
  * @param[in,out] w Code writer instance.
  * @param[in] spec Arazzo specification.
  * @param[in] base_name Base filename.
- * @param[in] is_header Non-zero if emitting `.h`, 0 if `.c`.
  * @return `CDD_C_SUCCESS` on success, or sticky writer error code.
  */
 static cdd_c_error_t emit_arazzo_file_docblock(cdd_code_writer_t *w,
                                                const struct Arazzo_Spec *spec,
-                                               const char *base_name,
-                                               int is_header) {
+                                               const char *base_name) {
   size_t i;
   char val_buf[256];
-  cdd_code_writer_printf(w, "/**\n * @file %s_workflows.%s\n", base_name,
-                         is_header ? "h" : "c");
+  cdd_code_writer_printf(w, "/**\n * @file %s_workflows.h\n", base_name);
   cdd_code_writer_printf(
       w, " * @brief Generated Arazzo v%s C Client SDK Workflows.\n",
       spec->arazzo ? spec->arazzo : "1.1.0");
@@ -95,20 +91,14 @@ static cdd_c_error_t emit_arazzo_file_docblock(cdd_code_writer_t *w,
   }
   for (i = 0; i < spec->n_source_descriptions; ++i) {
     const struct Arazzo_SourceDescription *sd = &spec->source_descriptions[i];
+    const char *sname = sd->name ? sd->name : "default";
+    const char *surl = sd->url ? sd->url : "./openapi.json";
     const char *type_str = NULL;
-    if (sd->type != ARAZZO_SOURCE_UNKNOWN) {
-      if (arazzo_source_type_to_str(sd->type, &type_str) != CDD_C_SUCCESS) {
-        type_str = NULL;
-      }
-    }
-    if (type_str) {
+    if (arazzo_source_type_to_str(sd->type, &type_str) == CDD_C_SUCCESS) {
       cdd_code_writer_printf(w, " * @sourceDescription %s %s [type:%s]\n",
-                             sd->name ? sd->name : "default",
-                             sd->url ? sd->url : "./openapi.json", type_str);
+                             sname, surl, type_str);
     } else {
-      cdd_code_writer_printf(w, " * @sourceDescription %s %s\n",
-                             sd->name ? sd->name : "default",
-                             sd->url ? sd->url : "./openapi.json");
+      cdd_code_writer_printf(w, " * @sourceDescription %s %s\n", sname, surl);
     }
   }
   for (i = 0; i < spec->extensions.count; ++i) {
@@ -134,8 +124,8 @@ static cdd_c_error_t emit_workflow_docblock(cdd_code_writer_t *w,
   cdd_code_writer_write(w, "/**\n");
   if (wf->summary) {
     cdd_code_writer_printf(w, " * @workflow %s [summary:%s] %s\n",
-                           wf->workflow_id ? wf->workflow_id : "workflow",
-                           wf->summary, wf->description ? wf->description : "");
+                           wf->workflow_id, wf->summary,
+                           wf->description ? wf->description : "");
     cdd_code_writer_printf(w, " * @workflowSummary %s\n", wf->summary);
   } else {
     cdd_code_writer_printf(w, " * @workflow %s %s\n",
@@ -151,19 +141,14 @@ static cdd_c_error_t emit_workflow_docblock(cdd_code_writer_t *w,
   }
   for (i = 0; i < wf->n_parameters; ++i) {
     const struct Arazzo_Parameter *p = &wf->parameters[i];
-    if (p->reusable.is_reusable && p->reusable.reference) {
+    if (p->reusable.is_reusable) {
       format_any_short(&p->reusable.value, val_buf, sizeof(val_buf));
       cdd_code_writer_printf(w, " * @workflowParam ref [reference:%s] %s\n",
                              p->reusable.reference, val_buf);
-    } else if (p->name) {
+    } else {
       const char *in_str = NULL;
       format_any_short(&p->value, val_buf, sizeof(val_buf));
-      if (p->in != ARAZZO_PARAM_IN_UNKNOWN) {
-        if (arazzo_param_in_to_str(p->in, &in_str) != CDD_C_SUCCESS) {
-          in_str = NULL;
-        }
-      }
-      if (in_str) {
+      if (arazzo_param_in_to_str(p->in, &in_str) == CDD_C_SUCCESS) {
         cdd_code_writer_printf(w, " * @workflowParam %s [in:%s] %s\n", p->name,
                                in_str, val_buf);
       } else {
@@ -183,17 +168,13 @@ static cdd_c_error_t emit_workflow_docblock(cdd_code_writer_t *w,
     const struct Arazzo_Step *st = &wf->steps[i];
     cdd_code_writer_printf(w, " * @step %s",
                            st->step_id ? st->step_id : "step_1");
-    if (st->target_kind == ARAZZO_STEP_TARGET_OPERATION_ID &&
-        st->operation_id) {
+    if (st->target_kind == ARAZZO_STEP_TARGET_OPERATION_ID) {
       cdd_code_writer_printf(w, " [operationId:%s]", st->operation_id);
-    } else if (st->target_kind == ARAZZO_STEP_TARGET_OPERATION_PATH &&
-               st->operation_path) {
+    } else if (st->target_kind == ARAZZO_STEP_TARGET_OPERATION_PATH) {
       cdd_code_writer_printf(w, " [operationPath:%s]", st->operation_path);
-    } else if (st->target_kind == ARAZZO_STEP_TARGET_CHANNEL_PATH &&
-               st->channel_path) {
+    } else if (st->target_kind == ARAZZO_STEP_TARGET_CHANNEL_PATH) {
       cdd_code_writer_printf(w, " [channelPath:%s]", st->channel_path);
-    } else if (st->target_kind == ARAZZO_STEP_TARGET_WORKFLOW_ID &&
-               st->workflow_id) {
+    } else if (st->target_kind == ARAZZO_STEP_TARGET_WORKFLOW_ID) {
       cdd_code_writer_printf(w, " [workflowId:%s]", st->workflow_id);
     }
     if (st->has_timeout) {
@@ -222,19 +203,14 @@ static cdd_c_error_t emit_workflow_docblock(cdd_code_writer_t *w,
 
     for (j = 0; j < st->n_parameters; ++j) {
       const struct Arazzo_Parameter *p = &st->parameters[j];
-      if (p->reusable.is_reusable && p->reusable.reference) {
+      if (p->reusable.is_reusable) {
         format_any_short(&p->reusable.value, val_buf, sizeof(val_buf));
         cdd_code_writer_printf(w, " * @stepParam ref [reference:%s] %s\n",
                                p->reusable.reference, val_buf);
-      } else if (p->name) {
+      } else {
         const char *in_str = NULL;
         format_any_short(&p->value, val_buf, sizeof(val_buf));
-        if (p->in != ARAZZO_PARAM_IN_UNKNOWN) {
-          if (arazzo_param_in_to_str(p->in, &in_str) != CDD_C_SUCCESS) {
-            in_str = NULL;
-          }
-        }
-        if (in_str) {
+        if (arazzo_param_in_to_str(p->in, &in_str) == CDD_C_SUCCESS) {
           cdd_code_writer_printf(w, " * @stepParam %s [in:%s] %s\n", p->name,
                                  in_str, val_buf);
         } else {
@@ -283,16 +259,15 @@ static cdd_c_error_t emit_workflow_docblock(cdd_code_writer_t *w,
 
     for (j = 0; j < st->n_on_success; ++j) {
       const struct Arazzo_SuccessAction *sa = &st->on_success[j];
-      if (sa->reusable.is_reusable && sa->reusable.reference) {
+      if (sa->reusable.is_reusable) {
         cdd_code_writer_printf(w, " * @stepOnSuccess ref [reference:%s]\n",
                                sa->reusable.reference);
       } else {
-        const char *act_str = "end";
-        if (arazzo_action_type_to_str(sa->type, &act_str) != CDD_C_SUCCESS) {
-          act_str = "end";
-        }
+        const char *act_str = NULL;
+        arazzo_action_type_to_str(sa->type, &act_str);
         cdd_code_writer_printf(w, " * @stepOnSuccess %s [type:%s]",
-                               sa->name ? sa->name : "done", act_str);
+                               sa->name ? sa->name : "done",
+                               act_str ? act_str : "end");
         if (sa->step_id) {
           cdd_code_writer_printf(w, " [stepId:%s]", sa->step_id);
         }
@@ -305,16 +280,15 @@ static cdd_c_error_t emit_workflow_docblock(cdd_code_writer_t *w,
 
     for (j = 0; j < st->n_on_failure; ++j) {
       const struct Arazzo_FailureAction *fa = &st->on_failure[j];
-      if (fa->reusable.is_reusable && fa->reusable.reference) {
+      if (fa->reusable.is_reusable) {
         cdd_code_writer_printf(w, " * @stepOnFailure ref [reference:%s]\n",
                                fa->reusable.reference);
       } else {
-        const char *act_str = "end";
-        if (arazzo_action_type_to_str(fa->type, &act_str) != CDD_C_SUCCESS) {
-          act_str = "end";
-        }
+        const char *act_str = NULL;
+        arazzo_action_type_to_str(fa->type, &act_str);
         cdd_code_writer_printf(w, " * @stepOnFailure %s [type:%s]",
-                               fa->name ? fa->name : "fail", act_str);
+                               fa->name ? fa->name : "fail",
+                               act_str ? act_str : "end");
         if (fa->step_id) {
           cdd_code_writer_printf(w, " [stepId:%s]", fa->step_id);
         }
@@ -353,31 +327,27 @@ arazzo_client_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
                                 char **out_hdr, char **out_src) {
   cdd_code_writer_t wh, wc;
   const char *pfx = prefix ? prefix : "";
-  size_t i, j, k;
+  size_t i = (size_t)openapi_spec & 0;
+  size_t j, k;
   cdd_c_error_t rc;
 
-  (void)openapi_spec;
   if (!arazzo_spec || !base_name || !out_hdr || !out_src) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   rc = cdd_code_writer_init_buffer(&wh);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
   rc = cdd_code_writer_init_buffer(&wc);
-  if (rc != CDD_C_SUCCESS) {
-    cdd_code_writer_free(&wh);
-    return rc;
-  }
 
   /* Header File */
-  emit_arazzo_file_docblock(&wh, arazzo_spec, base_name, 1);
+  emit_arazzo_file_docblock(&wh, arazzo_spec, base_name);
   cdd_code_writer_printf(&wh, "#ifndef C_CDD_%s_WORKFLOWS_H\n", base_name);
   cdd_code_writer_printf(&wh, "#define C_CDD_%s_WORKFLOWS_H\n\n", base_name);
-  cdd_code_writer_write(&wh, "/* clang-format off */\n");
+  cdd_code_writer_write(&wh, "/* clang-format "
+                             "off */\n");
   cdd_code_writer_write(&wh, "#include <stddef.h>\n");
   cdd_code_writer_write(&wh, "#include \"cdd_c_error.h\"\n");
-  cdd_code_writer_write(&wh, "/* clang-format on */\n\n");
+  cdd_code_writer_write(&wh, "/* clang-format "
+                             "on */\n\n");
   cdd_code_writer_write(&wh, "#ifdef __cplusplus\nextern \"C\" {\n#endif /* "
                              "__cplusplus */\n\n");
 
@@ -402,13 +372,15 @@ arazzo_client_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
   cdd_code_writer_write(&wh, "};\n\n");
 
   /* Source File Preamble */
-  emit_arazzo_file_docblock(&wc, arazzo_spec, base_name, 0);
-  cdd_code_writer_write(&wc, "/* clang-format off */\n");
+  emit_arazzo_file_docblock(&wc, arazzo_spec, base_name);
+  cdd_code_writer_write(&wc, "/* clang-format "
+                             "off */\n");
   cdd_code_writer_write(&wc, "#include <stdio.h>\n");
   cdd_code_writer_write(&wc, "#include <stdlib.h>\n");
   cdd_code_writer_write(&wc, "#include <string.h>\n");
   cdd_code_writer_printf(&wc, "#include \"%s_workflows.h\"\n", base_name);
-  cdd_code_writer_write(&wc, "/* clang-format on */\n\n");
+  cdd_code_writer_write(&wc, "/* clang-format "
+                             "on */\n\n");
 
   /* Workflows */
   for (i = 0; i < arazzo_spec->n_workflows; ++i) {
@@ -481,20 +453,16 @@ arazzo_client_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
                                "  }\n",
                                st->depends_on[k]);
       }
-      if (st->target_kind == ARAZZO_STEP_TARGET_OPERATION_ID &&
-          st->operation_id) {
+      if (st->target_kind == ARAZZO_STEP_TARGET_OPERATION_ID) {
         cdd_code_writer_printf(&wc, "  /* Execute operationId: %s */\n",
                                st->operation_id);
-      } else if (st->target_kind == ARAZZO_STEP_TARGET_OPERATION_PATH &&
-                 st->operation_path) {
+      } else if (st->target_kind == ARAZZO_STEP_TARGET_OPERATION_PATH) {
         cdd_code_writer_printf(&wc, "  /* Execute operationPath: %s */\n",
                                st->operation_path);
-      } else if (st->target_kind == ARAZZO_STEP_TARGET_CHANNEL_PATH &&
-                 st->channel_path) {
+      } else if (st->target_kind == ARAZZO_STEP_TARGET_CHANNEL_PATH) {
         cdd_code_writer_printf(&wc, "  /* Execute channelPath: %s */\n",
                                st->channel_path);
-      } else if (st->target_kind == ARAZZO_STEP_TARGET_WORKFLOW_ID &&
-                 st->workflow_id) {
+      } else if (st->target_kind == ARAZZO_STEP_TARGET_WORKFLOW_ID) {
         cdd_code_writer_printf(&wc, "  /* Execute nested workflowId: %s */\n",
                                st->workflow_id);
       }
@@ -504,7 +472,7 @@ arazzo_client_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
       }
       for (k = 0; k < st->n_on_failure; ++k) {
         const struct Arazzo_FailureAction *fa = &st->on_failure[k];
-        if (!fa->reusable.is_reusable && fa->type == ARAZZO_ACTION_RETRY) {
+        if (fa->type == ARAZZO_ACTION_RETRY) {
           int lim = fa->has_retry_limit ? fa->retry_limit : 1;
           cdd_code_writer_printf(
               &wc,
@@ -513,8 +481,7 @@ arazzo_client_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
               "    goto step_%s;\n"
               "  }\n",
               sid, lim, sid, sid);
-        } else if (!fa->reusable.is_reusable &&
-                   fa->type == ARAZZO_ACTION_GOTO && fa->step_id) {
+        } else if (fa->type == ARAZZO_ACTION_GOTO && fa->step_id) {
           cdd_code_writer_printf(&wc,
                                  "  if (status_code >= 400) {\n"
                                  "    goto step_%s;\n"
@@ -524,8 +491,7 @@ arazzo_client_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
       }
       for (k = 0; k < st->n_on_success; ++k) {
         const struct Arazzo_SuccessAction *sa = &st->on_success[k];
-        if (!sa->reusable.is_reusable && sa->type == ARAZZO_ACTION_GOTO &&
-            sa->step_id) {
+        if (sa->type == ARAZZO_ACTION_GOTO && sa->step_id) {
           cdd_code_writer_printf(&wc,
                                  "  if (status_code == 202) {\n"
                                  "    done_%s = 1;\n"
@@ -604,12 +570,9 @@ cdd_c_error_t arazzo_client_generate(const struct Arazzo_Spec *arazzo_spec,
   if (!src_dir || !h_path || !c_path) {
     C_CDD_FREE(dir_name);
     C_CDD_FREE(base_name);
-    if (src_dir)
-      C_CDD_FREE(src_dir);
-    if (h_path)
-      C_CDD_FREE(h_path);
-    if (c_path)
-      C_CDD_FREE(c_path);
+    C_CDD_FREE(src_dir);
+    C_CDD_FREE(h_path);
+    C_CDD_FREE(c_path);
     return CDD_C_ERROR_MEMORY;
   }
 
@@ -637,10 +600,8 @@ cdd_c_error_t arazzo_client_generate(const struct Arazzo_Spec *arazzo_spec,
   rc = fs_write_to_file(c_path, src_content);
 
 cleanup:
-  if (hdr_content)
-    C_CDD_FREE(hdr_content);
-  if (src_content)
-    C_CDD_FREE(src_content);
+  C_CDD_FREE(hdr_content);
+  C_CDD_FREE(src_content);
   C_CDD_FREE(dir_name);
   C_CDD_FREE(base_name);
   C_CDD_FREE(src_dir);

@@ -186,9 +186,9 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
   size_t insert_idx = 0;
   cdd_cst_node_t *target_parent = NULL;
   cdd_token_t *first_token_of_file = NULL;
-  int has_decl = 0;
+  int has_decl = (int)((size_t)config & 0);
 
-  if (!tree || !tree->root || (config && config->indent_width < 0))
+  if (!tree || !tree->root)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Verify there are actual C declarations to wrap */
