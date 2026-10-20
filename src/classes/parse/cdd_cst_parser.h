@@ -18,8 +18,8 @@ extern "C" {
 /**
  * @brief Parse tokens into a loss-less CST.
  *
- * @param source Code source.
- * @param out_tree The generated tree containing nodes and token ownership.
+ * @param[in] source Code source.
+ * @param[out] out_tree The generated tree containing nodes and token ownership.
  * @return 0 on success, or ENOMEM/EINVAL.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_parse(az_span source,
@@ -28,7 +28,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_parse(az_span source,
 /**
  * @brief Free the Concrete Syntax Tree and its constituent structures.
  *
- * @param tree Tree to free.
+ * @param[in,out] tree Tree to free.
  */
 C_CDD_EXPORT void cdd_cst_tree_free(cdd_cst_tree_t *tree);
 

@@ -1,3 +1,7 @@
+/**
+ * @file test_ffi_extractor_helpers.h
+ * @brief Unit tests and mocks in test_ffi_extractor_helpers.h.
+ */
 #ifndef TEST_FFI_EXTRACTOR_HELPERS_H
 #define TEST_FFI_EXTRACTOR_HELPERS_H
 
@@ -16,8 +20,13 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/** @brief Test definition g_cdd_ffi_extractor_fail. */
 extern C_CDD_EXPORT int g_cdd_ffi_extractor_fail;
 
+/**
+ * @brief Unit test test_cdd_ffi_mangle_cpp_name.
+ * @return Greatest test result.
+ */
 TEST test_cdd_ffi_mangle_cpp_name(void) {
   char *mangled = NULL;
 
@@ -45,6 +54,10 @@ TEST test_cdd_ffi_mangle_cpp_name(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_extract_inheritance_e2e.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_extract_inheritance_e2e(void) {
   const char *filename = "test_inherit.h";
   const char *code = "struct Base {\n"
@@ -78,6 +91,10 @@ TEST test_ffi_ir_extract_inheritance_e2e(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_extract_template_instantiation.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_extract_template_instantiation(void) {
   const char *filename = "test_tmpl_inst.h";
   const char *code = "struct Inner { int y; };\n"
@@ -129,6 +146,10 @@ TEST test_ffi_ir_extract_template_instantiation(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_extract_docstring_and_sal_intents.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_extract_docstring_and_sal_intents(void) {
   const char *filename = "test_intents.h";
   const char *code =
@@ -196,6 +217,10 @@ TEST test_ffi_ir_extract_docstring_and_sal_intents(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_extract_trampolines_direct.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_extract_trampolines_direct(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_generate_bindings_config_t config = {0};
@@ -233,6 +258,10 @@ TEST test_ffi_ir_extract_trampolines_direct(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_extractor_helpers.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_extractor_helpers(void) {
   char buf[64];
   cdd_ffi_primitive_kind_t kind;
@@ -506,6 +535,10 @@ TEST test_ffi_ir_extractor_helpers(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_emit_java_fopen_fail.
+ * @return Greatest test result.
+ */
 TEST test_ffi_emit_java_fopen_fail(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_generate_bindings_config_t config = {0};
@@ -544,6 +577,10 @@ TEST test_ffi_extractor_trivia(void) {
   remove(filename);
   PASS();
 }
+/**
+ * @brief Unit test test_ffi_extractor_missing_branches.
+ * @return Greatest test result.
+ */
 TEST test_ffi_extractor_missing_branches(void) {
   cdd_generate_bindings_config_t config;
   cdd_ffi_ir_t test_ir;
@@ -630,6 +667,10 @@ TEST test_ffi_extractor_missing_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_extractor_trivia_oom.
+ * @return Greatest test result.
+ */
 TEST test_ffi_extractor_trivia_oom(void) {
   const char *filename = "test_trivia_oom.h";
   const char *code =

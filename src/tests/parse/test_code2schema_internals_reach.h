@@ -25,7 +25,9 @@ extern "C" {
 #include <parson.h>
 /* clang-format on */
 
+/** @brief Test definition g_cdd_fail_json_set_value. */
 extern C_CDD_EXPORT volatile int g_cdd_fail_json_set_value;
+/** @brief Test definition g_cdd_fail_json_serialize. */
 extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
 
 /**
@@ -788,6 +790,9 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the code2schema_internals_reach_suite test suite.
+ */
 SUITE(code2schema_internals_reach_suite) {
   RUN_TEST(test_code2schema_reach_100_percent_coverage);
 }

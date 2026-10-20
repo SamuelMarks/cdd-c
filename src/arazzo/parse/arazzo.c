@@ -41,8 +41,9 @@ parse_arazzo_extensions(const JSON_Object *obj,
       struct OpenAPI_Any val;
       cdd_c_error_t rc;
       memset(&val, 0, sizeof(val));
-      parse_any_value(json_object_get_value_at(obj, i), &val);
-      rc = arazzo_extension_list_append(ext_list, name, &val);
+      rc = parse_any_value(json_object_get_value_at(obj, i), &val);
+      if (rc == CDD_C_SUCCESS)
+        rc = arazzo_extension_list_append(ext_list, name, &val);
       free_any_value(&val);
       if (rc != CDD_C_SUCCESS)
         return rc;
@@ -229,7 +230,9 @@ static cdd_c_error_t parse_arazzo_param_obj(const JSON_Object *pobj,
     vval = json_object_get_value(pobj, "value");
     if (vval) {
       param->reusable.has_value_override = 1;
-      parse_any_value(vval, &param->reusable.value);
+      rc = parse_any_value(vval, &param->reusable.value);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
     return CDD_C_SUCCESS;
   }
@@ -256,7 +259,9 @@ static cdd_c_error_t parse_arazzo_param_obj(const JSON_Object *pobj,
     if (rc != CDD_C_SUCCESS)
       return rc;
   } else {
-    parse_any_value(vval, &param->value);
+    rc = parse_any_value(vval, &param->value);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (param->value.type == OA_ANY_STRING) {
       rc = arazzo_runtime_expr_parse(param->value.string, &param->parsed_expr);
       if (rc != CDD_C_SUCCESS)
@@ -568,9 +573,12 @@ static cdd_c_error_t parse_step_object(const JSON_Object *sobj,
                           &step->request_body.content_type);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    if (json_object_get_value(rb_obj, "payload"))
-      parse_any_value(json_object_get_value(rb_obj, "payload"),
-                      &step->request_body.payload);
+    if (json_object_get_value(rb_obj, "payload")) {
+      rc = parse_any_value(json_object_get_value(rb_obj, "payload"),
+                           &step->request_body.payload);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+    }
     if (rcount > 0) {
       step->request_body.replacements =
           (struct Arazzo_PayloadReplacement *)C_CDD_CALLOC(
@@ -593,7 +601,9 @@ static cdd_c_error_t parse_step_object(const JSON_Object *sobj,
                                           &rep->target_expression_type);
         if (rc != CDD_C_SUCCESS)
           return rc;
-        parse_any_value(json_object_get_value(robj, "value"), &rep->value);
+        rc = parse_any_value(json_object_get_value(robj, "value"), &rep->value);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         rc = parse_arazzo_extensions(robj, &rep->extensions);
         if (rc != CDD_C_SUCCESS)
           return rc;
@@ -901,6 +911,29 @@ static cdd_c_error_t parse_components_object(const JSON_Object *cobj,
 }
 
 /**
+ * @brief Validates a `$components.<section>.<key>` reusable reference against
+ * a component key array.
+ *
+ * @param[in] ref Reusable reference string.
+ * @param[in] prefix Expected prefix (e.g., `"$components.parameters."`).
+ * @param[in] keys Component keys array.
+ * @param[in] n_keys Number of component keys.
+ * @return `CDD_C_SUCCESS` if found, `CDD_C_ERROR_INVALID_ARGUMENT` otherwise.
+ */
+static cdd_c_error_t validate_component_ref(const char *ref, const char *prefix,
+                                            char *const *keys, size_t n_keys) {
+  size_t plen = strlen(prefix);
+  size_t m;
+  if (strncmp(ref, prefix, plen) != 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  for (m = 0; m < n_keys; ++m) {
+    if (strcmp(keys[m], ref + plen) == 0)
+      return CDD_C_SUCCESS;
+  }
+  return CDD_C_ERROR_INVALID_ARGUMENT;
+}
+
+/**
  * @brief Validates structural and semantic invariants of an `Arazzo_Spec`.
  *
  * @return `CDD_C_SUCCESS` if valid, `CDD_C_ERROR_INVALID_ARGUMENT` otherwise.
@@ -966,21 +999,32 @@ cdd_c_error_t arazzo_validate_spec(const struct Arazzo_Spec *spec) {
       }
 
       for (k = 0; k < st->n_parameters; ++k) {
-        if (st->parameters[k].reusable.is_reusable) {
-          const char *ref = st->parameters[k].reusable.reference;
-          size_t m;
-          int found_comp = 0;
-          if (strncmp(ref, "$components.parameters.", 23) != 0)
-            return CDD_C_ERROR_INVALID_ARGUMENT;
-          for (m = 0; m < spec->components.n_parameters; ++m) {
-            if (strcmp(spec->components.parameter_keys[m], ref + 23) == 0) {
-              found_comp = 1;
-              break;
-            }
-          }
-          if (!found_comp)
-            return CDD_C_ERROR_INVALID_ARGUMENT;
-        }
+        if (st->parameters[k].reusable.is_reusable &&
+            validate_component_ref(
+                st->parameters[k].reusable.reference, "$components.parameters.",
+                spec->components.parameter_keys,
+                spec->components.n_parameters) != CDD_C_SUCCESS)
+          return CDD_C_ERROR_INVALID_ARGUMENT;
+      }
+
+      for (k = 0; k < st->n_on_success; ++k) {
+        if (st->on_success[k].reusable.is_reusable &&
+            validate_component_ref(st->on_success[k].reusable.reference,
+                                   "$components.successActions.",
+                                   spec->components.success_action_keys,
+                                   spec->components.n_success_actions) !=
+                CDD_C_SUCCESS)
+          return CDD_C_ERROR_INVALID_ARGUMENT;
+      }
+
+      for (k = 0; k < st->n_on_failure; ++k) {
+        if (st->on_failure[k].reusable.is_reusable &&
+            validate_component_ref(st->on_failure[k].reusable.reference,
+                                   "$components.failureActions.",
+                                   spec->components.failure_action_keys,
+                                   spec->components.n_failure_actions) !=
+                CDD_C_SUCCESS)
+          return CDD_C_ERROR_INVALID_ARGUMENT;
       }
     }
   }

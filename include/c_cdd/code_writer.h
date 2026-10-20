@@ -145,11 +145,16 @@ C_CDD_EXPORT cdd_c_error_t cdd_code_writer_check_error(
 C_CDD_EXPORT cdd_c_error_t
 cdd_code_writer_take_string(cdd_code_writer_t *writer, char **out_str);
 
-#ifdef CDD_BUILD_TESTS
 /** @brief Fault injection counter for failing after N I/O operations */
 extern C_CDD_EXPORT int g_fail_io_after;
 /** @brief Running counter of I/O operations executed */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief Fault injection counter for failing after N schema I/O operations */
+extern C_CDD_EXPORT int g_schema_fail_io_after;
+/** @brief Running counter of schema I/O operations executed */
+extern C_CDD_EXPORT int g_schema_io_calls;
+/** @brief Global flag to force simulated failure in schema codegen */
+extern C_CDD_EXPORT int g_schema_codegen_force_fail;
 /** @brief Fault injection step selector for client generator tests */
 extern C_CDD_EXPORT int g_client_gen_fail;
 
@@ -160,39 +165,24 @@ extern C_CDD_EXPORT int g_client_gen_fail;
  * @param[in] format Printf format string.
  * @return Number of characters written, or negative on injected/stream error.
  */
-static int cdd_io_fprintf_hook(FILE *stream, const char *format, ...)
 #if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)))
+extern C_CDD_EXPORT cdd_c_error_t cdd_io_fprintf_hook(FILE *stream,
+                                                      const char *format, ...)
+    __attribute__((format(printf, 2, 3)));
+#else
+extern C_CDD_EXPORT cdd_c_error_t cdd_io_fprintf_hook(FILE *stream,
+                                                      const char *format, ...);
 #endif
-    ;
-static __inline int cdd_io_fprintf_hook(FILE *stream, const char *format, ...) {
-  int ret;
-  va_list args;
-#ifdef C_CDD_ROUTES_EMIT_CLIENT_GEN_INTERNAL_H
-  if (g_client_gen_fail == 63)
-    return -1;
-#endif
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  va_start(args, format);
-  ret = vfprintf(stream, format, args);
-  va_end(args);
-  return ret;
-}
 
-/**
- * @brief Centralized stream fputs wrapper with test fault injection.
- *
- * @param[in] s Null-terminated string to write.
- * @param[in,out] stream Target output stream.
- * @return Non-negative on success, or negative on injected/stream error.
- */
-static __inline int cdd_io_fputs_hook(const char *s, FILE *stream) {
-  if (g_client_gen_fail == 64)
-    return -1;
-  return fputs(s, stream);
-}
-#endif /* CDD_BUILD_TESTS */
+#ifndef FPRINTF_HOOK
+/** @brief Macro alias for formatted stream emission hook */
+#define FPRINTF_HOOK cdd_io_fprintf_hook
+#endif
+
+#ifndef FPUTS_HOOK
+/** @brief Macro alias for raw string stream emission hook */
+#define FPUTS_HOOK fputs
+#endif
 
 #ifdef __cplusplus
 }

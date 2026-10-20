@@ -675,10 +675,31 @@ TEST test_openapi_utils_clone_and_extras(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(clone == NULL);
 
-  jv = json_parse_string("{\"a\": 1, \"b\": \"two\"}");
+  jv = json_parse_string(
+      "{\"openapi\":\"3.2.0\",\"servers\":[{\"url\":\"https://"
+      "api.example.com\"}],"
+      "\"webhooks\":{\"newPet\":{\"post\":{\"operationId\":\"onNewPet\"}}},"
+      "\"paths\":{\"/pets\":{\"get\":{\"operationId\":\"listPets\"}}},"
+      "\"components\":{\"schemas\":{\"Pet\":{\"type\":\"object\"}}}}");
   rc = clone_json_value(jv, &clone);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(clone != NULL);
+  ASSERT_STR_EQ(
+      "https://api.example.com",
+      json_object_get_string(
+          json_array_get_object(
+              json_object_get_array(json_value_get_object(clone), "servers"),
+              0),
+          "url"));
+  ASSERT_STR_EQ("onNewPet",
+                json_object_dotget_string(json_value_get_object(clone),
+                                          "webhooks.newPet.post.operationId"));
+  ASSERT_STR_EQ("listPets",
+                json_object_dotget_string(json_value_get_object(clone),
+                                          "paths./pets.get.operationId"));
+  ASSERT_STR_EQ("object",
+                json_object_dotget_string(json_value_get_object(clone),
+                                          "components.schemas.Pet.type"));
   json_value_free(clone);
   clone = NULL;
 

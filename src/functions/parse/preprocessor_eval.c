@@ -112,24 +112,18 @@ cdd_c_error_t pp_parse_primary(struct ExprState *s, long *out_val) {
     int is_match = 0;
 
     rc = token_matches_string(tok, "__has_include", &is_match);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
     if (is_match) {
       s->pos++;
       return handle_has_include_embed(s, out_val);
     }
 
     rc = token_matches_string(tok, "__has_embed", &is_match);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
     if (is_match) {
       s->pos++;
       return handle_has_include_embed(s, out_val);
     }
 
     rc = token_matches_string(tok, "__has_c_attribute", &is_match);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
     if (is_match) {
       s->pos++;
       return handle_has_c_attribute(s, out_val);
@@ -144,8 +138,6 @@ cdd_c_error_t pp_parse_primary(struct ExprState *s, long *out_val) {
         for (i = 0; i < s->ctx->macro_count; ++i) {
           if (!s->ctx->macros[i].is_function_like && s->ctx->macros[i].value) {
             rc = token_matches_string(tok, s->ctx->macros[i].name, &is_match);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
             if (is_match) {
               char *endptr;
               val = strtol(s->ctx->macros[i].value, &endptr, 0);
@@ -240,8 +232,6 @@ cdd_c_error_t pp_parse_unary(struct ExprState *s, long *out_val) {
   if (s->pos < s->end && s->tokens->tokens[s->pos].kind == TOKEN_IDENTIFIER) {
     int is_match = 0;
     rc = token_matches_string(&s->tokens->tokens[s->pos], "defined", &is_match);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
     if (is_match) {
       int has_paren = 0;
       long result = 0;

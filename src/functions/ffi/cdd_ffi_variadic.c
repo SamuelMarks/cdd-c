@@ -7,6 +7,9 @@
 #include "cdd_c_error.h"
 
 #include "../../include/ffi/cdd_ffi_variadic.h"
+#include "c_cdd/format_specifiers.h"
+#include "c_cdd/safe_crt.h"
+#include <stdio.h>
 #include <string.h>
 /* clang-format on */
 
@@ -104,6 +107,101 @@ cdd_c_error_t cdd_ffi_parse_printf_format(const char *fmt,
   }
 
   *out_count = count;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Formats a `printf`-style string one specifier at a time into
+ * `out_buf` using the exact C type for each `cdd_ffi_var_arg_t` argument.
+ *
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` on
+ * invalid arguments.
+ */
+cdd_c_error_t cdd_ffi_format_variadic(char *out_buf, size_t out_cap,
+                                      const char *fmt,
+                                      const cdd_ffi_var_arg_t *args,
+                                      size_t argc) {
+  const char *p = fmt;
+  size_t pos = 0;
+  size_t arg_idx = 0;
+
+  if (!out_buf || out_cap == 0 || !fmt || (argc > 0 && !args))
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  out_buf[0] = '\0';
+
+  while (*p && pos + 1 < out_cap) {
+    if (*p != '%') {
+      out_buf[pos++] = *p++;
+      out_buf[pos] = '\0';
+      continue;
+    }
+
+    if (p[1] == '%') {
+      out_buf[pos++] = '%';
+      out_buf[pos] = '\0';
+      p += 2;
+      continue;
+    }
+
+    {
+      int len_mod = 0;
+      char conv;
+      int written = 0;
+
+      p++;
+      while (*p == '-' || *p == '+' || *p == ' ' || *p == '#' || *p == '0' ||
+             (*p >= '0' && *p <= '9') || *p == '.') {
+        p++;
+      }
+      if (*p == 'l') {
+        p++;
+        len_mod = 1;
+        if (*p == 'l') {
+          p++;
+          len_mod = 2;
+        }
+      }
+      conv = *p;
+      if (!conv || arg_idx >= argc)
+        return CDD_C_ERROR_INVALID_ARGUMENT;
+      p++;
+
+      if (conv == 'f') {
+        written =
+            CDD_SNPRINTF(out_buf + pos, out_cap - pos, "%f", args[arg_idx].d);
+      } else if (conv == 'g') {
+        written =
+            CDD_SNPRINTF(out_buf + pos, out_cap - pos, "%g", args[arg_idx].d);
+      } else if (conv == 's') {
+        written = CDD_SNPRINTF(out_buf + pos, out_cap - pos, "%s",
+                               (const char *)args[arg_idx].p);
+      } else if (conv == 'p') {
+        written =
+            CDD_SNPRINTF(out_buf + pos, out_cap - pos, "%p", args[arg_idx].p);
+      } else if (len_mod == 2) {
+        written = CDD_SNPRINTF(out_buf + pos, out_cap - pos, "%" CDD_PRId64,
+                               args[arg_idx].ll);
+      } else if (len_mod == 1) {
+        written =
+            CDD_SNPRINTF(out_buf + pos, out_cap - pos, "%ld", args[arg_idx].l);
+      } else if (conv == 'u') {
+        written =
+            CDD_SNPRINTF(out_buf + pos, out_cap - pos, "%u", args[arg_idx].u);
+      } else {
+        written =
+            CDD_SNPRINTF(out_buf + pos, out_cap - pos, "%d", args[arg_idx].i);
+      }
+
+      if (written > 0) {
+        size_t adv = (size_t)written;
+        pos = (pos + adv < out_cap) ? (pos + adv) : (out_cap - 1);
+      }
+      out_buf[pos] = '\0';
+      arg_idx++;
+    }
+  }
+
   return CDD_C_SUCCESS;
 }
 

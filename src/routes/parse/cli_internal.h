@@ -17,12 +17,12 @@ extern "C" {
 
 #include "c_cdd/memory.h"
 #include "cdd_c_error.h"
+#include "classes/parse/cdd_token.h"
 #include "openapi/parse/openapi.h"
 #include "routes/parse/cli.h"
 /* clang-format on */
 
 struct CstNode;
-struct TokenList;
 
 /**
  * @brief Sets a dynamically allocated string if destination pointer is NULL.

@@ -32,8 +32,7 @@ static cdd_c_error_t extract_identifier(cdd_cst_node_t *node, char **out_name) {
       if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
         cdd_token_t *tok = node->children[i].val.token;
         if (tok->kind == CDD_TOKEN_IDENTIFIER) {
-          char *name;
-          name = (char *)C_CDD_MALLOC(tok->length + 1);
+          char *name = (char *)C_CDD_MALLOC(tok->length + 1);
           if (!name) {
             return CDD_C_ERROR_MEMORY;
           }
@@ -44,7 +43,7 @@ static cdd_c_error_t extract_identifier(cdd_cst_node_t *node, char **out_name) {
         }
       }
     }
-    return CDD_C_ERROR_NOT_FOUND; /* Loop exhausted */
+    return CDD_C_ERROR_NOT_FOUND;
   }
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_NODE) {
@@ -91,12 +90,10 @@ static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
     break;
   case CDD_CST_DECLARATION: {
     char *name = NULL;
-    /* Very simplified extraction of identifier */
     rc = extract_identifier(node, &name);
     if (rc == CDD_C_ERROR_MEMORY)
       return rc;
     if (rc == CDD_C_SUCCESS) {
-      /* Assuming CDD_CST_SYMBOL_VARIABLE for now */
       rc = cdd_cst_scope_add_symbol(env, name, CDD_CST_SYMBOL_VARIABLE, node);
       C_CDD_FREE(name);
       if (rc != CDD_C_SUCCESS)
@@ -110,7 +107,6 @@ static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
     if (rc == CDD_C_ERROR_MEMORY)
       return rc;
     if (rc == CDD_C_SUCCESS) {
-      /* Assuming Struct tag for simplicity */
       rc = cdd_cst_scope_add_symbol(env, name, CDD_CST_SYMBOL_STRUCT_TAG, node);
       C_CDD_FREE(name);
       if (rc != CDD_C_SUCCESS)
@@ -134,31 +130,13 @@ static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
   case CDD_CST_BLOCK:
   case CDD_CST_FUNCTION_DEFINITION:
   case CDD_CST_NAMESPACE_DECLARATION:
-
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_semantic_leave_fail;
-    if (g_cdd_semantic_leave_fail) {
-      env->current_scope = NULL;
-    }
-  }
-#endif
-    rc = cdd_cst_scope_leave(env);
-
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    break;
+    return cdd_cst_scope_leave(env);
   default:
     break;
   }
 
   return CDD_C_SUCCESS;
 }
-
-#ifdef CDD_BUILD_TESTS
-/** @brief Mock flag to simulate cdd_cst_scope_leave failure */
-C_CDD_EXPORT int g_cdd_semantic_leave_fail = 0;
-#endif
 
 /**
  * @brief Builds semantic scope and symbol information for an entire CST tree.

@@ -1,3 +1,7 @@
+/**
+ * @file test_cwd.c
+ * @brief Unit tests and mocks in test_cwd.c.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -18,6 +22,10 @@
 #endif
 #endif
 /* clang-format on */
+/**
+ * @brief Helper function test_cwd.
+ * @return Result status or value.
+ */
 int test_cwd(void) {
   char buf[1024];
   getcwd(buf, sizeof(buf));

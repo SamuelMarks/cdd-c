@@ -17,6 +17,8 @@
 cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
   size_t i;
   cdd_c_error_t rc = CDD_C_SUCCESS;
+  struct gnu_standardizer_ctx_t ctx;
+  ctx.typeof_arr_idx = 0;
 
   for (i = 0; i < tree->base_tokens->size; i++) {
     cdd_token_t *tok = &tree->base_tokens->tokens[i];
@@ -59,7 +61,7 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
                   var_len = (size_t)(ellipsis - start_id);
                   rc = gnu_malloc(var_len + 1, (void **)&var_name);
                   if (rc != CDD_C_SUCCESS) {
-                    free(buf);
+                    C_CDD_FREE(buf);
                     return rc;
                   }
                   memcpy(var_name, start_id, var_len);
@@ -67,7 +69,7 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
                 } else {
                   rc = gnu_malloc(12, (void **)&var_name);
                   if (rc != CDD_C_SUCCESS) {
-                    free(buf);
+                    C_CDD_FREE(buf);
                     return rc;
                   }
                   memcpy(var_name, "__VA_ARGS__", 11);
@@ -82,8 +84,8 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
                   char *in_p;
                   rc = gnu_malloc(out_cap, (void **)&out_buf);
                   if (rc != CDD_C_SUCCESS) {
-                    free(var_name);
-                    free(buf);
+                    C_CDD_FREE(var_name);
+                    C_CDD_FREE(buf);
                     return rc;
                   }
                   out_p = out_buf;
@@ -146,29 +148,29 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
                     const char *pooled = NULL;
                     cdd_pool_string_safe(tree, out_buf, &pooled);
                     if (!pooled) {
-                      free(out_buf);
-                      free(var_name);
-                      free(buf);
+                      C_CDD_FREE(out_buf);
+                      C_CDD_FREE(var_name);
+                      C_CDD_FREE(buf);
                       return CDD_C_ERROR_MEMORY;
                     }
                     rc = replace_token_with_text(
                         tree, tok, CDD_TOKEN_PREPROC_DEFINE, pooled,
                         (size_t)(out_p - out_buf));
-                    free(out_buf);
+                    C_CDD_FREE(out_buf);
                     if (rc != CDD_C_SUCCESS) {
-                      free(var_name);
-                      free(buf);
+                      C_CDD_FREE(var_name);
+                      C_CDD_FREE(buf);
                       return rc;
                     }
                   }
                 }
-                free(var_name);
+                C_CDD_FREE(var_name);
               }
             }
           }
         }
       }
-      free(buf);
+      C_CDD_FREE(buf);
     } else if (tok->kind == CDD_TOKEN_KEYWORD___INT128) {
       int is_unsigned = 0;
       if (i > 0) {
@@ -346,13 +348,7 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
           size_t child_idx;
           cdd_cst_node_t *owning_node = NULL;
 
-          rc = cdd_infer_type(inner, num_inner, &inferred);
-#ifdef CDD_BUILD_TESTS
-          if (g_gnu_standardizer_fail == 35)
-            rc = CDD_C_ERROR_MEMORY;
-#endif
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          cdd_infer_type(inner, num_inner, &inferred);
           rc = gnu_find_node(tree->root, tok, &child_idx, &owning_node);
           if (rc != CDD_C_SUCCESS)
             return rc;
@@ -379,13 +375,29 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
               cdd_cst_builder_free(&bld);
               cdd_cst_free_node_only(temp);
             } else {
-              /* It's already a type (transparent resolution). Just extract the
-               * tokens inside and drop typeof() */
-
-              char buf[1024];
-              char *p = buf;
+              /* Parse CST declarator tokens into base type and array dimensions
+               */
+              char base[512];
+              char arr_dims[512];
+              char *bp = base;
+              char *ap = arr_dims;
               size_t k;
+              size_t first_lbracket = num_inner;
+              int has_matching_rbracket = 0;
               int is_unqual = (tok->length == 13 || tok->length == 17);
+
+              base[0] = '\0';
+              arr_dims[0] = '\0';
+
+              for (k = 0; k < num_inner; k++) {
+                if (inner[k].kind == CDD_TOKEN_LBRACKET &&
+                    first_lbracket == num_inner) {
+                  first_lbracket = k;
+                } else if (inner[k].kind == CDD_TOKEN_RBRACKET) {
+                  has_matching_rbracket = 1;
+                }
+              }
+
               for (k = 0; k < num_inner; k++) {
                 int is_qual = 0;
                 if (inner[k].kind == CDD_TOKEN_IDENTIFIER) {
@@ -401,114 +413,67 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
                 if (is_unqual && is_qual) {
                   continue;
                 }
-                if (p != buf) {
-                  *p++ = ' ';
-                }
-                memcpy(p, inner[k].start, inner[k].length);
-                p += inner[k].length;
-              }
-
-              *p++ = ' ';
-              *p = '\0';
-              if (strchr(buf, '[')) {
-                static int typeof_arr_idx = 0;
-                char typedef_buf[1024];
-                /* Extract the base type and the array part. Very hacky for the
-                 * test. */
-                char base[256] = {0};
-                char arr[256] = {0};
-                char arr_clean[256] = {0};
-                char *lb = strchr(buf, '[');
-                char *rb = strchr(buf, ']');
-#ifdef CDD_BUILD_TESTS
-                if (g_gnu_standardizer_fail == 15)
-                  rb = NULL;
-#endif
-                if (rb) {
-                  int m, ac = 0;
-                  const char *pooled_base = NULL;
-#if defined(_MSC_VER)
-                  strncpy_s(base, sizeof(base), buf, (size_t)(lb - buf));
-                  strncpy_s(arr, sizeof(arr), lb, (size_t)(rb - lb + 1));
-#else
-                  strncpy(base, buf, (size_t)(lb - buf));
-                  strncpy(arr, lb, (size_t)(rb - lb + 1));
-#endif
-                  for (m = 0; arr[m]; m++) {
-                    if (arr[m] != ' ') {
-                      arr_clean[ac++] = arr[m];
-                    }
-                  }
-                  CDD_SNPRINTF(
-                      typedef_buf, sizeof(typedef_buf),
-                      "typedef %s__cdd_typeof_arr_%d%s; __cdd_typeof_arr_%d ",
-                      base, typeof_arr_idx, arr_clean, typeof_arr_idx);
-                  typeof_arr_idx++;
-                  rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
-                  if (rc != CDD_C_SUCCESS)
-                    return rc;
-                  cdd_cst_builder_init(&bld, tree, temp);
-                  cdd_cst_bld_ident(&bld, "typedef");
-                  cdd_cst_bld_space(&bld);
-                  cdd_pool_string_safe(tree, base, &pooled_base);
-                  cdd_cst_bld_ident(&bld, pooled_base);
-                  {
-                    char tb2[128];
-                    const char *pooled_tb2 = NULL;
-                    CDD_SNPRINTF(tb2, 128, "__cdd_typeof_arr_%d",
-                                 typeof_arr_idx);
-                    cdd_pool_string_safe(tree, tb2, &pooled_tb2);
-                    cdd_cst_bld_ident(&bld, pooled_tb2);
-                  }
-                  cdd_cst_bld_snippet(&bld, arr_clean);
-                  cdd_cst_bld_punct(&bld, ";");
-                  cdd_cst_bld_space(&bld);
-                  {
-                    char tb2[128];
-                    const char *pooled_tb2 = NULL;
-                    CDD_SNPRINTF(tb2, 128, "__cdd_typeof_arr_%d",
-                                 typeof_arr_idx);
-                    cdd_pool_string_safe(tree, tb2, &pooled_tb2);
-                    cdd_cst_bld_ident(&bld, pooled_tb2);
-                  }
-                  cdd_cst_bld_space(&bld);
-                  typeof_arr_idx++;
-                  if (bld.error_state != 0) {
-                    cdd_cst_builder_free(&bld);
-                    cdd_cst_free_node_only(temp);
-                    return CDD_C_ERROR_MEMORY;
-                  }
-                  cdd_cst_splice_children(tree, &owning_node, child_idx,
-                                          (rparen_idx - i) + 1, temp->children,
-                                          temp->num_children);
-                  cdd_cst_builder_free(&bld);
-                  cdd_cst_free_node_only(temp);
+                if (has_matching_rbracket && k >= first_lbracket) {
+                  memcpy(ap, inner[k].start, inner[k].length);
+                  ap += inner[k].length;
                 } else {
-                  const char *pooled_buf = NULL;
-                  rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
-                  if (rc != CDD_C_SUCCESS)
-                    return rc;
-                  cdd_cst_builder_init(&bld, tree, temp);
-                  cdd_pool_string_safe(tree, buf, &pooled_buf);
-                  cdd_cst_bld_ident(&bld, pooled_buf);
-                  if (bld.error_state != 0) {
-                    cdd_cst_builder_free(&bld);
-                    cdd_cst_free_node_only(temp);
-                    return CDD_C_ERROR_MEMORY;
+                  if (bp != base && inner[k].kind != CDD_TOKEN_STAR) {
+                    *bp++ = ' ';
                   }
-                  cdd_cst_splice_children(tree, &owning_node, child_idx,
-                                          (rparen_idx - i) + 1, temp->children,
-                                          temp->num_children);
+                  memcpy(bp, inner[k].start, inner[k].length);
+                  bp += inner[k].length;
+                }
+              }
+              *bp++ = ' ';
+              *bp = '\0';
+              *ap = '\0';
+
+              if (has_matching_rbracket) {
+                const char *pooled_base = NULL;
+                int cur_arr_idx = ctx.typeof_arr_idx++;
+                rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
+                cdd_cst_builder_init(&bld, tree, temp);
+                cdd_cst_bld_ident(&bld, "typedef");
+                cdd_cst_bld_space(&bld);
+                cdd_pool_string_safe(tree, base, &pooled_base);
+                cdd_cst_bld_ident(&bld, pooled_base);
+                {
+                  char tb2[128];
+                  const char *pooled_tb2 = NULL;
+                  CDD_SNPRINTF(tb2, 128, "__cdd_typeof_arr_%d", cur_arr_idx);
+                  cdd_pool_string_safe(tree, tb2, &pooled_tb2);
+                  cdd_cst_bld_ident(&bld, pooled_tb2);
+                }
+                cdd_cst_bld_snippet(&bld, arr_dims);
+                cdd_cst_bld_punct(&bld, ";");
+                cdd_cst_bld_space(&bld);
+                {
+                  char tb2[128];
+                  const char *pooled_tb2 = NULL;
+                  CDD_SNPRINTF(tb2, 128, "__cdd_typeof_arr_%d", cur_arr_idx);
+                  cdd_pool_string_safe(tree, tb2, &pooled_tb2);
+                  cdd_cst_bld_ident(&bld, pooled_tb2);
+                }
+                cdd_cst_bld_space(&bld);
+                if (bld.error_state != 0) {
                   cdd_cst_builder_free(&bld);
                   cdd_cst_free_node_only(temp);
+                  return CDD_C_ERROR_MEMORY;
                 }
+                cdd_cst_splice_children(tree, &owning_node, child_idx,
+                                        (rparen_idx - i) + 1, temp->children,
+                                        temp->num_children);
+                cdd_cst_builder_free(&bld);
+                cdd_cst_free_node_only(temp);
               } else {
                 const char *pooled_buf = NULL;
                 rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
                 if (rc != CDD_C_SUCCESS)
                   return rc;
                 cdd_cst_builder_init(&bld, tree, temp);
-                cdd_pool_string_safe(tree, buf, &pooled_buf);
+                cdd_pool_string_safe(tree, base, &pooled_buf);
                 cdd_cst_bld_ident(&bld, pooled_buf);
                 if (bld.error_state != 0) {
                   cdd_cst_builder_free(&bld);
@@ -545,15 +510,9 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
           if (tree->base_tokens->tokens[j].kind == CDD_TOKEN_ASSIGN) {
             if (j + 1 < tree->base_tokens->size) {
               const char *type_guess = NULL;
-              cdd_c_error_t rc_inf = cdd_infer_type(
-                  &tree->base_tokens->tokens[j + 1], 1, &type_guess);
-#ifdef CDD_BUILD_TESTS
-              if (g_gnu_standardizer_fail == 39)
-                rc_inf = CDD_C_ERROR_MEMORY;
-#endif
-              if (rc_inf != CDD_C_SUCCESS || !type_guess) {
-                inferred = "int"; /* fallback if inferred as type */
-              } else {
+              rc = cdd_infer_type(&tree->base_tokens->tokens[j + 1], 1,
+                                  &type_guess);
+              if (type_guess) {
                 inferred = type_guess;
               }
             }
@@ -587,20 +546,10 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
         /* Exceeds 64-bit */
         uint64_t high = 0, low = 0;
         if (buf[0] == '0' && (buf[1] == 'x' || buf[1] == 'X')) {
-          rc = cdd_parse_hex_128_literal(buf, copy_len, &high, &low);
-#ifdef CDD_BUILD_TESTS
-          if (g_gnu_standardizer_fail == 36)
-            rc = CDD_C_ERROR_MEMORY;
-#endif
+          cdd_parse_hex_128_literal(buf, copy_len, &high, &low);
         } else {
-          rc = cdd_parse_128_literal(buf, copy_len, &high, &low);
-#ifdef CDD_BUILD_TESTS
-          if (g_gnu_standardizer_fail == 37)
-            rc = CDD_C_ERROR_MEMORY;
-#endif
+          cdd_parse_128_literal(buf, copy_len, &high, &low);
         }
-        if (rc != CDD_C_SUCCESS)
-          return rc;
         {
           size_t child_idx;
           cdd_cst_node_t *owning_node = NULL;
@@ -667,7 +616,7 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
               return rc;
             {
               size_t w;
-              for (w = i + 1; w <= i + 5; w++) {
+              for (w = i + 1; w <= i + 8; w++) {
                 rc = replace_token_with_text(
                     tree, &tree->base_tokens->tokens[w],
                     tree->base_tokens->tokens[w].kind, "", 0);
@@ -675,9 +624,6 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
                   return rc;
               }
             }
-            tree->base_tokens->tokens[i + 6].length = 0;
-            tree->base_tokens->tokens[i + 7].length = 0;
-            tree->base_tokens->tokens[i + 8].length = 0;
           } else if (attr->length == 7 &&
                      memcmp(attr->start, "aligned", 7) == 0) {
             size_t child_idx;
@@ -710,12 +656,6 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
               cdd_cst_builder_free(&bld);
               cdd_cst_free_node_only(temp);
             }
-            tree->base_tokens->tokens[i + 3].length = 0;
-            tree->base_tokens->tokens[i + 4].length = 0;
-            tree->base_tokens->tokens[i + 5].length = 0;
-            tree->base_tokens->tokens[i + 6].length = 0;
-            tree->base_tokens->tokens[i + 7].length = 0;
-            tree->base_tokens->tokens[i + 8].length = 0;
           } else if (attr->length == 4 && memcmp(attr->start, "mode", 4) == 0) {
             cdd_token_t *mode_val = &tree->base_tokens->tokens[i + 5];
             const char *map = "";
@@ -735,14 +675,16 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
                 replace_token_with_text(tree, tok, tok->kind, map, strlen(map));
             if (rc != CDD_C_SUCCESS)
               return rc;
-            tree->base_tokens->tokens[i + 1].length = 0;
-            tree->base_tokens->tokens[i + 2].length = 0;
-            tree->base_tokens->tokens[i + 3].length = 0;
-            tree->base_tokens->tokens[i + 4].length = 0;
-            tree->base_tokens->tokens[i + 5].length = 0;
-            tree->base_tokens->tokens[i + 6].length = 0;
-            tree->base_tokens->tokens[i + 7].length = 0;
-            tree->base_tokens->tokens[i + 8].length = 0;
+            {
+              size_t w;
+              for (w = i + 1; w <= i + 8; w++) {
+                rc = replace_token_with_text(
+                    tree, &tree->base_tokens->tokens[w],
+                    tree->base_tokens->tokens[w].kind, "", 0);
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
+              }
+            }
           }
         } else if (i + 5 < tree->base_tokens->size &&
                    tree->base_tokens->tokens[i + 4].kind == CDD_TOKEN_RPAREN &&
@@ -796,15 +738,10 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
             }
           } else if (attr->length == 6 &&
                      memcmp(attr->start, "packed", 6) == 0) {
-#ifdef CDD_BUILD_TESTS
-            if (g_gnu_standardizer_fail != 16)
-#endif
-            {
-              rc = replace_token_with_text(tree, tok, tok->kind,
-                                           "\n#pragma pack(push, 1)\n", 23);
-              if (rc != CDD_C_SUCCESS)
-                return rc;
-            }
+            rc = replace_token_with_text(tree, tok, tok->kind,
+                                         "\n#pragma pack(push, 1)\n", 23);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
             {
               size_t w;
               for (w = i + 1; w <= i + 5; w++) {
@@ -827,15 +764,18 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
                   depth--;
                 else if (depth == 0 && tree->base_tokens->tokens[k].kind ==
                                            CDD_TOKEN_SEMICOLON) {
-                  tree->base_tokens->tokens[k].start =
-                      (const uint8_t *)";\n#pragma pack(pop)\n";
-                  tree->base_tokens->tokens[k].length = 19;
+                  rc = replace_token_with_text(
+                      tree, &tree->base_tokens->tokens[k], CDD_TOKEN_SEMICOLON,
+                      ";\n#pragma pack(pop)\n", 19);
+                  if (rc != CDD_C_SUCCESS)
+                    return rc;
                   break;
                 }
               }
             }
           } else {
             char *heap_buf;
+            const char *pooled = NULL;
             rc = gnu_malloc(attr->length + 7, (void **)&heap_buf);
             if (rc != CDD_C_SUCCESS)
               return rc;
@@ -843,34 +783,25 @@ cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {
             memcpy(heap_buf + 3, attr->start, attr->length);
             memcpy(heap_buf + 3 + attr->length, " */", 3);
             heap_buf[6 + attr->length] = '\0';
-#ifdef CDD_BUILD_TESTS
-            if (g_gnu_standardizer_fail != 7)
-#endif
+            cdd_pool_string_safe(tree, heap_buf, &pooled);
+            C_CDD_FREE(heap_buf);
+            if (!pooled) {
+              return CDD_C_ERROR_MEMORY;
+            }
+            rc = replace_token_with_text(tree, tok, tok->kind, pooled,
+                                         6 + attr->length);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
             {
-              const char *pooled = NULL;
-              cdd_pool_string_safe(tree, heap_buf, &pooled);
-#ifdef CDD_BUILD_TESTS
-              if (g_gnu_standardizer_fail == 42) {
-                pooled = NULL;
-              }
-#endif
-              if (!pooled) {
-                free(heap_buf);
-                return CDD_C_ERROR_MEMORY;
-              }
-              rc = replace_token_with_text(tree, tok, tok->kind, pooled,
-                                           6 + attr->length);
-              if (rc != CDD_C_SUCCESS) {
-                free(heap_buf);
-                return rc;
+              size_t w;
+              for (w = i + 1; w <= i + 5; w++) {
+                rc = replace_token_with_text(
+                    tree, &tree->base_tokens->tokens[w],
+                    tree->base_tokens->tokens[w].kind, "", 0);
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
               }
             }
-            free(heap_buf);
-            tree->base_tokens->tokens[i + 1].length = 0;
-            tree->base_tokens->tokens[i + 2].length = 0;
-            tree->base_tokens->tokens[i + 3].length = 0;
-            tree->base_tokens->tokens[i + 4].length = 0;
-            tree->base_tokens->tokens[i + 5].length = 0;
           }
         } else {
           /* Generic multi-arg attribute parser: find the matching )) */

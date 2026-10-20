@@ -177,9 +177,9 @@ cdd_c_error_t parse_external_docs(const JSON_Object *obj,
                                   struct OpenAPI_ExternalDocs *out) {
   cdd_c_error_t rc = parse_external_docs_inner(obj, out);
   if (rc != CDD_C_SUCCESS) {
-    free(out->url);
-    free(out->description);
-    free(out->extensions_json);
+    C_CDD_FREE(out->url);
+    C_CDD_FREE(out->description);
+    C_CDD_FREE(out->extensions_json);
     memset(out, 0, sizeof(*out));
   }
   return rc;
@@ -229,7 +229,7 @@ parse_discriminator_object_inner(const JSON_Object *obj,
       used++;
     }
     if (used > 0) {
-      out->mapping = (struct OpenAPI_DiscriminatorMap *)c_cdd_calloc(
+      out->mapping = (struct OpenAPI_DiscriminatorMap *)C_CDD_CALLOC(
           used, sizeof(struct OpenAPI_DiscriminatorMap));
       if (!out->mapping)
         return CDD_C_ERROR_MEMORY;
@@ -270,15 +270,15 @@ cdd_c_error_t parse_discriminator_object(const JSON_Object *obj,
   cdd_c_error_t rc = parse_discriminator_object_inner(obj, out);
   if (rc != CDD_C_SUCCESS) {
     size_t i;
-    free(out->property_name);
-    free(out->default_mapping);
-    free(out->extensions_json);
+    C_CDD_FREE(out->property_name);
+    C_CDD_FREE(out->default_mapping);
+    C_CDD_FREE(out->extensions_json);
     if (out->mapping) {
       for (i = 0; i < out->n_mapping; ++i) {
-        free(out->mapping[i].value);
-        free(out->mapping[i].schema);
+        C_CDD_FREE(out->mapping[i].value);
+        C_CDD_FREE(out->mapping[i].schema);
       }
-      free(out->mapping);
+      C_CDD_FREE(out->mapping);
     }
     memset(out, 0, sizeof(*out));
   }
@@ -354,10 +354,10 @@ cdd_c_error_t parse_xml_object(const JSON_Object *obj,
                                struct OpenAPI_Xml *out) {
   cdd_c_error_t rc = parse_xml_object_inner(obj, out);
   if (rc != CDD_C_SUCCESS) {
-    free(out->name);
-    free(out->namespace_uri);
-    free(out->prefix);
-    free(out->extensions_json);
+    C_CDD_FREE(out->name);
+    C_CDD_FREE(out->namespace_uri);
+    C_CDD_FREE(out->prefix);
+    C_CDD_FREE(out->extensions_json);
     memset(out, 0, sizeof(*out));
   }
   return rc;
@@ -387,7 +387,7 @@ static cdd_c_error_t parse_tags_inner(const JSON_Object *root_obj,
     return CDD_C_SUCCESS;
 
   out->tags =
-      (struct OpenAPI_Tag *)c_cdd_calloc(count, sizeof(struct OpenAPI_Tag));
+      (struct OpenAPI_Tag *)C_CDD_CALLOC(count, sizeof(struct OpenAPI_Tag));
   if (!out->tags)
     return CDD_C_ERROR_MEMORY;
   out->n_tags = count;
@@ -510,16 +510,16 @@ cdd_c_error_t validate_tag_parents(const struct OpenAPI_Spec *spec) {
   if (!spec || !spec->tags || spec->n_tags == 0)
     return CDD_C_SUCCESS;
 
-  state = (int *)c_cdd_calloc(spec->n_tags, sizeof(int));
+  state = (int *)C_CDD_CALLOC(spec->n_tags, sizeof(int));
   if (!state)
     return CDD_C_ERROR_MEMORY;
   for (i = 0; i < spec->n_tags; ++i) {
     if (detect_tag_cycle(spec, i, state)) {
-      free(state);
+      C_CDD_FREE(state);
       return CDD_C_ERROR_INVALID_ARGUMENT;
     }
   }
-  free(state);
+  C_CDD_FREE(state);
   return CDD_C_SUCCESS;
 }
 
@@ -580,24 +580,24 @@ cdd_c_error_t validate_server_url_variables(const struct OpenAPI_Server *srv) {
       len = (size_t)(end - (url + i + 1));
       if (len == 0)
         goto invalid;
-      name = (char *)c_cdd_malloc(len + 1);
+      name = (char *)C_CDD_MALLOC(len + 1);
       if (!name)
         goto oom;
       memcpy(name, url + i + 1, len);
       name[len] = '\0';
       if (!server_variable_defined(srv, name)) {
-        free(name);
+        C_CDD_FREE(name);
         goto invalid;
       }
       if (server_variable_seen(seen, seen_count, name)) {
-        free(name);
+        C_CDD_FREE(name);
         goto invalid;
       }
       if (seen_count == seen_cap) {
         size_t new_cap = seen_cap ? seen_cap * 2 : 4;
-        tmp = (char **)c_cdd_realloc(seen, new_cap * sizeof(char *));
+        tmp = (char **)C_CDD_REALLOC(seen, new_cap * sizeof(char *));
         if (!tmp) {
-          free(name);
+          C_CDD_FREE(name);
           goto oom;
         }
         seen = tmp;
@@ -612,20 +612,20 @@ cdd_c_error_t validate_server_url_variables(const struct OpenAPI_Server *srv) {
   }
 
   for (i = 0; i < seen_count; ++i)
-    free(seen[i]);
-  free(seen);
+    C_CDD_FREE(seen[i]);
+  C_CDD_FREE(seen);
   return CDD_C_SUCCESS;
 
 invalid:
   for (i = 0; i < seen_count; ++i)
-    free(seen[i]);
-  free(seen);
+    C_CDD_FREE(seen[i]);
+  C_CDD_FREE(seen);
   return CDD_C_ERROR_INVALID_ARGUMENT;
 
 oom:
   for (i = 0; i < seen_count; ++i)
-    free(seen[i]);
-  free(seen);
+    C_CDD_FREE(seen[i]);
+  C_CDD_FREE(seen);
   return CDD_C_ERROR_MEMORY;
 }
 
@@ -681,7 +681,7 @@ static cdd_c_error_t parse_server_object_inner(const JSON_Object *srv_obj,
     size_t vcount = json_object_get_count(vars);
     size_t v;
     if (vcount > 0) {
-      out_srv->variables = (struct OpenAPI_ServerVariable *)c_cdd_calloc(
+      out_srv->variables = (struct OpenAPI_ServerVariable *)C_CDD_CALLOC(
           vcount, sizeof(struct OpenAPI_ServerVariable));
       if (!out_srv->variables)
         return CDD_C_ERROR_MEMORY;
@@ -715,7 +715,7 @@ static cdd_c_error_t parse_server_object_inner(const JSON_Object *srv_obj,
             if (ecount == 0)
               return CDD_C_ERROR_INVALID_ARGUMENT;
             {
-              curr->enum_values = (char **)c_cdd_calloc(ecount, sizeof(char *));
+              curr->enum_values = (char **)C_CDD_CALLOC(ecount, sizeof(char *));
               if (!curr->enum_values)
                 return CDD_C_ERROR_MEMORY;
               curr->n_enum_values = ecount;
@@ -756,24 +756,24 @@ cdd_c_error_t parse_server_object(const JSON_Object *srv_obj,
   cdd_c_error_t rc = parse_server_object_inner(srv_obj, out_srv);
   if (rc != CDD_C_SUCCESS) {
     size_t v, e;
-    free(out_srv->url);
-    free(out_srv->description);
-    free(out_srv->name);
-    free(out_srv->extensions_json);
+    C_CDD_FREE(out_srv->url);
+    C_CDD_FREE(out_srv->description);
+    C_CDD_FREE(out_srv->name);
+    C_CDD_FREE(out_srv->extensions_json);
     if (out_srv->variables) {
       for (v = 0; v < out_srv->n_variables; ++v) {
         struct OpenAPI_ServerVariable *var = &out_srv->variables[v];
-        free(var->name);
-        free(var->default_value);
-        free(var->description);
-        free(var->extensions_json);
+        C_CDD_FREE(var->name);
+        C_CDD_FREE(var->default_value);
+        C_CDD_FREE(var->description);
+        C_CDD_FREE(var->extensions_json);
         if (var->enum_values) {
           for (e = 0; e < var->n_enum_values; ++e)
-            free(var->enum_values[e]);
-          free(var->enum_values);
+            C_CDD_FREE(var->enum_values[e]);
+          C_CDD_FREE(var->enum_values);
         }
       }
-      free(out_srv->variables);
+      C_CDD_FREE(out_srv->variables);
     }
     memset(out_srv, 0, sizeof(*out_srv));
   }
@@ -810,7 +810,7 @@ parse_servers_array_inner(const JSON_Object *parent, const char *key,
   if (count == 0)
     return CDD_C_SUCCESS;
 
-  *out_servers = (struct OpenAPI_Server *)c_cdd_calloc(
+  *out_servers = (struct OpenAPI_Server *)C_CDD_CALLOC(
       count, sizeof(struct OpenAPI_Server));
   if (!*out_servers)
     return CDD_C_ERROR_MEMORY;

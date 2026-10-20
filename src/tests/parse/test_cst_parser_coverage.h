@@ -24,7 +24,6 @@ extern "C" {
 
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
-extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 extern C_CDD_EXPORT int g_cdd_fail_alloc;
 extern C_CDD_EXPORT int g_cdd_fail_skip_ws;
@@ -38,9 +37,12 @@ extern C_CDD_EXPORT int g_cdd_fail_is_expression_brace;
 extern C_CDD_EXPORT int g_cdd_fail_consume_balanced_braces;
 extern C_CDD_EXPORT int g_cdd_fail_match_function_definition;
 extern C_CDD_EXPORT int g_cdd_fail_cst_list_add;
-extern C_CDD_EXPORT int g_cdd_fail_token_matches_string;
 #endif
 
+/**
+ * @brief Unit test test_cst_full_coverage.
+ * @return Greatest test result.
+ */
 TEST test_cst_full_coverage(void) {
   struct CstNodeList list;
   struct CstNode *found_node = NULL;
@@ -61,12 +63,12 @@ TEST test_cst_full_coverage(void) {
   free_cst_node_list(&list);
 
   memset(&list, 0, sizeof(list));
-  g_cdd_fail_alloc = 2;
+  g_cdd_alloc_fail = 2;
   rc = cst_list_add(&list, CST_NODE_OTHER, (const uint8_t *)"x", 1, 0, 1);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = cst_list_add(&list, CST_NODE_OTHER, (const uint8_t *)"x", 1, 0, 1);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-  g_cdd_fail_alloc = 0;
+  g_cdd_alloc_fail = 0;
   free_cst_node_list(&list);
 
   memset(&list, 0, sizeof(list));
@@ -75,14 +77,12 @@ TEST test_cst_full_coverage(void) {
   rc = cst_list_add(&list, CST_NODE_OTHER, (const uint8_t *)"x", 1, 0, 1);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, list.size);
-  ASSERT_EQ(64, list.capacity);
+  ASSERT_EQ(1, list.capacity);
 
   /* Force realloc growth (capacity > 0) */
-  memset(list.nodes + 1, 0, (list.capacity - 1) * sizeof(struct CstNode));
-  list.size = list.capacity;
   rc = cst_list_add(&list, CST_NODE_FUNCTION, (const uint8_t *)"f", 1, 1, 2);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  ASSERT_EQ(128, list.capacity);
+  ASSERT_EQ(2, list.capacity);
 
   /* 2. cst_find_first tests */
   rc = cst_find_first(&list, CST_NODE_FUNCTION, NULL);
@@ -299,19 +299,6 @@ TEST test_cst_full_coverage(void) {
   /* 9. C11 _Generic */
   rc = tokenize(az_span_create_from_str("_Generic(1, int: 2);"), &tl);
   ASSERT_EQ(0, rc);
-  g_cdd_fail_token_matches_string = 1;
-  memset(&list, 0, sizeof(list));
-  rc = parse_tokens(tl, &list);
-  ASSERT(rc != CDD_C_SUCCESS);
-  g_cdd_fail_token_matches_string = 0;
-  free_cst_node_list(&list);
-
-  g_cdd_fail_token_matches_string = 2;
-  memset(&list, 0, sizeof(list));
-  rc = parse_tokens(tl, &list);
-  ASSERT(rc != CDD_C_SUCCESS);
-  g_cdd_fail_token_matches_string = 0;
-  free_cst_node_list(&list);
 
   g_cdd_fail_skip_ws = 1;
   memset(&list, 0, sizeof(list));
@@ -567,17 +554,6 @@ TEST test_cst_full_coverage(void) {
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_skip_ws_back = 0;
-  free_cst_node_list(&list);
-  free_token_list(tl);
-  tl = NULL;
-
-  rc = tokenize(az_span_create_from_str("int y; _Generic(1, int: 1);"), &tl);
-  ASSERT_EQ(0, rc);
-  g_cdd_fail_token_matches_string = 1;
-  memset(&list, 0, sizeof(list));
-  rc = parse_tokens(tl, &list);
-  ASSERT(rc != CDD_C_SUCCESS);
-  g_cdd_fail_token_matches_string = 0;
   free_cst_node_list(&list);
   free_token_list(tl);
   tl = NULL;

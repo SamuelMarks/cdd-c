@@ -15,6 +15,10 @@ extern "C" {
 #include "emit/test_codegen_client_sig_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_sig_multipart_encoding_headers.
+ * @return Greatest test result.
+ */
 TEST test_sig_multipart_encoding_headers(void) {
   char *_ast_gen_sig_9 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -90,6 +94,10 @@ TEST test_sig_multipart_encoding_headers(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_text_plain_request_body.
+ * @return Greatest test result.
+ */
 TEST test_sig_text_plain_request_body(void) {
   char *_ast_gen_sig_10 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -140,6 +148,10 @@ TEST test_sig_text_plain_request_body(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_textual_request_body_xml.
+ * @return Greatest test result.
+ */
 TEST test_sig_textual_request_body_xml(void) {
   char *_ast_gen_sig_11 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -189,6 +201,10 @@ TEST test_sig_textual_request_body_xml(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_octet_stream_request_body.
+ * @return Greatest test result.
+ */
 TEST test_sig_octet_stream_request_body(void) {
   char *_ast_gen_sig_12 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -238,6 +254,10 @@ TEST test_sig_octet_stream_request_body(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_binary_request_body_pdf.
+ * @return Greatest test result.
+ */
 TEST test_sig_binary_request_body_pdf(void) {
   char *_ast_gen_sig_13 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -287,6 +307,10 @@ TEST test_sig_binary_request_body_pdf(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_octet_stream_response_body.
+ * @return Greatest test result.
+ */
 TEST test_sig_octet_stream_response_body(void) {
   char *_ast_gen_sig_14 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -340,6 +364,10 @@ TEST test_sig_octet_stream_response_body(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_binary_response_body_pdf.
+ * @return Greatest test result.
+ */
 TEST test_sig_binary_response_body_pdf(void) {
   char *_ast_gen_sig_15 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -393,6 +421,10 @@ TEST test_sig_binary_response_body_pdf(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_querystring_form_object.
+ * @return Greatest test result.
+ */
 TEST test_sig_querystring_form_object(void) {
   char *_ast_gen_sig_16 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -452,6 +484,10 @@ TEST test_sig_querystring_form_object(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_querystring_json_ref.
+ * @return Greatest test result.
+ */
 TEST test_sig_querystring_json_ref(void) {
   char *_ast_gen_sig_17 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -510,6 +546,10 @@ TEST test_sig_querystring_json_ref(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_querystring_json_primitive.
+ * @return Greatest test result.
+ */
 TEST test_sig_querystring_json_primitive(void) {
   char *_ast_gen_sig_18 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -568,6 +608,10 @@ TEST test_sig_querystring_json_primitive(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_querystring_json_array.
+ * @return Greatest test result.
+ */
 TEST test_sig_querystring_json_array(void) {
   char *_ast_gen_sig_19 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -630,6 +674,10 @@ TEST test_sig_querystring_json_array(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_querystring_json_array_object.
+ * @return Greatest test result.
+ */
 TEST test_sig_querystring_json_array_object(void) {
   char *_ast_gen_sig_20 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -692,6 +740,10 @@ TEST test_sig_querystring_json_array_object(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_querystring_raw_string.
+ * @return Greatest test result.
+ */
 TEST test_sig_querystring_raw_string(void) {
   char *_ast_gen_sig_21 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -750,6 +802,10 @@ TEST test_sig_querystring_raw_string(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_querystring_raw_integer.
+ * @return Greatest test result.
+ */
 TEST test_sig_querystring_raw_integer(void) {
   char *_ast_gen_sig_22 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -808,6 +864,9 @@ TEST test_sig_querystring_raw_integer(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the client_sig_media_suite test suite.
+ */
 SUITE(client_sig_media_suite) {
   RUN_TEST(test_sig_multipart_encoding_headers);
   RUN_TEST(test_sig_text_plain_request_body);

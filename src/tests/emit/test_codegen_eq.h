@@ -1,3 +1,7 @@
+/**
+ * @file test_codegen_eq.h
+ * @brief Unit tests and mocks in test_codegen_eq.h.
+ */
 #ifndef TEST_CODEGEN_EQ_H
 #define TEST_CODEGEN_EQ_H
 
@@ -18,7 +22,9 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 
 #ifdef CDD_BUILD_TESTS
@@ -45,11 +51,24 @@ static long mock_ftell_eq(FILE *stream) {
 #endif
 #define FTELL mock_ftell_eq
 #else
+/**
+ * @brief Macro TMPFILE.
+ */
 #define TMPFILE tmpfile
+/**
+ * @brief Macro FTELL.
+ */
 #define FTELL ftell
 #endif
 
 /* Helper to generate code and return as string buffer */
+/**
+ * @brief Helper function generate_eq_code.
+ * @param[in] struct_name Parameter struct_name.
+ * @param[in,out] sf Parameter sf.
+ * @param[in,out] _out_val Parameter _out_val.
+ * @return Result status or value.
+ */
 static cdd_c_error_t generate_eq_code(const char *struct_name,
                                       struct StructFields *sf,
                                       char **_out_val) {
@@ -275,6 +294,7 @@ TEST test_eq_array_object(void) {
 
 /**
  * @brief codegen_eq_suite
+ * @return Test or helper result.
  */
 
 TEST test_eq_errors(void) {
@@ -321,6 +341,9 @@ TEST test_eq_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the codegen_eq_suite test suite.
+ */
 SUITE(codegen_eq_suite) {
   RUN_TEST(test_eq_errors);
   RUN_TEST(test_eq_primitive);

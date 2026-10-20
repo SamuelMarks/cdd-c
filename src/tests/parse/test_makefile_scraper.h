@@ -111,6 +111,10 @@ TEST test_scrape_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_scrape_configure_ac_basic.
+ * @return Greatest test result.
+ */
 TEST test_scrape_configure_ac_basic(void) {
   struct ExtractedBuildInfo info;
   const char *config = "AC_INIT([test], [1.0])\n"
@@ -136,6 +140,7 @@ TEST test_scrape_configure_ac_basic(void) {
 
 /**
  * @brief Makefile scraper test suite.
+ * @return Test or helper result.
  */
 
 #ifdef CDD_BUILD_TESTS
@@ -169,6 +174,10 @@ TEST test_scrape_makefile_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_scrape_configure_ac_oom.
+ * @return Greatest test result.
+ */
 TEST test_scrape_configure_ac_oom(void) {
 #ifdef CDD_BUILD_TESTS
   struct ExtractedBuildInfo info;
@@ -194,6 +203,10 @@ TEST test_scrape_configure_ac_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_info_to_cmake_oom.
+ * @return Greatest test result.
+ */
 TEST test_build_info_to_cmake_oom(void) {
 #ifdef CDD_BUILD_TESTS
   struct ExtractedBuildInfo info;
@@ -225,6 +238,9 @@ TEST test_build_info_to_cmake_oom(void) {
   }
 }
 
+/**
+ * @brief Executes the makefile_scraper_suite test suite.
+ */
 SUITE(makefile_scraper_suite) {
   RUN_TEST(test_scrape_makefile_oom);
   RUN_TEST(test_scrape_configure_ac_oom);

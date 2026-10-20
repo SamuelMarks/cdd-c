@@ -23,7 +23,13 @@ extern "C" {
 
 #ifndef CDD_TEST_CLI_C2OPENAPI_HELPERS_DEFINED
 #define CDD_TEST_CLI_C2OPENAPI_HELPERS_DEFINED
+/** @brief Test definition g_c2o_oom_fail_at. */
 static int g_c2o_oom_fail_at = -1;
+/**
+ * @brief Helper function mock_c2o_oom_malloc.
+ * @param[in] sz Parameter sz.
+ * @return Result status or value.
+ */
 static void *mock_c2o_oom_malloc(size_t sz) {
   if (g_c2o_oom_fail_at == 0) {
     g_c2o_oom_fail_at = -1;
@@ -33,15 +39,31 @@ static void *mock_c2o_oom_malloc(size_t sz) {
     g_c2o_oom_fail_at--;
   return malloc(sz);
 }
+/**
+ * @brief Helper function mock_c2o_oom_free.
+ * @param[in,out] ptr Parameter ptr.
+ */
 static void mock_c2o_oom_free(void *ptr) { free(ptr); }
 
+/**
+ * @brief Helper function get_mocks_dir.
+ * @return Result status or value.
+ */
 static const char *get_mocks_dir(void) { return "src/tests/mocks"; }
 
+/**
+ * @brief Helper function get_simple_schema.
+ * @return Result status or value.
+ */
 static const char *get_simple_schema(void) {
   return "src/tests/mocks/emit/simple.schema.json";
 }
 #endif /* CDD_TEST_CLI_C2OPENAPI_HELPERS_DEFINED */
 
+/**
+ * @brief Unit test test_c2openapi_cli_main_invalid_args.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_cli_main_invalid_args(void) {
   char *argv1[1];
 
@@ -50,6 +72,10 @@ TEST test_c2openapi_cli_main_invalid_args(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c2openapi_cli_main_valid_args.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_cli_main_valid_args(void) {
   char *argv1[3];
   int rc = 0;
@@ -62,6 +88,10 @@ TEST test_c2openapi_cli_main_valid_args(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c2openapi_cli_main_valid_args_with_options.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_cli_main_valid_args_with_options(void) {
   char *argv1[9];
   int rc = 0;
@@ -81,6 +111,10 @@ TEST test_c2openapi_cli_main_valid_args_with_options(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_to_docs_json_cli_main_help.
+ * @return Greatest test result.
+ */
 TEST test_to_docs_json_cli_main_help(void) {
   char *argv1[2];
 
@@ -90,6 +124,10 @@ TEST test_to_docs_json_cli_main_help(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_to_docs_json_cli_main_no_input.
+ * @return Greatest test result.
+ */
 TEST test_to_docs_json_cli_main_no_input(void) {
   char *argv1[1];
 
@@ -98,6 +136,10 @@ TEST test_to_docs_json_cli_main_no_input(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_to_docs_json_cli_main_valid.
+ * @return Greatest test result.
+ */
 TEST test_to_docs_json_cli_main_valid(void) {
   char *argv1[7];
   int rc = 0;
@@ -115,6 +157,10 @@ TEST test_to_docs_json_cli_main_valid(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_generate_bindings_cli_main.
+ * @return Greatest test result.
+ */
 TEST test_generate_bindings_cli_main(void) {
   char *argv1[1];
 
@@ -123,6 +169,10 @@ TEST test_generate_bindings_cli_main(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_generate_bindings_cli_main_help.
+ * @return Greatest test result.
+ */
 TEST test_generate_bindings_cli_main_help(void) {
   char *argv1[2];
 
@@ -132,6 +182,10 @@ TEST test_generate_bindings_cli_main_help(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c2openapi_cli_main_doc_tags.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_cli_main_doc_tags(void) {
   FILE *f;
 #if defined(_MSC_VER)
@@ -316,6 +370,10 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c2openapi_helpers_tags_and_sources.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_helpers_tags_and_sources(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Tag *tag = NULL;
@@ -420,6 +478,10 @@ TEST test_c2openapi_helpers_tags_and_sources(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c2openapi_helpers_oauth_and_security.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_helpers_oauth_and_security(void) {
   enum OpenAPI_SecurityIn sec_in;
   enum OpenAPI_OAuthFlowType flow_type;
@@ -523,6 +585,10 @@ TEST test_c2openapi_helpers_oauth_and_security(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c2openapi_helpers_server_variables.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_helpers_server_variables(void) {
   struct OpenAPI_Server srv;
   struct DocServer doc_srv;
@@ -573,6 +639,10 @@ TEST test_c2openapi_helpers_server_variables(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c2openapi_helpers_global_meta_conflicts.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_helpers_global_meta_conflicts(void) {
   struct OpenAPI_Spec spec;
   struct DocMetadata meta;
@@ -690,6 +760,10 @@ TEST test_c2openapi_helpers_global_meta_conflicts(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c2openapi_helpers_signature_parsing.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_helpers_signature_parsing(void) {
   struct C2OpenAPI_ParsedSig sig;
   cdd_c_error_t rc = 0;
@@ -736,6 +810,10 @@ TEST test_c2openapi_helpers_signature_parsing(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c2openapi_helpers_load_base_and_walker.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_helpers_load_base_and_walker(void) {
   struct OpenAPI_Spec spec;
   const char *test_c_file = "build/test_c2openapi_walker.c";
@@ -795,6 +873,9 @@ TEST test_c2openapi_helpers_load_base_and_walker(void) {
 #include "parse/test_cli_c2openapi_oom.h"
 #include "parse/test_cli_c2openapi_reach.h"
 
+/**
+ * @brief Executes the cli_c2openapi_suite test suite.
+ */
 SUITE(cli_c2openapi_suite) {
   RUN_TEST(test_c2openapi_reach_100_percent);
   RUN_TEST(test_c2openapi_final_branches);

@@ -32,6 +32,9 @@ static int mock_fprintf(FILE *fp, const char *fmt, ...) {
 }
 #define FPRINTF mock_fprintf
 #else
+/**
+ * @brief Macro FPRINTF.
+ */
 #define FPRINTF fprintf
 #endif
 
@@ -41,7 +44,18 @@ static int mock_fprintf(FILE *fp, const char *fmt, ...) {
 #define FOPEN(path, mode) ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? NULL : fopen(path, mode))
 #define FOPEN_S(fp, path, mode) ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? (*(fp) = NULL, -1) : fopen_s(fp, path, mode))
 #else
+/**
+ * @brief Macro FOPEN.
+ * @param[in] path Macro argument path.
+ * @param[in] mode Macro argument mode.
+ */
 #define FOPEN(path, mode) fopen(path, mode)
+/**
+ * @brief Macro FOPEN_S.
+ * @param[in] fp Macro argument fp.
+ * @param[in] path Macro argument path.
+ * @param[in] mode Macro argument mode.
+ */
 #define FOPEN_S(fp, path, mode) fopen_s(fp, path, mode)
 #endif
 
@@ -65,6 +79,9 @@ static int mock_asprintf(char **strp, const char *fmt, ...) {
 #define ASPRINTF mock_asprintf
 #else
 #include "c89stringutils_string_extras.h"
+/**
+ * @brief Macro ASPRINTF.
+ */
 #define ASPRINTF c89stringutils_asprintf
 #endif
 
@@ -90,7 +107,13 @@ static cdd_c_error_t mock_makedirs(const char *path) {
 #define GET_DIRNAME mock_get_dirname
 #define MAKEDIRS mock_makedirs
 #else
+/**
+ * @brief Macro GET_DIRNAME.
+ */
 #define GET_DIRNAME get_dirname
+/**
+ * @brief Macro MAKEDIRS.
+ */
 #define MAKEDIRS makedirs
 #endif
 
@@ -116,10 +139,16 @@ static cdd_c_error_t mock_makedirs(const char *path) {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 
 /* Helper macros for error checking */
+/**
+ * @brief Macro CHECK_RC.
+ * @param[in] x Macro argument x.
+ */
 #define CHECK_RC(x)                                                            \
   do {                                                                         \
     int _rc = (x);                                                             \
@@ -127,6 +156,11 @@ extern C_CDD_EXPORT int g_fail_io_after;
       return _rc;                                                              \
   } while (0)
 
+/**
+ * @brief Macro CHECK_NULL.
+ * @param[in] x Macro argument x.
+ * @param[in] err Macro argument err.
+ */
 #define CHECK_NULL(x, err)                                                     \
   do {                                                                         \
     if ((x) == NULL)                                                           \
@@ -134,6 +168,12 @@ extern C_CDD_EXPORT int g_fail_io_after;
   } while (0)
 
 /* Sanitize string for C identifier (underscores for invalid chars) */
+/**
+ * @brief Helper function to_c_ident.
+ * @param[out] out Parameter out.
+ * @param[in] outsz Parameter outsz.
+ * @param[in] in Parameter in.
+ */
 static void to_c_ident(char *out, const size_t outsz, const char *const in) {
   size_t i;
   for (i = 0; i + 1 < outsz && in[i] != 0; i++) {
@@ -147,6 +187,13 @@ static void to_c_ident(char *out, const size_t outsz, const char *const in) {
 }
 
 /* Generate test function for enum */
+/**
+ * @brief Helper function write_test_enum.
+ * @param[in,out] f Parameter f.
+ * @param[in] enum_name Parameter enum_name.
+ * @param[in] enum_vals Parameter enum_vals.
+ * @return Result status or value.
+ */
 static cdd_c_error_t write_test_enum(FILE *f, const char *const enum_name,
                                      const JSON_Array *enum_vals) {
   size_t i;
@@ -213,6 +260,13 @@ static cdd_c_error_t write_test_enum(FILE *f, const char *const enum_name,
 }
 
 /* Generate test function for struct */
+/**
+ * @brief Helper function write_test_struct.
+ * @param[in,out] f Parameter f.
+ * @param[in] struct_name Parameter struct_name.
+ * @param[in] schema_obj Parameter schema_obj.
+ * @return Result status or value.
+ */
 static cdd_c_error_t write_test_struct(FILE *f, const char *const struct_name,
                                        const JSON_Object *schema_obj) {
   char c_struct_name[128];

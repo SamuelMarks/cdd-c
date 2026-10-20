@@ -29,13 +29,21 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_crypto_fail_digestupdate. */
 extern C_CDD_EXPORT int g_crypto_fail_digestupdate;
+/** @brief Test definition g_crypto_fail_hmac. */
 extern C_CDD_EXPORT int g_crypto_fail_hmac;
+/** @brief Test definition g_crypto_fail_sha256. */
 extern C_CDD_EXPORT int g_crypto_fail_sha256;
+/** @brief Test definition g_crypto_fail_mdctx_new. */
 extern C_CDD_EXPORT int g_crypto_fail_mdctx_new;
+/** @brief Test definition g_crypto_fail_digestinit. */
 extern C_CDD_EXPORT int g_crypto_fail_digestinit;
+/** @brief Test definition g_crypto_fail_digestfinal_len. */
 extern C_CDD_EXPORT int g_crypto_fail_digestfinal_len;
+/** @brief Test definition g_crypto_fail_hmac_len. */
 extern C_CDD_EXPORT int g_crypto_fail_hmac_len;
+/** @brief Test definition g_crypto_fail_digestfinal. */
 extern C_CDD_EXPORT int g_crypto_fail_digestfinal;
 
 #ifdef CDD_BUILD_TESTS
@@ -216,6 +224,10 @@ TEST test_hmac_empty_keys_or_data(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_crypto_errors.
+ * @return Greatest test result.
+ */
 TEST test_crypto_errors(void) {
 #ifdef CDD_BUILD_TESTS
   unsigned char digest[CRYPTO_SHA256_SIZE];

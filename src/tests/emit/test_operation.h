@@ -22,6 +22,9 @@ extern "C" {
 #include "emit/test_operation_reach.h"
 /* clang-format on */
 
+/**
+ * @brief Executes the operation_suite test suite.
+ */
 SUITE(operation_suite) {
   RUN_TEST(test_operation_reset_with_link_details);
   RUN_TEST(test_operation_reach_100_percent);

@@ -96,7 +96,7 @@ static cdd_c_error_t parse_paths_object_inner(const JSON_Object *paths_obj,
         }
         if (path_summary) {
           if (curr_path->summary) {
-            free(curr_path->summary);
+            C_CDD_FREE(curr_path->summary);
             curr_path->summary = NULL;
           }
           c_cdd_strdup(path_summary, &curr_path->summary);
@@ -105,7 +105,7 @@ static cdd_c_error_t parse_paths_object_inner(const JSON_Object *paths_obj,
         }
         if (path_description) {
           if (curr_path->description) {
-            free(curr_path->description);
+            C_CDD_FREE(curr_path->description);
             curr_path->description = NULL;
           }
           c_cdd_strdup(path_description, &curr_path->description);
@@ -191,7 +191,7 @@ cdd_c_error_t parse_paths_object(const JSON_Object *paths_obj,
     size_t i;
     for (i = 0; i < *out_count; ++i)
       free_path_item(&(*out_paths)[i]);
-    free(*out_paths);
+    C_CDD_FREE(*out_paths);
     *out_paths = NULL;
     *out_count = 0;
   }
@@ -255,7 +255,7 @@ cdd_c_error_t collect_path_template_names(const char *route, char ***out_names,
         memcpy(name, route + start, len);
         name[len] = '\0';
         if (name_in_list(name, names, count)) {
-          free(name);
+          C_CDD_FREE(name);
           free_name_list(names, count);
           return CDD_C_ERROR_INVALID_ARGUMENT;
         }
@@ -263,7 +263,7 @@ cdd_c_error_t collect_path_template_names(const char *route, char ***out_names,
           size_t new_cap = cap ? cap * 2 : 4;
           char **tmp = (char **)C_CDD_REALLOC(names, new_cap * sizeof(char *));
           if (!tmp) {
-            free(name);
+            C_CDD_FREE(name);
             free_name_list(names, count);
             return CDD_C_ERROR_MEMORY;
           }
@@ -511,17 +511,17 @@ validate_path_template_collisions(const struct OpenAPI_Path *paths,
         continue;
       normalize_path_template_route(route_j, &norm_j);
       if (!norm_j) {
-        free(norm_i);
+        C_CDD_FREE(norm_i);
         return CDD_C_ERROR_INVALID_ARGUMENT;
       }
       if (strcmp(norm_i, norm_j) == 0 && strcmp(route_i, route_j) != 0) {
-        free(norm_j);
-        free(norm_i);
+        C_CDD_FREE(norm_j);
+        C_CDD_FREE(norm_i);
         return CDD_C_ERROR_INVALID_ARGUMENT;
       }
-      free(norm_j);
+      C_CDD_FREE(norm_j);
     }
-    free(norm_i);
+    C_CDD_FREE(norm_i);
   }
   return CDD_C_SUCCESS;
 }
@@ -778,7 +778,7 @@ cdd_c_error_t parse_additional_operations(const JSON_Object *path_obj,
     size_t i;
     for (i = 0; i < path->n_additional_operations; ++i)
       free_operation(&path->additional_operations[i]);
-    free(path->additional_operations);
+    C_CDD_FREE(path->additional_operations);
     path->additional_operations = NULL;
     path->n_additional_operations = 0;
   }

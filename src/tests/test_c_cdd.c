@@ -19,91 +19,48 @@
 
 
 
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
 extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail;
 extern C_CDD_EXPORT int g_schema_strdup_fail;
 extern C_CDD_EXPORT int g_schema_realloc_fail;
 extern C_CDD_EXPORT int g_schema_fail_io_after;
 
+/** @brief Test definition g_force_gnu_alloc_fail. */
 int g_force_gnu_alloc_fail = 0;
+/** @brief Test definition g_force_parse_tokens_fail. */
 extern C_CDD_EXPORT int g_force_parse_tokens_fail;
+/** @brief Test definition g_force_find_allocations_fail. */
 extern C_CDD_EXPORT int g_force_find_allocations_fail;
+/** @brief Test definition g_force_strdup_fail. */
 int g_force_strdup_fail = 0;
+/** @brief Test definition g_force_tokenize_fail. */
 extern C_CDD_EXPORT int g_force_tokenize_fail;
 
+/** @brief Test definition g_cdd_wine_skip. */
 int g_cdd_wine_skip = 0;
 
 extern C_CDD_EXPORT int g_schema_io_calls;
 extern C_CDD_EXPORT int g_schema_codegen_force_fail;
 extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
-extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
-extern C_CDD_EXPORT int g_cdd_scope_alloc_fail;
-
-
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_io_calls;
 extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail;
 extern C_CDD_EXPORT int g_schema_strdup_fail;
 extern C_CDD_EXPORT int g_schema_realloc_fail;
 extern C_CDD_EXPORT int g_schema_fail_io_after;
-extern C_CDD_EXPORT int g_schema_io_calls;
-extern C_CDD_EXPORT int g_schema_codegen_force_fail;
-extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
-extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
-
-
-
-
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
-extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail;
-extern C_CDD_EXPORT int g_schema_strdup_fail;
-extern C_CDD_EXPORT int g_schema_realloc_fail;
-extern C_CDD_EXPORT int g_schema_fail_io_after;
-extern C_CDD_EXPORT int g_schema_io_calls;
-extern C_CDD_EXPORT int g_schema_codegen_force_fail;
-extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
-extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
-
-
-extern C_CDD_EXPORT int g_schema_strdup_fail;
-extern C_CDD_EXPORT int g_schema_realloc_fail;
-extern C_CDD_EXPORT int g_schema_fail_io_after;
-extern C_CDD_EXPORT int g_schema_io_calls;
-extern C_CDD_EXPORT int g_schema_codegen_force_fail;
-extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
-extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
-
-
-
-
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
-extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail;
-extern C_CDD_EXPORT int g_schema_strdup_fail;
-extern C_CDD_EXPORT int g_schema_realloc_fail;
-extern C_CDD_EXPORT int g_schema_fail_io_after;
-extern C_CDD_EXPORT int g_schema_io_calls;
-extern C_CDD_EXPORT int g_schema_codegen_force_fail;
-extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
-extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
-
-
-extern C_CDD_EXPORT int g_schema_strdup_fail;
-extern C_CDD_EXPORT int g_schema_realloc_fail;
-extern C_CDD_EXPORT int g_schema_fail_io_after;
-extern C_CDD_EXPORT int g_schema_io_calls;
-extern C_CDD_EXPORT int g_schema_codegen_force_fail;
-extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
-extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
 
 
 
 
 #ifndef ENOTSUP
+/**
+ * @brief Macro ENOTSUP.
+ */
 #define ENOTSUP 134
 #endif
 
@@ -119,6 +76,10 @@ extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
 CDD_TEST_HELPERS_EXPORT FILE* cdd_test_tmpfile_global(void);
 CDD_TEST_HELPERS_EXPORT char* cdd_test_mut_str(const char *str);
 #ifndef C_CDD_STR_LIT
+/**
+ * @brief Macro C_CDD_STR_LIT.
+ * @param[in] s Macro argument s.
+ */
 #define C_CDD_STR_LIT(s) cdd_test_mut_str(s)
 #endif
 
@@ -135,6 +96,10 @@ CDD_TEST_HELPERS_EXPORT char* cdd_test_mut_str(const char *str);
 #include <c_cdd_export.h>
 #include <stdio.h>
   /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
+/**
+ * @brief Helper function mock_tmpfile_fuzzer.
+ * @return Result status or value.
+ */
 static FILE *mock_tmpfile_fuzzer(void) {
     if (g_fail_io_after >= 0) {
         return fopen("/dev/null", "w+b");
@@ -144,6 +109,9 @@ static FILE *mock_tmpfile_fuzzer(void) {
 #ifdef tmpfile
 #undef tmpfile
 #endif
+/**
+ * @brief Macro tmpfile.
+ */
 #define tmpfile mock_tmpfile_fuzzer
 
 #include "emit/test_codegen_client_body.h"
@@ -354,6 +322,7 @@ static FILE *mock_tmpfile_fuzzer(void) {
 #include "parse/test_cdd_cst_factory.h"
 #include "parse/test_cli_cst.h"
 
+#include "c_cdd/test_context.h"
 #include "c_cdd/test_int128.h"
 #include "test_cdd_api.h"
 #include "test_log.h"
@@ -372,8 +341,16 @@ static FILE *mock_tmpfile_fuzzer(void) {
 #include "emit/test_arazzo_server_gen.h"
 /* clang-format on */
 
+/**
+ * @brief Helper function GREATEST_MAIN_DEFS.
+ * @return Result status or value.
+ */
 GREATEST_MAIN_DEFS();
 
+/**
+ * @brief Unit test test_cdd_helpers.
+ * @return Greatest test result.
+ */
 TEST test_cdd_helpers(void) {
   cdd_precondition_failed();
   printf("write_to_file(NULL, NULL) = %d\\n", write_to_file(NULL, NULL));
@@ -386,37 +363,26 @@ TEST test_cdd_helpers(void) {
 
   /* Moved extern declarations for C89 compliance */
   {
-    extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
     extern C_CDD_EXPORT int g_cdd_query_err_fail;
     extern C_CDD_EXPORT int g_schema_realloc_fail;
 
     extern C_CDD_EXPORT int g_json_object_to_struct_fields_fail;
     extern C_CDD_EXPORT int g_safe_crt_malloc_fail;
-    extern C_CDD_EXPORT int g_msvc_port_bld_fail;
-    extern C_CDD_EXPORT int g_cdd_type_eval_ptr_fail;
     extern C_CDD_EXPORT int g_cdd_fprintf_fail;
     extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail;
     extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail;
 
-    extern C_CDD_EXPORT int g_cdd_lexer_id_fail;
-    extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail;
-
-    extern C_CDD_EXPORT int g_err_perc_fail;
     extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
     extern C_CDD_EXPORT int g_fail_io_after;
     extern C_CDD_EXPORT int g_cdd_ffi_ir_toposort_fail;
 
-    extern C_CDD_EXPORT int g_cdd_semantic_leave_fail;
     extern C_CDD_EXPORT int g_schema_codegen_force_fail;
     extern C_CDD_EXPORT int g_cdd_ffi_ir_malloc_fail;
     extern C_CDD_EXPORT int g_io_calls;
 
-    extern C_CDD_EXPORT int g_cdd_lexer_trivia_fail;
     extern C_CDD_EXPORT int g_schema_strdup_fail;
 
     extern C_CDD_EXPORT int g_cdd_helpers_fopen_err;
-
-    extern C_CDD_EXPORT int g_cdd_lexer_id2_fail;
 
     /* extern C_CDD_EXPORT int g_cdd_helpers_fopen_err; (moved to global) */
     g_io_calls = 0;
@@ -463,8 +429,14 @@ TEST test_cdd_helpers(void) {
   }
 }
 
+/**
+ * @brief Executes the cdd_helpers_suite test suite.
+ */
 SUITE(cdd_helpers_suite) { RUN_TEST(test_cdd_helpers); }
 
+/**
+ * @brief Executes the ffi_extractor_suite test suite.
+ */
 SUITE(ffi_extractor_suite) {
   RUN_TEST(test_ffi_e2e_complex_codebase);
   RUN_TEST(test_dsl_tokenizer_basic);
@@ -548,13 +520,22 @@ SUITE(ffi_extractor_suite) {
 #ifdef CDD_BUILD_TESTS
 #endif
 
+/** @brief Test definition g_accept_fail. */
 extern CDD_TEST_HELPERS_EXPORT int g_accept_fail;
+/** @brief Test definition g_bind_fail. */
 extern CDD_TEST_HELPERS_EXPORT int g_bind_fail;
+/** @brief Test definition g_listen_fail. */
 extern CDD_TEST_HELPERS_EXPORT int g_listen_fail;
+/** @brief Test definition g_getsockname_fail. */
 extern CDD_TEST_HELPERS_EXPORT int g_getsockname_fail;
+/** @brief Test definition g_pthread_create_fail. */
 extern CDD_TEST_HELPERS_EXPORT int g_pthread_create_fail;
+/** @brief Test definition g_socket_fail. */
 extern CDD_TEST_HELPERS_EXPORT int g_socket_fail;
 
+/**
+ * @brief Helper function reset_mocks.
+ */
 static void reset_mocks(void) {
   /*  (moved to global) */
   g_accept_fail = 0;
@@ -568,7 +549,6 @@ static void reset_mocks(void) {
   g_fail_io_after = -1;
   g_io_calls = 0;
   g_cdd_alloc_fail = 0;
-  g_cdd_pp_file_exists_fail = 0;
   g_cdd_pp_match_fail = 0;
   g_cdd_pp_skip_ws_fail = 0;
   g_cdd_pp_resolve_path_fail = 0;
@@ -584,69 +564,24 @@ static void reset_mocks(void) {
   g_cdd_pp_relational_fail = 0;
   g_cdd_pp_equality_fail = 0;
   g_cdd_pp_logic_and_fail = 0;
-  g_cdd_pp_context_init_fail = 0;
-  g_cdd_pp_scan_defines_fail = 0;
-  g_cdd_fail_token_matches_string = 0;
   g_cdd_fail_identify_keyword_or_id = 0;
-  {
-    extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;
-    extern C_CDD_EXPORT int g_cdd_audit_fail_find;
-    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
-    g_cdd_audit_fail_tokenize = 0;
-    g_cdd_audit_fail_find = 0;
-    g_cdd_fail_alloc_audit = 0;
-  }
   g_schema_codegen_force_fail = 0;
   g_schema_io_calls = 0;
   g_schema_fail_io_after = -1;
   g_cdd_fail_asprintf = 0;
-  /* extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail; (moved to global) */
-  g_cdd_cfg_alloc_fail = 0;
-  /*  (moved to global) */
   g_cdd_cst_alloc_node_fail = 0;
-  /* extern  (moved to global) */
   g_cdd_cst_alloc_token_fail = 0;
-  /* extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail; (moved to global) */
   g_cdd_cst_emit_realloc_fail = 0;
-  /* extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow; (moved to global) */
-  g_cdd_cst_parser_fast_grow = 0;
-  /* extern C_CDD_EXPORT int g_cdd_cst_realloc_fail; (moved to global) */
   g_cdd_cst_realloc_fail = 0;
-  /* extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail; (moved to global) */
   g_cdd_ffi_ir_calloc_fail = 0;
-  /* extern C_CDD_EXPORT int g_cdd_ffi_ir_malloc_fail; (moved to global) */
   g_cdd_ffi_ir_malloc_fail = 0;
-  /* extern C_CDD_EXPORT int g_cdd_ffi_ir_toposort_fail; (moved to global) */
   g_cdd_ffi_ir_toposort_fail = 0;
-  /* extern C_CDD_EXPORT int g_cdd_fprintf_fail; (moved to global) */
   g_cdd_fprintf_fail = 0;
-  /* extern C_CDD_EXPORT int g_cdd_lexer_id2_fail; (moved to global) */
-  g_cdd_lexer_id2_fail = 0;
-  /* extern C_CDD_EXPORT int g_cdd_lexer_id_fail; (moved to global) */
-  g_cdd_lexer_id_fail = 0;
-  /* extern C_CDD_EXPORT int g_cdd_lexer_trivia_fail; (moved to global) */
-  g_cdd_lexer_trivia_fail = 0;
-  /* extern C_CDD_EXPORT int g_cdd_query_err_fail; (moved to global) */
   g_cdd_query_err_fail = 0;
-  /*  (moved to global) */
-  g_cdd_scope_alloc_fail = 0;
-  /* extern C_CDD_EXPORT int g_cdd_semantic_leave_fail; (moved to global) */
-  g_cdd_semantic_leave_fail = 0;
-  /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
   g_cdd_strdup_fail = 0;
-  /* extern C_CDD_EXPORT int g_cdd_type_eval_ptr_fail; (moved to global) */
-  g_cdd_type_eval_ptr_fail = 0;
-  /* extern C_CDD_EXPORT int g_err_perc_fail; (moved to global) */
-  g_err_perc_fail = 0;
   {
-    extern C_CDD_EXPORT volatile int g_extern_c_bot_node_fail;
-    g_extern_c_bot_node_fail = 0;
     {
-      extern C_CDD_EXPORT volatile int g_extern_c_helper_fail;
-      g_extern_c_helper_fail = 0;
       {
-        extern C_CDD_EXPORT volatile int g_extern_c_top_node_fail;
-        g_extern_c_top_node_fail = 0;
         {
           extern C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
           g_ffi_extractor_alloc_fail = 0;
@@ -671,8 +606,6 @@ static void reset_mocks(void) {
           g_json_object_to_struct_fields_fail = 0;
           /*  (moved to global) */
           g_listen_fail = 0;
-          /* extern C_CDD_EXPORT int g_msvc_port_bld_fail; (moved to global) */
-          g_msvc_port_bld_fail = 0;
           /*  (moved to global) */
           g_pthread_create_fail = 0;
           /* extern C_CDD_EXPORT int g_safe_crt_malloc_fail; (moved to global)
@@ -698,17 +631,31 @@ static void reset_mocks(void) {
   }
 }
 
+/**
+ * @brief Helper function test_teardown_cb.
+ * @param[in,out] udata Parameter udata.
+ */
 static void test_teardown_cb(void *udata) {
   (void)udata;
   reset_mocks();
 }
 
+/**
+ * @brief Macro RUN_SUITE_RESET.
+ * @param[in] suite Macro argument suite.
+ */
 #define RUN_SUITE_RESET(suite)                                                 \
   do {                                                                         \
     reset_mocks();                                                             \
     RUN_SUITE(suite);                                                          \
   } while (0)
 
+/**
+ * @brief Helper function main.
+ * @param[in] argc Parameter argc.
+ * @param[in,out] argv Parameter argv.
+ * @return Result status or value.
+ */
 int main(int argc, char **argv) {
   setvbuf(stdout, NULL, _IONBF, 0);
   atexit(cdd_test_tmpfile_cleanup);
@@ -1001,6 +948,7 @@ int main(int argc, char **argv) {
   RUN_SUITE_RESET(arazzo_client_gen_suite);
   RUN_SUITE_RESET(arazzo_cli_gen_suite);
   RUN_SUITE_RESET(arazzo_server_gen_suite);
+  RUN_SUITE_RESET(context_suite);
   reset_mocks();
   cdd_test_tmpfile_cleanup();
 

@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/memory.h"
 #include "classes/emit/enum.h"
 #include "classes/emit/json.h"
 #include "classes/emit/struct.h"
@@ -139,14 +140,14 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
     {
       extern int g_cdd_fprintf_fail;
       if (g_cdd_fprintf_fail == 8005) {
-        free(base);
+        C_CDD_FREE(base);
         base = NULL;
       }
     }
 #endif
     if (base) {
       fprintf(out, "#include \"%s\"\n\n", base);
-      free(base);
+      C_CDD_FREE(base);
     }
   }
 
@@ -427,7 +428,7 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
             rc = patch_list_add(&patches, start, end, replacement);
 #endif
             if (rc != CDD_C_SUCCESS) {
-              free(replacement);
+              C_CDD_FREE(replacement);
               goto cleanup;
             }
           }
@@ -488,8 +489,8 @@ cleanup:
   patch_list_free(&patches);
   free_token_list(hdr_tokens);
   if (hdr_content)
-    free(hdr_content);
+    C_CDD_FREE(hdr_content);
   if (new_header)
-    free(new_header);
+    C_CDD_FREE(new_header);
   return rc;
 }

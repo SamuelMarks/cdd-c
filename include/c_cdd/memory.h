@@ -1,6 +1,7 @@
 /**
  * @file memory.h
- * @brief Memory allocation wrappers with test fault-injection support.
+ * @brief Memory allocation wrappers routing through the active allocator
+ * context.
  */
 #ifndef C_CDD_MEMORY_H
 /** @brief Header guard for memory.h */
@@ -9,87 +10,105 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 /* clang-format off */
 #include <stdlib.h>
 #include <string.h>
 
+#include "cdd_c_error.h"
 #include <c_cdd_export.h>
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
 /** @brief Countdown counter for failing allocations in tests */
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
 /** @brief Countdown counter for failing string duplications in tests */
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
-#endif
+/** @brief Countdown counter for failing reallocations in tests */
+extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+/** @brief Countdown counter for failing CST token allocations in tests */
+extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
+/** @brief Countdown counter for failing CST node allocations in tests */
+extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
+/** @brief Scratch pointer storing the result of the most recent allocation */
+extern C_CDD_EXPORT void *g_cdd_last_alloc_ptr;
+/** @brief Scratch pointer storing the result of the most recent string
+ * duplication */
+extern C_CDD_EXPORT char *g_cdd_last_strdup_ptr;
 
 #if defined(_MSC_VER)
-/** @brief Cross-platform inline function specifier */
-#define C_CDD_INLINE static __inline
-#elif defined(__GNUC__) || defined(__clang__)
-/** @brief Cross-platform inline function specifier */
-#define C_CDD_INLINE static __inline__
+/** @brief Raw string duplication macro for MSVC */
+#define C_CDD_RAW_STRDUP(s) _strdup(s)
+#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L &&              \
+    !defined(__STRICT_ANSI__)
+/** @brief Raw string duplication macro for POSIX/C99 */
+#define C_CDD_RAW_STRDUP(s) strdup(s)
 #else
-/** @brief Cross-platform inline function specifier */
-#define C_CDD_INLINE static
+/** @brief Raw string duplication macro for strict C89 */
+#define C_CDD_RAW_STRDUP(s)                                                    \
+  (char *)memcpy(malloc(strlen(s) + 1), (s), strlen(s) + 1)
 #endif
 
 /**
- * @brief Allocates memory with optional test fault injection.
+ * @brief Allocates `sz` bytes through the active allocator context.
+ *
  * @param[in] sz Number of bytes to allocate.
- * @return Allocated pointer or NULL on failure.
+ * @param[out] out_ptr Output pointer receiving the allocated block or `NULL`.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` /
+ * `CDD_C_ERROR_INVALID_ARGUMENT`.
  */
-C_CDD_INLINE void *c_cdd_malloc(size_t sz) {
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0)
-    return NULL;
-#endif
-  return malloc(sz);
-}
+C_CDD_EXPORT cdd_c_error_t c_cdd_do_malloc(size_t sz, void **out_ptr);
 
 /**
- * @brief Zero-allocates memory with optional test fault injection.
+ * @brief Zero-allocates `n * sz` bytes through the active allocator context.
+ *
  * @param[in] n Number of elements.
- * @param[in] sz Size of each element.
- * @return Allocated pointer or NULL on failure.
+ * @param[in] sz Size of each element in bytes.
+ * @param[out] out_ptr Output pointer receiving the allocated block or `NULL`.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` /
+ * `CDD_C_ERROR_INVALID_ARGUMENT`.
  */
-C_CDD_INLINE void *c_cdd_calloc(size_t n, size_t sz) {
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0)
-    return NULL;
-#endif
-  return calloc(n, sz);
-}
+C_CDD_EXPORT cdd_c_error_t c_cdd_do_calloc(size_t n, size_t sz, void **out_ptr);
 
 /**
- * @brief Reallocates memory with optional test fault injection.
- * @param[in,out] p Existing pointer.
+ * @brief Reallocates `p` to `sz` bytes through the active allocator context.
+ *
+ * @param[in,out] p Existing pointer (or `NULL`).
  * @param[in] sz New size in bytes.
- * @return Reallocated pointer or NULL on failure.
+ * @param[out] out_ptr Output pointer receiving the resized block or `NULL`.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` /
+ * `CDD_C_ERROR_INVALID_ARGUMENT`.
  */
-C_CDD_INLINE void *c_cdd_realloc(void *p, size_t sz) {
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_alloc_fail) {
-    if (--g_cdd_alloc_fail == 0) {
-      return NULL;
-    }
-  }
-#endif
-  return realloc(p, sz);
-}
+C_CDD_EXPORT cdd_c_error_t c_cdd_do_realloc(void *p, size_t sz, void **out_ptr);
 
 /**
- * @brief Duplicates a string with optional test fault injection.
+ * @brief Duplicates a null-terminated string through the active allocator
+ * context.
+ *
  * @param[in] s Null-terminated source string.
- * @return Newly allocated duplicate string or NULL on failure.
+ * @param[out] out_str Output pointer receiving the duplicated string or `NULL`.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` /
+ * `CDD_C_ERROR_INVALID_ARGUMENT`.
  */
-C_CDD_INLINE char *c_cdd_strdup_macro(const char *s) {
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0)
-    return NULL;
-#endif
-  return (char *)memcpy(malloc(strlen(s) + 1), s, strlen(s) + 1);
-}
+C_CDD_EXPORT cdd_c_error_t c_cdd_do_strdup(const char *s, char **out_str);
+
+/** @brief Allocates sz bytes of memory with optional test fault injection */
+#define c_cdd_malloc(sz)                                                       \
+  (c_cdd_do_malloc((sz), &g_cdd_last_alloc_ptr), g_cdd_last_alloc_ptr)
+
+/** @brief Zero-allocates n elements of sz bytes with optional test fault
+ * injection */
+#define c_cdd_calloc(n, sz)                                                    \
+  (c_cdd_do_calloc((n), (sz), &g_cdd_last_alloc_ptr), g_cdd_last_alloc_ptr)
+
+/** @brief Reallocates pointer p to sz bytes with optional test fault injection
+ */
+#define c_cdd_realloc(p, sz)                                                   \
+  (c_cdd_do_realloc((p), (sz), &g_cdd_last_alloc_ptr), g_cdd_last_alloc_ptr)
+
+/** @brief Duplicates null-terminated string s with optional test fault
+ * injection */
+#define c_cdd_strdup_macro(s)                                                  \
+  (c_cdd_do_strdup((s), &g_cdd_last_strdup_ptr), g_cdd_last_strdup_ptr)
 
 /** @brief Allocates sz bytes of memory */
 #define C_CDD_MALLOC(sz) c_cdd_malloc(sz)

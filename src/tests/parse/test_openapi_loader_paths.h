@@ -14,6 +14,10 @@ extern "C" {
 #include "parse/test_openapi_loader_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_load_extensions_non_schema.
+ * @return Greatest test result.
+ */
 TEST test_load_extensions_non_schema(void) {
 
   const char json[] = {
@@ -223,6 +227,10 @@ TEST test_load_extensions_non_schema(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_paths_webhooks_components_extensions.
+ * @return Greatest test result.
+ */
 TEST test_load_paths_webhooks_components_extensions(void) {
 
   const char json[] = {
@@ -290,6 +298,10 @@ TEST test_load_paths_webhooks_components_extensions(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_webhook_path_template_not_validated.
+ * @return Greatest test result.
+ */
 TEST test_webhook_path_template_not_validated(void) {
 
   const char json[] = {
@@ -317,6 +329,10 @@ TEST test_webhook_path_template_not_validated(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_component_schema_raw.
+ * @return Greatest test result.
+ */
 TEST test_load_component_schema_raw(void) {
 
   const char *json =
@@ -376,6 +392,10 @@ TEST test_load_component_schema_raw(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_schema_external_ref.
+ * @return Greatest test result.
+ */
 TEST test_load_schema_external_ref(void) {
 
   const char json[] = {
@@ -404,6 +424,10 @@ TEST test_load_schema_external_ref(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_schema_ref_with_pointer_is_not_component.
+ * @return Greatest test result.
+ */
 TEST test_load_schema_ref_with_pointer_is_not_component(void) {
   const char json[] = {
       123, 34,  111, 112, 101, 110, 97,  112, 105, 34,  58,  34,  51,  46,  50,
@@ -432,6 +456,10 @@ TEST test_load_schema_ref_with_pointer_is_not_component(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_schema_external_items_ref.
+ * @return Greatest test result.
+ */
 TEST test_load_schema_external_items_ref(void) {
 
   const char json[] = {
@@ -462,6 +490,10 @@ TEST test_load_schema_external_items_ref(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_path_template_missing_param.
+ * @return Greatest test result.
+ */
 TEST test_load_path_template_missing_param(void) {
 
   const char *json =
@@ -478,6 +510,10 @@ TEST test_load_path_template_missing_param(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_path_template_param_not_in_route.
+ * @return Greatest test result.
+ */
 TEST test_load_path_template_param_not_in_route(void) {
 
   const char *json = "{\"paths\":{\"/"
@@ -494,6 +530,10 @@ TEST test_load_path_template_param_not_in_route(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_path_template_param_not_required.
+ * @return Greatest test result.
+ */
 TEST test_load_path_template_param_not_required(void) {
 
   const char *json = "{\"paths\":{\"/pets/"
@@ -510,6 +550,10 @@ TEST test_load_path_template_param_not_required(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_root_missing_paths_components_webhooks_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_root_missing_paths_components_webhooks_rejected(void) {
 
   const char *json = "{\"openapi\":\"3.2.0\",\"info\":{"
@@ -523,6 +567,10 @@ TEST test_load_root_missing_paths_components_webhooks_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_param_style_invalid_for_in_rejected.
+ * @return Greatest test result.
+ */
 TEST test_param_style_invalid_for_in_rejected(void) {
 
   const char json[] = {
@@ -549,6 +597,10 @@ TEST test_param_style_invalid_for_in_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_param_style_deep_object_scalar_rejected.
+ * @return Greatest test result.
+ */
 TEST test_param_style_deep_object_scalar_rejected(void) {
 
   const char *json =
@@ -570,6 +622,10 @@ TEST test_param_style_deep_object_scalar_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_server_url_variable_missing_definition_rejected.
+ * @return Greatest test result.
+ */
 TEST test_server_url_variable_missing_definition_rejected(void) {
 
   const char *json =
@@ -589,6 +645,10 @@ TEST test_server_url_variable_missing_definition_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_server_url_variable_duplicate_rejected.
+ * @return Greatest test result.
+ */
 TEST test_server_url_variable_duplicate_rejected(void) {
 
   const char *json =
@@ -609,6 +669,10 @@ TEST test_server_url_variable_duplicate_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_server_missing_url_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_server_missing_url_rejected(void) {
 
   const char *json =
@@ -623,6 +687,10 @@ TEST test_load_server_missing_url_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_additional_operations_standard_method_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_additional_operations_standard_method_rejected(void) {
 
   const char *json =
@@ -638,6 +706,10 @@ TEST test_load_additional_operations_standard_method_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_link_missing_operation_ref_or_id_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_link_missing_operation_ref_or_id_rejected(void) {
 
   const char *json = "{\"components\":{\"links\":{\"BadLink\":{\"parameters\":{"
@@ -653,6 +725,10 @@ TEST test_load_link_missing_operation_ref_or_id_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_link_operation_ref_and_id_both_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_link_operation_ref_and_id_both_rejected(void) {
 
   const char *json =
@@ -669,6 +745,10 @@ TEST test_load_link_operation_ref_and_id_both_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_link_full_fields.
+ * @return Greatest test result.
+ */
 TEST test_load_link_full_fields(void) {
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
@@ -699,6 +779,10 @@ TEST test_load_link_full_fields(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_schema_content_schema.
+ * @return Greatest test result.
+ */
 TEST test_load_schema_content_schema(void) {
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
@@ -735,6 +819,10 @@ TEST test_load_schema_content_schema(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_nested_encoding_fields.
+ * @return Greatest test result.
+ */
 TEST test_load_nested_encoding_fields(void) {
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
@@ -757,6 +845,10 @@ TEST test_load_nested_encoding_fields(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_parameter_and_header_content_media_types.
+ * @return Greatest test result.
+ */
 TEST test_load_parameter_and_header_content_media_types(void) {
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"

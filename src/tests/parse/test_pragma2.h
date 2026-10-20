@@ -1,3 +1,7 @@
+/**
+ * @file test_pragma2.h
+ * @brief Unit tests and mocks in test_pragma2.h.
+ */
 
 #ifdef __cplusplus
 extern "C" {

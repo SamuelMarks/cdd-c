@@ -23,6 +23,14 @@ extern "C" {
 #include "functions/parse/tokenizer_punct.h"
 /* clang-format on */
 
+/**
+ * @brief Helper function token_to_cstr.
+ * @param[in,out] buf Parameter buf.
+ * @param[in] buf_len Parameter buf_len.
+ * @param[in] tok Parameter tok.
+ * @param[in,out] _out_val Parameter _out_val.
+ * @return Result status or value.
+ */
 static cdd_c_error_t token_to_cstr(char *buf, size_t buf_len,
                                    const struct Token *tok, char **_out_val) {
   size_t copy_len;
@@ -41,6 +49,10 @@ static cdd_c_error_t token_to_cstr(char *buf, size_t buf_len,
   }
 }
 
+/**
+ * @brief Unit test tokenize_all_tokens.
+ * @return Greatest test result.
+ */
 TEST tokenize_all_tokens(void) {
   const az_span code =
       az_span_create_from_str("struct union enum identifier 123 'a' \"string\" "
@@ -107,6 +119,10 @@ TEST tokenize_all_tokens(void) {
 
 /* ... existing methods ... */
 
+/**
+ * @brief Unit test tokenize_c23_digit_separators.
+ * @return Greatest test result.
+ */
 TEST tokenize_c23_digit_separators(void) {
   char *_ast_token_to_cstr_0 = NULL;
   char *_ast_token_to_cstr_1 = NULL;
@@ -145,6 +161,10 @@ TEST tokenize_c23_digit_separators(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_tokenizer_error_handling.
+ * @return Greatest test result.
+ */
 TEST test_tokenizer_error_handling(void) {
   int is_match = 0;
   size_t next_idx = 0;
@@ -194,6 +214,10 @@ TEST test_tokenizer_error_handling(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test tokenize_digit_separator_edge_case.
+ * @return Greatest test result.
+ */
 TEST tokenize_digit_separator_edge_case(void) {
   char *_ast_token_to_cstr_3 = NULL;
   /* Separator at end should NOT be included in number if not followed by digit
@@ -234,6 +258,10 @@ TEST tokenize_digit_separator_edge_case(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_tokenize_all_keywords.
+ * @return Greatest test result.
+ */
 TEST test_tokenize_all_keywords(void) {
   const char *src =
       "auto break case char const continue default do double else enum extern "
@@ -331,6 +359,10 @@ TEST test_tokenize_all_keywords(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_tokenize_operators_and_digraphs.
+ * @return Greatest test result.
+ */
 TEST test_tokenize_operators_and_digraphs(void) {
   const char *src =
       "{ } [ ] ( ) ; , ~ ? : :> / /= = == ! != + ++ += - -- -> -= * *= % %= "
@@ -413,6 +445,10 @@ TEST test_tokenize_operators_and_digraphs(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_tokenize_comments_and_ucn.
+ * @return Greatest test result.
+ */
 TEST test_tokenize_comments_and_ucn(void) {
   struct TokenList *tl = NULL;
   cdd_c_error_t rc = 0;
@@ -564,6 +600,10 @@ TEST test_tokenize_comments_and_ucn(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_tokenize_spliced_keywords_and_numbers.
+ * @return Greatest test result.
+ */
 TEST test_tokenize_spliced_keywords_and_numbers(void) {
   struct TokenList *tl = NULL;
   cdd_c_error_t rc = 0;
@@ -634,9 +674,12 @@ TEST test_tokenize_spliced_keywords_and_numbers(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_tokenizer_oom_and_edge_cases.
+ * @return Greatest test result.
+ */
 TEST test_tokenizer_oom_and_edge_cases(void) {
   extern C_CDD_EXPORT int g_cdd_alloc_fail;
-  extern C_CDD_EXPORT int g_cdd_fail_token_matches_string;
   struct TokenList *tl = NULL;
   cdd_c_error_t rc = 0;
   int is_match = 0;
@@ -664,14 +707,9 @@ TEST test_tokenizer_oom_and_edge_cases(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_alloc_fail = 0;
 
-  /* token_matches_string mock failure */
   dummy_tok.start = (const uint8_t *)"return";
   dummy_tok.length = 6;
   dummy_tok.kind = TOKEN_KEYWORD_RETURN;
-  g_cdd_fail_token_matches_string = 1;
-  rc = token_matches_string(&dummy_tok, "return", &is_match);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_cdd_fail_token_matches_string = 0;
 
   /* token_matches_string with mismatched length / prefix */
   rc = token_matches_string(&dummy_tok, "ret", &is_match);
@@ -762,6 +800,9 @@ TEST test_tokenizer_oom_and_edge_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the tokenizer_suite test suite.
+ */
 SUITE(tokenizer_suite) {
   RUN_TEST(tokenize_all_tokens);
   /* Use explicit forward declarations or macro magic if needed, or update this

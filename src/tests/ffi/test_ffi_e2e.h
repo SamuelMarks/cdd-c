@@ -1,3 +1,7 @@
+/**
+ * @file test_ffi_e2e.h
+ * @brief Unit tests and mocks in test_ffi_e2e.h.
+ */
 #ifndef TEST_FFI_E2E_H
 #define TEST_FFI_E2E_H
 
@@ -19,6 +23,7 @@ extern "C" {
  * runs the FFI generator to extract IR, and then invokes multiple language
  * emitters (e.g. python, rust, csharp) all at once to ensure they can run
  * headlessly and successfully process a complete realistic codebase.
+ * @return Test or helper result.
  */
 TEST test_ffi_e2e_complex_codebase(void) {
   const char *filename = cdd_test_mut_str("dummy_complex_lib.h");

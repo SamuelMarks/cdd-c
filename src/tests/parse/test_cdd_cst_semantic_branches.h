@@ -26,10 +26,15 @@ extern "C" {
 #include "c_cdd/memory.h"
 /* clang-format on */
 
-extern C_CDD_EXPORT int g_cdd_semantic_leave_fail;
+/** @brief Test definition g_cdd_semantic_oom_scope2. */
 extern C_CDD_EXPORT int g_cdd_semantic_oom_scope2;
+/** @brief Test definition g_cdd_semantic_oom_scope. */
 extern C_CDD_EXPORT int g_cdd_semantic_oom_scope;
 
+/**
+ * @brief Unit test test_cdd_cst_semantic_missing_branches.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_semantic_missing_branches(void) {
   cdd_c_error_t rc;
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
@@ -98,6 +103,10 @@ TEST test_cdd_cst_semantic_missing_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_semantic_missing_branches_2.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_semantic_missing_branches_2(void) {
   cdd_c_error_t rc;
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
@@ -165,6 +174,10 @@ TEST test_cdd_cst_semantic_missing_branches_2(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_semantic_missing_branches_3.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_semantic_missing_branches_3(void) {
   cdd_c_error_t rc;
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
@@ -239,7 +252,7 @@ TEST test_cdd_cst_semantic_missing_branches_3(void) {
           for (i = 1; i < 6; ++i) {
             g_cdd_alloc_fail = i;
             rc = cdd_cst_build_semantic_info(tree, &env);
-            (void)rc;
+            ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
           }
           g_cdd_alloc_fail = 0;
 
@@ -253,6 +266,10 @@ TEST test_cdd_cst_semantic_missing_branches_3(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_cst_semantic_missing_branches_4.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_semantic_missing_branches_4(void) {
   cdd_c_error_t rc;
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
@@ -300,6 +317,10 @@ TEST test_cdd_cst_semantic_missing_branches_4(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_cst_semantic_missing_branches_5.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_semantic_missing_branches_5(void) {
   cdd_c_error_t rc;
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
@@ -367,6 +388,10 @@ TEST test_cdd_cst_semantic_missing_branches_5(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_cst_semantic_missing_branches_6.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_semantic_missing_branches_6(void) {
   cdd_c_error_t rc;
   char *name = NULL;
@@ -416,6 +441,10 @@ TEST test_cdd_cst_semantic_missing_branches_6(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_cst_semantic_missing_branches_7.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_semantic_missing_branches_7(void) {
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_scope_env_t *env = NULL;
@@ -445,6 +474,10 @@ TEST test_cdd_cst_semantic_missing_branches_7(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_semantic_missing_branches_8.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_semantic_missing_branches_8(void) {
   cdd_c_error_t rc;
   char *name = NULL;
@@ -491,6 +524,10 @@ TEST test_cdd_cst_semantic_missing_branches_8(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_cst_semantic_missing_branches_9.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_semantic_missing_branches_9(void) {
   cdd_c_error_t rc;
   char *name = NULL;
@@ -545,6 +582,10 @@ TEST test_cdd_cst_semantic_missing_branches_9(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_cst_semantic_missing_branches_10.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_semantic_missing_branches_10(void) {
   cdd_c_error_t rc;
   cdd_cst_node_t *decl1 = NULL, *child1 = NULL, *child2 = NULL;
@@ -581,6 +622,10 @@ TEST test_cdd_cst_semantic_missing_branches_10(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_cst_semantic_missing_branches_11.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_semantic_missing_branches_11(void) {
   cdd_c_error_t rc;
   cdd_cst_node_t *decl1 = NULL, *child1 = NULL, *child2 = NULL;
@@ -626,6 +671,10 @@ TEST test_cdd_cst_semantic_missing_branches_11(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_cst_semantic_missing_branches_13.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_semantic_missing_branches_13(void) {
   cdd_c_error_t rc;
   cdd_cst_node_t *decl1 = NULL;
@@ -659,6 +708,10 @@ TEST test_cdd_cst_semantic_missing_branches_13(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_cst_parser_oom_new.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_parser_oom_new(void) {
   int i;
   for (i = 1; i < 50; i++) {
@@ -685,14 +738,20 @@ TEST test_cdd_cst_parser_oom_new(void) {
     g_cdd_alloc_fail = i;
     {
       int rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
-      (void)rc;
       g_cdd_alloc_fail = 0;
-      cdd_cst_tree_free(tree);
+      if (rc == CDD_C_SUCCESS) {
+        cdd_cst_tree_free(tree);
+      } else {
+        ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+      }
     }
   }
   PASS();
 }
 
+/**
+ * @brief Executes the cdd_cst_semantic_branches_suite test suite.
+ */
 SUITE(cdd_cst_semantic_branches_suite) {
   RUN_TEST(test_cdd_cst_semantic_missing_branches);
   RUN_TEST(test_cdd_cst_semantic_missing_branches_2);

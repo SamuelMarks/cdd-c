@@ -42,7 +42,6 @@ TEST test_scan_c23_enum_fixed_type(void) {
 #endif
 
   rc = write_to_file(filename, content);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   rc = type_def_list_init(&types);
@@ -78,7 +77,6 @@ TEST test_scan_c23_enum_fixed_type_whitespace(void) {
 #endif
 
   rc = write_to_file(filename, content);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   type_def_list_init(&types);
@@ -109,7 +107,6 @@ TEST test_scan_classic_enum(void) {
 #endif
 
   rc = write_to_file(filename, "enum Classic { ONE };");
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   type_def_list_init(&types);
@@ -126,6 +123,7 @@ TEST test_scan_classic_enum(void) {
 
 /**
  * @brief c_inspector_types_suite
+ * @return Test or helper result.
  */
 
 TEST test_inspector_nulls(void) {
@@ -211,7 +209,6 @@ TEST test_inspector_oom(void) {
   /*  (moved to global) */
 
   rc = write_to_file(filename, content);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   for (i = 1; i < 20; ++i) {
@@ -219,6 +216,9 @@ TEST test_inspector_oom(void) {
     type_def_list_init(&types);
     rc = c_inspector_scan_file_types(filename, &types);
     g_cdd_alloc_fail = 0;
+    if (rc != CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     type_def_list_free(&types);
     /* remove early break to force all limits */ /* Success means we passed the
                                                     allocations */
@@ -244,12 +244,14 @@ TEST test_inspector_extract_sig_oom(void) {
   int i;
   /*  (moved to global) */
 
-  (void)rc;
   for (i = 1; i < 40; ++i) {
     g_cdd_alloc_fail = i;
     func_sig_list_init(&out);
     rc = c_inspector_extract_signatures(code, &out);
     g_cdd_alloc_fail = 0;
+    if (rc != CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     func_sig_list_free(&out);
     /* remove early break to force all limits */
   }
@@ -320,7 +322,6 @@ TEST test_inspector_struct_empty_fields(void) {
 #endif
 
   rc = write_to_file(filename, content);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   type_def_list_init(&types);
@@ -347,13 +348,15 @@ TEST test_inspector_extract_sig_oom_2(void) {
   int i;
   /*  (moved to global) */
 
-  (void)rc;
   for (i = 1; i < 20; ++i) {
     g_cdd_alloc_fail = i;
     func_sig_list_init(&out);
     rc = c_inspector_extract_signatures(
         "void my_func() { /* body */ } void /* doc */ other(int a) {}", &out);
     g_cdd_alloc_fail = 0;
+    if (rc != CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     func_sig_list_free(&out);
     /* remove early break to force all limits */
   }
@@ -376,13 +379,15 @@ TEST test_inspector_extract_sig_oom_3(void) {
   int i;
   /*  (moved to global) */
 
-  (void)rc;
   for (i = 1; i < 20; ++i) {
     g_cdd_alloc_fail = i;
     func_sig_list_init(&out);
     rc = c_inspector_extract_signatures(
         "void my_func() { /* body */ } void other(int a) {}", &out);
     g_cdd_alloc_fail = 0;
+    if (rc != CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     func_sig_list_free(&out);
     /* remove early break to force all limits */
   }
@@ -418,13 +423,15 @@ TEST test_inspector_extract_sig_oom_4(void) {
   int i;
   /*  (moved to global) */
 
-  (void)rc;
   for (i = 1; i < 30; ++i) {
     g_cdd_alloc_fail = i;
     func_sig_list_init(&out);
     rc = c_inspector_extract_signatures(
         "/* doc1 */ void my_func() {} /* doc2 */ void other(int a) {}", &out);
     g_cdd_alloc_fail = 0;
+    if (rc != CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     func_sig_list_free(&out);
     /* remove early break to force all limits */
   }
@@ -451,7 +458,6 @@ TEST test_inspector_struct_fields_oom_2(void) {
   /*  (moved to global) */
 
   rc = write_to_file(filename, content);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   for (i = 1; i < 30; ++i) {
@@ -459,6 +465,9 @@ TEST test_inspector_struct_fields_oom_2(void) {
     type_def_list_init(&types);
     rc = c_inspector_scan_file_types(filename, &types);
     g_cdd_alloc_fail = 0;
+    if (rc != CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     type_def_list_free(&types);
     /* remove early break to force all limits */
   }
@@ -485,7 +494,6 @@ TEST test_inspector_struct_empty_fields_oom_3(void) {
   /*  (moved to global) */
 
   rc = write_to_file(filename, content);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   for (i = 1; i < 30; ++i) {
@@ -493,6 +501,9 @@ TEST test_inspector_struct_empty_fields_oom_3(void) {
     type_def_list_init(&types);
     rc = c_inspector_scan_file_types(filename, &types);
     g_cdd_alloc_fail = 0;
+    if (rc != CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     type_def_list_free(&types);
     /* remove early break to force all limits */
   }
@@ -520,7 +531,6 @@ TEST test_inspector_struct_empty_fields_no_name_oom(void) {
   /*  (moved to global) */
 
   rc = write_to_file(filename, content);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   for (i = 1; i < 30; ++i) {
@@ -528,6 +538,9 @@ TEST test_inspector_struct_empty_fields_no_name_oom(void) {
     type_def_list_init(&types);
     rc = c_inspector_scan_file_types(filename, &types);
     g_cdd_alloc_fail = 0;
+    if (rc != CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     type_def_list_free(&types);
     /* remove early break to force all limits */
   }
@@ -551,12 +564,14 @@ TEST test_inspector_extract_sig_oom_tokenize(void) {
   int i;
   /*  (moved to global) */
 
-  (void)rc;
   for (i = 1; i < 40; ++i) {
     g_cdd_alloc_fail = i;
     func_sig_list_init(&out);
     rc = c_inspector_extract_signatures("void foo(int a, ...) {}", &out);
     g_cdd_alloc_fail = 0;
+    if (rc != CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     func_sig_list_free(&out);
   }
 
@@ -577,12 +592,14 @@ TEST test_inspector_extract_sig_oom_parse_tokens(void) {
   int i;
   /*  (moved to global) */
 
-  (void)rc;
   for (i = 40; i < 80; ++i) {
     g_cdd_alloc_fail = i;
     func_sig_list_init(&out);
     rc = c_inspector_extract_signatures("void foo(int a, ...) {}", &out);
     g_cdd_alloc_fail = 0;
+    if (rc != CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     func_sig_list_free(&out);
   }
 
@@ -600,7 +617,6 @@ TEST test_inspector_extract_sig_fail_tokenizer(void) {
 #else
   int rc __attribute__((unused));
 #endif
-  (void)rc;
   func_sig_list_init(&out);
   rc = c_inspector_extract_signatures("int a = \xff\xff;", &out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -620,7 +636,6 @@ TEST test_inspector_extract_sig_fail_parser(void) {
 #else
   int rc __attribute__((unused));
 #endif
-  (void)rc;
   func_sig_list_init(&out);
   rc = c_inspector_extract_signatures("int f( { }", &out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -640,7 +655,6 @@ TEST test_inspector_extract_sig_fail_parser_err(void) {
 #else
   int rc __attribute__((unused));
 #endif
-  (void)rc;
   func_sig_list_init(&out);
   rc = c_inspector_extract_signatures("int f( { }", &out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -674,7 +688,6 @@ TEST test_inspector_strdup_oom(void) {
   /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
 
   rc = write_to_file(filename, content);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   for (i = 1; i < 10; ++i) {
@@ -682,6 +695,9 @@ TEST test_inspector_strdup_oom(void) {
     type_def_list_init(&types);
     rc = c_inspector_scan_file_types(filename, &types);
     g_cdd_strdup_fail = 0;
+    if (rc != CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     type_def_list_free(&types);
     /* break removed to force all strdup fails */
   }
@@ -711,7 +727,6 @@ TEST test_inspector_io_error_perms(void) {
 #endif
   const char *filename = cdd_test_mut_str("test_no_read.h");
 
-  (void)rc;
   write_to_file(filename, "");
 #if !defined(_WIN32) && !defined(__CYGWIN__)
   chmod(filename, 0200);
@@ -721,6 +736,8 @@ TEST test_inspector_io_error_perms(void) {
   rc = c_inspector_scan_file_types(filename, &types);
 #if !defined(_WIN32) && !defined(__CYGWIN__)
   ASSERT_EQ(CDD_C_ERROR_IO, rc);
+#else
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
 #endif
   type_def_list_free(&types);
 
@@ -731,6 +748,10 @@ TEST test_inspector_io_error_perms(void) {
 
   PASS();
 }
+/**
+ * @brief Unit test test_inspector_branch_coverage.
+ * @return Greatest test result.
+ */
 TEST test_inspector_branch_coverage(void) {
   const char *filename = cdd_test_mut_str("test_branch_cov.h");
   struct TypeDefList types;
@@ -810,6 +831,9 @@ TEST test_inspector_branch_coverage(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the c_inspector_types_suite test suite.
+ */
 SUITE(c_inspector_types_suite) {
   RUN_TEST(test_scan_c23_enum_fixed_type);
   RUN_TEST(test_scan_c23_enum_fixed_type_whitespace);

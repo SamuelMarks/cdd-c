@@ -14,6 +14,10 @@ extern "C" {
 #include "emit/test_codegen_client_sig_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_sig_ultra_coverage.
+ * @return Greatest test result.
+ */
 TEST test_sig_ultra_coverage(void) {
   struct OpenAPI_Operation op;
   struct OpenAPI_Parameter param;
@@ -549,6 +553,9 @@ TEST test_sig_ultra_coverage(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the client_sig_ultra_suite test suite.
+ */
 SUITE(client_sig_ultra_suite) { RUN_TEST(test_sig_ultra_coverage); }
 
 #ifdef __cplusplus

@@ -1,3 +1,7 @@
+/**
+ * @file test_cdd_cst_builder_extra2.h
+ * @brief Unit tests and mocks in test_cdd_cst_builder_extra2.h.
+ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -6,6 +10,10 @@ extern "C" {
 /* clang-format off */
 #include "c_cdd_export.h"
 /* clang-format on */
+/**
+ * @brief Unit test test_cdd_cst_builder_all_errors.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_builder_all_errors(void) {
   cdd_cst_builder_t b;
   b.error_state = CDD_C_ERROR_INVALID_ARGUMENT;

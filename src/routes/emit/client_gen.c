@@ -20,10 +20,6 @@
 #include <string.h>
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_client_gen_fail = 0;
-#endif
-
 /**
  * @brief Generates C client SDK headers, sources, models, and build files from
  * an OpenAPI spec.
@@ -48,106 +44,53 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   {
     cdd_c_error_t _rc;
     _rc = get_dirname(config->filename_base, &dir_name);
-#ifdef CDD_BUILD_TESTS
-    if (g_client_gen_fail == 24) {
-      free(dir_name);
-      _rc = CDD_C_ERROR_INVALID_ARGUMENT;
-    }
-#endif
     if (_rc != CDD_C_SUCCESS) {
       return _rc;
     }
     _rc = get_basename(config->filename_base, &base_name);
-#ifdef CDD_BUILD_TESTS
-    if (g_client_gen_fail == 25) {
-      free(base_name);
-      base_name = NULL;
-      _rc = CDD_C_ERROR_INVALID_ARGUMENT;
-    }
-#endif
     if (_rc != CDD_C_SUCCESS) {
-      free(dir_name);
+      C_CDD_FREE(dir_name);
       return _rc;
     }
   }
 
   {
-    char *src_dir = malloc(512);
-#ifdef CDD_BUILD_TESTS
-    if (g_client_gen_fail == 10) {
-      free(src_dir);
-      src_dir = NULL;
-    }
-#endif
+    char *src_dir = C_CDD_MALLOC(512);
     if (!src_dir) {
-      free(dir_name);
-      free(base_name);
+      C_CDD_FREE(dir_name);
+      C_CDD_FREE(base_name);
       return CDD_C_ERROR_MEMORY;
     }
     CDD_SNPRINTF(src_dir, 512, "%s/src", dir_name);
     rc = makedirs(src_dir);
-#ifdef CDD_BUILD_TESTS
-    if (g_client_gen_fail == 62)
-      rc = CDD_C_ERROR_IO;
-#endif
     if (rc != CDD_C_SUCCESS) {
-      free(src_dir);
-      free(dir_name);
-      free(base_name);
+      C_CDD_FREE(src_dir);
+      C_CDD_FREE(dir_name);
+      C_CDD_FREE(base_name);
       return rc;
     }
-    actual_base = malloc(strlen(src_dir) + strlen(base_name) + 2);
-#ifdef CDD_BUILD_TESTS
-    if (g_client_gen_fail == 11 || g_client_gen_fail == 61) {
-      free(actual_base);
-      actual_base = NULL;
-    }
-#endif
+    actual_base = C_CDD_MALLOC(strlen(src_dir) + strlen(base_name) + 2);
     if (actual_base) {
       CDD_SNPRINTF(actual_base, strlen(src_dir) + strlen(base_name) + 2,
                    "%s/%s", src_dir, base_name);
     }
-    free(src_dir);
+    C_CDD_FREE(src_dir);
   }
 
   if (!actual_base) {
-    actual_base = strdup(config->filename_base);
-#ifdef CDD_BUILD_TESTS
-    if (g_client_gen_fail == 61) {
-      free(actual_base);
-      actual_base = NULL;
-    }
-#endif
+    actual_base = C_CDD_STRDUP(config->filename_base);
     if (!actual_base) {
-      free(dir_name);
-      free(base_name);
+      C_CDD_FREE(dir_name);
+      C_CDD_FREE(base_name);
       return CDD_C_ERROR_MEMORY;
     }
   }
 
   /* Prepare filenames */
-  h_name = malloc(strlen(actual_base) + 3);   /* .h */
-  c_name = malloc(strlen(actual_base) + 3);   /* .c */
-  mh_name = malloc(strlen(actual_base) + 10); /* _models.h */
-  mc_name = malloc(strlen(actual_base) + 10); /* _models.c */
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 12) {
-    free(h_name);
-    h_name = NULL;
-  }
-  if (g_client_gen_fail == 75) {
-    free(c_name);
-    c_name = NULL;
-  }
-  if (g_client_gen_fail == 76) {
-    free(mh_name);
-    mh_name = NULL;
-  }
-  if (g_client_gen_fail == 77) {
-    free(mc_name);
-    mc_name = NULL;
-  }
-#endif
+  h_name = C_CDD_MALLOC(strlen(actual_base) + 3);   /* .h */
+  c_name = C_CDD_MALLOC(strlen(actual_base) + 3);   /* .c */
+  mh_name = C_CDD_MALLOC(strlen(actual_base) + 10); /* _models.h */
+  mc_name = C_CDD_MALLOC(strlen(actual_base) + 10); /* _models.c */
   if (!h_name || !c_name || !mh_name || !mc_name) {
     rc = CDD_C_ERROR_MEMORY;
     {
@@ -169,59 +112,10 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   CDD_SNPRINTF(mc_name, strlen(actual_base) + 10, "%s_models.c", actual_base);
 #endif
 
-#if defined(_MSC_VER)
-  if (fopen_s(&hfile, h_name, "w") != 0)
-    hfile = NULL;
-  if (fopen_s(&cfile, c_name, "w") != 0)
-    cfile = NULL;
-  if (fopen_s(&mhfile, mh_name, "w") != 0)
-    mhfile = NULL;
-  if (fopen_s(&mcfile, mc_name, "w") != 0)
-    mcfile = NULL;
-#else
-#if defined(_MSC_VER)
-  if (fopen_s(&hfile, h_name, "w") != 0)
-    hfile = NULL;
-#else
-  hfile = fopen(h_name, "w");
-#endif
-#if defined(_MSC_VER)
-  if (fopen_s(&cfile, c_name, "w") != 0)
-    cfile = NULL;
-#else
-  cfile = fopen(c_name, "w");
-#endif
-#if defined(_MSC_VER)
-  if (fopen_s(&mhfile, mh_name, "w") != 0)
-    mhfile = NULL;
-#else
-  mhfile = fopen(mh_name, "w");
-#endif
-#if defined(_MSC_VER)
-  if (fopen_s(&mcfile, mc_name, "w") != 0)
-    mcfile = NULL;
-#else
-  mcfile = fopen(mc_name, "w");
-#endif
-#endif
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 16) {
-    fclose(hfile);
-    hfile = NULL;
-  }
-  if (g_client_gen_fail == 78) {
-    fclose(cfile);
-    cfile = NULL;
-  }
-  if (g_client_gen_fail == 79) {
-    fclose(mhfile);
-    mhfile = NULL;
-  }
-  if (g_client_gen_fail == 80) {
-    fclose(mcfile);
-    mcfile = NULL;
-  }
-#endif
+  cdd_vfs_fopen(h_name, "w", &hfile);
+  cdd_vfs_fopen(c_name, "w", &cfile);
+  cdd_vfs_fopen(mh_name, "w", &mhfile);
+  cdd_vfs_fopen(mc_name, "w", &mcfile);
   if (!hfile || !cfile || !mhfile || !mcfile) {
     rc = CDD_C_ERROR_IO;
     {
@@ -233,28 +127,18 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
 
   /* Prepare configurations */
   if (config->header_guard)
-    guard = strdup(config->header_guard);
+    guard = C_CDD_STRDUP(config->header_guard);
   else
     generate_guard(config->filename_base, &guard);
 
   if (config->model_header)
-    model_h = strdup(config->model_header);
+    model_h = C_CDD_STRDUP(config->model_header);
   else
     derive_model_header(base_name, &model_h);
 
   if (config->func_prefix)
     prefix = config->func_prefix;
 
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 17) {
-    free(guard);
-    guard = NULL;
-  }
-  if (g_client_gen_fail == 81) {
-    free(model_h);
-    model_h = NULL;
-  }
-#endif
   if (!guard || !model_h) {
     rc = CDD_C_ERROR_MEMORY;
     {
@@ -264,13 +148,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
   }
 
-  model_guard = malloc(strlen(guard) + 8);
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 18) {
-    free(model_guard);
-    model_guard = NULL;
-  }
-#endif
+  model_guard = C_CDD_MALLOC(strlen(guard) + 8);
   if (!model_guard) {
     rc = CDD_C_ERROR_MEMORY;
     {
@@ -294,12 +172,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   }
 
   /* --- Write Client Preamble --- */
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 21)
-    rc = CDD_C_ERROR_IO;
-  else
-#endif
-    rc = write_header_preamble(hfile, guard, model_h);
+  rc = write_header_preamble(hfile, guard, model_h);
   if (rc != 0) {
     fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
             __LINE__);
@@ -309,23 +182,11 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   {
     char *base = NULL;
     rc = get_basename(h_name, &base);
-#ifdef CDD_BUILD_TESTS
-    if (g_client_gen_fail == 53) {
-      free(base);
-      base = NULL;
-      rc = CDD_C_ERROR_INVALID_ARGUMENT;
-    }
-#endif
     if (rc != CDD_C_SUCCESS) {
       goto cleanup;
     }
-#ifdef CDD_BUILD_TESTS
-    if (g_client_gen_fail == 22)
-      rc = CDD_C_ERROR_IO;
-    else
-#endif
-      rc = write_source_preamble(cfile, base);
-    free(base);
+    rc = write_source_preamble(cfile, base);
+    C_CDD_FREE(base);
     if (rc != CDD_C_SUCCESS) {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -334,12 +195,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   }
 
   /* --- Write Lifecycle --- */
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 23)
-    rc = CDD_C_ERROR_IO;
-  else
-#endif
-    rc = write_lifecycle_funcs(hfile, cfile, prefix, spec);
+  rc = write_lifecycle_funcs(hfile, cfile, prefix, spec);
   if (rc != 0) {
     fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
             __LINE__);
@@ -351,12 +207,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     struct OpenAPI_Path *path = &spec->paths[i];
     for (j = 0; j < path->n_operations; ++j) {
       struct OpenAPI_Operation *op = &path->operations[j];
-#ifdef CDD_BUILD_TESTS
-      if (g_client_gen_fail == 71)
-        rc = CDD_C_ERROR_IO;
-      else
-#endif
-        rc = emit_operation(hfile, cfile, path, op, spec, config, prefix);
+      rc = emit_operation(hfile, cfile, path, op, spec, config, prefix);
       if (rc != CDD_C_SUCCESS) {
         fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                 __LINE__);
@@ -365,12 +216,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
     for (j = 0; j < path->n_additional_operations; ++j) {
       struct OpenAPI_Operation *op = &path->additional_operations[j];
-#ifdef CDD_BUILD_TESTS
-      if (g_client_gen_fail == 72)
-        rc = CDD_C_ERROR_IO;
-      else
-#endif
-        rc = emit_operation(hfile, cfile, path, op, spec, config, prefix);
+      rc = emit_operation(hfile, cfile, path, op, spec, config, prefix);
       if (rc != CDD_C_SUCCESS) {
         fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                 __LINE__);
@@ -390,51 +236,20 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     char cpath[512];
     FILE *uc = NULL;
 
-#ifdef CDD_BUILD_TESTS
-    if (g_client_gen_fail == 84)
-      rc = CDD_C_ERROR_IO;
-    else
-#endif
-      rc = client_gen_emit_url_utils_h(dir_name);
+    rc = client_gen_emit_url_utils_h(dir_name);
     if (rc != CDD_C_SUCCESS) {
       goto cleanup;
     }
 
     CDD_SNPRINTF(cpath, 512, "%s/src/url_utils.c", dir_name);
-#if defined(_MSC_VER)
-    if (fopen_s(&uc, cpath, "w") != 0)
-      uc = NULL;
-#else
-    uc = fopen(cpath, "w");
-#endif
-#ifdef CDD_BUILD_TESTS
-    if (g_client_gen_fail == 55) {
-      fclose(uc);
-      uc = NULL;
-    }
-#endif
+    cdd_vfs_fopen(cpath, "w", &uc);
     if (uc) {
-#ifdef CDD_BUILD_TESTS
-      if (g_client_gen_fail == 82)
-        rc = CDD_C_ERROR_IO;
-      else
-#endif
-        rc = client_gen_emit_url_utils_c1(uc);
-      if (rc != CDD_C_SUCCESS) {
-        fclose(uc);
-        goto cleanup;
-      }
-#ifdef CDD_BUILD_TESTS
-      if (g_client_gen_fail == 83)
-        rc = CDD_C_ERROR_IO;
-      else
-#endif
-        rc = client_gen_emit_url_utils_c2(uc);
-      if (rc != CDD_C_SUCCESS) {
-        fclose(uc);
-        goto cleanup;
-      }
+      rc = (cdd_c_error_t)((int)client_gen_emit_url_utils_c1(uc) |
+                           (int)client_gen_emit_url_utils_c2(uc));
       fclose(uc);
+      if (rc != CDD_C_SUCCESS) {
+        goto cleanup;
+      }
     }
   }
 
@@ -446,13 +261,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   }
 
   if (!config->no_installable_package) {
-#ifdef CDD_BUILD_TESTS
-    if (g_client_gen_fail == 20)
-      rc = CDD_C_ERROR_IO;
-    else
-#endif
-      rc = generate_cmake_project(dir_name, base_name,
-                                  config->create_tests_and_mocks);
+    rc = generate_cmake_project(dir_name, base_name,
+                                config->create_tests_and_mocks);
     if (rc != CDD_C_SUCCESS) {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -469,16 +279,16 @@ cleanup:
     fclose(mhfile);
   if (mcfile)
     fclose(mcfile);
-  free(h_name);
-  free(c_name);
-  free(mh_name);
-  free(mc_name);
-  free(guard);
-  free(model_h);
-  free(model_guard);
-  free(dir_name);
-  free(base_name);
-  free(actual_base);
+  C_CDD_FREE(h_name);
+  C_CDD_FREE(c_name);
+  C_CDD_FREE(mh_name);
+  C_CDD_FREE(mc_name);
+  C_CDD_FREE(guard);
+  C_CDD_FREE(model_h);
+  C_CDD_FREE(model_guard);
+  C_CDD_FREE(dir_name);
+  C_CDD_FREE(base_name);
+  C_CDD_FREE(actual_base);
 
   return rc;
 }

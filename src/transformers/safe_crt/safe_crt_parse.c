@@ -316,7 +316,7 @@ cdd_c_error_t infer_buffer_size(expr_t *node, inferred_size_t *out_size) {
               stmt->children[j - 1].kind == CDD_CST_CHILD_TOKEN &&
               stmt->children[j - 1].val.token->kind == CDD_TOKEN_IDENTIFIER) {
             res.valid = 1;
-            free(stmts.nodes);
+            C_CDD_FREE(stmts.nodes);
             *out_size = res;
             return CDD_C_SUCCESS;
           }
@@ -365,7 +365,7 @@ cdd_c_error_t infer_buffer_size(expr_t *node, inferred_size_t *out_size) {
     if (res.valid)
       break;
   }
-  free(stmts.nodes);
+  C_CDD_FREE(stmts.nodes);
   *out_size = res;
   return CDD_C_SUCCESS;
 }

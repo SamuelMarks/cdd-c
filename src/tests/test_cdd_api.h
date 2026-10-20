@@ -1,3 +1,7 @@
+/**
+ * @file test_cdd_api.h
+ * @brief Unit tests and mocks in test_cdd_api.h.
+ */
 #ifndef TEST_CDD_API_H
 #define TEST_CDD_API_H
 
@@ -12,6 +16,7 @@
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_cdd_ffi_ir_calloc_fail. */
 extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail;
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
 extern C_CDD_EXPORT int g_cdd_fprintf_fail;
@@ -20,6 +25,10 @@ extern C_CDD_EXPORT int g_cdd_fprintf_fail;
 extern "C" {
 #endif /* __cplusplus */
 
+/**
+ * @brief Unit test test_cdd_generate_from_openapi.
+ * @return Greatest test result.
+ */
 TEST test_cdd_generate_from_openapi(void) {
   cdd_from_openapi_config_t config = {0};
   FILE *f;
@@ -28,7 +37,7 @@ TEST test_cdd_generate_from_openapi(void) {
 
   config.input = cdd_test_mut_str("nonexistent.json");
   config.output = cdd_test_mut_str("build/out");
-  config.subcommand = cdd_test_mut_str("to_sdk");
+  config.subcommand = CDD_OPENAPI_SUBCOMMAND_TO_SDK;
   ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_generate_from_openapi(&config));
 
   /* Test OOM on fs_path_join in cdd_generate_from_openapi */
@@ -52,26 +61,30 @@ TEST test_cdd_generate_from_openapi(void) {
 #endif
   remove("build/test_min_oas.json");
 
-  config.subcommand = NULL;
+  config.subcommand = CDD_OPENAPI_SUBCOMMAND_TO_SDK;
   config.input = NULL;
   config.input_dir = cdd_test_mut_str("nonexistent_dir");
-  config.no_github_actions = 1;
-  config.no_installable_package = 1;
-  config.tests = 1;
+  config.no_github_actions = CDD_TRUE;
+  config.no_installable_package = CDD_TRUE;
+  config.tests = CDD_TRUE;
   ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_from_openapi(&config));
 
   /* Cover branches where flags are false but input_dir is not set, input not
    * set */
   config.input_dir = NULL;
-  config.no_github_actions = 0;
-  config.no_installable_package = 0;
-  config.tests = 0;
+  config.no_github_actions = CDD_FALSE;
+  config.no_installable_package = CDD_FALSE;
+  config.tests = CDD_FALSE;
   config.output = NULL;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_generate_from_openapi(&config));
 
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_generate_to_openapi.
+ * @return Greatest test result.
+ */
 TEST test_cdd_generate_to_openapi(void) {
   cdd_to_openapi_config_t config = {0};
 
@@ -103,6 +116,10 @@ TEST test_cdd_generate_to_openapi(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_generate_docs_json.
+ * @return Greatest test result.
+ */
 TEST test_cdd_generate_docs_json(void) {
   cdd_docs_json_config_t config = {0};
 
@@ -110,34 +127,44 @@ TEST test_cdd_generate_docs_json(void) {
 
   config.input = cdd_test_mut_str("nonexistent.json");
   config.output = cdd_test_mut_str("build/out.json");
-  config.no_imports = 1;
-  config.no_wrapping = 1;
+  config.no_imports = CDD_TRUE;
+  config.no_wrapping = CDD_TRUE;
   ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_generate_docs_json(&config));
 
   config.input = NULL;
-  config.no_imports = 0;
-  config.no_wrapping = 0;
+  config.no_imports = CDD_FALSE;
+  config.no_wrapping = CDD_FALSE;
   config.output = NULL;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_generate_docs_json(&config));
 
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_serve_json_rpc.
+ * @return Greatest test result.
+ */
 TEST test_cdd_serve_json_rpc(void) {
   cdd_serve_json_rpc_config_t config = {0};
 
   config.port = 1; /* port > 0 */
-  config.listen_host = cdd_test_mut_str("255");
+  config.bind_address = cdd_test_mut_str("127.0.0.1");
+  config.max_requests = 0;
   ASSERT_NEQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_serve_json_rpc(&config));
 
   config.port = 0;
-  config.listen_host = NULL;
+  config.bind_address = NULL;
+  config.max_requests = 0;
   ASSERT_NEQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_serve_json_rpc(&config));
 
   PASS();
 }
 
 #ifndef __EMSCRIPTEN__
+/**
+ * @brief Unit test test_bin_cdd.
+ * @return Greatest test result.
+ */
 TEST test_bin_cdd(void) {
   int rc = 1;
   const char *env_bin = getenv("CDD_C_BIN");
@@ -210,6 +237,10 @@ TEST test_bin_cdd(void) {
 }
 #endif
 
+/**
+ * @brief Unit test test_code_writer_and_ffi_common.
+ * @return Greatest test result.
+ */
 TEST test_code_writer_and_ffi_common(void) {
   cdd_code_writer_t w;
   cdd_c_error_t err = CDD_C_SUCCESS;
@@ -464,12 +495,17 @@ TEST test_code_writer_and_ffi_common(void) {
   PASS();
 }
 
+/** @brief Test definition g_ffi_extractor_alloc_fail. */
 extern C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
 /* extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail; (moved to global) */
 
 #include "cdd_test_helpers_export.h"
 extern CDD_TEST_HELPERS_EXPORT int g_cdd_alloc_fail;
 
+/**
+ * @brief Unit test test_cdd_generate_bindings.
+ * @return Greatest test result.
+ */
 TEST test_cdd_generate_bindings(void) {
   cdd_generate_bindings_config_t config = {0};
   FILE *f;
@@ -586,6 +622,10 @@ TEST test_cdd_generate_bindings(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_generate_bindings_from_dsl.
+ * @return Greatest test result.
+ */
 TEST test_cdd_generate_bindings_from_dsl(void) {
   cdd_generate_bindings_config_t config = {0};
   const char *valid_dsl = "interface Test {}";
@@ -633,6 +673,10 @@ TEST test_cdd_generate_bindings_from_dsl(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_generate_bindings_json.
+ * @return Greatest test result.
+ */
 TEST test_cdd_generate_bindings_json(void) {
   cdd_generate_bindings_config_t config = {0};
   FILE *f;
@@ -709,6 +753,9 @@ TEST test_cdd_generate_bindings_json(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the cdd_api_suite test suite.
+ */
 SUITE(cdd_api_suite) {
   RUN_TEST(test_cdd_generate_from_openapi);
   RUN_TEST(test_cdd_generate_to_openapi);

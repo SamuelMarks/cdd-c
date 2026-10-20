@@ -20,12 +20,20 @@ extern "C" {
 
   /* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
   /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
+/**
+ * @brief Helper function is_basic_type_keyword_test.
+ * @param[in] k Parameter k.
+ * @param[out] out_is_basic Parameter out_is_basic.
+ * @return Result status or value.
+ */
 extern cdd_c_error_t is_basic_type_keyword_test(enum TokenKind k, int *out_is_basic);
 
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 
 /**
@@ -116,12 +124,20 @@ TEST test_scan_for_vlas_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_vla_site_list_nulls.
+ * @return Greatest test result.
+ */
 TEST test_vla_site_list_nulls(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, vla_site_list_init(NULL));
   vla_site_list_free(NULL); /* Should not crash */
   PASS();
 }
 
+/**
+ * @brief Unit test test_is_basic_type_keyword.
+ * @return Greatest test result.
+ */
 TEST test_is_basic_type_keyword(void) {
   int is_basic;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -135,6 +151,10 @@ TEST test_is_basic_type_keyword(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_scan_for_vlas_oom.
+ * @return Greatest test result.
+ */
 TEST test_scan_for_vlas_oom(void) {
   struct TokenList *tokens = NULL;
   struct VLASiteList list;
@@ -161,6 +181,10 @@ TEST test_scan_for_vlas_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_scan_for_vlas_edge_cases.
+ * @return Greatest test result.
+ */
 TEST test_scan_for_vlas_edge_cases(void) {
   struct TokenList *tokens = NULL;
   struct VLASiteList list;

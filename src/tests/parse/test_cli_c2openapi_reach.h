@@ -23,7 +23,13 @@ extern "C" {
 
 #ifndef CDD_TEST_CLI_C2OPENAPI_HELPERS_DEFINED
 #define CDD_TEST_CLI_C2OPENAPI_HELPERS_DEFINED
+/** @brief Test definition g_c2o_oom_fail_at. */
 static int g_c2o_oom_fail_at = -1;
+/**
+ * @brief Helper function mock_c2o_oom_malloc.
+ * @param[in] sz Parameter sz.
+ * @return Result status or value.
+ */
 static void *mock_c2o_oom_malloc(size_t sz) {
   if (g_c2o_oom_fail_at == 0) {
     g_c2o_oom_fail_at = -1;
@@ -33,8 +39,16 @@ static void *mock_c2o_oom_malloc(size_t sz) {
     g_c2o_oom_fail_at--;
   return malloc(sz);
 }
+/**
+ * @brief Helper function mock_c2o_oom_free.
+ * @param[in,out] ptr Parameter ptr.
+ */
 static void mock_c2o_oom_free(void *ptr) { free(ptr); }
 
+/**
+ * @brief Helper function get_mocks_dir.
+ * @return Result status or value.
+ */
 static const char *get_mocks_dir(void) {
   FILE *f;
   f = fopen("src/tests/mocks/emit/simple.schema.json", "r");
@@ -45,6 +59,10 @@ static const char *get_mocks_dir(void) {
   return "../src/tests/mocks";
 }
 
+/**
+ * @brief Helper function get_simple_schema.
+ * @return Result status or value.
+ */
 static const char *get_simple_schema(void) {
   FILE *f;
   f = fopen("src/tests/mocks/emit/simple.schema.json", "r");
@@ -56,6 +74,10 @@ static const char *get_simple_schema(void) {
 }
 #endif /* CDD_TEST_CLI_C2OPENAPI_HELPERS_DEFINED */
 
+/**
+ * @brief Unit test test_c2openapi_reach_100_percent.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_reach_100_percent(void) {
   /* 1. spec_add_tag realloc fail */
   {

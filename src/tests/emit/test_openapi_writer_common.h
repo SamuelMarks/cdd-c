@@ -25,7 +25,13 @@ extern "C" {
 /* clang-format on */
 
 /* Global OOM injection state and mock allocator */
+/** @brief Test definition g_parson_oom_fail_at. */
 static int g_parson_oom_fail_at = -1;
+/**
+ * @brief Helper function mock_parson_oom_malloc.
+ * @param[in] sz Parameter sz.
+ * @return Result status or value.
+ */
 static void *mock_parson_oom_malloc(size_t sz) {
   if (g_parson_oom_fail_at == 0) {
     g_parson_oom_fail_at = -1;
@@ -35,8 +41,17 @@ static void *mock_parson_oom_malloc(size_t sz) {
     g_parson_oom_fail_at--;
   return malloc(sz);
 }
+/**
+ * @brief Helper function mock_parson_oom_free.
+ * @param[in,out] ptr Parameter ptr.
+ */
 static void mock_parson_oom_free(void *ptr) { free(ptr); }
 
+/**
+ * @brief Helper function set_both_parson_allocators.
+ * @param[in,out] malloc_fun Parameter malloc_fun.
+ * @param[in,out] free_fun Parameter free_fun.
+ */
 static void set_both_parson_allocators(void *(*malloc_fun)(size_t),
                                        void (*free_fun)(void *)) {
   (json_set_allocation_functions)(malloc_fun, free_fun);
@@ -45,8 +60,15 @@ static void set_both_parson_allocators(void *(*malloc_fun)(size_t),
 #ifdef json_set_allocation_functions
 #undef json_set_allocation_functions
 #endif
+/**
+ * @brief Macro json_set_allocation_functions.
+ */
 #define json_set_allocation_functions set_both_parson_allocators
 
+/**
+ * @brief Macro ASSERT_WRITER_RC.
+ * @param[in] expr Macro argument expr.
+ */
 #define ASSERT_WRITER_RC(expr)                                                 \
   do {                                                                         \
     cdd_c_error_t _w_rc = (expr);                                              \
@@ -57,6 +79,12 @@ static void set_both_parson_allocators(void *(*malloc_fun)(size_t),
 
 /* --- Helpers --- */
 
+/**
+ * @brief Helper function load_spec_str2.
+ * @param[in] json_str Parameter json_str.
+ * @param[in,out] spec Parameter spec.
+ * @return Result status or value.
+ */
 static cdd_c_error_t load_spec_str2(const char *json_str,
                                     struct OpenAPI_Spec *spec) {
   JSON_Value *dyn;
@@ -74,6 +102,14 @@ static cdd_c_error_t load_spec_str2(const char *json_str,
   return rc;
 }
 
+/**
+ * @brief Helper function setup_test_spec.
+ * @param[in,out] spec Parameter spec.
+ * @param[in,out] path Parameter path.
+ * @param[in,out] op Parameter op.
+ * @param[in,out] param Parameter param.
+ * @param[out] response Parameter response.
+ */
 static void setup_test_spec(struct OpenAPI_Spec *spec,
                             struct OpenAPI_Path *path,
                             struct OpenAPI_Operation *op,

@@ -172,10 +172,7 @@ cdd_c_error_t gnu_standardize_ranges(cdd_cst_tree_t *tree) {
               strcpy(p, "case ");
 #endif
               p += 5;
-              if (cdd_append_int(p, v, &p) != 0) {
-                free(heap_buf);
-                return CDD_C_ERROR_MEMORY;
-              }
+              rc = cdd_append_int(p, v, &p);
               if (v != end_val) {
 #if defined(_MSC_VER)
                 strcpy_s(p, alloc_sz - (size_t)(p - heap_buf), ": ");
@@ -190,13 +187,13 @@ cdd_c_error_t gnu_standardize_ranges(cdd_cst_tree_t *tree) {
             }
             if (cdd_pool_string_safe(tree, heap_buf, &pooled) !=
                 CDD_C_SUCCESS) {
-              free(heap_buf);
+              C_CDD_FREE(heap_buf);
               return CDD_C_ERROR_MEMORY;
             }
             tree->base_tokens->tokens[is_case_idx].start =
                 (const uint8_t *)pooled;
             tree->base_tokens->tokens[is_case_idx].length = strlen(heap_buf);
-            free(heap_buf);
+            C_CDD_FREE(heap_buf);
             rc = replace_token_with_text(tree, prev, prev->kind, "", 0);
             if (rc != CDD_C_SUCCESS)
               return rc;
@@ -237,10 +234,7 @@ cdd_c_error_t gnu_standardize_ranges(cdd_cst_tree_t *tree) {
               p = heap_buf;
               for (v = start_val; v <= end_val; v++) {
                 *p++ = '[';
-                if (cdd_append_int(p, v, &p) != 0) {
-                  free(heap_buf);
-                  return CDD_C_ERROR_MEMORY;
-                }
+                rc = cdd_append_int(p, v, &p);
 #if defined(_MSC_VER)
                 strcpy_s(p, alloc_sz - (size_t)(p - heap_buf), "] = ");
 #else
@@ -262,13 +256,13 @@ cdd_c_error_t gnu_standardize_ranges(cdd_cst_tree_t *tree) {
 
               if (cdd_pool_string_safe(tree, heap_buf, &pooled) !=
                   CDD_C_SUCCESS) {
-                free(heap_buf);
+                C_CDD_FREE(heap_buf);
                 return CDD_C_ERROR_MEMORY;
               }
               tree->base_tokens->tokens[is_range_idx].start =
                   (const uint8_t *)pooled;
               tree->base_tokens->tokens[is_range_idx].length = strlen(heap_buf);
-              free(heap_buf);
+              C_CDD_FREE(heap_buf);
 
               rc = replace_token_with_text(tree, prev, prev->kind, "", 0);
               if (rc != CDD_C_SUCCESS)
@@ -311,15 +305,6 @@ cdd_c_error_t gnu_standardize_ranges(cdd_cst_tree_t *tree) {
     if (t->kind == CDD_TOKEN_IDENTIFIER && t->length == 16 &&
         memcmp(t->start, "__builtin_expect", 16) == 0) {
       size_t j = i + 1;
-#ifdef CDD_BUILD_TESTS
-      if (g_gnu_standardizer_fail == 18) {
-        tree->base_tokens->tokens[j].length = 0;
-      }
-#endif
-      while (j < tree->base_tokens->size &&
-             tree->base_tokens->tokens[j].length == 0) {
-        j++;
-      }
       if (j < tree->base_tokens->size) {
         if (tree->base_tokens->tokens[j].kind == CDD_TOKEN_LPAREN) {
           int depth = 1;

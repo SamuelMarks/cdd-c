@@ -1,3 +1,7 @@
+/**
+ * @file test_codegen_enum.h
+ * @brief Unit tests and mocks in test_codegen_enum.h.
+ */
 #include "cdd_test_helpers_export.h"
 CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 
@@ -22,6 +26,10 @@ extern "C" {
 /* Moved extern declarations for C89 compliance */
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
+/**
+ * @brief Unit test test_enum_generation.
+ * @return Greatest test result.
+ */
 TEST test_enum_generation(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
@@ -149,6 +157,10 @@ TEST test_enum_generation(void) {
   }
 }
 
+/**
+ * @brief Unit test test_enum_generation_oom.
+ * @return Greatest test result.
+ */
 TEST test_enum_generation_oom(void) {
   struct EnumMembers em;
 #ifdef CDD_BUILD_TESTS
@@ -203,6 +215,10 @@ TEST test_enum_generation_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_enum_exhaustive_io.
+ * @return Greatest test result.
+ */
 TEST test_enum_exhaustive_io(void) {
 #ifdef CDD_BUILD_TESTS
   int i;
@@ -302,6 +318,9 @@ TEST test_enum_exhaustive_io(void) {
   g_fail_io_after = -1;
   PASS();
 }
+/**
+ * @brief Executes the codegen_enum_suite test suite.
+ */
 SUITE(codegen_enum_suite) {
   RUN_TEST(test_enum_generation);
   RUN_TEST(test_enum_generation_oom);

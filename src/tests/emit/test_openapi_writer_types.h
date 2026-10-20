@@ -14,6 +14,10 @@ extern "C" {
 #include "emit/test_openapi_writer_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_writer_schema_items_type_union.
+ * @return Greatest test result.
+ */
 TEST test_writer_schema_items_type_union(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -67,6 +71,10 @@ TEST test_writer_schema_items_type_union(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_schema_boolean.
+ * @return Greatest test result.
+ */
 TEST test_writer_schema_boolean(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -109,6 +117,10 @@ TEST test_writer_schema_boolean(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_schema_numeric_enum.
+ * @return Greatest test result.
+ */
 TEST test_writer_schema_numeric_enum(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -160,6 +172,10 @@ TEST test_writer_schema_numeric_enum(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_schema_items_examples.
+ * @return Greatest test result.
+ */
 TEST test_writer_schema_items_examples(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -214,6 +230,10 @@ TEST test_writer_schema_items_examples(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_schema_items_boolean.
+ * @return Greatest test result.
+ */
 TEST test_writer_schema_items_boolean(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -259,6 +279,10 @@ TEST test_writer_schema_items_boolean(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_schema_example_and_numeric_constraints.
+ * @return Greatest test result.
+ */
 TEST test_writer_schema_example_and_numeric_constraints(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -308,6 +332,10 @@ TEST test_writer_schema_example_and_numeric_constraints(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_schema_array_constraints_and_items_example.
+ * @return Greatest test result.
+ */
 TEST test_writer_schema_array_constraints_and_items_example(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -369,6 +397,10 @@ TEST test_writer_schema_array_constraints_and_items_example(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_inline_schema_items_const_default_and_extras.
+ * @return Greatest test result.
+ */
 TEST test_writer_inline_schema_items_const_default_and_extras(void) {
   int rc = 0;
   const char *json =
@@ -424,6 +456,10 @@ TEST test_writer_inline_schema_items_const_default_and_extras(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_input_validation.
+ * @return Greatest test result.
+ */
 TEST test_writer_input_validation(void) {
   struct OpenAPI_Spec spec = {0};
   char *json;
@@ -437,6 +473,10 @@ TEST test_writer_input_validation(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_extensions_non_schema.
+ * @return Greatest test result.
+ */
 TEST test_writer_extensions_non_schema(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;

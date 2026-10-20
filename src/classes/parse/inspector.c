@@ -23,6 +23,7 @@
 
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
+#include "classes/parse/cdd_lexer.h"
 #include "classes/parse/code2schema.h" /* For parse_struct_member_line */
 #include "classes/parse/inspector.h"
 #include "functions/parse/cst.h" /* For CST analysis */

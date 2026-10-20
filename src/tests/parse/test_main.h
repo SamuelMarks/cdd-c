@@ -7,6 +7,9 @@ static FILE *cdd_freopen_helper_main(const char *p, const char *m, FILE *s) {
 #undef CDD_FREOPEN
 #define CDD_FREOPEN cdd_freopen_helper_main
 #else
+/**
+ * @brief Macro CDD_FREOPEN.
+ */
 #define CDD_FREOPEN freopen
 #endif
 /**
@@ -544,15 +547,19 @@ TEST test_main_to_openapi_cli_options(void) {
 
 /**
  * @brief Main logic test suite.
+ * @return Test or helper result.
  */
 TEST test_bin_cdd_executable(void) {
   /* Run the actual executable to cover bin_cdd.c's main() */
   int rc = system("./bin/cdd-c --help > /dev/null 2>&1");
-  (void)rc;
+  ASSERT_NEQ(-1, rc);
   g_fail_io_after = -1;
   PASS();
 }
 
+/**
+ * @brief Executes the main_suite test suite.
+ */
 SUITE(main_suite) {
   RUN_TEST(test_main_no_args);
   RUN_TEST(test_main_help);

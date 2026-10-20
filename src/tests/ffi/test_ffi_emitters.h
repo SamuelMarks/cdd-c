@@ -1,3 +1,7 @@
+/**
+ * @file test_ffi_emitters.h
+ * @brief Unit tests and mocks in test_ffi_emitters.h.
+ */
 #ifndef TEST_FFI_EMITTERS_H
 #define TEST_FFI_EMITTERS_H
 
@@ -54,6 +58,10 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Helper function create_dummy_ir.
+ * @return Result status or value.
+ */
 static cdd_ffi_ir_t *create_dummy_ir(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   ir->nodes = (cdd_ffi_ir_node_t *)calloc(35, sizeof(cdd_ffi_ir_node_t));
@@ -538,6 +546,10 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   return ir;
 }
 
+/**
+ * @brief Helper function free_dummy_ir.
+ * @param[in,out] ir Parameter ir.
+ */
 static void free_dummy_ir(cdd_ffi_ir_t *ir) {
   if (!ir)
     return;
@@ -564,6 +576,10 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
   free(ir);
 }
 
+/**
+ * @brief Macro TEST_EMITTER.
+ * @param[in] lang Macro argument lang.
+ */
 #define TEST_EMITTER(lang)                                                     \
   TEST test_ffi_emit_##lang(void) {                                            \
     cdd_ffi_ir_t *ir = create_dummy_ir();                                      \
@@ -712,6 +728,10 @@ TEST_EMITTER(scheme)
 TEST_EMITTER(swift)
 TEST_EMITTER(tcl)
 
+/**
+ * @brief Unit test test_tcl_internals.
+ * @return Greatest test result.
+ */
 TEST test_tcl_internals(void) {
   cdd_c_error_t rc;
   cdd_ffi_ir_t ir;
@@ -732,6 +752,10 @@ TEST test_tcl_internals(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_napi_internals.
+ * @return Greatest test result.
+ */
 TEST test_napi_internals(void) {
   cdd_c_error_t rc;
   cdd_ffi_ir_t ir;
@@ -752,6 +776,10 @@ TEST test_napi_internals(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_elixir_internals.
+ * @return Greatest test result.
+ */
 TEST test_elixir_internals(void) {
   cdd_c_error_t rc;
   cdd_ffi_ir_t ir;
@@ -767,6 +795,10 @@ TEST test_elixir_internals(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_erlang_internals.
+ * @return Greatest test result.
+ */
 TEST test_erlang_internals(void) {
   cdd_c_error_t rc;
   cdd_ffi_ir_t ir;
@@ -782,6 +814,10 @@ TEST test_erlang_internals(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_emit_edge_cases.
+ * @return Greatest test result.
+ */
 TEST test_emit_edge_cases(void) {
   cdd_c_error_t rc;
   cdd_ffi_ir_t ir;
@@ -848,6 +884,9 @@ TEST_EMITTER(vlang)
 TEST_EMITTER(webassembly)
 TEST_EMITTER(zig)
 
+/**
+ * @brief Executes the ffi_emitters_suite test suite.
+ */
 SUITE(ffi_emitters_suite) {
   RUN_TEST(test_ffi_emit_ada);
   RUN_TEST(test_ffi_emit_clojure);

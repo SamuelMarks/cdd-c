@@ -13,22 +13,27 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/memory.h"
 #include "functions/parse/vla_analyzer.h"
 /* clang-format on */
 #ifdef CDD_BUILD_TESTS
 extern int g_fail_io_after;
 extern int g_io_calls;
-#undef malloc
 /** @brief Fault-injecting `malloc` macro for VLA analyzer tests. */
-#define malloc(sz)                                                             \
-  ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? NULL             \
-                                                            : (malloc)(sz))
-#undef realloc
-/** @brief Fault-injecting `realloc` macro for VLA analyzer tests. */
-#define realloc(ptr, sz)                                                       \
+#define VLA_MALLOC(sz)                                                         \
   ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)                    \
        ? NULL                                                                  \
-       : (realloc)(ptr, sz))
+       : C_CDD_MALLOC(sz))
+/** @brief Fault-injecting `realloc` macro for VLA analyzer tests. */
+#define VLA_REALLOC(ptr, sz)                                                   \
+  ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)                    \
+       ? NULL                                                                  \
+       : C_CDD_REALLOC((ptr), (sz)))
+#else
+/** @brief Standard `malloc` macro for VLA analyzer. */
+#define VLA_MALLOC(sz) C_CDD_MALLOC(sz)
+/** @brief Standard `realloc` macro for VLA analyzer. */
+#define VLA_REALLOC(ptr, sz) C_CDD_REALLOC((ptr), (sz))
 #endif
 
 /**
@@ -40,7 +45,7 @@ extern int g_io_calls;
  * @return `CDD_C_SUCCESS` on success.
  */
 static cdd_c_error_t c_cdd_strndup(const char *s, size_t n, char **_out_val) {
-  char *d = (char *)malloc(n + 1);
+  char *d = (char *)VLA_MALLOC(n + 1);
   if (!d) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -78,13 +83,13 @@ void vla_site_list_free(struct VLASiteList *list) {
   if (list->sites) {
     for (i = 0; i < list->count; i++) {
       if (list->sites[i].type_str)
-        free(list->sites[i].type_str);
+        C_CDD_FREE(list->sites[i].type_str);
       if (list->sites[i].var_name)
-        free(list->sites[i].var_name);
+        C_CDD_FREE(list->sites[i].var_name);
       if (list->sites[i].size_expr)
-        free(list->sites[i].size_expr);
+        C_CDD_FREE(list->sites[i].size_expr);
     }
-    free(list->sites);
+    C_CDD_FREE(list->sites);
   }
   vla_site_list_init(list);
 }
@@ -277,7 +282,7 @@ cdd_c_error_t scan_for_vlas(const struct TokenList *tokens,
               if (list->count >= list->capacity) {
                 struct VLASite *new_sites;
                 list->capacity = list->capacity == 0 ? 4 : list->capacity * 2;
-                new_sites = (struct VLASite *)realloc(
+                new_sites = (struct VLASite *)VLA_REALLOC(
                     list->sites, list->capacity * sizeof(struct VLASite));
                 if (!new_sites)
                   return CDD_C_ERROR_MEMORY;

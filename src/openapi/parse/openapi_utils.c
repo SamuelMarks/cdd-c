@@ -581,7 +581,7 @@ cdd_c_error_t parse_any_array(const JSON_Array *arr, struct OpenAPI_Any **out,
       size_t j;
       for (j = 0; j < i; ++j)
         free_any_value(&(*out)[j]);
-      free(*out);
+      C_CDD_FREE(*out);
       *out = NULL;
       *out_count = 0;
       return CDD_C_ERROR_MEMORY;

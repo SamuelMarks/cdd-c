@@ -18,8 +18,8 @@ extern "C" {
 
 /**
  * @brief Generate CLI C source file.
- * @param spec OpenAPI specification.
- * @param config Client configuration.
+ * @param[in] spec OpenAPI specification.
+ * @param[in] config Client configuration.
  * @return 0 on success, non-zero on error.
  */
 extern C_CDD_EXPORT cdd_c_error_t openapi_cli_generate(

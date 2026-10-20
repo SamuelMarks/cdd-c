@@ -15,6 +15,10 @@ extern "C" {
 #include "emit/test_codegen_client_body_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_body_header_array_param.
+ * @return Greatest test result.
+ */
 TEST test_body_header_array_param(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Parameter param;
@@ -84,6 +88,10 @@ TEST test_body_header_array_param(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_header_object_param.
+ * @return Greatest test result.
+ */
 TEST test_body_header_object_param(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Parameter param;
@@ -130,6 +138,10 @@ TEST test_body_header_object_param(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_header_json_param_ref.
+ * @return Greatest test result.
+ */
 TEST test_body_header_json_param_ref(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Parameter param;
@@ -259,6 +271,10 @@ TEST test_body_header_json_param_ref(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_header_number_param.
+ * @return Greatest test result.
+ */
 TEST test_body_header_number_param(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Parameter param;
@@ -302,6 +318,10 @@ TEST test_body_header_number_param(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_cookie_param.
+ * @return Greatest test result.
+ */
 TEST test_body_cookie_param(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Parameter param;
@@ -371,6 +391,10 @@ TEST test_body_cookie_param(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_cookie_param_number_array.
+ * @return Greatest test result.
+ */
 TEST test_body_cookie_param_number_array(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Parameter param;
@@ -419,6 +443,10 @@ TEST test_body_cookie_param_number_array(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_cookie_param_array_explode_false.
+ * @return Greatest test result.
+ */
 TEST test_body_cookie_param_array_explode_false(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Parameter param;
@@ -466,6 +494,10 @@ TEST test_body_cookie_param_array_explode_false(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_cookie_param_object_form.
+ * @return Greatest test result.
+ */
 TEST test_body_cookie_param_object_form(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Parameter param;
@@ -510,6 +542,10 @@ TEST test_body_cookie_param_object_form(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_cookie_param_string_allow_reserved.
+ * @return Greatest test result.
+ */
 TEST test_body_cookie_param_string_allow_reserved(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Parameter param;
@@ -555,6 +591,10 @@ TEST test_body_cookie_param_string_allow_reserved(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_security_query_api_key.
+ * @return Greatest test result.
+ */
 TEST test_body_security_query_api_key(void) {
   struct OpenAPI_SecurityRequirement req;
   struct OpenAPI_SecurityRequirementSet sec_set;
@@ -609,6 +649,10 @@ TEST test_body_security_query_api_key(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_security_cookie_api_key.
+ * @return Greatest test result.
+ */
 TEST test_body_security_cookie_api_key(void) {
   struct OpenAPI_SecurityRequirement req;
   struct OpenAPI_SecurityRequirementSet sec_set;
@@ -662,6 +706,9 @@ TEST test_body_security_cookie_api_key(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the client_body_headers_suite test suite.
+ */
 SUITE(client_body_headers_suite) {
   RUN_TEST(test_body_header_array_param);
   RUN_TEST(test_body_header_object_param);

@@ -55,9 +55,9 @@ C_CDD_EXPORT void cli_command_free(struct CliCommand *cmd);
 /**
  * @brief Parses an AST/CST to extract CLI options and arguments.
  *
- * @param nodes The root CST node (e.g. function body of main).
- * @param tokens The token list.
- * @param cmd The output command.
+ * @param[in] nodes The root CST node (e.g. function body of main).
+ * @param[in] tokens The token list.
+ * @param[in,out] cmd The output command.
  * @return 0 on success, non-zero on failure.
  */
 C_CDD_EXPORT cdd_c_error_t

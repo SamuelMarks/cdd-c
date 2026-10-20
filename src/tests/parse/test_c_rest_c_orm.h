@@ -1,3 +1,7 @@
+/**
+ * @file test_c_rest_c_orm.h
+ * @brief Unit tests and mocks in test_c_rest_c_orm.h.
+ */
 #ifndef TEST_C_REST_C_ORM_H
 #define TEST_C_REST_C_ORM_H
 /* clang-format off */
@@ -11,6 +15,10 @@
 #include <cdd_c_error.h>
 /* clang-format on */
 
+/**
+ * @brief Unit test test_c_rest_c_orm_integration.
+ * @return Greatest test result.
+ */
 TEST test_c_rest_c_orm_integration(void) {
   struct c_rest_context *ctx = NULL;
   c_rest_router *router = NULL;
@@ -58,6 +66,9 @@ TEST test_c_rest_c_orm_integration(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the c_rest_c_orm_suite test suite.
+ */
 SUITE(c_rest_c_orm_suite) { RUN_TEST(test_c_rest_c_orm_integration); }
 
 #endif /* TEST_C_REST_C_ORM_H */

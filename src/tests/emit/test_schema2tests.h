@@ -19,6 +19,10 @@ extern "C" {
 #include "tests/emit/schema2tests.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_jsonschema2tests_wrong_args.
+ * @return Greatest test result.
+ */
 TEST test_jsonschema2tests_wrong_args(void) {
   char arg0[] = "program";
   char *argv[2];
@@ -31,6 +35,10 @@ TEST test_jsonschema2tests_wrong_args(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema2tests_argc_error.
+ * @return Greatest test result.
+ */
 TEST test_schema2tests_argc_error(void) {
   char arg0[] = "prog";
   char arg1[] = "a.json";
@@ -42,6 +50,10 @@ TEST test_schema2tests_argc_error(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema2tests_bad_json.
+ * @return Greatest test result.
+ */
 TEST test_schema2tests_bad_json(void) {
   const char *const filename = "bad_s2t.json";
   char *argv[3];
@@ -56,6 +68,10 @@ TEST test_schema2tests_bad_json(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema2tests_success.
+ * @return Greatest test result.
+ */
 TEST test_schema2tests_success(void) {
   FILE *f;
   char *argv[3];
@@ -103,6 +119,10 @@ TEST test_schema2tests_success(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema2tests_output_file_open_fail.
+ * @return Greatest test result.
+ */
 TEST test_schema2tests_output_file_open_fail(void) {
   const char *const schema_filename = "schema.2tests.json";
   char *argv[3];
@@ -156,6 +176,10 @@ TEST test_schema2tests_output_file_open_fail(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema2tests_defs_fallback.
+ * @return Greatest test result.
+ */
 TEST test_schema2tests_defs_fallback(void) {
   const char *const filename = "defs_schema.json";
   char *argv[3];
@@ -176,6 +200,10 @@ TEST test_schema2tests_defs_fallback(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema2tests_invalid_schema_root.
+ * @return Greatest test result.
+ */
 TEST test_schema2tests_invalid_schema_root(void) {
   const char *const schema_file = "bad_root.json";
   char *argv[3];
@@ -188,6 +216,10 @@ TEST test_schema2tests_invalid_schema_root(void) {
   g_fail_io_after = -1;
   PASS();
 }
+/**
+ * @brief Unit test test_schema2tests_no_schemas_object.
+ * @return Greatest test result.
+ */
 TEST test_schema2tests_no_schemas_object(void) {
   const char *const schema_file = "no_schemas.json";
   char *argv[3];
@@ -200,6 +232,10 @@ TEST test_schema2tests_no_schemas_object(void) {
   g_fail_io_after = -1;
   PASS();
 }
+/**
+ * @brief Unit test test_schema2tests_malformed_schemas.
+ * @return Greatest test result.
+ */
 TEST test_schema2tests_malformed_schemas(void) {
   const char *const schema_file = "malformed.json";
   char *argv[3];
@@ -225,6 +261,10 @@ TEST test_schema2tests_malformed_schemas(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema2tests_with_null_enum_val.
+ * @return Greatest test result.
+ */
 TEST test_schema2tests_with_null_enum_val(void) {
   const char *const filename = "null_enum.json";
   char *argv[3];
@@ -245,8 +285,16 @@ TEST test_schema2tests_with_null_enum_val(void) {
   PASS();
 }
 
-TEST test_schema2tests_generated_output(void) {
+/**
+ * @brief Macro OUT_DIR.
+ */
 #define OUT_DIR "build_s2t_test_output"
+
+/**
+ * @brief Unit test test_schema2tests_generated_output.
+ * @return Greatest test result.
+ */
+TEST test_schema2tests_generated_output(void) {
   char *argv[3];
   const char *schema_file;
   const char *output_file;
@@ -277,11 +325,19 @@ TEST test_schema2tests_generated_output(void) {
   rmdir(OUT_DIR);
 
   PASS();
-#undef OUT_DIR
 }
+#undef OUT_DIR
 
-TEST test_schema2tests_header_inclusion_logic(void) {
+/**
+ * @brief Macro OUT_DIR.
+ */
 #define OUT_DIR "build_s2t_include"
+
+/**
+ * @brief Unit test test_schema2tests_header_inclusion_logic.
+ * @return Greatest test result.
+ */
+TEST test_schema2tests_header_inclusion_logic(void) {
   char *argv[3];
   const char *const schema_content =
       "{\"$defs\": {\"MyStruct\": {\"type\":\"object\"}}}";
@@ -308,9 +364,13 @@ TEST test_schema2tests_header_inclusion_logic(void) {
   rmdir(OUT_DIR);
 
   PASS();
-#undef OUT_DIR
 }
+#undef OUT_DIR
 
+/**
+ * @brief Unit test test_schema2tests_sanitize_names.
+ * @return Greatest test result.
+ */
 TEST test_schema2tests_sanitize_names(void) {
   char *argv[3];
   const char *schema_file;
@@ -340,8 +400,16 @@ TEST test_schema2tests_sanitize_names(void) {
   PASS();
 }
 
-TEST test_schema2tests_header_inclusion_not_found(void) {
+/**
+ * @brief Macro OUT_DIR.
+ */
 #define OUT_DIR "build_s2t_include_not_found"
+
+/**
+ * @brief Unit test test_schema2tests_header_inclusion_not_found.
+ * @return Greatest test result.
+ */
+TEST test_schema2tests_header_inclusion_not_found(void) {
   char *argv[3];
   const char *const schema_content =
       "{\"$defs\": {\"NonExistent\": {\"type\":\"object\"}}}";
@@ -390,6 +458,10 @@ TEST test_schema2tests_header_inclusion_not_found(void) {
 #undef OUT_DIR
 }
 
+/**
+ * @brief Unit test test_schema2tests_output_in_current_dir.
+ * @return Greatest test result.
+ */
 TEST test_schema2tests_output_in_current_dir(void) {
   char *argv[3];
   const char *const schema_content =
@@ -410,6 +482,10 @@ TEST test_schema2tests_output_in_current_dir(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema2tests_io_fails.
+ * @return Greatest test result.
+ */
 TEST test_schema2tests_io_fails(void) {
   char *argv[3];
   const char *const schema_content =
@@ -445,6 +521,9 @@ TEST test_schema2tests_io_fails(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the schema2tests_suite test suite.
+ */
 SUITE(schema2tests_suite) {
   RUN_TEST(test_schema2tests_io_fails);
   RUN_TEST(test_jsonschema2tests_wrong_args);

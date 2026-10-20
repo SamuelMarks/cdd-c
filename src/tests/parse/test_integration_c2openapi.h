@@ -27,6 +27,10 @@ extern "C" {
 #include "routes/parse/cli.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_c2openapi_full_flow.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_full_flow(void) {
   int rc = 0;
   char *tmp_dir = NULL;
@@ -301,6 +305,10 @@ TEST test_c2openapi_full_flow(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c2openapi_with_base_spec.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_with_base_spec(void) {
   int rc = 0;
   char *tmp_dir = NULL;
@@ -447,6 +455,10 @@ TEST test_c2openapi_with_base_spec(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c2openapi_with_self_uri.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_with_self_uri(void) {
   int rc = 0;
   char *tmp_dir = NULL;
@@ -510,6 +522,10 @@ TEST test_c2openapi_with_self_uri(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c2openapi_global_meta_security_schemes.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_global_meta_security_schemes(void) {
   int rc = 0;
   char *tmp_dir = NULL;
@@ -615,6 +631,9 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the integration_c2openapi_suite test suite.
+ */
 SUITE(integration_c2openapi_suite) {
   RUN_TEST(test_c2openapi_full_flow);
   RUN_TEST(test_c2openapi_with_base_spec);

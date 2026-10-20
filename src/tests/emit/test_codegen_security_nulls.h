@@ -25,10 +25,20 @@ extern "C" {
 /* clang-format on */
 
 #ifndef TMPFILE
+/**
+ * @brief Macro TMPFILE.
+ */
 #define TMPFILE tmpfile
 #endif
 
 /* Helper to capture output */
+/**
+ * @brief Helper function gen_sec_nulls_code.
+ * @param[in] spec Parameter spec.
+ * @param[in] op_in Parameter op_in.
+ * @param[in,out] _out_val Parameter _out_val.
+ * @return Result status or value.
+ */
 static cdd_c_error_t gen_sec_nulls_code(const struct OpenAPI_Spec *spec,
                                         const struct OpenAPI_Operation *op_in,
                                         char **_out_val) {
@@ -73,6 +83,10 @@ static cdd_c_error_t gen_sec_nulls_code(const struct OpenAPI_Spec *spec,
   }
 }
 
+/**
+ * @brief Unit test test_codegen_security_requires_nulls.
+ * @return Greatest test result.
+ */
 TEST test_codegen_security_requires_nulls(void) {
   struct OpenAPI_Operation op;
   struct OpenAPI_Spec spec;
@@ -118,6 +132,10 @@ TEST test_codegen_security_requires_nulls(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_codegen_security_write_apply_nulls.
+ * @return Greatest test result.
+ */
 TEST test_codegen_security_write_apply_nulls(void) {
   struct OpenAPI_Operation op;
   struct OpenAPI_Spec spec;
@@ -139,6 +157,10 @@ TEST test_codegen_security_write_apply_nulls(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_codegen_security_write_server_apply_nulls.
+ * @return Greatest test result.
+ */
 TEST test_codegen_security_write_server_apply_nulls(void) {
   struct OpenAPI_Operation op;
   struct OpenAPI_Spec spec;
@@ -182,6 +204,10 @@ TEST test_codegen_security_write_server_apply_nulls(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_codegen_security_branches.
+ * @return Greatest test result.
+ */
 TEST test_codegen_security_branches(void) {
   struct OpenAPI_Operation op;
   struct OpenAPI_Spec spec;
@@ -406,6 +432,10 @@ TEST test_codegen_security_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_security_errors.
+ * @return Greatest test result.
+ */
 TEST test_security_errors(void) {
   char *_out = NULL;
   struct OpenAPI_Spec spec;
@@ -450,6 +480,9 @@ TEST test_security_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the codegen_security_nulls_suite test suite.
+ */
 SUITE(codegen_security_nulls_suite) {
   RUN_TEST(test_codegen_security_requires_nulls);
   RUN_TEST(test_codegen_security_write_apply_nulls);

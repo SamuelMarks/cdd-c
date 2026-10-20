@@ -29,6 +29,7 @@ extern "C" {
 /**
  * @brief Tests `arazzo_spec_init` and `arazzo_spec_free` including NULL and OOM
  * branches.
+ * @return Test or helper result.
  */
 TEST test_arazzo_spec_init_and_free(void) {
   struct Arazzo_Spec spec;
@@ -56,6 +57,7 @@ TEST test_arazzo_spec_init_and_free(void) {
 
 /**
  * @brief Tests deep cleanup of a fully populated `Arazzo_Spec` tree.
+ * @return Test or helper result.
  */
 TEST test_arazzo_spec_free_populated(void) {
   struct Arazzo_Spec spec;
@@ -198,6 +200,7 @@ TEST test_arazzo_spec_free_populated(void) {
 /**
  * @brief Tests `arazzo_extension_list_append` and `arazzo_extension_list_free`
  * including error and OOM paths.
+ * @return Test or helper result.
  */
 TEST test_arazzo_extension_list(void) {
   struct Arazzo_ExtensionList list;
@@ -252,6 +255,7 @@ TEST test_arazzo_extension_list(void) {
 
 /**
  * @brief Tests enum conversion helpers for SourceType, ParamIn, and ActionType.
+ * @return Test or helper result.
  */
 TEST test_arazzo_enum_conversions(void) {
   const char *str = NULL;
@@ -357,6 +361,7 @@ TEST test_arazzo_enum_conversions(void) {
 /**
  * @brief Tests `arazzo_runtime_expr_copy` including NULL fields and all OOM
  * branches.
+ * @return Test or helper result.
  */
 TEST test_arazzo_runtime_expr_copy(void) {
   struct Arazzo_RuntimeExpr src;
@@ -405,6 +410,9 @@ TEST test_arazzo_runtime_expr_copy(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the arazzo_types_suite test suite.
+ */
 SUITE(arazzo_types_suite) {
   RUN_TEST(test_arazzo_spec_init_and_free);
   RUN_TEST(test_arazzo_spec_free_populated);

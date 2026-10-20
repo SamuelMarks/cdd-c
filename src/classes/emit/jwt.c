@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/code_writer.h"
 #include "classes/emit/jwt.h"
 #include "classes/emit/struct.h"
 #include "win_compat_sym.h"
@@ -28,7 +29,10 @@ cdd_c_error_t write_struct_from_jwt_func(FILE *fp, const char *struct_name,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Helper to Base64URL decode the middle part */
-  fprintf(fp, "/**\n * @brief Constant-time Base64URL decode utility.\n */\n");
+  if ((int)FPRINTF_HOOK(
+          fp, "/**\n * @brief Constant-time Base64URL decode utility.\n */\n") <
+      0)
+    return CDD_C_ERROR_IO;
   fprintf(fp, "static int cdd_c_base64url_decode(const char *in, size_t "
               "in_len, unsigned char **out, size_t *out_len) {\n");
   fprintf(fp, "  static const unsigned char b64url_dec[256] = {\n");

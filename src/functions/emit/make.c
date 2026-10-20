@@ -18,19 +18,9 @@
 /** @brief CHECK_IO definition */
 #ifdef CDD_BUILD_TESTS
 extern int g_cdd_fprintf_fail;
-/**
- * @brief Test helper to simulate `fprintf` I/O failures in `make.c`.
- *
- * @param[in] rc Return value from `FPRINTF_HOOK`.
- * @return `rc`, or -1 when a simulated failure is triggered.
- */
-static int test_cdd_check_io_helper_make(int rc) {
-  if (g_cdd_fprintf_fail && --g_cdd_fprintf_fail == 0)
-    return -1;
-  return rc;
-}
 #define CHECK_IO(x)                                                            \
-  for (; test_cdd_check_io_helper_make(x) < 0;)                                \
+  for (; ((g_cdd_fprintf_fail && --g_cdd_fprintf_fail == 0) ? -1 : (int)(x)) < \
+         0;)                                                                   \
   return CDD_C_ERROR_IO
 #else
 #define CHECK_IO(x)                                                            \

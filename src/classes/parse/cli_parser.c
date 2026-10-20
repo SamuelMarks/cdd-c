@@ -65,17 +65,17 @@ void cli_command_free(struct CliCommand *cmd) {
   if (!cmd)
     return;
   if (cmd->name)
-    free(cmd->name);
+    C_CDD_FREE(cmd->name);
   if (cmd->options) {
     for (i = 0; i < cmd->n_options; ++i) {
       if (cmd->options[i].long_flag)
-        free(cmd->options[i].long_flag);
+        C_CDD_FREE(cmd->options[i].long_flag);
       if (cmd->options[i].description)
-        free(cmd->options[i].description);
+        C_CDD_FREE(cmd->options[i].description);
       if (cmd->options[i].mapped_struct_field)
-        free(cmd->options[i].mapped_struct_field);
+        C_CDD_FREE(cmd->options[i].mapped_struct_field);
     }
-    free(cmd->options);
+    C_CDD_FREE(cmd->options);
   }
   cmd->name = NULL;
   cmd->options = NULL;
@@ -245,7 +245,7 @@ C_CDD_EXPORT cdd_c_error_t test_cli_parser_internal_errors(void) {
 
   g_cdd_alloc_fail = 2;
   err_extra = cdd_strndup2("abc", 10, &out);
-  free(out);
+  C_CDD_FREE(out);
   out = NULL;
   err6 = cdd_strndup2("abc", 3, &out);
   g_cdd_alloc_fail = 0;

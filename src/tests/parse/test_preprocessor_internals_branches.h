@@ -25,7 +25,16 @@ extern "C" {
 /* clang-format on */
 
 #ifndef CDD_TEST_PP_SCAN_CB_DEFINED
+/**
+ * @brief Macro CDD_TEST_PP_SCAN_CB_DEFINED.
+ */
 #define CDD_TEST_PP_SCAN_CB_DEFINED
+/**
+ * @brief Helper function test_scan_inc_cb.
+ * @param[in] info Parameter info.
+ * @param[in,out] user_data Parameter user_data.
+ * @return Result status or value.
+ */
 static cdd_c_error_t test_scan_inc_cb(const struct IncludeInfo *info,
                                       void *user_data) {
   int *count = (int *)user_data;
@@ -34,6 +43,12 @@ static cdd_c_error_t test_scan_inc_cb(const struct IncludeInfo *info,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Helper function test_scan_inc_abort_cb.
+ * @param[in] info Parameter info.
+ * @param[in,out] user_data Parameter user_data.
+ * @return Result status or value.
+ */
 static cdd_c_error_t test_scan_inc_abort_cb(const struct IncludeInfo *info,
                                             void *user_data) {
   int *count = (int *)user_data;
@@ -42,6 +57,10 @@ static cdd_c_error_t test_scan_inc_abort_cb(const struct IncludeInfo *info,
   return CDD_C_ERROR_UNKNOWN;
 }
 #endif /* CDD_TEST_PP_SCAN_CB_DEFINED */
+/**
+ * @brief Unit test test_pp_scan_includes_directives.
+ * @return Greatest test result.
+ */
 TEST test_pp_scan_includes_directives(void) {
   struct PreprocessorContext ctx;
   const char *test_file = "test_pp_scan_cond.c";
@@ -111,6 +130,10 @@ TEST test_pp_scan_includes_directives(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_scan_defines_edge_cases.
+ * @return Greatest test result.
+ */
 TEST test_pp_scan_defines_edge_cases(void) {
   struct PreprocessorContext ctx;
   const char *test_file = "test_pp_scan_defs_edge.h";
@@ -145,6 +168,10 @@ TEST test_pp_scan_defines_edge_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_embed_params_error_cases.
+ * @return Greatest test result.
+ */
 TEST test_pp_embed_params_error_cases(void) {
   struct PreprocessorContext ctx;
   struct TokenList *tl = NULL;
@@ -179,6 +206,10 @@ TEST test_pp_embed_params_error_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_scan_includes_nested_and_syntax_errors.
+ * @return Greatest test result.
+ */
 TEST test_pp_scan_includes_nested_and_syntax_errors(void) {
   struct PreprocessorContext ctx;
   const char *test_file = "test_pp_nested.c";
@@ -226,6 +257,10 @@ TEST test_pp_scan_includes_nested_and_syntax_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_eval_all_syntax_error_branches.
+ * @return Greatest test result.
+ */
 TEST test_pp_eval_all_syntax_error_branches(void) {
   struct PreprocessorContext ctx;
   struct TokenList *tl = NULL;
@@ -278,6 +313,10 @@ TEST test_pp_eval_all_syntax_error_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_scan_defines_whitespace_trimming.
+ * @return Greatest test result.
+ */
 TEST test_pp_scan_defines_whitespace_trimming(void) {
   struct PreprocessorContext ctx;
   const char *test_file = "test_pp_trim.h";
@@ -296,6 +335,10 @@ TEST test_pp_scan_defines_whitespace_trimming(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_scan_includes_eof_and_else_active.
+ * @return Greatest test result.
+ */
 TEST test_pp_scan_includes_eof_and_else_active(void) {
   struct PreprocessorContext ctx;
   const char *test_file = "test_pp_eof.c";
@@ -325,14 +368,11 @@ TEST test_pp_scan_includes_eof_and_else_active(void) {
   PASS();
 }
 
-TEST test_pp_arithmetic_all_operators(void) {
-  struct PreprocessorContext ctx;
-  struct TokenList *tl = NULL;
-  long val = 0;
-  cdd_c_error_t rc = 0;
-
-  pp_context_init(&ctx);
-
+/**
+ * @brief Macro EVAL_ASSERT.
+ * @param[in] expr_str Macro argument expr_str.
+ * @param[in] expected Macro argument expected.
+ */
 #define EVAL_ASSERT(expr_str, expected)                                        \
   do {                                                                         \
     rc = tokenize(az_span_create_from_str((expr_str)), &tl);                   \
@@ -342,6 +382,18 @@ TEST test_pp_arithmetic_all_operators(void) {
     ASSERT_EQ((expected), val);                                                \
     free_token_list(tl);                                                       \
   } while (0)
+
+/**
+ * @brief Unit test test_pp_arithmetic_all_operators.
+ * @return Greatest test result.
+ */
+TEST test_pp_arithmetic_all_operators(void) {
+  struct PreprocessorContext ctx;
+  struct TokenList *tl = NULL;
+  long val = 0;
+  cdd_c_error_t rc = 0;
+
+  pp_context_init(&ctx);
 
   EVAL_ASSERT("(20 / 4) == 5", 1);
   EVAL_ASSERT("(20 % 6) == 2", 1);
@@ -362,6 +414,10 @@ TEST test_pp_arithmetic_all_operators(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_realloc_and_null_internals.
+ * @return Greatest test result.
+ */
 TEST test_pp_realloc_and_null_internals(void) {
   struct PreprocessorContext ctx;
   struct MacroDef def;
@@ -418,6 +474,10 @@ TEST test_pp_realloc_and_null_internals(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_scan_defines_oom_and_trimming.
+ * @return Greatest test result.
+ */
 TEST test_pp_scan_defines_oom_and_trimming(void) {
   struct PreprocessorContext ctx;
   const char *test_file = "test_pp_scan_oom.h";
@@ -451,6 +511,10 @@ TEST test_pp_scan_defines_oom_and_trimming(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_eval_oom_and_peek_eof.
+ * @return Greatest test result.
+ */
 TEST test_pp_eval_oom_and_peek_eof(void) {
   struct PreprocessorContext ctx;
   struct TokenList *tl = NULL;
@@ -558,6 +622,10 @@ TEST test_pp_eval_oom_and_peek_eof(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_parse_embed_params_keywords_and_oom_paths.
+ * @return Greatest test result.
+ */
 TEST test_pp_parse_embed_params_keywords_and_oom_paths(void) {
   struct PreprocessorContext ctx;
   struct TokenList *tl = NULL;
@@ -624,6 +692,10 @@ TEST test_pp_parse_embed_params_keywords_and_oom_paths(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_scan_includes_elif_active_and_oom_paths.
+ * @return Greatest test result.
+ */
 TEST test_pp_scan_includes_elif_active_and_oom_paths(void) {
   struct PreprocessorContext ctx;
   const char *test_file = "test_pp_elif_active.c";
@@ -666,6 +738,10 @@ TEST test_pp_scan_includes_elif_active_and_oom_paths(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_final_edge_coverage.
+ * @return Greatest test result.
+ */
 TEST test_pp_final_edge_coverage(void) {
   struct PreprocessorContext ctx;
   const char *test_defs = "test_final_defs.h";
@@ -710,6 +786,10 @@ TEST test_pp_final_edge_coverage(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_branch_coverage_maximizer.
+ * @return Greatest test result.
+ */
 TEST test_pp_branch_coverage_maximizer(void) {
   struct PreprocessorContext ctx;
   struct MacroDef def;

@@ -28,6 +28,7 @@ extern "C" {
 /**
  * @brief Tests `arazzo_eval_json_pointer` including RFC 6901 unescaping (`~0`,
  * `~1`), arrays, errors, and OOM.
+ * @return Test or helper result.
  */
 TEST test_arazzo_eval_json_pointer(void) {
   JSON_Value *root_val;
@@ -100,7 +101,8 @@ TEST test_arazzo_eval_json_pointer(void) {
 
 /**
  * @brief Tests `arazzo_eval_jsonpath` and `arazzo_eval_xpath` across valid,
- * invalid, not-found, and OOM paths.
+ * invalid, not-found, unsupported, and OOM paths.
+ * @return Test or helper result.
  */
 TEST test_arazzo_eval_jsonpath_and_xpath(void) {
   JSON_Value *root_val;
@@ -110,15 +112,17 @@ TEST test_arazzo_eval_jsonpath_and_xpath(void) {
   JSON_Value *book_arr_val;
   JSON_Array *book_arr;
   JSON_Value *b0_val;
+  JSON_Value *empty_obj_val;
   const JSON_Value *out = NULL;
   char *xml_out = NULL;
-  char xml_buf[128];
+  char xml_buf[256];
   char unterm_xml[64];
 
-  CDD_SNPRINTF(
-      xml_buf, sizeof(xml_buf),
-      "<order id=%cord-99%c><status>shipped</status><unclosed></order>", '"',
-      '"');
+  CDD_SNPRINTF(xml_buf, sizeof(xml_buf),
+               "<orderplate>skip</orderplate>"
+               "<order id=%cord-99%c code='sq-1'>"
+               "<ns:status>shipped</ns:status><unclosed></order>",
+               '"', '"');
   CDD_SNPRINTF(unterm_xml, sizeof(unterm_xml), "<order id=%cunterminated>",
                '"');
 
@@ -150,10 +154,56 @@ TEST test_arazzo_eval_jsonpath_and_xpath(void) {
             arazzo_eval_jsonpath(root_val, "$[0", &out));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             arazzo_eval_jsonpath(root_val, "$?bad", &out));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            arazzo_eval_jsonpath(root_val, "$['unterm]", &out));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            arazzo_eval_jsonpath(root_val, "$['key'bad]", &out));
 
+  /* Filter and slice selectors return NOT_SUPPORTED */
+  ASSERT_EQ(
+      CDD_C_ERROR_NOT_SUPPORTED,
+      arazzo_eval_jsonpath(root_val, "$.store.book[?(@.price < 10)]", &out));
+  ASSERT_EQ(CDD_C_ERROR_NOT_SUPPORTED,
+            arazzo_eval_jsonpath(root_val, "$.store.book[0:1]", &out));
+
+  /* Dot, bracketed keys, wildcards, and negative array indices */
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_eval_jsonpath(root_val, "$.store.book[0].title", &out));
   ASSERT_STR_EQ("C89", json_value_get_string(out));
+
+  {
+    char jp_buf[64];
+    CDD_SNPRINTF(jp_buf, sizeof(jp_buf), "$['store'][%cbook%c][-1]['title']",
+                 '"', '"');
+    ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_jsonpath(root_val, jp_buf, &out));
+    ASSERT_STR_EQ("C89", json_value_get_string(out));
+  }
+
+  ASSERT_EQ(CDD_C_SUCCESS,
+            arazzo_eval_jsonpath(root_val, "$.*.book.*['title']", &out));
+  ASSERT_STR_EQ("C89", json_value_get_string(out));
+
+  ASSERT_EQ(CDD_C_SUCCESS,
+            arazzo_eval_jsonpath(root_val, "$[*].book[*].title", &out));
+  ASSERT_STR_EQ("C89", json_value_get_string(out));
+
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            arazzo_eval_jsonpath(root_val, "$.store.book[0].title.*", &out));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            arazzo_eval_jsonpath(root_val, "$.store.book[0].title[*]", &out));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            arazzo_eval_jsonpath(root_val, "$.store.book[0]['missing']", &out));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            arazzo_eval_jsonpath(root_val, "$.store.book['not_obj']", &out));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            arazzo_eval_jsonpath(root_val, "$.store.book[-5]", &out));
+
+  empty_obj_val = json_value_init_object();
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            arazzo_eval_jsonpath(empty_obj_val, "$.*", &out));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            arazzo_eval_jsonpath(empty_obj_val, "$[*]", &out));
+  json_value_free(empty_obj_val);
 
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
             arazzo_eval_jsonpath(root_val, "$.store.missing", &out));
@@ -167,35 +217,51 @@ TEST test_arazzo_eval_jsonpath_and_xpath(void) {
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             arazzo_eval_jsonpath(root_val, "$.store", &out));
+  g_cdd_alloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            arazzo_eval_jsonpath(root_val, "$['store']", &out));
   g_cdd_alloc_fail = 0;
 
   json_value_free(root_val);
 
   /* XPath tests */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            arazzo_eval_xpath(NULL, "/order/status", &xml_out));
+            arazzo_eval_xpath(NULL, "/order/ns:status", &xml_out));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             arazzo_eval_xpath(xml_buf, NULL, &xml_out));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            arazzo_eval_xpath(xml_buf, "/order/status", NULL));
+            arazzo_eval_xpath(xml_buf, "/order/ns:status", NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             arazzo_eval_xpath(xml_buf, "relative", &xml_out));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             arazzo_eval_xpath(xml_buf, "/order/", &xml_out));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             arazzo_eval_xpath(xml_buf, "/order/@", &xml_out));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            arazzo_eval_xpath(xml_buf, "/order/@id/extra", &xml_out));
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_xpath(xml_buf, "/order/@id", &xml_out));
   ASSERT_STR_EQ("ord-99", xml_out);
-  free(xml_out);
+  C_CDD_FREE(xml_out);
 
   ASSERT_EQ(CDD_C_SUCCESS,
-            arazzo_eval_xpath(xml_buf, "/order/status", &xml_out));
+            arazzo_eval_xpath(xml_buf, "/order/@code", &xml_out));
+  ASSERT_STR_EQ("sq-1", xml_out);
+  C_CDD_FREE(xml_out);
+
+  ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_xpath(xml_buf, "/@id", &xml_out));
+  ASSERT_STR_EQ("ord-99", xml_out);
+  C_CDD_FREE(xml_out);
+
+  ASSERT_EQ(CDD_C_SUCCESS,
+            arazzo_eval_xpath(xml_buf, "/order/ns:status", &xml_out));
   ASSERT_STR_EQ("shipped", xml_out);
-  free(xml_out);
+  C_CDD_FREE(xml_out);
 
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
             arazzo_eval_xpath(xml_buf, "/order/@missing", &xml_out));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            arazzo_eval_xpath("<broken id='1'", "/@id", &xml_out));
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
             arazzo_eval_xpath(unterm_xml, "/order/@id", &xml_out));
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
@@ -210,7 +276,7 @@ TEST test_arazzo_eval_jsonpath_and_xpath(void) {
             arazzo_eval_xpath(xml_buf, "/order/@id", &xml_out));
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
-            arazzo_eval_xpath(xml_buf, "/order/status", &xml_out));
+            arazzo_eval_xpath(xml_buf, "/order/ns:status", &xml_out));
   g_cdd_alloc_fail = 0;
 
   PASS();
@@ -219,6 +285,7 @@ TEST test_arazzo_eval_jsonpath_and_xpath(void) {
 /**
  * @brief Tests `arazzo_eval_runtime_expr_to_str` across all 17 runtime
  * expression roots and templates.
+ * @return Test or helper result.
  */
 TEST test_arazzo_eval_runtime_expr_all_roots(void) {
   struct Arazzo_ExecutionContext ctx;
@@ -280,55 +347,55 @@ TEST test_arazzo_eval_runtime_expr_all_roots(void) {
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_eval_runtime_expr_to_str("literal_str", &ctx, &out));
   ASSERT_STR_EQ("literal_str", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_runtime_expr_to_str("$url", &ctx, &out));
   ASSERT_STR_EQ("https://api.petstore.io/v1/pets", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_eval_runtime_expr_to_str("$method", &ctx, &out));
   ASSERT_STR_EQ("POST", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_eval_runtime_expr_to_str("$statusCode", &ctx, &out));
   ASSERT_STR_EQ("201", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_eval_runtime_expr_to_str("$self", &ctx, &out));
   ASSERT_STR_EQ("https://api.petstore.io/arazzo.json", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_runtime_expr_to_str(
                                "$request.header.Authorization", &ctx, &out));
   ASSERT_STR_EQ("Bearer abc", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_eval_runtime_expr_to_str("$request.query.page", &ctx, &out));
   ASSERT_STR_EQ("2", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_eval_runtime_expr_to_str("$request.path.id", &ctx, &out));
   ASSERT_STR_EQ("99", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_eval_runtime_expr_to_str("$request.body", &ctx, &out));
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_eval_runtime_expr_to_str("$request.body#/flag", &ctx, &out));
   ASSERT_STR_EQ("true", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_runtime_expr_to_str(
                                "$request.body#/empty", &ctx, &out));
   ASSERT_STR_EQ("null", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, arazzo_eval_runtime_expr_to_str(
                                        "$request.body#/missing", &ctx, &out));
@@ -336,45 +403,45 @@ TEST test_arazzo_eval_runtime_expr_all_roots(void) {
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_runtime_expr_to_str(
                                "$response.header.X-Rate", &ctx, &out));
   ASSERT_STR_EQ("100", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_eval_runtime_expr_to_str("$response.body", &ctx, &out));
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_runtime_expr_to_str(
                                "$response.body#/false_flag", &ctx, &out));
   ASSERT_STR_EQ("false", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, arazzo_eval_runtime_expr_to_str(
                                        "$response.body#/missing", &ctx, &out));
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_eval_runtime_expr_to_str("$message.header", &ctx, &out));
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_runtime_expr_to_str(
                                "$message.header.corr", &ctx, &out));
   ASSERT_STR_EQ("c1", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_runtime_expr_to_str(
                                "$message.header#/corr", &ctx, &out));
   ASSERT_STR_EQ("c1", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, arazzo_eval_runtime_expr_to_str(
                                        "$message.header#/missing", &ctx, &out));
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_eval_runtime_expr_to_str("$message.payload", &ctx, &out));
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_runtime_expr_to_str(
                                "$message.payload#/evt", &ctx, &out));
   ASSERT_STR_EQ("created", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(
       CDD_C_ERROR_NOT_FOUND,
@@ -383,7 +450,7 @@ TEST test_arazzo_eval_runtime_expr_all_roots(void) {
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_eval_runtime_expr_to_str("$inputs.nested#/k", &ctx, &out));
   ASSERT_STR_EQ("v", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, arazzo_eval_runtime_expr_to_str(
                                        "$inputs.nested#/missing", &ctx, &out));
@@ -391,12 +458,12 @@ TEST test_arazzo_eval_runtime_expr_all_roots(void) {
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_eval_runtime_expr_to_str("$outputs.final", &ctx, &out));
   ASSERT_STR_EQ("done", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_runtime_expr_to_str(
                                "$steps.s1.outputs.obj#/sub", &ctx, &out));
   ASSERT_STR_EQ("sv", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
             arazzo_eval_runtime_expr_to_str("$steps.s1.outputs.obj#/missing",
@@ -405,29 +472,29 @@ TEST test_arazzo_eval_runtime_expr_all_roots(void) {
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_runtime_expr_to_str(
                                "$workflows.w1.outputs.res", &ctx, &out));
   ASSERT_STR_EQ("wres", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_runtime_expr_to_str(
                                "$sourceDescriptions.petstore.url", &ctx, &out));
   ASSERT_STR_EQ("https://api.petstore.io", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_runtime_expr_to_str(
                                "$components.parameters.p1", &ctx, &out));
   ASSERT_STR_EQ("pval", out);
-  free(out);
+  C_CDD_FREE(out);
 
   /* Embedded template */
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_eval_runtime_expr_to_str(
                 "Bearer {$steps.s1.outputs.tok} ({$inputs.env})!", &ctx, &out));
   ASSERT_STR_EQ("Bearer t123 (prod)!", out);
-  free(out);
+  C_CDD_FREE(out);
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_runtime_expr_to_str(
                                "Bearer {$inputs.env}", &ctx, &out));
   ASSERT_STR_EQ("Bearer prod", out);
-  free(out);
+  C_CDD_FREE(out);
 
   /* OOM in embedded template evaluation */
   {
@@ -436,7 +503,7 @@ TEST test_arazzo_eval_runtime_expr_all_roots(void) {
       g_cdd_alloc_fail = fail_step;
       if (arazzo_eval_runtime_expr_to_str("Bearer {$inputs.env}!", &ctx,
                                           &out) == CDD_C_SUCCESS) {
-        free(out);
+        C_CDD_FREE(out);
       }
       g_cdd_alloc_fail = 0;
     }
@@ -517,14 +584,16 @@ TEST test_arazzo_eval_runtime_expr_all_roots(void) {
 /**
  * @brief Tests `arazzo_eval_criterion`, `arazzo_eval_selector`, and
  * `arazzo_apply_payload_replacements`.
+ * @return Test or helper result.
  */
 TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
   struct Arazzo_ExecutionContext ctx;
   struct Arazzo_Criterion crit;
   struct Arazzo_Selector sel;
-  struct Arazzo_PayloadReplacement reps[4];
+  struct Arazzo_PayloadReplacement reps[8];
   JSON_Value *resp_val;
   JSON_Value *payload_val;
+  JSON_Value *items_arr_val;
   JSON_Value *inputs_val;
   char xml_doc[64];
   char cond_buf[128];
@@ -534,6 +603,10 @@ TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
   char t1[32];
   char t2[32];
   char t3[32];
+  char t4[32];
+  char t5[32];
+  char t6[32];
+  char t7[32];
   char v0[32];
   int passed = 0;
   char *out_str = NULL;
@@ -567,17 +640,39 @@ TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             arazzo_eval_criterion(&crit, &ctx, NULL));
 
-  /* Simple criteria: ==, !=, >=, <=, >, <, &&, boolean truthiness */
+  /* Simple criteria: ==, !=, >=, <=, >, <, &&, ||, !, (), negative numbers,
+   * quoted operators */
   crit.type = ARAZZO_CRITERION_SIMPLE;
   CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s",
-               "$statusCode == 200 && $response.body#/status == 'active'");
+               "($statusCode == 404 || $statusCode == 200) && "
+               "!($response.body#/status == 'inactive')");
+  ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_criterion(&crit, &ctx, &passed));
+  ASSERT_EQ(1, passed);
+
+  CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s",
+               "$statusCode == 200 || $statusCode == 404");
+  ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_criterion(&crit, &ctx, &passed));
+  ASSERT_EQ(1, passed);
+
+  CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s",
+               "-12.5 < -5 && 'a==b&&c||d' == 'a==b&&c||d'");
+  ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_criterion(&crit, &ctx, &passed));
+  ASSERT_EQ(1, passed);
+
+  CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s", "-abc == -abc");
+  ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_criterion(&crit, &ctx, &passed));
+  ASSERT_EQ(1, passed);
+
+  CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s", "12abc == 12abc");
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_criterion(&crit, &ctx, &passed));
   ASSERT_EQ(1, passed);
 
   /* OOM in simple criteria */
   {
     int f;
-    for (f = 1; f <= 6; ++f) {
+    CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s",
+                 "(100 == 200 || 200 == 200) && !(1 == 2)");
+    for (f = 1; f <= 10; ++f) {
       g_cdd_alloc_fail = f;
       arazzo_eval_criterion(&crit, &ctx, &passed);
       g_cdd_alloc_fail = 0;
@@ -590,7 +685,8 @@ TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
     }
   }
 
-  CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s", "\"quoted\" == \"other\"");
+  CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%cquoted%c == %cother%c", '"', '"',
+               '"', '"');
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_criterion(&crit, &ctx, &passed));
   ASSERT_EQ(0, passed);
 
@@ -657,7 +753,7 @@ TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_criterion(&crit, &ctx, &passed));
   ASSERT_EQ(1, passed);
 
-  CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s", "  'mismatched\"  ");
+  CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "  'mismatched%c  ", '"');
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_criterion(&crit, &ctx, &passed));
   ASSERT_EQ(0, passed);
 
@@ -687,7 +783,7 @@ TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_criterion(&crit, &ctx, &passed));
   ASSERT_EQ(0, passed);
 
-  /* Regex criteria */
+  /* Regex criteria: ^, $, ., [...], [^...], \d, \w, \s, *, +, ?, {m,n}, | */
   crit.type = ARAZZO_CRITERION_REGEX;
   crit.context = NULL;
   CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s", "^active$");
@@ -700,15 +796,34 @@ TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_criterion(&crit, &ctx, &passed));
   ASSERT_EQ(1, passed);
 
-  CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s", "^other$");
-  ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_criterion(&crit, &ctx, &passed));
-  ASSERT_EQ(0, passed);
-
-  CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s", "^act");
+  CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s", "^inactive$|^active$");
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_criterion(&crit, &ctx, &passed));
   ASSERT_EQ(1, passed);
 
-  CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s", "^verylongprefix");
+  CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s", "^active$|^inactive$");
+  ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_criterion(&crit, &ctx, &passed));
+  ASSERT_EQ(1, passed);
+
+  g_cdd_alloc_fail = 5;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, arazzo_eval_criterion(&crit, &ctx, &passed));
+  g_cdd_alloc_fail = 0;
+
+  CDD_SNPRINTF(cond_buf, sizeof(cond_buf),
+               "^[a-z]+[^0-9]%cw*%cs?%cd*%c.?[ae]{1,2}$", 92, 92, 92, 92);
+  ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_criterion(&crit, &ctx, &passed));
+  ASSERT_EQ(1, passed);
+
+  CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s", "^[0-9]{2,3}$");
+  ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_criterion(&crit, &ctx, &passed));
+  ASSERT_EQ(0, passed);
+
+  CDD_SNPRINTF(ctx_buf, sizeof(ctx_buf), "%s", "$statusCode");
+  CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "^%cd{3}$", 92);
+  ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_criterion(&crit, &ctx, &passed));
+  ASSERT_EQ(1, passed);
+
+  CDD_SNPRINTF(ctx_buf, sizeof(ctx_buf), "%s", "$response.body#/status");
+  CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s", "^other$");
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_criterion(&crit, &ctx, &passed));
   ASSERT_EQ(0, passed);
 
@@ -798,7 +913,7 @@ TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
   sel.expression_type.type = ARAZZO_DIALECT_JSONPATH;
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_selector(&sel, &ctx, &out_str));
   ASSERT_STR_EQ("active", out_str);
-  free(out_str);
+  C_CDD_FREE(out_str);
 
   CDD_SNPRINTF(sel_buf, sizeof(sel_buf), "%s", "$.missing");
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, arazzo_eval_selector(&sel, &ctx, &out_str));
@@ -811,7 +926,7 @@ TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
   sel.expression_type.type = ARAZZO_DIALECT_XPATH;
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_selector(&sel, &ctx, &out_str));
   ASSERT_STR_EQ("7", out_str);
-  free(out_str);
+  C_CDD_FREE(out_str);
 
   CDD_SNPRINTF(ctx_buf, sizeof(ctx_buf), "%s", "$response.body#/missing");
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, arazzo_eval_selector(&sel, &ctx, &out_str));
@@ -824,13 +939,20 @@ TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             arazzo_eval_selector(&sel, &ctx, &out_str));
 
-  /* Payload replacements */
+  /* Payload replacements (including ~0/~1 unescaping and JSONArray targets) */
   payload_val = json_value_init_object();
-  json_object_dotset_string(json_value_get_object(payload_val), "pet.name",
+  json_object_dotset_string(json_value_get_object(payload_val), "pet.a/b~c",
                             "old");
   json_object_set_number(json_value_get_object(payload_val), "count", 1);
   json_object_set_boolean(json_value_get_object(payload_val), "active", 0);
   json_object_set_string(json_value_get_object(payload_val), "extra", "x");
+  items_arr_val = json_value_init_array();
+  json_array_append_string(json_value_get_array(items_arr_val), "old0");
+  json_array_append_number(json_value_get_array(items_arr_val), 0);
+  json_array_append_boolean(json_value_get_array(items_arr_val), 0);
+  json_array_append_string(json_value_get_array(items_arr_val), "old3");
+  json_object_set_value(json_value_get_object(payload_val), "items",
+                        items_arr_val);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             arazzo_apply_payload_replacements(NULL, reps, 1, &ctx));
@@ -838,7 +960,7 @@ TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
             arazzo_apply_payload_replacements(payload_val, NULL, 1, &ctx));
 
   memset(reps, 0, sizeof(reps));
-  CDD_SNPRINTF(t0, sizeof(t0), "%s", "/pet/name");
+  CDD_SNPRINTF(t0, sizeof(t0), "%s", "/pet/a~1b~0c");
   CDD_SNPRINTF(v0, sizeof(v0), "%s", "$inputs.newName");
   reps[0].target = t0;
   reps[0].value.type = OA_ANY_STRING;
@@ -858,27 +980,55 @@ TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
   reps[3].target = t3;
   reps[3].value.type = OA_ANY_NULL;
 
+  CDD_SNPRINTF(t4, sizeof(t4), "%s", "/items/0");
+  reps[4].target = t4;
+  reps[4].value.type = OA_ANY_STRING;
+  reps[4].value.string = v0;
+
+  CDD_SNPRINTF(t5, sizeof(t5), "%s", "/items/1");
+  reps[5].target = t5;
+  reps[5].value.type = OA_ANY_NUMBER;
+  reps[5].value.number = 99;
+
+  CDD_SNPRINTF(t6, sizeof(t6), "%s", "/items/2");
+  reps[6].target = t6;
+  reps[6].value.type = OA_ANY_BOOL;
+  reps[6].value.boolean = 1;
+
+  CDD_SNPRINTF(t7, sizeof(t7), "%s", "/items/3");
+  reps[7].target = t7;
+  reps[7].value.type = OA_ANY_NULL;
+
   ASSERT_EQ(CDD_C_SUCCESS,
-            arazzo_apply_payload_replacements(payload_val, reps, 4, &ctx));
-  ASSERT_STR_EQ("Rex", json_object_dotget_string(
-                           json_value_get_object(payload_val), "pet.name"));
+            arazzo_apply_payload_replacements(payload_val, reps, 8, &ctx));
+  ASSERT_STR_EQ("Rex", json_object_get_string(
+                           json_object_get_object(
+                               json_value_get_object(payload_val), "pet"),
+                           "a/b~c"));
   ASSERT_EQ(5, (int)json_object_get_number(json_value_get_object(payload_val),
                                            "count"));
   ASSERT_EQ(
       1, json_object_get_boolean(json_value_get_object(payload_val), "active"));
+  ASSERT_STR_EQ("Rex",
+                json_array_get_string(json_value_get_array(items_arr_val), 0));
+  ASSERT_EQ(99,
+            (int)json_array_get_number(json_value_get_array(items_arr_val), 1));
+  ASSERT_EQ(1, json_array_get_boolean(json_value_get_array(items_arr_val), 2));
 
   /* Literal string replacement */
   CDD_SNPRINTF(v0, sizeof(v0), "%s", "StaticName");
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_apply_payload_replacements(payload_val, reps, 1, &ctx));
-  ASSERT_STR_EQ("StaticName",
-                json_object_dotget_string(json_value_get_object(payload_val),
-                                          "pet.name"));
 
   reps[0].value.string = NULL;
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_apply_payload_replacements(payload_val, reps, 1, &ctx));
   reps[0].value.string = v0;
+
+  reps[4].value.string = NULL;
+  ASSERT_EQ(CDD_C_SUCCESS,
+            arazzo_apply_payload_replacements(payload_val, reps + 4, 1, &ctx));
+  reps[4].value.string = v0;
 
   /* Invalid target replacement */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -892,13 +1042,22 @@ TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
   CDD_SNPRINTF(t0, sizeof(t0), "%s", "bad_target");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             arazzo_apply_payload_replacements(payload_val, reps, 1, &ctx));
+  CDD_SNPRINTF(t0, sizeof(t0), "%s", "/bad~2escape");
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            arazzo_apply_payload_replacements(payload_val, reps, 1, &ctx));
   CDD_SNPRINTF(t0, sizeof(t0), "%s", "/missing/child");
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
             arazzo_apply_payload_replacements(payload_val, reps, 1, &ctx));
   CDD_SNPRINTF(t0, sizeof(t0), "%s", "/count/not_obj");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             arazzo_apply_payload_replacements(payload_val, reps, 1, &ctx));
-  CDD_SNPRINTF(t0, sizeof(t0), "%s", "/pet/name");
+  CDD_SNPRINTF(t0, sizeof(t0), "%s", "/items/99");
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            arazzo_apply_payload_replacements(payload_val, reps, 1, &ctx));
+  CDD_SNPRINTF(t0, sizeof(t0), "%s", "/items/abc");
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            arazzo_apply_payload_replacements(payload_val, reps, 1, &ctx));
+  CDD_SNPRINTF(t0, sizeof(t0), "%s", "/pet/a~1b~0c");
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             arazzo_apply_payload_replacements(payload_val, reps, 1, &ctx));
@@ -906,6 +1065,8 @@ TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
   CDD_SNPRINTF(v0, sizeof(v0), "%s", "$inputs.missing");
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
             arazzo_apply_payload_replacements(payload_val, reps, 1, &ctx));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            arazzo_apply_payload_replacements(payload_val, reps + 4, 1, &ctx));
 
   json_value_free(payload_val);
   json_value_free(resp_val);
@@ -913,6 +1074,9 @@ TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the arazzo_eval_suite test suite.
+ */
 SUITE(arazzo_eval_suite) {
   RUN_TEST(test_arazzo_eval_json_pointer);
   RUN_TEST(test_arazzo_eval_jsonpath_and_xpath);

@@ -24,7 +24,6 @@ extern "C" {
 
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
-extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 extern C_CDD_EXPORT int g_cdd_fail_alloc;
 extern C_CDD_EXPORT int g_cdd_fail_skip_ws;
@@ -38,10 +37,14 @@ extern C_CDD_EXPORT int g_cdd_fail_is_expression_brace;
 extern C_CDD_EXPORT int g_cdd_fail_consume_balanced_braces;
 extern C_CDD_EXPORT int g_cdd_fail_match_function_definition;
 extern C_CDD_EXPORT int g_cdd_fail_cst_list_add;
-extern C_CDD_EXPORT int g_cdd_fail_token_matches_string;
 #endif
 
 /* Helper to create a fake token list for testing */
+/**
+ * @brief Helper function make_simple_token_list.
+ * @param[in,out] tl Parameter tl.
+ * @return Result status or value.
+ */
 static int make_simple_token_list(struct TokenList *tl) {
   static const char code[] = "struct MyStruct { }";
   tl->size = 0;
@@ -72,6 +75,10 @@ static int make_simple_token_list(struct TokenList *tl) {
   return 0;
 }
 
+/**
+ * @brief Unit test add_node_basic.
+ * @return Greatest test result.
+ */
 TEST add_node_basic(void) {
   struct CstNodeList list = {NULL, 0, 0};
   size_t i;
@@ -147,6 +154,10 @@ TEST add_node_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test parse_tokens_basic.
+ * @return Greatest test result.
+ */
 TEST parse_tokens_basic(void) {
   struct TokenList *tokens =
       (struct TokenList *)C_CDD_MALLOC(sizeof(struct TokenList));
@@ -235,6 +246,10 @@ TEST parse_tokens_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test parse_tokens_empty.
+ * @return Greatest test result.
+ */
 TEST parse_tokens_empty(void) {
   struct TokenList tokens = {NULL, 0, 0};
   struct CstNodeList cst_nodes = {NULL, 0, 0};
@@ -295,6 +310,10 @@ TEST parse_tokens_empty(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test parse_tokens_oom_make.
+ * @return Greatest test result.
+ */
 TEST parse_tokens_oom_make(void) {
   struct TokenList *tokens;
 #ifdef CDD_BUILD_TESTS
@@ -359,6 +378,10 @@ TEST parse_tokens_oom_make(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test parse_tokens_null_args.
+ * @return Greatest test result.
+ */
 TEST parse_tokens_null_args(void) {
   struct TokenList tokens = {NULL, 0, 0};
   struct CstNodeList cst_nodes = {NULL, 0, 0};
@@ -417,6 +440,10 @@ TEST parse_tokens_null_args(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test parse_tokens_forward_declaration.
+ * @return Greatest test result.
+ */
 TEST parse_tokens_forward_declaration(void) {
   struct TokenList *tl = NULL;
   struct CstNodeList cst = {0};
@@ -482,6 +509,10 @@ TEST parse_tokens_forward_declaration(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test parse_tokens_anonymous_struct.
+ * @return Greatest test result.
+ */
 TEST parse_tokens_anonymous_struct(void) {
   struct TokenList *tl = NULL;
   struct CstNodeList cst = {0};
@@ -547,6 +578,10 @@ TEST parse_tokens_anonymous_struct(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test parse_tokens_struct_variable_declaration.
+ * @return Greatest test result.
+ */
 TEST parse_tokens_struct_variable_declaration(void) {
   struct TokenList *tl = NULL;
   struct CstNodeList cst = {0};
@@ -621,6 +656,10 @@ TEST parse_tokens_struct_variable_declaration(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test parse_simple_array_init.
+ * @return Greatest test result.
+ */
 TEST parse_simple_array_init(void) {
   struct TokenList *tl = NULL;
   struct CstNodeList cst = {0};
@@ -693,6 +732,9 @@ TEST parse_simple_array_init(void) {
 #include "parse/test_cst_parser_coverage_statements.h"
 #include "parse/test_cst_parser_expressions.h"
 
+/**
+ * @brief Executes the cst_parser_suite test suite.
+ */
 SUITE(cst_parser_suite) {
   RUN_TEST(test_cst_parser_extra);
   RUN_TEST(add_node_basic);

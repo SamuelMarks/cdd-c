@@ -1,4 +1,7 @@
 #ifndef CDD_BUILD_TESTS
+/**
+ * @brief Macro CDD_BUILD_TESTS.
+ */
 #define CDD_BUILD_TESTS
 #endif
 #include "cdd_c_error.h"
@@ -31,14 +34,23 @@
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
+/** @brief Test definition g_cdd_helpers_fopen_err. */
 CDD_TEST_HELPERS_EXPORT int g_cdd_helpers_fopen_err = 0;
 
 #ifdef CDD_BUILD_TESTS
 /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
 /* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
 
+/**
+ * @brief Helper function mock_fopen.
+ * @param[in] path Parameter path.
+ * @param[in] mode Parameter mode.
+ * @return Result status or value.
+ */
 static FILE *mock_fopen(const char *path, const char *mode) {
   if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after) {
     errno = g_cdd_helpers_fopen_err;
@@ -58,13 +70,30 @@ static int mock_fopen_s(FILE **fh, const char *path, const char *mode) {
 }
 #endif
 
+/**
+ * @brief Macro FOPEN_S.
+ */
 #define FOPEN_S mock_fopen_s
+/**
+ * @brief Macro FOPEN.
+ */
 #define FOPEN mock_fopen
+/**
+ * @brief Helper function mock_fputs.
+ * @param[in] str Parameter str.
+ * @param[in,out] stream Parameter stream.
+ * @return Result status or value.
+ */
 static int mock_fputs(const char *str, FILE *stream) {
   if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)
     return -1;
   return fputs(str, stream);
 }
+/**
+ * @brief Helper function mock_fclose.
+ * @param[in,out] stream Parameter stream.
+ * @return Result status or value.
+ */
 static int mock_fclose(FILE *stream) {
   if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after) {
     if (stream)
@@ -73,7 +102,13 @@ static int mock_fclose(FILE *stream) {
   }
   return fclose(stream);
 }
+/**
+ * @brief Macro FPUTS.
+ */
 #define FPUTS mock_fputs
+/**
+ * @brief Macro FCLOSE.
+ */
 #define FCLOSE mock_fclose
 #else
 #define FOPEN_S fopen_s
@@ -92,8 +127,6 @@ void cdd_precondition_failed(void) {
 /**
  * @brief Writes contents to a file safely.
  *
- * @param[in] filename The name of the file to write to.
- * @param[in] contents The contents to write.
  * @return EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
 cdd_c_error_t write_to_file(const char *filename, const char *contents) {
@@ -147,6 +180,10 @@ cdd_c_error_t write_to_file(const char *filename, const char *contents) {
   return rc;
 }
 
+/**
+ * @brief Helper function cdd_test_rmdir_recursive.
+ * @param[in] path Parameter path.
+ */
 static void cdd_test_rmdir_recursive(const char *path) {
 #if defined(_WIN32)
   struct _finddata_t file_info;
@@ -209,8 +246,11 @@ static void cdd_test_rmdir_recursive(const char *path) {
 #endif
 }
 
+/** @brief Test definition g_cdd_test_tmp_buf[1024][64]. */
 char g_cdd_test_tmp_buf[1024][64];
+/** @brief Test definition g_cdd_test_mut_pool[1024][512]. */
 static char g_cdd_test_mut_pool[1024][512];
+/** @brief Test definition g_cdd_test_mut_idx. */
 static size_t g_cdd_test_mut_idx = 0;
 
 /**

@@ -22,12 +22,12 @@ extern "C" {
  * token patches and emits a string that represents the differences in the
  * standard unified diff format (used by git diff and patch tools).
  *
- * @param tokens The original token list.
- * @param list The list of proposed token substitutions.
- * @param filename The path or name of the file being patched (used in diff
+ * @param[in] tokens The original token list.
+ * @param[in] list The list of proposed token substitutions.
+ * @param[in] filename The path or name of the file being patched (used in diff
  * headers).
- * @param out_diff Output pointer to hold the generated string (must be freed by
- * caller).
+ * @param[out] out_diff Output pointer to hold the generated string (must be
+ * freed by caller).
  * @return 0 on success, non-zero on failure.
  */
 C_CDD_EXPORT cdd_c_error_t patch_list_generate_diff(

@@ -44,6 +44,15 @@ cdd_c_error_t alloc_node(enum cdd_cst_node_kind_t kind, cdd_cst_node_t *parent,
 cdd_c_error_t append_child_token(cdd_cst_node_t *node, cdd_token_t *tok);
 
 /**
+ * @brief Consume the current token from parser state and append it to `node`.
+ *
+ * @param[in,out] s Parser state (caller must ensure `s->pos < s->list->size`).
+ * @param[in,out] node Target CST node.
+ * @return CDD_C_SUCCESS or error code.
+ */
+cdd_c_error_t consume_token(parser_state_t *s, cdd_cst_node_t *node);
+
+/**
  * @brief Append a child node to a node.
  *
  * @param[in,out] node Target node.

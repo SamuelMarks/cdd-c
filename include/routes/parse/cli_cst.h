@@ -16,8 +16,8 @@ extern "C" {
 /**
  * @brief Subcommand handler for cdd-c transformer.
  *
- * @param argc Argument count.
- * @param argv Argument values.
+ * @param[in] argc Argument count.
+ * @param[out] argv Argument values.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cli_cst_transformer_main(int argc, char **argv);
@@ -25,8 +25,8 @@ C_CDD_EXPORT cdd_c_error_t cli_cst_transformer_main(int argc, char **argv);
 /**
  * @brief Subcommand handler for standardize-gnu.
  *
- * @param argc Argument count.
- * @param argv Argument values.
+ * @param[in] argc Argument count.
+ * @param[out] argv Argument values.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cli_standardize_gnu_main(int argc, char **argv);

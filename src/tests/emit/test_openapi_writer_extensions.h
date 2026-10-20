@@ -14,6 +14,10 @@ extern "C" {
 #include "emit/test_openapi_writer_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_writer_paths_webhooks_components_extensions.
+ * @return Greatest test result.
+ */
 TEST test_writer_paths_webhooks_components_extensions(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -69,6 +73,10 @@ TEST test_writer_paths_webhooks_components_extensions(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_methods_and_styles.
+ * @return Greatest test result.
+ */
 TEST test_writer_methods_and_styles(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -128,6 +136,10 @@ TEST test_writer_methods_and_styles(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_xml_and_oauth.
+ * @return Greatest test result.
+ */
 TEST test_writer_xml_and_oauth(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -167,6 +179,10 @@ TEST test_writer_xml_and_oauth(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_xml_types.
+ * @return Greatest test result.
+ */
 TEST test_writer_xml_types(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -226,6 +242,10 @@ TEST test_writer_xml_types(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_utils.
+ * @return Greatest test result.
+ */
 TEST test_openapi_utils(void) {
   struct OpenAPI_Parameter p;
   char *out = NULL;
@@ -321,6 +341,10 @@ TEST test_openapi_utils(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_extended_coverage.
+ * @return Greatest test result.
+ */
 TEST test_writer_extended_coverage(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Header hdr;

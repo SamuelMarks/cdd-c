@@ -33,8 +33,10 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
+/** @brief Test definition g_build_system_fail_io_after. */
 extern C_CDD_EXPORT int g_build_system_fail_io_after;
 
 /**
@@ -166,6 +168,10 @@ TEST test_gen_build_system_bad_args(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_system_oom2.
+ * @return Greatest test result.
+ */
 TEST test_build_system_oom2(void) {
   int i;
   int rc = 0;
@@ -189,6 +195,10 @@ TEST test_build_system_oom2(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_cmake_null_args.
+ * @return Greatest test result.
+ */
 TEST test_gen_cmake_null_args(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             generate_cmake_project("out", NULL, 0));
@@ -196,6 +206,10 @@ TEST test_gen_cmake_null_args(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_cmake_null_outdir.
+ * @return Greatest test result.
+ */
 TEST test_gen_cmake_null_outdir(void) {
   int rc = 0;
 
@@ -217,6 +231,10 @@ TEST test_gen_cmake_null_outdir(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_cmake_bad_makedirs.
+ * @return Greatest test result.
+ */
 TEST test_gen_cmake_bad_makedirs(void) {
   /* Passing an empty string to makedirs often fails or does nothing depending
      on OS, but we can try a definitely invalid path like a file that exists but
@@ -256,6 +274,10 @@ TEST test_gen_cmake_bad_makedirs(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_system_io_failure.
+ * @return Greatest test result.
+ */
 TEST test_build_system_io_failure(void) {
   int i;
   int rc = 0;
@@ -286,6 +308,10 @@ TEST test_build_system_io_failure(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_build_system_cli_args_tests.
+ * @return Greatest test result.
+ */
 TEST test_gen_build_system_cli_args_tests(void) {
   char *argv[4];
   int rc;
@@ -303,6 +329,10 @@ TEST test_gen_build_system_cli_args_tests(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_build_system_cli_args_fail.
+ * @return Greatest test result.
+ */
 TEST test_gen_build_system_cli_args_fail(void) {
   char *argv[3];
   FILE *f;
@@ -326,6 +356,10 @@ TEST test_gen_build_system_cli_args_fail(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_cmake_oom.
+ * @return Greatest test result.
+ */
 TEST test_gen_cmake_oom(void) {
 #ifdef CDD_BUILD_TESTS
   /*  (moved to global) */
@@ -355,7 +389,7 @@ TEST test_gen_cmake_oom(void) {
 
   {
     int chdir_rc = chdir("test_build_dir_oom");
-    ASSERT(chdir_rc == 0 || chdir_rc != 0);
+    ASSERT_EQ(0, chdir_rc);
   }
   for (i = 1; i <= 100; i++) {
     g_cdd_strdup_fail = i;
@@ -374,7 +408,7 @@ TEST test_gen_cmake_oom(void) {
   remove("CMakeLists.txt");
   {
     int chdir_rc = chdir("..");
-    ASSERT(chdir_rc == 0 || chdir_rc != 0);
+    ASSERT_EQ(0, chdir_rc);
   }
 #endif
   remove("test_build_dir_oom/src/CMakeLists.txt");
@@ -382,6 +416,10 @@ TEST test_gen_cmake_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_cmake_readonly2.
+ * @return Greatest test result.
+ */
 TEST test_gen_cmake_readonly2(void) {
 #if !defined(_WIN32) && !defined(__CYGWIN__)
   int rc = 0;
@@ -394,6 +432,10 @@ TEST test_gen_cmake_readonly2(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_cmake_readonly.
+ * @return Greatest test result.
+ */
 TEST test_gen_cmake_readonly(void) {
 #if !defined(_WIN32) && !defined(__CYGWIN__)
   int rc = 0;
@@ -411,6 +453,10 @@ TEST test_gen_cmake_readonly(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_cmake_io_fail.
+ * @return Greatest test result.
+ */
 TEST test_gen_cmake_io_fail(void) {
   int i;
   makedirs("test_build_dir_io");
@@ -424,7 +470,7 @@ TEST test_gen_cmake_io_fail(void) {
 
   {
     int chdir_rc = chdir("test_build_dir_io");
-    ASSERT(chdir_rc == 0 || chdir_rc != 0);
+    ASSERT_EQ(0, chdir_rc);
   }
   for (i = 0; i <= 10; i++) {
     g_fail_io_after = i;
@@ -437,7 +483,7 @@ TEST test_gen_cmake_io_fail(void) {
   remove("CMakeLists.txt");
   {
     int chdir_rc = chdir("..");
-    ASSERT(chdir_rc == 0 || chdir_rc != 0);
+    ASSERT_EQ(0, chdir_rc);
   }
   remove("test_build_dir_io/src/CMakeLists.txt");
   remove("test_build_dir_io/CMakeLists.txt");

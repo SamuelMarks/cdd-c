@@ -8,6 +8,7 @@
 
 #include "classes/emit/schema.h"
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "functions/parse/str.h"
 #include <errno.h>
@@ -31,11 +32,6 @@ cdd_c_error_t schema_constraints_init(struct SchemaConstraints *sc) {
   return CDD_C_SUCCESS;
 }
 
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_schema_strdup_fail = 0;
-C_CDD_EXPORT int g_schema_realloc_fail = 0;
-#endif
-
 /**
  * @brief Adds a required field name to a `SchemaConstraints` structure.
  *
@@ -54,15 +50,7 @@ cdd_c_error_t schema_constraints_add_required(struct SchemaConstraints *sc,
         new_cap > ((size_t)-1) / (16 * sizeof(char *))) {
       return CDD_C_ERROR_MEMORY;
     }
-#ifdef CDD_BUILD_TESTS
-    if (g_schema_realloc_fail) {
-      new_req = NULL;
-    } else {
-#endif
-      new_req = (char **)realloc(sc->required, new_cap * sizeof(char *));
-#ifdef CDD_BUILD_TESTS
-    }
-#endif
+    new_req = (char **)C_CDD_REALLOC(sc->required, new_cap * sizeof(char *));
     if (!new_req) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -70,20 +58,10 @@ cdd_c_error_t schema_constraints_add_required(struct SchemaConstraints *sc,
     sc->required = new_req;
     sc->required_capacity = new_cap;
   }
-#ifdef CDD_BUILD_TESTS
-  if (g_schema_strdup_fail) {
-    sc->required[sc->required_count] = NULL;
-  } else {
-#endif
-    rc = c_cdd_strdup(field, &sc->required[sc->required_count]);
-    if (rc != CDD_C_SUCCESS) {
-      return rc;
-    }
-#ifdef CDD_BUILD_TESTS
+  rc = c_cdd_strdup(field, &sc->required[sc->required_count]);
+  if (rc != CDD_C_SUCCESS) {
+    return rc;
   }
-#endif
-  if (!sc->required[sc->required_count])
-    return CDD_C_ERROR_MEMORY;
 
   sc->required_count++;
   return CDD_C_SUCCESS;
@@ -100,9 +78,9 @@ void schema_constraints_free(struct SchemaConstraints *sc) {
   if (sc->required) {
     for (i = 0; i < sc->required_count; i++) {
       if (sc->required[i])
-        free(sc->required[i]);
+        C_CDD_FREE(sc->required[i]);
     }
-    free(sc->required);
+    C_CDD_FREE(sc->required);
     sc->required = NULL;
   }
   sc->required_count = 0;
@@ -110,12 +88,12 @@ void schema_constraints_free(struct SchemaConstraints *sc) {
 
   if (sc->additional_properties) {
     if (sc->additional_properties->name)
-      free(sc->additional_properties->name);
+      C_CDD_FREE(sc->additional_properties->name);
     if (sc->additional_properties->type)
-      free(sc->additional_properties->type);
+      C_CDD_FREE(sc->additional_properties->type);
     if (sc->additional_properties->ref)
-      free(sc->additional_properties->ref);
-    free(sc->additional_properties);
+      C_CDD_FREE(sc->additional_properties->ref);
+    C_CDD_FREE(sc->additional_properties);
     sc->additional_properties = NULL;
   }
   sc->has_additional_properties = 0;

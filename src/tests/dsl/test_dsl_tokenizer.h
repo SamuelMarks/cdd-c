@@ -1,3 +1,7 @@
+/**
+ * @file test_dsl_tokenizer.h
+ * @brief Unit tests and mocks in test_dsl_tokenizer.h.
+ */
 #ifndef TEST_DSL_TOKENIZER_H
 #define TEST_DSL_TOKENIZER_H
 
@@ -11,11 +15,14 @@ extern "C" {
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Unit test test_dsl_tokenizer_basic.
+ * @return Greatest test result.
+ */
 TEST test_dsl_tokenizer_basic(void) {
   cdd_dsl_token_list_t list;
   const char *source = "func foo() {\n  body %{ printf(\"hello\"); }%\n}";
   cdd_c_error_t rc;
-  (void)rc;
 
   rc = cdd_dsl_tokenize(source, &list);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
@@ -37,23 +44,29 @@ TEST test_dsl_tokenizer_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_dsl_tokenizer_oom.
+ * @return Greatest test result.
+ */
 TEST test_dsl_tokenizer_oom(void) {
   cdd_dsl_token_list_t list;
   const char *source = "func foo() {}";
   cdd_c_error_t rc;
-  (void)rc;
 
   /* extern volatile int g_fail_io_after; */
   g_fail_io_after = 1;
   rc = cdd_dsl_tokenize(source, &list);
   g_fail_io_after = 0;
-  if (rc == CDD_C_SUCCESS)
-    cdd_dsl_token_list_free(&list);
-  /* ASSERT_EQ_FMT(CDD_C_ERROR_MEMORY, rc, "%d"); */
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
+  cdd_dsl_token_list_free(&list);
 
   PASS();
 }
 
+/**
+ * @brief Unit test test_dsl_tokenizer_exhaustive.
+ * @return Greatest test result.
+ */
 TEST test_dsl_tokenizer_exhaustive(void) {
   cdd_dsl_token_list_t list;
   const char *source1 =
@@ -128,8 +141,13 @@ TEST test_dsl_tokenizer_exhaustive(void) {
   PASS();
 }
 
+/** @brief Test definition g_ffi_extractor_alloc_fail. */
 extern C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
 
+/**
+ * @brief Unit test test_dsl_tokenizer_oom_loop.
+ * @return Greatest test result.
+ */
 TEST test_dsl_tokenizer_oom_loop(void) {
   cdd_dsl_token_list_t list;
   const char *source =
@@ -153,6 +171,10 @@ TEST test_dsl_tokenizer_oom_loop(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_dsl_tokenizer_free_null.
+ * @return Greatest test result.
+ */
 TEST test_dsl_tokenizer_free_null(void) {
   cdd_dsl_token_list_t list = {0};
   list.count = 1;
@@ -164,6 +186,9 @@ TEST test_dsl_tokenizer_free_null(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the test_dsl_tokenizer_suite test suite.
+ */
 SUITE(test_dsl_tokenizer_suite) {
   RUN_TEST(test_dsl_tokenizer_basic);
   RUN_TEST(test_dsl_tokenizer_oom);

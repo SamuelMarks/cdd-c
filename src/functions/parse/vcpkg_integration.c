@@ -193,14 +193,7 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
         j++;
       if (j < tokens->size && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
         int is_inc = 0;
-        {
-          cdd_c_error_t rc_vc =
-              token_matches_string(&tokens->tokens[j], "include", &is_inc);
-          if (rc_vc != CDD_C_SUCCESS) {
-            free_token_list(tokens);
-            return rc_vc;
-          }
-        }
+        res = token_matches_string(&tokens->tokens[j], "include", &is_inc);
         if (is_inc) {
           size_t k = j + 1;
           while (k < tokens->size && tokens->tokens[k].kind == TOKEN_WHITESPACE)

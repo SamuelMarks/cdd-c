@@ -23,6 +23,10 @@ extern "C" {
 #include "classes/parse/cdd_cst_factory.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_cdd_cst_builder_basic.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_builder_basic(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
@@ -196,6 +200,10 @@ TEST test_cdd_cst_builder_basic(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_cst_builder_macros.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_builder_macros(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
@@ -286,6 +294,10 @@ TEST test_cdd_cst_builder_macros(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_cst_builder_quote.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_builder_quote(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
@@ -331,6 +343,10 @@ TEST test_cdd_cst_builder_quote(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_cst_builder_snippet.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_builder_snippet(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
@@ -371,6 +387,10 @@ TEST test_cdd_cst_builder_snippet(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_cst_builder_comments.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_builder_comments(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
@@ -421,6 +441,10 @@ TEST test_cdd_cst_builder_comments(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_cst_builder_errors.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_builder_errors(void) {
   cdd_cst_builder_t b;
   int rc = 0;
@@ -454,6 +478,10 @@ TEST test_cdd_cst_builder_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_builder_trivia_and_splice.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_builder_trivia_and_splice(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
@@ -565,6 +593,10 @@ TEST test_cdd_cst_builder_trivia_and_splice(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_cst_builder_extra.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_builder_extra(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
@@ -635,6 +667,10 @@ TEST test_cdd_cst_builder_extra(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_builder_quote_errors.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_builder_quote_errors(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
@@ -664,6 +700,10 @@ TEST test_cdd_cst_builder_quote_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_builder_errors_extra.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_builder_errors_extra(void) {
   cdd_cst_builder_t b;
   cdd_cst_tree_t *tree = NULL;
@@ -723,6 +763,9 @@ TEST test_cdd_cst_builder_errors_extra(void) {
 /* extern C_CDD_EXPORT int g_cdd_cst_realloc_fail; (moved to global) */
 #endif
 
+/**
+ * @brief Executes the cdd_cst_builder_suite test suite.
+ */
 SUITE(cdd_cst_builder_suite) {
   RUN_TEST(test_cdd_cst_builder_basic);
   RUN_TEST(test_cdd_cst_builder_macros);

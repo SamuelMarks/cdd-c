@@ -30,6 +30,7 @@ set(Header_Files
         "classes/parse/cdd_cst_query.h"
         "../include/cdd_cst_transform.h"
         "../include/c_cdd/code_writer.h"
+        "../include/c_cdd/context.h"
         "../include/routes/parse/cli_cst.h"
         "functions/ffi/cdd_ffi_emit_common.h"
         "classes/parse/cdd_cst_trivia.h"
@@ -75,6 +76,7 @@ set(Header_Files
         "openapi/emit/openapi.h"
         "functions/parse/preprocessor.h"
         "functions/parse/audit.h"
+        "functions/parse/audit_internal.h"
         "routes/parse/sync.h"
         "functions/parse/refactor.h"
         "functions/parse/orchestrator.h"
@@ -211,6 +213,7 @@ set(Source_Files
         "transformers/safe_crt/safe_crt_rules.c"
         "log.c"
         "code_writer.c"
+        "context.c"
         "cdd_c_error.c"
         "functions/ffi/cdd_ffi_emit_common.c"
         "functions/parse/analysis.c"
@@ -429,7 +432,6 @@ endif()
 if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
     target_compile_definitions("${LIBRARY_NAME}" PUBLIC CDD_BUILD_TESTS)
     target_include_directories("${LIBRARY_NAME}" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
-    target_sources("${LIBRARY_NAME}" PRIVATE "tests/mocks/g_fail_io_after.c")
 endif()
 
 set(cdd_c_RESOLVED ON CACHE BOOL "Prevent c-abstract-http from fetching cdd-c" FORCE)

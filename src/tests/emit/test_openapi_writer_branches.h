@@ -14,6 +14,10 @@ extern "C" {
 #include "emit/test_openapi_writer_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_openapi_writer_branch_sweep.
+ * @return Greatest test result.
+ */
 TEST test_openapi_writer_branch_sweep(void) {
   JSON_Value *val;
   JSON_Object *obj;
@@ -296,6 +300,10 @@ TEST test_openapi_writer_branch_sweep(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_writer_null_and_defensive.
+ * @return Greatest test result.
+ */
 TEST test_openapi_writer_null_and_defensive(void) {
   JSON_Value *val = NULL;
   char *str = NULL;
@@ -393,6 +401,10 @@ TEST test_openapi_writer_null_and_defensive(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_writer_schema_ref_branches.
+ * @return Greatest test result.
+ */
 TEST test_openapi_writer_schema_ref_branches(void) {
   struct OpenAPI_SchemaRef ref;
 
@@ -562,6 +574,10 @@ TEST test_openapi_writer_schema_ref_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_writer_schema_and_types_coverage.
+ * @return Greatest test result.
+ */
 TEST test_openapi_writer_schema_and_types_coverage(void) {
   JSON_Value *val;
   JSON_Object *obj;

@@ -5,7 +5,7 @@
  * Scans comments for Doxygen-style annotations:
  * - `@route VERB PATH` (custom verbs are emitted via
  * `additionalOperations`)
- * - `@param name [flags] <description>`
+ * - `@param[in] name [flags] <description>`
  *   - flags: `[in:<path|query|header|cookie|querystring>] [required]`
  *     `[style:<form|simple|matrix|label|spaceDelimited|pipeDelimited|deepObject|cookie>]`
  *     `[explode:true|false] [allowReserved:true|false]`

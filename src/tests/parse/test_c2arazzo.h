@@ -37,6 +37,7 @@ extern "C" {
 
 /**
  * @brief Tests parsing of all Arazzo Doxygen annotations in `doc_arazzo.c`.
+ * @return Test or helper result.
  */
 TEST test_doc_arazzo_all_directives(void) {
   struct DocMetadata meta;
@@ -288,6 +289,7 @@ TEST test_doc_arazzo_all_directives(void) {
 /**
  * @brief Tests `c2arazzo_parse_source`, `c2arazzo_parse_file`,
  * `c2arazzo_parse_dir`, and `c2arazzo_cli_main`.
+ * @return Test or helper result.
  */
 TEST test_c2arazzo_source_and_cli(void) {
   struct Arazzo_Spec spec;

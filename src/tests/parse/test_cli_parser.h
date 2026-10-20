@@ -29,6 +29,7 @@ extern C_CDD_EXPORT cdd_c_error_t test_cli_parser_internal_errors(void);
 
 /**
  * @brief Test CLI parser getopt extraction and edge cases.
+ * @return Test or helper result.
  */
 TEST test_cli_parser_getopt(void) {
   const char src[] = "int main(int argc, char **argv) {\n"
@@ -212,12 +213,16 @@ TEST test_cli_parser_getopt(void) {
 
 /**
  * @brief Placeholder test for CLI mappings.
+ * @return Test or helper result.
  */
 TEST test_cli_parser_mappings(void) {
   g_fail_io_after = -1;
   PASS();
 }
 
+/**
+ * @brief Executes the cli_parser_suite test suite.
+ */
 SUITE(cli_parser_suite) {
   RUN_TEST(test_cli_parser_getopt);
   RUN_TEST(test_cli_parser_mappings);

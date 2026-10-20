@@ -14,6 +14,10 @@ extern "C" {
 #include "emit/test_openapi_writer_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_writer_component_path_items.
+ * @return Greatest test result.
+ */
 TEST test_writer_component_path_items(void) {
   int rc = 0;
   char *path_item_names[1];
@@ -69,6 +73,10 @@ TEST test_writer_component_path_items(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_response_links.
+ * @return Greatest test result.
+ */
 TEST test_writer_response_links(void) {
   int rc = 0;
   struct OpenAPI_LinkParam params[2];
@@ -158,6 +166,10 @@ TEST test_writer_response_links(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_callbacks.
+ * @return Greatest test result.
+ */
 TEST test_writer_callbacks(void) {
   int rc = 0;
   char *json;
@@ -231,6 +243,10 @@ TEST test_writer_callbacks(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_parameter_and_header_schema_ref.
+ * @return Greatest test result.
+ */
 TEST test_writer_parameter_and_header_schema_ref(void) {
   int rc = 0;
   char *json;
@@ -325,6 +341,10 @@ TEST test_writer_parameter_and_header_schema_ref(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_parameter_schema_format_and_content.
+ * @return Greatest test result.
+ */
 TEST test_writer_parameter_schema_format_and_content(void) {
   int rc = 0;
   char *json;
@@ -393,6 +413,10 @@ TEST test_writer_parameter_schema_format_and_content(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_request_body_ref_with_description.
+ * @return Greatest test result.
+ */
 TEST test_writer_request_body_ref_with_description(void) {
   int rc = 0;
   char *json;
@@ -445,6 +469,10 @@ TEST test_writer_request_body_ref_with_description(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_security_scheme_deprecated.
+ * @return Greatest test result.
+ */
 TEST test_writer_security_scheme_deprecated(void) {
   int rc = 0;
   char *json;
@@ -483,6 +511,10 @@ TEST test_writer_security_scheme_deprecated(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_schema_enum_default_nullable.
+ * @return Greatest test result.
+ */
 TEST test_writer_schema_enum_default_nullable(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -545,6 +577,10 @@ TEST test_writer_schema_enum_default_nullable(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_schema_type_union.
+ * @return Greatest test result.
+ */
 TEST test_writer_schema_type_union(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -598,6 +634,10 @@ TEST test_writer_schema_type_union(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_schema_array_items_enum_nullable.
+ * @return Greatest test result.
+ */
 TEST test_writer_schema_array_items_enum_nullable(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;

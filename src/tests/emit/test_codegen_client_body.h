@@ -15,6 +15,10 @@ extern "C" {
 #include "emit/test_codegen_client_body_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_body_basic_get.
+ * @return Greatest test result.
+ */
 TEST test_body_basic_get(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -55,6 +59,10 @@ TEST test_body_basic_get(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_base_url_override.
+ * @return Greatest test result.
+ */
 TEST test_body_base_url_override(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -86,6 +94,10 @@ TEST test_body_base_url_override(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_options_verb.
+ * @return Greatest test result.
+ */
 TEST test_body_options_verb(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -115,6 +127,10 @@ TEST test_body_options_verb(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_trace_verb.
+ * @return Greatest test result.
+ */
 TEST test_body_trace_verb(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -144,6 +160,10 @@ TEST test_body_trace_verb(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_query_verb.
+ * @return Greatest test result.
+ */
 TEST test_body_query_verb(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -173,6 +193,10 @@ TEST test_body_query_verb(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_additional_connect_method.
+ * @return Greatest test result.
+ */
 TEST test_body_additional_connect_method(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -204,6 +228,10 @@ TEST test_body_additional_connect_method(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_querystring_param.
+ * @return Greatest test result.
+ */
 TEST test_body_querystring_param(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Parameter param;
@@ -277,6 +305,10 @@ TEST test_body_querystring_param(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_inline_response_string.
+ * @return Greatest test result.
+ */
 TEST test_body_inline_response_string(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -308,6 +340,10 @@ TEST test_body_inline_response_string(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_inline_response_array_number.
+ * @return Greatest test result.
+ */
 TEST test_body_inline_response_array_number(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -340,6 +376,10 @@ TEST test_body_inline_response_array_number(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_inline_request_body_string.
+ * @return Greatest test result.
+ */
 TEST test_body_inline_request_body_string(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -373,6 +413,10 @@ TEST test_body_inline_request_body_string(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_inline_request_body_string_json_params.
+ * @return Greatest test result.
+ */
 TEST test_body_inline_request_body_string_json_params(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -406,6 +450,10 @@ TEST test_body_inline_request_body_string_json_params(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_inline_request_body_array.
+ * @return Greatest test result.
+ */
 TEST test_body_inline_request_body_array(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -439,6 +487,10 @@ TEST test_body_inline_request_body_array(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_textual_request_body_xml.
+ * @return Greatest test result.
+ */
 TEST test_body_textual_request_body_xml(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
@@ -466,6 +518,10 @@ TEST test_body_textual_request_body_xml(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_binary_request_body_pdf.
+ * @return Greatest test result.
+ */
 TEST test_body_binary_request_body_pdf(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
@@ -493,6 +549,10 @@ TEST test_body_binary_request_body_pdf(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_body_null_and_error.
+ * @return Greatest test result.
+ */
 TEST test_gen_body_null_and_error(void) {
   char *code = NULL;
   struct OpenAPI_Operation op = {0};
@@ -503,6 +563,9 @@ TEST test_gen_body_null_and_error(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the client_body_suite test suite.
+ */
 SUITE(client_body_suite) {
   RUN_TEST(test_body_basic_get);
   RUN_TEST(test_body_base_url_override);

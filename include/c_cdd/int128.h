@@ -35,6 +35,7 @@ typedef unsigned __int64 uint64_t;
 #include <stdint.h>
 #endif
 #endif
+#include "cdd_c_error.h"
 /* clang-format on */
 #endif
 #endif
@@ -58,29 +59,37 @@ typedef struct __cdd_int128 {
 /**
  * @brief Creates a 128-bit unsigned integer from two 64-bit halves.
  *
- * @param high Upper 64 bits.
- * @param low Lower 64 bits.
- * @return The constructed 128-bit unsigned integer.
+ * @param[in] high Upper 64 bits.
+ * @param[in] low Lower 64 bits.
+ * @param[out] out Pointer to receive the constructed 128-bit unsigned integer.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if out is
+ * NULL.
  */
-static cdd_uint128_t cdd_make_uint128(uint64_t high, uint64_t low) {
-  cdd_uint128_t res;
-  res.high = high;
-  res.low = low;
-  return res;
+static cdd_c_error_t cdd_make_uint128(uint64_t high, uint64_t low,
+                                      cdd_uint128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  out->high = high;
+  out->low = low;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Creates a 128-bit signed integer from two 64-bit halves.
  *
- * @param high Upper 64 bits.
- * @param low Lower 64 bits.
- * @return The constructed 128-bit signed integer.
+ * @param[in] high Upper 64 bits.
+ * @param[in] low Lower 64 bits.
+ * @param[out] out Pointer to receive the constructed 128-bit signed integer.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if out is
+ * NULL.
  */
-static cdd_int128_t cdd_make_int128(int64_t high, uint64_t low) {
-  cdd_int128_t res;
-  res.high = high;
-  res.low = low;
-  return res;
+static cdd_c_error_t cdd_make_int128(int64_t high, uint64_t low,
+                                     cdd_int128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  out->high = high;
+  out->low = low;
+  return CDD_C_SUCCESS;
 }
 
 #if defined(__SIZEOF_INT128__)
@@ -90,27 +99,31 @@ __extension__ typedef unsigned __int128 cdd_native_uint128_t;
 /**
  * @brief Converts a compiler-native 128-bit integer to `cdd_int128_t`.
  *
- * @param val Compiler-native 128-bit signed integer.
- * @return The constructed `cdd_int128_t` value.
+ * @param[in] val Compiler-native 128-bit signed integer.
+ * @param[out] out Pointer to receive the constructed `cdd_int128_t` value.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if out is
+ * NULL.
  */
-static cdd_int128_t cdd_make_int128_from_native(cdd_native_int128_t val) {
-  return cdd_make_int128((int64_t)(val >> 64), (uint64_t)val);
+static cdd_c_error_t cdd_make_int128_from_native(cdd_native_int128_t val,
+                                                 cdd_int128_t *out) {
+  return cdd_make_int128((int64_t)(val >> 64), (uint64_t)val, out);
 }
 
 /**
- * @brief Polyfill for extracting 128-bit ints from va_list.
- * Since cdd_int128_t is a struct, standard C ABI rules for structs apply,
- * which differ from native __int128 rules. This macro bridges the gap.
+ * @brief Polyfill for extracting 128-bit ints from va_list into an output
+ * variable. Since cdd_int128_t is a struct, standard C ABI rules for structs
+ * apply, which differ from native __int128 rules. This macro bridges the gap.
  */
-#define CDD_VA_ARG_INT128(ap, is_signed)                                       \
-  cdd_make_int128_from_native(va_arg(ap, cdd_native_int128_t))
+#define CDD_VA_ARG_INT128_INTO(ap, is_signed, out_ptr)                         \
+  cdd_make_int128_from_native(va_arg(ap, cdd_native_int128_t), (out_ptr))
 #else
 /**
- * @brief Polyfill for extracting 128-bit ints from va_list.
- * Since cdd_int128_t is a struct, standard C ABI rules for structs apply,
- * which differ from native __int128 rules. This macro bridges the gap.
+ * @brief Polyfill for extracting 128-bit ints from va_list into an output
+ * variable. Since cdd_int128_t is a struct, standard C ABI rules for structs
+ * apply, which differ from native __int128 rules. This macro bridges the gap.
  */
-#define CDD_VA_ARG_INT128(ap, is_signed) va_arg(ap, cdd_int128_t)
+#define CDD_VA_ARG_INT128_INTO(ap, is_signed, out_ptr)                         \
+  (*(out_ptr) = va_arg(ap, cdd_int128_t), CDD_C_SUCCESS)
 #endif
 
 #ifdef __cplusplus

@@ -23,10 +23,17 @@ extern "C" {
 
 /* Moved extern declarations for C89 compliance */
 extern C_CDD_EXPORT int g_cdd_analysis_fail_alloc_add;
+/** @brief Test definition g_cdd_fail_alloc. */
 extern C_CDD_EXPORT int g_cdd_fail_alloc;
 extern C_CDD_EXPORT int g_cdd_analysis_fail_alloc_varname;
 extern C_CDD_EXPORT int g_cdd_analysis_fail_alloc_init;
 
+/**
+ * @brief Helper function find_allocs.
+ * @param[in] code Parameter code.
+ * @param[in,out] sites Parameter sites.
+ * @return Result status or value.
+ */
 static cdd_c_error_t find_allocs(const char *code,
                                  struct AllocationSiteList *sites) {
   struct TokenList *tl = NULL;
@@ -153,6 +160,7 @@ TEST test_analysis_bounds(void) {
 
 /**
  * @brief analysis_suite
+ * @return Test or helper result.
  */
 
 #ifdef CDD_BUILD_TESTS
@@ -227,6 +235,10 @@ TEST test_analysis_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_analysis_capacity.
+ * @return Greatest test result.
+ */
 TEST test_analysis_capacity(void) {
 #ifdef CDD_BUILD_TESTS
   struct AllocationSiteList sites = {0};
@@ -275,6 +287,10 @@ TEST test_analysis_capacity(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_analysis_edge_cases.
+ * @return Greatest test result.
+ */
 TEST test_analysis_edge_cases(void) {
   struct AllocationSiteList sites = {0};
 
@@ -435,6 +451,10 @@ TEST test_analysis_edge_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_analysis_failure_hooks.
+ * @return Greatest test result.
+ */
 TEST test_analysis_failure_hooks(void) {
 #ifdef CDD_BUILD_TESTS
   struct AllocationSiteList sites;
@@ -506,6 +526,9 @@ TEST test_analysis_failure_hooks(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the analysis_suite test suite.
+ */
 SUITE(analysis_suite) {
   RUN_TEST(test_analysis_find_malloc);
   RUN_TEST(test_analysis_find_calloc);

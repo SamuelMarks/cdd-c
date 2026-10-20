@@ -1,3 +1,7 @@
+/**
+ * @file test_cdd_ffi_ir.h
+ * @brief Unit tests and mocks in test_cdd_ffi_ir.h.
+ */
 #ifndef TEST_CDD_FFI_IR_H
 #define TEST_CDD_FFI_IR_H
 
@@ -15,8 +19,11 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_cdd_ffi_ir_calloc_fail. */
 extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail;
+/** @brief Test definition g_cdd_ffi_ir_malloc_fail. */
 extern C_CDD_EXPORT int g_cdd_ffi_ir_malloc_fail;
+/** @brief Test definition g_cdd_ffi_ir_toposort_fail. */
 extern C_CDD_EXPORT int g_cdd_ffi_ir_toposort_fail;
 
 #ifdef CDD_BUILD_TESTS
@@ -24,22 +31,38 @@ extern C_CDD_EXPORT int g_cdd_ffi_ir_toposort_fail;
 /* extern C_CDD_EXPORT int g_cdd_ffi_ir_malloc_fail; (moved to global) */
 #endif
 
+/**
+ * @brief Unit test test_ffi_ir_toposort_null.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_toposort_null(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_ffi_ir_topological_sort(NULL));
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_toposort_empty.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_toposort_empty(void) {
   cdd_ffi_ir_t ir = {0};
   ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_ir_topological_sort(&ir));
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_free_null.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_free_null(void) {
   cdd_ffi_ir_free(NULL);
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_free_full.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_free_full(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_ffi_ir_node_t *n;
@@ -100,6 +123,10 @@ TEST test_ffi_ir_free_full(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_toposort_complex.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_toposort_complex(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_ffi_ir_node_t *n;
@@ -223,12 +250,20 @@ TEST test_ffi_ir_toposort_complex(void) {
   }
 }
 
+/**
+ * @brief Unit test test_ffi_ir_free_empty.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_free_empty(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_ffi_ir_free(&ir);
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_free_partial.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_free_partial(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_ffi_ir_node_t *n;
@@ -266,6 +301,10 @@ TEST test_ffi_ir_free_partial(void) {
 /* extern C_CDD_EXPORT int g_cdd_ffi_ir_toposort_fail; (moved to global) */
 #endif
 
+/**
+ * @brief Unit test test_ffi_ir_c_toposort_dfs_errors.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_c_toposort_dfs_errors(void) {
 #ifdef CDD_BUILD_TESTS
   cdd_ffi_ir_t ir = {0};
@@ -322,6 +361,10 @@ TEST test_ffi_ir_c_toposort_dfs_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_c_toposort_oom.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_c_toposort_oom(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_ffi_ir_node_t *n;
@@ -357,6 +400,9 @@ TEST test_ffi_ir_c_toposort_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the cdd_ffi_ir_suite test suite.
+ */
 SUITE(cdd_ffi_ir_suite) {
   RUN_TEST(test_ffi_ir_toposort_null);
   RUN_TEST(test_ffi_ir_toposort_empty);

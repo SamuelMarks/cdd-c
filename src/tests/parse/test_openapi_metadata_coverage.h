@@ -16,6 +16,10 @@ extern "C" {
 #include "openapi/parse/openapi_internal_components.h"
 /* clang-format on */
 
+/**
+ * @brief Helper function test_meta_free_external_docs.
+ * @param[in,out] d Parameter d.
+ */
 static void test_meta_free_external_docs(struct OpenAPI_ExternalDocs *d) {
   if (!d)
     return;
@@ -28,6 +32,10 @@ static void test_meta_free_external_docs(struct OpenAPI_ExternalDocs *d) {
   memset(d, 0, sizeof(*d));
 }
 
+/**
+ * @brief Helper function test_meta_free_discriminator.
+ * @param[in,out] d Parameter d.
+ */
 static void test_meta_free_discriminator(struct OpenAPI_Discriminator *d) {
   size_t i;
   if (!d)
@@ -50,6 +58,10 @@ static void test_meta_free_discriminator(struct OpenAPI_Discriminator *d) {
   memset(d, 0, sizeof(*d));
 }
 
+/**
+ * @brief Helper function test_meta_free_xml.
+ * @param[in,out] x Parameter x.
+ */
 static void test_meta_free_xml(struct OpenAPI_Xml *x) {
   if (!x)
     return;
@@ -64,6 +76,10 @@ static void test_meta_free_xml(struct OpenAPI_Xml *x) {
   memset(x, 0, sizeof(*x));
 }
 
+/**
+ * @brief Helper function test_meta_free_server.
+ * @param[in,out] s Parameter s.
+ */
 static void test_meta_free_server(struct OpenAPI_Server *s) {
   size_t v;
   if (!s)
@@ -102,10 +118,12 @@ static void test_meta_free_server(struct OpenAPI_Server *s) {
 }
 
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
+/** @brief Test definition g_cdd_fail_extensions_init. */
 extern C_CDD_EXPORT int g_cdd_fail_extensions_init;
 
 /**
  * @brief Test parse_info branches and OOM scenarios.
+ * @return Test or helper result.
  */
 TEST test_openapi_metadata_parse_info_branches(void) {
   struct OpenAPI_Spec spec;
@@ -250,6 +268,7 @@ TEST test_openapi_metadata_parse_info_branches(void) {
 
 /**
  * @brief Test parse_external_docs branches and OOM.
+ * @return Test or helper result.
  */
 TEST test_openapi_metadata_parse_external_docs_branches(void) {
   struct OpenAPI_ExternalDocs docs;
@@ -319,6 +338,7 @@ TEST test_openapi_metadata_parse_external_docs_branches(void) {
 
 /**
  * @brief Test parse_discriminator_object branches and OOM.
+ * @return Test or helper result.
  */
 TEST test_openapi_metadata_parse_discriminator_branches(void) {
   struct OpenAPI_Discriminator disc;
@@ -394,6 +414,7 @@ TEST test_openapi_metadata_parse_discriminator_branches(void) {
 
 /**
  * @brief Test parse_xml_object branches and OOM.
+ * @return Test or helper result.
  */
 TEST test_openapi_metadata_parse_xml_branches(void) {
   struct OpenAPI_Xml xml;
@@ -471,6 +492,7 @@ TEST test_openapi_metadata_parse_xml_branches(void) {
 
 /**
  * @brief Test parse_tags and tag cycle detection branches.
+ * @return Test or helper result.
  */
 TEST test_openapi_metadata_parse_tags_branches(void) {
   struct OpenAPI_Spec spec;
@@ -626,6 +648,7 @@ TEST test_openapi_metadata_parse_tags_branches(void) {
 
 /**
  * @brief Test server parsing, variables, and validation branches.
+ * @return Test or helper result.
  */
 TEST test_openapi_metadata_server_branches(void) {
   struct OpenAPI_Server srv;
@@ -872,6 +895,7 @@ extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
 /**
  * @brief Test additional branches and edge cases in openapi_metadata.c.
+ * @return Test or helper result.
  */
 TEST test_openapi_metadata_extra_branches(void) {
   struct OpenAPI_Spec spec;
@@ -1115,6 +1139,7 @@ TEST test_openapi_metadata_extra_branches(void) {
 /**
  * @brief Comprehensive branch coverage for openapi_metadata.c remaining
  * branches.
+ * @return Test or helper result.
  */
 TEST test_openapi_metadata_all_remaining_branches(void) {
   struct OpenAPI_Spec spec;
@@ -1320,6 +1345,7 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
 
 /**
  * @brief Tests for final missing branches in openapi_metadata.c.
+ * @return Test or helper result.
  */
 TEST test_openapi_metadata_final_branches(void) {
   struct OpenAPI_Spec spec;
@@ -1397,6 +1423,9 @@ TEST test_openapi_metadata_cleanups(void) {
   PASS();
 }
 
+/**
+ * @brief Macro OPENAPI_METADATA_COVERAGE_TESTS.
+ */
 #define OPENAPI_METADATA_COVERAGE_TESTS()                                      \
   RUN_TEST(test_openapi_metadata_parse_info_branches);                         \
   RUN_TEST(test_openapi_metadata_parse_external_docs_branches);                \

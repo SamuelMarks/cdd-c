@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "classes/parse/cdd_lexer.h"
 #include "functions/parse/fs.h"
 #include "functions/parse/preprocessor.h"
 #include "functions/parse/preprocessor_internal.h"
@@ -79,11 +80,6 @@ cdd_c_error_t pp_join_path(const char *dir, const char *file, char **out_val) {
 cdd_c_error_t pp_file_exists(const char *path, int *out_exists) {
   FILE *f;
 
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_pp_file_exists_fail && --g_cdd_pp_file_exists_fail == 0)
-    return CDD_C_ERROR_IO;
-#endif
-
   if (!path || !out_exists)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -140,11 +136,6 @@ void pp_free_macro_def(struct MacroDef *def) {
 cdd_c_error_t pp_token_to_string(const struct Token *t, char **out_val) {
   char *s;
 
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_pp_token_to_string_fail && --g_cdd_pp_token_to_string_fail == 0)
-    return CDD_C_ERROR_MEMORY;
-#endif
-
   if (!t || !out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -177,7 +168,7 @@ cdd_c_error_t pp_add_macro_internal(struct PreprocessorContext *ctx,
         ctx->macros, new_cap * sizeof(struct MacroDef));
 
     if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+      C_CDD_LOG_DEBUG("ENOMEM: OOM");
       return CDD_C_ERROR_MEMORY;
     }
 
@@ -202,11 +193,6 @@ cdd_c_error_t pp_resolve_path(const struct PreprocessorContext *ctx,
   char *candidate = NULL;
   cdd_c_error_t rc;
 
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_pp_resolve_path_fail && --g_cdd_pp_resolve_path_fail == 0)
-    return CDD_C_ERROR_IO;
-#endif
-
   if (!include_path || !out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -220,13 +206,9 @@ cdd_c_error_t pp_resolve_path(const struct PreprocessorContext *ctx,
     {
       int exists = 0;
       rc = pp_file_exists(candidate, &exists);
-      if (rc != CDD_C_SUCCESS) {
-        C_CDD_FREE(candidate);
-        return rc;
-      }
       if (exists) {
         *out_val = candidate;
-        return CDD_C_SUCCESS;
+        return rc;
       }
       C_CDD_FREE(candidate);
       candidate = NULL;
@@ -242,13 +224,9 @@ cdd_c_error_t pp_resolve_path(const struct PreprocessorContext *ctx,
       {
         int exists = 0;
         rc = pp_file_exists(candidate, &exists);
-        if (rc != CDD_C_SUCCESS) {
-          C_CDD_FREE(candidate);
-          return rc;
-        }
         if (exists) {
           *out_val = candidate;
-          return CDD_C_SUCCESS;
+          return rc;
         }
         C_CDD_FREE(candidate);
         candidate = NULL;
@@ -300,23 +278,12 @@ cdd_c_error_t pp_reconstruct_path(const struct TokenList *tokens, size_t start,
 
 /* --- Public API Implementation --- */
 
-#ifdef CDD_BUILD_TESTS
-/** @brief Counter to simulate failure in `pp_context_init`. */
-C_CDD_EXPORT int g_cdd_pp_context_init_fail = 0;
-/** @brief Counter to simulate failure in `pp_scan_defines`. */
-C_CDD_EXPORT int g_cdd_pp_scan_defines_fail = 0;
-#endif
-
 /**
  * @brief Initializes a preprocessor context.
  *
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_context_init(struct PreprocessorContext *ctx) {
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_pp_context_init_fail && --g_cdd_pp_context_init_fail == 0)
-    return CDD_C_ERROR_MEMORY;
-#endif
   if (!ctx)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -438,11 +405,6 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
   cdd_c_error_t rc;
   size_t i;
 
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_pp_scan_defines_fail && --g_cdd_pp_scan_defines_fail == 0)
-    return CDD_C_ERROR_IO;
-#endif
-
   if (!ctx || !filename)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -467,11 +429,6 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
 
       if (next < tokens->size) {
         rc = token_matches_string(&tokens->tokens[next], "define", &is_define);
-        if (rc != CDD_C_SUCCESS) {
-          free_token_list(tokens);
-          C_CDD_FREE(content);
-          return rc;
-        }
         if (is_define) {
           size_t name_idx = next + 1;
 

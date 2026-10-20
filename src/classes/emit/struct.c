@@ -37,13 +37,6 @@ static const char *kStrDupFunc = "_strdup";
 /** @brief Platform-specific strdup function name for emitted code */
 static const char *kStrDupFunc = "strdup";
 #endif
-#ifdef CDD_BUILD_TESTS
-/** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK cdd_io_fprintf_hook
-#else
-/** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK fprintf
-#endif
 
 /* Terser error checking */
 /** @brief CHECK_IO macro */
@@ -54,18 +47,18 @@ static const char *kStrDupFunc = "strdup";
 /**
  * @brief Frees the memory associated with a dynamically allocated string array.
  *
- * @param[in,out] arr Array of heap-allocated strings.
+ * @param[in] arr Array of heap-allocated strings.
  * @param[in] n Number of elements in the array.
  */
 static void free_string_array(char **arr, size_t n) {
   size_t i;
   for (i = 0; i < n; ++i) {
     if (arr[i]) {
-      free(arr[i]);
+      C_CDD_FREE(arr[i]);
       arr[i] = NULL;
     }
   }
-  free(arr);
+  C_CDD_FREE(arr);
 }
 
 /**
@@ -119,11 +112,11 @@ void struct_fields_free(struct StructFields *sf) {
     size_t i;
     for (i = 0; i < sf->size; ++i) {
       if (sf->fields[i].schema_extra_json) {
-        free(sf->fields[i].schema_extra_json);
+        C_CDD_FREE(sf->fields[i].schema_extra_json);
         sf->fields[i].schema_extra_json = NULL;
       }
       if (sf->fields[i].items_extra_json) {
-        free(sf->fields[i].items_extra_json);
+        C_CDD_FREE(sf->fields[i].items_extra_json);
         sf->fields[i].items_extra_json = NULL;
       }
       if (sf->fields[i].type_union) {
@@ -138,16 +131,16 @@ void struct_fields_free(struct StructFields *sf) {
         sf->fields[i].n_items_type_union = 0;
       }
     }
-    free(sf->fields);
+    C_CDD_FREE(sf->fields);
     sf->fields = NULL;
   }
   if (sf) {
     if (sf->schema_extra_json) {
-      free(sf->schema_extra_json);
+      C_CDD_FREE(sf->schema_extra_json);
       sf->schema_extra_json = NULL;
     }
     if (sf->union_discriminator) {
-      free(sf->union_discriminator);
+      C_CDD_FREE(sf->union_discriminator);
       sf->union_discriminator = NULL;
     }
     if (sf->union_variants) {
@@ -165,11 +158,11 @@ void struct_fields_free(struct StructFields *sf) {
           meta->n_property_names = 0;
         }
         if (meta->disc_value) {
-          free(meta->disc_value);
+          C_CDD_FREE(meta->disc_value);
           meta->disc_value = NULL;
         }
       }
-      free(sf->union_variants);
+      C_CDD_FREE(sf->union_variants);
       sf->union_variants = NULL;
       sf->n_union_variants = 0;
     }

@@ -41,9 +41,11 @@ struct MockServerRequest {
  * Allocates memory and initializes synchronization primitives
  * (mutexes/conditions). Does not start the network thread yet.
  *
- * @return A handle to the server, or NULL on failure.
+ * @param[out] out Output pointer for the server handle.
+ * @return 0 on success, non-zero error code on failure.
  */
-CDD_TEST_HELPERS_EXPORT cdd_c_error_t mock_server_init(MockServerPtr *out);
+extern CDD_TEST_HELPERS_EXPORT cdd_c_error_t
+mock_server_init(MockServerPtr *out);
 
 /**
  * @brief Destroy a mock server instance.
@@ -51,8 +53,10 @@ CDD_TEST_HELPERS_EXPORT cdd_c_error_t mock_server_init(MockServerPtr *out);
  * Stops the thread if running, closes sockets, and frees memory.
  *
  * @param[in] server The server handle.
+ * @return 0 on success, non-zero error code on failure.
  */
-CDD_TEST_HELPERS_EXPORT cdd_c_error_t mock_server_destroy(MockServerPtr server);
+extern CDD_TEST_HELPERS_EXPORT cdd_c_error_t
+mock_server_destroy(MockServerPtr server);
 
 /**
  * @brief Start the server thread listening on loopback.
@@ -62,16 +66,18 @@ CDD_TEST_HELPERS_EXPORT cdd_c_error_t mock_server_destroy(MockServerPtr server);
  * @param[in] server The server handle.
  * @return 0 on success, non-zero error code on failure.
  */
-CDD_TEST_HELPERS_EXPORT cdd_c_error_t mock_server_start(MockServerPtr server);
+extern CDD_TEST_HELPERS_EXPORT cdd_c_error_t
+mock_server_start(MockServerPtr server);
 
 /**
  * @brief Get the port number the server is listening on.
  *
  * @param[in] server The server handle.
- * @return The port number (host byte order), or 0 if not running.
+ * @param[out] out_port Output port number (host byte order).
+ * @return 0 on success, non-zero error code on failure.
  */
-CDD_TEST_HELPERS_EXPORT cdd_c_error_t mock_server_get_port(MockServerPtr server,
-                                                           int *out_port);
+extern CDD_TEST_HELPERS_EXPORT cdd_c_error_t
+mock_server_get_port(MockServerPtr server, int *out_port);
 
 /**
  * @brief Wait for a client request and capture the headers.
@@ -84,15 +90,16 @@ CDD_TEST_HELPERS_EXPORT cdd_c_error_t mock_server_get_port(MockServerPtr server,
  *                     Caller must free contents.
  * @return 0 on success, non-zero on timeout or error.
  */
-CDD_TEST_HELPERS_EXPORT cdd_c_error_t mock_server_wait_for_request(
+extern CDD_TEST_HELPERS_EXPORT cdd_c_error_t mock_server_wait_for_request(
     MockServerPtr server, struct MockServerRequest *out_req);
 
 /**
  * @brief Helper to free the request content captured by wait_for_request.
  *
  * @param[in] req The request structure to clean.
+ * @return 0 on success, non-zero error code on failure.
  */
-CDD_TEST_HELPERS_EXPORT cdd_c_error_t
+extern CDD_TEST_HELPERS_EXPORT cdd_c_error_t
 mock_server_request_cleanup(struct MockServerRequest *req);
 
 #ifdef __cplusplus

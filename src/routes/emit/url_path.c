@@ -19,21 +19,8 @@
 #include "win_compat_sym.h"
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_fail_url_segment_alloc;
+/** @brief fprintf macro alias for stream hook */
 #define fprintf cdd_io_fprintf_hook
-
-static void *url_segment_malloc_impl(size_t sz) {
-  if (g_cdd_fail_url_segment_alloc > 0 && --g_cdd_fail_url_segment_alloc == 0)
-    return NULL;
-  return malloc(sz);
-}
-static void *url_segment_realloc_impl(void *ptr, size_t sz) {
-  if (g_cdd_fail_url_segment_alloc > 0 && --g_cdd_fail_url_segment_alloc == 0)
-    return NULL;
-  return realloc(ptr, sz);
-}
-#endif
 
 /** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
@@ -402,32 +389,23 @@ C_CDD_EXPORT cdd_c_error_t parse_segments(const char *tmpl,
         if (count >= cap) {
           struct UrlSegment *new_segs;
           cap = (cap == 0) ? 8 : cap * 2;
-#ifdef CDD_BUILD_TESTS
-          new_segs = (struct UrlSegment *)url_segment_realloc_impl(
+          new_segs = (struct UrlSegment *)C_CDD_REALLOC(
               segs, cap * sizeof(struct UrlSegment));
-#else
-          new_segs = (struct UrlSegment *)realloc(
-              segs, cap * sizeof(struct UrlSegment));
-#endif
           if (!new_segs) {
             for (i = 0; i < count; ++i)
-              free(segs[i].text);
-            free(segs);
+              C_CDD_FREE(segs[i].text);
+            C_CDD_FREE(segs);
             C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
             return CDD_C_ERROR_MEMORY;
           }
           segs = new_segs;
         }
         segs[count].is_var = 0;
-#ifdef CDD_BUILD_TESTS
-        segs[count].text = url_segment_malloc_impl(len + 1);
-#else
-        segs[count].text = malloc(len + 1);
-#endif
+        segs[count].text = (char *)C_CDD_MALLOC(len + 1);
         if (!segs[count].text) {
           for (i = 0; i < count; ++i)
-            free(segs[i].text);
-          free(segs);
+            C_CDD_FREE(segs[i].text);
+          C_CDD_FREE(segs);
           return CDD_C_ERROR_MEMORY;
         }
         memcpy(segs[count].text, start, len);
@@ -439,8 +417,8 @@ C_CDD_EXPORT cdd_c_error_t parse_segments(const char *tmpl,
         const char *close = strchr(start, '}');
         if (!close) {
           for (i = 0; i < count; ++i)
-            free(segs[i].text);
-          free(segs);
+            C_CDD_FREE(segs[i].text);
+          C_CDD_FREE(segs);
           return CDD_C_ERROR_INVALID_ARGUMENT;
         }
         {
@@ -448,32 +426,23 @@ C_CDD_EXPORT cdd_c_error_t parse_segments(const char *tmpl,
           if (count >= cap) {
             struct UrlSegment *new_segs;
             cap = (cap == 0) ? 8 : cap * 2;
-#ifdef CDD_BUILD_TESTS
-            new_segs = (struct UrlSegment *)url_segment_realloc_impl(
+            new_segs = (struct UrlSegment *)C_CDD_REALLOC(
                 segs, cap * sizeof(struct UrlSegment));
-#else
-            new_segs = (struct UrlSegment *)realloc(
-                segs, cap * sizeof(struct UrlSegment));
-#endif
             if (!new_segs) {
               for (i = 0; i < count; ++i)
-                free(segs[i].text);
-              free(segs);
+                C_CDD_FREE(segs[i].text);
+              C_CDD_FREE(segs);
               C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
               return CDD_C_ERROR_MEMORY;
             }
             segs = new_segs;
           }
           segs[count].is_var = 1;
-#ifdef CDD_BUILD_TESTS
-          segs[count].text = url_segment_malloc_impl(len + 1);
-#else
-          segs[count].text = malloc(len + 1);
-#endif
+          segs[count].text = (char *)C_CDD_MALLOC(len + 1);
           if (!segs[count].text) {
             for (i = 0; i < count; ++i)
-              free(segs[i].text);
-            free(segs);
+              C_CDD_FREE(segs[i].text);
+            C_CDD_FREE(segs);
             return CDD_C_ERROR_MEMORY;
           }
           memcpy(segs[count].text, start, len);
@@ -492,32 +461,23 @@ C_CDD_EXPORT cdd_c_error_t parse_segments(const char *tmpl,
     if (count >= cap) {
       struct UrlSegment *new_segs;
       cap = (cap == 0) ? 8 : cap * 2;
-#ifdef CDD_BUILD_TESTS
-      new_segs = (struct UrlSegment *)url_segment_realloc_impl(
+      new_segs = (struct UrlSegment *)C_CDD_REALLOC(
           segs, cap * sizeof(struct UrlSegment));
-#else
-      new_segs =
-          (struct UrlSegment *)realloc(segs, cap * sizeof(struct UrlSegment));
-#endif
       if (!new_segs) {
         for (i = 0; i < count; ++i)
-          free(segs[i].text);
-        free(segs);
+          C_CDD_FREE(segs[i].text);
+        C_CDD_FREE(segs);
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;
       }
       segs = new_segs;
     }
     segs[count].is_var = 0;
-#ifdef CDD_BUILD_TESTS
-    segs[count].text = url_segment_malloc_impl(len + 1);
-#else
-    segs[count].text = malloc(len + 1);
-#endif
+    segs[count].text = (char *)C_CDD_MALLOC(len + 1);
     if (!segs[count].text) {
       for (i = 0; i < count; ++i)
-        free(segs[i].text);
-      free(segs);
+        C_CDD_FREE(segs[i].text);
+      C_CDD_FREE(segs);
       return CDD_C_ERROR_MEMORY;
     }
     memcpy(segs[count].text, start, len);
@@ -719,8 +679,8 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
 
 cleanup_segs:
   for (i = 0; i < n_segs; ++i)
-    free(segs[i].text);
-  free(segs);
+    C_CDD_FREE(segs[i].text);
+  C_CDD_FREE(segs);
 
   return rc;
 }

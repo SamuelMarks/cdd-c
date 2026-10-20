@@ -24,7 +24,7 @@
  * @param[in,out] et Pointer to the expression type structure.
  */
 static void free_arazzo_expression_type(struct Arazzo_ExpressionType *et) {
-  free(et->version);
+  C_CDD_FREE(et->version);
   et->version = NULL;
   arazzo_extension_list_free(&et->extensions);
 }
@@ -35,8 +35,8 @@ static void free_arazzo_expression_type(struct Arazzo_ExpressionType *et) {
  * @param[in,out] crit Pointer to the criterion structure.
  */
 static void free_arazzo_criterion(struct Arazzo_Criterion *crit) {
-  free(crit->context);
-  free(crit->condition);
+  C_CDD_FREE(crit->context);
+  C_CDD_FREE(crit->condition);
   free_arazzo_expression_type(&crit->expression_type);
   arazzo_extension_list_free(&crit->extensions);
   memset(crit, 0, sizeof(*crit));
@@ -48,8 +48,8 @@ static void free_arazzo_criterion(struct Arazzo_Criterion *crit) {
  * @param[in,out] sel Pointer to the selector structure.
  */
 static void free_arazzo_selector(struct Arazzo_Selector *sel) {
-  free(sel->context);
-  free(sel->selector);
+  C_CDD_FREE(sel->context);
+  C_CDD_FREE(sel->selector);
   free_arazzo_expression_type(&sel->expression_type);
   arazzo_extension_list_free(&sel->extensions);
   memset(sel, 0, sizeof(*sel));
@@ -61,7 +61,7 @@ static void free_arazzo_selector(struct Arazzo_Selector *sel) {
  * @param[in,out] r Pointer to the reusable reference structure.
  */
 static void free_arazzo_reusable(struct Arazzo_Reusable *r) {
-  free(r->reference);
+  C_CDD_FREE(r->reference);
   free_any_value(&r->value);
   memset(r, 0, sizeof(*r));
 }
@@ -72,7 +72,7 @@ static void free_arazzo_reusable(struct Arazzo_Reusable *r) {
  * @param[in,out] param Pointer to the parameter structure.
  */
 static void free_arazzo_parameter(struct Arazzo_Parameter *param) {
-  free(param->name);
+  C_CDD_FREE(param->name);
   free_any_value(&param->value);
   free_arazzo_selector(&param->selector);
   arazzo_runtime_expr_free(&param->parsed_expr);
@@ -93,7 +93,7 @@ static void free_arazzo_parameters_array(struct Arazzo_Parameter *params,
   for (i = 0; i < n_params; ++i) {
     free_arazzo_parameter(&params[i]);
   }
-  free(params);
+  C_CDD_FREE(params);
 }
 
 /**
@@ -108,7 +108,7 @@ static void free_arazzo_criteria_array(struct Arazzo_Criterion *criteria,
   for (i = 0; i < n_criteria; ++i) {
     free_arazzo_criterion(&criteria[i]);
   }
-  free(criteria);
+  C_CDD_FREE(criteria);
 }
 
 /**
@@ -117,9 +117,9 @@ static void free_arazzo_criteria_array(struct Arazzo_Criterion *criteria,
  * @param[in,out] act Pointer to the success action structure.
  */
 static void free_arazzo_success_action(struct Arazzo_SuccessAction *act) {
-  free(act->name);
-  free(act->workflow_id);
-  free(act->step_id);
+  C_CDD_FREE(act->name);
+  C_CDD_FREE(act->workflow_id);
+  C_CDD_FREE(act->step_id);
   free_arazzo_parameters_array(act->parameters, act->n_parameters);
   free_arazzo_criteria_array(act->criteria, act->n_criteria);
   free_arazzo_reusable(&act->reusable);
@@ -133,9 +133,9 @@ static void free_arazzo_success_action(struct Arazzo_SuccessAction *act) {
  * @param[in,out] act Pointer to the failure action structure.
  */
 static void free_arazzo_failure_action(struct Arazzo_FailureAction *act) {
-  free(act->name);
-  free(act->workflow_id);
-  free(act->step_id);
+  C_CDD_FREE(act->name);
+  C_CDD_FREE(act->workflow_id);
+  C_CDD_FREE(act->step_id);
   free_arazzo_parameters_array(act->parameters, act->n_parameters);
   free_arazzo_criteria_array(act->criteria, act->n_criteria);
   free_arazzo_reusable(&act->reusable);
@@ -153,12 +153,12 @@ static void free_arazzo_outputs_array(struct Arazzo_OutputMapEntry *outputs,
                                       size_t n_outputs) {
   size_t i;
   for (i = 0; i < n_outputs; ++i) {
-    free(outputs[i].key);
-    free(outputs[i].expression_or_value);
+    C_CDD_FREE(outputs[i].key);
+    C_CDD_FREE(outputs[i].expression_or_value);
     free_arazzo_selector(&outputs[i].selector);
     arazzo_runtime_expr_free(&outputs[i].parsed_expr);
   }
-  free(outputs);
+  C_CDD_FREE(outputs);
 }
 
 /**
@@ -168,36 +168,36 @@ static void free_arazzo_outputs_array(struct Arazzo_OutputMapEntry *outputs,
  */
 static void free_arazzo_step(struct Arazzo_Step *step) {
   size_t i;
-  free(step->step_id);
-  free(step->description);
-  free(step->operation_id);
-  free(step->operation_path);
-  free(step->channel_path);
-  free(step->workflow_id);
+  C_CDD_FREE(step->step_id);
+  C_CDD_FREE(step->description);
+  C_CDD_FREE(step->operation_id);
+  C_CDD_FREE(step->operation_path);
+  C_CDD_FREE(step->channel_path);
+  C_CDD_FREE(step->workflow_id);
   free_arazzo_parameters_array(step->parameters, step->n_parameters);
-  free(step->request_body.content_type);
+  C_CDD_FREE(step->request_body.content_type);
   free_any_value(&step->request_body.payload);
   for (i = 0; i < step->request_body.n_replacements; ++i) {
-    free(step->request_body.replacements[i].target);
+    C_CDD_FREE(step->request_body.replacements[i].target);
     free_arazzo_expression_type(
         &step->request_body.replacements[i].target_expression_type);
     free_any_value(&step->request_body.replacements[i].value);
     arazzo_runtime_expr_free(&step->request_body.replacements[i].parsed_expr);
     arazzo_extension_list_free(&step->request_body.replacements[i].extensions);
   }
-  free(step->request_body.replacements);
+  C_CDD_FREE(step->request_body.replacements);
   arazzo_extension_list_free(&step->request_body.extensions);
   free_arazzo_criteria_array(step->success_criteria, step->n_success_criteria);
   for (i = 0; i < step->n_on_success; ++i) {
     free_arazzo_success_action(&step->on_success[i]);
   }
-  free(step->on_success);
+  C_CDD_FREE(step->on_success);
   for (i = 0; i < step->n_on_failure; ++i) {
     free_arazzo_failure_action(&step->on_failure[i]);
   }
-  free(step->on_failure);
+  C_CDD_FREE(step->on_failure);
   free_arazzo_outputs_array(step->outputs, step->n_outputs);
-  free(step->correlation_id);
+  C_CDD_FREE(step->correlation_id);
   free_string_array(step->depends_on, step->n_depends_on);
   arazzo_extension_list_free(&step->extensions);
   memset(step, 0, sizeof(*step));
@@ -210,23 +210,23 @@ static void free_arazzo_step(struct Arazzo_Step *step) {
  */
 static void free_arazzo_workflow(struct Arazzo_Workflow *wf) {
   size_t i;
-  free(wf->workflow_id);
-  free(wf->summary);
-  free(wf->description);
+  C_CDD_FREE(wf->workflow_id);
+  C_CDD_FREE(wf->summary);
+  C_CDD_FREE(wf->description);
   free_schema_ref_content(&wf->inputs);
   free_string_array(wf->depends_on, wf->n_depends_on);
   for (i = 0; i < wf->n_steps; ++i) {
     free_arazzo_step(&wf->steps[i]);
   }
-  free(wf->steps);
+  C_CDD_FREE(wf->steps);
   for (i = 0; i < wf->n_success_actions; ++i) {
     free_arazzo_success_action(&wf->success_actions[i]);
   }
-  free(wf->success_actions);
+  C_CDD_FREE(wf->success_actions);
   for (i = 0; i < wf->n_failure_actions; ++i) {
     free_arazzo_failure_action(&wf->failure_actions[i]);
   }
-  free(wf->failure_actions);
+  C_CDD_FREE(wf->failure_actions);
   free_arazzo_outputs_array(wf->outputs, wf->n_outputs);
   free_arazzo_parameters_array(wf->parameters, wf->n_parameters);
   arazzo_extension_list_free(&wf->extensions);
@@ -239,11 +239,11 @@ static void free_arazzo_workflow(struct Arazzo_Workflow *wf) {
 void arazzo_runtime_expr_free(struct Arazzo_RuntimeExpr *expr) {
   if (!expr)
     return;
-  free(expr->raw);
-  free(expr->source_name);
-  free(expr->step_or_workflow_id);
-  free(expr->property_name);
-  free(expr->json_pointer);
+  C_CDD_FREE(expr->raw);
+  C_CDD_FREE(expr->source_name);
+  C_CDD_FREE(expr->step_or_workflow_id);
+  C_CDD_FREE(expr->property_name);
+  C_CDD_FREE(expr->json_pointer);
   memset(expr, 0, sizeof(*expr));
 }
 
@@ -303,10 +303,10 @@ void arazzo_extension_list_free(struct Arazzo_ExtensionList *list) {
   if (!list)
     return;
   for (i = 0; i < list->count; ++i) {
-    free(list->items[i].key);
+    C_CDD_FREE(list->items[i].key);
     free_any_value(&list->items[i].val);
   }
-  free(list->items);
+  C_CDD_FREE(list->items);
   list->items = NULL;
   list->count = 0;
 }
@@ -334,7 +334,7 @@ cdd_c_error_t arazzo_extension_list_append(struct Arazzo_ExtensionList *list,
   new_items = (struct Arazzo_Extension *)C_CDD_REALLOC(
       list->items, (list->count + 1) * sizeof(struct Arazzo_Extension));
   if (!new_items) {
-    free(dup_key);
+    C_CDD_FREE(dup_key);
     return CDD_C_ERROR_MEMORY;
   }
   list->items = new_items;
@@ -343,7 +343,7 @@ cdd_c_error_t arazzo_extension_list_append(struct Arazzo_ExtensionList *list,
 
   rc = copy_any_value(&list->items[list->count].val, val);
   if (rc != CDD_C_SUCCESS) {
-    free(dup_key);
+    C_CDD_FREE(dup_key);
     list->items[list->count].key = NULL;
     return rc;
   }
@@ -376,34 +376,34 @@ void arazzo_spec_free(struct Arazzo_Spec *spec) {
   if (!spec)
     return;
 
-  free(spec->arazzo);
-  free(spec->self_uri);
-  free(spec->info.title);
-  free(spec->info.summary);
-  free(spec->info.description);
-  free(spec->info.version);
+  C_CDD_FREE(spec->arazzo);
+  C_CDD_FREE(spec->self_uri);
+  C_CDD_FREE(spec->info.title);
+  C_CDD_FREE(spec->info.summary);
+  C_CDD_FREE(spec->info.description);
+  C_CDD_FREE(spec->info.version);
   arazzo_extension_list_free(&spec->info.extensions);
 
   for (i = 0; i < spec->n_source_descriptions; ++i) {
-    free(spec->source_descriptions[i].name);
-    free(spec->source_descriptions[i].url);
+    C_CDD_FREE(spec->source_descriptions[i].name);
+    C_CDD_FREE(spec->source_descriptions[i].url);
     if (spec->source_descriptions[i].resolved_openapi) {
       openapi_spec_free(spec->source_descriptions[i].resolved_openapi);
-      free(spec->source_descriptions[i].resolved_openapi);
+      C_CDD_FREE(spec->source_descriptions[i].resolved_openapi);
     }
     arazzo_extension_list_free(&spec->source_descriptions[i].extensions);
   }
-  free(spec->source_descriptions);
+  C_CDD_FREE(spec->source_descriptions);
 
   for (i = 0; i < spec->n_workflows; ++i) {
     free_arazzo_workflow(&spec->workflows[i]);
   }
-  free(spec->workflows);
+  C_CDD_FREE(spec->workflows);
 
   for (i = 0; i < spec->components.n_inputs; ++i) {
     free_schema_ref_content(&spec->components.inputs[i]);
   }
-  free(spec->components.inputs);
+  C_CDD_FREE(spec->components.inputs);
   free_string_array(spec->components.input_keys, spec->components.n_inputs);
 
   free_arazzo_parameters_array(spec->components.parameters,
@@ -414,14 +414,14 @@ void arazzo_spec_free(struct Arazzo_Spec *spec) {
   for (i = 0; i < spec->components.n_success_actions; ++i) {
     free_arazzo_success_action(&spec->components.success_actions[i]);
   }
-  free(spec->components.success_actions);
+  C_CDD_FREE(spec->components.success_actions);
   free_string_array(spec->components.success_action_keys,
                     spec->components.n_success_actions);
 
   for (i = 0; i < spec->components.n_failure_actions; ++i) {
     free_arazzo_failure_action(&spec->components.failure_actions[i]);
   }
-  free(spec->components.failure_actions);
+  C_CDD_FREE(spec->components.failure_actions);
   free_string_array(spec->components.failure_action_keys,
                     spec->components.n_failure_actions);
 

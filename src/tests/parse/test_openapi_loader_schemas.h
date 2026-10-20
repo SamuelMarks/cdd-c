@@ -14,6 +14,10 @@ extern "C" {
 #include "parse/test_openapi_loader_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_load_inline_schema_items_type_union.
+ * @return Greatest test result.
+ */
 TEST test_load_inline_schema_items_type_union(void) {
 
   const char json[] = {
@@ -52,6 +56,10 @@ TEST test_load_inline_schema_items_type_union(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_schema_boolean_and_numeric_enum.
+ * @return Greatest test result.
+ */
 TEST test_load_schema_boolean_and_numeric_enum(void) {
   const char json[] = {
       123, 34,  111, 112, 101, 110, 97,  112, 105, 34,  58,  34,  51,  46,  50,
@@ -98,6 +106,10 @@ TEST test_load_schema_boolean_and_numeric_enum(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_schema_items_examples_and_boolean_items.
+ * @return Greatest test result.
+ */
 TEST test_load_schema_items_examples_and_boolean_items(void) {
   const char *json =
       "{\"paths\":{\"/"
@@ -134,6 +146,10 @@ TEST test_load_schema_items_examples_and_boolean_items(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_inline_schema_example_and_numeric_constraints.
+ * @return Greatest test result.
+ */
 TEST test_load_inline_schema_example_and_numeric_constraints(void) {
 
   const char json[] = {
@@ -175,6 +191,10 @@ TEST test_load_inline_schema_example_and_numeric_constraints(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_inline_schema_array_constraints_and_items_example.
+ * @return Greatest test result.
+ */
 TEST test_load_inline_schema_array_constraints_and_items_example(void) {
 
   const char json[] = {
@@ -225,6 +245,10 @@ TEST test_load_inline_schema_array_constraints_and_items_example(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_inline_schema_items_const_default_and_extras.
+ * @return Greatest test result.
+ */
 TEST test_load_inline_schema_items_const_default_and_extras(void) {
 
   const char *json =
@@ -260,6 +284,10 @@ TEST test_load_inline_schema_items_const_default_and_extras(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_inline_request_body_object_promoted.
+ * @return Greatest test result.
+ */
 TEST test_load_inline_request_body_object_promoted(void) {
   struct StructFields *_ast_openapi_spec_find_schema_3;
   struct StructField *_ast_struct_fields_get_4 = NULL;
@@ -319,6 +347,10 @@ TEST test_load_inline_request_body_object_promoted(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_request_body_item_schema_array.
+ * @return Greatest test result.
+ */
 TEST test_load_request_body_item_schema_array(void) {
 
   const char json[] = {
@@ -351,6 +383,10 @@ TEST test_load_request_body_item_schema_array(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_inline_response_schema_object_item_promoted.
+ * @return Greatest test result.
+ */
 TEST test_load_inline_response_schema_object_item_promoted(void) {
   struct StructFields *_ast_openapi_spec_find_schema_5;
   struct StructField *_ast_struct_fields_get_6 = NULL;
@@ -404,6 +440,10 @@ TEST test_load_inline_response_schema_object_item_promoted(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_inline_response_item_schema_object_promoted.
+ * @return Greatest test result.
+ */
 TEST test_load_inline_response_item_schema_object_promoted(void) {
   struct StructFields *_ast_openapi_spec_find_schema_7;
   struct StructField *_ast_struct_fields_get_8 = NULL;
@@ -456,6 +496,10 @@ TEST test_load_inline_response_item_schema_object_promoted(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_request_body_ref_description_override.
+ * @return Greatest test result.
+ */
 TEST test_load_request_body_ref_description_override(void) {
 
   const char json[] = {
@@ -495,6 +539,10 @@ TEST test_load_request_body_ref_description_override(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_options_trace_verbs.
+ * @return Greatest test result.
+ */
 TEST test_load_options_trace_verbs(void) {
 
   const char *json = "{\"paths\":{\"/"
@@ -526,6 +574,10 @@ TEST test_load_options_trace_verbs(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_root_metadata_and_tags.
+ * @return Greatest test result.
+ */
 TEST test_load_root_metadata_and_tags(void) {
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"Test\",\"version\":\"1\"},"
@@ -564,6 +616,10 @@ TEST test_load_root_metadata_and_tags(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_self_qualified_component_refs.
+ * @return Greatest test result.
+ */
 TEST test_self_qualified_component_refs(void) {
 
   const char json[] = {
@@ -618,6 +674,10 @@ TEST test_self_qualified_component_refs(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_relative_self_component_refs.
+ * @return Greatest test result.
+ */
 TEST test_relative_self_component_refs(void) {
 
   const char json[] = {

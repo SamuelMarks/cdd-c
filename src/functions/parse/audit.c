@@ -10,12 +10,16 @@
 #include "c_cdd/safe_crt_msvc.h"
 
 #include "functions/parse/audit.h"
+#include "functions/parse/audit_internal.h"
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
+#include "classes/parse/cdd_lexer.h"
 #include "functions/parse/analysis.h"
 #include "functions/parse/fs.h"
 #include "functions/parse/str.h"
 #include "functions/parse/tokenizer.h"
+#include "openapi/emit/openapi.h"
 #include <c89stringutils_string_extras.h>
 #include <ctype.h>
 #include <parson.h>
@@ -23,34 +27,12 @@
 #include <string.h>
 /* clang-format on */
 
-/** @brief Global flag to simulate memory allocation failure during audit. */
-C_CDD_EXPORT int g_cdd_fail_alloc_audit = 0;
-/** @brief Global flag to simulate tokenization failure during audit. */
-C_CDD_EXPORT int g_cdd_audit_fail_tokenize = 0;
-/** @brief Global flag to simulate search failure during audit. */
-C_CDD_EXPORT int g_cdd_audit_fail_find = 0;
-
-#if defined(_WIN32)
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#ifndef strdup
-/** @brief Alias `strdup` to `_strdup` on MSVC. */
-#define strdup _strdup
-#endif
-#endif
-#else
-#endif
-
 /**
  * @brief Initializes codebase audit statistics counters.
  *
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t audit_stats_init(struct AuditStats *stats) {
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cdd_fail_audit_stats_init;
-  if (g_cdd_fail_audit_stats_init && --g_cdd_fail_audit_stats_init == 0)
-    return CDD_C_ERROR_MEMORY;
-#endif
   if (!stats)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   stats->files_scanned = 0;
@@ -72,11 +54,11 @@ void audit_stats_free(struct AuditStats *stats) {
     return;
   if (stats->violations.items) {
     for (i = 0; i < stats->violations.size; i++) {
-      free(stats->violations.items[i].file_path);
-      free(stats->violations.items[i].variable_name);
-      free(stats->violations.items[i].allocator_name);
+      C_CDD_FREE(stats->violations.items[i].file_path);
+      C_CDD_FREE(stats->violations.items[i].variable_name);
+      C_CDD_FREE(stats->violations.items[i].allocator_name);
     }
-    free(stats->violations.items);
+    C_CDD_FREE(stats->violations.items);
     stats->violations.items = NULL;
   }
   stats->violations.size = 0;
@@ -101,21 +83,8 @@ static cdd_c_error_t add_violation(struct AuditStats *stats,
   struct AuditViolationList *list = &stats->violations;
   if (list->size >= list->capacity) {
     size_t new_cap = list->capacity == 0 ? 8 : list->capacity * 2;
-    struct AuditViolation *new_items;
-#ifdef CDD_BUILD_TESTS
-    {
-      /** @brief g_cdd_fail_alloc_audit */
-      extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
-      if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
-        new_items = NULL;
-      else
-        new_items = (struct AuditViolation *)realloc(
-            list->items, new_cap * sizeof(struct AuditViolation));
-    }
-#else
-    new_items = (struct AuditViolation *)realloc(
+    struct AuditViolation *new_items = (struct AuditViolation *)C_CDD_REALLOC(
         list->items, new_cap * sizeof(struct AuditViolation));
-#endif
     if (!new_items) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -123,65 +92,20 @@ static cdd_c_error_t add_violation(struct AuditStats *stats,
     list->items = new_items;
     list->capacity = new_cap;
   }
-#ifdef CDD_BUILD_TESTS
-  {
-    /** @brief g_cdd_fail_alloc_audit */
-    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
-    if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
-      list->items[list->size].file_path = NULL;
-    else
-      list->items[list->size].file_path = strdup(file_path);
-  }
-#else
-  list->items[list->size].file_path = strdup(file_path);
-#endif
+
+  list->items[list->size].file_path = C_CDD_STRDUP(file_path);
   list->items[list->size].line = line;
   list->items[list->size].col = col;
-#ifdef CDD_BUILD_TESTS
-  {
-    /** @brief g_cdd_fail_alloc_audit */
-    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
-    if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
-      list->items[list->size].variable_name = NULL;
-    else
-      list->items[list->size].variable_name =
-          var_name ? strdup(var_name) : NULL;
-  }
-#else
-  list->items[list->size].variable_name = var_name ? strdup(var_name) : NULL;
-#endif
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
-    if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
-      list->items[list->size].allocator_name = NULL;
-    else
-      list->items[list->size].allocator_name = strdup(allocator);
-  }
-#else
-  list->items[list->size].allocator_name = strdup(allocator);
-#endif
+  list->items[list->size].variable_name =
+      var_name ? C_CDD_STRDUP(var_name) : NULL;
+  list->items[list->size].allocator_name = C_CDD_STRDUP(allocator);
 
-  if (!list->items[list->size].file_path) {
-    /* Handle partial alloc failure */
-    printf("PARTIAL ALLOC FAILURE\n");
-    free(list->items[list->size].file_path);
-    free(list->items[list->size].variable_name);
-    free(list->items[list->size].allocator_name);
-    return CDD_C_ERROR_MEMORY;
-  }
-  if (var_name && !list->items[list->size].variable_name) {
-    printf("PARTIAL ALLOC FAILURE\n");
-    free(list->items[list->size].file_path);
-    free(list->items[list->size].variable_name);
-    free(list->items[list->size].allocator_name);
-    return CDD_C_ERROR_MEMORY;
-  }
-  if (!list->items[list->size].allocator_name) {
-    printf("PARTIAL ALLOC FAILURE\n");
-    free(list->items[list->size].file_path);
-    free(list->items[list->size].variable_name);
-    free(list->items[list->size].allocator_name);
+  if (!list->items[list->size].file_path ||
+      (var_name && !list->items[list->size].variable_name) ||
+      !list->items[list->size].allocator_name) {
+    C_CDD_FREE(list->items[list->size].file_path);
+    C_CDD_FREE(list->items[list->size].variable_name);
+    C_CDD_FREE(list->items[list->size].allocator_name);
     return CDD_C_ERROR_MEMORY;
   }
 
@@ -192,14 +116,10 @@ static cdd_c_error_t add_violation(struct AuditStats *stats,
 /**
  * @brief Calculate line and column number from a pointer into the buffer.
  *
- * @param[in] content Start of the file content buffer.
- * @param[in] token_ptr Pointer to the token within the buffer.
- * @param[out] line 1-based line number.
- * @param[out] col 1-based column number.
  * @return `CDD_C_SUCCESS` on success.
  */
-static cdd_c_error_t get_line_col(const char *content, const uint8_t *token_ptr,
-                                  size_t *line, size_t *col) {
+cdd_c_error_t audit_get_line_col(const char *content, const uint8_t *token_ptr,
+                                 size_t *line, size_t *col) {
   const char *p = content;
   *line = 1;
   *col = 1;
@@ -243,26 +163,12 @@ static cdd_c_error_t is_c_source(const char *path, int *out_is_source) {
 /**
  * @brief Helper to detect functions returning allocations directly.
  *
- * @param[in] tokens Token stream to scan.
- * @param[out] out_count Output pointer receiving the number of direct-return
- * allocations.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT cdd_c_error_t
-count_returning_allocs(const struct TokenList *tokens, int *out_count) {
-#else
-static cdd_c_error_t count_returning_allocs(const struct TokenList *tokens,
-                                            int *out_count) {
-#endif
+cdd_c_error_t count_returning_allocs(const struct TokenList *tokens,
+                                     int *out_count) {
   size_t i;
   int count = 0;
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cdd_fail_count_returning_allocs;
-  if (g_cdd_fail_count_returning_allocs &&
-      --g_cdd_fail_count_returning_allocs == 0)
-    return CDD_C_ERROR_UNKNOWN;
-#endif
   if (!out_count)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_count = 0;
@@ -272,14 +178,11 @@ static cdd_c_error_t count_returning_allocs(const struct TokenList *tokens,
 
   for (i = 0; i < tokens->size - 1; ++i) {
     if (tokens->tokens[i].kind == TOKEN_KEYWORD_RETURN) {
-
-      /* Check next non-ws token */
       size_t j = i + 1;
       while (j < tokens->size && tokens->tokens[j].kind == TOKEN_WHITESPACE)
         j++;
 
       if (j < tokens->size && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
-        /* Check if it's a known allocator */
         const char *name = (const char *)tokens->tokens[j].start;
         size_t len = tokens->tokens[j].length;
 
@@ -328,11 +231,9 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
   /* Filter only .c files */
   {
     int is_src = 0;
-    {
-      cdd_c_error_t rc_au = is_c_source(path, &is_src);
-      if (rc_au != CDD_C_SUCCESS)
-        return rc_au;
-    }
+    cdd_c_error_t rc_au = is_c_source(path, &is_src);
+    if (rc_au != CDD_C_SUCCESS)
+      return rc_au;
     if (!is_src)
       return CDD_C_SUCCESS;
   }
@@ -347,14 +248,9 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
   /* Tokenize */
   {
     cdd_c_error_t tok_rc = tokenize(az_span_create_from_str(content), &tokens);
-#ifdef CDD_BUILD_TESTS
-    extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;
-    if (g_cdd_audit_fail_tokenize)
-      tok_rc = CDD_C_ERROR_SYSTEM;
-#endif
     if (tok_rc != CDD_C_SUCCESS) {
       free_token_list(tokens);
-      free(content);
+      C_CDD_FREE(content);
       return CDD_C_SUCCESS; /* Tokenization fail - skip */
     }
   }
@@ -362,11 +258,6 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
   /* Analyze */
   {
     cdd_c_error_t find_rc = find_allocations(tokens, &sites);
-#ifdef CDD_BUILD_TESTS
-    extern C_CDD_EXPORT int g_cdd_audit_fail_find;
-    if (g_cdd_audit_fail_find)
-      find_rc = CDD_C_ERROR_SYSTEM;
-#endif
     if (find_rc == CDD_C_SUCCESS) {
       stats->files_scanned++;
 
@@ -375,13 +266,9 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
           stats->allocations_checked++;
         } else {
           size_t line, col;
-          /* Calculate line/col for the violation */
           const struct Token *tok = &tokens->tokens[sites.sites[i].token_index];
-          get_line_col(content, tok->start, &line, &col);
+          audit_get_line_col(content, tok->start, &line, &col);
 
-          /* Add to details */
-          printf("var_name=%s\n",
-                 sites.sites[i].var_name ? sites.sites[i].var_name : "NULL");
           add_violation(stats, path, line, col, sites.sites[i].var_name,
                         sites.sites[i].spec->name);
 
@@ -396,19 +283,12 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
   /* Custom analysis for return-alloc patterns */
   {
     int count = 0;
-    {
-      cdd_c_error_t rc_au = count_returning_allocs(tokens, &count);
-      if (rc_au != CDD_C_SUCCESS) {
-        free_token_list(tokens);
-        free(content);
-        return rc_au;
-      }
-    }
+    count_returning_allocs(tokens, &count);
     stats->functions_returning_alloc += (size_t)count;
   }
 
   free_token_list(tokens);
-  free(content);
+  C_CDD_FREE(content);
 
   return CDD_C_SUCCESS;
 }
@@ -427,6 +307,54 @@ cdd_c_error_t audit_project(const char *root_path, struct AuditStats *stats) {
 }
 
 /**
+ * @brief Accumulates a Parson `JSON_Status` into a sticky `cdd_c_error_t`
+ * state.
+ *
+ * @param[in] st Parson status (`JSONSuccess` or `JSONFailure`).
+ * @param[in,out] rc Sticky error code updated to `CDD_C_ERROR_MEMORY` on
+ * failure.
+ * @return The updated `*rc`.
+ */
+static cdd_c_error_t audit_check_json(JSON_Status st, cdd_c_error_t *rc) {
+  if (st != JSONSuccess)
+    *rc = CDD_C_ERROR_MEMORY;
+  return *rc;
+}
+
+/**
+ * @brief Safely attaches `val` to `obj[name]`, freeing `val` and recording
+ * `CDD_C_ERROR_MEMORY` into `rc` on failure.
+ *
+ * @param[in,out] obj Target JSON object.
+ * @param[in] name Property key.
+ * @param[in] val Value to attach (ownership transferred or freed).
+ * @param[in,out] rc Sticky error code.
+ * @return The updated `*rc`.
+ */
+static cdd_c_error_t audit_set_val(JSON_Object *obj, const char *name,
+                                   JSON_Value *val, cdd_c_error_t *rc) {
+  if (!val || cdd_json_object_set_value_safe(obj, name, val) != CDD_C_SUCCESS)
+    *rc = CDD_C_ERROR_MEMORY;
+  return *rc;
+}
+
+/**
+ * @brief Safely appends `val` to `arr`, freeing `val` and recording
+ * `CDD_C_ERROR_MEMORY` into `rc` on failure.
+ *
+ * @param[in,out] arr Target JSON array.
+ * @param[in] val Value to append (ownership transferred or freed).
+ * @param[in,out] rc Sticky error code.
+ * @return The updated `*rc`.
+ */
+static cdd_c_error_t audit_append_val(JSON_Array *arr, JSON_Value *val,
+                                      cdd_c_error_t *rc) {
+  if (!val || cdd_json_array_append_value_safe(arr, val) != CDD_C_SUCCESS)
+    *rc = CDD_C_ERROR_MEMORY;
+  return *rc;
+}
+
+/**
  * @brief Serializes collected audit statistics as a JSON report.
  *
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
@@ -437,23 +365,12 @@ cdd_c_error_t audit_print_json(const struct AuditStats *stats,
   JSON_Object *root_obj;
   char *str = NULL;
   size_t i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!stats || !out_json) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-#ifdef CDD_BUILD_TESTS
-  {
-    /** @brief g_cdd_fail_alloc_audit */
-    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
-    if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
-      root_val = NULL;
-    else
-      root_val = json_value_init_object();
-  }
-#else
   root_val = json_value_init_object();
-#endif
-
   if (!root_val) {
     *out_json = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -465,16 +382,22 @@ cdd_c_error_t audit_print_json(const struct AuditStats *stats,
     JSON_Value *summary_val = json_value_init_object();
     JSON_Object *summary_obj = json_value_get_object(summary_val);
 
-    json_object_set_number(summary_obj, "files_scanned",
-                           (double)stats->files_scanned);
-    json_object_set_number(summary_obj, "allocations_checked",
-                           (double)stats->allocations_checked);
-    json_object_set_number(summary_obj, "allocations_unchecked",
-                           (double)stats->allocations_unchecked);
-    json_object_set_number(summary_obj, "functions_returning_alloc",
-                           (double)stats->functions_returning_alloc);
+    audit_check_json(json_object_set_number(summary_obj, "files_scanned",
+                                            (double)stats->files_scanned),
+                     &rc);
+    audit_check_json(json_object_set_number(summary_obj, "allocations_checked",
+                                            (double)stats->allocations_checked),
+                     &rc);
+    audit_check_json(
+        json_object_set_number(summary_obj, "allocations_unchecked",
+                               (double)stats->allocations_unchecked),
+        &rc);
+    audit_check_json(
+        json_object_set_number(summary_obj, "functions_returning_alloc",
+                               (double)stats->functions_returning_alloc),
+        &rc);
 
-    json_object_set_value(root_obj, "summary", summary_val);
+    audit_set_val(root_obj, "summary", summary_val, &rc);
   }
 
   {
@@ -486,38 +409,32 @@ cdd_c_error_t audit_print_json(const struct AuditStats *stats,
       JSON_Value *v_val = json_value_init_object();
       JSON_Object *v_obj = json_value_get_object(v_val);
 
-      json_object_set_string(v_obj, "file", v->file_path);
-      json_object_set_number(v_obj, "line", (double)v->line);
-      json_object_set_number(v_obj, "col", (double)v->col);
+      audit_check_json(json_object_set_string(v_obj, "file", v->file_path),
+                       &rc);
+      audit_check_json(json_object_set_number(v_obj, "line", (double)v->line),
+                       &rc);
+      audit_check_json(json_object_set_number(v_obj, "col", (double)v->col),
+                       &rc);
       if (v->variable_name)
-        json_object_set_string(v_obj, "variable", v->variable_name);
+        audit_check_json(
+            json_object_set_string(v_obj, "variable", v->variable_name), &rc);
       else
-        json_object_set_null(v_obj, "variable");
-      json_object_set_string(v_obj, "allocator", v->allocator_name);
+        audit_check_json(json_object_set_null(v_obj, "variable"), &rc);
+      audit_check_json(
+          json_object_set_string(v_obj, "allocator", v->allocator_name), &rc);
 
-      json_array_append_value(violations_arr, v_val);
+      audit_append_val(violations_arr, v_val, &rc);
     }
-    json_object_set_value(root_obj, "violations", violations_val);
+    audit_set_val(root_obj, "violations", violations_val, &rc);
   }
 
-  str = json_serialize_to_string_pretty(root_val);
+  if (rc == CDD_C_SUCCESS)
+    str = json_serialize_to_string_pretty(root_val);
   json_value_free(root_val);
-  {
-    *out_json = str;
-    return CDD_C_SUCCESS;
+  if (!str) {
+    *out_json = NULL;
+    return CDD_C_ERROR_MEMORY;
   }
-}
-
-#ifdef CDD_BUILD_TESTS
-/**
- * @brief Unit test helper verifying `get_line_col` boundary termination.
- *
- * @return `CDD_C_SUCCESS` on success.
- */
-C_CDD_EXPORT cdd_c_error_t test_audit_get_line_col_boundary(void) {
-  const char *content = "short";
-  size_t line = 0, col = 0;
-  get_line_col(content, (const uint8_t *)content + 10, &line, &col);
+  *out_json = str;
   return CDD_C_SUCCESS;
 }
-#endif

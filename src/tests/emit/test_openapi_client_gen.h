@@ -23,10 +23,18 @@ extern "C" {
 #include "routes/emit/client_gen.h"
 /* clang-format on */
 
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
 extern C_CDD_EXPORT int g_client_gen_fail;
 
+/**
+ * @brief Helper function setup_minimal_spec.
+ * @param[in,out] spec Parameter spec.
+ * @param[in,out] op Parameter op.
+ * @return Result status or value.
+ */
 static cdd_c_error_t setup_minimal_spec(struct OpenAPI_Spec *spec,
                                         struct OpenAPI_Operation *op) {
   static struct OpenAPI_Path path;
@@ -56,6 +64,10 @@ static cdd_c_error_t setup_minimal_spec(struct OpenAPI_Spec *spec,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Unit test test_gen_client_basic.
+ * @return Greatest test result.
+ */
 TEST test_gen_client_basic(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -78,7 +90,6 @@ TEST test_gen_client_basic(void) {
   config.model_header = cdd_test_mut_str("my_models.h");
 
   rc = openapi_client_generate(&spec, &config);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   read_to_file(h_file, "r", &content, &sz);
@@ -95,6 +106,10 @@ TEST test_gen_client_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_client_operation_server_override.
+ * @return Greatest test result.
+ */
 TEST test_gen_client_operation_server_override(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -119,7 +134,6 @@ TEST test_gen_client_operation_server_override(void) {
   config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   read_to_file(c_file, "r", &content, &sz);
@@ -132,6 +146,10 @@ TEST test_gen_client_operation_server_override(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_client_text_plain_request_body.
+ * @return Greatest test result.
+ */
 TEST test_gen_client_text_plain_request_body(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -155,7 +173,6 @@ TEST test_gen_client_text_plain_request_body(void) {
   config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   read_to_file(c_file, "r", &content, &sz);
@@ -169,6 +186,10 @@ TEST test_gen_client_text_plain_request_body(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_client_octet_stream_request_body.
+ * @return Greatest test result.
+ */
 TEST test_gen_client_octet_stream_request_body(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -189,7 +210,6 @@ TEST test_gen_client_octet_stream_request_body(void) {
   config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   read_to_file(c_file, "r", &content, &sz);
@@ -204,6 +224,10 @@ TEST test_gen_client_octet_stream_request_body(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_client_octet_stream_response_body.
+ * @return Greatest test result.
+ */
 TEST test_gen_client_octet_stream_response_body(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -223,7 +247,6 @@ TEST test_gen_client_octet_stream_response_body(void) {
   config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   read_to_file(c_file, "r", &content, &sz);
@@ -237,6 +260,10 @@ TEST test_gen_client_octet_stream_response_body(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_client_default_base_url_from_server.
+ * @return Greatest test result.
+ */
 TEST test_gen_client_default_base_url_from_server(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -269,7 +296,6 @@ TEST test_gen_client_default_base_url_from_server(void) {
   config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   read_to_file(c_file, "r", &content, &sz);
@@ -285,6 +311,10 @@ TEST test_gen_client_default_base_url_from_server(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_client_default_base_url_no_servers.
+ * @return Greatest test result.
+ */
 TEST test_gen_client_default_base_url_no_servers(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -305,7 +335,6 @@ TEST test_gen_client_default_base_url_no_servers(void) {
   config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   read_to_file(c_file, "r", &content, &sz);
@@ -319,6 +348,10 @@ TEST test_gen_client_default_base_url_no_servers(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_client_additional_operation.
+ * @return Greatest test result.
+ */
 TEST test_gen_client_additional_operation(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -357,7 +390,6 @@ TEST test_gen_client_additional_operation(void) {
   config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   read_to_file(h_file, "r", &content, &sz);
@@ -374,6 +406,10 @@ TEST test_gen_client_additional_operation(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_client_op_params_only.
+ * @return Greatest test result.
+ */
 TEST test_gen_client_op_params_only(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -399,7 +435,6 @@ TEST test_gen_client_op_params_only(void) {
   config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   read_to_file(h_file, "r", &content, &sz);
@@ -415,6 +450,10 @@ TEST test_gen_client_op_params_only(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_client_querystring_param.
+ * @return Greatest test result.
+ */
 TEST test_gen_client_querystring_param(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -440,7 +479,6 @@ TEST test_gen_client_querystring_param(void) {
   config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   read_to_file(h_file, "r", &content, &sz);
@@ -455,6 +493,10 @@ TEST test_gen_client_querystring_param(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_client_path_level_params.
+ * @return Greatest test result.
+ */
 TEST test_gen_client_path_level_params(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -481,7 +523,6 @@ TEST test_gen_client_path_level_params(void) {
   config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   read_to_file(h_file, "r", &content, &sz);
@@ -499,6 +540,10 @@ TEST test_gen_client_path_level_params(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_client_path_param_override.
+ * @return Greatest test result.
+ */
 TEST test_gen_client_path_param_override(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -533,7 +578,6 @@ TEST test_gen_client_path_param_override(void) {
   config.func_prefix = cdd_test_mut_str("api_");
 
   rc = openapi_client_generate(&spec, &config);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   read_to_file(h_file, "r", &content, &sz);
@@ -548,6 +592,10 @@ TEST test_gen_client_path_param_override(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_client_grouped_tags_namespace.
+ * @return Greatest test result.
+ */
 TEST test_gen_client_grouped_tags_namespace(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -573,7 +621,6 @@ TEST test_gen_client_grouped_tags_namespace(void) {
   config.namespace_prefix = cdd_test_mut_str("Foo");
 
   rc = openapi_client_generate(&spec, &config);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   read_to_file(h_file, "r", &content, &sz);
@@ -590,6 +637,10 @@ TEST test_gen_client_grouped_tags_namespace(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_client_namespace_only.
+ * @return Greatest test result.
+ */
 TEST test_gen_client_namespace_only(void) {
   /* Case: Namespace present, but no tags on operation */
   struct OpenAPI_Spec spec;
@@ -610,7 +661,6 @@ TEST test_gen_client_namespace_only(void) {
   config.namespace_prefix = cdd_test_mut_str("Bar");
 
   rc = openapi_client_generate(&spec, &config);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   read_to_file(h_file, "r", &content, &sz);
@@ -626,6 +676,10 @@ TEST test_gen_client_namespace_only(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_client_error_nulls.
+ * @return Greatest test result.
+ */
 TEST test_gen_client_error_nulls(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config = {0};
@@ -647,6 +701,10 @@ TEST test_gen_client_error_nulls(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_client_file_error.
+ * @return Greatest test result.
+ */
 TEST test_gen_client_file_error(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -659,12 +717,15 @@ TEST test_gen_client_file_error(void) {
   g_fail_io_after = 1;
 
   rc = openapi_client_generate(&spec, &config);
-  (void)rc;
   ASSERT(rc == CDD_C_ERROR_IO || rc == CDD_C_ERROR_NOT_FOUND);
   g_fail_io_after = -1;
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_client_defaults.
+ * @return Greatest test result.
+ */
 TEST test_gen_client_defaults(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -707,6 +768,10 @@ TEST test_gen_client_defaults(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_transport_selection.
+ * @return Greatest test result.
+ */
 TEST test_gen_transport_selection(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -751,6 +816,10 @@ TEST test_gen_transport_selection(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_mcp_raw_schemas_io_fail.
+ * @return Greatest test result.
+ */
 TEST test_mcp_raw_schemas_io_fail(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -786,6 +855,10 @@ TEST test_mcp_raw_schemas_io_fail(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_mcp_raw_schemas_escape_fail.
+ * @return Greatest test result.
+ */
 TEST test_mcp_raw_schemas_escape_fail(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -807,11 +880,12 @@ TEST test_mcp_raw_schemas_escape_fail(void) {
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = (char **)malloc(1 * sizeof(char *));
   spec.defined_schema_names[0] = cdd_test_mut_str("TestStruct");
+  config.no_installable_package = 1;
 
-  g_client_gen_fail = 4; /* mock escape_c_string_literal inner failure */
+  g_cdd_alloc_fail = 16; /* mock escape_c_string_literal inner failure */
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  g_client_gen_fail = 0;
+  g_cdd_alloc_fail = 0;
 
   free(spec.raw_schema_names);
   free(spec.raw_schema_json);
@@ -819,6 +893,10 @@ TEST test_mcp_raw_schemas_escape_fail(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_mcp_raw_schemas.
+ * @return Greatest test result.
+ */
 TEST test_mcp_raw_schemas(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -845,7 +923,6 @@ TEST test_mcp_raw_schemas(void) {
   spec.defined_schema_names[0] = cdd_test_mut_str("TestStruct");
 
   rc = openapi_client_generate(&spec, &config);
-  (void)rc;
   if (rc != CDD_C_SUCCESS) {
     printf("RC WAS: %d\n", rc);
   }
@@ -860,6 +937,9 @@ TEST test_mcp_raw_schemas(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the openapi_client_gen_suite test suite.
+ */
 SUITE(openapi_client_gen_suite) {
   RUN_TEST(test_gen_client_basic);
   RUN_TEST(test_gen_client_operation_server_override);

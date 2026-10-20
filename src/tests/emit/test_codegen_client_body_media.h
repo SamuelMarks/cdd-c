@@ -15,6 +15,10 @@ extern "C" {
 #include "emit/test_codegen_client_body_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_client_body_verb_enum_indirect.
+ * @return Greatest test result.
+ */
 TEST test_client_body_verb_enum_indirect(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
@@ -50,6 +54,10 @@ TEST test_client_body_verb_enum_indirect(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_header_formatting_indirect.
+ * @return Greatest test result.
+ */
 TEST test_client_body_header_formatting_indirect(void) {
   struct OpenAPI_Encoding enc;
   struct OpenAPI_Header hdr;
@@ -146,6 +154,10 @@ TEST test_client_body_header_formatting_indirect(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_media_types_textual_binary_indirect.
+ * @return Greatest test result.
+ */
 TEST test_client_body_media_types_textual_binary_indirect(void) {
   struct OpenAPI_Encoding enc;
   struct OpenAPI_MultipartField mf;
@@ -258,6 +270,11 @@ TEST test_client_body_media_types_textual_binary_indirect(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test
+ * test_client_body_media_types_textual_binary_missing_branches_indirect.
+ * @return Greatest test result.
+ */
 TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
     void) {
   struct OpenAPI_Encoding enc;
@@ -351,6 +368,10 @@ TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_media_type_caps_indirect.
+ * @return Greatest test result.
+ */
 TEST test_client_body_media_type_caps_indirect(void) {
   struct OpenAPI_Encoding enc;
   struct OpenAPI_MultipartField mf;
@@ -439,6 +460,10 @@ TEST test_client_body_media_type_caps_indirect(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_media_type_prefix_caps_indirect.
+ * @return Greatest test result.
+ */
 TEST test_client_body_media_type_prefix_caps_indirect(void) {
   struct OpenAPI_Encoding enc;
   struct OpenAPI_MultipartField mf;
@@ -527,6 +552,10 @@ TEST test_client_body_media_type_prefix_caps_indirect(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_media_type_prefix_suffix_short.
+ * @return Greatest test result.
+ */
 TEST test_client_body_media_type_prefix_suffix_short(void) {
   struct OpenAPI_Encoding enc;
   struct OpenAPI_MultipartField mf;
@@ -618,6 +647,10 @@ TEST test_client_body_media_type_prefix_suffix_short(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_write_inline_json_parse_indirect.
+ * @return Greatest test result.
+ */
 TEST test_client_body_write_inline_json_parse_indirect(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -690,6 +723,10 @@ TEST test_client_body_write_inline_json_parse_indirect(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_write_inline_json_parse_types.
+ * @return Greatest test result.
+ */
 TEST test_client_body_write_inline_json_parse_types(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -764,6 +801,10 @@ TEST test_client_body_write_inline_json_parse_types(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_write_inline_json_parse_types_indirect.
+ * @return Greatest test result.
+ */
 TEST test_client_body_write_inline_json_parse_types_indirect(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -839,6 +880,9 @@ TEST test_client_body_write_inline_json_parse_types_indirect(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the client_body_media_suite test suite.
+ */
 SUITE(client_body_media_suite) {
   RUN_TEST(test_client_body_verb_enum_indirect);
   RUN_TEST(test_client_body_header_formatting_indirect);

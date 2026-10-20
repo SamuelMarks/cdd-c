@@ -84,7 +84,6 @@
  */
 cdd_c_error_t
 cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
-  const char *subcmd;
   int is_cli;
   int is_server;
   struct OpenAPI_Spec spec = {0};
@@ -98,13 +97,12 @@ cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  subcmd = config->subcommand ? config->subcommand : "to_sdk";
-  is_cli = (strcmp(subcmd, "to_sdk_cli") == 0);
-  is_server = (strcmp(subcmd, "to_server") == 0);
+  is_cli = (config->subcommand == CDD_OPENAPI_SUBCOMMAND_TO_SDK_CLI);
+  is_server = (config->subcommand == CDD_OPENAPI_SUBCOMMAND_TO_SERVER);
 
-  client_cfg.no_github_actions = config->no_github_actions;
-  client_cfg.no_installable_package = config->no_installable_package;
-  client_cfg.create_tests_and_mocks = config->tests;
+  client_cfg.no_github_actions = (int)config->no_github_actions;
+  client_cfg.no_installable_package = (int)config->no_installable_package;
+  client_cfg.create_tests_and_mocks = (int)config->tests;
 
   if (config->input) {
     char *alloc_path = NULL;
@@ -229,8 +227,8 @@ cdd_c_error_t cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   input_file = config->input;
-  no_imports = config->no_imports;
-  no_wrapping = config->no_wrapping;
+  no_imports = (int)config->no_imports;
+  no_wrapping = (int)config->no_wrapping;
 
   parsed_root = json_parse_file(input_file);
   if (!parsed_root)
@@ -452,7 +450,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
   }
 
   cdd_ffi_ir_free(ir);
-  free(ir);
+  C_CDD_FREE(ir);
   return rc;
 }
 
@@ -557,7 +555,6 @@ cdd_c_error_t cdd_generate_from_arazzo(const cdd_from_arazzo_config_t *config) {
   struct OpenAPI_Spec openapi_spec;
   int has_openapi = 0;
   struct OpenApiClientConfig client_cfg;
-  const char *subcmd;
   JSON_Value *root = NULL;
   cdd_c_error_t rc;
 
@@ -565,7 +562,6 @@ cdd_c_error_t cdd_generate_from_arazzo(const cdd_from_arazzo_config_t *config) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  subcmd = config->subcommand ? config->subcommand : "to_sdk";
   memset(&arazzo_spec, 0, sizeof(arazzo_spec));
   memset(&openapi_spec, 0, sizeof(openapi_spec));
   memset(&client_cfg, 0, sizeof(client_cfg));
@@ -594,13 +590,13 @@ cdd_c_error_t cdd_generate_from_arazzo(const cdd_from_arazzo_config_t *config) {
       config->output ? config->output : "generated_arazzo";
   client_cfg.func_prefix = config->func_prefix ? config->func_prefix : "api_";
 
-  if (strcmp(subcmd, "to_sdk_cli") == 0) {
+  if (config->subcommand == CDD_ARAZZO_SUBCOMMAND_TO_SDK_CLI) {
     rc = arazzo_cli_generate(&arazzo_spec, has_openapi ? &openapi_spec : NULL,
                              &client_cfg);
-  } else if (strcmp(subcmd, "to_server") == 0) {
+  } else if (config->subcommand == CDD_ARAZZO_SUBCOMMAND_TO_SERVER) {
     rc = arazzo_server_generate(
         &arazzo_spec, has_openapi ? &openapi_spec : NULL, &client_cfg);
-  } else if (strcmp(subcmd, "to_sdk") == 0) {
+  } else if (config->subcommand == CDD_ARAZZO_SUBCOMMAND_TO_SDK) {
     rc = arazzo_client_generate(
         &arazzo_spec, has_openapi ? &openapi_spec : NULL, &client_cfg);
   } else {

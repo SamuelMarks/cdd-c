@@ -14,6 +14,10 @@ extern "C" {
 #include "emit/test_operation_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_operation_100_percent_coverage_part3.
+ * @return Greatest test result.
+ */
 TEST test_operation_100_percent_coverage_part3(void) {
   /* Case 14: Encoding with name == NULL and multiple item encodings */
   {

@@ -31,6 +31,7 @@ extern "C" {
 /**
  * @brief Tests `arazzo_client_render_to_strings`, `arazzo_client_generate`, and
  * bidirectional round-trip extraction (`Arazzo -> C SDK -> Arazzo`).
+ * @return Test or helper result.
  */
 TEST test_arazzo_client_gen_and_roundtrip(void) {
   struct Arazzo_Spec spec;

@@ -1,25 +1,23 @@
-#include "cdd_test_helpers_export.h"
-CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
+/**
+ * @file test_arrays_object.h
+ * @brief Unit tests for Object Arrays generation and parsing.
+ *
+ * Verifies that the code generator correctly handles arrays of nested objects,
+ * including memory allocation, recursive parsing, and cleanup.
+ *
+ * @author Samuel Marks
+ */
+
 #ifndef TEST_ARRAYS_OBJECT_H
 #define TEST_ARRAYS_OBJECT_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-       /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
-       /* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
-       /**
-        * @file test_arrays_object.c
-        * @brief Unit tests for Object Arrays generation and parsing.
-        *
-        * Verifies that the code generator correctly handles arrays of nested objects,
-        * including memory allocation, recursive parsing, and cleanup.
-        *
-        * @author Samuel Marks
-        */
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_test_helpers_export.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,12 +25,21 @@ extern "C" {
 #include <greatest.h>
 
 #include "cdd_test_helpers/cdd_helpers.h"
+#include "classes/parse/code2schema.h"
 #include "functions/emit/codegen.h"
+/* clang-format on */
+
+/** @brief IO call counter for test fault injection. */
+extern C_CDD_EXPORT int g_io_calls;
+/** @brief IO failure threshold for test fault injection. */
+extern C_CDD_EXPORT int g_fail_io_after;
 
 /* Add definitions that need to be in the test runner's main file. */
 
-
-
+/**
+ * @brief Unit test test_generated_obj_array_logic.
+ * @return Greatest test result.
+ */
 TEST test_generated_obj_array_logic(void) {
   /*
      Verify the generator output for a structure:
@@ -50,8 +57,9 @@ TEST test_generated_obj_array_logic(void) {
   struct_fields_init(&sf);
   struct_fields_add(&sf, "items", "array", "Item", NULL, NULL);
 
-  #if defined(_MSC_VER)
-  if(((tmp = cdd_test_tmpfile_global()) == NULL)) tmp = NULL;
+#if defined(_MSC_VER)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
+    tmp = NULL;
 #else
   tmp = cdd_test_tmpfile_global();
 #endif
@@ -63,7 +71,9 @@ TEST test_generated_obj_array_logic(void) {
   output_len = (size_t)ftell(tmp);
   rewind(tmp);
 
-  output_buf = malloc(output_len + 1); if (!output_buf) FAILm("OOM");
+  output_buf = malloc(output_len + 1);
+  if (!output_buf)
+    FAILm("OOM");
   fread(output_buf, 1, output_len, tmp);
   output_buf[output_len] = 0;
 
@@ -76,18 +86,24 @@ TEST test_generated_obj_array_logic(void) {
   /* Verify loop for object parsing */
   /* Expect: rc = Item_from_jsonObject(..., &ret->items[i]); */
   ASSERT(strstr(output_buf,
-                "rc = Item_from_jsonObject(json_array_get_object(arr, i), &ret->items[i]);"));
+                "rc = Item_from_jsonObject(json_array_get_object(arr, "
+                "i), &ret->items[i]);"));
 
   /* Verify cleanup on error */
   ASSERT(strstr(output_buf, "Container_cleanup(ret);"));
 
   free(output_buf);
-  if (tmp) fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
 
+/**
+ * @brief Unit test test_code2schema_obj_array_detection.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_obj_array_detection(void) {
   /*
    * Verify that code2schema correctly collapses:
@@ -95,15 +111,14 @@ TEST test_code2schema_obj_array_detection(void) {
    *   size_t n_items;
    * into "items": { "type": "array", "items": { "$ref": "#/.../Item" } }
    */
-  const char *header =
-      "typedef unsigned int size_t;\n"
-      "struct Item {\n"
-      "  int id;\n"
-      "};\n"
-      "struct Container {\n"
-      "  struct Item **items;\n"
-      "  size_t n_items;\n"
-      "};\n";
+  const char *header = "typedef unsigned int size_t;\n"
+                       "struct Item {\n"
+                       "  int id;\n"
+                       "};\n"
+                       "struct Container {\n"
+                       "  struct Item **items;\n"
+                       "  size_t n_items;\n"
+                       "};\n";
   const char *json_out_file = cdd_test_mut_str("test_obj_array_detect.json");
   char *json_content;
   size_t len;
@@ -111,13 +126,6 @@ TEST test_code2schema_obj_array_detection(void) {
   write_to_file("test_obj_array.h", header);
 
   {
-/* code2schema_main calls parse_header_file */
-#include "classes/parse/code2schema.h"
-
-/* Moved extern declarations for C89 compliance */
-extern C_CDD_EXPORT int g_io_calls;
-extern C_CDD_EXPORT int g_fail_io_after;
-    /* clang-format on */
     char *argv[2];
     argv[0] = cdd_test_mut_str("test_obj_array.h");
     argv[1] = cdd_test_mut_str(json_out_file);
@@ -146,6 +154,10 @@ extern C_CDD_EXPORT int g_fail_io_after;
   PASS();
 }
 
+/**
+ * @brief Unit test test_arrays_object_cleanup_generation.
+ * @return Greatest test result.
+ */
 TEST test_arrays_object_cleanup_generation(void) {
   /* Verify deep cleanup generation logic */
   struct StructFields sf;
@@ -188,6 +200,9 @@ TEST test_arrays_object_cleanup_generation(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the arrays_object_suite test suite.
+ */
 SUITE(arrays_object_suite) {
   RUN_TEST(test_generated_obj_array_logic);
   RUN_TEST(test_code2schema_obj_array_detection);

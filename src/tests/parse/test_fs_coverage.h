@@ -30,7 +30,9 @@ extern "C" {
 #endif
 /* clang-format on */
 
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -47,16 +49,37 @@ static int test_setenv(const char *var, const char *val) {
   return _putenv(_buf);
 }
 #else
+/**
+ * @brief Macro test_unsetenv.
+ * @param[in] var Macro argument var.
+ */
 #define test_unsetenv(var) unsetenv(var)
+/**
+ * @brief Macro test_setenv.
+ * @param[in] var Macro argument var.
+ * @param[in] val Macro argument val.
+ */
 #define test_setenv(var, val) setenv((var), (val), 1)
 #endif
 
+/**
+ * @brief Helper function mock_walk_err_cb.
+ * @param[in] path Parameter path.
+ * @param[in,out] user_data Parameter user_data.
+ * @return Result status or value.
+ */
 static cdd_c_error_t mock_walk_err_cb(const char *path, void *user_data) {
   (void)path;
   (void)user_data;
   return CDD_C_ERROR_IO;
 }
 
+/**
+ * @brief Helper function mock_walk_count_cb.
+ * @param[in] path Parameter path.
+ * @param[in,out] user_data Parameter user_data.
+ * @return Result status or value.
+ */
 static cdd_c_error_t mock_walk_count_cb(const char *path, void *user_data) {
   int *cnt = (int *)user_data;
   (void)path;
@@ -64,6 +87,10 @@ static cdd_c_error_t mock_walk_count_cb(const char *path, void *user_data) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Unit test test_fs_coverage_path_helpers.
+ * @return Greatest test result.
+ */
 TEST test_fs_coverage_path_helpers(void) {
   char *path = NULL;
 
@@ -103,6 +130,10 @@ TEST test_fs_coverage_path_helpers(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_coverage_errno_to_cdd_error.
+ * @return Greatest test result.
+ */
 TEST test_fs_coverage_errno_to_cdd_error(void) {
   ASSERT_EQ(CDD_C_SUCCESS, errno_to_cdd_error(0));
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, errno_to_cdd_error(ENOENT));
@@ -113,6 +144,10 @@ TEST test_fs_coverage_errno_to_cdd_error(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_coverage_is_directory.
+ * @return Greatest test result.
+ */
 TEST test_fs_coverage_is_directory(void) {
   int is_dir;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, fs_is_directory(".", NULL));
@@ -122,6 +157,10 @@ TEST test_fs_coverage_is_directory(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_coverage_fopen_error_from.
+ * @return Greatest test result.
+ */
 TEST test_fs_coverage_fopen_error_from(void) {
   FopenError_t err;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, fopen_error_from(0, NULL));
@@ -144,6 +183,10 @@ TEST test_fs_coverage_fopen_error_from(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_coverage_basename_full.
+ * @return Greatest test result.
+ */
 TEST test_fs_coverage_basename_full(void) {
   char *out = NULL;
 
@@ -196,6 +239,10 @@ TEST test_fs_coverage_basename_full(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_coverage_dirname_full.
+ * @return Greatest test result.
+ */
 TEST test_fs_coverage_dirname_full(void) {
   char *out = NULL;
   const char bslash_path[] = {'\\', 'f', 'o', 'o', '\0'};
@@ -257,6 +304,10 @@ TEST test_fs_coverage_dirname_full(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_coverage_file_io.
+ * @return Greatest test result.
+ */
 TEST test_fs_coverage_file_io(void) {
   char *data = NULL;
   size_t size = 0;
@@ -366,6 +417,10 @@ TEST test_fs_coverage_file_io(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_coverage_cp.
+ * @return Greatest test result.
+ */
 TEST test_fs_coverage_cp(void) {
   char src_file[128];
   char dst_file[128];
@@ -426,6 +481,10 @@ TEST test_fs_coverage_cp(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_coverage_makedir_makedirs.
+ * @return Greatest test result.
+ */
 TEST test_fs_coverage_makedir_makedirs(void) {
   char dir_path[64];
   char file_path[256];
@@ -478,6 +537,10 @@ TEST test_fs_coverage_makedir_makedirs(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_coverage_tempdir.
+ * @return Greatest test result.
+ */
 TEST test_fs_coverage_tempdir(void) {
   char *path = NULL;
   char orig_tmpdir[512];
@@ -573,6 +636,10 @@ TEST test_fs_coverage_tempdir(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_coverage_filename_and_ptr.
+ * @return Greatest test result.
+ */
 TEST test_fs_coverage_filename_and_ptr(void) {
   struct FilenameAndPtr fap;
   char tmp_file[128];
@@ -612,6 +679,10 @@ TEST test_fs_coverage_filename_and_ptr(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_coverage_mktmpfile.
+ * @return Greatest test result.
+ */
 TEST test_fs_coverage_mktmpfile(void) {
   struct FilenameAndPtr fap;
 
@@ -663,6 +734,10 @@ TEST test_fs_coverage_mktmpfile(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_coverage_walk_directory.
+ * @return Greatest test result.
+ */
 TEST test_fs_coverage_walk_directory(void) {
   int count = 0;
   char root_dir[32];
@@ -732,6 +807,9 @@ TEST test_fs_coverage_walk_directory(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the fs_coverage_suite test suite.
+ */
 SUITE(fs_coverage_suite) {
   RUN_TEST(test_fs_coverage_path_helpers);
   RUN_TEST(test_fs_coverage_errno_to_cdd_error);

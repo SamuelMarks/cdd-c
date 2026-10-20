@@ -28,8 +28,13 @@ CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 extern C_CDD_EXPORT int g_safe_crt_malloc_fail;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
 extern C_CDD_EXPORT int g_cdd_query_err_fail;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 
+/**
+ * @brief Unit test test_cdd_transform_safe_crt.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_safe_crt(void) {
   cdd_cst_tree_t *tree = NULL;
 
@@ -540,6 +545,10 @@ TEST test_cdd_transform_safe_crt(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_transform_safe_crt_extended_functions.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_safe_crt_extended_functions(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
@@ -683,6 +692,10 @@ TEST test_cdd_transform_safe_crt_extended_functions(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_safe_crt_edge_cases.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_safe_crt_edge_cases(void) {
   cdd_cst_tree_t *tree = NULL;
 
@@ -780,6 +793,9 @@ TEST test_cdd_transform_safe_crt_edge_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the transformer_safe_crt_suite test suite.
+ */
 SUITE(transformer_safe_crt_suite) {
   RUN_TEST(test_cdd_transform_safe_crt);
   RUN_TEST(test_cdd_transform_safe_crt_extended_functions);

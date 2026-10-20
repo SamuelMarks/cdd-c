@@ -15,6 +15,10 @@ extern "C" {
 #include "emit/test_codegen_client_body_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_client_body_form_mega.
+ * @return Greatest test result.
+ */
 TEST test_client_body_form_mega(void) {
   int io_fail;
   for (io_fail = 0; io_fail < 5000; ++io_fail) {
@@ -884,6 +888,9 @@ TEST test_client_body_form_mega(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the client_body_mega_suite test suite.
+ */
 SUITE(client_body_mega_suite) { RUN_TEST(test_client_body_form_mega); }
 
 #ifdef __cplusplus

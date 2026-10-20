@@ -127,10 +127,6 @@ cdd_c_error_t gnu_standardize_unroll(cdd_cst_tree_t *tree,
         size_t child_idx;
         cdd_cst_node_t *owning_node = NULL;
         rc = gnu_find_node(tree->root, t, &child_idx, &owning_node);
-#ifdef CDD_BUILD_TESTS
-        if (g_gnu_standardizer_fail == 10)
-          rc = CDD_C_ERROR_INVALID_ARGUMENT;
-#endif
         if (rc != CDD_C_SUCCESS)
           return rc;
 
@@ -217,28 +213,17 @@ cdd_c_error_t gnu_standardize_unroll(cdd_cst_tree_t *tree,
 #else
           strcpy(heap_buf, buf);
 #endif
-#ifdef CDD_BUILD_TESTS
-          if (g_gnu_standardizer_fail == 17)
-            pooled = NULL;
-          else
-#endif
-            cdd_pool_string_safe(tree, heap_buf, &pooled);
-          if (!pooled) {
-            free(heap_buf);
-            return CDD_C_ERROR_MEMORY;
+          rc = cdd_pool_string_safe(tree, heap_buf, &pooled);
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(heap_buf);
+            return rc;
           }
-#ifdef CDD_BUILD_TESTS
-          if (g_gnu_standardizer_fail != 8)
-#endif
-          {
-            rc = replace_token_with_text(tree, t, t->kind, pooled,
-                                         strlen(heap_buf));
-            if (rc != CDD_C_SUCCESS) {
-              free(heap_buf);
-              return rc;
-            }
+          rc = replace_token_with_text(tree, t, t->kind, pooled,
+                                       strlen(heap_buf));
+          C_CDD_FREE(heap_buf);
+          if (rc != CDD_C_SUCCESS) {
+            return rc;
           }
-          free(heap_buf);
         }
       }
       current_depth--;
@@ -314,19 +299,14 @@ cdd_c_error_t gnu_standardize_unroll(cdd_cst_tree_t *tree,
               strcpy(dup, buf);
 #endif
               rc = cdd_pool_string_safe(tree, dup, &pooled);
-              free(dup);
+              C_CDD_FREE(dup);
               if (rc != CDD_C_SUCCESS)
                 return rc;
-#ifdef CDD_BUILD_TESTS
-              if (g_gnu_standardizer_fail != 11)
-#endif
-              {
-                rc = replace_token_with_text(
-                    tree, &tree->base_tokens->tokens[k],
-                    tree->base_tokens->tokens[k].kind, pooled, strlen(buf));
-                if (rc != CDD_C_SUCCESS)
-                  return rc;
-              }
+              rc = replace_token_with_text(tree, &tree->base_tokens->tokens[k],
+                                           tree->base_tokens->tokens[k].kind,
+                                           pooled, strlen(buf));
+              if (rc != CDD_C_SUCCESS)
+                return rc;
             }
             break;
           }
@@ -391,8 +371,7 @@ cdd_c_error_t gnu_standardize_unroll(cdd_cst_tree_t *tree,
               memcpy(p, nt->start, nt->length);
               p += nt->length;
               *p++ = '_';
-              if (cdd_append_int(p, ++label_counter, &p) != 0)
-                return CDD_C_ERROR_MEMORY;
+              rc = cdd_append_int(p, ++label_counter, &p);
             }
             num_local_labels++;
           }
@@ -443,18 +422,13 @@ cdd_c_error_t gnu_standardize_unroll(cdd_cst_tree_t *tree,
             strcpy(dup, local_labels[j].rename);
 #endif
             rc = cdd_pool_string_safe(tree, dup, &pooled);
-            free(dup);
+            C_CDD_FREE(dup);
             if (rc != CDD_C_SUCCESS)
               return rc;
-#ifdef CDD_BUILD_TESTS
-            if (g_gnu_standardizer_fail != 12)
-#endif
-            {
-              rc = replace_token_with_text(tree, t, t->kind, pooled,
-                                           strlen(local_labels[j].rename));
-              if (rc != CDD_C_SUCCESS)
-                return rc;
-            }
+            rc = replace_token_with_text(tree, t, t->kind, pooled,
+                                         strlen(local_labels[j].rename));
+            if (rc != CDD_C_SUCCESS)
+              return rc;
             break;
           }
         }
@@ -662,24 +636,10 @@ cdd_c_error_t gnu_standardize_unroll(cdd_cst_tree_t *tree,
                  i + 3 < tree->base_tokens->size &&
                  tree->base_tokens->tokens[i + 3].kind == CDD_TOKEN_SEMICOLON) {
         /* Found zero-length array pattern `int arr[0];` */
-        /* Look forward for RBRACE to see if it is at the end of a struct */
-        size_t fwd;
-        int found_rbrace = 0;
-        for (fwd = i + 4; fwd < tree->base_tokens->size; fwd++) {
-#ifdef CDD_BUILD_TESTS
-          if (g_gnu_standardizer_fail == 20 && fwd == i + 4) {
-            tree->base_tokens->tokens[fwd].length = 0;
-          }
-#endif
-          if (tree->base_tokens->tokens[fwd].length == 0) {
-            continue;
-          } else if (tree->base_tokens->tokens[fwd].kind == CDD_TOKEN_RBRACE) {
-            found_rbrace = 1;
-            break;
-          } else {
-            break;
-          }
-        }
+        /* Check if followed by RBRACE at the end of a struct */
+        int found_rbrace =
+            (i + 4 < tree->base_tokens->size &&
+             tree->base_tokens->tokens[i + 4].kind == CDD_TOKEN_RBRACE);
         if (found_rbrace) {
           /* Flexible Array Member polyfill -> change [0] to [1] */
           rc = replace_token_with_text(tree, next, next->kind, "1", 1);

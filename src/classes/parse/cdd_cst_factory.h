@@ -17,8 +17,8 @@ extern "C" {
 
 /**
  * @brief Allocates a new empty node of the given kind.
- * @param kind The node kind.
- * @param out_node The new node.
+ * @param[in] kind The node kind.
+ * @param[out] out_node The new node.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_alloc_node(enum cdd_cst_node_kind_t kind,
@@ -27,10 +27,10 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_alloc_node(enum cdd_cst_node_kind_t kind,
 /**
  * @brief Creates a synthetic token. The text must be a static string literal or
  * outlive the tree!
- * @param tree The CST tree.
- * @param kind The token kind.
- * @param text The literal string text.
- * @param out_token The new token.
+ * @param[in,out] tree The CST tree.
+ * @param[in] kind The token kind.
+ * @param[in] text The literal string text.
+ * @param[out] out_token The new token.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_create_token(cdd_cst_tree_t *tree,
@@ -40,11 +40,11 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_create_token(cdd_cst_tree_t *tree,
 
 /**
  * @brief Creates a synthetic token from a non-null terminated buffer.
- * @param tree The CST tree.
- * @param kind The token kind.
- * @param text The text buffer.
- * @param length The text length.
- * @param out_token The new token.
+ * @param[in,out] tree The CST tree.
+ * @param[in] kind The token kind.
+ * @param[in] text The text buffer.
+ * @param[in] length The text length.
+ * @param[out] out_token The new token.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_create_token_len(cdd_cst_tree_t *tree,
@@ -55,8 +55,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_create_token_len(cdd_cst_tree_t *tree,
 
 /**
  * @brief Appends a child node to a parent node.
- * @param parent The parent node.
- * @param child The child node.
+ * @param[in,out] parent The parent node.
+ * @param[in,out] child The child node.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_append_child_node(cdd_cst_node_t *parent,
@@ -64,8 +64,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_append_child_node(cdd_cst_node_t *parent,
 
 /**
  * @brief Appends a child token to a parent node.
- * @param parent The parent node.
- * @param token The child token.
+ * @param[in,out] parent The parent node.
+ * @param[in,out] token The child token.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_append_child_token(cdd_cst_node_t *parent,
@@ -73,7 +73,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_append_child_token(cdd_cst_node_t *parent,
 
 /**
  * @brief Recursively frees a node and all of its descendant nodes.
- * @param node The node to free.
+ * @param[in,out] node The node to free.
  */
 C_CDD_EXPORT void cdd_cst_free_node(cdd_cst_node_t *node);
 

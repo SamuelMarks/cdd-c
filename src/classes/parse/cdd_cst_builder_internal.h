@@ -29,6 +29,18 @@ cdd_c_error_t cdd_cst_pool_string(cdd_cst_tree_t *tree, const char *str,
                                   const char **out_str);
 
 /**
+ * @brief Duplicates and pools a string of explicit length inside the CST tree.
+ *
+ * @param[in,out] tree The CST tree.
+ * @param[in] str The input character buffer (need not be null-terminated).
+ * @param[in] len The number of bytes to copy and pool.
+ * @param[out] out_str The pooled null-terminated string pointer.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+cdd_c_error_t cdd_cst_pool_string_len(cdd_cst_tree_t *tree, const char *str,
+                                      size_t len, const char **out_str);
+
+/**
  * @brief Gets the last leaf token under a CST node.
  *
  * @param[in] node The root or parent CST node.

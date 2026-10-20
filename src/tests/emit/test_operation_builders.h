@@ -14,73 +14,129 @@ extern "C" {
 #include "emit/test_operation_common.h"
 /* clang-format on */
 
-encs[1].name = cdd_test_mut_str("prefix");
-encs[1].kind = 1;
+/**
+ * @brief Tests c2openapi_build_operation with request bodies, returns, headers,
+ * and links.
+ * @return Test result.
+ */
+TEST test_operation_c2openapi_build_operation_bodies_returns_links(void) {
+  struct OpBuilderContext ctx;
+  struct C2OpenAPI_ParsedSig sig;
+  struct C2OpenAPI_ParsedArg args[1];
+  struct DocMetadata doc;
+  struct DocRequestBody rbs[1];
+  struct DocEncoding encs[3];
+  struct DocResponse rets[2];
+  struct DocResponseHeader headers[2];
+  struct DocLink links[2];
+  struct OpenAPI_Operation op;
 
-encs[2].name = cdd_test_mut_str("items");
-encs[2].kind = 2;
+  memset(&ctx, 0, sizeof(ctx));
+  memset(&sig, 0, sizeof(sig));
+  memset(args, 0, sizeof(args));
+  memset(&doc, 0, sizeof(doc));
+  memset(rbs, 0, sizeof(rbs));
+  memset(encs, 0, sizeof(encs));
+  memset(rets, 0, sizeof(rets));
+  memset(headers, 0, sizeof(headers));
+  memset(links, 0, sizeof(links));
+  memset(&op, 0, sizeof(op));
 
-doc.request_bodies = rbs;
-doc.n_request_bodies = 1;
-doc.encodings = encs;
-doc.n_encodings = 3;
-doc.request_body_description = cdd_test_mut_str("Upload payload");
-doc.request_body_required_set = 1;
-doc.request_body_required = 1;
+  ctx.sig = &sig;
+  ctx.doc = &doc;
+  ctx.func_name = "api_upload_post";
+  doc.verb = cdd_test_mut_str("POST");
 
-rets[0].code = cdd_test_mut_str("200");
-rets[0].summary = cdd_test_mut_str("Success summary");
-rets[0].description = cdd_test_mut_str("Success description");
-rets[0].content_type = cdd_test_mut_str("application/json");
-rets[0].example = cdd_test_mut_str("{\"status\": \"ok\"}");
+  sig.args = args;
+  sig.n_args = 1;
+  args[0].name = cdd_test_mut_str("out_data");
+  args[0].type = cdd_test_mut_str("struct UploadResponse **");
 
-rets[1].code = cdd_test_mut_str("400");
-rets[1].summary = cdd_test_mut_str("Error summary");
-rets[1].description = cdd_test_mut_str("Error description");
-rets[1].content_type = cdd_test_mut_str("application/problem+json");
-rets[1].example = cdd_test_mut_str("{\"error\": \"bad request\"}");
+  rbs[0].content_type = cdd_test_mut_str("multipart/form-data");
+  rbs[0].item_schema = 0;
+  rbs[0].example = cdd_test_mut_str("{\"file\": \"data\"}");
 
-doc.returns = rets;
-doc.n_returns = 2;
+  encs[0].name = cdd_test_mut_str("avatar");
+  encs[0].content_type = cdd_test_mut_str("image/jpeg");
+  encs[0].kind = 0;
+  encs[0].style = DOC_PARAM_STYLE_FORM;
+  encs[0].explode = 1;
+  encs[0].explode_set = 1;
+  encs[0].allow_reserved = 1;
+  encs[0].allow_reserved_set = 1;
 
-headers[0].code = cdd_test_mut_str("200");
-headers[0].name = cdd_test_mut_str("X-Upload-Rate");
-headers[0].type = cdd_test_mut_str("integer");
+  encs[1].name = cdd_test_mut_str("prefix");
+  encs[1].kind = 1;
 
-headers[1].code = cdd_test_mut_str("404");
-headers[1].name = cdd_test_mut_str("X-Missing-Id");
-headers[1].type = cdd_test_mut_str("string");
+  encs[2].name = cdd_test_mut_str("items");
+  encs[2].kind = 2;
 
-doc.response_headers = headers;
-doc.n_response_headers = 2;
+  doc.request_bodies = rbs;
+  doc.n_request_bodies = 1;
+  doc.encodings = encs;
+  doc.n_encodings = 3;
+  doc.request_body_description = cdd_test_mut_str("Upload payload");
+  doc.request_body_required_set = 1;
+  doc.request_body_required = 1;
 
-links[0].code = cdd_test_mut_str("200");
-links[0].name = cdd_test_mut_str("GetFile");
-links[0].operation_id = cdd_test_mut_str("api_file_get");
+  rets[0].code = cdd_test_mut_str("200");
+  rets[0].summary = cdd_test_mut_str("Success summary");
+  rets[0].description = cdd_test_mut_str("Success description");
+  rets[0].content_type = cdd_test_mut_str("application/json");
+  rets[0].example = cdd_test_mut_str("{\"status\": \"ok\"}");
 
-links[1].code = cdd_test_mut_str("500");
-links[1].name = cdd_test_mut_str("SupportTicket");
-links[1].operation_ref = cdd_test_mut_str("#/components/links/Support");
+  rets[1].code = cdd_test_mut_str("400");
+  rets[1].summary = cdd_test_mut_str("Error summary");
+  rets[1].description = cdd_test_mut_str("Error description");
+  rets[1].content_type = cdd_test_mut_str("application/problem+json");
+  rets[1].example = cdd_test_mut_str("{\"error\": \"bad request\"}");
 
-doc.links = links;
-doc.n_links = 2;
+  doc.returns = rets;
+  doc.n_returns = 2;
 
-ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
-ASSERT_STR_EQ("Upload payload", op.req_body_description);
-ASSERT(op.n_responses >= 4);
-reset_operation_test(&op);
+  headers[0].code = cdd_test_mut_str("200");
+  headers[0].name = cdd_test_mut_str("X-Upload-Rate");
+  headers[0].type = cdd_test_mut_str("integer");
 
-doc.n_request_bodies = 0;
-doc.request_bodies = NULL;
-doc.n_encodings = 0;
-doc.request_body_content_type = cdd_test_mut_str("text/plain");
-ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
-ASSERT_STR_EQ("text/plain", op.req_body.content_type);
-reset_operation_test(&op);
+  headers[1].code = cdd_test_mut_str("404");
+  headers[1].name = cdd_test_mut_str("X-Missing-Id");
+  headers[1].type = cdd_test_mut_str("string");
 
-PASS();
+  doc.response_headers = headers;
+  doc.n_response_headers = 2;
+
+  links[0].code = cdd_test_mut_str("200");
+  links[0].name = cdd_test_mut_str("GetFile");
+  links[0].operation_id = cdd_test_mut_str("api_file_get");
+
+  links[1].code = cdd_test_mut_str("500");
+  links[1].name = cdd_test_mut_str("SupportTicket");
+  links[1].operation_ref = cdd_test_mut_str("#/components/links/Support");
+
+  doc.links = links;
+  doc.n_links = 2;
+
+  ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
+  ASSERT_STR_EQ("Upload payload", op.req_body_description);
+  ASSERT(op.n_responses >= 4);
+  reset_operation_test(&op);
+
+  doc.n_request_bodies = 0;
+  doc.request_bodies = NULL;
+  doc.n_encodings = 0;
+  doc.request_body_content_type = cdd_test_mut_str("text/plain");
+  ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
+  ASSERT_STR_EQ("text/plain", op.req_body.content_type);
+  reset_operation_test(&op);
+
+  PASS();
 }
 
+/**
+ * @brief Unit test
+ * test_operation_c2openapi_build_operation_coverage_extensions.
+ * @return Greatest test result.
+ */
 TEST test_operation_c2openapi_build_operation_coverage_extensions(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -170,6 +226,10 @@ TEST test_operation_c2openapi_build_operation_coverage_extensions(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_c2openapi_build_operation_mega_oom.
+ * @return Greatest test result.
+ */
 TEST test_operation_c2openapi_build_operation_mega_oom(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -345,6 +405,10 @@ TEST test_operation_c2openapi_build_operation_mega_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_c2openapi_build_operation_oom.
+ * @return Greatest test result.
+ */
 TEST test_operation_c2openapi_build_operation_oom(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -387,6 +451,10 @@ TEST test_operation_c2openapi_build_operation_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_final_gaps.
+ * @return Greatest test result.
+ */
 TEST test_operation_final_gaps(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -497,6 +565,10 @@ TEST test_operation_final_gaps(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_all_null_and_boundary_checks.
+ * @return Greatest test result.
+ */
 TEST test_operation_all_null_and_boundary_checks(void) {
   struct OpenAPI_Any any_val;
   struct OpenAPI_LinkParam *lp = NULL;

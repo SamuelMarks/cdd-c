@@ -21,8 +21,8 @@
 /**
  * @brief Parses a C++ template type string into an FFI type representation.
  *
- * @param c_type C++ template type string.
- * @param out_type Destination FFI type pointer.
+ * @param[in] c_type C++ template type string.
+ * @param[out] out_type Destination FFI type pointer.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t parse_template_type(const char *c_type,
@@ -64,7 +64,7 @@ cdd_c_error_t parse_template_type(const char *c_type,
   inner_len = (size_t)(gt - lt - 1);
   inner_type_str = (char *)CDD_MALLOC(inner_len + 1);
   if (!inner_type_str) {
-    free(base_name);
+    C_CDD_FREE(base_name);
     out_type->ref_name = NULL;
     return CDD_C_ERROR_MEMORY;
   }
@@ -79,8 +79,8 @@ cdd_c_error_t parse_template_type(const char *c_type,
   out_type->template_args =
       (cdd_ffi_type_t *)CDD_CALLOC(1, sizeof(cdd_ffi_type_t));
   if (!out_type->template_args) {
-    free(inner_type_str);
-    free(base_name);
+    C_CDD_FREE(inner_type_str);
+    C_CDD_FREE(base_name);
     out_type->ref_name = NULL;
     out_type->template_args_count = 0;
     return CDD_C_ERROR_MEMORY;
@@ -88,9 +88,9 @@ cdd_c_error_t parse_template_type(const char *c_type,
 
   rc = map_c_type_to_ffi_kind(inner_type_str, &out_type->template_args[0].kind);
   if (rc != CDD_C_SUCCESS) {
-    free(inner_type_str);
-    free(base_name);
-    free(out_type->template_args);
+    C_CDD_FREE(inner_type_str);
+    C_CDD_FREE(base_name);
+    C_CDD_FREE(out_type->template_args);
     out_type->template_args = NULL;
     out_type->template_args_count = 0;
     out_type->ref_name = NULL;
@@ -104,9 +104,9 @@ cdd_c_error_t parse_template_type(const char *c_type,
       cdd_c_error_t rc_ex =
           parse_template_type(inner_type_str, &out_type->template_args[0]);
       if (rc_ex != CDD_C_SUCCESS) {
-        free(inner_type_str);
-        free(base_name);
-        free(out_type->template_args);
+        C_CDD_FREE(inner_type_str);
+        C_CDD_FREE(base_name);
+        C_CDD_FREE(out_type->template_args);
         out_type->template_args = NULL;
         out_type->template_args_count = 0;
         out_type->ref_name = NULL;
@@ -115,9 +115,9 @@ cdd_c_error_t parse_template_type(const char *c_type,
     } else {
       out_type->template_args[0].ref_name = CDD_STRDUP(inner_type_str);
       if (!out_type->template_args[0].ref_name) {
-        free(inner_type_str);
-        free(base_name);
-        free(out_type->template_args);
+        C_CDD_FREE(inner_type_str);
+        C_CDD_FREE(base_name);
+        C_CDD_FREE(out_type->template_args);
         out_type->template_args = NULL;
         out_type->template_args_count = 0;
         out_type->ref_name = NULL;
@@ -126,7 +126,7 @@ cdd_c_error_t parse_template_type(const char *c_type,
     }
   }
 
-  free(inner_type_str);
+  C_CDD_FREE(inner_type_str);
   return CDD_C_SUCCESS;
 }
 
@@ -279,6 +279,51 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_mangle_cpp_name(const char *ns_name,
 
   *out_mangled = mangled;
   return CDD_C_SUCCESS;
+}
+
+/** @brief Countdown counter for failing FFI IR extractor allocations in tests
+ */
+extern C_CDD_EXPORT int g_ffi_extractor_alloc_fail;
+
+/**
+ * @brief Allocates memory for FFI IR with test fault injection.
+ */
+cdd_c_error_t cdd_ffi_do_malloc(size_t sz, void **out_ptr) {
+  *out_ptr = (g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)
+                 ? NULL
+                 : C_CDD_MALLOC(sz);
+  return *out_ptr ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
+}
+
+/**
+ * @brief Zero-allocates memory for FFI IR with test fault injection.
+ */
+cdd_c_error_t cdd_ffi_do_calloc(size_t n, size_t sz, void **out_ptr) {
+  *out_ptr = (g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)
+                 ? NULL
+                 : C_CDD_CALLOC(n, sz);
+  return *out_ptr ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
+}
+
+/**
+ * @brief Reallocates memory for FFI IR with test fault injection.
+ */
+cdd_c_error_t cdd_ffi_do_realloc(void *ptr, size_t sz, void **out_ptr) {
+  *out_ptr = (g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)
+                 ? NULL
+                 : C_CDD_REALLOC(ptr, sz);
+  return *out_ptr ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
+}
+
+/**
+ * @brief Duplicates a string for FFI IR with test fault injection.
+ */
+cdd_c_error_t cdd_ffi_do_strdup(const char *s, char **out_str) {
+  *out_str =
+      (!s || (g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0))
+          ? NULL
+          : C_CDD_STRDUP(s);
+  return *out_str ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
 #ifdef CDD_BUILD_TESTS

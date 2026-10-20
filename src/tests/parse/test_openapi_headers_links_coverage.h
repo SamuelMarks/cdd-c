@@ -16,6 +16,11 @@ extern "C" {
 #include "openapi/parse/openapi_internal_components.h"
 /* clang-format on */
 
+/**
+ * @brief Helper function cleanup_link_params.
+ * @param[in,out] params Parameter params.
+ * @param[in] count Parameter count.
+ */
 static void cleanup_link_params(struct OpenAPI_LinkParam *params,
                                 size_t count) {
   size_t i;
@@ -29,6 +34,11 @@ static void cleanup_link_params(struct OpenAPI_LinkParam *params,
   free(params);
 }
 
+/**
+ * @brief Helper function cleanup_links_array.
+ * @param[in,out] links Parameter links.
+ * @param[in] count Parameter count.
+ */
 static void cleanup_links_array(struct OpenAPI_Link *links, size_t count) {
   size_t i;
   if (!links)
@@ -38,6 +48,11 @@ static void cleanup_links_array(struct OpenAPI_Link *links, size_t count) {
   free(links);
 }
 
+/**
+ * @brief Helper function cleanup_headers_array.
+ * @param[in,out] headers Parameter headers.
+ * @param[in] count Parameter count.
+ */
 static void cleanup_headers_array(struct OpenAPI_Header *headers,
                                   size_t count) {
   size_t i;
@@ -48,6 +63,11 @@ static void cleanup_headers_array(struct OpenAPI_Header *headers,
   free(headers);
 }
 
+/**
+ * @brief Helper function cleanup_encodings_array.
+ * @param[in,out] encs Parameter encs.
+ * @param[in] count Parameter count.
+ */
 static void cleanup_encodings_array(struct OpenAPI_Encoding *encs,
                                     size_t count) {
   size_t i;
@@ -1209,6 +1229,9 @@ TEST test_openapi_headers_links_cleanups(void) {
   PASS();
 }
 
+/**
+ * @brief Macro OPENAPI_HEADERS_LINKS_COVERAGE_TESTS.
+ */
 #define OPENAPI_HEADERS_LINKS_COVERAGE_TESTS()                                 \
   RUN_TEST(test_openapi_header_object_full_branches);                          \
   RUN_TEST(test_openapi_link_parameters_full_branches);                        \

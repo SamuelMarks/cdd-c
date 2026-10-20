@@ -24,11 +24,17 @@ extern "C" {
 /* clang-format on */
 
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_cdd_fail_url_segment_alloc;
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
 CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 
+/**
+ * @brief Unit test test_url_builder_and_query_branches.
+ * @return Greatest test result.
+ */
 TEST test_url_builder_and_query_branches(void) {
   FILE *fp = cdd_test_tmpfile_global();
   struct OpenAPI_Operation op;
@@ -282,6 +288,10 @@ TEST test_url_builder_and_query_branches(void) {
 
 /**
  * @brief Helper for exhaustive IO failure testing on query parameters.
+ * @param[in,out] fp Parameter fp.
+ * @param[in,out] op Parameter op.
+ * @param[in] qp_tracking Parameter qp_tracking.
+ * @return Test or helper result.
  */
 static cdd_c_error_t test_run_io_exhaustive_query(FILE *fp,
                                                   struct OpenAPI_Operation *op,
@@ -303,6 +313,12 @@ static cdd_c_error_t test_run_io_exhaustive_query(FILE *fp,
 
 /**
  * @brief Helper for exhaustive IO failure testing on URL builder.
+ * @param[in,out] fp Parameter fp.
+ * @param[in] tmpl Parameter tmpl.
+ * @param[in,out] params Parameter params.
+ * @param[in] n_params Parameter n_params.
+ * @param[in] cfg Parameter cfg.
+ * @return Test or helper result.
  */
 static cdd_c_error_t test_run_io_exhaustive_builder(
     FILE *fp, const char *tmpl, struct OpenAPI_Parameter *params,
@@ -324,6 +340,9 @@ static cdd_c_error_t test_run_io_exhaustive_builder(
 
 /**
  * @brief Helper for exhaustive IO failure testing on write_query_json_param.
+ * @param[in,out] fp Parameter fp.
+ * @param[in] p Parameter p.
+ * @return Test or helper result.
  */
 static cdd_c_error_t
 test_run_io_exhaustive_json(FILE *fp, const struct OpenAPI_Parameter *p) {
@@ -344,6 +363,9 @@ test_run_io_exhaustive_json(FILE *fp, const struct OpenAPI_Parameter *p) {
 
 /**
  * @brief Helper for exhaustive IO failure testing on write_query_object_param.
+ * @param[in,out] fp Parameter fp.
+ * @param[in] p Parameter p.
+ * @return Test or helper result.
  */
 static cdd_c_error_t
 test_run_io_exhaustive_obj(FILE *fp, const struct OpenAPI_Parameter *p) {
@@ -364,6 +386,9 @@ test_run_io_exhaustive_obj(FILE *fp, const struct OpenAPI_Parameter *p) {
 
 /**
  * @brief Helper for exhaustive IO failure testing on path object serialization.
+ * @param[in,out] fp Parameter fp.
+ * @param[in] p Parameter p.
+ * @return Test or helper result.
  */
 static cdd_c_error_t
 test_run_io_exhaustive_path_obj(FILE *fp, const struct OpenAPI_Parameter *p) {
@@ -384,6 +409,11 @@ test_run_io_exhaustive_path_obj(FILE *fp, const struct OpenAPI_Parameter *p) {
 
 /**
  * @brief Helper for exhaustive IO failure testing on path array serialization.
+ * @param[in,out] fp Parameter fp.
+ * @param[in] p Parameter p.
+ * @param[in] prefix Parameter prefix.
+ * @param[in] delim Parameter delim.
+ * @return Test or helper result.
  */
 static cdd_c_error_t
 test_run_io_exhaustive_path_arr(FILE *fp, const struct OpenAPI_Parameter *p,
@@ -405,6 +435,12 @@ test_run_io_exhaustive_path_arr(FILE *fp, const struct OpenAPI_Parameter *p,
 
 /**
  * @brief Helper for exhaustive IO failure testing on write_joined_query_array.
+ * @param[in,out] fp Parameter fp.
+ * @param[in] p Parameter p.
+ * @param[in] delim Parameter delim.
+ * @param[in] encode_fn Parameter encode_fn.
+ * @param[in] encode_delim Parameter encode_delim.
+ * @return Test or helper result.
  */
 static cdd_c_error_t
 test_run_io_exhaustive_joined(FILE *fp, const struct OpenAPI_Parameter *p,
@@ -428,6 +464,11 @@ test_run_io_exhaustive_joined(FILE *fp, const struct OpenAPI_Parameter *p,
 /**
  * @brief Helper for exhaustive IO failure testing on
  * write_joined_query_array_encoded_delim.
+ * @param[in,out] fp Parameter fp.
+ * @param[in] p Parameter p.
+ * @param[in] delim_enc Parameter delim_enc.
+ * @param[in] encode_fn Parameter encode_fn.
+ * @return Test or helper result.
  */
 static cdd_c_error_t
 test_run_io_exhaustive_joined_enc(FILE *fp, const struct OpenAPI_Parameter *p,
@@ -448,6 +489,9 @@ test_run_io_exhaustive_joined_enc(FILE *fp, const struct OpenAPI_Parameter *p,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Executes the codegen_url_builder_suite test suite.
+ */
 SUITE(codegen_url_builder_suite) {
   RUN_TEST(test_url_builder_and_query_branches);
 }

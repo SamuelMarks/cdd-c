@@ -25,9 +25,15 @@ extern "C" {
 #include "classes/emit/struct.h"
 /* clang-format on */
 
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
 
+/**
+ * @brief Unit test test_json_exhaustive_io.
+ * @return Greatest test result.
+ */
 TEST test_json_exhaustive_io(void) {
 #ifdef CDD_BUILD_TESTS
   int i;
@@ -278,6 +284,10 @@ TEST test_json_exhaustive_io(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_codegen_json_extra.
+ * @return Greatest test result.
+ */
 TEST test_codegen_json_extra(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
@@ -369,6 +379,7 @@ extern C_CDD_EXPORT int g_cdd_fail_str_after_last;
 /**
  * @brief Comprehensive test covering write_only, read_only, exclusive ranges,
  * array of objects, enum, and error paths in json emission.
+ * @return Test or helper result.
  */
 TEST test_codegen_json_comprehensive(void) {
   FILE *tmp;
@@ -692,6 +703,9 @@ TEST test_codegen_json_comprehensive(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the codegen_json_comprehensive_suite test suite.
+ */
 SUITE(codegen_json_comprehensive_suite) {
   RUN_TEST(test_json_exhaustive_io);
   RUN_TEST(test_codegen_json_extra);

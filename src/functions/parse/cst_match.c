@@ -32,7 +32,6 @@ extern C_CDD_EXPORT int g_cdd_fail_is_expression_brace;
 extern C_CDD_EXPORT int g_cdd_fail_consume_balanced_braces;
 extern C_CDD_EXPORT int g_cdd_fail_match_function_definition;
 extern C_CDD_EXPORT int g_cdd_fail_cst_list_add;
-extern C_CDD_EXPORT int g_cdd_fail_token_matches_string;
 #endif
 
 /**

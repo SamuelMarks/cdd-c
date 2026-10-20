@@ -1,3 +1,7 @@
+/**
+ * @file test_dsl_modifiers.h
+ * @brief Unit tests and mocks in test_dsl_modifiers.h.
+ */
 #ifndef TEST_DSL_MODIFIERS_H
 #define TEST_DSL_MODIFIERS_H
 
@@ -10,6 +14,10 @@ extern "C" {
 #include "../cdd_test_helpers/cdd_helpers.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_dsl_parser_modifiers.
+ * @return Greatest test result.
+ */
 TEST test_dsl_parser_modifiers(void) {
   cdd_dsl_token_list_t list;
   cdd_ffi_ir_t *ir = NULL;

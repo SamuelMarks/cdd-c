@@ -39,6 +39,7 @@ extern "C" {
  * 1. Tokenizer parses valid C.
  * 2. Analysis finds the unchecked allocation.
  * 3. Rewriter successfully injects the safety check.
+ * @return Test or helper result.
  */
 TEST test_integration_full_pipeline(void) {
   const char *raw_source = "#include <stdlib.h>\n"
@@ -90,6 +91,7 @@ TEST test_integration_full_pipeline(void) {
 /**
  * @brief Test manual file I/O integration with the fix command logic.
  * Ensures `fix_code_main` can read, process, and write back a single file.
+ * @return Test or helper result.
  */
 TEST test_integration_fix_file_io(void) {
   const char *in_file = cdd_test_mut_str("integ_in.c");
@@ -130,6 +132,7 @@ TEST test_integration_fix_file_io(void) {
 /**
  * @brief Test the recursive folder traversal of the fix command.
  * Verifies that multiple files in a directory tree are processed.
+ * @return Test or helper result.
  */
 TEST test_integration_recursive_fix(void) {
   char *sys_tmp = NULL;
@@ -203,6 +206,7 @@ TEST test_integration_recursive_fix(void) {
 
 /**
  * @brief Test the `--in-place` flag on a single file.
+ * @return Test or helper result.
  */
 TEST test_integration_fix_file_in_place(void) {
   const char *in_file = cdd_test_mut_str("inplace.c");
@@ -235,6 +239,7 @@ TEST test_integration_fix_file_in_place(void) {
 
 /**
  * @brief Test that `fix` fails if a directory is passed without `--in-place`.
+ * @return Test or helper result.
  */
 TEST test_integration_fix_dir_error_no_flag(void) {
   char *sys_tmp = NULL;
@@ -295,6 +300,7 @@ TEST test_integration_fix_dir_error_no_flag(void) {
  * 3. Audit again -> Expect 0 violations.
  * 4. Code Inspection -> Verify signatures changed and error codes checking
  * injected.
+ * @return Test or helper result.
  */
 TEST test_end_to_end_project_lifecycle(void) {
   char *sys_tmp = NULL;
@@ -394,6 +400,10 @@ TEST test_end_to_end_project_lifecycle(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_integration_schema2code_with_guards.
+ * @return Greatest test result.
+ */
 TEST test_integration_schema2code_with_guards(void) {
   /*
    * Tests:
@@ -449,6 +459,9 @@ TEST test_integration_schema2code_with_guards(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the integration_suite test suite.
+ */
 SUITE(integration_suite) {
   RUN_TEST(test_integration_full_pipeline);
   RUN_TEST(test_integration_fix_file_io);

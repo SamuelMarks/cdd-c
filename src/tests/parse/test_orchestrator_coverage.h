@@ -1,3 +1,7 @@
+/**
+ * @file test_orchestrator_coverage.h
+ * @brief Unit tests and mocks in test_orchestrator_coverage.h.
+ */
 #ifndef TEST_ORCHESTRATOR_COVERAGE_H
 #define TEST_ORCHESTRATOR_COVERAGE_H
 
@@ -15,6 +19,10 @@ extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
 extern C_CDD_EXPORT cdd_c_error_t fix_code_main(int argc, char **argv);
 
+/**
+ * @brief Unit test test_orchestrator_coverage_fix_code_main.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_coverage_fix_code_main(void) {
   char *argv_missing[2];
   char *argv_missing2[2];
@@ -38,6 +46,10 @@ TEST test_orchestrator_coverage_fix_code_main(void) {
   }
 }
 
+/**
+ * @brief Unit test test_orchestrator_coverage_oom.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_coverage_oom(void) {
   char *out = NULL;
   int i;
@@ -53,6 +65,10 @@ TEST test_orchestrator_coverage_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_orchestrator_coverage_oom_deep.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_coverage_oom_deep(void) {
   char *out = NULL;
   int i;
@@ -76,6 +92,10 @@ TEST test_orchestrator_coverage_oom_deep(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_orchestrator_coverage_fix_file.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_coverage_fix_file(void) {
   FILE *f;
 #if defined(_MSC_VER)
@@ -129,6 +149,10 @@ TEST test_orchestrator_coverage_fix_file(void) {
   }
 }
 
+/**
+ * @brief Unit test test_orchestrator_coverage_fix_dir_no_inplace_1arg.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_coverage_fix_dir_no_inplace_1arg(void) {
   char *argv[1];
   int rc;
@@ -139,6 +163,10 @@ TEST test_orchestrator_coverage_fix_dir_no_inplace_1arg(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_orchestrator_coverage_fix_file_1arg.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_coverage_fix_file_1arg(void) {
   /* Single missing file implicitly */
   char *argv_single[1];
@@ -151,6 +179,10 @@ TEST test_orchestrator_coverage_fix_file_1arg(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_orchestrator_coverage_fix_dir_errors.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_coverage_fix_dir_errors(void) {
   char *argv_argc0[1];
   char *argv_argc3[3];
@@ -172,6 +204,10 @@ TEST test_orchestrator_coverage_fix_dir_errors(void) {
   }
 }
 
+/**
+ * @brief Unit test test_orchestrator_coverage_fix_file_failures.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_coverage_fix_file_failures(void) {
   char *argv_c[2];
   int rc = 0;
@@ -189,6 +225,10 @@ TEST test_orchestrator_coverage_fix_file_failures(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_orchestrator_coverage_fix_file_failures_2.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_coverage_fix_file_failures_2(void) {
   char *argv_c[2];
   int rc = 0;
@@ -208,6 +248,10 @@ TEST test_orchestrator_coverage_fix_file_failures_2(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_orchestrator_coverage_fix_file_write_fail.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_coverage_fix_file_write_fail(void) {
   char *argv_c[2];
   int rc;
@@ -219,6 +263,10 @@ TEST test_orchestrator_coverage_fix_file_write_fail(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_orchestrator_call_with_whitespace.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_call_with_whitespace(void) {
   const char *code = "void A() { char *p = malloc(1); }"
                      "void B() { A  (); }";
@@ -230,6 +278,10 @@ TEST test_orchestrator_call_with_whitespace(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_orchestrator_many_allocs.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_many_allocs(void) {
   const char *code = "void A() {"
                      "  malloc(1);"
@@ -247,6 +299,10 @@ TEST test_orchestrator_many_allocs(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_orchestrator_many_callers.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_many_callers(void) {
   const char *code = "void A() { malloc(1); }"
                      "void C1() { A(); }"
@@ -262,6 +318,10 @@ TEST test_orchestrator_many_callers(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_orchestrator_anonymous_func.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_anonymous_func(void) {
   const char *code = "() { malloc(1); }";
   char *out = NULL;
@@ -271,6 +331,10 @@ TEST test_orchestrator_anonymous_func(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_orchestrator_main_caller.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_main_caller(void) {
   const char *code = "void A() { malloc(1); }"
                      "int main() { A(); return 0; }";
@@ -282,6 +346,10 @@ TEST test_orchestrator_main_caller(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_orchestrator_pointer_return.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_pointer_return(void) {
   const char *code = "char *A() { char *p = malloc(1); return p; }"
                      "void B() { A(); }";
@@ -293,6 +361,10 @@ TEST test_orchestrator_pointer_return(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_orchestrator_non_function_nodes.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_non_function_nodes(void) {
   const char *code = "#define FOO 1"
                      "int g_var = 42;"
@@ -305,6 +377,10 @@ TEST test_orchestrator_non_function_nodes(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_orchestrator_extra_oom_sweeps.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_extra_oom_sweeps(void) {
   const char *code_allocs = "void A() {"
                             "  char *p = malloc(1);"
@@ -347,6 +423,9 @@ TEST test_orchestrator_extra_oom_sweeps(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the orchestrator_coverage_suite test suite.
+ */
 SUITE(orchestrator_coverage_suite) {
   RUN_TEST(test_orchestrator_coverage_fix_code_main);
   RUN_TEST(test_orchestrator_coverage_oom);

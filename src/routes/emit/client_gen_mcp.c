@@ -290,7 +290,7 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
                         "    json_object_set_string(res_obj, \"text\", "
                         "\"%s\");\n",
                         escaped);
-                free(escaped);
+                C_CDD_FREE(escaped);
                 found_raw = 1;
               }
               break;
@@ -709,13 +709,8 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
       goto cleanup;
     }
   }
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 74)
-    rc = CDD_C_ERROR_IO;
-  else
-#endif
-    rc = (fprintf(hfile, "#endif /* %s */\n", guard) < 0) ? CDD_C_ERROR_IO
-                                                          : CDD_C_SUCCESS;
+  rc = (fprintf(hfile, "#endif /* %s */\n", guard) < 0) ? CDD_C_ERROR_IO
+                                                        : CDD_C_SUCCESS;
   if (rc != CDD_C_SUCCESS) {
     fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
             __LINE__);

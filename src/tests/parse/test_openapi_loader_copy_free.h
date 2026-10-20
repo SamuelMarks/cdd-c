@@ -14,6 +14,10 @@ extern "C" {
 #include "parse/test_openapi_loader_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_openapi_loader_copy_and_free_helpers.
+ * @return Greatest test result.
+ */
 TEST test_openapi_loader_copy_and_free_helpers(void) {
   struct OpenAPI_Parameter p_src, p_dst;
   struct OpenAPI_Header h_src, h_dst;
@@ -568,6 +572,10 @@ TEST test_openapi_loader_copy_and_free_helpers(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_loader_copy_oom_branches.
+ * @return Greatest test result.
+ */
 TEST test_openapi_loader_copy_oom_branches(void) {
   int k;
   struct OpenAPI_Parameter p_src, p_dst;
@@ -673,6 +681,10 @@ TEST test_openapi_loader_copy_oom_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_loader_copy_and_free_advanced.
+ * @return Greatest test result.
+ */
 TEST test_openapi_loader_copy_and_free_advanced(void) {
   struct OpenAPI_SchemaRef sr_src, sr_dst;
   struct OpenAPI_Path path_src, path_dst;

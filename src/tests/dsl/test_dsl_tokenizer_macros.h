@@ -1,3 +1,7 @@
+/**
+ * @file test_dsl_tokenizer_macros.h
+ * @brief Unit tests and mocks in test_dsl_tokenizer_macros.h.
+ */
 #ifndef TEST_DSL_TOKENIZER_MACROS_H
 #define TEST_DSL_TOKENIZER_MACROS_H
 
@@ -10,6 +14,10 @@ extern "C" {
 #include "../cdd_test_helpers/cdd_helpers.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_dsl_tokenizer_macro_invoke.
+ * @return Greatest test result.
+ */
 TEST test_dsl_tokenizer_macro_invoke(void) {
   cdd_dsl_token_list_t list;
   cdd_c_error_t rc;

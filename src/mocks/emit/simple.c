@@ -1,3 +1,7 @@
+/**
+ * @file simple.c
+ * @brief Unit tests and mocks in simple.c.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -7,18 +11,18 @@
 #include "simple.h"
 /* clang-format on */
 
-/** \brief func */
 /**
  * @brief Releases memory owned by a Haz instance.
+ * @return Result status or value.
  */
 enum cdd_c_error Haz_cleanup(struct Haz *haz) {
   C_CDD_FREE(haz);
   return CDD_C_SUCCESS;
 }
 
-/** \brief func */
 /**
  * @brief Releases memory owned by a Foo instance.
+ * @return Result status or value.
  */
 enum cdd_c_error Foo_cleanup(struct Foo *foo) {
   enum cdd_c_error rc;

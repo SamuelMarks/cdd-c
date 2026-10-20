@@ -31,8 +31,8 @@ typedef struct cdd_dsl_token_list_t {
 /**
  * @brief Tokenizes a CDD FFI IR DSL source string.
  *
- * @param source The null-terminated source string.
- * @param out_tokens Pointer to a cdd_dsl_token_list_t to populate.
+ * @param[in] source The null-terminated source string.
+ * @param[out] out_tokens Pointer to a cdd_dsl_token_list_t to populate.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
@@ -41,7 +41,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
 /**
  * @brief Frees a token list.
  *
- * @param list The token list to free.
+ * @param[in,out] list The token list to free.
  */
 C_CDD_EXPORT void cdd_dsl_token_list_free(cdd_dsl_token_list_t *list);
 

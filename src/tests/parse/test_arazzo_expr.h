@@ -28,6 +28,7 @@ extern "C" {
 /**
  * @brief Tests `arazzo_runtime_expr_parse` on all 17 Arazzo 1.1.0 runtime
  * expression types and templates.
+ * @return Test or helper result.
  */
 TEST test_arazzo_runtime_expr_parse_valid(void) {
   struct Arazzo_RuntimeExpr expr;
@@ -186,6 +187,7 @@ TEST test_arazzo_runtime_expr_parse_valid(void) {
 
 /**
  * @brief Tests invalid syntax and OOM branches in `arazzo_runtime_expr_parse`.
+ * @return Test or helper result.
  */
 TEST test_arazzo_runtime_expr_parse_invalid_and_oom(void) {
   struct Arazzo_RuntimeExpr expr;
@@ -305,6 +307,7 @@ TEST test_arazzo_runtime_expr_parse_invalid_and_oom(void) {
 /**
  * @brief Tests `arazzo_runtime_expr_format` across all expression kinds,
  * invalid states, and OOM.
+ * @return Test or helper result.
  */
 TEST test_arazzo_runtime_expr_format_all(void) {
   struct Arazzo_RuntimeExpr expr;
@@ -386,6 +389,9 @@ TEST test_arazzo_runtime_expr_format_all(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the arazzo_expr_suite test suite.
+ */
 SUITE(arazzo_expr_suite) {
   RUN_TEST(test_arazzo_runtime_expr_parse_valid);
   RUN_TEST(test_arazzo_runtime_expr_parse_invalid_and_oom);

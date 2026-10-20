@@ -26,8 +26,13 @@ extern "C" {
 #include "routes/parse/cli.h"
 /* clang-format on */
 
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 
+/**
+ * @brief Unit test test_c2o_cli_source_file_checks.
+ * @return Greatest test result.
+ */
 TEST test_c2o_cli_source_file_checks(void) {
   int rc = 0;
   char *tmp_dir = NULL;
@@ -78,6 +83,10 @@ TEST test_c2o_cli_source_file_checks(void) {
   }
 }
 
+/**
+ * @brief Unit test test_c2o_cli_doc_sec_unset.
+ * @return Greatest test result.
+ */
 TEST test_c2o_cli_doc_sec_unset(void) {
   int rc = 0;
   const char *snippets[] = {
@@ -170,6 +179,10 @@ TEST test_c2o_cli_doc_sec_unset(void) {
   }
 }
 
+/**
+ * @brief Unit test test_c2o_cli_spec_has_tag_nulls.
+ * @return Greatest test result.
+ */
 TEST test_c2o_cli_spec_has_tag_nulls(void) {
   int rc = 0;
   const char *src = "/**\n"
@@ -216,6 +229,10 @@ TEST test_c2o_cli_spec_has_tag_nulls(void) {
   }
 }
 
+/**
+ * @brief Unit test test_c2o_cli_mappings_errors_find.
+ * @return Greatest test result.
+ */
 TEST test_c2o_cli_mappings_errors_find(void) {
   int rc = 0;
   const char src[] = {
@@ -285,6 +302,10 @@ TEST test_c2o_cli_mappings_errors_find(void) {
   }
 }
 
+/**
+ * @brief Unit test test_c2o_cli_set_str_mismatch.
+ * @return Greatest test result.
+ */
 TEST test_c2o_cli_set_str_mismatch(void) {
   int rc = 0;
   const char *src = "/**\n"
@@ -331,6 +352,10 @@ TEST test_c2o_cli_set_str_mismatch(void) {
   }
 }
 
+/**
+ * @brief Unit test test_c2o_cli_server_variables.
+ * @return Greatest test result.
+ */
 TEST test_c2o_cli_server_variables(void) {
   int rc = 0;
   const char *src = "/**\n"
@@ -379,6 +404,10 @@ TEST test_c2o_cli_server_variables(void) {
   }
 }
 
+/**
+ * @brief Unit test test_c2o_cli_server_variables_validation.
+ * @return Greatest test result.
+ */
 TEST test_c2o_cli_server_variables_validation(void) {
   int rc = 0;
   const char *src =
@@ -428,6 +457,10 @@ TEST test_c2o_cli_server_variables_validation(void) {
   }
 }
 
+/**
+ * @brief Unit test test_c2o_cli_merge_oauth_scopes.
+ * @return Greatest test result.
+ */
 TEST test_c2o_cli_merge_oauth_scopes(void) {
   int rc = 0;
   const char src[] = {
@@ -496,6 +529,10 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
   }
 }
 
+/**
+ * @brief Unit test test_c2o_cli_oauth_validation_errors.
+ * @return Greatest test result.
+ */
 TEST test_c2o_cli_oauth_validation_errors(void) {
   int rc = 0;
   const char *snippets[] = {
@@ -567,6 +604,10 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
   }
 }
 
+/**
+ * @brief Unit test test_c2o_cli_merge_oauth_flow_collisions.
+ * @return Greatest test result.
+ */
 TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
   int rc = 0;
   const char *snippets[] = {
@@ -645,6 +686,9 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
   }
 }
 
+/**
+ * @brief Executes the integration_c2openapi_cli_suite test suite.
+ */
 SUITE(integration_c2openapi_cli_suite) {
   RUN_TEST(test_c2o_cli_source_file_checks);
   RUN_TEST(test_c2o_cli_doc_sec_unset);

@@ -28,7 +28,16 @@ extern C_CDD_EXPORT int g_cdd_strdup_fail;
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
 #ifndef DOC_PARSE_BLOCK_WITH_OOM_DEFINED
+/**
+ * @brief Macro DOC_PARSE_BLOCK_WITH_OOM_DEFINED.
+ */
 #define DOC_PARSE_BLOCK_WITH_OOM_DEFINED
+/**
+ * @brief Helper function doc_parse_block_with_oom.
+ * @param[in] comment Parameter comment.
+ * @param[in,out] meta Parameter meta.
+ * @return Result status or value.
+ */
 static int doc_parse_block_with_oom(const char *comment,
                                     struct DocMetadata *meta) {
   int i;
@@ -54,9 +63,18 @@ static int doc_parse_block_with_oom(const char *comment,
 }
 #endif
 #ifndef doc_parse_block
+/**
+ * @brief Macro doc_parse_block.
+ * @param[in] comment Macro argument comment.
+ * @param[in] meta Macro argument meta.
+ */
 #define doc_parse_block(comment, meta) doc_parse_block_with_oom(comment, meta)
 #endif
 
+/**
+ * @brief Unit test test_doc_parser_100_percent_coverage_boost.
+ * @return Greatest test result.
+ */
 TEST test_doc_parser_100_percent_coverage_boost(void) {
   struct DocMetadata meta;
   cdd_c_error_t rc = 0;
@@ -568,6 +586,10 @@ TEST test_doc_parser_100_percent_coverage_boost(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_crlf_and_non_bracket_tags.
+ * @return Greatest test result.
+ */
 TEST test_doc_crlf_and_non_bracket_tags(void) {
   struct DocMetadata meta;
   const char *comment = "/**\r\n"
@@ -580,6 +602,10 @@ TEST test_doc_crlf_and_non_bracket_tags(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parser_extra_branches.
+ * @return Greatest test result.
+ */
 TEST test_doc_parser_extra_branches(void) {
   char dummy_buf[16];
   const char *p = NULL;
@@ -1596,6 +1622,9 @@ TEST test_doc_parser_extra_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the doc_parser_boost_suite test suite.
+ */
 SUITE(doc_parser_boost_suite) {
   RUN_TEST(test_doc_parser_100_percent_coverage_boost);
   RUN_TEST(test_doc_crlf_and_non_bracket_tags);

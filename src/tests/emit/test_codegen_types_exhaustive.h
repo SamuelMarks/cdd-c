@@ -25,6 +25,10 @@ extern "C" {
 #include "classes/emit/types.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_types_exhaustive_io.
+ * @return Greatest test result.
+ */
 TEST test_types_exhaustive_io(void) {
 #ifdef CDD_BUILD_TESTS
   int i, rc;
@@ -463,6 +467,9 @@ TEST test_types_exhaustive_io(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the codegen_types_exhaustive_suite test suite.
+ */
 SUITE(codegen_types_exhaustive_suite) { RUN_TEST(test_types_exhaustive_io); }
 
 #ifdef __cplusplus

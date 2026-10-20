@@ -22,10 +22,19 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
+/**
+ * @brief Helper function helper_generate_patches.
+ * @param[in] src Parameter src.
+ * @param[in,out] patches Parameter patches.
+ * @param[out] out_nodes Parameter out_nodes.
+ * @param[out] out_tokens Parameter out_tokens.
+ * @return Result status or value.
+ */
 static cdd_c_error_t helper_generate_patches(const char *src,
                                              struct SafeCrtPatchList *patches,
                                              struct CstNodeList **out_nodes,
@@ -50,6 +59,12 @@ static cdd_c_error_t helper_generate_patches(const char *src,
   return cst_generate_safe_crt_patches(*out_nodes, *out_tokens, patches);
 }
 
+/**
+ * @brief Helper function helper_cleanup.
+ * @param[in,out] patches Parameter patches.
+ * @param[in,out] nodes Parameter nodes.
+ * @param[in,out] tokens Parameter tokens.
+ */
 static void helper_cleanup(struct SafeCrtPatchList *patches,
                            struct CstNodeList *nodes,
                            struct TokenList *tokens) {
@@ -63,6 +78,10 @@ static void helper_cleanup(struct SafeCrtPatchList *patches,
     free_token_list(tokens);
 }
 
+/**
+ * @brief Unit test test_safe_crt_init_free.
+ * @return Greatest test result.
+ */
 TEST test_safe_crt_init_free(void) {
   struct SafeCrtPatchList patches;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, safe_crt_patch_list_init(NULL));
@@ -86,6 +105,10 @@ TEST test_safe_crt_init_free(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_safe_crt_add_patch_unit.
+ * @return Greatest test result.
+ */
 TEST test_safe_crt_add_patch_unit(void) {
   struct SafeCrtPatchList list;
   size_t i;
@@ -114,6 +137,10 @@ TEST test_safe_crt_add_patch_unit(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_safe_crt_extract_token_text_unit.
+ * @return Greatest test result.
+ */
 TEST test_safe_crt_extract_token_text_unit(void) {
   const char *src = "int x;";
   struct TokenList *tokens = NULL;
@@ -138,6 +165,10 @@ TEST test_safe_crt_extract_token_text_unit(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_safe_crt_direct_patch_generators_invalid.
+ * @return Greatest test result.
+ */
 TEST test_safe_crt_direct_patch_generators_invalid(void) {
   struct SafeCrtPatchList patches;
   struct TokenList tokens;
@@ -179,6 +210,10 @@ TEST test_safe_crt_direct_patch_generators_invalid(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_safe_crt_cst_generate_args.
+ * @return Greatest test result.
+ */
 TEST test_safe_crt_cst_generate_args(void) {
   struct CstNodeList nodes;
   struct TokenList tokens;
@@ -197,6 +232,10 @@ TEST test_safe_crt_cst_generate_args(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_safe_crt_strcpy.
+ * @return Greatest test result.
+ */
 TEST test_safe_crt_strcpy(void) {
   const char *src = "void foo() {\n"
                     "  char dest[100];\n"
@@ -219,6 +258,10 @@ TEST test_safe_crt_strcpy(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_safe_crt_strncpy.
+ * @return Greatest test result.
+ */
 TEST test_safe_crt_strncpy(void) {
   const char *src = "void foo() {\n"
                     "  char dest[100];\n"
@@ -241,6 +284,10 @@ TEST test_safe_crt_strncpy(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_safe_crt_sprintf.
+ * @return Greatest test result.
+ */
 TEST test_safe_crt_sprintf(void) {
   const char *src = "void foo() {\n"
                     "  char dest[100];\n"
@@ -262,6 +309,10 @@ TEST test_safe_crt_sprintf(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_safe_crt_fopen.
+ * @return Greatest test result.
+ */
 TEST test_safe_crt_fopen(void) {
   const char *src = "void foo() {\n"
                     "  FILE *f;\n"
@@ -282,6 +333,10 @@ TEST test_safe_crt_fopen(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_safe_crt_vla.
+ * @return Greatest test result.
+ */
 TEST test_safe_crt_vla(void) {
   const char *src = "void foo(int n) {\n"
                     "  char buf_c[n];\n"
@@ -308,6 +363,10 @@ TEST test_safe_crt_vla(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_safe_crt_edge_cases_1.
+ * @return Greatest test result.
+ */
 TEST test_safe_crt_edge_cases_1(void) {
   const char *src = "void foo() {\n"
                     "  char dest[100];\n"
@@ -343,6 +402,10 @@ TEST test_safe_crt_edge_cases_1(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_safe_crt_edge_cases_2.
+ * @return Greatest test result.
+ */
 TEST test_safe_crt_edge_cases_2(void) {
   const char *src = "void foo() {\n"
                     "  str"
@@ -384,6 +447,10 @@ TEST test_safe_crt_edge_cases_2(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_safe_crt_edge_cases_3.
+ * @return Greatest test result.
+ */
 TEST test_safe_crt_edge_cases_3(void) {
   const char *src = "void foo() {\n"
                     "  fopen;\n"
@@ -422,6 +489,10 @@ TEST test_safe_crt_edge_cases_3(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_safe_crt_short_nodes.
+ * @return Greatest test result.
+ */
 TEST test_safe_crt_short_nodes(void) {
   struct TokenList *tokens = NULL;
   struct CstNodeList nodes;
@@ -456,6 +527,10 @@ TEST test_safe_crt_short_nodes(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_safe_crt_direct_branches.
+ * @return Greatest test result.
+ */
 TEST test_safe_crt_direct_branches(void) {
   struct TokenList *tl = NULL;
   struct SafeCrtPatchList patches;
@@ -548,6 +623,10 @@ TEST test_safe_crt_direct_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_safe_crt_oom.
+ * @return Greatest test result.
+ */
 TEST test_safe_crt_oom(void) {
   const char *src = "void foo(int n) {\n"
                     "  char dest[100];\n"
@@ -613,6 +692,9 @@ TEST test_safe_crt_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the safe_crt_suite test suite.
+ */
 SUITE(safe_crt_suite) {
   RUN_TEST(test_safe_crt_init_free);
   RUN_TEST(test_safe_crt_add_patch_unit);

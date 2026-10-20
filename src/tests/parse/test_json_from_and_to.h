@@ -1,3 +1,4 @@
+/** @brief Test definition g_cdd_wine_skip. */
 extern int g_cdd_wine_skip;
 
 /**

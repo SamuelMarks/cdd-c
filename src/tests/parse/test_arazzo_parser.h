@@ -15,16 +15,44 @@
 
 /* clang-format off */
 #include <greatest.h>
+#include <parson.h>
 #include <stdlib.h>
 #include <string.h>
 #include "arazzo/emit/arazzo.h"
 #include "arazzo/parse/arazzo.h"
 #include "c_cdd/memory.h"
+#include "routes/parse/cli.h"
 /* clang-format on */
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+/** @brief Test definition g_arazzo_parson_oom_at. */
+static int g_arazzo_parson_oom_at = -1;
+
+/**
+ * @brief Mock Parson allocator that fails at countdown zero.
+ *
+ * @param[in] sz Requested allocation size in bytes.
+ * @return Allocated buffer or `NULL` on injected OOM.
+ */
+static void *mock_arazzo_parson_malloc(size_t sz) {
+  if (g_arazzo_parson_oom_at == 0) {
+    g_arazzo_parson_oom_at = -1;
+    return NULL;
+  }
+  if (g_arazzo_parson_oom_at > 0)
+    g_arazzo_parson_oom_at--;
+  return malloc(sz);
+}
+
+/**
+ * @brief Mock Parson deallocator forwarding to `free`.
+ *
+ * @param[in] ptr Pointer to free.
+ */
+static void mock_arazzo_parson_free(void *ptr) { free(ptr); }
 
 /**
  * @brief Builds a comprehensive valid Arazzo 1.1.0 `JSON_Value *` exercising
@@ -364,6 +392,7 @@ static cdd_c_error_t build_full_arazzo_json(JSON_Value **out_root) {
 
 /**
  * @brief Tests full round-trip `JSON -> Arazzo_Spec -> JSON -> Arazzo_Spec`.
+ * @return Test or helper result.
  */
 TEST test_arazzo_parse_and_emit_roundtrip(void) {
   JSON_Value *root_val = NULL;
@@ -404,6 +433,7 @@ TEST test_arazzo_parse_and_emit_roundtrip(void) {
 /**
  * @brief Tests validation failures and malformed JSON inputs on
  * `arazzo_load_from_json` and `arazzo_validate_spec`.
+ * @return Test or helper result.
  */
 TEST test_arazzo_parse_and_validate_errors(void) {
   struct Arazzo_Spec spec;
@@ -483,11 +513,36 @@ TEST test_arazzo_parse_and_validate_errors(void) {
   spec.workflows[1].steps[0].parameters[0].reusable.reference =
       C_CDD_STRDUP("bad_prefix");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, arazzo_validate_spec(&spec));
-
-  /* Self-dependency on step & workflow */
   free(spec.workflows[1].steps[0].parameters[0].reusable.reference);
   spec.workflows[1].steps[0].parameters[0].reusable.reference =
       C_CDD_STRDUP("$components.parameters.AuthParam");
+
+  /* Unknown component successAction and failureAction references */
+  free(spec.workflows[1].steps[0].on_success[0].reusable.reference);
+  spec.workflows[1].steps[0].on_success[0].reusable.reference =
+      C_CDD_STRDUP("$components.successActions.Missing");
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, arazzo_validate_spec(&spec));
+  free(spec.workflows[1].steps[0].on_success[0].reusable.reference);
+  spec.workflows[1].steps[0].on_success[0].reusable.reference =
+      C_CDD_STRDUP("bad_prefix");
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, arazzo_validate_spec(&spec));
+  free(spec.workflows[1].steps[0].on_success[0].reusable.reference);
+  spec.workflows[1].steps[0].on_success[0].reusable.reference =
+      C_CDD_STRDUP("$components.successActions.DoneAct");
+
+  free(spec.workflows[1].steps[0].on_failure[0].reusable.reference);
+  spec.workflows[1].steps[0].on_failure[0].reusable.reference =
+      C_CDD_STRDUP("$components.failureActions.Missing");
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, arazzo_validate_spec(&spec));
+  free(spec.workflows[1].steps[0].on_failure[0].reusable.reference);
+  spec.workflows[1].steps[0].on_failure[0].reusable.reference =
+      C_CDD_STRDUP("bad_prefix");
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, arazzo_validate_spec(&spec));
+  free(spec.workflows[1].steps[0].on_failure[0].reusable.reference);
+  spec.workflows[1].steps[0].on_failure[0].reusable.reference =
+      C_CDD_STRDUP("$components.failureActions.RetryAct");
+
+  /* Self-dependency on step & workflow */
   free(spec.workflows[1].steps[1].depends_on[0]);
   spec.workflows[1].steps[1].depends_on[0] = C_CDD_STRDUP("step2");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, arazzo_validate_spec(&spec));
@@ -541,7 +596,7 @@ TEST test_arazzo_parse_and_validate_errors(void) {
       }
       g_cdd_alloc_fail = 0;
     }
-    for (f = 1; f <= 40; ++f) {
+    for (f = 1; f <= 60; ++f) {
       g_cdd_strdup_fail = f;
       if (arazzo_load_from_json_value(root_val, &spec) == CDD_C_SUCCESS) {
         arazzo_spec_free(&spec);
@@ -553,6 +608,21 @@ TEST test_arazzo_parse_and_validate_errors(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY, arazzo_write_spec_to_json(&spec, &json_out));
     g_cdd_alloc_fail = 0;
 
+    c2openapi_set_json_allocators(mock_arazzo_parson_malloc,
+                                  mock_arazzo_parson_free);
+    (json_set_allocation_functions)(mock_arazzo_parson_malloc,
+                                    mock_arazzo_parson_free);
+    for (f = 0; f <= 260; ++f) {
+      g_arazzo_parson_oom_at = f;
+      if (arazzo_write_spec_to_json(&spec, &json_out) == CDD_C_SUCCESS) {
+        free(json_out);
+        json_out = NULL;
+      }
+      g_arazzo_parson_oom_at = -1;
+    }
+    c2openapi_set_json_allocators(malloc, free);
+    (json_set_allocation_functions)(malloc, free);
+
     /* Emit with empty components sub-objects */
     {
       size_t orig_n_inputs = spec.components.n_inputs;
@@ -560,10 +630,14 @@ TEST test_arazzo_parse_and_validate_errors(void) {
       size_t orig_n_fa = spec.components.n_failure_actions;
       size_t orig_n_cp = spec.components.n_parameters;
       size_t orig_n_sp = spec.workflows[1].steps[0].n_parameters;
+      size_t orig_n_step_sa = spec.workflows[1].steps[0].n_on_success;
+      size_t orig_n_step_fa = spec.workflows[1].steps[0].n_on_failure;
 
       spec.components.n_inputs = 0;
       spec.components.n_success_actions = 0;
       spec.components.n_failure_actions = 0;
+      spec.workflows[1].steps[0].n_on_success = 0;
+      spec.workflows[1].steps[0].n_on_failure = 0;
       ASSERT_EQ(CDD_C_SUCCESS, arazzo_write_spec_to_json(&spec, &json_out));
       free(json_out);
       spec.components.n_parameters = 0;
@@ -576,6 +650,8 @@ TEST test_arazzo_parse_and_validate_errors(void) {
       spec.components.n_failure_actions = orig_n_fa;
       spec.components.n_parameters = orig_n_cp;
       spec.workflows[1].steps[0].n_parameters = orig_n_sp;
+      spec.workflows[1].steps[0].n_on_success = orig_n_step_sa;
+      spec.workflows[1].steps[0].n_on_failure = orig_n_step_fa;
       arazzo_spec_free(&spec);
     }
 
@@ -891,6 +967,9 @@ TEST test_arazzo_parse_and_validate_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the arazzo_parser_suite test suite.
+ */
 SUITE(arazzo_parser_suite) {
   RUN_TEST(test_arazzo_parse_and_emit_roundtrip);
   RUN_TEST(test_arazzo_parse_and_validate_errors);

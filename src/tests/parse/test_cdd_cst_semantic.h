@@ -23,8 +23,9 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern C_CDD_EXPORT int g_cdd_semantic_leave_fail;
+/** @brief Test definition g_cdd_semantic_oom_scope2. */
 extern C_CDD_EXPORT int g_cdd_semantic_oom_scope2;
+/** @brief Test definition g_cdd_semantic_oom_scope. */
 extern C_CDD_EXPORT int g_cdd_semantic_oom_scope;
 
 #ifdef CDD_BUILD_TESTS
@@ -33,6 +34,10 @@ extern C_CDD_EXPORT int g_cdd_semantic_oom_scope;
 
 #endif
 
+/**
+ * @brief Unit test test_cdd_cst_semantic_scope_basic.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_semantic_scope_basic(void) {
   cdd_cst_scope_env_t *env = NULL;
   cdd_cst_node_t *node = NULL;
@@ -113,6 +118,10 @@ TEST test_cdd_cst_semantic_scope_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_semantic_basic.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_semantic_basic(void) {
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_scope_env_t *env = NULL;
@@ -131,6 +140,10 @@ TEST test_cdd_cst_semantic_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_semantic_tree.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_semantic_tree(void) {
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_scope_env_t *env = NULL;
@@ -182,6 +195,10 @@ TEST test_cdd_cst_semantic_tree(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_semantic_errors.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_semantic_errors(void) {
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_scope_env_t *env = NULL;
@@ -228,6 +245,10 @@ TEST test_cdd_cst_semantic_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_semantic_oom.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_semantic_oom(void) {
 #ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
@@ -364,11 +385,10 @@ TEST test_cdd_cst_semantic_oom(void) {
     cdd_cst_alloc_node(CDD_CST_BLOCK, &r2);
     t2->root = r2;
 
-    /* extern C_CDD_EXPORT int g_cdd_semantic_leave_fail; (moved to global) */
-    g_cdd_semantic_leave_fail = 1;
     rc = cdd_cst_build_semantic_info(t2, &env);
-    g_cdd_semantic_leave_fail = 0;
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    cdd_cst_scope_env_free(env);
+    env = NULL;
     cdd_cst_tree_free(t2);
   }
 
@@ -380,6 +400,10 @@ TEST test_cdd_cst_semantic_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_semantic_extract_null.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_semantic_extract_null(void) {
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_scope_env_t *env = NULL;
@@ -489,6 +513,9 @@ TEST test_cdd_cst_semantic_extract_null(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the cdd_cst_semantic_suite test suite.
+ */
 SUITE(cdd_cst_semantic_suite) {
   RUN_TEST(test_cdd_cst_semantic_extract_null);
   RUN_TEST(test_cdd_cst_semantic_scope_basic);

@@ -120,7 +120,7 @@ cdd_c_error_t openapi_load_from_json_internal(
       schemes_arr = json_object_get_array(root_obj, "schemes");
       if (schemes_arr) {
         out->n_schemes = json_array_get_count(schemes_arr);
-        out->schemes = (char **)c_cdd_calloc(out->n_schemes, sizeof(char *));
+        out->schemes = (char **)C_CDD_CALLOC(out->n_schemes, sizeof(char *));
         if (!out->schemes) {
           openapi_spec_free(out);
           return CDD_C_ERROR_MEMORY;
@@ -137,7 +137,7 @@ cdd_c_error_t openapi_load_from_json_internal(
       consumes_arr = json_object_get_array(root_obj, "consumes");
       if (consumes_arr) {
         out->n_consumes = json_array_get_count(consumes_arr);
-        out->consumes = (char **)c_cdd_calloc(out->n_consumes, sizeof(char *));
+        out->consumes = (char **)C_CDD_CALLOC(out->n_consumes, sizeof(char *));
         if (!out->consumes) {
           openapi_spec_free(out);
           return CDD_C_ERROR_MEMORY;
@@ -154,7 +154,7 @@ cdd_c_error_t openapi_load_from_json_internal(
       produces_arr = json_object_get_array(root_obj, "produces");
       if (produces_arr) {
         out->n_produces = json_array_get_count(produces_arr);
-        out->produces = (char **)c_cdd_calloc(out->n_produces, sizeof(char *));
+        out->produces = (char **)C_CDD_CALLOC(out->n_produces, sizeof(char *));
         if (!out->produces) {
           openapi_spec_free(out);
           return CDD_C_ERROR_MEMORY;
@@ -691,7 +691,7 @@ openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
       }
       target = resolved.spec;
       if (resolved.resolved_ref)
-        free(resolved.resolved_ref);
+        C_CDD_FREE(resolved.resolved_ref);
     } else {
       target = spec;
     }
@@ -710,7 +710,7 @@ openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
       rc = openapi_spec_find_schema_by_anchor(target, resolved.ref, 1, &found);
       if (rc != CDD_C_SUCCESS) {
         if (resolved.resolved_ref)
-          free(resolved.resolved_ref);
+          C_CDD_FREE(resolved.resolved_ref);
         *_out_val = NULL;
         return rc;
       }
@@ -719,7 +719,7 @@ openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
             openapi_spec_find_schema_by_anchor(target, resolved.ref, 0, &found);
         if (rc != CDD_C_SUCCESS) {
           if (resolved.resolved_ref)
-            free(resolved.resolved_ref);
+            C_CDD_FREE(resolved.resolved_ref);
           *_out_val = NULL;
           return rc;
         }
@@ -728,7 +728,7 @@ openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
       rc = openapi_spec_find_schema_by_anchor(target, resolved.ref, 0, &found);
       if (rc != CDD_C_SUCCESS) {
         if (resolved.resolved_ref)
-          free(resolved.resolved_ref);
+          C_CDD_FREE(resolved.resolved_ref);
         *_out_val = NULL;
         return rc;
       }
@@ -737,7 +737,7 @@ openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
             openapi_spec_find_schema_by_anchor(target, resolved.ref, 1, &found);
         if (rc != CDD_C_SUCCESS) {
           if (resolved.resolved_ref)
-            free(resolved.resolved_ref);
+            C_CDD_FREE(resolved.resolved_ref);
           *_out_val = NULL;
           return rc;
         }
@@ -747,13 +747,13 @@ openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
       rc = openapi_spec_find_schema_by_id(target, resolved.ref, &found);
       if (rc != CDD_C_SUCCESS) {
         if (resolved.resolved_ref)
-          free(resolved.resolved_ref);
+          C_CDD_FREE(resolved.resolved_ref);
         *_out_val = NULL;
         return rc;
       }
     }
     if (resolved.resolved_ref)
-      free(resolved.resolved_ref);
+      C_CDD_FREE(resolved.resolved_ref);
     *_out_val = found;
     return CDD_C_SUCCESS;
   }

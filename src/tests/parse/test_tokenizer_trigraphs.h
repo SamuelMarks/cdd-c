@@ -26,6 +26,12 @@ extern "C" {
 
 /* Helper setup */
 
+/**
+ * @brief Helper function tokenize_string.
+ * @param[in] s Parameter s.
+ * @param[in,out] _out_val Parameter _out_val.
+ * @return Result status or value.
+ */
 static cdd_c_error_t tokenize_string(const char *s,
                                      struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
@@ -42,6 +48,10 @@ static cdd_c_error_t tokenize_string(const char *s,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Unit test test_trigraph_basic.
+ * @return Greatest test result.
+ */
 TEST test_trigraph_basic(void) {
   struct TokenList *_ast_tokenize_string_0;
   struct TokenList *tl = NULL;
@@ -71,6 +81,10 @@ TEST test_trigraph_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_splice_basic.
+ * @return Greatest test result.
+ */
 TEST test_splice_basic(void) {
   struct TokenList *_ast_tokenize_string_1;
 
@@ -94,6 +108,10 @@ TEST test_splice_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_trigraph_splice_interaction.
+ * @return Greatest test result.
+ */
 TEST test_trigraph_splice_interaction(void) {
   struct TokenList *_ast_tokenize_string_2;
 
@@ -115,6 +133,10 @@ TEST test_trigraph_splice_interaction(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_splice_does_not_create_trigraph.
+ * @return Greatest test result.
+ */
 TEST test_splice_does_not_create_trigraph(void) {
   struct TokenList *_ast_tokenize_string_3;
 
@@ -159,6 +181,10 @@ TEST test_splice_does_not_create_trigraph(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_matches_string_with_splice.
+ * @return Greatest test result.
+ */
 TEST test_matches_string_with_splice(void) {
   struct TokenList *_ast_tokenize_string_4;
   int _ast_token_matches_string_0 = 0;
@@ -195,6 +221,10 @@ TEST test_matches_string_with_splice(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_all_remaining_trigraphs.
+ * @return Greatest test result.
+ */
 TEST test_all_remaining_trigraphs(void) {
   struct TokenList *tl = NULL;
   cdd_c_error_t rc = 0;
@@ -261,6 +291,10 @@ TEST test_all_remaining_trigraphs(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_splice_crlf_and_eof.
+ * @return Greatest test result.
+ */
 TEST test_splice_crlf_and_eof(void) {
   struct TokenList *tl = NULL;
   cdd_c_error_t rc = 0;
@@ -300,6 +334,9 @@ TEST test_splice_crlf_and_eof(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the tokenizer_trigraphs_suite test suite.
+ */
 SUITE(tokenizer_trigraphs_suite) {
 
   RUN_TEST(test_trigraph_basic);

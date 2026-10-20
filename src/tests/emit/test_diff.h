@@ -37,6 +37,7 @@ cdd_test_split_lines(const char *str, size_t len, struct DiffLine **out_lines,
 
 /**
  * @brief Test basic diff generation.
+ * @return Test or helper result.
  */
 TEST test_patch_list_to_diff_basic(void) {
   struct PatchList list;
@@ -93,6 +94,7 @@ TEST test_patch_list_to_diff_basic(void) {
 
 /**
  * @brief Test diff generation on empty list and empty tokens.
+ * @return Test or helper result.
  */
 TEST test_patch_list_to_diff_empty(void) {
   struct PatchList list;
@@ -151,6 +153,7 @@ TEST test_patch_list_to_diff_empty(void) {
 
 /**
  * @brief Test argument validation and NULL filename.
+ * @return Test or helper result.
  */
 TEST test_diff_invalid_args(void) {
   struct PatchList list;
@@ -194,6 +197,7 @@ TEST test_diff_invalid_args(void) {
 
 /**
  * @brief Test sorting failure.
+ * @return Test or helper result.
  */
 TEST test_diff_sort_fail(void) {
   struct PatchList list;
@@ -231,6 +235,7 @@ TEST test_diff_sort_fail(void) {
 
 /**
  * @brief Test pure insertion, pure deletion, and adjacent patches.
+ * @return Test or helper result.
  */
 TEST test_diff_insert_delete_adjacent(void) {
   struct PatchList list;
@@ -298,6 +303,7 @@ TEST test_diff_insert_delete_adjacent(void) {
 
 /**
  * @brief Test single patch at index 0 and max_mod_line < min_mod_line.
+ * @return Test or helper result.
  */
 TEST test_diff_end_token_zero_and_max_mod(void) {
   struct PatchList list;
@@ -359,6 +365,7 @@ TEST test_diff_end_token_zero_and_max_mod(void) {
 /**
  * @brief Test deleting entire 1-line file so new_text is empty and cursor ==
  * block_end_ptr.
+ * @return Test or helper result.
  */
 TEST test_diff_empty_block_and_cursor_end(void) {
   struct PatchList list;
@@ -389,6 +396,7 @@ TEST test_diff_empty_block_and_cursor_end(void) {
 
 /**
  * @brief Test fallback when token is outside all lines.
+ * @return Test or helper result.
  */
 TEST test_diff_token_outside_lines(void) {
 #ifdef CDD_BUILD_TESTS
@@ -425,6 +433,7 @@ TEST test_diff_token_outside_lines(void) {
 
 /**
  * @brief Test find_line_for_token error paths.
+ * @return Test or helper result.
  */
 TEST test_diff_find_line_errors(void) {
 #ifdef CDD_BUILD_TESTS
@@ -500,6 +509,7 @@ TEST test_diff_find_line_errors(void) {
 /**
  * @brief Test append_to_diff error paths across header, hunk, keep, del, and
  * nonl.
+ * @return Test or helper result.
  */
 TEST test_diff_append_errors(void) {
 #ifdef CDD_BUILD_TESTS
@@ -583,6 +593,7 @@ TEST test_diff_append_errors(void) {
 
 /**
  * @brief Test multiple disjoint blocks and block capacity expansion.
+ * @return Test or helper result.
  */
 TEST test_diff_multiple_blocks(void) {
   struct PatchList list;
@@ -662,6 +673,7 @@ TEST test_diff_multiple_blocks(void) {
 
 /**
  * @brief Test No newline at end of file handling.
+ * @return Test or helper result.
  */
 TEST test_diff_no_newline_eof(void) {
   struct PatchList list;
@@ -727,6 +739,7 @@ TEST test_diff_no_newline_eof(void) {
 
 /**
  * @brief Test OOM allocation failures.
+ * @return Test or helper result.
  */
 TEST test_diff_alloc_failures(void) {
 #ifdef CDD_BUILD_TESTS
@@ -767,6 +780,9 @@ TEST test_diff_alloc_failures(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the diff_suite test suite.
+ */
 SUITE(diff_suite) {
   RUN_TEST(test_patch_list_to_diff_basic);
   RUN_TEST(test_patch_list_to_diff_empty);

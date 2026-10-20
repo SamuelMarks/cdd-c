@@ -54,21 +54,13 @@ cdd_c_error_t cdd_cst_bld_line_comment(cdd_cst_builder_t *builder,
  */
 static cdd_c_error_t create_trivia(cdd_cst_tree_t *tree, const char *text,
                                    cdd_trivia_t **out_trivia) {
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
-#endif
   cdd_trivia_t *t;
   const char *dup;
   cdd_c_error_t pool_rc;
   if (!tree)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_trivia = NULL;
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0)
-    t = NULL;
-  else
-#endif
-    t = (cdd_trivia_t *)C_CDD_CALLOC(1, sizeof(cdd_trivia_t));
+  t = (cdd_trivia_t *)C_CDD_CALLOC(1, sizeof(cdd_trivia_t));
 
   if (!t) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -104,7 +96,7 @@ cdd_c_error_t cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
   if (!builder || !text)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)
-    return (cdd_c_error_t)builder->error_state;
+    return builder->error_state;
 
 #if defined(_MSC_VER) && _MSC_VER >= 1400
   sprintf_s(buf, sizeof(buf), "/* %s */", text);
@@ -389,7 +381,7 @@ cdd_cst_replace_node_preserve_trivia(cdd_cst_builder_t *builder,
   if (!builder || !target_node || !replacement_node)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)
-    return (cdd_c_error_t)builder->error_state;
+    return builder->error_state;
 
   /* transfer_trivia unbinds trivia from target and moves to replacement */
   rc = cdd_cst_transfer_trivia(target_node, replacement_node);

@@ -38,7 +38,16 @@ extern C_CDD_EXPORT int g_cdd_alloc_fail;
 /*  (moved to global) */
 /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
 #ifndef DOC_PARSE_BLOCK_WITH_OOM_DEFINED
+/**
+ * @brief Macro DOC_PARSE_BLOCK_WITH_OOM_DEFINED.
+ */
 #define DOC_PARSE_BLOCK_WITH_OOM_DEFINED
+/**
+ * @brief Helper function doc_parse_block_with_oom.
+ * @param[in] comment Parameter comment.
+ * @param[in,out] meta Parameter meta.
+ * @return Result status or value.
+ */
 static int doc_parse_block_with_oom(const char *comment,
                                     struct DocMetadata *meta) {
   int i;
@@ -64,11 +73,20 @@ static int doc_parse_block_with_oom(const char *comment,
 }
 #endif
 #ifndef doc_parse_block
+/**
+ * @brief Macro doc_parse_block.
+ * @param[in] comment Macro argument comment.
+ * @param[in] meta Macro argument meta.
+ */
 #define doc_parse_block(comment, meta) doc_parse_block_with_oom(comment, meta)
 #endif
 
 /* --- Tests --- */
 
+/**
+ * @brief Unit test test_doc_init_free.
+ * @return Greatest test result.
+ */
 TEST test_doc_init_free(void) {
   struct DocMetadata meta;
   /* Ensure init zeroes correctly */
@@ -83,6 +101,10 @@ TEST test_doc_init_free(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_simple_route.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_simple_route(void) {
   struct DocMetadata meta;
   const char *comment = "/**\n"
@@ -100,6 +122,10 @@ TEST test_doc_parse_simple_route(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_route_no_verb.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_route_no_verb(void) {
   struct DocMetadata meta;
   const char *comment = cdd_test_mut_str("/// @route /simple/path");
@@ -115,6 +141,10 @@ TEST test_doc_parse_route_no_verb(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_webhook_route.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_webhook_route(void) {
   struct DocMetadata meta;
   const char *comment = "/**\n"
@@ -133,6 +163,10 @@ TEST test_doc_parse_webhook_route(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_params.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_params(void) {
   struct DocMetadata meta;
   const char *comment = "/**\n"
@@ -168,6 +202,10 @@ TEST test_doc_parse_params(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_param_attributes_extended.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_param_attributes_extended(void) {
   struct DocMetadata meta;
   const char *comment = "/**\n"
@@ -197,6 +235,10 @@ TEST test_doc_parse_param_attributes_extended(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_param_all_styles.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_param_all_styles(void) {
   struct DocMetadata meta;
   const char *comment = "/**\n"
@@ -224,6 +266,10 @@ TEST test_doc_parse_param_all_styles(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_invalid_style.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_invalid_style(void) {
   struct DocMetadata meta;
   const char *comment = "/**\n"
@@ -238,6 +284,10 @@ TEST test_doc_parse_invalid_style(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_param_format.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_param_format(void) {
   struct DocMetadata meta;
   const char *comment = "/**\n"
@@ -256,6 +306,10 @@ TEST test_doc_parse_param_format(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_param_deprecated.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_param_deprecated(void) {
   struct DocMetadata meta;
   const char *comment =
@@ -276,6 +330,10 @@ TEST test_doc_parse_param_deprecated(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_param_content_type.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_param_content_type(void) {
   struct DocMetadata meta;
   const char *comment = "/**\n"
@@ -296,6 +354,10 @@ TEST test_doc_parse_param_content_type(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_returns.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_returns(void) {
   struct DocMetadata meta;
   const char *comment = "/**\n"
@@ -321,6 +383,10 @@ TEST test_doc_parse_returns(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_response_headers.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_response_headers(void) {
   struct DocMetadata meta;
   const char *comment =
@@ -352,6 +418,10 @@ TEST test_doc_parse_response_headers(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_response_header_format.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_response_header_format(void) {
   struct DocMetadata meta;
   const char *comment = "/**\n"
@@ -371,6 +441,10 @@ TEST test_doc_parse_response_header_format(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_link.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_link(void) {
   struct DocMetadata meta;
   const char *comment =
@@ -401,6 +475,10 @@ TEST test_doc_parse_link(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_return_content_type.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_return_content_type(void) {
   struct DocMetadata meta;
   const char *comment = "/**\n"
@@ -420,6 +498,10 @@ TEST test_doc_parse_return_content_type(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_summary.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_summary(void) {
   struct DocMetadata meta;
   const char *comment = cdd_test_mut_str("/// @brief This is a summary");
@@ -434,6 +516,10 @@ TEST test_doc_parse_summary(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_operation_id.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_operation_id(void) {
   struct DocMetadata meta;
   const char *comment = cdd_test_mut_str("/// @operationId getUserById");
@@ -448,6 +534,10 @@ TEST test_doc_parse_operation_id(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_description_and_deprecated.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_description_and_deprecated(void) {
   struct DocMetadata meta;
   const char *comment = "/**\n"
@@ -467,6 +557,10 @@ TEST test_doc_parse_description_and_deprecated(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_tags_and_external_docs.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_tags_and_external_docs(void) {
   struct DocMetadata meta;
   const char *comment = "/**\n"
@@ -491,6 +585,10 @@ TEST test_doc_parse_tags_and_external_docs(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_tag_meta.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_tag_meta(void) {
   struct DocMetadata meta;
   const char *comment =
@@ -516,6 +614,10 @@ TEST test_doc_parse_tag_meta(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_security.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_security(void) {
   struct DocMetadata meta;
   const char *comment = "/**\n"
@@ -540,6 +642,10 @@ TEST test_doc_parse_security(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_security_scheme.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_security_scheme(void) {
   struct DocMetadata meta;
   const char *comment =
@@ -594,6 +700,10 @@ TEST test_doc_parse_security_scheme(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_tag_meta_oom.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_tag_meta_oom(void) {
   struct DocMetadata meta;
   const char *comment =
@@ -611,6 +721,10 @@ TEST test_doc_parse_tag_meta_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_extract_rest_oom.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_extract_rest_oom(void) {
   struct DocMetadata meta;
   const char *comment = "/**\n"
@@ -622,6 +736,10 @@ TEST test_doc_parse_extract_rest_oom(void) {
   doc_metadata_free(&meta);
   PASS();
 }
+/**
+ * @brief Unit test test_doc_parse_server_and_request_body.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_server_and_request_body(void) {
   struct DocMetadata meta;
   const char *comment = "/**\n"
@@ -649,6 +767,10 @@ TEST test_doc_parse_server_and_request_body(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_server_variables.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_server_variables(void) {
   struct DocMetadata meta;
   const char *comment =
@@ -678,6 +800,10 @@ TEST test_doc_parse_server_variables(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_info_overrides.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_info_overrides(void) {
   struct DocMetadata meta;
   const char *comment = "/**\n"
@@ -702,6 +828,10 @@ TEST test_doc_parse_info_overrides(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_contact_license.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_contact_license(void) {
   struct DocMetadata meta;
   const char *comment =
@@ -726,6 +856,10 @@ TEST test_doc_parse_contact_license(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_request_body_multi_content.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_request_body_multi_content(void) {
   struct DocMetadata meta;
   const char *comment =
@@ -748,6 +882,10 @@ TEST test_doc_parse_request_body_multi_content(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_examples.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_examples(void) {
   struct DocMetadata meta;
   const char *comment =
@@ -774,6 +912,10 @@ TEST test_doc_parse_examples(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_malformed_lines.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_malformed_lines(void) {
   struct DocMetadata meta;
   /* Route without args, Param without name */
@@ -795,6 +937,10 @@ TEST test_doc_parse_malformed_lines(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_encodings.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_encodings(void) {
   const char *comment = "/**\n"
                         " * @encoding profileImage [contentType: image/png] "
@@ -825,6 +971,10 @@ TEST test_doc_parse_encodings(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_dupes_and_extras.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_dupes_and_extras(void) {
   struct DocMetadata meta;
   int rc = 0;
@@ -838,6 +988,10 @@ TEST test_doc_parse_dupes_and_extras(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_equal_signs.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_equal_signs(void) {
   struct DocMetadata meta;
   int rc = 0;
@@ -861,6 +1015,10 @@ TEST test_doc_parse_equal_signs(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_parse_more_branches.
+ * @return Greatest test result.
+ */
 TEST test_doc_parse_more_branches(void) {
   struct DocMetadata meta;
   int rc = 0;
@@ -873,6 +1031,9 @@ TEST test_doc_parse_more_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the doc_parser_suite test suite.
+ */
 SUITE(doc_parser_suite) {
   RUN_TEST(test_doc_init_free);
   RUN_TEST(test_doc_parse_simple_route);

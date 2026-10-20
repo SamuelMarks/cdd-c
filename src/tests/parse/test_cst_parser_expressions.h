@@ -24,7 +24,6 @@ extern "C" {
 
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
-extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 extern C_CDD_EXPORT int g_cdd_fail_alloc;
 extern C_CDD_EXPORT int g_cdd_fail_skip_ws;
@@ -38,9 +37,12 @@ extern C_CDD_EXPORT int g_cdd_fail_is_expression_brace;
 extern C_CDD_EXPORT int g_cdd_fail_consume_balanced_braces;
 extern C_CDD_EXPORT int g_cdd_fail_match_function_definition;
 extern C_CDD_EXPORT int g_cdd_fail_cst_list_add;
-extern C_CDD_EXPORT int g_cdd_fail_token_matches_string;
 #endif
 
+/**
+ * @brief Unit test parse_compound_literal.
+ * @return Greatest test result.
+ */
 TEST parse_compound_literal(void) {
   struct TokenList *tl = NULL;
   struct CstNodeList cst = {0};
@@ -108,6 +110,10 @@ TEST parse_compound_literal(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test parse_control_block_split.
+ * @return Greatest test result.
+ */
 TEST parse_control_block_split(void) {
   struct TokenList *tl = NULL;
   struct CstNodeList cst = {0};
@@ -185,6 +191,10 @@ TEST parse_control_block_split(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test parse_nested_compound_literal.
+ * @return Greatest test result.
+ */
 TEST parse_nested_compound_literal(void) {
   struct TokenList *tl = NULL;
   struct CstNodeList cst = {0};
@@ -253,6 +263,10 @@ TEST parse_nested_compound_literal(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test parse_return_compound.
+ * @return Greatest test result.
+ */
 TEST parse_return_compound(void) {
   struct TokenList *tl = NULL;
   struct CstNodeList cst = {0};
@@ -319,6 +333,10 @@ TEST parse_return_compound(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test parse_c11_generic.
+ * @return Greatest test result.
+ */
 TEST parse_c11_generic(void) {
   struct TokenList *tl = NULL;
   struct CstNodeList cst = {0};
@@ -422,6 +440,10 @@ TEST parse_c11_generic(void) {
 
 /* Standard suite runner */
 
+/**
+ * @brief Unit test test_cst_find_first.
+ * @return Greatest test result.
+ */
 TEST test_cst_find_first(void) {
   struct CstNodeList list = {0};
   struct CstNode *found = NULL;
@@ -494,6 +516,10 @@ TEST test_cst_find_first(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cst_parser_extra.
+ * @return Greatest test result.
+ */
 TEST test_cst_parser_extra(void) {
   cdd_cst_tree_t *tree = NULL;
 
@@ -673,10 +699,6 @@ TEST test_cst_parser_extra(void) {
         cdd_cst_tree_free(t_dummy);
 
       {
-        /* extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow; (moved to global)
-         */
-        g_cdd_cst_parser_fast_grow = 1;
-
         for (i = 1; i < 50; i++) {
           tree = NULL;
           g_cdd_alloc_fail = (int)i;
@@ -700,8 +722,6 @@ TEST test_cst_parser_extra(void) {
           cdd_cst_tree_free(tree);
         }
         g_cdd_cst_realloc_fail = 0;
-
-        g_cdd_cst_parser_fast_grow = 0;
       }
     }
 #endif

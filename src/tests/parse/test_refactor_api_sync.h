@@ -25,6 +25,12 @@ extern "C" {
 
 #ifndef __EMSCRIPTEN__
 
+/**
+ * @brief Helper function load_spec.
+ * @param[in] json Parameter json.
+ * @param[in,out] spec Parameter spec.
+ * @return Result status or value.
+ */
 static cdd_c_error_t load_spec(const char *json, struct OpenAPI_Spec *spec) {
   JSON_Value *dyn = json_parse_string(json);
   int rc = 0;
@@ -40,6 +46,10 @@ static cdd_c_error_t load_spec(const char *json, struct OpenAPI_Spec *spec) {
   return rc;
 }
 
+/**
+ * @brief Unit test test_sync_signature_update.
+ * @return Greatest test result.
+ */
 TEST test_sync_signature_update(void) {
   /* SKIPm("fix me"); */
   const char *src_file = cdd_test_mut_str("sync_sig.c");
@@ -80,6 +90,10 @@ TEST test_sync_signature_update(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sync_url_logic_update.
+ * @return Greatest test result.
+ */
 TEST test_sync_url_logic_update(void) {
   /* SKIPm("fix me"); */
   const char *src_file = cdd_test_mut_str("sync_url.c");
@@ -118,6 +132,10 @@ TEST test_sync_url_logic_update(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sync_query_update.
+ * @return Greatest test result.
+ */
 TEST test_sync_query_update(void) {
   /* SKIPm("fix me"); */
   const char *src_file = cdd_test_mut_str("sync_query.c");
@@ -160,6 +178,10 @@ TEST test_sync_query_update(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sync_header_update.
+ * @return Greatest test result.
+ */
 TEST test_sync_header_update(void) {
   /* SKIPm("fix me"); */
   const char *src_file = cdd_test_mut_str("sync_header.c");
@@ -210,7 +232,6 @@ extern C_CDD_EXPORT int g_cdd_fail_apply_header_sync;
 extern C_CDD_EXPORT int g_cdd_fail_generate_expected_url;
 extern C_CDD_EXPORT int g_cdd_fail_codegen_write;
 extern C_CDD_EXPORT int g_cdd_fail_patch_list_add;
-extern C_CDD_EXPORT int g_cdd_fail_token_matches_string;
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
 extern C_CDD_EXPORT int g_cdd_fail_cst_list_add;
 extern C_CDD_EXPORT int g_cdd_sync_sig_no_brace;
@@ -220,6 +241,7 @@ extern C_CDD_EXPORT int g_cdd_strdup_fail;
 /**
  * @brief Comprehensive test covering all functions, branches, and error cases
  * in sync.c.
+ * @return Test or helper result.
  */
 TEST test_sync_full_coverage(void) {
   struct OpenAPI_Spec spec;
@@ -397,6 +419,11 @@ TEST test_sync_full_coverage(void) {
 
   g_cdd_alloc_fail = 1;
   rc = cdd_test_sync_generate_expected_url("/path", &op, &cfg, &str_out);
+  ASSERT_EQ(CDD_C_ERROR_IO, rc);
+  g_cdd_alloc_fail = 0;
+
+  g_cdd_alloc_fail = 3;
+  rc = cdd_test_sync_generate_expected_url("/path", &op, &cfg, &str_out);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_alloc_fail = 0;
 
@@ -415,11 +442,6 @@ TEST test_sync_full_coverage(void) {
   ASSERT_EQ(0, rc);
   rc = parse_tokens(tl, &cst);
   ASSERT_EQ(0, rc);
-
-  g_cdd_fail_token_matches_string = 1;
-  rc = cdd_test_sync_find_function_node(&cst, tl, "api_test_op", &node);
-  ASSERT(rc != CDD_C_SUCCESS);
-  g_cdd_fail_token_matches_string = 0;
 
   rc = cdd_test_sync_find_function_node(NULL, tl, "api_test_op", &node);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -727,6 +749,9 @@ TEST test_sync_full_coverage(void) {
 }
 #endif
 
+/**
+ * @brief Executes the api_sync_suite test suite.
+ */
 SUITE(api_sync_suite) {
 #ifndef __EMSCRIPTEN__
   RUN_TEST(test_sync_signature_update);

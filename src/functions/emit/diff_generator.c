@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 #include "c_cdd/safe_crt.h"
 #include "functions/emit/diff_generator.h"
 /* clang-format on */
@@ -40,10 +41,10 @@ cdd_c_error_t patch_list_generate_diff(const struct TokenList *tokens,
     if (g_cdd_fail_alloc == 5555)
       diff_buf = NULL;
     else
-      diff_buf = (char *)malloc(diff_cap);
+      diff_buf = (char *)C_CDD_MALLOC(diff_cap);
   }
 #else
-  diff_buf = (char *)malloc(diff_cap);
+  diff_buf = (char *)C_CDD_MALLOC(diff_cap);
 #endif
   if (!diff_buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -82,12 +83,12 @@ cdd_c_error_t patch_list_generate_diff(const struct TokenList *tokens,
             if (g_cdd_fail_alloc == 6666)
               new_buf = NULL;
             else
-              new_buf = (char *)realloc(diff_buf, diff_cap);
+              new_buf = (char *)C_CDD_REALLOC(diff_buf, diff_cap);
 #else
-            char *new_buf = (char *)realloc(diff_buf, diff_cap);
+            char *new_buf = (char *)C_CDD_REALLOC(diff_buf, diff_cap);
 #endif
             if (!new_buf) {
-              free(diff_buf);
+              C_CDD_FREE(diff_buf);
               C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
               return CDD_C_ERROR_MEMORY;
             }
@@ -112,12 +113,12 @@ cdd_c_error_t patch_list_generate_diff(const struct TokenList *tokens,
         if (g_cdd_fail_alloc == 7777)
           new_buf = NULL;
         else
-          new_buf = (char *)realloc(diff_buf, diff_cap);
+          new_buf = (char *)C_CDD_REALLOC(diff_buf, diff_cap);
 #else
-        char *new_buf = (char *)realloc(diff_buf, diff_cap);
+        char *new_buf = (char *)C_CDD_REALLOC(diff_buf, diff_cap);
 #endif
         if (!new_buf) {
-          free(diff_buf);
+          C_CDD_FREE(diff_buf);
           C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
           return CDD_C_ERROR_MEMORY;
         }

@@ -12,6 +12,10 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+/**
+ * @brief Helper function test_vcpkg_my_strdup_errors.
+ * @return Result status or value.
+ */
 extern cdd_c_error_t test_vcpkg_my_strdup_errors(void);
 
 #include <greatest.h>
@@ -207,16 +211,6 @@ TEST test_vcpkg_builder_errors(void) {
         }
       }
       vcpkg_builder_free(&builder);
-
-      {
-        extern C_CDD_EXPORT int g_cdd_fail_token_matches_string;
-        vcpkg_builder_init(&builder, "proj", NULL, NULL);
-        g_cdd_fail_token_matches_string = 5;
-        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-                  vcpkg_builder_scan_source(&builder, "#include\n"));
-        g_cdd_fail_token_matches_string = 0;
-        vcpkg_builder_free(&builder);
-      }
     }
 #endif
 
@@ -224,6 +218,10 @@ TEST test_vcpkg_builder_errors(void) {
   }
 }
 
+/**
+ * @brief Unit test test_vcpkg_builder_extras.
+ * @return Greatest test result.
+ */
 TEST test_vcpkg_builder_extras(void) {
   struct VcpkgManifestBuilder builder;
   char *json = NULL;
@@ -244,6 +242,7 @@ TEST test_vcpkg_builder_extras(void) {
 
 /**
  * @brief Vcpkg integration test suite.
+ * @return Test or helper result.
  */
 
 #ifdef CDD_BUILD_TESTS
@@ -317,6 +316,9 @@ TEST test_vcpkg_builder_oom(void) {
   }
 }
 
+/**
+ * @brief Executes the vcpkg_integration_suite test suite.
+ */
 SUITE(vcpkg_integration_suite) {
   RUN_TEST(test_vcpkg_builder_oom);
   RUN_TEST(test_vcpkg_builder_basic);

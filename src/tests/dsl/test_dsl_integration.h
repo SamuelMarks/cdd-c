@@ -1,3 +1,7 @@
+/**
+ * @file test_dsl_integration.h
+ * @brief Unit tests and mocks in test_dsl_integration.h.
+ */
 #ifndef TEST_DSL_INTEGRATION_H
 #define TEST_DSL_INTEGRATION_H
 
@@ -10,6 +14,10 @@ extern "C" {
 #include "../cdd_test_helpers/cdd_helpers.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_dsl_integration_basic.
+ * @return Greatest test result.
+ */
 TEST test_dsl_integration_basic(void) {
   cdd_c_error_t rc;
   const char *source = "/* comment */\nfunc my_func([in] *mut i32 arg1) {\n  "
@@ -25,6 +33,10 @@ TEST test_dsl_integration_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_dsl_integration_fail.
+ * @return Greatest test result.
+ */
 TEST test_dsl_integration_fail(void) {
   cdd_c_error_t rc;
   cdd_generate_bindings_config_t config = {0};

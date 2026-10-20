@@ -75,13 +75,7 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
         *_out_val = NULL;
         return CDD_C_SUCCESS;
       }
-      name = (char *)malloc(name_len + 1);
-#ifdef CDD_BUILD_TESTS
-      if (g_client_gen_fail == 1) {
-        free(name);
-        name = NULL;
-      }
-#endif
+      name = (char *)C_CDD_MALLOC(name_len + 1);
       if (!name) {
         *_out_val = NULL;
         return CDD_C_SUCCESS;
@@ -89,7 +83,7 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
       memcpy(name, url + i + 1, name_len);
       name[name_len] = '\0';
       find_server_variable(srv, name, &var);
-      free(name);
+      C_CDD_FREE(name);
       if (!var || !var->default_value) {
         *_out_val = NULL;
         return CDD_C_SUCCESS;
@@ -102,13 +96,7 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
     i++;
   }
 
-  out = (char *)malloc(out_len + 1);
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 2) {
-    free(out);
-    out = NULL;
-  }
-#endif
+  out = (char *)C_CDD_MALLOC(out_len + 1);
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -120,61 +108,18 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
     while (url[i]) {
       if (url[i] == '{') {
         const char *end = strchr(url + i + 1, '}');
-        size_t name_len;
-        char *name;
+        size_t name_len = (size_t)(end - (url + i + 1));
+        char *name = (char *)C_CDD_MALLOC(name_len + 1);
         const struct OpenAPI_ServerVariable *var = NULL;
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 47)
-          end = NULL;
-#endif
-        if (!end) {
-          free(out);
-          {
-            *_out_val = NULL;
-            return CDD_C_SUCCESS;
-          }
-        }
-        name_len = (size_t)(end - (url + i + 1));
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 48)
-          name_len = 0;
-#endif
-        if (name_len == 0) {
-          free(out);
-          {
-            *_out_val = NULL;
-            return CDD_C_SUCCESS;
-          }
-        }
-        name = (char *)malloc(name_len + 1);
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 3) {
-          free(name);
-          name = NULL;
-        }
-#endif
         if (!name) {
-          free(out);
-          {
-            *_out_val = NULL;
-            return CDD_C_SUCCESS;
-          }
+          C_CDD_FREE(out);
+          *_out_val = NULL;
+          return CDD_C_SUCCESS;
         }
         memcpy(name, url + i + 1, name_len);
         name[name_len] = '\0';
         find_server_variable(srv, name, &var);
-        free(name);
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 49)
-          var = NULL;
-#endif
-        if (!var) {
-          free(out);
-          {
-            *_out_val = NULL;
-            return CDD_C_SUCCESS;
-          }
-        }
+        C_CDD_FREE(name);
         memcpy(out + out_pos, var->default_value, strlen(var->default_value));
         out_pos += strlen(var->default_value);
         i = (size_t)(end - url) + 1;
@@ -222,13 +167,7 @@ cdd_c_error_t escape_c_string_literal(const char *s, char **_out_val) {
       break;
     }
   }
-  out = (char *)malloc(out_len + 1);
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 4) {
-    free(out);
-    out = NULL;
-  }
-#endif
+  out = (char *)C_CDD_MALLOC(out_len + 1);
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -302,26 +241,14 @@ cdd_c_error_t build_base_url_literal(const char *url, char **_out_val) {
   }
 
   escape_c_string_literal(url, &escaped);
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 50) {
-    free(escaped);
-    escaped = NULL;
-  }
-#endif
   if (!escaped) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
   len = strlen(escaped) + 3;
-  literal = (char *)malloc(len);
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 5) {
-    free(literal);
-    literal = NULL;
-  }
-#endif
+  literal = (char *)C_CDD_MALLOC(len);
   if (!literal) {
-    free(escaped);
+    C_CDD_FREE(escaped);
     {
       *_out_val = NULL;
       return CDD_C_SUCCESS;
@@ -333,7 +260,7 @@ cdd_c_error_t build_base_url_literal(const char *url, char **_out_val) {
 #else
   CDD_SNPRINTF(literal, len, "\"%s\"", escaped);
 #endif
-  free(escaped);
+  C_CDD_FREE(escaped);
   {
     *_out_val = literal;
     return CDD_C_SUCCESS;
@@ -351,13 +278,7 @@ cdd_c_error_t generate_guard(const char *base, char **_out_val) {
   size_t len = strlen(base);
   size_t i;
 
-  g = malloc(len + 3); /* + _H + null */
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 6) {
-    free(g);
-    g = NULL;
-  }
-#endif
+  g = C_CDD_MALLOC(len + 3); /* + _H + null */
   if (!g) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -388,13 +309,7 @@ cdd_c_error_t generate_guard(const char *base, char **_out_val) {
 cdd_c_error_t derive_model_header(const char *base, char **_out_val) {
   char *m;
   size_t len = strlen(base) + 10; /* _models.h */
-  m = malloc(len + 1);
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 7) {
-    free(m);
-    m = NULL;
-  }
-#endif
+  m = C_CDD_MALLOC(len + 1);
   if (!m) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -428,13 +343,7 @@ cdd_c_error_t sanitize_tag(const char *tag, char **_out_val) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
-  s = strdup(tag);
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 8) {
-    free(s);
-    s = NULL;
-  }
-#endif
+  s = C_CDD_STRDUP(tag);
   if (!s) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -492,13 +401,7 @@ cdd_c_error_t build_effective_parameters(const struct OpenAPI_Path *path,
   if (cap == 0)
     return CDD_C_SUCCESS;
 
-  params = (struct OpenAPI_Parameter *)calloc(cap, sizeof(*params));
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 9) {
-    free(params);
-    params = NULL;
-  }
-#endif
+  params = (struct OpenAPI_Parameter *)C_CDD_CALLOC(cap, sizeof(*params));
   if (!params) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;

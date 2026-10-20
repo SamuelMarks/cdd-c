@@ -14,6 +14,10 @@ extern "C" {
 #include "emit/test_openapi_writer_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_writer_inline_response_schema_primitive.
+ * @return Greatest test result.
+ */
 TEST test_writer_inline_response_schema_primitive(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -57,6 +61,10 @@ TEST test_writer_inline_response_schema_primitive(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_inline_response_schema_array.
+ * @return Greatest test result.
+ */
 TEST test_writer_inline_response_schema_array(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -104,6 +112,10 @@ TEST test_writer_inline_response_schema_array(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_inline_schema_format_and_content.
+ * @return Greatest test result.
+ */
 TEST test_writer_inline_schema_format_and_content(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -154,6 +166,10 @@ TEST test_writer_inline_schema_format_and_content(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_inline_schema_array_item_format_and_content.
+ * @return Greatest test result.
+ */
 TEST test_writer_inline_schema_array_item_format_and_content(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -208,6 +224,10 @@ TEST test_writer_inline_schema_array_item_format_and_content(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_schema_external_docs_discriminator_xml.
+ * @return Greatest test result.
+ */
 TEST test_writer_schema_external_docs_discriminator_xml(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -299,6 +319,10 @@ TEST test_writer_schema_external_docs_discriminator_xml(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_inline_schema_const_examples_annotations.
+ * @return Greatest test result.
+ */
 TEST test_writer_inline_schema_const_examples_annotations(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -370,6 +394,10 @@ TEST test_writer_inline_schema_const_examples_annotations(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_preserves_composed_component_schema.
+ * @return Greatest test result.
+ */
 TEST test_writer_preserves_composed_component_schema(void) {
   int rc = 0;
   const char json[] = {
@@ -428,6 +456,10 @@ TEST test_writer_preserves_composed_component_schema(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_preserves_inline_composed_schema.
+ * @return Greatest test result.
+ */
 TEST test_writer_preserves_inline_composed_schema(void) {
   int rc = 0;
   /* */
@@ -494,6 +526,10 @@ TEST test_writer_preserves_inline_composed_schema(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_schema_ref_summary_description.
+ * @return Greatest test result.
+ */
 TEST test_writer_schema_ref_summary_description(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -543,6 +579,10 @@ TEST test_writer_schema_ref_summary_description(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_info_license_missing_name_rejected.
+ * @return Greatest test result.
+ */
 TEST test_writer_info_license_missing_name_rejected(void) {
   int rc = 0;
   char *json;
@@ -560,6 +600,10 @@ TEST test_writer_info_license_missing_name_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_options_trace_verbs.
+ * @return Greatest test result.
+ */
 TEST test_writer_options_trace_verbs(void) {
   int rc = 0;
   struct OpenAPI_Path path;
@@ -599,6 +643,10 @@ TEST test_writer_options_trace_verbs(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_query_and_external_docs.
+ * @return Greatest test result.
+ */
 TEST test_writer_query_and_external_docs(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;

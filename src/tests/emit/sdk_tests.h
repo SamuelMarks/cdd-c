@@ -5,7 +5,7 @@
 extern "C" {
 #endif /* __cplusplus */
 /**
- * @file sdk_tests.c
+ * @file sdk_tests.h
  * @brief Implementation of SDK Test Generation.
  * @author Samuel Marks
  */
@@ -23,12 +23,18 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 
+/** @brief Test definition SdkTestsConfig. */
 struct SdkTestsConfig {
+  /** @brief Test definition client_header. */
   const char *client_header;
+  /** @brief Test definition func_prefix. */
   const char *func_prefix;
+  /** @brief Test definition mock_server_url. */
   const char *mock_server_url;
 };
 
@@ -51,9 +57,16 @@ mock_fprintf(FILE *fp, const char *fmt, ...) {
 }
 #define FPRINTF mock_fprintf
 #else
+/**
+ * @brief Macro FPRINTF.
+ */
 #define FPRINTF fprintf
 #endif
 
+/**
+ * @brief Macro CHECK_IO.
+ * @param[in] x Macro argument x.
+ */
 #define CHECK_IO(x)                                                            \
   if ((x) < 0) {                                                               \
     return CDD_C_ERROR_IO;                                                     \
@@ -61,6 +74,13 @@ mock_fprintf(FILE *fp, const char *fmt, ...) {
     (void)0
 
 /* --- Helper to write a test for a single operation --- */
+/**
+ * @brief Helper function write_test_operation.
+ * @param[in,out] fp Parameter fp.
+ * @param[in] op Parameter op.
+ * @param[in] config Parameter config.
+ * @return Result status or value.
+ */
 static cdd_c_error_t write_test_operation(FILE *fp,
                                           const struct OpenAPI_Operation *op,
                                           const struct SdkTestsConfig *config) {
@@ -176,6 +196,13 @@ static cdd_c_error_t write_test_operation(FILE *fp,
 }
 
 static cdd_c_error_t
+/**
+ * @brief Helper function codegen_sdk_tests_generate.
+ * @param[in,out] fp Parameter fp.
+ * @param[in] spec Parameter spec.
+ * @param[in] config Parameter config.
+ * @return Result status or value.
+ */
 codegen_sdk_tests_generate(FILE *fp, const struct OpenAPI_Spec *spec,
                            const struct SdkTestsConfig *config) {
   size_t i, j;

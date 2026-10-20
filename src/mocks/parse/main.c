@@ -1,3 +1,7 @@
+/**
+ * @file main.c
+ * @brief Unit tests and mocks in main.c.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -14,12 +18,17 @@
 #include "../emit/simple_json.h"
 /* clang-format on */
 
+/** @brief Test definition haz_e_mock0. */
 static const char *haz_e_mock0 = "{\"bzr\": \"some_bzr\",\"tank\": \"SMALL\"}";
+/** @brief Test definition foo_e_mock0. */
 static const char *foo_e_mock0 =
     "{\"bar\": \"some_bar\",\"can\": 5,\"haz\":{\"bzr\": "
     "\"some_bzr\",\"tank\": \"SMALL\"}}";
 
-/** \brief func */
+/**
+ * \brief func
+ * @return Test or helper result.
+ */
 /**
  * @brief Application entry point.
  */

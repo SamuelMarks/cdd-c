@@ -23,6 +23,7 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_cdd_fail_alloc. */
 extern C_CDD_EXPORT int g_cdd_fail_alloc;
 
 /**

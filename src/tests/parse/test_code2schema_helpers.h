@@ -27,6 +27,10 @@ extern "C" {
 
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
+/**
+ * @brief Unit test test_parse_struct_member_annotations.
+ * @return Greatest test result.
+ */
 TEST test_parse_struct_member_annotations(void) {
 
   struct StructFields sf;
@@ -70,6 +74,10 @@ TEST test_parse_struct_member_annotations(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_code2schema_merge_struct_field.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_merge_struct_field(void) {
 
   struct StructField f1, f2;
@@ -144,6 +152,10 @@ TEST test_code2schema_merge_struct_field(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_code2schema_discriminator_value.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_discriminator_value(void) {
   char *val = NULL;
 
@@ -197,6 +209,10 @@ TEST test_code2schema_discriminator_value(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_code2schema_sanitize_identifier.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_sanitize_identifier(void) {
   char *val = NULL;
 
@@ -226,6 +242,10 @@ TEST test_code2schema_sanitize_identifier(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_code2schema_make_unique_variant_name.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_make_unique_variant_name(void) {
   char *val = NULL;
 
@@ -270,6 +290,10 @@ TEST test_code2schema_make_unique_variant_name(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_code2schema_make_inline_schema_name.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_make_inline_schema_name(void) {
   char *val = NULL;
 
@@ -296,6 +320,10 @@ TEST test_code2schema_make_inline_schema_name(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_code2schema_register_inline_schema_c2s.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_register_inline_schema_c2s(void) {
   char *val = NULL;
 
@@ -332,6 +360,10 @@ TEST test_code2schema_register_inline_schema_c2s(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_code2schema_utils.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_utils(void) {
   char **s_arr;
   char **s_src;
@@ -391,6 +423,10 @@ TEST test_code2schema_utils(void) {
   g_fail_io_after = -1;
   PASS();
 }
+/**
+ * @brief Unit test test_code2schema_union.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_union(void) {
   const char *test_file = cdd_test_mut_str("test_union.h");
   const char *out_file = cdd_test_mut_str("test_union_out.json");
@@ -425,6 +461,9 @@ TEST test_code2schema_union(void) {
   }
 }
 
+/**
+ * @brief Executes the code2schema_helpers_suite test suite.
+ */
 SUITE(code2schema_helpers_suite) {
   RUN_TEST(test_parse_struct_member_annotations);
   RUN_TEST(test_code2schema_merge_struct_field);

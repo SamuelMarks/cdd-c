@@ -25,6 +25,7 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 
 /**
@@ -257,6 +258,7 @@ TEST test_cbuild_unsupported(void) {
 
 /**
  * @brief codegen_build_suite
+ * @return Test or helper result.
  */
 TEST test_cbuild_io_failure(void) {
   FILE *tmp;
@@ -303,6 +305,9 @@ TEST test_cbuild_io_failure(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the codegen_build_suite test suite.
+ */
 SUITE(codegen_build_suite) {
   RUN_TEST(test_cbuild_io_failure);
   RUN_TEST(test_cbuild_null_args);

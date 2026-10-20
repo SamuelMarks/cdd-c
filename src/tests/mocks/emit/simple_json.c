@@ -1,9 +1,18 @@
+/**
+ * @file simple_json.c
+ * @brief Unit tests and mocks in simple_json.c.
+ */
 #include "c_cdd/safe_crt.h"
 #include "cdd_c_error.h"
 #ifndef va_copy
 #if defined(_MSC_VER) || defined(__GNUC__)
 #define va_copy(dest, src) (dest = src)
 #else
+/**
+ * @brief Macro va_copy.
+ * @param[in] dest Macro argument dest.
+ * @param[in] src Macro argument src.
+ */
 #define va_copy(dest, src) memcpy(&dest, &src, sizeof(va_list))
 #endif
 #endif
@@ -14,6 +23,9 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+/**
+ * @brief Macro c89stringutils_jasprintf.
+ */
 #define c89stringutils_jasprintf jasprintf
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
@@ -27,6 +39,11 @@
 
 #if !defined(_WIN32) && !defined(__WIN32__) && !defined(__WINDOWS__)
 #ifndef strdup
+/**
+ * @brief Helper function strdup.
+ * @param[in] s Parameter s.
+ * @return Result status or value.
+ */
 char *strdup(const char *s);
 #endif
 #endif
@@ -112,6 +129,12 @@ static int test_jasprintf(char **unto, const char *fmt, ...) {
 
 /* clang-format on */
 
+/**
+ * @brief Helper function quote_or_null.
+ * @param[in] s Parameter s.
+ * @param[in,out] s1 Parameter s1.
+ * @return Result status or value.
+ */
 static cdd_c_error_t quote_or_null(const char *s, char **s1) {
   if (s == NULL) {
     *s1 = strdup("(null)");
@@ -134,6 +157,12 @@ static cdd_c_error_t quote_or_null(const char *s, char **s1) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Helper function c_str_eq.
+ * @param[in] s0 Parameter s0.
+ * @param[in] s1 Parameter s1.
+ * @return Result status or value.
+ */
 static cdd_c_error_t c_str_eq(const char *s0, const char *s1) {
   return ((s0 == NULL && s1 == NULL) ||
           (s0 != NULL && s1 != NULL && strcmp(s0, s1) == 0))
@@ -374,7 +403,6 @@ cdd_c_error_t HazE_from_json(const char *json, struct HazE **haz_e) {
   JSON_Value *root = NULL;
   const JSON_Object *jsonObject = NULL;
   int rc = 0;
-  (void)rc;
   if (json == NULL || haz_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -404,7 +432,6 @@ cdd_c_error_t FooE_cleanup(struct FooE *foo_e) {
 
 cdd_c_error_t FooE_default(struct FooE **foo_e) {
   int rc = 0;
-  (void)rc;
   if (foo_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -615,7 +642,6 @@ cdd_c_error_t FooE_from_json(const char *json, struct FooE **foo_e) {
   const JSON_Object *jsonObject = NULL;
   int rc = 0;
 
-  (void)rc;
   if (json == NULL || foo_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -634,6 +660,10 @@ cdd_c_error_t FooE_from_json(const char *json, struct FooE **foo_e) {
   return rc;
 }
 
+/**
+ * @brief Helper function run_mocks_test.
+ * @return Result status or value.
+ */
 cdd_c_error_t run_mocks_test(void) {
   const enum Tank t = Tank_BIG;
   cdd_c_error_t rc = 0;

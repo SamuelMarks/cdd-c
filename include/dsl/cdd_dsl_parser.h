@@ -19,8 +19,8 @@ extern "C" {
 /**
  * @brief Parses a tokenized FFI IR DSL script into an IR AST.
  *
- * @param tokens The parsed tokens.
- * @param out_ir The FFI IR object to populate.
+ * @param[in] tokens The parsed tokens.
+ * @param[out] out_ir The FFI IR object to populate.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_dsl_parse(const cdd_dsl_token_list_t *tokens,

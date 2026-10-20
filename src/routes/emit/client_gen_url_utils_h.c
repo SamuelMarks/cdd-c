@@ -22,20 +22,10 @@ cdd_c_error_t client_gen_emit_url_utils_h(const char *dir_name) {
   char hpath[512];
   FILE *uh = NULL;
 
-  CDD_SNPRINTF(hpath, sizeof(hpath), "%s/src/url_utils.h", dir_name);
-#if defined(_MSC_VER)
-  if (fopen_s(&uh, hpath, "w") != 0)
-    uh = NULL;
-#else
-  uh = fopen(hpath, "w");
-#endif
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 54) {
-    fclose(uh);
-    uh = NULL;
-  }
-#endif
+  CDD_SNPRINTF(hpath, 512, "%s/src/url_utils.h", dir_name);
+  cdd_vfs_fopen(hpath, "w", &uh);
   if (uh) {
+    cdd_c_error_t rc = CDD_C_SUCCESS;
     cdd_code_writer_t w;
     cdd_code_writer_init_stream(&w, uh);
     cdd_code_writer_write(
@@ -355,8 +345,10 @@ cdd_c_error_t client_gen_emit_url_utils_h(const char *dir_name) {
             "\n"
             "#endif /* C_CDD_URL_UTILS_H */\n"
             "\n");
+    cdd_code_writer_check_error(&w, &rc);
     cdd_code_writer_free(&w);
     fclose(uh);
+    return rc;
   }
 
   return CDD_C_SUCCESS;

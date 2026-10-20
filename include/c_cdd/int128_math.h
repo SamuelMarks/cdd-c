@@ -10,6 +10,7 @@
 extern "C" {
 #endif /* __cplusplus */
 /* clang-format off */
+#include "cdd_c_error.h"
 #include "int128.h"
 #include <stddef.h>
 /* clang-format on */
@@ -17,71 +18,73 @@ extern "C" {
 /**
  * @brief Adds two 128-bit unsigned integers.
  *
- * @param a First operand.
- * @param b Second operand.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] a First operand.
+ * @param[in] b Second operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_uint128_add(cdd_uint128_t a, cdd_uint128_t b,
-                           cdd_uint128_t *out) {
+static cdd_c_error_t cdd_uint128_add(cdd_uint128_t a, cdd_uint128_t b,
+                                     cdd_uint128_t *out) {
   out->low = a.low + b.low;
   out->high = a.high + b.high + (out->low < a.low ? 1 : 0);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Adds two 128-bit signed integers.
  *
- * @param a First operand.
- * @param b Second operand.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] a First operand.
+ * @param[in] b Second operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_int128_add(cdd_int128_t a, cdd_int128_t b, cdd_int128_t *out) {
+static cdd_c_error_t cdd_int128_add(cdd_int128_t a, cdd_int128_t b,
+                                    cdd_int128_t *out) {
   out->low = a.low + b.low;
   out->high = a.high + b.high + (out->low < a.low ? 1 : 0);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Subtracts two 128-bit unsigned integers.
  *
- * @param a First operand.
- * @param b Second operand.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] a First operand.
+ * @param[in] b Second operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_uint128_sub(cdd_uint128_t a, cdd_uint128_t b,
-                           cdd_uint128_t *out) {
+static cdd_c_error_t cdd_uint128_sub(cdd_uint128_t a, cdd_uint128_t b,
+                                     cdd_uint128_t *out) {
   out->low = a.low - b.low;
   out->high = a.high - b.high - (a.low < b.low ? 1 : 0);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Subtracts two 128-bit signed integers.
  *
- * @param a First operand.
- * @param b Second operand.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] a First operand.
+ * @param[in] b Second operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_int128_sub(cdd_int128_t a, cdd_int128_t b, cdd_int128_t *out) {
+static cdd_c_error_t cdd_int128_sub(cdd_int128_t a, cdd_int128_t b,
+                                    cdd_int128_t *out) {
   out->low = a.low - b.low;
   out->high = a.high - b.high - (a.low < b.low ? 1 : 0);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Multiplies two 128-bit unsigned integers.
  *
- * @param a First operand.
- * @param b Second operand.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] a First operand.
+ * @param[in] b Second operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_uint128_mul(cdd_uint128_t a, cdd_uint128_t b,
-                           cdd_uint128_t *out) {
+static cdd_c_error_t cdd_uint128_mul(cdd_uint128_t a, cdd_uint128_t b,
+                                     cdd_uint128_t *out) {
   uint64_t a_lo = a.low & 0xFFFFFFFF;
   uint64_t a_hi = a.low >> 32;
   uint64_t b_lo = b.low & 0xFFFFFFFF;
@@ -99,18 +102,20 @@ static int cdd_uint128_mul(cdd_uint128_t a, cdd_uint128_t b,
   out->low = (mid2 << 32) | (p00 & 0xFFFFFFFF);
   out->high =
       a.high * b.low + a.low * b.high + p11 + (mid2 >> 32) + (carry << 32);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Multiplies two 128-bit signed integers.
  *
- * @param a First operand.
- * @param b Second operand.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] a First operand.
+ * @param[in] b Second operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_int128_mul(cdd_int128_t a, cdd_int128_t b, cdd_int128_t *out) {
+static cdd_c_error_t cdd_int128_mul(cdd_int128_t a, cdd_int128_t b,
+                                    cdd_int128_t *out) {
+  cdd_c_error_t rc;
   cdd_uint128_t ua;
   cdd_uint128_t ub;
   cdd_uint128_t uout;
@@ -118,22 +123,24 @@ static int cdd_int128_mul(cdd_int128_t a, cdd_int128_t b, cdd_int128_t *out) {
   ua.high = (uint64_t)a.high;
   ub.low = b.low;
   ub.high = (uint64_t)b.high;
-  cdd_uint128_mul(ua, ub, &uout);
+  rc = cdd_uint128_mul(ua, ub, &uout);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   out->low = uout.low;
   out->high = (int64_t)uout.high;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Shifts a 128-bit unsigned integer left.
  *
- * @param a The operand to shift.
- * @param shift The number of bits to shift.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] a The operand to shift.
+ * @param[in] shift The number of bits to shift.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_uint128_shl(cdd_uint128_t a, unsigned int shift,
-                           cdd_uint128_t *out) {
+static cdd_c_error_t cdd_uint128_shl(cdd_uint128_t a, unsigned int shift,
+                                     cdd_uint128_t *out) {
   shift &= 127;
   if (shift == 0) {
     *out = a;
@@ -144,19 +151,19 @@ static int cdd_uint128_shl(cdd_uint128_t a, unsigned int shift,
     out->high = a.low << (shift - 64);
     out->low = 0;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Shifts a 128-bit unsigned integer right.
  *
- * @param a The operand to shift.
- * @param shift The number of bits to shift.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] a The operand to shift.
+ * @param[in] shift The number of bits to shift.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_uint128_shr(cdd_uint128_t a, unsigned int shift,
-                           cdd_uint128_t *out) {
+static cdd_c_error_t cdd_uint128_shr(cdd_uint128_t a, unsigned int shift,
+                                     cdd_uint128_t *out) {
   shift &= 127;
   if (shift == 0) {
     *out = a;
@@ -167,39 +174,42 @@ static int cdd_uint128_shr(cdd_uint128_t a, unsigned int shift,
     out->low = a.high >> (shift - 64);
     out->high = 0;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Shifts a 128-bit signed integer left.
  *
- * @param a The operand to shift.
- * @param shift The number of bits to shift.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] a The operand to shift.
+ * @param[in] shift The number of bits to shift.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_int128_shl(cdd_int128_t a, unsigned int shift,
-                          cdd_int128_t *out) {
+static cdd_c_error_t cdd_int128_shl(cdd_int128_t a, unsigned int shift,
+                                    cdd_int128_t *out) {
+  cdd_c_error_t rc;
   cdd_uint128_t ua;
   cdd_uint128_t uout;
   ua.low = a.low;
   ua.high = (uint64_t)a.high;
-  cdd_uint128_shl(ua, shift, &uout);
+  rc = cdd_uint128_shl(ua, shift, &uout);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   out->low = uout.low;
   out->high = (int64_t)uout.high;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Shifts a 128-bit signed integer right (arithmetic shift).
  *
- * @param a The operand to shift.
- * @param shift The number of bits to shift.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] a The operand to shift.
+ * @param[in] shift The number of bits to shift.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_int128_shr(cdd_int128_t a, unsigned int shift,
-                          cdd_int128_t *out) {
+static cdd_c_error_t cdd_int128_shr(cdd_int128_t a, unsigned int shift,
+                                    cdd_int128_t *out) {
   shift &= 127;
   if (shift == 0) {
     *out = a;
@@ -210,31 +220,39 @@ static int cdd_int128_shr(cdd_int128_t a, unsigned int shift,
     out->low = (uint64_t)(a.high >> (shift - 64));
     out->high = a.high < 0 ? ((int64_t)-1) : ((int64_t)0);
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Internal helper to divide and modulo 128-bit unsigned integers.
  *
- * @param num The numerator.
- * @param den The denominator.
- * @param quot Pointer to quotient (can be NULL).
- * @param rem Pointer to remainder (can be NULL).
- * @return 0 on success, non-zero on division by zero.
+ * @param[in] num The numerator.
+ * @param[in] den The denominator.
+ * @param[out] quot Pointer to quotient (can be NULL).
+ * @param[out] rem Pointer to remainder (can be NULL).
+ * @return CDD_C_SUCCESS on success, non-zero on division by zero.
  */
-static int cdd_uint128_divmod(cdd_uint128_t num, cdd_uint128_t den,
-                              cdd_uint128_t *quot, cdd_uint128_t *rem) {
+static cdd_c_error_t cdd_uint128_divmod(cdd_uint128_t num, cdd_uint128_t den,
+                                        cdd_uint128_t *quot,
+                                        cdd_uint128_t *rem) {
+  cdd_c_error_t rc;
   cdd_uint128_t q;
   cdd_uint128_t r;
   int i;
   if (den.high == 0 && den.low == 0) {
-    return 1; /* Division by zero error */
+    return CDD_C_ERROR_INVALID_ARGUMENT; /* Division by zero error */
   }
-  q = cdd_make_uint128(0, 0);
-  r = cdd_make_uint128(0, 0);
+  rc = cdd_make_uint128(0, 0, &q);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = cdd_make_uint128(0, 0, &r);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   for (i = 127; i >= 0; i--) {
-    cdd_uint128_shl(r, 1, &r);
+    rc = cdd_uint128_shl(r, 1, &r);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
 
     /* Get i-th bit of num */
     {
@@ -249,7 +267,9 @@ static int cdd_uint128_divmod(cdd_uint128_t num, cdd_uint128_t den,
 
     /* if r >= den */
     if (r.high > den.high || (r.high == den.high && r.low >= den.low)) {
-      cdd_uint128_sub(r, den, &r);
+      rc = cdd_uint128_sub(r, den, &r);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (i < 64) {
         q.low |= (((uint64_t)1) << i);
       } else {
@@ -262,311 +282,346 @@ static int cdd_uint128_divmod(cdd_uint128_t num, cdd_uint128_t den,
     *quot = q;
   if (rem)
     *rem = r;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Divides two 128-bit unsigned integers.
  *
- * @param a First operand.
- * @param b Second operand.
- * @param out Pointer to result.
- * @return 0 on success, non-zero on division by zero.
+ * @param[in] a First operand.
+ * @param[in] b Second operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success, non-zero on division by zero.
  */
-static int cdd_uint128_div(cdd_uint128_t a, cdd_uint128_t b,
-                           cdd_uint128_t *out) {
+static cdd_c_error_t cdd_uint128_div(cdd_uint128_t a, cdd_uint128_t b,
+                                     cdd_uint128_t *out) {
   return cdd_uint128_divmod(a, b, out, NULL);
 }
 
 /**
  * @brief Modulo of two 128-bit unsigned integers.
  *
- * @param a First operand.
- * @param b Second operand.
- * @param out Pointer to result.
- * @return 0 on success, non-zero on division by zero.
+ * @param[in] a First operand.
+ * @param[in] b Second operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success, non-zero on division by zero.
  */
-static int cdd_uint128_mod(cdd_uint128_t a, cdd_uint128_t b,
-                           cdd_uint128_t *out) {
+static cdd_c_error_t cdd_uint128_mod(cdd_uint128_t a, cdd_uint128_t b,
+                                     cdd_uint128_t *out) {
   return cdd_uint128_divmod(a, b, NULL, out);
 }
 
 /**
  * @brief Divides two 128-bit signed integers.
  *
- * @param a First operand.
- * @param b Second operand.
- * @param out Pointer to result.
- * @return 0 on success, non-zero on division by zero.
+ * @param[in] a First operand.
+ * @param[in] b Second operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success, non-zero on division by zero.
  */
-static int cdd_int128_div(cdd_int128_t a, cdd_int128_t b, cdd_int128_t *out) {
+static cdd_c_error_t cdd_int128_div(cdd_int128_t a, cdd_int128_t b,
+                                    cdd_int128_t *out) {
   cdd_uint128_t ua;
   cdd_uint128_t ub;
   cdd_uint128_t uq;
   int sign_a = (a.high < 0);
   int sign_b = (b.high < 0);
   int sign_res = sign_a ^ sign_b;
-  int rc;
+  cdd_c_error_t rc;
 
   if (sign_a) {
-    cdd_uint128_t zero = cdd_make_uint128(0, 0);
+    cdd_uint128_t zero;
     cdd_uint128_t tmp;
+    rc = cdd_make_uint128(0, 0, &zero);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     tmp.high = (uint64_t)a.high;
     tmp.low = a.low;
-    cdd_uint128_sub(zero, tmp, &ua);
+    rc = cdd_uint128_sub(zero, tmp, &ua);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   } else {
     ua.high = (uint64_t)a.high;
     ua.low = a.low;
   }
 
   if (sign_b) {
-    cdd_uint128_t zero = cdd_make_uint128(0, 0);
+    cdd_uint128_t zero;
     cdd_uint128_t tmp;
+    rc = cdd_make_uint128(0, 0, &zero);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     tmp.high = (uint64_t)b.high;
     tmp.low = b.low;
-    cdd_uint128_sub(zero, tmp, &ub);
+    rc = cdd_uint128_sub(zero, tmp, &ub);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   } else {
     ub.high = (uint64_t)b.high;
     ub.low = b.low;
   }
 
   rc = cdd_uint128_divmod(ua, ub, &uq, NULL);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   if (sign_res) {
-    cdd_uint128_t zero = cdd_make_uint128(0, 0);
-    cdd_uint128_sub(zero, uq, &uq);
+    cdd_uint128_t zero;
+    rc = cdd_make_uint128(0, 0, &zero);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_uint128_sub(zero, uq, &uq);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   out->high = (int64_t)uq.high;
   out->low = uq.low;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Modulo of two 128-bit signed integers.
  *
- * @param a First operand.
- * @param b Second operand.
- * @param out Pointer to result.
- * @return 0 on success, non-zero on division by zero.
+ * @param[in] a First operand.
+ * @param[in] b Second operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success, non-zero on division by zero.
  */
-static int cdd_int128_mod(cdd_int128_t a, cdd_int128_t b, cdd_int128_t *out) {
+static cdd_c_error_t cdd_int128_mod(cdd_int128_t a, cdd_int128_t b,
+                                    cdd_int128_t *out) {
   cdd_uint128_t ua;
   cdd_uint128_t ub;
   cdd_uint128_t ur;
   int sign_a = (a.high < 0);
   int sign_b = (b.high < 0);
-  int rc;
+  cdd_c_error_t rc;
 
   if (sign_a) {
-    cdd_uint128_t zero = cdd_make_uint128(0, 0);
+    cdd_uint128_t zero;
     cdd_uint128_t tmp;
+    rc = cdd_make_uint128(0, 0, &zero);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     tmp.high = (uint64_t)a.high;
     tmp.low = a.low;
-    cdd_uint128_sub(zero, tmp, &ua);
+    rc = cdd_uint128_sub(zero, tmp, &ua);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   } else {
     ua.high = (uint64_t)a.high;
     ua.low = a.low;
   }
 
   if (sign_b) {
-    cdd_uint128_t zero = cdd_make_uint128(0, 0);
+    cdd_uint128_t zero;
     cdd_uint128_t tmp;
+    rc = cdd_make_uint128(0, 0, &zero);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     tmp.high = (uint64_t)b.high;
     tmp.low = b.low;
-    cdd_uint128_sub(zero, tmp, &ub);
+    rc = cdd_uint128_sub(zero, tmp, &ub);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   } else {
     ub.high = (uint64_t)b.high;
     ub.low = b.low;
   }
 
   rc = cdd_uint128_divmod(ua, ub, NULL, &ur);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   if (sign_a) {
-    cdd_uint128_t zero = cdd_make_uint128(0, 0);
-    cdd_uint128_sub(zero, ur, &ur);
+    cdd_uint128_t zero;
+    rc = cdd_make_uint128(0, 0, &zero);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_uint128_sub(zero, ur, &ur);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   out->high = (int64_t)ur.high;
   out->low = ur.low;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Bitwise AND of two 128-bit unsigned integers.
  *
- * @param a First operand.
- * @param b Second operand.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] a First operand.
+ * @param[in] b Second operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_uint128_and(cdd_uint128_t a, cdd_uint128_t b,
-                           cdd_uint128_t *out) {
+static cdd_c_error_t cdd_uint128_and(cdd_uint128_t a, cdd_uint128_t b,
+                                     cdd_uint128_t *out) {
   out->low = a.low & b.low;
   out->high = a.high & b.high;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Bitwise AND of two 128-bit signed integers.
  *
- * @param a First operand.
- * @param b Second operand.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] a First operand.
+ * @param[in] b Second operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_int128_and(cdd_int128_t a, cdd_int128_t b, cdd_int128_t *out) {
+static cdd_c_error_t cdd_int128_and(cdd_int128_t a, cdd_int128_t b,
+                                    cdd_int128_t *out) {
   out->low = a.low & b.low;
   out->high = a.high & b.high;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Bitwise OR of two 128-bit unsigned integers.
  *
- * @param a First operand.
- * @param b Second operand.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] a First operand.
+ * @param[in] b Second operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_uint128_or(cdd_uint128_t a, cdd_uint128_t b,
-                          cdd_uint128_t *out) {
+static cdd_c_error_t cdd_uint128_or(cdd_uint128_t a, cdd_uint128_t b,
+                                    cdd_uint128_t *out) {
   out->low = a.low | b.low;
   out->high = a.high | b.high;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Bitwise OR of two 128-bit signed integers.
  *
- * @param a First operand.
- * @param b Second operand.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] a First operand.
+ * @param[in] b Second operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_int128_or(cdd_int128_t a, cdd_int128_t b, cdd_int128_t *out) {
+static cdd_c_error_t cdd_int128_or(cdd_int128_t a, cdd_int128_t b,
+                                   cdd_int128_t *out) {
   out->low = a.low | b.low;
   out->high = a.high | b.high;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Bitwise XOR of two 128-bit unsigned integers.
  *
- * @param a First operand.
- * @param b Second operand.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] a First operand.
+ * @param[in] b Second operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_uint128_xor(cdd_uint128_t a, cdd_uint128_t b,
-                           cdd_uint128_t *out) {
+static cdd_c_error_t cdd_uint128_xor(cdd_uint128_t a, cdd_uint128_t b,
+                                     cdd_uint128_t *out) {
   out->low = a.low ^ b.low;
   out->high = a.high ^ b.high;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Bitwise XOR of two 128-bit signed integers.
  *
- * @param a First operand.
- * @param b Second operand.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] a First operand.
+ * @param[in] b Second operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_int128_xor(cdd_int128_t a, cdd_int128_t b, cdd_int128_t *out) {
+static cdd_c_error_t cdd_int128_xor(cdd_int128_t a, cdd_int128_t b,
+                                    cdd_int128_t *out) {
   out->low = a.low ^ b.low;
   out->high = a.high ^ b.high;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Bitwise NOT of a 128-bit unsigned integer.
  *
- * @param a Input operand.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] a Input operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_uint128_not(cdd_uint128_t a, cdd_uint128_t *out) {
+static cdd_c_error_t cdd_uint128_not(cdd_uint128_t a, cdd_uint128_t *out) {
   out->low = ~a.low;
   out->high = ~a.high;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Bitwise NOT of a 128-bit signed integer.
  *
- * @param a Input operand.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] a Input operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_int128_not(cdd_int128_t a, cdd_int128_t *out) {
+static cdd_c_error_t cdd_int128_not(cdd_int128_t a, cdd_int128_t *out) {
   out->low = ~a.low;
   out->high = ~a.high;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Cast 64-bit unsigned to 128-bit unsigned.
  *
- * @param val 64-bit unsigned value.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] val 64-bit unsigned value.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_uint64_to_uint128(uint64_t val, cdd_uint128_t *out) {
+static cdd_c_error_t cdd_uint64_to_uint128(uint64_t val, cdd_uint128_t *out) {
   out->low = val;
   out->high = 0;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Cast 64-bit signed to 128-bit signed.
  *
- * @param val 64-bit signed value.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] val 64-bit signed value.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_int64_to_int128(int64_t val, cdd_int128_t *out) {
+static cdd_c_error_t cdd_int64_to_int128(int64_t val, cdd_int128_t *out) {
   out->low = (uint64_t)(int64_t)val;
   out->high = (val < 0) ? ((int64_t)-1) : ((int64_t)0);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Cast 128-bit unsigned to 64-bit unsigned.
  *
- * @param val 128-bit unsigned value.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] val 128-bit unsigned value.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_uint128_to_uint64(cdd_uint128_t val, uint64_t *out) {
+static cdd_c_error_t cdd_uint128_to_uint64(cdd_uint128_t val, uint64_t *out) {
   *out = val.low;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Cast 128-bit signed to 64-bit signed.
  *
- * @param val 128-bit signed value.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] val 128-bit signed value.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_int128_to_int64(cdd_int128_t val, int64_t *out) {
+static cdd_c_error_t cdd_int128_to_int64(cdd_int128_t val, int64_t *out) {
   *out = (int64_t)val.low;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Cast float to 128-bit signed integer.
  *
- * @param val Single-precision floating-point value.
- * @param out Pointer to result.
- * @return 0 on success, 1 on NaN/Inf or overflow.
+ * @param[in] val Single-precision floating-point value.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success, error code on NaN/Inf or overflow.
  */
-static int cdd_float_to_int128(float val, cdd_int128_t *out) {
+static cdd_c_error_t cdd_float_to_int128(float val, cdd_int128_t *out) {
   union {
     float f;    /**< Float representation */
     uint32_t u; /**< Raw 32-bit IEEE-754 representation */
@@ -576,11 +631,12 @@ static int cdd_float_to_int128(float val, cdd_int128_t *out) {
   int exp;
   uint32_t frac;
   cdd_uint128_t res;
+  cdd_c_error_t rc;
 
   if (val == 0.0f) {
     out->low = 0;
     out->high = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   u.f = val;
@@ -592,14 +648,14 @@ static int cdd_float_to_int128(float val, cdd_int128_t *out) {
   if (exp == 0xFF) { /* NaN or Inf */
     out->low = 0;
     out->high = 0;
-    return 1;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   if (exp == 0) {
     /* Subnormal */
     out->low = 0;
     out->high = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   frac |= 0x800000u; /* implicit 1 */
@@ -608,7 +664,7 @@ static int cdd_float_to_int128(float val, cdd_int128_t *out) {
   if (exp < 0) {
     out->low = 0;
     out->high = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if (exp > 126) {
@@ -620,38 +676,44 @@ static int cdd_float_to_int128(float val, cdd_int128_t *out) {
       out->high = ~(((int64_t)1) << 63); /* MAX */
       out->low = ~(uint64_t)0;
     }
-    return 1;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   res.high = 0;
   res.low = frac;
 
   if (exp > 23) {
-    cdd_uint128_shl(res, (unsigned int)(exp - 23), &res);
+    rc = cdd_uint128_shl(res, (unsigned int)(exp - 23), &res);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   } else if (exp < 23) {
-    cdd_uint128_shr(res, (unsigned int)(23 - exp), &res);
+    rc = cdd_uint128_shr(res, (unsigned int)(23 - exp), &res);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   if (sign) {
     cdd_uint128_t zero;
     zero.high = 0;
     zero.low = 0;
-    cdd_uint128_sub(zero, res, &res);
+    rc = cdd_uint128_sub(zero, res, &res);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   out->high = (int64_t)res.high;
   out->low = res.low;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Cast double to 128-bit signed integer.
  *
- * @param val Double-precision floating-point value.
- * @param out Pointer to result.
- * @return 0 on success, 1 on NaN/Inf or overflow.
+ * @param[in] val Double-precision floating-point value.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success, error code on NaN/Inf or overflow.
  */
-static int cdd_double_to_int128(double val, cdd_int128_t *out) {
+static cdd_c_error_t cdd_double_to_int128(double val, cdd_int128_t *out) {
   union {
     double d;   /**< Double representation */
     uint64_t u; /**< Raw 64-bit IEEE-754 representation */
@@ -661,11 +723,12 @@ static int cdd_double_to_int128(double val, cdd_int128_t *out) {
   int exp;
   uint64_t frac;
   cdd_uint128_t res;
+  cdd_c_error_t rc;
 
   if (val == 0.0) {
     out->low = 0;
     out->high = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   u.d = val;
@@ -677,14 +740,14 @@ static int cdd_double_to_int128(double val, cdd_int128_t *out) {
   if (exp == 0x7FF) { /* NaN or Inf */
     out->low = 0;
     out->high = 0;
-    return 1;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   if (exp == 0) {
     /* Subnormal */
     out->low = 0;
     out->high = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   frac |= (((uint64_t)0x100000) << 32); /* implicit 1 */
@@ -693,7 +756,7 @@ static int cdd_double_to_int128(double val, cdd_int128_t *out) {
   if (exp < 0) {
     out->low = 0;
     out->high = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if (exp > 126) {
@@ -705,38 +768,44 @@ static int cdd_double_to_int128(double val, cdd_int128_t *out) {
       out->high = ~(((int64_t)1) << 63); /* MAX */
       out->low = ~(uint64_t)0;
     }
-    return 1;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   res.high = 0;
   res.low = frac;
 
   if (exp > 52) {
-    cdd_uint128_shl(res, (unsigned int)(exp - 52), &res);
+    rc = cdd_uint128_shl(res, (unsigned int)(exp - 52), &res);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   } else if (exp < 52) {
-    cdd_uint128_shr(res, (unsigned int)(52 - exp), &res);
+    rc = cdd_uint128_shr(res, (unsigned int)(52 - exp), &res);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   if (sign) {
     cdd_uint128_t zero;
     zero.high = 0;
     zero.low = 0;
-    cdd_uint128_sub(zero, res, &res);
+    rc = cdd_uint128_sub(zero, res, &res);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   out->high = (int64_t)res.high;
   out->low = res.low;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Cast 128-bit signed integer to float.
  *
- * @param val 128-bit signed integer value.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] val 128-bit signed integer value.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_int128_to_float(cdd_int128_t val, float *out) {
+static cdd_c_error_t cdd_int128_to_float(cdd_int128_t val, float *out) {
   uint64_t hi = (uint64_t)val.high;
   uint64_t lo = val.low;
   int sign = 0;
@@ -759,17 +828,17 @@ static int cdd_int128_to_float(cdd_int128_t val, float *out) {
   if (sign)
     f = -f;
   *out = f;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Cast 128-bit signed integer to double.
  *
- * @param val 128-bit signed integer value.
- * @param out Pointer to result.
- * @return 0 on success.
+ * @param[in] val 128-bit signed integer value.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
  */
-static int cdd_int128_to_double(cdd_int128_t val, double *out) {
+static cdd_c_error_t cdd_int128_to_double(cdd_int128_t val, double *out) {
   uint64_t hi = (uint64_t)val.high;
   uint64_t lo = val.low;
   int sign = 0;
@@ -792,7 +861,7 @@ static int cdd_int128_to_double(cdd_int128_t val, double *out) {
   if (sign)
     d = -d;
   *out = d;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 #ifdef __cplusplus

@@ -27,6 +27,9 @@ typedef enum cdd_c_error {
   CDD_C_ERROR_UNKNOWN = 7
 } cdd_c_error_t;
 
+/** @brief Alias for unsupported specification features or selectors. */
+#define CDD_C_ERROR_NOT_SUPPORTED CDD_C_ERROR_UNKNOWN
+
 /**
  * @brief Converts a cdd_c_error_t to a string.
  *

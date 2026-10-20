@@ -6,6 +6,9 @@ CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
  */
 
 #ifndef TEST_CODEGEN_VALIDATION_H
+/**
+ * @brief Macro TEST_CODEGEN_VALIDATION_H.
+ */
 #define TEST_CODEGEN_VALIDATION_H
 
 #ifdef __cplusplus
@@ -25,7 +28,9 @@ extern "C" {
 #include "c_cdd/memory.h"
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 
 #ifdef CDD_BUILD_TESTS
@@ -60,12 +65,28 @@ static size_t mock_fread_val(void *ptr, size_t size, size_t nitems,
 #endif
 #define FREAD mock_fread_val
 #else
+/**
+ * @brief Macro TMPFILE.
+ */
 #define TMPFILE tmpfile
+/**
+ * @brief Macro FTELL.
+ */
 #define FTELL ftell
+/**
+ * @brief Macro FREAD.
+ */
 #define FREAD fread
 #endif
 
 /* Helper: generate code and return as buffer */
+/**
+ * @brief Helper function gen_parse_code.
+ * @param[in] name Parameter name.
+ * @param[in,out] sf Parameter sf.
+ * @param[in,out] _out_val Parameter _out_val.
+ * @return Result status or value.
+ */
 static cdd_c_error_t gen_parse_code(const char *name, struct StructFields *sf,
                                     char **_out_val) {
   FILE *tmp = TMPFILE();
@@ -102,6 +123,10 @@ static cdd_c_error_t gen_parse_code(const char *name, struct StructFields *sf,
   }
 }
 
+/**
+ * @brief Unit test test_int_min_validation.
+ * @return Greatest test result.
+ */
 TEST test_int_min_validation(void) {
   char *_ast_gen_parse_code_0 = NULL;
   struct StructFields sf;
@@ -129,6 +154,10 @@ TEST test_int_min_validation(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_int_exclusive_min.
+ * @return Greatest test result.
+ */
 TEST test_int_exclusive_min(void) {
   char *_ast_gen_parse_code_1 = NULL;
   struct StructFields sf;
@@ -157,6 +186,10 @@ TEST test_int_exclusive_min(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_double_max_validation.
+ * @return Greatest test result.
+ */
 TEST test_double_max_validation(void) {
   char *_ast_gen_parse_code_2 = NULL;
   struct StructFields sf;
@@ -184,6 +217,10 @@ TEST test_double_max_validation(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_double_exclusive_max.
+ * @return Greatest test result.
+ */
 TEST test_double_exclusive_max(void) {
   char *_ast_gen_parse_code_3 = NULL;
   struct StructFields sf;
@@ -212,6 +249,10 @@ TEST test_double_exclusive_max(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_min_and_max.
+ * @return Greatest test result.
+ */
 TEST test_min_and_max(void) {
   char *_ast_gen_parse_code_4 = NULL;
   struct StructFields sf;
@@ -242,6 +283,10 @@ TEST test_min_and_max(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_string_len_validation.
+ * @return Greatest test result.
+ */
 TEST test_string_len_validation(void) {
   char *_ast_gen_parse_code_5 = NULL;
   struct StructFields sf;
@@ -273,6 +318,10 @@ TEST test_string_len_validation(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_string_simple_pattern_prefix.
+ * @return Greatest test result.
+ */
 TEST test_string_simple_pattern_prefix(void) {
   char *_ast_gen_parse_code_6 = NULL;
   struct StructFields sf;
@@ -314,6 +363,10 @@ TEST test_string_simple_pattern_prefix(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_string_simple_pattern_suffix.
+ * @return Greatest test result.
+ */
 TEST test_string_simple_pattern_suffix(void) {
   char *_ast_gen_parse_code_7 = NULL;
   struct StructFields sf;
@@ -355,6 +408,10 @@ TEST test_string_simple_pattern_suffix(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_string_simple_pattern_exact.
+ * @return Greatest test result.
+ */
 TEST test_string_simple_pattern_exact(void) {
   char *_ast_gen_parse_code_8 = NULL;
   struct StructFields sf;
@@ -396,6 +453,10 @@ TEST test_string_simple_pattern_exact(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_string_simple_pattern_contains.
+ * @return Greatest test result.
+ */
 TEST test_string_simple_pattern_contains(void) {
   char *_ast_gen_parse_code_9 = NULL;
   struct StructFields sf;
@@ -437,6 +498,10 @@ TEST test_string_simple_pattern_contains(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_validation_errors.
+ * @return Greatest test result.
+ */
 TEST test_validation_errors(void) {
   char *_out = NULL;
   struct StructFields sf;
@@ -469,6 +534,9 @@ TEST test_validation_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the codegen_validation_suite test suite.
+ */
 SUITE(codegen_validation_suite) {
   RUN_TEST(test_validation_errors);
   RUN_TEST(test_int_min_validation);

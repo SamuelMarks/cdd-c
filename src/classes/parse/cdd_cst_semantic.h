@@ -17,8 +17,8 @@ extern "C" {
 
 /**
  * @brief Build semantic scope and symbol information from a CST.
- * @param tree The CST tree to analyze.
- * @param out_env The populated scope environment.
+ * @param[in,out] tree The CST tree to analyze.
+ * @param[out] out_env The populated scope environment.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_build_semantic_info(

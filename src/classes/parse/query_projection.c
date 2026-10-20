@@ -58,7 +58,7 @@ cdd_c_query_projection_add_field(cdd_c_query_projection_t *proj,
   rc = c_cdd_strdup(field->original_name,
                     &proj->fields[proj->n_fields].original_name);
   if (rc != CDD_C_SUCCESS) {
-    free(proj->fields[proj->n_fields].name);
+    C_CDD_FREE(proj->fields[proj->n_fields].name);
     proj->fields[proj->n_fields].name = NULL;
     return rc;
   }
@@ -80,10 +80,10 @@ cdd_c_query_projection_free(cdd_c_query_projection_t *proj) {
   if (!proj)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   for (i = 0; i < proj->n_fields; i++) {
-    free(proj->fields[i].name);
-    free(proj->fields[i].original_name);
+    C_CDD_FREE(proj->fields[i].name);
+    C_CDD_FREE(proj->fields[i].original_name);
   }
-  free(proj->fields);
+  C_CDD_FREE(proj->fields);
   proj->fields = NULL;
   proj->n_fields = 0;
   proj->capacity = 0;

@@ -25,8 +25,13 @@ extern "C" {
 /* clang-format on */
 
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 
+/**
+ * @brief Unit test test_patcher_oom.
+ * @return Greatest test result.
+ */
 TEST test_patcher_oom(void) {
   struct PatchList list;
 #ifdef CDD_BUILD_TESTS
@@ -787,6 +792,9 @@ TEST test_patcher_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the text_patcher_oom_suite test suite.
+ */
 SUITE(text_patcher_oom_suite) { RUN_TEST(test_patcher_oom); }
 
 #ifdef __cplusplus

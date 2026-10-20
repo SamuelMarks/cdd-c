@@ -1,3 +1,7 @@
+/**
+ * @file test_declarator_parser.h
+ * @brief Unit tests and mocks in test_declarator_parser.h.
+ */
 #ifndef TEST_DECLARATOR_PARSER_H
 #define TEST_DECLARATOR_PARSER_H
 
@@ -28,16 +32,25 @@ extern cdd_c_error_t is_grouping_paren(const struct TokenList *tokens, size_t pa
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
+/** @brief Test definition g_cdd_fail_skip_ws. */
 extern C_CDD_EXPORT int g_cdd_fail_skip_ws;
+/** @brief Test definition g_cdd_fail_skip_ws_back. */
 extern C_CDD_EXPORT int g_cdd_fail_skip_ws_back;
+/** @brief Test definition g_cdd_fail_skip_group. */
 extern C_CDD_EXPORT int g_cdd_fail_skip_group;
+/** @brief Test definition g_cdd_fail_add_type_node. */
 extern C_CDD_EXPORT int g_cdd_fail_add_type_node;
+/** @brief Test definition g_cdd_fail_create_node. */
 extern C_CDD_EXPORT int g_cdd_fail_create_node;
+/** @brief Test definition g_cdd_fail_find_pivot. */
 extern C_CDD_EXPORT int g_cdd_fail_find_pivot;
+/** @brief Test definition g_cdd_fail_is_grouping_paren. */
 extern C_CDD_EXPORT int g_cdd_fail_is_grouping_paren;
 
 /**
@@ -58,6 +71,8 @@ static void reset_decl_mocks(void) {
 
 /**
  * @brief Helper to tokenize a C snippet for declarator parser tests.
+ * @param[in] code Parameter code.
+ * @return Test or helper result.
  */
 static struct TokenList *setup_tokens(const char *code) {
   struct TokenList *tl = NULL;
@@ -71,6 +86,9 @@ static struct TokenList *setup_tokens(const char *code) {
 
 /**
  * @brief Helper to verify a Type Chain against expected Kinds.
+ * @param[in,out] head Parameter head.
+ * @param[in] n Parameter n.
+ * @return Test or helper result.
  */
 static enum greatest_test_res verify_chain(struct DeclType *head, int n, ...) {
   va_list args;
@@ -93,6 +111,7 @@ static enum greatest_test_res verify_chain(struct DeclType *head, int n, ...) {
 
 /**
  * @brief Performs corresponding declarator parser test.
+ * @return Test or helper result.
  */
 TEST test_parse_basic_int(void) {
   const char *code = cdd_test_mut_str("int x");
@@ -121,6 +140,7 @@ TEST test_parse_basic_int(void) {
 
 /**
  * @brief Performs corresponding declarator parser test.
+ * @return Test or helper result.
  */
 TEST test_parse_ptr(void) {
   const char *code = cdd_test_mut_str("char *p");
@@ -144,6 +164,7 @@ TEST test_parse_ptr(void) {
 
 /**
  * @brief Performs corresponding declarator parser test.
+ * @return Test or helper result.
  */
 TEST test_parse_pointer_qualifiers(void) { /* int * const volatile p */
   const char *code = cdd_test_mut_str("int * const volatile restrict p");
@@ -162,6 +183,7 @@ TEST test_parse_pointer_qualifiers(void) { /* int * const volatile p */
      Join range [volatile_start, const_end].
      Should contain "const volatile" or "volatile const" depending on original
      string order? Code is "const volatile". Range is [const, volatile].
+ * @return Test or helper result.
   */
   ASSERT(strstr(info.type->data.ptr.qualifiers, "const") != NULL);
   ASSERT(strstr(info.type->data.ptr.qualifiers, "volatile") != NULL);
@@ -174,6 +196,7 @@ TEST test_parse_pointer_qualifiers(void) { /* int * const volatile p */
 
 /**
  * @brief Performs corresponding declarator parser test.
+ * @return Test or helper result.
  */
 TEST test_parse_atomic_specifier(void) { /* _Atomic(int) ax */
   const char *code = cdd_test_mut_str("_Atomic(int) ax");
@@ -195,6 +218,7 @@ TEST test_parse_atomic_specifier(void) { /* _Atomic(int) ax */
 
 /**
  * @brief Performs corresponding declarator parser test.
+ * @return Test or helper result.
  */
 TEST test_parse_complex_specifier(void) { /* double _Complex c */
   const char *code = cdd_test_mut_str("double _Complex c");
@@ -216,6 +240,7 @@ TEST test_parse_complex_specifier(void) { /* double _Complex c */
 
 /**
  * @brief Performs corresponding declarator parser test.
+ * @return Test or helper result.
  */
 TEST test_parse_atomic_qualifier_on_ptr(void) { /* int * _Atomic ap */
   const char *code = cdd_test_mut_str("int * _Atomic ap");
@@ -238,6 +263,7 @@ TEST test_parse_atomic_qualifier_on_ptr(void) { /* int * _Atomic ap */
 
 /**
  * @brief Performs corresponding declarator parser test.
+ * @return Test or helper result.
  */
 TEST test_parse_atomic_qualifier_on_base(void) { /* _Atomic int x */
   const char *code = cdd_test_mut_str("_Atomic int x");
@@ -262,6 +288,7 @@ TEST test_parse_atomic_qualifier_on_base(void) { /* _Atomic int x */
 
 /**
  * @brief Performs corresponding declarator parser test.
+ * @return Test or helper result.
  */
 TEST test_abstract_atomic_ptr(void) { /* _Atomic(int) * */
   const char *code = cdd_test_mut_str("_Atomic(int) *");
@@ -280,6 +307,10 @@ TEST test_abstract_atomic_ptr(void) { /* _Atomic(int) * */
   PASS();
 }
 
+/**
+ * @brief Unit test test_parse_func_ptr.
+ * @return Greatest test result.
+ */
 TEST test_parse_func_ptr(void) {
   const char *code = cdd_test_mut_str("int (*func)(void)");
   struct TokenList *tl = setup_tokens(code);
@@ -296,6 +327,10 @@ TEST test_parse_func_ptr(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parse_func_array.
+ * @return Greatest test result.
+ */
 TEST test_parse_func_array(void) {
   const char *code = cdd_test_mut_str("int (*a[5])(void)");
   struct TokenList *tl = setup_tokens(code);
@@ -313,6 +348,10 @@ TEST test_parse_func_array(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_abstract_func_ptr.
+ * @return Greatest test result.
+ */
 TEST test_abstract_func_ptr(void) {
   const char *code = cdd_test_mut_str("int (*)(void)");
   struct TokenList *tl = setup_tokens(code);
@@ -329,6 +368,10 @@ TEST test_abstract_func_ptr(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_abstract_array.
+ * @return Greatest test result.
+ */
 TEST test_abstract_array(void) {
   const char *code = cdd_test_mut_str("int[5]");
   struct TokenList *tl = setup_tokens(code);
@@ -345,6 +388,10 @@ TEST test_abstract_array(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parse_decl_errors.
+ * @return Greatest test result.
+ */
 TEST test_parse_decl_errors(void) {
   struct DeclInfo info;
   struct TokenList *tl = setup_tokens("int x");
@@ -359,6 +406,10 @@ TEST test_parse_decl_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_add_type_node_nulls.
+ * @return Greatest test result.
+ */
 TEST test_add_type_node_nulls(void) {
   struct DeclInfo info;
   struct DeclType *tail = NULL;
@@ -367,6 +418,10 @@ TEST test_add_type_node_nulls(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parse_declarator_oom.
+ * @return Greatest test result.
+ */
 TEST test_parse_declarator_oom(void) {
   const char *code = cdd_test_mut_str("int * const volatile p[10](void)");
   struct TokenList *tl = setup_tokens(code);
@@ -390,6 +445,10 @@ TEST test_parse_declarator_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parse_declarator_more_edge_cases.
+ * @return Greatest test result.
+ */
 TEST test_parse_declarator_more_edge_cases(void) {
   struct TokenList *tl;
   struct DeclInfo info;
@@ -469,6 +528,10 @@ TEST test_parse_declarator_more_edge_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parse_declarator_empty_array.
+ * @return Greatest test result.
+ */
 TEST test_parse_declarator_empty_array(void) {
   const char *code = cdd_test_mut_str("int x[]");
   struct TokenList *tl = setup_tokens(code);
@@ -481,6 +544,10 @@ TEST test_parse_declarator_empty_array(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parse_declarator_just_x.
+ * @return Greatest test result.
+ */
 TEST test_parse_declarator_just_x(void) {
   const char *code = cdd_test_mut_str("x");
   struct TokenList *tl = setup_tokens(code);
@@ -494,6 +561,10 @@ TEST test_parse_declarator_just_x(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parse_declarator_edge_cases.
+ * @return Greatest test result.
+ */
 TEST test_parse_declarator_edge_cases(void) {
   struct TokenList *tl;
   struct DeclInfo info;
@@ -527,6 +598,10 @@ TEST test_parse_declarator_edge_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parse_declarator_uncovered.
+ * @return Greatest test result.
+ */
 TEST test_parse_declarator_uncovered(void) {
   struct TokenList *tl = setup_tokens("(");
   int is_grouping = 0;
@@ -598,6 +673,10 @@ TEST test_parse_declarator_uncovered(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parse_declarator_uncovered_2.
+ * @return Greatest test result.
+ */
 TEST test_parse_declarator_uncovered_2(void) {
   struct DeclInfo info;
   struct TokenList *tl;
@@ -637,6 +716,9 @@ TEST test_parse_declarator_uncovered_2(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the declarator_parser_suite test suite.
+ */
 SUITE(declarator_parser_suite) {
 #if defined(_MSC_VER) && _MSC_VER <= 1400
   /* skipped on old msvc */

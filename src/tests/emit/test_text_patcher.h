@@ -25,6 +25,12 @@ extern "C" {
 /* Moved extern declarations for C89 compliance */
 
 /* Helper to setup a token list from a string */
+/**
+ * @brief Helper function setup_patch_tokens.
+ * @param[in] code Parameter code.
+ * @param[in,out] _out_val Parameter _out_val.
+ * @return Result status or value.
+ */
 static cdd_c_error_t setup_patch_tokens(const char *code,
                                         struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
@@ -40,6 +46,10 @@ static cdd_c_error_t setup_patch_tokens(const char *code,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Unit test test_patch_init_free.
+ * @return Greatest test result.
+ */
 TEST test_patch_init_free(void) {
   char *_ast_strdup_0 = NULL;
   struct PatchList pl;
@@ -71,6 +81,10 @@ TEST test_patch_init_free(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_patch_basic_replacement.
+ * @return Greatest test result.
+ */
 TEST test_patch_basic_replacement(void) {
   struct TokenList *_ast_setup_patch_tokens_0;
   char *_ast_strdup_1 = NULL;
@@ -107,6 +121,10 @@ TEST test_patch_basic_replacement(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_patch_insertion.
+ * @return Greatest test result.
+ */
 TEST test_patch_insertion(void) {
   struct TokenList *_ast_setup_patch_tokens_1;
   char *_ast_strdup_2 = NULL;
@@ -147,6 +165,10 @@ TEST test_patch_insertion(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_patch_deletion.
+ * @return Greatest test result.
+ */
 TEST test_patch_deletion(void) {
   struct TokenList *_ast_setup_patch_tokens_2;
   char *_ast_strdup_3 = NULL;
@@ -178,6 +200,10 @@ TEST test_patch_deletion(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_patch_multiple_disjoint.
+ * @return Greatest test result.
+ */
 TEST test_patch_multiple_disjoint(void) {
   struct TokenList *_ast_setup_patch_tokens_3;
   char *_ast_strdup_4 = NULL;
@@ -214,6 +240,10 @@ TEST test_patch_multiple_disjoint(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_patch_overlap_behavior.
+ * @return Greatest test result.
+ */
 TEST test_patch_overlap_behavior(void) {
   struct TokenList *_ast_setup_patch_tokens_4;
   char *_ast_strdup_6 = NULL;
@@ -259,6 +289,10 @@ TEST test_patch_overlap_behavior(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_patch_append_end.
+ * @return Greatest test result.
+ */
 TEST test_patch_append_end(void) {
   struct TokenList *_ast_setup_patch_tokens_5;
   char *_ast_strdup_8 = NULL;
@@ -292,6 +326,10 @@ TEST test_patch_append_end(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_patch_bounds.
+ * @return Greatest test result.
+ */
 TEST test_patch_bounds(void) {
   struct PatchList pl;
   struct TokenList tl;
@@ -344,6 +382,10 @@ TEST test_patch_bounds(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_patcher_invalid.
+ * @return Greatest test result.
+ */
 TEST test_patcher_invalid(void) {
   struct PatchList pl2;
   char huge_str[2000];
@@ -451,6 +493,10 @@ TEST test_patcher_invalid(void) {
   }
 }
 
+/**
+ * @brief Unit test test_patcher_cov.
+ * @return Greatest test result.
+ */
 TEST test_patcher_cov(void) {
   struct PatchList pl;
   char *out = NULL;
@@ -484,6 +530,10 @@ TEST test_patcher_cov(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_patcher_cov_extra.
+ * @return Greatest test result.
+ */
 TEST test_patcher_cov_extra(void) {
   struct PatchList pl;
   char *out = NULL;
@@ -509,6 +559,10 @@ TEST test_patcher_cov_extra(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_patcher_oom_original_token_copy.
+ * @return Greatest test result.
+ */
 TEST test_patcher_oom_original_token_copy(void) {
   struct PatchList list;
   struct TokenList *tl = NULL;
@@ -547,6 +601,10 @@ TEST test_patcher_oom_original_token_copy(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_patcher_oom_no_patches.
+ * @return Greatest test result.
+ */
 TEST test_patcher_oom_no_patches(void) {
   struct PatchList list;
   struct TokenList *tl = NULL;
@@ -690,6 +748,9 @@ TEST test_patcher_oom_no_patches(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the text_patcher_suite test suite.
+ */
 SUITE(text_patcher_suite) {
   RUN_TEST(test_patcher_oom_no_patches);
   RUN_TEST(test_patcher_oom_original_token_copy);

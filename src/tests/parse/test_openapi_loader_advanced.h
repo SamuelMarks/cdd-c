@@ -14,6 +14,10 @@ extern "C" {
 #include "parse/test_openapi_loader_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_openapi_loader_helper_fallbacks.
+ * @return Greatest test result.
+ */
 TEST test_openapi_loader_helper_fallbacks(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme *sec_out = NULL;
@@ -52,6 +56,10 @@ TEST test_openapi_loader_helper_fallbacks(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_comprehensive_path_item_and_schema_copying.
+ * @return Greatest test result.
+ */
 TEST test_load_comprehensive_path_item_and_schema_copying(void) {
   const char *chunks[] = {
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},",
@@ -187,6 +195,10 @@ TEST test_load_comprehensive_path_item_and_schema_copying(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_components_ref_overrides_and_deep_copying.
+ * @return Greatest test result.
+ */
 TEST test_load_components_ref_overrides_and_deep_copying(void) {
   const char *chunks[] = {
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},",
@@ -296,6 +308,10 @@ TEST test_load_components_ref_overrides_and_deep_copying(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_all_security_scheme_types_and_flows.
+ * @return Greatest test result.
+ */
 TEST test_load_all_security_scheme_types_and_flows(void) {
   const char *chunks[] = {
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},",
@@ -384,6 +400,10 @@ TEST test_load_all_security_scheme_types_and_flows(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_security_scheme_validation_errors.
+ * @return Greatest test result.
+ */
 TEST test_security_scheme_validation_errors(void) {
   const char *bad_specs[] = {
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},\""
@@ -435,6 +455,10 @@ TEST test_security_scheme_validation_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_header_schema_array_and_ref_propagation.
+ * @return Greatest test result.
+ */
 TEST test_load_header_schema_array_and_ref_propagation(void) {
   const char *chunks[] = {
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},",
@@ -486,6 +510,10 @@ TEST test_load_header_schema_array_and_ref_propagation(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_uri_resolution_and_self_matching.
+ * @return Greatest test result.
+ */
 TEST test_load_uri_resolution_and_self_matching(void) {
   const char *chunks[] = {
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},",
@@ -580,6 +608,10 @@ TEST test_load_uri_resolution_and_self_matching(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_header_and_parameter_style_and_content_variations.
+ * @return Greatest test result.
+ */
 TEST test_header_and_parameter_style_and_content_variations(void) {
   const char *chunks[] = {
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},",
@@ -681,6 +713,10 @@ TEST test_header_and_parameter_style_and_content_variations(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_header_and_parameter_validation_errors.
+ * @return Greatest test result.
+ */
 TEST test_header_and_parameter_validation_errors(void) {
   const char *bad_specs[] = {
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},\""
@@ -724,6 +760,10 @@ TEST test_header_and_parameter_validation_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_swagger2_parameter_and_response_type_fallbacks.
+ * @return Greatest test result.
+ */
 TEST test_swagger2_parameter_and_response_type_fallbacks(void) {
   const char *chunks[] = {
       "{\"swagger\":\"2.0\",\"info\":{\"title\":\"s2\",\"version\":\"1\"},",
@@ -763,6 +803,10 @@ TEST test_swagger2_parameter_and_response_type_fallbacks(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_webhooks_and_component_callbacks.
+ * @return Greatest test result.
+ */
 TEST test_load_webhooks_and_component_callbacks(void) {
   const char *chunks[] = {
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},",
@@ -822,6 +866,10 @@ TEST test_load_webhooks_and_component_callbacks(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_path_template_validation_and_collision_errors.
+ * @return Greatest test result.
+ */
 TEST test_path_template_validation_and_collision_errors(void) {
   const char *bad_paths[] = {
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},\""

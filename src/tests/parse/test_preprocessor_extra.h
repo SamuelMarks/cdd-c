@@ -1,3 +1,7 @@
+/**
+ * @file test_preprocessor_extra.h
+ * @brief Unit tests and mocks in test_preprocessor_extra.h.
+ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -7,12 +11,22 @@ extern "C" {
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 /* clang-format on */
+/**
+ * @brief Helper function abort_cb.
+ * @param[in] info Parameter info.
+ * @param[in,out] user_data Parameter user_data.
+ * @return Result status or value.
+ */
 static cdd_c_error_t abort_cb(const struct IncludeInfo *info, void *user_data) {
   struct TestPPCtx *ctx = (struct TestPPCtx *)user_data;
   ctx->count++;
   return 1; /* Abort on first */
 }
 
+/**
+ * @brief Unit test test_preprocessor_abort.
+ * @return Greatest test result.
+ */
 TEST test_preprocessor_abort(void) {
   struct PPConfig config = {0};
   struct TestPPCtx ctx = {0};

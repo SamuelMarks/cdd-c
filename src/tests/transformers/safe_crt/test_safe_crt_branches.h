@@ -24,6 +24,7 @@ extern "C" {
 extern C_CDD_EXPORT int g_safe_crt_malloc_fail;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
 extern C_CDD_EXPORT int g_cdd_query_err_fail;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_mock_safe_crt_rules_fail;
@@ -31,6 +32,10 @@ extern C_CDD_EXPORT int g_mock_find_and_mark_fopen_fail;
 extern C_CDD_EXPORT int g_mock_check_unsupported_calls_fail;
 #endif
 
+/**
+ * @brief Unit test test_cdd_transform_safe_crt_oom_malloc.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_safe_crt_oom_malloc(void) {
 #ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
@@ -51,6 +56,10 @@ TEST test_cdd_transform_safe_crt_oom_malloc(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_safe_crt_oom.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_safe_crt_oom(void) {
 #ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
@@ -252,6 +261,10 @@ TEST test_cdd_transform_safe_crt_oom(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_transform_safe_crt_needs_buffers.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_safe_crt_needs_buffers(void) {
   cdd_transform_config_t config;
   cdd_cst_tree_t *tree = NULL;
@@ -289,6 +302,10 @@ TEST test_cdd_transform_safe_crt_needs_buffers(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_safe_crt_more_cases.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_safe_crt_more_cases(void) {
   cdd_transform_config_t config;
   cdd_cst_tree_t *tree = NULL;
@@ -435,6 +452,10 @@ TEST test_cdd_transform_safe_crt_more_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_safe_crt_oom_all.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_safe_crt_oom_all(void) {
 #ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
@@ -518,6 +539,10 @@ TEST test_cdd_transform_safe_crt_oom_all(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_safe_crt_mock_fails.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_safe_crt_mock_fails(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_transform_config_t config;
@@ -539,6 +564,9 @@ TEST test_cdd_transform_safe_crt_mock_fails(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the transformer_safe_crt_branches_suite test suite.
+ */
 SUITE(transformer_safe_crt_branches_suite) {
   RUN_TEST(test_cdd_transform_safe_crt_oom_all);
   RUN_TEST(test_cdd_transform_safe_crt_oom_malloc);

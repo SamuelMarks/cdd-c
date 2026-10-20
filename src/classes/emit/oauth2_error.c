@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/code_writer.h"
 #include "classes/emit/oauth2_error.h"
 #include "classes/emit/struct.h"
 #include "win_compat_sym.h"
@@ -29,8 +30,10 @@ cdd_c_error_t write_oauth2_error_parser_func(FILE *fp, const char *struct_name,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Generate Enum */
-  fprintf(fp, "/**\n * @brief Standard OAuth2 Errors for %s\n */\n",
-          struct_name);
+  if ((int)FPRINTF_HOOK(fp,
+                        "/**\n * @brief Standard OAuth2 Errors for %s\n */\n",
+                        struct_name) < 0)
+    return CDD_C_ERROR_IO;
   fprintf(fp, "enum %sErrorType {\n", struct_name);
   fprintf(fp, "  %s_ERROR_NONE = 0,\n", struct_name);
   fprintf(fp, "  %s_ERROR_INVALID_REQUEST,\n", struct_name);

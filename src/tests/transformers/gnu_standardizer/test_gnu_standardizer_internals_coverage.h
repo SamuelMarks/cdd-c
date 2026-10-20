@@ -21,14 +21,23 @@ extern "C" {
 #include <string.h>
 /* clang-format on */
 
-extern C_CDD_EXPORT int g_gnu_standardizer_fail;
+/** @brief Test definition g_gnu_alloc_fail. */
 extern C_CDD_EXPORT volatile int g_gnu_alloc_fail;
+/** @brief Test definition g_gnu_replace_fail. */
 extern C_CDD_EXPORT volatile int g_gnu_replace_fail;
+/** @brief Test definition g_gnu_bld_fail. */
 extern C_CDD_EXPORT volatile int g_gnu_bld_fail;
+/** @brief Test definition g_gnu_malloc_fail. */
 extern C_CDD_EXPORT volatile int g_gnu_malloc_fail;
+/** @brief Test definition g_gnu_find_fail. */
 extern C_CDD_EXPORT volatile int g_gnu_find_fail;
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 
+/**
+ * @brief Unit test test_gnu_standardizer_reach_100_percent_coverage.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_tree_t empty_tree;
@@ -146,37 +155,37 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
 
     if (cdd_cst_parse(az_span_create_from_str("int x;"), &tr_valid) == 0 &&
         tr_valid) {
-      g_gnu_standardizer_fail = 30;
+      g_cdd_cst_alloc_token_fail = 1;
       ASSERT_EQ(CDD_C_ERROR_MEMORY,
                 replace_token_with_text(tr_valid,
                                         &tr_valid->base_tokens->tokens[0],
                                         CDD_TOKEN_IDENTIFIER, "", 0));
-      g_gnu_standardizer_fail = 0;
+      g_cdd_cst_alloc_token_fail = 0;
       cdd_cst_tree_free(tr_valid);
     }
     if (cdd_cst_parse(az_span_create_from_str("void f(void) {}\n"),
                       &tr_valid) == 0 &&
         tr_valid) {
-      g_gnu_standardizer_fail = 34;
+      g_cdd_alloc_fail = 1;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tr_valid, &config));
-      g_gnu_standardizer_fail = 0;
+      g_cdd_alloc_fail = 0;
       cdd_cst_tree_free(tr_valid);
     }
     if (cdd_cst_parse(az_span_create_from_str("typeof(1) x;\n"), &tr_valid) ==
             0 &&
         tr_valid) {
-      g_gnu_standardizer_fail = 35;
+      g_cdd_alloc_fail = 1;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tr_valid, &config));
-      g_gnu_standardizer_fail = 0;
+      g_cdd_alloc_fail = 0;
       cdd_cst_tree_free(tr_valid);
     }
     if (cdd_cst_parse(az_span_create_from_str(
                           "unsigned __int128 x = 0x10000000000000000;\n"),
                       &tr_valid) == 0 &&
         tr_valid) {
-      g_gnu_standardizer_fail = 36;
+      g_cdd_alloc_fail = 3;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tr_valid, &config));
-      g_gnu_standardizer_fail = 0;
+      g_cdd_alloc_fail = 0;
       cdd_cst_tree_free(tr_valid);
     }
     if (cdd_cst_parse(
@@ -185,27 +194,31 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
                     *)(size_t) "unsigned __int128 x = 18446744073709551616;\n"),
             &tr_valid) == 0 &&
         tr_valid) {
-      g_gnu_standardizer_fail = 37;
+      g_cdd_alloc_fail = 3;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tr_valid, &config));
-      g_gnu_standardizer_fail = 0;
+      g_cdd_alloc_fail = 0;
       cdd_cst_tree_free(tr_valid);
     }
-    if (cdd_cst_parse(az_span_create_from_str("typeof(int[]) x;\n"),
+    if (cdd_cst_parse(az_span_create_from_str("typeof(int[5) x;\n"),
                       &tr_valid) == 0 &&
         tr_valid) {
-      g_gnu_standardizer_fail = 15;
-      g_gnu_bld_fail = 1;
+      g_cdd_alloc_fail = 1;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tr_valid, &config));
-      g_gnu_standardizer_fail = 0;
-      g_gnu_bld_fail = 0;
+      g_cdd_alloc_fail = 0;
       cdd_cst_tree_free(tr_valid);
     }
-    if (cdd_cst_parse(az_span_create_from_str("__auto_type x = 1;\n"),
+    if (cdd_cst_parse(az_span_create_from_str("typeof(int[5) x;\n"),
                       &tr_valid) == 0 &&
         tr_valid) {
-      g_gnu_standardizer_fail = 39;
-      cdd_transform_gnu(tr_valid, &config);
-      g_gnu_standardizer_fail = 0;
+      g_cdd_cst_alloc_token_fail = 1;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tr_valid, &config));
+      g_cdd_cst_alloc_token_fail = 0;
+      cdd_cst_tree_free(tr_valid);
+    }
+    if (cdd_cst_parse(az_span_create_from_str("__auto_type x = int;\n"),
+                      &tr_valid) == 0 &&
+        tr_valid) {
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_gnu(tr_valid, &config));
       cdd_cst_tree_free(tr_valid);
     }
     if (cdd_cst_parse(
@@ -262,6 +275,7 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
         "float imf = __imag__ cf;\n",
         "int ty_v = 1; typeof(ty_v) ty;\n",
         "typeof(int[5]) tarr;\n",
+        "typeof(int[2][3]) tarr2d;\n",
         "typeof(int[]) tarr2;\n",
         "__auto_type ax = 1;\n",
         "union { int a; };\n",
@@ -271,7 +285,8 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
         "void f(void) { int v = 0; (union U)v = 1; }\n",
         "void f(int n) { int a[n]; goto l1; l1:; }\n",
         "void f(int *ptr) { goto *ptr; }\n",
-        "void f(void) { __label__ l1, l2, l3; goto l1; l1:; }\n"};
+        "void f(void) { __label__ l1, l2, l3; goto l1; l1:; }\n",
+        "int top_zero[0];"};
     size_t j;
     int vla_mode;
     for (vla_mode = 0; vla_mode <= 1; vla_mode++) {
@@ -290,17 +305,18 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
         }
         g_gnu_replace_fail = 0;
 
-        for (k = 1; k <= 12; k++) {
-          g_gnu_bld_fail = k;
+        for (k = 1; k <= 40; k++) {
           if (cdd_cst_parse(az_span_create_from_str(test_codes[j]), &tree) ==
                   0 &&
               tree) {
+            g_cdd_alloc_fail = k;
             cdd_transform_gnu(tree, &config);
+            g_cdd_alloc_fail = 0;
             cdd_cst_tree_free(tree);
             tree = NULL;
           }
         }
-        g_gnu_bld_fail = 0;
+        g_cdd_alloc_fail = 0;
 
         for (k = 1; k <= 12; k++) {
           g_gnu_alloc_fail = k;
@@ -337,6 +353,32 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
           }
         }
         g_gnu_find_fail = 0;
+
+        for (k = 1; k <= 35; k++) {
+          if (cdd_cst_parse(az_span_create_from_str(test_codes[j]), &tree) ==
+                  0 &&
+              tree) {
+            g_cdd_cst_alloc_token_fail = k;
+            cdd_transform_gnu(tree, &config);
+            g_cdd_cst_alloc_token_fail = 0;
+            cdd_cst_tree_free(tree);
+            tree = NULL;
+          }
+        }
+        g_cdd_cst_alloc_token_fail = 0;
+
+        for (k = 1; k <= 10; k++) {
+          if (cdd_cst_parse(az_span_create_from_str(test_codes[j]), &tree) ==
+                  0 &&
+              tree) {
+            g_cdd_strdup_fail = k;
+            cdd_transform_gnu(tree, &config);
+            g_cdd_strdup_fail = 0;
+            cdd_cst_tree_free(tree);
+            tree = NULL;
+          }
+        }
+        g_cdd_strdup_fail = 0;
       }
     }
   }
@@ -344,15 +386,16 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
   for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); i++) {
     int k;
     for (k = 1; k <= 15; k++) {
-      g_gnu_bld_fail = k;
       if (cdd_cst_parse(az_span_create_from_str(snippets[i]), &tree) == 0 &&
           tree) {
+        g_cdd_alloc_fail = k;
         cdd_transform_gnu(tree, &config);
+        g_cdd_alloc_fail = 0;
         cdd_cst_tree_free(tree);
         tree = NULL;
       }
     }
-    g_gnu_bld_fail = 0;
+    g_cdd_alloc_fail = 0;
 
     for (k = 1; k <= 15; k++) {
       g_gnu_malloc_fail = k;
@@ -387,17 +430,6 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
     }
     g_gnu_replace_fail = 0;
 
-    for (k = 1; k <= 15; k++) {
-      g_gnu_standardizer_fail = 100 + k;
-      if (cdd_cst_parse(az_span_create_from_str(snippets[i]), &tree) == 0 &&
-          tree) {
-        cdd_transform_gnu(tree, &config);
-        cdd_cst_tree_free(tree);
-        tree = NULL;
-      }
-    }
-    g_gnu_standardizer_fail = 0;
-
     ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(snippets[i]), &tree));
     ASSERT(tree != NULL);
     ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_gnu(tree, &config));
@@ -408,6 +440,10 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_all_grammar_branches.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_all_grammar_branches(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_transform_config_t config;
@@ -667,6 +703,10 @@ TEST test_gnu_standardizer_all_grammar_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_final_branches.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_final_branches(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_transform_config_t config;
@@ -763,10 +803,8 @@ TEST test_gnu_standardizer_final_branches(void) {
   if (cdd_cst_parse(az_span_create_from_str("struct S { int a[0]; }\n"),
                     &tree) == 0 &&
       tree) {
-    g_gnu_standardizer_fail = 20;
     tree->base_tokens->size = 10;
     cdd_transform_gnu(tree, &config);
-    g_gnu_standardizer_fail = 0;
     tree->base_tokens->size = 11;
     cdd_cst_tree_free(tree);
     tree = NULL;
@@ -903,6 +941,10 @@ TEST test_gnu_standardizer_final_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the transformer_gnu_standardizer_internals_coverage_suite
+ * test suite.
+ */
 SUITE(transformer_gnu_standardizer_internals_coverage_suite) {
   RUN_TEST(test_gnu_standardizer_reach_100_percent_coverage);
   RUN_TEST(test_gnu_standardizer_all_grammar_branches);

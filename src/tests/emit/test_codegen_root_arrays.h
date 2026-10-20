@@ -6,6 +6,9 @@ CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
  */
 
 #ifndef TEST_CODEGEN_ROOT_ARRAYS_H
+/**
+ * @brief Macro TEST_CODEGEN_ROOT_ARRAYS_H.
+ */
 #define TEST_CODEGEN_ROOT_ARRAYS_H
 
 #ifdef __cplusplus
@@ -25,7 +28,9 @@ extern "C" {
 #include "c_cdd/memory.h"
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 
 #ifdef CDD_BUILD_TESTS
@@ -60,12 +65,30 @@ static size_t mock_fread_ra(void *ptr, size_t size, size_t nitems,
 #endif
 #define FREAD mock_fread_ra
 #else
+/**
+ * @brief Macro TMPFILE.
+ */
 #define TMPFILE tmpfile
+/**
+ * @brief Macro FTELL.
+ */
 #define FTELL ftell
+/**
+ * @brief Macro FREAD.
+ */
 #define FREAD fread
 #endif
 
 /* Helper to capture output. Updated signature to match codegen_types functions.
+ */
+/**
+ * @brief Helper function generate_ra_code.
+ * @param[in,out] fn Parameter fn.
+ * @param[in] name Parameter name.
+ * @param[in] type Parameter type.
+ * @param[in] ref Parameter ref.
+ * @param[out] _out_val Parameter _out_val.
+ * @return Result status or value.
  */
 static cdd_c_error_t generate_ra_code(
     cdd_c_error_t (*fn)(FILE *, const char *, const char *, const char *,
@@ -114,6 +137,10 @@ static cdd_c_error_t generate_ra_code(
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Unit test test_root_int_array_from_json.
+ * @return Greatest test result.
+ */
 TEST test_root_int_array_from_json(void) {
   char *_ast_generate_ra_code_0 = NULL;
   char *code = (generate_ra_code(write_root_array_from_json_func, "IntList",
@@ -132,6 +159,10 @@ TEST test_root_int_array_from_json(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_root_string_array_from_json.
+ * @return Greatest test result.
+ */
 TEST test_root_string_array_from_json(void) {
   char *_ast_generate_ra_code_1 = NULL;
   char *code = (generate_ra_code(write_root_array_from_json_func, "StrList",
@@ -151,6 +182,10 @@ TEST test_root_string_array_from_json(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_root_obj_array_from_json.
+ * @return Greatest test result.
+ */
 TEST test_root_obj_array_from_json(void) {
   char *_ast_generate_ra_code_2 = NULL;
   /* Array of objects references "MyObj" */
@@ -171,6 +206,10 @@ TEST test_root_obj_array_from_json(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_root_int_array_to_json.
+ * @return Greatest test result.
+ */
 TEST test_root_int_array_to_json(void) {
   char *_ast_generate_ra_code_3 = NULL;
   char *code = (generate_ra_code(write_root_array_to_json_func, "IntList",
@@ -186,6 +225,10 @@ TEST test_root_int_array_to_json(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_root_obj_array_to_json.
+ * @return Greatest test result.
+ */
 TEST test_root_obj_array_to_json(void) {
   char *_ast_generate_ra_code_4 = NULL;
   char *code = (generate_ra_code(write_root_array_to_json_func, "ObjList",
@@ -201,6 +244,10 @@ TEST test_root_obj_array_to_json(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_root_array_cleanup.
+ * @return Greatest test result.
+ */
 TEST test_root_array_cleanup(void) {
   char *_ast_generate_ra_code_5 = NULL;
   char *_ast_generate_ra_code_6 = NULL;
@@ -225,6 +272,10 @@ TEST test_root_array_cleanup(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_root_arrays_errors.
+ * @return Greatest test result.
+ */
 TEST test_root_arrays_errors(void) {
   char *_out = NULL;
 
@@ -259,6 +310,9 @@ TEST test_root_arrays_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the root_array_suite test suite.
+ */
 SUITE(root_array_suite) {
   RUN_TEST(test_root_arrays_errors);
   RUN_TEST(test_root_int_array_from_json);

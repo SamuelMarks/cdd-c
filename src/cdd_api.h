@@ -11,7 +11,34 @@ extern "C" {
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
+#include <stddef.h>
 /* clang-format on */
+
+/**
+ * @brief Strongly-typed boolean enum for CDD public API configurations.
+ */
+typedef enum cdd_bool_t {
+  CDD_FALSE = 0, /**< Boolean false */
+  CDD_TRUE = 1   /**< Boolean true */
+} c_cdd_bool_t;
+
+/**
+ * @brief Target subcommand for `cdd_generate_from_openapi`.
+ */
+typedef enum cdd_openapi_subcommand_t {
+  CDD_OPENAPI_SUBCOMMAND_TO_SDK = 0,     /**< Generate C Client SDK */
+  CDD_OPENAPI_SUBCOMMAND_TO_SDK_CLI = 1, /**< Generate C Client SDK + CLI */
+  CDD_OPENAPI_SUBCOMMAND_TO_SERVER = 2   /**< Generate C Backend Server */
+} cdd_openapi_subcommand_t;
+
+/**
+ * @brief Target subcommand for `cdd_generate_from_arazzo`.
+ */
+typedef enum cdd_arazzo_subcommand_t {
+  CDD_ARAZZO_SUBCOMMAND_TO_SDK = 0,     /**< Generate C Arazzo SDK workflows */
+  CDD_ARAZZO_SUBCOMMAND_TO_SDK_CLI = 1, /**< Generate C Arazzo CLI runner */
+  CDD_ARAZZO_SUBCOMMAND_TO_SERVER = 2   /**< Generate C Arazzo Server */
+} cdd_arazzo_subcommand_t;
 
 /**
  * @brief Configuration for from_openapi command.
@@ -24,13 +51,13 @@ typedef struct {
   /** @brief output */
   const char *output;
   /** @brief no_github_actions */
-  int no_github_actions;
+  c_cdd_bool_t no_github_actions;
   /** @brief no_installable_package */
-  int no_installable_package;
+  c_cdd_bool_t no_installable_package;
   /** @brief tests */
-  int tests;
+  c_cdd_bool_t tests;
   /** @brief subcommand */
-  const char *subcommand; /* "to_sdk", "to_sdk_cli", "to_server" */
+  enum cdd_openapi_subcommand_t subcommand;
 } cdd_from_openapi_config_t;
 
 /**
@@ -47,7 +74,6 @@ typedef struct {
   const char *self_uri;
   /** @brief dialect_uri */
   const char *dialect_uri;
-  /** @brief cdd_to_openapi_config_t */
 } cdd_to_openapi_config_t;
 
 /**
@@ -59,21 +85,21 @@ typedef struct {
   /** @brief output */
   const char *output;
   /** @brief no_imports */
-  int no_imports;
+  c_cdd_bool_t no_imports;
   /** @brief no_wrapping */
-  int no_wrapping;
-  /** @brief cdd_docs_json_config_t */
+  c_cdd_bool_t no_wrapping;
 } cdd_docs_json_config_t;
 
 /**
  * @brief Configuration for serve_json_rpc command.
  */
 typedef struct {
-  /** @brief port */
+  /** @brief Port number to bind (default: 8080) */
   int port;
-  /** @brief listen_host */
-  const char *listen_host;
-  /** @brief cdd_serve_json_rpc_config_t */
+  /** @brief Optional bind address (e.g. "127.0.0.1" or NULL for INADDR_ANY) */
+  const char *bind_address;
+  /** @brief Maximum number of requests to serve before exiting (0 = none) */
+  size_t max_requests;
 } cdd_serve_json_rpc_config_t;
 
 /**
@@ -91,19 +117,18 @@ typedef struct cdd_generate_bindings_config {
   /** @brief Name of the generated namespace/module */
   const char *module_name;
   /** @brief Skip static inline functions */
-  int skip_static;
+  c_cdd_bool_t skip_static;
   /** @brief Treat unknown structs as void* (opaque) */
-  int opaque_pointers;
+  c_cdd_bool_t opaque_pointers;
   /** @brief Generate a basic sanity-check test file in the target lang */
-  int generate_tests;
+  c_cdd_bool_t generate_tests;
   /** @brief Recursively parse and merge \#include files into FFI IR */
-  int recursive_includes;
-  /** @brief cdd_generate_bindings_config_t */
+  c_cdd_bool_t recursive_includes;
 } cdd_generate_bindings_config_t;
 
 /**
  * @brief Generate code from an OpenAPI specification.
- * @param config The configuration struct.
+ * @param[in] config The configuration struct.
  * @return 0 on success, non-zero on failure.
  */
 C_CDD_EXPORT cdd_c_error_t
@@ -111,7 +136,7 @@ cdd_generate_from_openapi(const cdd_from_openapi_config_t *config);
 
 /**
  * @brief Generate an OpenAPI specification from source code.
- * @param config The configuration struct.
+ * @param[in] config The configuration struct.
  * @return 0 on success, non-zero on failure.
  */
 C_CDD_EXPORT cdd_c_error_t
@@ -120,7 +145,7 @@ cdd_generate_to_openapi(const cdd_to_openapi_config_t *config);
 /**
  * @brief Generate JSON documentation with code snippets for an OpenAPI
  * specification.
- * @param config The configuration struct.
+ * @param[in] config The configuration struct.
  * @return 0 on success, non-zero on failure.
  */
 C_CDD_EXPORT cdd_c_error_t
@@ -128,7 +153,7 @@ cdd_generate_docs_json(const cdd_docs_json_config_t *config);
 
 /**
  * @brief Run the JSON RPC server.
- * @param config The configuration struct.
+ * @param[in] config The configuration struct.
  * @return 0 on success, non-zero on failure.
  */
 C_CDD_EXPORT cdd_c_error_t
@@ -136,7 +161,7 @@ cdd_serve_json_rpc(const cdd_serve_json_rpc_config_t *config);
 
 /**
  * @brief Generate SWIG-like FFI bindings for multiple target languages.
- * @param config The configuration struct.
+ * @param[in] config The configuration struct.
  * @return 0 on success, non-zero on failure.
  */
 C_CDD_EXPORT cdd_c_error_t
@@ -144,8 +169,8 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config);
 
 /**
  * @brief Parses an FFI IR DSL string and generates FFI bindings.
- * @param source The DSL string.
- * @param config The configuration struct.
+ * @param[in] source The DSL string.
+ * @param[in] config The configuration struct.
  * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
@@ -155,8 +180,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
  * @brief Configuration for `cdd_generate_from_arazzo`.
  */
 typedef struct {
-  /** @brief Target subcommand: `"to_sdk"`, `"to_sdk_cli"`, or `"to_server"` */
-  const char *subcommand;
+  /** @brief Target subcommand */
+  enum cdd_arazzo_subcommand_t subcommand;
   /** @brief Path to input Arazzo v1.1.0 JSON/YAML file */
   const char *input;
   /** @brief Optional path to linked OpenAPI JSON/YAML file */

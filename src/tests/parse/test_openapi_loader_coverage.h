@@ -14,6 +14,10 @@ extern "C" {
 #include "parse/test_openapi_loader_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_openapi_loader_100_percent_final.
+ * @return Greatest test result.
+ */
 TEST test_openapi_loader_100_percent_final(void) {
   enum OpenAPI_SecurityType stype = OA_SEC_UNKNOWN;
   enum OpenAPI_SecurityIn sin = OA_SEC_IN_UNKNOWN;

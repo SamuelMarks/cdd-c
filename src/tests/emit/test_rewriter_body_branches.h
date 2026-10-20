@@ -23,11 +23,21 @@ extern "C" {
 /* clang-format on */
 
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
+/** @brief Test definition g_patcher_test_cap_1. */
 extern C_CDD_EXPORT int g_patcher_test_cap_1;
 
 #ifndef CDD_RUN_BODY_REWRITE_DEFINED
 #define CDD_RUN_BODY_REWRITE_DEFINED
 static cdd_c_error_t
+/**
+ * @brief Helper function run_body_rewrite.
+ * @param[in] code Parameter code.
+ * @param[in] funcs Parameter funcs.
+ * @param[in] n_funcs Parameter n_funcs.
+ * @param[in] transform Parameter transform.
+ * @param[out] out Parameter out.
+ * @return Result status or value.
+ */
 run_body_rewrite(const char *code, const struct RefactoredFunction *funcs,
                  size_t n_funcs, const struct SignatureTransform *transform,
                  char **out) {
@@ -50,6 +60,10 @@ run_body_rewrite(const char *code, const struct RefactoredFunction *funcs,
 }
 #endif /* CDD_RUN_BODY_REWRITE_DEFINED */
 
+/**
+ * @brief Unit test test_rewrite_body_all_branches.
+ * @return Greatest test result.
+ */
 TEST test_rewrite_body_all_branches(void) {
 #ifdef CDD_BUILD_TESTS
   struct RefactoredFunction funcs[2];
@@ -350,6 +364,10 @@ TEST test_rewrite_body_all_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_run_body_rewrite_coverage.
+ * @return Greatest test result.
+ */
 TEST test_run_body_rewrite_coverage(void) {
   char *out = NULL;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,

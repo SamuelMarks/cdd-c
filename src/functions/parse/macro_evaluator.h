@@ -41,9 +41,9 @@ typedef struct cdd_macro_eval_result_t {
 
 /**
  * @brief Evaluates a C preprocessor constant expression.
- * @param ctx The preprocessor context (for looking up other macros).
- * @param expression The right-hand side string of the macro to evaluate.
- * @param out_result Pointer to store the evaluated result.
+ * @param[in,out] ctx The preprocessor context (for looking up other macros).
+ * @param[in] expression The right-hand side string of the macro to evaluate.
+ * @param[out] out_result Pointer to store the evaluated result.
  * @return 0 on success, non-zero on error (e.g. invalid expression or unknown
  * identifier).
  */
@@ -53,7 +53,7 @@ cdd_macro_evaluate(struct PreprocessorContext *ctx, const char *expression,
 
 /**
  * @brief Frees any allocated memory in the evaluation result.
- * @param result The result to free.
+ * @param[out] result The result to free.
  */
 C_CDD_EXPORT void cdd_macro_eval_result_free(cdd_macro_eval_result_t *result);
 

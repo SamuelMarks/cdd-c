@@ -24,6 +24,12 @@ extern "C" {
 #include "openapi/parse/openapi.h"
 /* clang-format on */
 
+/**
+ * @brief Helper function load_spec_string.
+ * @param[in] json Parameter json.
+ * @param[in,out] spec Parameter spec.
+ * @return Result status or value.
+ */
 static cdd_c_error_t load_spec_string(const char *json,
                                       struct OpenAPI_Spec *spec) {
   JSON_Value *root;
@@ -39,6 +45,10 @@ static cdd_c_error_t load_spec_string(const char *json,
   return rc;
 }
 
+/**
+ * @brief Unit test test_loader_enum_and_required.
+ * @return Greatest test result.
+ */
 TEST test_loader_enum_and_required(void) {
   struct StructFields *_ast_openapi_spec_find_schema_0;
   struct StructFields *_ast_openapi_spec_find_schema_1;
@@ -93,6 +103,10 @@ TEST test_loader_enum_and_required(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_enum_and_required.
+ * @return Greatest test result.
+ */
 TEST test_writer_enum_and_required(void) {
   /* */
 
@@ -157,6 +171,9 @@ TEST test_writer_enum_and_required(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the schema_enum_required_suite test suite.
+ */
 SUITE(schema_enum_required_suite) {
   RUN_TEST(test_loader_enum_and_required);
   RUN_TEST(test_writer_enum_and_required);

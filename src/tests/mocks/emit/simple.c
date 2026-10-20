@@ -1,3 +1,7 @@
+/**
+ * @file simple.c
+ * @brief Unit tests and mocks in simple.c.
+ */
 /* clang-format off */#include "c_cdd/safe_crt_msvc.h"
 
 #include <stdlib.h>

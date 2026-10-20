@@ -24,6 +24,10 @@ extern "C" {
 #include "tests/emit/sdk_tests.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_gen_sdk_test_basic.
+ * @return Greatest test result.
+ */
 TEST test_gen_sdk_test_basic(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
@@ -103,6 +107,10 @@ TEST test_gen_sdk_test_basic(void) {
   }
 }
 
+/**
+ * @brief Unit test test_gen_sdk_test_nulls.
+ * @return Greatest test result.
+ */
 TEST test_gen_sdk_test_nulls(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             codegen_sdk_tests_generate(NULL, NULL, NULL));
@@ -110,6 +118,10 @@ TEST test_gen_sdk_test_nulls(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gen_sdk_test_exhaustive.
+ * @return Greatest test result.
+ */
 TEST test_gen_sdk_test_exhaustive(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
@@ -189,6 +201,9 @@ TEST test_gen_sdk_test_exhaustive(void) {
   }
 }
 
+/**
+ * @brief Executes the codegen_sdk_tests_suite test suite.
+ */
 SUITE(codegen_sdk_tests_suite) {
   RUN_TEST(test_gen_sdk_test_basic);
   RUN_TEST(test_gen_sdk_test_nulls);

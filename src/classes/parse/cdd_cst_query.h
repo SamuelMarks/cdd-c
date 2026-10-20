@@ -16,8 +16,8 @@ extern "C" {
 
 /**
  * @brief Visitor callback function type.
- * @param node The current node being visited.
- * @param user_data User provided data pointer.
+ * @param[in] node The current node being visited.
+ * @param[in] user_data User provided data pointer.
  * @return 0 to continue, non-zero to halt traversal.
  */
 typedef cdd_c_error_t (*cdd_cst_visitor_fn)(cdd_cst_node_t *node,
@@ -25,9 +25,9 @@ typedef cdd_c_error_t (*cdd_cst_visitor_fn)(cdd_cst_node_t *node,
 
 /**
  * @brief Traverses the CST in pre-order.
- * @param root The root node to start traversal.
- * @param visitor The callback function.
- * @param user_data Passed to the callback.
+ * @param[in,out] root The root node to start traversal.
+ * @param[in] visitor The callback function.
+ * @param[in,out] user_data Passed to the callback.
  * @return 0 on success, or the non-zero value returned by the visitor.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_traverse_preorder(cdd_cst_node_t *root,
@@ -36,9 +36,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_traverse_preorder(cdd_cst_node_t *root,
 
 /**
  * @brief Traverses the CST in post-order.
- * @param root The root node to start traversal.
- * @param visitor The callback function.
- * @param user_data Passed to the callback.
+ * @param[in,out] root The root node to start traversal.
+ * @param[in] visitor The callback function.
+ * @param[in,out] user_data Passed to the callback.
  * @return 0 on success, or the non-zero value returned by the visitor.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_traverse_postorder(
@@ -63,10 +63,10 @@ struct cdd_cst_query_result_t {
 
 /**
  * @brief Finds all nodes of a specific kind in the tree (pre-order search).
- * @param root The root node to search from.
- * @param kind The kind of node to find.
- * @param out_result Pointer to result struct to be populated. Caller must free
- * out_result->nodes.
+ * @param[in,out] root The root node to search from.
+ * @param[in] kind The kind of node to find.
+ * @param[out] out_result Pointer to result struct to be populated. Caller must
+ * free out_result->nodes.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t
@@ -75,9 +75,9 @@ cdd_cst_find_nodes_by_type(cdd_cst_node_t *root, enum cdd_cst_node_kind_t kind,
 
 /**
  * @brief Finds all function call nodes matching a specific name.
- * @param root The root node to search from.
- * @param func_name The name of the function to find calls for.
- * @param out_result Pointer to result struct. Caller must free
+ * @param[in,out] root The root node to search from.
+ * @param[in] func_name The name of the function to find calls for.
+ * @param[out] out_result Pointer to result struct. Caller must free
  * out_result->nodes.
  * @return 0 on success.
  */

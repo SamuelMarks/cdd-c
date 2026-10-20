@@ -80,18 +80,11 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
     char *mh_base = NULL;
     int print_rc;
     rc = get_basename(mh_name, &mh_base);
-#ifdef CDD_BUILD_TESTS
-    if (g_client_gen_fail == 65) {
-      free(mh_base);
-      mh_base = NULL;
-      rc = CDD_C_ERROR_INVALID_ARGUMENT;
-    }
-#endif
     if (rc != CDD_C_SUCCESS) {
       goto cleanup;
     }
     print_rc = fprintf(mcfile, "#include \"%s\"\n", mh_base);
-    free(mh_base);
+    C_CDD_FREE(mh_base);
     if (print_rc < 0) {
       rc = CDD_C_SUCCESS;
       {
@@ -138,12 +131,7 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
       if (!name)
         continue;
 
-#ifdef CDD_BUILD_TESTS
-      if (g_client_gen_fail == 26)
-        rc = CDD_C_ERROR_IO;
-      else
-#endif
-        rc = write_forward_decl(mhfile, name);
+      rc = write_forward_decl(mhfile, name);
       if (rc != CDD_C_SUCCESS) {
         fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                 __LINE__);
@@ -151,11 +139,7 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
       }
     }
 
-    if (
-#ifdef CDD_BUILD_TESTS
-        g_client_gen_fail == 70 ||
-#endif
-        fprintf(mhfile, "\n") < 0) {
+    if (fprintf(mhfile, "\n") < 0) {
       rc = CDD_C_SUCCESS;
       {
         fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
@@ -171,181 +155,101 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
         continue;
 
       if (sf->is_enum) {
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 27)
-          rc = CDD_C_ERROR_IO;
-        else
-#endif
-          rc = write_enum_declaration_h(mhfile, name, sf, &base_cfg);
+        rc = write_enum_declaration_h(mhfile, name, sf, &base_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
       } else if (sf->is_union) {
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 28)
-          rc = CDD_C_ERROR_IO;
-        else
-#endif
-          rc = write_union_declaration_h(mhfile, name, sf, &base_cfg);
+        rc = write_union_declaration_h(mhfile, name, sf, &base_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
 
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 29)
-          rc = CDD_C_ERROR_IO;
-        else
-#endif
-          rc = write_union_cleanup_func(mcfile, name, sf, &types_cfg);
+        rc = write_union_cleanup_func(mcfile, name, sf, &types_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 30)
-          rc = CDD_C_ERROR_IO;
-        else
-#endif
-          rc = write_union_from_jsonObject_func(mcfile, name, sf, &types_cfg);
+        rc = write_union_from_jsonObject_func(mcfile, name, sf, &types_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 31)
-          rc = CDD_C_ERROR_IO;
-        else
-#endif
-          rc = write_union_from_json_func(mcfile, name, sf, &types_cfg);
+        rc = write_union_from_json_func(mcfile, name, sf, &types_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 32)
-          rc = CDD_C_ERROR_IO;
-        else
-#endif
-          rc = write_union_to_json_func(mcfile, name, sf, &types_cfg);
+        rc = write_union_to_json_func(mcfile, name, sf, &types_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
       } else {
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 33)
-          rc = CDD_C_ERROR_IO;
-        else
-#endif
-          rc = write_struct_declaration_h(mhfile, name, sf, &base_cfg);
+        rc = write_struct_declaration_h(mhfile, name, sf, &base_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
 
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 34)
-          rc = CDD_C_ERROR_IO;
-        else
-#endif
-          rc = write_struct_cleanup_func(mcfile, name, sf, &struct_cfg);
+        rc = write_struct_cleanup_func(mcfile, name, sf, &struct_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 35)
-          rc = CDD_C_ERROR_IO;
-        else
-#endif
-          rc = write_struct_deepcopy_func(mcfile, name, sf, &struct_cfg);
+        rc = write_struct_deepcopy_func(mcfile, name, sf, &struct_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 36)
-          rc = CDD_C_ERROR_IO;
-        else
-#endif
-          rc = write_struct_eq_func(mcfile, name, sf, &struct_cfg);
+        rc = write_struct_eq_func(mcfile, name, sf, &struct_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 37)
-          rc = CDD_C_ERROR_IO;
-        else
-#endif
-          rc = write_struct_default_func(mcfile, name, sf, &struct_cfg);
+        rc = write_struct_default_func(mcfile, name, sf, &struct_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 38)
-          rc = CDD_C_ERROR_IO;
-        else
-#endif
-          rc = write_struct_debug_func(mcfile, name, sf, &struct_cfg);
+        rc = write_struct_debug_func(mcfile, name, sf, &struct_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 66)
-          rc = CDD_C_ERROR_IO;
-        else
-#endif
-          rc = write_struct_display_func(mcfile, name, sf, &struct_cfg);
+        rc = write_struct_display_func(mcfile, name, sf, &struct_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 67)
-          rc = CDD_C_ERROR_IO;
-        else
-#endif
-          rc = write_struct_from_jsonObject_func(mcfile, name, sf, &json_cfg);
+        rc = write_struct_from_jsonObject_func(mcfile, name, sf, &json_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 68)
-          rc = CDD_C_ERROR_IO;
-        else
-#endif
-          rc = write_struct_from_json_func(mcfile, name, &json_cfg);
+        rc = write_struct_from_json_func(mcfile, name, &json_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-#ifdef CDD_BUILD_TESTS
-        if (g_client_gen_fail == 69)
-          rc = CDD_C_ERROR_IO;
-        else
-#endif
-          rc = write_struct_to_json_func(mcfile, name, sf, &json_cfg);
+        rc = write_struct_to_json_func(mcfile, name, sf, &json_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);

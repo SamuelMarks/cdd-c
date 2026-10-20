@@ -8,6 +8,7 @@
 
 #include "cdd_cst_emit.h"
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <stddef.h>
@@ -26,15 +27,11 @@ typedef struct emit_ctx_t {
   size_t capacity;
 } emit_ctx_t;
 
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail = 0;
-#endif
-
 /**
  * @brief Appends a string to the emit context buffer.
- * @param ctx The emit context.
- * @param str The string to append.
- * @param len The length of the string to append.
+ * @param[in,out] ctx The emit context.
+ * @param[in] str The string to append.
+ * @param[in] len The length of the string to append.
  * @return 0 on success, error code otherwise.
  */
 static cdd_c_error_t append_str(emit_ctx_t *ctx, const uint8_t *str,
@@ -56,15 +53,7 @@ static cdd_c_error_t append_str(emit_ctx_t *ctx, const uint8_t *str,
       }
       new_cap = next_cap;
     }
-#ifdef CDD_BUILD_TESTS
-    if (g_cdd_cst_emit_realloc_fail && --g_cdd_cst_emit_realloc_fail == 0) {
-      new_buf = NULL;
-    } else {
-#endif
-      new_buf = (char *)realloc(ctx->buf, new_cap);
-#ifdef CDD_BUILD_TESTS
-    }
-#endif
+    new_buf = (char *)C_CDD_REALLOC(ctx->buf, new_cap);
     if (!new_buf) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -80,8 +69,8 @@ static cdd_c_error_t append_str(emit_ctx_t *ctx, const uint8_t *str,
 
 /**
  * @brief Emits trivia from a linked list.
- * @param ctx The emit context.
- * @param t The trivia list.
+ * @param[in,out] ctx The emit context.
+ * @param[in,out] t The trivia list.
  * @return 0 on success, error code otherwise.
  */
 static cdd_c_error_t emit_trivia(emit_ctx_t *ctx, cdd_trivia_t *t) {
@@ -96,8 +85,8 @@ static cdd_c_error_t emit_trivia(emit_ctx_t *ctx, cdd_trivia_t *t) {
 
 /**
  * @brief Emits a token.
- * @param ctx The emit context.
- * @param tok The token to emit.
+ * @param[in,out] ctx The emit context.
+ * @param[in,out] tok The token to emit.
  * @return 0 on success, error code otherwise.
  */
 static cdd_c_error_t emit_token(emit_ctx_t *ctx, cdd_token_t *tok) {
@@ -122,8 +111,8 @@ static cdd_c_error_t emit_token(emit_ctx_t *ctx, cdd_token_t *tok) {
 
 /**
  * @brief Emits a CST node recursively.
- * @param ctx The emit context.
- * @param node The node to emit.
+ * @param[in,out] ctx The emit context.
+ * @param[in,out] node The node to emit.
  * @return 0 on success, error code otherwise.
  */
 static cdd_c_error_t emit_node(emit_ctx_t *ctx, cdd_cst_node_t *node) {
@@ -161,22 +150,13 @@ cdd_c_error_t cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {
   rc = emit_node(&ctx, tree->root);
   if (rc != CDD_C_SUCCESS) {
     if (ctx.buf)
-      free(ctx.buf);
+      C_CDD_FREE(ctx.buf);
     return rc;
   }
 
   if (!ctx.buf) {
     /* Empty file */
-
-#ifdef CDD_BUILD_TESTS
-    extern C_CDD_EXPORT int g_cdd_alloc_fail;
-    ctx.buf =
-        (char *)((g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) ? NULL
-                                                               : malloc(1));
-#else
-    ctx.buf = (char *)malloc(1);
-#endif
-
+    ctx.buf = (char *)C_CDD_MALLOC(1);
     if (!ctx.buf)
       return CDD_C_ERROR_MEMORY;
     ctx.buf[0] = '\0';

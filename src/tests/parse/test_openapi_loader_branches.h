@@ -14,6 +14,10 @@ extern "C" {
 #include "parse/test_openapi_loader_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_openapi_loader_uri_and_schema_ref_branches.
+ * @return Greatest test result.
+ */
 TEST test_openapi_loader_uri_and_schema_ref_branches(void) {
   char *res = NULL;
   struct OpenAPI_Spec spec;
@@ -157,6 +161,10 @@ TEST test_openapi_loader_uri_and_schema_ref_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_loader_media_type_and_response_examples.
+ * @return Greatest test result.
+ */
 TEST test_openapi_loader_media_type_and_response_examples(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_MediaType *mt_out = NULL;
@@ -275,6 +283,10 @@ TEST test_openapi_loader_media_type_and_response_examples(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_loader_swagger2_and_schema_ref_branches.
+ * @return Greatest test result.
+ */
 TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_SchemaRef sref;

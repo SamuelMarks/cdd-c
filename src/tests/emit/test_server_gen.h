@@ -1,3 +1,7 @@
+/**
+ * @file test_server_gen.h
+ * @brief Unit tests and mocks in test_server_gen.h.
+ */
 #ifndef TEST_SERVER_GEN_H
 #define TEST_SERVER_GEN_H
 
@@ -20,7 +24,9 @@ extern "C" {
 #include "routes/emit/server_gen.h"
 /* clang-format on */
 
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
 
 /**
@@ -236,6 +242,7 @@ TEST test_server_gen_fail_open(void) {
 
 /**
  * @brief server_gen_suite
+ * @return Test or helper result.
  */
 
 TEST test_server_gen_null_args(void) {
@@ -252,6 +259,10 @@ TEST test_server_gen_null_args(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_server_gen_test_fopen_fail.
+ * @return Greatest test result.
+ */
 TEST test_server_gen_test_fopen_fail(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
@@ -283,8 +294,13 @@ TEST test_server_gen_test_fopen_fail(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_server_gen_branches.
+ * @return Greatest test result.
+ */
 TEST test_server_gen_branches(void) {
-  extern C_CDD_EXPORT int g_cdd_fail_server_apply;
+  extern C_CDD_EXPORT int g_schema_fail_io_after;
+  extern C_CDD_EXPORT int g_schema_io_calls;
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc = 0;
@@ -369,12 +385,6 @@ TEST test_server_gen_branches(void) {
   spec.paths[0].operations[0].req_body_media_types = NULL;
   spec.paths[0].operations[0].n_req_body_media_types = 0;
 
-  /* Test g_cdd_fail_server_apply > 1 to cover Branch 2 (decrement but not 0) */
-  g_cdd_fail_server_apply = 2;
-  rc = openapi_server_generate(&spec, &config);
-  ASSERT_EQ(0, rc);
-  g_cdd_fail_server_apply = 0;
-
   /* Test test stub generation with an operation where operation_id is NULL
    * alongside one where it is not */
   spec.paths[0].n_operations = 2;
@@ -386,11 +396,23 @@ TEST test_server_gen_branches(void) {
   rc = openapi_server_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
-  /* Test security failure percolation using g_cdd_fail_server_apply */
-  g_cdd_fail_server_apply = 1;
-  rc = openapi_server_generate(&spec, &config);
-  ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
-  g_cdd_fail_server_apply = 0;
+  /* Test security failure percolation via stream I/O failure */
+  {
+    struct OpenAPI_SecurityScheme sec_sch;
+    memset(&sec_sch, 0, sizeof(sec_sch));
+    sec_sch.name = cdd_test_mut_str("bearerAuth");
+    sec_sch.type = OA_SEC_HTTP;
+    sec_sch.scheme = cdd_test_mut_str("bearer");
+    spec.security_schemes = &sec_sch;
+    spec.n_security_schemes = 1;
+    g_schema_fail_io_after = 0;
+    g_schema_io_calls = 0;
+    rc = openapi_server_generate(&spec, &config);
+    g_schema_fail_io_after = -1;
+    spec.security_schemes = NULL;
+    spec.n_security_schemes = 0;
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
+  }
 
   C_CDD_FREE(spec.servers);
   C_CDD_FREE(spec.paths[0].operations[0].parameters);
@@ -403,6 +425,9 @@ TEST test_server_gen_branches(void) {
 
   PASS();
 }
+/**
+ * @brief Executes the server_gen_suite test suite.
+ */
 SUITE(server_gen_suite) {
   RUN_TEST(test_server_gen_null_args);
   RUN_TEST(test_server_gen_test_fopen_fail);

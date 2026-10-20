@@ -21,8 +21,8 @@ struct cdd_generate_bindings_config;
 /**
  * @brief Emits a Human IR DSL representation from an FFI IR AST.
  *
- * @param ir The FFI IR object.
- * @param config Binding generation configuration containing output paths.
+ * @param[in,out] ir The FFI IR object.
+ * @param[in] config Binding generation configuration containing output paths.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_emit_dsl(

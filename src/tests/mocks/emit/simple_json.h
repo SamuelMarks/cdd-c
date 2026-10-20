@@ -1,3 +1,7 @@
+/**
+ * @file simple_json.h
+ * @brief Unit tests and mocks in simple_json.h.
+ */
 #ifndef SIMPLE_JSON_H
 #define SIMPLE_JSON_H
 
@@ -54,14 +58,16 @@ typedef unsigned char bool;
 #include "simple_mocks_export.h"
 /* clang-format on */
 
+/** @brief Test definition Tank. */
 enum Tank { Tank_BIG, Tank_SMALL, Tank_UNKNOWN = -1 };
 
 extern SIMPLE_MOCKS_EXPORT cdd_c_error_t Tank_default(enum Tank *out);
 
-extern SIMPLE_MOCKS_EXPORT cdd_c_error_t Tank_to_str(enum Tank, char **);
+extern SIMPLE_MOCKS_EXPORT cdd_c_error_t Tank_to_str(enum Tank tank,
+                                                     char **str);
 
-extern SIMPLE_MOCKS_EXPORT cdd_c_error_t Tank_from_str(const char *,
-                                                       enum Tank *);
+extern SIMPLE_MOCKS_EXPORT cdd_c_error_t Tank_from_str(const char *str,
+                                                       enum Tank *val);
 
 /** \brief mock */
 struct HazE {
@@ -94,6 +100,7 @@ extern SIMPLE_MOCKS_EXPORT cdd_c_error_t HazE_from_json(const char *,
 extern SIMPLE_MOCKS_EXPORT cdd_c_error_t
 HazE_from_jsonObject(const JSON_Object *, struct HazE **);
 
+/** @brief Test definition FooE. */
 struct FooE {
   char *bar;
   int can;
@@ -125,6 +132,10 @@ FooE_from_jsonObject(const JSON_Object *, struct FooE **);
 extern SIMPLE_MOCKS_EXPORT cdd_c_error_t FooE_from_json(const char *,
                                                         struct FooE **);
 
+/**
+ * @brief Helper function run_mocks_test.
+ * @return Result status or value.
+ */
 extern SIMPLE_MOCKS_EXPORT cdd_c_error_t run_mocks_test(void);
 
 #ifdef __cplusplus

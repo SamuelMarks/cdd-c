@@ -15,6 +15,10 @@ extern "C" {
 #include "emit/test_codegen_client_body_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_client_body_form_object_style_form_explode.
+ * @return Greatest test result.
+ */
 TEST test_client_body_form_object_style_form_explode(void) {
   struct OpenAPI_Encoding enc;
   struct OpenAPI_Spec spec;
@@ -109,6 +113,10 @@ TEST test_client_body_form_object_style_form_explode(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_cookie_object_style_form_explode.
+ * @return Greatest test result.
+ */
 TEST test_client_body_cookie_object_style_form_explode(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
@@ -146,6 +154,10 @@ TEST test_client_body_cookie_object_style_form_explode(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_response_is_textual_string_indirect.
+ * @return Greatest test result.
+ */
 TEST test_client_body_response_is_textual_string_indirect(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -195,6 +207,10 @@ TEST test_client_body_response_is_textual_string_indirect(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_response_is_textual_string_success.
+ * @return Greatest test result.
+ */
 TEST test_client_body_response_is_textual_string_success(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -233,6 +249,10 @@ TEST test_client_body_response_is_textual_string_success(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_write_text_plain_success_indirect.
+ * @return Greatest test result.
+ */
 TEST test_client_body_write_text_plain_success_indirect(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -278,6 +298,10 @@ TEST test_client_body_write_text_plain_success_indirect(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_write_binary_success_indirect_real.
+ * @return Greatest test result.
+ */
 TEST test_client_body_write_binary_success_indirect_real(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -314,6 +338,11 @@ TEST test_client_body_write_binary_success_indirect_real(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test
+ * test_client_body_write_text_plain_success_indirect_real_fixed.
+ * @return Greatest test result.
+ */
 TEST test_client_body_write_text_plain_success_indirect_real_fixed(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -356,6 +385,11 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test
+ * test_client_body_write_text_plain_success_indirect_real_fixed4.
+ * @return Greatest test result.
+ */
 TEST test_client_body_write_text_plain_success_indirect_real_fixed4(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -405,6 +439,11 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed4(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test
+ * test_client_body_write_inline_json_parse_types_indirect_string.
+ * @return Greatest test result.
+ */
 TEST test_client_body_write_inline_json_parse_types_indirect_string(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -471,6 +510,10 @@ TEST test_client_body_write_inline_json_parse_types_indirect_string(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_write_joined_form_array_direct.
+ * @return Greatest test result.
+ */
 TEST test_client_body_write_joined_form_array_direct(void) {
   FILE *fp;
 #if defined(_MSC_VER)
@@ -632,6 +675,10 @@ TEST test_client_body_write_joined_form_array_direct(void) {
   }
 }
 
+/**
+ * @brief Unit test test_client_body_write_joined_form_array_direct_io.
+ * @return Greatest test result.
+ */
 TEST test_client_body_write_joined_form_array_direct_io(void) {
   int i;
   for (i = 0; i < 50; ++i) {
@@ -807,6 +854,10 @@ TEST test_client_body_write_joined_form_array_direct_io(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_write_joined_form_array.
+ * @return Greatest test result.
+ */
 TEST test_client_body_write_joined_form_array(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
@@ -867,6 +918,11 @@ TEST test_client_body_write_joined_form_array(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test
+ * test_client_body_write_text_plain_success_indirect_real_fixed3.
+ * @return Greatest test result.
+ */
 TEST test_client_body_write_text_plain_success_indirect_real_fixed3(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -913,6 +969,9 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed3(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the client_body_joined_suite test suite.
+ */
 SUITE(client_body_joined_suite) {
   RUN_TEST(test_client_body_form_object_style_form_explode);
   RUN_TEST(test_client_body_cookie_object_style_form_explode);

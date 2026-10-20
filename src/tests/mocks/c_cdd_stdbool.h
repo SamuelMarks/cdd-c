@@ -22,8 +22,17 @@ typedef unsigned char _c_cdd_bool;
 #undef false
 #endif
 
+/**
+ * @brief Macro bool.
+ */
 #define bool _c_cdd_bool
+/**
+ * @brief Macro true.
+ */
 #define true 1
+/**
+ * @brief Macro false.
+ */
 #define false 0
 
 #ifdef __cplusplus

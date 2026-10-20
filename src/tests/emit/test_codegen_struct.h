@@ -29,8 +29,13 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_cdd_fail_str_after_last. */
 extern C_CDD_EXPORT int g_cdd_fail_str_after_last;
 
+/**
+ * @brief Helper function setup_struct_fields.
+ * @param[in,out] sf Parameter sf.
+ */
 static void setup_struct_fields(struct StructFields *sf) {
   struct_fields_init(sf);
   struct_fields_add(sf, "id", "integer", NULL, "0", NULL);
@@ -283,6 +288,10 @@ TEST test_null_args(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_struct_debug_func.
+ * @return Greatest test result.
+ */
 TEST test_struct_debug_func(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
@@ -392,6 +401,10 @@ TEST test_struct_invalid_args(void) {
   g_fail_io_after = -1;
   PASS();
 }
+/**
+ * @brief Unit test test_struct_fields_add_bitwidth.
+ * @return Greatest test result.
+ */
 TEST test_struct_fields_add_bitwidth(void) {
   struct StructFields sf;
   struct_fields_init(&sf);
@@ -413,6 +426,10 @@ TEST test_struct_fields_add_bitwidth(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_struct_fields_init_oom.
+ * @return Greatest test result.
+ */
 TEST test_struct_fields_init_oom(void) {
   struct StructFields sf = {0};
   struct StructField *f_ptr = NULL;
@@ -678,6 +695,9 @@ TEST test_struct_fields_init_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the codegen_struct_suite test suite.
+ */
 SUITE(codegen_struct_suite) {
   RUN_TEST(test_struct_fields_init_oom);
   RUN_TEST(test_cleanup_generation);

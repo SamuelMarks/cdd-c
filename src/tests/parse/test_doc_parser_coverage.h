@@ -27,7 +27,16 @@ extern C_CDD_EXPORT int g_cdd_strdup_fail;
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
 #ifndef DOC_PARSE_BLOCK_WITH_OOM_DEFINED
+/**
+ * @brief Macro DOC_PARSE_BLOCK_WITH_OOM_DEFINED.
+ */
 #define DOC_PARSE_BLOCK_WITH_OOM_DEFINED
+/**
+ * @brief Helper function doc_parse_block_with_oom.
+ * @param[in] comment Parameter comment.
+ * @param[in,out] meta Parameter meta.
+ * @return Result status or value.
+ */
 static int doc_parse_block_with_oom(const char *comment,
                                     struct DocMetadata *meta) {
   int i;
@@ -53,9 +62,18 @@ static int doc_parse_block_with_oom(const char *comment,
 }
 #endif
 #ifndef doc_parse_block
+/**
+ * @brief Macro doc_parse_block.
+ * @param[in] comment Macro argument comment.
+ * @param[in] meta Macro argument meta.
+ */
 #define doc_parse_block(comment, meta) doc_parse_block_with_oom(comment, meta)
 #endif
 
+/**
+ * @brief Unit test test_doc_100_percent_coverage.
+ * @return Greatest test result.
+ */
 TEST test_doc_100_percent_coverage(void) {
   struct DocMetadata meta;
   int rc = 0;
@@ -418,7 +436,7 @@ TEST test_doc_100_percent_coverage(void) {
     /* 1st alloc is new_request_bodies, 2nd is new_examples */
     g_cdd_alloc_fail = 2;
     rc = doc_parse_block(rb_ex_comment, &meta);
-    ASSERT(rc == CDD_C_SUCCESS || rc != CDD_C_SUCCESS);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
     g_cdd_alloc_fail = 0;
     doc_metadata_free(&meta);
   }
@@ -432,6 +450,10 @@ TEST test_doc_100_percent_coverage(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_doc_oom_and_edges.
+ * @return Greatest test result.
+ */
 TEST test_doc_oom_and_edges(void) {
   int i;
   cdd_c_error_t rc = 0;
@@ -439,14 +461,16 @@ TEST test_doc_oom_and_edges(void) {
     struct DocMetadata meta;
     const char comment[] = "/**\n"
                            " * @route GET /users\n"
-                           " * @param[in] id int\n"
+                           " * @param id int\n"
                            " * @return 200 ok\n"
                            " */";
 #ifdef CDD_BUILD_TESTS
     doc_metadata_init(&meta);
     g_cdd_strdup_fail = i;
     rc = doc_parse_block(comment, &meta);
-    ASSERT(rc == CDD_C_SUCCESS || rc != CDD_C_SUCCESS);
+    if (rc != CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     g_cdd_strdup_fail = 0;
     doc_metadata_free(&meta);
 #endif
@@ -455,14 +479,16 @@ TEST test_doc_oom_and_edges(void) {
     struct DocMetadata meta;
     const char comment[] = "/**\n"
                            " * @route GET /users\n"
-                           " * @param[in] id int\n"
+                           " * @param id int\n"
                            " * @return 200 ok\n"
                            " */";
 #ifdef CDD_BUILD_TESTS
     doc_metadata_init(&meta);
     g_cdd_alloc_fail = i;
     rc = doc_parse_block(comment, &meta);
-    ASSERT(rc == CDD_C_SUCCESS || rc != CDD_C_SUCCESS);
+    if (rc != CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     g_cdd_alloc_fail = 0;
     doc_metadata_free(&meta);
 #endif
@@ -471,6 +497,9 @@ TEST test_doc_oom_and_edges(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the doc_parser_coverage_suite test suite.
+ */
 SUITE(doc_parser_coverage_suite) {
   RUN_TEST(test_doc_100_percent_coverage);
   RUN_TEST(test_doc_oom_and_edges);

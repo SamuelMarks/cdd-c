@@ -27,11 +27,22 @@ extern "C" {
 #include "routes/emit/url.h"
 /* clang-format on */
 
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
 
+/** @brief Test definition g_url_obj_fail_tmpfile. */
 static int g_url_obj_fail_tmpfile = 0;
 
+/**
+ * @brief Helper function gen_url_obj_code.
+ * @param[in] tmpl Parameter tmpl.
+ * @param[in] params Parameter params.
+ * @param[in] n_params Parameter n_params.
+ * @param[in,out] _out_val Parameter _out_val.
+ * @return Result status or value.
+ */
 static cdd_c_error_t gen_url_obj_code(const char *tmpl,
                                       const struct OpenAPI_Parameter *params,
                                       size_t n_params, char **_out_val) {
@@ -78,6 +89,12 @@ static cdd_c_error_t gen_url_obj_code(const char *tmpl,
   }
 }
 
+/**
+ * @brief Helper function gen_query_obj_code.
+ * @param[in] op Parameter op.
+ * @param[in,out] _out_val Parameter _out_val.
+ * @return Result status or value.
+ */
 static cdd_c_error_t gen_query_obj_code(const struct OpenAPI_Operation *op,
                                         char **_out_val) {
   FILE *tmp;
@@ -123,6 +140,13 @@ static cdd_c_error_t gen_query_obj_code(const struct OpenAPI_Operation *op,
   }
 }
 
+/**
+ * @brief Helper function run_io_obj_loop.
+ * @param[in] op Parameter op.
+ * @param[in] tmpl Parameter tmpl.
+ * @param[in] params Parameter params.
+ * @param[in] n_params Parameter n_params.
+ */
 static void run_io_obj_loop(const struct OpenAPI_Operation *op,
                             const char *tmpl,
                             const struct OpenAPI_Parameter *params,
@@ -145,6 +169,10 @@ static void run_io_obj_loop(const struct OpenAPI_Operation *op,
   g_fail_io_after = -1;
 }
 
+/**
+ * @brief Unit test test_query_gen_object_form_explode.
+ * @return Greatest test result.
+ */
 TEST test_query_gen_object_form_explode(void) {
   char *_ast_gen_query_code_19 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -177,6 +205,10 @@ TEST test_query_gen_object_form_explode(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_query_gen_object_form_explode_false.
+ * @return Greatest test result.
+ */
 TEST test_query_gen_object_form_explode_false(void) {
   char *_ast_gen_query_code_20 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -211,6 +243,10 @@ TEST test_query_gen_object_form_explode_false(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_query_gen_object_deep_object.
+ * @return Greatest test result.
+ */
 TEST test_query_gen_object_deep_object(void) {
   char *_ast_gen_query_code_21 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -241,6 +277,10 @@ TEST test_query_gen_object_deep_object(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_query_gen_object_space_delimited.
+ * @return Greatest test result.
+ */
 TEST test_query_gen_object_space_delimited(void) {
   char *_ast_gen_query_code_22 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -271,6 +311,10 @@ TEST test_query_gen_object_space_delimited(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_query_gen_object_pipe_delimited.
+ * @return Greatest test result.
+ */
 TEST test_query_gen_object_pipe_delimited(void) {
   char *_ast_gen_query_code_23 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -301,6 +345,10 @@ TEST test_query_gen_object_pipe_delimited(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_query_gen_object_space_delimited_allow_reserved.
+ * @return Greatest test result.
+ */
 TEST test_query_gen_object_space_delimited_allow_reserved(void) {
   char *_ast_gen_query_code_24 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -335,6 +383,10 @@ TEST test_query_gen_object_space_delimited_allow_reserved(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_query_gen_array_space_delimited_allow_reserved.
+ * @return Greatest test result.
+ */
 TEST test_query_gen_array_space_delimited_allow_reserved(void) {
   char *_ast_gen_query_code_25 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -370,6 +422,10 @@ TEST test_query_gen_array_space_delimited_allow_reserved(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_path_matrix_param_string.
+ * @return Greatest test result.
+ */
 TEST test_path_matrix_param_string(void) {
   char *_ast_gen_url_code_26 = NULL;
   struct OpenAPI_Parameter param = {0};
@@ -393,6 +449,10 @@ TEST test_path_matrix_param_string(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_path_label_array_explode.
+ * @return Greatest test result.
+ */
 TEST test_path_label_array_explode(void) {
   char *_ast_gen_url_code_27 = NULL;
   struct OpenAPI_Parameter param = {0};
@@ -418,6 +478,10 @@ TEST test_path_label_array_explode(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_path_matrix_object_explode_false.
+ * @return Greatest test result.
+ */
 TEST test_path_matrix_object_explode_false(void) {
   char *_ast_gen_url_code_28 = NULL;
   struct OpenAPI_Parameter param = {0};
@@ -443,6 +507,10 @@ TEST test_path_matrix_object_explode_false(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_path_simple_param_number.
+ * @return Greatest test result.
+ */
 TEST test_path_simple_param_number(void) {
   char *_ast_gen_url_code_29 = NULL;
   struct OpenAPI_Parameter param = {0};
@@ -466,6 +534,10 @@ TEST test_path_simple_param_number(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_query_gen_json_content_ref.
+ * @return Greatest test result.
+ */
 TEST test_query_gen_json_content_ref(void) {
   char *_ast_gen_query_code_30 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -497,6 +569,10 @@ TEST test_query_gen_json_content_ref(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_media_type_is_json_url.
+ * @return Greatest test result.
+ */
 TEST test_media_type_is_json_url(void) {
   ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url(NULL));
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, media_type_is_json_url("application/json"));
@@ -517,6 +593,10 @@ TEST test_media_type_is_json_url(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_querystring_param_null_checks.
+ * @return Greatest test result.
+ */
 TEST test_querystring_param_null_checks(void) {
   const char *out_val;
   struct OpenAPI_Parameter p;
@@ -537,6 +617,10 @@ TEST test_querystring_param_null_checks(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_media_type_ieq_url_extra.
+ * @return Greatest test result.
+ */
 TEST test_media_type_ieq_url_extra(void) {
   ASSERT_EQ(CDD_C_SUCCESS, media_type_is_form_url(NULL));
   ASSERT_EQ(CDD_C_SUCCESS, media_type_is_form_url("application/json"));
@@ -648,6 +732,10 @@ TEST test_media_type_ieq_url_extra(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_codegen_url_coverage_extras.
+ * @return Greatest test result.
+ */
 TEST test_codegen_url_coverage_extras(void) {
   struct OpenAPI_Operation op;
   struct OpenAPI_Parameter p;
@@ -726,6 +814,10 @@ TEST test_codegen_url_coverage_extras(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_codegen_url_io_errors.
+ * @return Greatest test result.
+ */
 TEST test_codegen_url_io_errors(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
@@ -772,6 +864,9 @@ TEST test_codegen_url_io_errors(void) {
   g_fail_io_after = -1;
   PASS();
 }
+/**
+ * @brief Executes the codegen_url_objects_suite test suite.
+ */
 SUITE(codegen_url_objects_suite) {
   RUN_TEST(test_query_gen_object_form_explode);
   RUN_TEST(test_query_gen_object_form_explode_false);

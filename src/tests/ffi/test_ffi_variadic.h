@@ -1,3 +1,7 @@
+/**
+ * @file test_ffi_variadic.h
+ * @brief Unit tests and mocks in test_ffi_variadic.h.
+ */
 /* clang-format off */
 #ifndef TEST_FFI_VARIADIC_H
 #define TEST_FFI_VARIADIC_H
@@ -15,8 +19,14 @@ extern "C" {
 
 /* clang-format on */
 
+/** @brief Test definition dummy_variadic_func_call_count. */
 static int dummy_variadic_func_call_count = 0;
 
+/**
+ * @brief Helper function dummy_variadic_func.
+ * @param[in] fmt Parameter fmt.
+ * @return Result status or value.
+ */
 static cdd_c_error_t dummy_variadic_func(const char *fmt, ...) {
   va_list args;
   const char *p;
@@ -48,6 +58,10 @@ static cdd_c_error_t dummy_variadic_func(const char *fmt, ...) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Unit test test_ffi_variadic_format_parser.
+ * @return Greatest test result.
+ */
 TEST test_ffi_variadic_format_parser(void) {
   const char *fmt = cdd_test_mut_str("Hello %d %s %p %% %f");
   cdd_ffi_type_t types[20];
@@ -130,6 +144,10 @@ TEST test_ffi_variadic_format_parser(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_variadic_invoke.
+ * @return Greatest test result.
+ */
 TEST test_ffi_variadic_invoke(void) {
   cdd_ffi_var_arg_t args[10];
   cdd_c_error_t result;
@@ -180,9 +198,69 @@ TEST test_ffi_variadic_invoke(void) {
   result = cdd_ffi_invoke_variadic(dummy_variadic_func, "", args, 9);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, result);
 
+  {
+    char buf[256];
+    char small_buf[6];
+    char hello_buf[] = "hello";
+    char empty_buf[] = "";
+    cdd_ffi_var_arg_t fmt_args[10];
+    int dummy_target = 7;
+
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_format_variadic(NULL, sizeof(buf), "%d", fmt_args, 1));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_format_variadic(buf, 0, "%d", fmt_args, 1));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_format_variadic(buf, sizeof(buf), NULL, fmt_args, 1));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_format_variadic(buf, sizeof(buf), "%d", NULL, 1));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_format_variadic(buf, sizeof(buf), "plain", NULL, 0));
+    ASSERT_STR_EQ("plain", buf);
+
+    /* Unterminated or missing argument */
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_format_variadic(buf, sizeof(buf), "%", NULL, 0));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_format_variadic(buf, sizeof(buf), "%d", NULL, 0));
+
+    /* All types and 10 arguments (> 8-arg trampoline limit) */
+    fmt_args[0].i = -42;
+    fmt_args[1].u = 42u;
+    fmt_args[2].l = 100000L;
+    fmt_args[3].ll = (int64_t)900000L * (int64_t)10000L;
+    fmt_args[4].d = 3.5;
+    fmt_args[5].d = 2.25;
+    fmt_args[6].p = hello_buf;
+    fmt_args[7].p = empty_buf;
+    fmt_args[8].p = (void *)&dummy_target;
+    fmt_args[9].i = 99;
+
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_format_variadic(
+                  buf, sizeof(buf),
+                  "%% %d %u %ld %lld %-+ #05.1f %g %s %s %p %d", fmt_args, 10));
+    ASSERT(strstr(buf, "% -42 42 100000 9000000000 ") != NULL);
+    ASSERT(strstr(buf, "2.25 hello  ") != NULL);
+    ASSERT(strstr(buf, " 99") != NULL);
+
+    /* Truncation when output buffer capacity is exceeded */
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_format_variadic(small_buf, sizeof(small_buf), "%s-%d",
+                                      fmt_args + 6, 2));
+    ASSERT_STR_EQ("hello", small_buf);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_format_variadic(small_buf, sizeof(small_buf), "%ld",
+                                      fmt_args + 2, 1));
+    ASSERT_STR_EQ("10000", small_buf);
+  }
+
   PASS();
 }
 
+/**
+ * @brief Executes the ffi_variadic_suite test suite.
+ */
 SUITE(ffi_variadic_suite) {
   RUN_TEST(test_ffi_variadic_format_parser);
   RUN_TEST(test_ffi_variadic_invoke);

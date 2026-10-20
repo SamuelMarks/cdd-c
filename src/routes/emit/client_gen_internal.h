@@ -13,16 +13,16 @@ extern "C" {
 #endif /* __cplusplus */
 /* clang-format off */
 #include "c_cdd/code_writer.h"
+#include "c_cdd/context.h"
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include "routes/emit/client_gen.h"
 #include <stdio.h>
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
+/** @brief fprintf macro alias for stream hook */
 #define fprintf cdd_io_fprintf_hook
-#define fputs cdd_io_fputs_hook
-#endif /* CDD_BUILD_TESTS */
 
 /**
  * @def CHECK_IO_CLEANUP
@@ -30,7 +30,7 @@ extern "C" {
  */
 #define CHECK_IO_CLEANUP(x)                                                    \
   for (; (x) < 0;) {                                                           \
-    rc = CDD_C_SUCCESS;                                                        \
+    rc = CDD_C_ERROR_IO;                                                       \
     fprintf(stderr, "goto cleanup at %s:%d\n", __FILE__, __LINE__);            \
     goto cleanup;                                                              \
   }
@@ -41,7 +41,7 @@ extern "C" {
  */
 #define CHECK_IO(x)                                                            \
   for (; (x) < 0;)                                                             \
-  return 0
+  return CDD_C_ERROR_IO
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #ifndef strdup

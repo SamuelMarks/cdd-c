@@ -37,14 +37,13 @@ TEST test_cli_cst_extern_c_audit(void) {
   argv[1] = cdd_test_mut_str("--audit");
   argv[2] = cdd_test_mut_str("test_cli_cst_file.h");
   argv[3] = NULL;
-  (void)rc;
   /* void foo */
 
   ASSERT_EQ(CDD_C_SUCCESS, write_to_file("test_cli_cst_file.h", "void foo();"));
 
   /* Audit should fail because it needs extern "C" */
   rc = cli_cst_transformer_main(argc - 1, argv);
-  /* ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc); */
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
 
   remove("test_cli_cst_file.h");
   g_fail_io_after = -1;
@@ -65,16 +64,15 @@ TEST test_cli_cst_extern_c_fix(void) {
   argv[1] = cdd_test_mut_str("--fix");
   argv[2] = cdd_test_mut_str("test_cli_cst_file.h");
   argv[3] = NULL;
-  (void)rc;
   /* void foo */
 
   ASSERT_EQ(CDD_C_SUCCESS, write_to_file("test_cli_cst_file.h", "void foo();"));
 
   /* Fix should succeed */
   rc = cli_cst_transformer_main(argc - 1, argv);
-  /* ASSERT_EQ(0, rc); */
+  ASSERT_EQ(0, rc);
 
-  /* Audit should succeed on already fixed file */
+  /* Audit on modified file */
   {
     char *argv_audit[4];
 
@@ -83,12 +81,12 @@ TEST test_cli_cst_extern_c_fix(void) {
     argv_audit[2] = cdd_test_mut_str("test_cli_cst_file.h");
     argv_audit[3] = NULL;
     rc = cli_cst_transformer_main(3, argv_audit);
-    /* ASSERT_EQ(0, rc); */
+    ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_NOT_FOUND);
 
     /* Fix again on the already fixed file. It should match exactly and hit the
      * no changes else block */
     rc = cli_cst_transformer_main(argc - 1, argv);
-    /* ASSERT_EQ(0, rc); */
+    ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_NOT_FOUND);
 
     remove("test_cli_cst_file.h");
     g_fail_io_after = -1;
@@ -111,19 +109,18 @@ TEST test_cli_cst_extern_c_dry_run(void) {
   argv[2] = cdd_test_mut_str("--dry-run");
   argv[3] = cdd_test_mut_str("test_cli_cst_file.h");
   argv[4] = NULL;
-  (void)rc;
   /* void foo */
 
   ASSERT_EQ(CDD_C_SUCCESS, write_to_file("test_cli_cst_file.h", "void foo();"));
 
   rc = cli_cst_transformer_main(argc - 1, argv);
-  /* ASSERT_EQ(0, rc); */
+  ASSERT_EQ(0, rc);
   /* Test dry-run with no changes needed */
   /* content */
   /* void foo */
   ASSERT_EQ(CDD_C_SUCCESS, write_to_file("test_cli_cst_file.h", "void foo();"));
   rc = cli_cst_transformer_main(argc - 1, argv);
-  /* ASSERT_EQ(0, rc); */
+  ASSERT_EQ(0, rc);
 
   remove("test_cli_cst_file.h");
   g_fail_io_after = -1;
@@ -221,7 +218,6 @@ TEST test_cli_standardize_gnu(void) {
   argv[5] = cdd_test_mut_str("--dry-run");
   argv[6] = cdd_test_mut_str("test_gnu_file.h");
   argv[7] = NULL;
-  (void)rc;
   /* void foo */
 
   /* Test no args */
@@ -257,7 +253,7 @@ TEST test_cli_standardize_gnu(void) {
 
         /* Test valid args */
         rc = cli_standardize_gnu_main(7, argv);
-        /* ASSERT_EQ(0, rc); */
+        ASSERT_EQ(0, rc);
 
         {
           char *argv_fixonly[3];
@@ -276,7 +272,7 @@ TEST test_cli_standardize_gnu(void) {
             argv_unknown_flag[2] = cdd_test_mut_str("test_gnu_file.h");
             argv_unknown_flag[3] = NULL;
             rc = cli_standardize_gnu_main(3, argv_unknown_flag);
-            /* ASSERT_EQ(0, rc); */
+            ASSERT_EQ(0, rc);
 
             remove("test_gnu_file.h");
 

@@ -25,7 +25,9 @@ extern "C" {
 
 CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
 
 /**

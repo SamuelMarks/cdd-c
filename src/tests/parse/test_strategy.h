@@ -19,6 +19,7 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_cdd_fail_asprintf. */
 extern C_CDD_EXPORT int g_cdd_fail_asprintf;
 
 #ifdef CDD_BUILD_TESTS
@@ -28,14 +29,19 @@ extern C_CDD_EXPORT int g_cdd_fail_asprintf;
 
 static size_t find_token_index(struct TokenList *tl, const char *str);
 
+/** @brief Test definition REALLOC_SPEC. */
 static const struct AllocatorSpec REALLOC_SPEC = {
     "realloc", ALLOC_STYLE_RETURN_PTR, CHECK_PTR_NULL, 0};
+/** @brief Test definition MALLOC_SPEC. */
 static const struct AllocatorSpec MALLOC_SPEC = {
     "malloc", ALLOC_STYLE_RETURN_PTR, CHECK_PTR_NULL, 0};
+/** @brief Test definition ASPRINTF_SPEC. */
 static const struct AllocatorSpec ASPRINTF_SPEC = {
     "asprintf", ALLOC_STYLE_ARG_PTR, CHECK_INT_NEGATIVE, 0};
+/** @brief Test definition MKDIR_SPEC. */
 static const struct AllocatorSpec MKDIR_SPEC = {
     "_mkdir", ALLOC_STYLE_RETURN_PTR, CHECK_INT_NONZERO, 0};
+/** @brief Test definition UNKNOWN_SPEC. */
 static const struct AllocatorSpec UNKNOWN_SPEC = {
     "unknown", ALLOC_STYLE_RETURN_PTR, 999, 0};
 
@@ -199,6 +205,12 @@ TEST test_strategy_errors(void) {
 
 static size_t find_token_index(struct TokenList *tl, const char *str);
 
+/**
+ * @brief Helper function find_token_index.
+ * @param[in,out] tl Parameter tl.
+ * @param[in] str Parameter str.
+ * @return Result status or value.
+ */
 static size_t find_token_index(struct TokenList *tl, const char *str) {
   size_t i;
   for (i = 0; i < tl->size; i++) {
@@ -210,6 +222,10 @@ static size_t find_token_index(struct TokenList *tl, const char *str) {
   return 0;
 }
 
+/**
+ * @brief Unit test test_strategy_injection.
+ * @return Greatest test result.
+ */
 TEST test_strategy_injection(void) {
   struct PatchList patches;
   struct AllocationSiteList allocs;
@@ -281,6 +297,10 @@ TEST test_strategy_injection(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_strategy_injection_ooms.
+ * @return Greatest test result.
+ */
 TEST test_strategy_injection_ooms(void) {
 #ifdef CDD_BUILD_TESTS
   struct PatchList patches;
@@ -380,6 +400,10 @@ TEST test_strategy_injection_ooms(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_strategy_edge_cases.
+ * @return Greatest test result.
+ */
 TEST test_strategy_edge_cases(void) {
   struct PatchList patches;
   struct AllocationSiteList allocs;

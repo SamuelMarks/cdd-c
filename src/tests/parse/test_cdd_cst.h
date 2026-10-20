@@ -206,6 +206,10 @@ TEST test_cdd_cst_cpp_methods(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_cpp_exceptions.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_cpp_exceptions(void) {
   const char *code = "void func() noexcept {\n"
                      "  try {\n"
@@ -276,6 +280,10 @@ TEST test_cdd_cst_cpp_exceptions(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_cpp_namespace.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_cpp_namespace(void) {
   const char *code = "using namespace std;\n"
                      "namespace MyLib {\n"
@@ -319,6 +327,10 @@ TEST test_cdd_cst_cpp_namespace(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_cpp_template.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_cpp_template(void) {
   const char *code = "template <typename T, class U>\n"
                      "class Pair {\n"
@@ -358,6 +370,10 @@ TEST test_cdd_cst_cpp_template(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_cpp_inheritance.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_cpp_inheritance(void) {
   const char *code = "class C : public A, virtual private B {\n"
                      "};\n";
@@ -418,6 +434,10 @@ TEST test_cdd_cst_cpp_inheritance(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_parser_oom.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_parser_oom(void) {
 #ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
@@ -479,134 +499,64 @@ TEST test_cdd_cst_parser_oom(void) {
   g_cdd_cst_realloc_fail = 0;
 
   {
-    extern C_CDD_EXPORT int g_cdd_fail_cst_advance;
-    extern C_CDD_EXPORT int g_cdd_fail_cst_peek;
-    for (i = 1; i < 150; i++) {
-      tree = NULL;
-      g_cdd_fail_cst_advance = (int)i;
-      if (cdd_cst_parse(az_span_create_from_str(code), &tree) !=
-          CDD_C_SUCCESS) {
-      }
-      cdd_cst_tree_free(tree);
-    }
-    g_cdd_fail_cst_advance = 0;
-
-    for (i = 1; i < 150; i++) {
-      tree = NULL;
-      g_cdd_fail_cst_peek = (int)i;
-      if (cdd_cst_parse(az_span_create_from_str(code), &tree) !=
-          CDD_C_SUCCESS) {
-      }
-      cdd_cst_tree_free(tree);
-    }
-    g_cdd_fail_cst_peek = 0;
-
-    {
-      static const char *oom_snippets[] = {
-          "class X : public virtual Base { };",
-          "void f() noexcept(true) { }",
-          "template <int N, class T> class A : public B, private C { };",
-          "try { throw 1; } catch (int e) { } catch (...) { }",
-          "using namespace std;",
-          "using my_type = int;",
-          "class C { C(); ~C(); bool operator==(const C&); };",
-          "public: int a; private: int b; protected: int c;",
-          "__asm__ (\"nop\");",
-          "void foo() { __asm__ (\"nop\") }",
-          "int x = (1 + 2);",
-          ""};
-      size_t s_idx;
-      for (s_idx = 0; s_idx < sizeof(oom_snippets) / sizeof(oom_snippets[0]);
-           s_idx++) {
-        for (i = 1; i <= 35; i++) {
-          tree = NULL;
-          g_cdd_alloc_fail = (int)i;
-          if (cdd_cst_parse(az_span_create_from_str(oom_snippets[s_idx]),
-                            &tree) != CDD_C_SUCCESS) {
-          }
-          if (tree)
-            cdd_cst_tree_free(tree);
+    static const char *oom_snippets[] = {
+        "class X : public virtual Base { };",
+        "void f() noexcept(true) { }",
+        "template <int N, class T> class A : public B, private C { };",
+        "try { throw 1; } catch (int e) { } catch (...) { }",
+        "using namespace std;",
+        "using my_type = int;",
+        "class C { C(); ~C(); bool operator==(const C&); };",
+        "public: int a; private: int b; protected: int c;",
+        "__asm__ (\"nop\");",
+        "void foo() { __asm__ (\"nop\") }",
+        "int x = (1 + 2);",
+        ""};
+    size_t s_idx;
+    for (s_idx = 0; s_idx < sizeof(oom_snippets) / sizeof(oom_snippets[0]);
+         s_idx++) {
+      for (i = 1; i <= 35; i++) {
+        tree = NULL;
+        g_cdd_alloc_fail = (int)i;
+        if (cdd_cst_parse(az_span_create_from_str(oom_snippets[s_idx]),
+                          &tree) != CDD_C_SUCCESS) {
         }
-        g_cdd_alloc_fail = 0;
-
-        for (i = 1; i <= 35; i++) {
-          tree = NULL;
-          g_cdd_cst_realloc_fail = (int)i;
-          if (cdd_cst_parse(az_span_create_from_str(oom_snippets[s_idx]),
-                            &tree) != CDD_C_SUCCESS) {
-          }
-          if (tree)
-            cdd_cst_tree_free(tree);
-        }
-        g_cdd_cst_realloc_fail = 0;
-
-        for (i = 1; i <= 35; i++) {
-          tree = NULL;
-          g_cdd_fail_cst_advance = (int)i;
-          if (cdd_cst_parse(az_span_create_from_str(oom_snippets[s_idx]),
-                            &tree) != CDD_C_SUCCESS) {
-          }
-          if (tree)
-            cdd_cst_tree_free(tree);
-        }
-        g_cdd_fail_cst_advance = 0;
-
-        for (i = 1; i <= 35; i++) {
-          tree = NULL;
-          g_cdd_fail_cst_peek = (int)i;
-          if (cdd_cst_parse(az_span_create_from_str(oom_snippets[s_idx]),
-                            &tree) != CDD_C_SUCCESS) {
-          }
-          if (tree)
-            cdd_cst_tree_free(tree);
-        }
-        g_cdd_fail_cst_peek = 0;
+        if (tree)
+          cdd_cst_tree_free(tree);
       }
-    }
+      g_cdd_alloc_fail = 0;
 
-    {
-      cdd_c_error_t rc_cst;
-      extern C_CDD_EXPORT int g_cdd_fail_get_class_name;
-      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, get_class_name(NULL, NULL));
-      g_cdd_fail_get_class_name = 1;
-      tree = NULL;
-      rc_cst = cdd_cst_parse(
-          az_span_create_from_str("class C { void f() { } };"), &tree);
-      ASSERT(rc_cst == CDD_C_SUCCESS || rc_cst != CDD_C_SUCCESS);
-      cdd_cst_tree_free(tree);
-
-      g_cdd_fail_get_class_name = 2;
-      tree = NULL;
-      rc_cst = cdd_cst_parse(
-          az_span_create_from_str("class C { void f() { } };"), &tree);
-      ASSERT(rc_cst == CDD_C_SUCCESS || rc_cst != CDD_C_SUCCESS);
-      cdd_cst_tree_free(tree);
-      g_cdd_fail_get_class_name = 0;
-    }
-
-    {
-      g_cdd_fail_cst_advance = 1;
-      tree = NULL;
-      if (cdd_cst_parse(az_span_create_from_str("/* eof */"), &tree) !=
-          CDD_C_SUCCESS) {
+      for (i = 1; i <= 35; i++) {
+        tree = NULL;
+        g_cdd_cst_realloc_fail = (int)i;
+        if (cdd_cst_parse(az_span_create_from_str(oom_snippets[s_idx]),
+                          &tree) != CDD_C_SUCCESS) {
+        }
+        if (tree)
+          cdd_cst_tree_free(tree);
       }
-      cdd_cst_tree_free(tree);
-      g_cdd_fail_cst_advance = 0;
-
-      g_cdd_cst_realloc_fail = 1;
-      tree = NULL;
-      if (cdd_cst_parse(az_span_create_from_str("/* eof */"), &tree) !=
-          CDD_C_SUCCESS) {
-      }
-      cdd_cst_tree_free(tree);
       g_cdd_cst_realloc_fail = 0;
     }
+
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, get_class_name(NULL, NULL));
+
+    g_cdd_cst_realloc_fail = 1;
+    tree = NULL;
+    if (cdd_cst_parse(az_span_create_from_str("/* eof */"), &tree) !=
+        CDD_C_SUCCESS) {
+    }
+    cdd_cst_tree_free(tree);
+    g_cdd_cst_realloc_fail = 0;
   }
 #endif
   g_fail_io_after = -1;
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_parser_macros_full.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_parser_macros_full(void) {
   cdd_cst_tree_t *tree = NULL;
   const char code[] = {
@@ -641,20 +591,35 @@ TEST test_cdd_cst_parser_macros_full(void) {
   PASS();
 }
 
+/** @brief Macro table state for test parser_state_t. */
+struct test_parser_macros_t {
+  /** @brief Test definition defs. */
+  void *defs;
+  /** @brief Test definition count. */
+  size_t count;
+  /** @brief Test definition capacity. */
+  size_t capacity;
+};
+
+/** @brief Test definition parser_state_t. */
 typedef struct parser_state_t {
+  /** @brief Token list pointer. */
   cdd_token_list_t *list;
+  /** @brief Current token index. */
   size_t pos;
+  /** @brief Error flag. */
   int err;
-  struct {
-    void *defs;
-    size_t count;
-    size_t capacity;
-  } macros;
+  /** @brief Macro table state. */
+  struct test_parser_macros_t macros;
 } parser_state_t;
 
 extern cdd_c_error_t peek(parser_state_t *s, cdd_token_t **out_tok);
 extern cdd_c_error_t advance(parser_state_t *s, cdd_token_t **out_tok);
 
+/**
+ * @brief Unit test test_cdd_cst_peek_advance_eof.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_peek_advance_eof(void) {
   parser_state_t s = {0};
   cdd_token_t *tok = NULL;
@@ -673,6 +638,10 @@ TEST test_cdd_cst_peek_advance_eof(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_parser_complex_syntax.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_parser_complex_syntax(void) {
   cdd_cst_tree_t *tree = NULL;
   const char code[] = {
@@ -719,6 +688,10 @@ TEST test_cdd_cst_parser_complex_syntax(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_parser_errors.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_parser_errors(void) {
   cdd_cst_tree_t *tree = NULL;
   /* Unmatched brace */
@@ -798,6 +771,10 @@ TEST test_cdd_cst_parser_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_parser_exhaustive_coverage.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_parser_exhaustive_coverage(void) {
   static const char *snippets[] = {
       "{",
@@ -917,7 +894,7 @@ TEST test_cdd_cst_parser_exhaustive_coverage(void) {
     cdd_c_error_t rc_snip;
     tree = NULL;
     rc_snip = cdd_cst_parse(az_span_create_from_str(snippets[i]), &tree);
-    ASSERT(rc_snip == CDD_C_SUCCESS || rc_snip != CDD_C_SUCCESS);
+    ASSERT(rc_snip == CDD_C_SUCCESS || rc_snip == CDD_C_ERROR_NOT_FOUND);
     if (tree) {
       cdd_cst_tree_free(tree);
       tree = NULL;
@@ -929,7 +906,21 @@ TEST test_cdd_cst_parser_exhaustive_coverage(void) {
     cdd_c_error_t rc_snip;
     tree = NULL;
     rc_snip = cdd_cst_parse(az_span_create_from_str(""), &tree);
-    ASSERT(rc_snip == CDD_C_SUCCESS || rc_snip != CDD_C_SUCCESS);
+    ASSERT_EQ(CDD_C_SUCCESS, rc_snip);
+    if (tree) {
+      cdd_cst_tree_free(tree);
+      tree = NULL;
+    }
+    rc_snip =
+        cdd_cst_parse(az_span_create_from_str("void f() noexcept(1"), &tree);
+    ASSERT_EQ(CDD_C_SUCCESS, rc_snip);
+    if (tree) {
+      cdd_cst_tree_free(tree);
+      tree = NULL;
+    }
+    rc_snip =
+        cdd_cst_parse(az_span_create_from_str("void f() noexcept"), &tree);
+    ASSERT_EQ(CDD_C_SUCCESS, rc_snip);
     if (tree) {
       cdd_cst_tree_free(tree);
       tree = NULL;
@@ -940,6 +931,9 @@ TEST test_cdd_cst_parser_exhaustive_coverage(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the cdd_cst_suite test suite.
+ */
 SUITE(cdd_cst_suite) {
   RUN_TEST(test_cdd_cst_peek_advance_eof);
   RUN_TEST(test_cdd_cst_parser_complex_syntax);

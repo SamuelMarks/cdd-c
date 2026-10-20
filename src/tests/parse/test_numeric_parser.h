@@ -1,3 +1,7 @@
+/**
+ * @file test_numeric_parser.h
+ * @brief Unit tests and mocks in test_numeric_parser.h.
+ */
 #ifndef TEST_NUMERIC_PARSER_H
 #define TEST_NUMERIC_PARSER_H
 
@@ -20,6 +24,12 @@ extern "C" {
 /* clang-format on */
 
 /* Helper to check float equality with epsilon */
+/**
+ * @brief Helper function dbl_eq.
+ * @param[in] a Parameter a.
+ * @param[in] b Parameter b.
+ * @return Result status or value.
+ */
 static cdd_c_error_t dbl_eq(double a, double b) { return fabs(a - b) < 1e-9; }
 
 /**

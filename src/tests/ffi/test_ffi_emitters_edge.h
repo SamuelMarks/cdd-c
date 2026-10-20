@@ -24,6 +24,7 @@
 extern "C" {
 #endif
 
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 
 #ifdef _WIN32
@@ -32,9 +33,14 @@ extern C_CDD_EXPORT int g_fail_io_after;
 #include <sys/stat.h>
 #endif
 
+/**
+ * @brief Unit test test_ffi_emit_java_pom_dir.
+ * @return Greatest test result.
+ */
 TEST test_ffi_emit_java_pom_dir(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_generate_bindings_config_t config = {0};
+  cdd_c_error_t rc;
 
 #ifdef _WIN32
   _mkdir("test_pom_dir");
@@ -45,12 +51,15 @@ TEST test_ffi_emit_java_pom_dir(void) {
 #endif
 
   config.output_dir = cdd_test_mut_str("test_pom_dir");
-  cdd_ffi_emit_java(&ir, &config);
+  rc = cdd_ffi_emit_java(&ir, &config);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
 
 #ifdef _WIN32
+  remove("test_pom_dir/Bindings.java");
   _rmdir("test_pom_dir/pom.xml");
   _rmdir("test_pom_dir");
 #else
+  remove("test_pom_dir/Bindings.java");
   rmdir("test_pom_dir/pom.xml");
   rmdir("test_pom_dir");
 #endif
@@ -58,9 +67,14 @@ TEST test_ffi_emit_java_pom_dir(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_emit_matlab_m_dir.
+ * @return Greatest test result.
+ */
 TEST test_ffi_emit_matlab_m_dir(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_generate_bindings_config_t config = {0};
+  cdd_c_error_t rc;
 
 #ifdef _WIN32
   _mkdir("test_m_dir");
@@ -71,12 +85,15 @@ TEST test_ffi_emit_matlab_m_dir(void) {
 #endif
 
   config.output_dir = cdd_test_mut_str("test_m_dir");
-  cdd_ffi_emit_matlab(&ir, &config);
+  rc = cdd_ffi_emit_matlab(&ir, &config);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
 
 #ifdef _WIN32
+  remove("test_m_dir/mylib_mex.c");
   _rmdir("test_m_dir/mylib.m");
   _rmdir("test_m_dir");
 #else
+  remove("test_m_dir/mylib_mex.c");
   rmdir("test_m_dir/mylib.m");
   rmdir("test_m_dir");
 #endif
@@ -84,9 +101,14 @@ TEST test_ffi_emit_matlab_m_dir(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_emit_napi_dir.
+ * @return Greatest test result.
+ */
 TEST test_ffi_emit_napi_dir(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_generate_bindings_config_t config = {0};
+  cdd_c_error_t rc;
 
 #ifdef _WIN32
   _mkdir("test_napi_dir");
@@ -101,13 +123,22 @@ TEST test_ffi_emit_napi_dir(void) {
   config.output_dir = cdd_test_mut_str("test_napi_dir");
   config.library_name = cdd_test_mut_str("test_Lib_name");
   config.generate_tests = 1;
-  cdd_ffi_emit_napi(&ir, &config);
+  rc = cdd_ffi_emit_napi(&ir, &config);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
 
 #ifdef _WIN32
+  remove("test_napi_dir/addon.c");
+  remove("test_napi_dir/index.js");
+  remove("test_napi_dir/index.d.ts");
+  remove("test_napi_dir/package.json");
   _rmdir("test_napi_dir/binding.gyp");
   _rmdir("test_napi_dir/test_test_Lib_name.js");
   _rmdir("test_napi_dir");
 #else
+  remove("test_napi_dir/addon.c");
+  remove("test_napi_dir/index.js");
+  remove("test_napi_dir/index.d.ts");
+  remove("test_napi_dir/package.json");
   rmdir("test_napi_dir/binding.gyp");
   rmdir("test_napi_dir/test_test_Lib_name.js");
   rmdir("test_napi_dir");
@@ -116,6 +147,10 @@ TEST test_ffi_emit_napi_dir(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_emit_objc_dir.
+ * @return Greatest test result.
+ */
 TEST test_ffi_emit_objc_dir(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_generate_bindings_config_t config = {0};
@@ -147,6 +182,10 @@ TEST test_ffi_emit_objc_dir(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_emit_perl_dir.
+ * @return Greatest test result.
+ */
 TEST test_ffi_emit_perl_dir(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_generate_bindings_config_t config = {0};
@@ -204,6 +243,10 @@ TEST test_ffi_emit_perl_dir(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_emit_csharp_makedir.
+ * @return Greatest test result.
+ */
 TEST test_ffi_emit_csharp_makedir(void) {
   cdd_ffi_ir_t *ir = create_dummy_ir();
   cdd_generate_bindings_config_t config = {0};
@@ -244,6 +287,10 @@ TEST test_ffi_emit_csharp_makedir(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_emit_cpp_trampoline_edge_cases.
+ * @return Greatest test result.
+ */
 TEST test_ffi_emit_cpp_trampoline_edge_cases(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_ffi_ir_node_t nodes[2];
@@ -288,6 +335,10 @@ TEST test_ffi_emit_cpp_trampoline_edge_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_emit_rust_fresh_dir.
+ * @return Greatest test result.
+ */
 TEST test_ffi_emit_rust_fresh_dir(void) {
   cdd_ffi_ir_t *ir = create_dummy_ir();
   cdd_generate_bindings_config_t config = {0};
@@ -566,6 +617,9 @@ TEST test_ffi_emit_swift_io_fail(void) {
 
 #endif
 
+/**
+ * @brief Executes the ffi_emitters_edge_suite test suite.
+ */
 SUITE(ffi_emitters_edge_suite) {
   RUN_TEST(test_ffi_emit_clojure_io_fail);
   RUN_TEST(test_ffi_emit_cpp_trampoline_edge_cases);

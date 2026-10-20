@@ -7,7 +7,7 @@ extern "C" {
 /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
 /* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
 /**
- * @file test_anonymous.c
+ * @file test_anonymous.h
  * @brief Integration tests for anonymous structure lifting.
  */
 
@@ -24,9 +24,15 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 
+/**
+ * @brief Unit test test_lift_anonymous_struct.
+ * @return Greatest test result.
+ */
 TEST test_lift_anonymous_struct(void) {
   const char *src = "struct Parent {\n"
                     "  int id;\n"
@@ -77,6 +83,9 @@ TEST test_lift_anonymous_struct(void) {
   }
 }
 
+/**
+ * @brief Executes the anonymous_suite test suite.
+ */
 SUITE(anonymous_suite) { RUN_TEST(test_lift_anonymous_struct); }
 
 #ifdef __cplusplus

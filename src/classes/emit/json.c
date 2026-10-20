@@ -24,14 +24,6 @@
 #include <stdarg.h>
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-/** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK cdd_io_fprintf_hook
-#else
-/** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK fprintf
-#endif
-
 /* Terser error checking */
 /** @brief CHECK_IO macro */
 #define CHECK_IO(x)                                                            \

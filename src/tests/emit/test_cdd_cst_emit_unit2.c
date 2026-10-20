@@ -1,3 +1,7 @@
+/**
+ * @file test_cdd_cst_emit_unit2.c
+ * @brief Unit tests and mocks in test_cdd_cst_emit_unit2.c.
+ */
 /* clang-format off */#include "c_cdd/safe_crt_msvc.h"
 
 #include "c_cdd_export.h"

@@ -17,23 +17,11 @@
 #ifdef CDD_BUILD_TESTS
 extern int g_fail_io_after;
 extern int g_io_calls;
-/**
- * @brief Mock hook for `fwrite` to simulate I/O failures during testing.
- *
- * @param[in] ptr Pointer to the buffer of elements to write.
- * @param[in] size Size in bytes of each element.
- * @param[in] nmemb Number of elements to write.
- * @param[in] stream Output file stream.
- * @return Number of elements written, or 0 on simulated failure.
- */
-static size_t test_cdd_fwrite_hook(const void *ptr, size_t size, size_t nmemb,
-                                   FILE *stream) {
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return 0;
-  return fwrite(ptr, size, nmemb, stream);
-}
 /** @brief FWRITE_HOOK macro */
-#define FWRITE_HOOK test_cdd_fwrite_hook
+#define FWRITE_HOOK(ptr, size, nmemb, stream)                                  \
+  ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)                    \
+       ? (size_t)0                                                             \
+       : fwrite((ptr), (size), (nmemb), (stream)))
 #else
 /** @brief FWRITE_HOOK macro */
 #define FWRITE_HOOK fwrite

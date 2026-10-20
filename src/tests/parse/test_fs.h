@@ -30,6 +30,10 @@ extern "C" {
 #endif /* !_MSC_VER */
 /* clang-format on */
 
+/**
+ * @brief Unit test test_get_basename.
+ * @return Greatest test result.
+ */
 TEST test_get_basename(void) {
   char *res = NULL;
   int is_dir = 0;
@@ -63,6 +67,10 @@ TEST test_get_basename(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_read_to_file_error.
+ * @return Greatest test result.
+ */
 TEST test_read_to_file_error(void) {
   int rc = 0;
   size_t size = 0;
@@ -80,6 +88,12 @@ TEST test_read_to_file_error(void) {
   PASS();
 }
 
+/**
+ * @brief Helper function mock_walk_cb.
+ * @param[in] path Parameter path.
+ * @param[in,out] user_data Parameter user_data.
+ * @return Result status or value.
+ */
 static cdd_c_error_t mock_walk_cb(const char *path, void *user_data) {
   int *count = (int *)user_data;
   (*count)++;
@@ -87,6 +101,10 @@ static cdd_c_error_t mock_walk_cb(const char *path, void *user_data) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Unit test test_walk_directory.
+ * @return Greatest test result.
+ */
 TEST test_walk_directory(void) {
   /* Setup structure:
      walk_test_root/
@@ -148,6 +166,10 @@ TEST test_walk_directory(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_makedir_check.
+ * @return Greatest test result.
+ */
 TEST test_makedir_check(void) {
   char *t = NULL;
   char *p = NULL;
@@ -164,6 +186,10 @@ TEST test_makedir_check(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_fopen_error_from.
+ * @return Greatest test result.
+ */
 TEST test_fs_fopen_error_from(void) {
   FopenError_t err;
 
@@ -186,6 +212,10 @@ TEST test_fs_fopen_error_from(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_cp.
+ * @return Greatest test result.
+ */
 TEST test_fs_cp(void) {
   FILE *f;
   int rc = 0;
@@ -216,6 +246,10 @@ TEST test_fs_cp(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_basename_dirname_edge_cases.
+ * @return Greatest test result.
+ */
 TEST test_fs_basename_dirname_edge_cases(void) {
   char *out = NULL;
 
@@ -249,6 +283,10 @@ TEST test_fs_basename_dirname_edge_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_dirname_more_edge_cases.
+ * @return Greatest test result.
+ */
 TEST test_fs_dirname_more_edge_cases(void) {
   char *out = NULL;
 
@@ -271,6 +309,10 @@ TEST test_fs_dirname_more_edge_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_write_to_file.
+ * @return Greatest test result.
+ */
 TEST test_fs_write_to_file(void) {
   char *tmp_dir = NULL;
   char *file_path = NULL;
@@ -299,6 +341,10 @@ TEST test_fs_write_to_file(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_dirname_foo.
+ * @return Greatest test result.
+ */
 TEST test_fs_dirname_foo(void) {
   char *out = NULL;
 
@@ -311,6 +357,10 @@ TEST test_fs_dirname_foo(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_cdd_fopen_too_long.
+ * @return Greatest test result.
+ */
 TEST test_fs_cdd_fopen_too_long(void) {
   FopenError_t err;
 
@@ -321,6 +371,10 @@ TEST test_fs_cdd_fopen_too_long(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_read_from_fh_errors.
+ * @return Greatest test result.
+ */
 TEST test_read_from_fh_errors(void) {
   FILE *f;
 #if defined(_MSC_VER)
@@ -384,6 +438,10 @@ TEST test_ascii_wide_conversion(void) {
 }
 #endif /* _MSC_VER */
 
+/**
+ * @brief Unit test test_fs_dirname_slash.
+ * @return Greatest test result.
+ */
 TEST test_fs_dirname_slash(void) {
   char *out = NULL;
 
@@ -394,6 +452,10 @@ TEST test_fs_dirname_slash(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_filename_and_ptr.
+ * @return Greatest test result.
+ */
 TEST test_fs_filename_and_ptr(void) {
   struct FilenameAndPtr fap = {0};
 
@@ -422,6 +484,10 @@ TEST test_fs_filename_and_ptr(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_fs_errors_untestable.
+ * @return Greatest test result.
+ */
 TEST test_fs_errors_untestable(void) {
   struct FilenameAndPtr fap = {0};
 
@@ -450,6 +516,9 @@ TEST test_fs_errors_untestable(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the fs_suite test suite.
+ */
 SUITE(fs_suite) {
 
   RUN_TEST(test_fs_fopen_error_from);

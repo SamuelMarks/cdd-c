@@ -20,14 +20,6 @@
 #include <string.h>
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-/** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK cdd_io_fprintf_hook
-#else
-/** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK fprintf
-#endif
-
 /* Wrapper for fprintf to check errors tersely */
 /** @brief CHECK_IO macro */
 #define CHECK_IO(x)                                                            \
@@ -72,9 +64,9 @@ void enum_members_free(struct EnumMembers *em) {
   if (em->members) {
     for (i = 0; i < em->size; ++i) {
       if (em->members[i])
-        free(em->members[i]);
+        C_CDD_FREE(em->members[i]);
     }
-    free(em->members);
+    C_CDD_FREE(em->members);
     em->members = NULL;
   }
   em->size = 0;

@@ -34,16 +34,6 @@ extern "C" {
 #include "openapi/parse/openapi_internal_components.h"
 /* clang-format on */
 
-#undef C_CDD_MALLOC
-/** @brief OpenAPI parser malloc macro */
-#define C_CDD_MALLOC(sz) c_cdd_malloc(sz)
-#undef C_CDD_CALLOC
-/** @brief OpenAPI parser calloc macro */
-#define C_CDD_CALLOC(count, sz) c_cdd_calloc(count, sz)
-#undef C_CDD_REALLOC
-/** @brief OpenAPI parser realloc macro */
-#define C_CDD_REALLOC(ptr, sz) c_cdd_realloc(ptr, sz)
-
 /** @brief Symbol alias for openapi_header_name_is_content_type */
 #define header_name_is_content_type openapi_header_name_is_content_type
 

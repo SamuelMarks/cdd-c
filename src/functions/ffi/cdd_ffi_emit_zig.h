@@ -17,8 +17,8 @@ extern "C" {
 /**
  * @brief Emits Zig bindings (via \@cImport or manual extern) for the given FFI
  * IR.
- * @param ir The extracted and topologically sorted FFI IR.
- * @param config The generation config.
+ * @param[in,out] ir The extracted and topologically sorted FFI IR.
+ * @param[in] config The generation config.
  * @return 0 on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_emit_zig(

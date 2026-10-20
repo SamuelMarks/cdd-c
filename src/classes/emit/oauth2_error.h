@@ -18,9 +18,9 @@ extern "C" {
 
 /**
  * @brief Writes an OAuth2 Error parser function
- * @param fp The file pointer to write to
- * @param struct_name Name of the struct
- * @param sf Struct fields
+ * @param[in,out] fp The file pointer to write to
+ * @param[in] struct_name Name of the struct
+ * @param[in] sf Struct fields
  * @return 0 on success, error code otherwise
  */
 extern C_CDD_EXPORT cdd_c_error_t write_oauth2_error_parser_func(

@@ -240,6 +240,7 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_test_cst_is_expression_brace(
 extern C_CDD_EXPORT cdd_c_error_t cdd_test_cst_consume_balanced_braces(
     const struct TokenList *tokens, size_t start, size_t limit,
     size_t *out_val);
+#endif /* CDD_BUILD_TESTS */
 
 /**
  * @brief Test wrapper for parse_recursive.
@@ -252,7 +253,6 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_test_cst_consume_balanced_braces(
 extern C_CDD_EXPORT cdd_c_error_t
 cdd_test_cst_parse_recursive(const struct TokenList *tokens, size_t start,
                              size_t end, struct CstNodeList *out);
-#endif /* CDD_BUILD_TESTS */
 
 #ifdef __cplusplus
 }

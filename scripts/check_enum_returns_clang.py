@@ -36,11 +36,6 @@ def is_test_function(name: str) -> bool:
     return (
         name == "main"
         or name == "mexFunction"
-        or name == "openapi_type_to_c_orm_type"
-        or name == "openapi_type_to_c_type"
-        or name.endswith("_impl")
-        or name == "c_orm_ast_clone_node"
-        or name == "c_orm_escape_literal"
         or name.lower().startswith("test_")
         or name.startswith("TEST")
     )
@@ -169,6 +164,7 @@ def gather_files(
             c_files.append(str(path))
         elif path.is_dir():
             c_files.extend(str(p) for p in path.rglob("*.c"))
+            c_files.extend(str(p) for p in path.rglob("*.h"))
 
     filtered_files = [
         f
@@ -366,7 +362,7 @@ def main():
     )
     args, unknown = parser.parse_known_args()
 
-    compile_args = ["-x", "c", "-DC_CDD_EXPORT="]
+    compile_args = ["-x", "c", "-DC_CDD_EXPORT=", "-DSIMPLE_MOCKS_EXPORT="]
     repo_root = Path(__file__).resolve().parent.parent
     for inc_dir in [
         repo_root / "include",

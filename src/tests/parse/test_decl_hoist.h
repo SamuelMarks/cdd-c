@@ -20,7 +20,9 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_cdd_fail_alloc_decl_hoist. */
 extern C_CDD_EXPORT int g_cdd_fail_alloc_decl_hoist;
+/** @brief Test definition g_is_basic_type_keyword_fail. */
 extern C_CDD_EXPORT int g_is_basic_type_keyword_fail;
 
 /**
@@ -70,6 +72,7 @@ TEST test_scan_for_mixed_declarations_basic(void) {
  * @brief Tests error handling of scanning for mixed declarations.
  *
  * @return The result of the test.
+ * @return Test or helper result.
  */
 TEST test_scan_for_mixed_declarations_errors(void) {
   struct TokenList *tl = NULL;
@@ -89,13 +92,11 @@ TEST test_scan_for_mixed_declarations_errors(void) {
 }
 
 /**
- * @brief Declaration hoist test suite.
+ * @brief Helper to tokenize source and scan for mixed declarations.
+ * @param[in] src Input C source string.
+ * @param[in,out] list Output hoist site list.
+ * @return Test or helper result.
  */
-
-#ifdef CDD_BUILD_TESTS
-/* extern C_CDD_EXPORT int g_cdd_fail_alloc_decl_hoist; (moved to global) */
-#endif
-
 static cdd_c_error_t check_hoist(const char *src, struct HoistSiteList *list) {
   struct TokenList *tl = NULL;
   int rc = 0;
@@ -105,6 +106,10 @@ static cdd_c_error_t check_hoist(const char *src, struct HoistSiteList *list) {
   return rc;
 }
 
+/**
+ * @brief Unit test test_decl_hoist_branches.
+ * @return Greatest test result.
+ */
 TEST test_decl_hoist_branches(void) {
   struct HoistSiteList list;
 
@@ -180,6 +185,10 @@ TEST test_decl_hoist_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_decl_hoist_edges.
+ * @return Greatest test result.
+ */
 TEST test_decl_hoist_edges(void) {
   struct HoistSiteList list = {0};
   struct TokenList *tl = NULL;
@@ -205,6 +214,9 @@ TEST test_decl_hoist_edges(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the decl_hoist_suite test suite.
+ */
 SUITE(decl_hoist_suite) {
   RUN_TEST(test_scan_for_mixed_declarations_basic);
   RUN_TEST(test_scan_for_mixed_declarations_errors);

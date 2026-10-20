@@ -1,3 +1,7 @@
+/**
+ * @file test_dsl_tokenizer_unknown_slash.h
+ * @brief Unit tests and mocks in test_dsl_tokenizer_unknown_slash.h.
+ */
 #ifndef TEST_DSL_TOKENIZER_UNKNOWN_SLASH_H
 #define TEST_DSL_TOKENIZER_UNKNOWN_SLASH_H
 
@@ -10,6 +14,10 @@ extern "C" {
 #include "../cdd_test_helpers/cdd_helpers.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_dsl_tokenizer_unknown_slash.
+ * @return Greatest test result.
+ */
 TEST test_dsl_tokenizer_unknown_slash(void) {
   cdd_dsl_token_list_t list;
   cdd_c_error_t rc;

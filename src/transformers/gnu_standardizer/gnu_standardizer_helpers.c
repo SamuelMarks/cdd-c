@@ -8,7 +8,6 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_gnu_standardizer_fail = 0;
 C_CDD_EXPORT volatile int g_gnu_alloc_fail = 0;
 C_CDD_EXPORT volatile int g_gnu_replace_fail = 0;
 C_CDD_EXPORT volatile int g_gnu_bld_fail = 0;
@@ -81,32 +80,16 @@ cdd_c_error_t cdd_pool_string_safe(cdd_cst_tree_t *tree, const char *str,
   *out_pooled = NULL;
   if (!tree || !str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-#ifdef CDD_BUILD_TESTS
-  if (g_gnu_standardizer_fail == 1)
-    return CDD_C_ERROR_MEMORY;
-#endif
-  dup = strdup(str);
-#ifdef CDD_BUILD_TESTS
-  if (g_gnu_standardizer_fail == 13) {
-    free(dup);
-    dup = NULL;
-  }
-#endif
+  dup = C_CDD_STRDUP(str);
   if (!dup)
     return CDD_C_ERROR_MEMORY;
   if (tree->num_strings >= tree->string_capacity) {
     size_t new_cap =
         tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
     char **new_pool =
-        (char **)realloc(tree->string_pool, new_cap * sizeof(char *));
-#ifdef CDD_BUILD_TESTS
-    if (g_gnu_standardizer_fail == 4) {
-      free(new_pool);
-      new_pool = NULL;
-    }
-#endif
+        (char **)C_CDD_REALLOC(tree->string_pool, new_cap * sizeof(char *));
     if (!new_pool) {
-      free(dup);
+      C_CDD_FREE(dup);
       return CDD_C_ERROR_MEMORY;
     }
     tree->string_pool = new_pool;
@@ -136,10 +119,6 @@ cdd_c_error_t cdd_pool_string_safe_len(cdd_cst_tree_t *tree, const char *str,
   *out_pooled = NULL;
   if (!tree || !str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-#ifdef CDD_BUILD_TESTS
-  if (g_gnu_standardizer_fail == 2 || g_gnu_standardizer_fail == 13)
-    return CDD_C_ERROR_MEMORY;
-#endif
   rc = gnu_malloc(len + 1, (void **)&dup);
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -149,15 +128,9 @@ cdd_c_error_t cdd_pool_string_safe_len(cdd_cst_tree_t *tree, const char *str,
     size_t new_cap =
         tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
     char **new_pool =
-        (char **)realloc(tree->string_pool, new_cap * sizeof(char *));
-#ifdef CDD_BUILD_TESTS
-    if (g_gnu_standardizer_fail == 5) {
-      free(new_pool);
-      new_pool = NULL;
-    }
-#endif
+        (char **)C_CDD_REALLOC(tree->string_pool, new_cap * sizeof(char *));
     if (!new_pool) {
-      free(dup);
+      C_CDD_FREE(dup);
       return CDD_C_ERROR_MEMORY;
     }
     tree->string_pool = new_pool;
@@ -183,10 +156,6 @@ cdd_c_error_t cdd_append_int(char *p, int v, char **out_p) {
   unsigned int u;
   if (!p || !out_p)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-#ifdef CDD_BUILD_TESTS
-  if (g_gnu_standardizer_fail == 3)
-    return CDD_C_ERROR_MEMORY;
-#endif
   if (v == 0) {
     *p++ = '0';
     *p = '\0';
@@ -231,8 +200,6 @@ cdd_c_error_t replace_token_with_text(cdd_cst_tree_t *tree, cdd_token_t *tok,
 #ifdef CDD_BUILD_TESTS
   if (g_gnu_replace_fail > 0 && --g_gnu_replace_fail == 0)
     return CDD_C_ERROR_MEMORY;
-  if (g_gnu_standardizer_fail > 100 && --g_gnu_standardizer_fail == 100)
-    return CDD_C_ERROR_MEMORY;
 #endif
   if (!tree || !tok)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -240,10 +207,6 @@ cdd_c_error_t replace_token_with_text(cdd_cst_tree_t *tree, cdd_token_t *tok,
   if (rc != CDD_C_SUCCESS)
     return rc;
   rc = cdd_cst_create_token_len(tree, kind, text, len, &n_tok);
-#ifdef CDD_BUILD_TESTS
-  if (g_gnu_standardizer_fail == 30)
-    rc = CDD_C_ERROR_MEMORY;
-#endif
   if (rc != CDD_C_SUCCESS)
     return rc;
   n_tok->leading_trivia = tok->leading_trivia;
@@ -377,16 +340,12 @@ cdd_c_error_t cdd_magic_visitor(cdd_cst_node_t *node, void *user_data) {
 
           rc_tok = cdd_pool_string_safe(ctx->tree, buf, &pooled);
           if (rc_tok != CDD_C_SUCCESS) {
-            free(buf);
+            C_CDD_FREE(buf);
             return rc_tok;
           }
           rc_tok = cdd_cst_create_token_len(ctx->tree, CDD_TOKEN_STRING, pooled,
                                             ctx->func_len + 2, &new_tok);
-          free(buf);
-#ifdef CDD_BUILD_TESTS
-          if (g_gnu_standardizer_fail == 32)
-            rc_tok = CDD_C_ERROR_MEMORY;
-#endif
+          C_CDD_FREE(buf);
           if (rc_tok != CDD_C_SUCCESS)
             return rc_tok;
           new_tok->leading_trivia = tok->leading_trivia;
@@ -394,12 +353,6 @@ cdd_c_error_t cdd_magic_visitor(cdd_cst_node_t *node, void *user_data) {
           tok->leading_trivia = NULL;
           tok->trailing_trivia = NULL;
           rc_tok = cdd_cst_replace_token_child(node, i, new_tok);
-#ifdef CDD_BUILD_TESTS
-          if (g_gnu_standardizer_fail == 33)
-            rc_tok = CDD_C_ERROR_MEMORY;
-#endif
-          if (rc_tok != CDD_C_SUCCESS)
-            return rc_tok;
         }
       }
     }

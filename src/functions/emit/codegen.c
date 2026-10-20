@@ -14,13 +14,8 @@
 #include <string.h>
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
 /** @brief fprintf macro */
 #define fprintf cdd_io_fprintf_hook
-#else
-/** @brief fprintf macro */
-#define fprintf fprintf
-#endif
 
 /** @brief CHECK_IO definition */
 #ifndef CHECK_IO

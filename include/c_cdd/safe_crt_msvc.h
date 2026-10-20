@@ -20,7 +20,7 @@ extern "C" {
 
 /**
  * @brief Safely wrapper for getenv using _dupenv_s.
- * @param name The environment variable name.
+ * @param[in] name The environment variable name.
  * @return The value of the environment variable, or NULL.
  */
 static __inline char *cdd_getenv(const char *name) {
@@ -54,8 +54,8 @@ static __inline char *cdd_getenv(const char *name) {
 
 /**
  * @brief Safely wrapper for fopen using fopen_s.
- * @param path The path to the file.
- * @param mode The mode string.
+ * @param[in] path The path to the file.
+ * @param[in] mode The mode string.
  * @return The opened FILE pointer, or NULL.
  */
 static __inline FILE *cdd_fopen(const char *path, const char *mode) {

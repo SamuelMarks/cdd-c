@@ -1,5 +1,6 @@
 #include "cdd_test_helpers_export.h"
 CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
+/** @brief Test definition g_cdd_wine_skip. */
 extern int g_cdd_wine_skip;
 
 /**
@@ -51,6 +52,11 @@ struct Node {
 };
 
 /* Emulate Generated Code for Node to test the logic pattern */
+/**
+ * @brief Helper function Node_cleanup.
+ * @param[in] obj Parameter obj.
+ * @return Result status or value.
+ */
 static cdd_c_error_t Node_cleanup(struct Node *const obj) {
   if (obj == NULL)
     return CDD_C_SUCCESS;
@@ -62,6 +68,12 @@ static cdd_c_error_t Node_cleanup(struct Node *const obj) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Helper function Node_deepcopy.
+ * @param[in] src Parameter src.
+ * @param[out] dest Parameter dest.
+ * @return Result status or value.
+ */
 static cdd_c_error_t Node_deepcopy(const struct Node *src, struct Node **dest) {
   if (!dest)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -83,6 +95,12 @@ static cdd_c_error_t Node_deepcopy(const struct Node *src, struct Node **dest) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Helper function Node_eq.
+ * @param[in] a Parameter a.
+ * @param[in] b Parameter b.
+ * @return Result status or value.
+ */
 static cdd_c_error_t Node_eq(const struct Node *a, const struct Node *b) {
   if (a == NULL || b == NULL)
     return (a == b);
@@ -93,6 +111,10 @@ static cdd_c_error_t Node_eq(const struct Node *a, const struct Node *b) {
 
 /* --- Tests --- */
 
+/**
+ * @brief Unit test test_recursive_cleanup.
+ * @return Greatest test result.
+ */
 TEST test_recursive_cleanup(void) {
   struct Node *head = (struct Node *)malloc(sizeof(struct Node));
   struct Node *next = (struct Node *)malloc(sizeof(struct Node));
@@ -109,6 +131,10 @@ TEST test_recursive_cleanup(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_recursive_deepcopy.
+ * @return Greatest test result.
+ */
 TEST test_recursive_deepcopy(void) {
   struct Node *head = (struct Node *)malloc(sizeof(struct Node));
   struct Node *next = (struct Node *)malloc(sizeof(struct Node));
@@ -137,6 +163,10 @@ TEST test_recursive_deepcopy(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_recursive_eq.
+ * @return Greatest test result.
+ */
 TEST test_recursive_eq(void) {
   struct Node *n1 = (struct Node *)malloc(sizeof(struct Node));
   struct Node *n2 = (struct Node *)malloc(sizeof(struct Node));
@@ -163,6 +193,10 @@ TEST test_recursive_eq(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_FooE_default_deepcopy_eq_cleanup.
+ * @return Greatest test result.
+ */
 TEST test_FooE_default_deepcopy_eq_cleanup(void) {
   struct FooE *foo0 = NULL, *foo1 = NULL, *foo2 = NULL;
   int rc = 0;
@@ -191,6 +225,10 @@ TEST test_FooE_default_deepcopy_eq_cleanup(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_HazE_default_deepcopy_eq_cleanup.
+ * @return Greatest test result.
+ */
 TEST test_HazE_default_deepcopy_eq_cleanup(void) {
   struct HazE *h0 = NULL, *h1 = NULL, *h2 = NULL;
   int rc = 0;
@@ -219,6 +257,10 @@ TEST test_HazE_default_deepcopy_eq_cleanup(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_FooE_json_roundtrip.
+ * @return Greatest test result.
+ */
 TEST test_FooE_json_roundtrip(void) {
   const char *const json = "{\"bar\": \"hello\", \"can\": 42, \"haz\": "
                            "{\"bzr\": \"bzrval\", \"tank\": \"SMALL\"}}";
@@ -248,6 +290,10 @@ TEST test_FooE_json_roundtrip(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_HazE_json_roundtrip.
+ * @return Greatest test result.
+ */
 TEST test_HazE_json_roundtrip(void) {
   const char *const json = "{\"bzr\": \"bzrval\", \"tank\": \"BIG\"}";
   struct HazE *haz_in = NULL;
@@ -275,6 +321,10 @@ TEST test_HazE_json_roundtrip(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_json_parsing_errors.
+ * @return Greatest test result.
+ */
 TEST test_json_parsing_errors(void) {
   struct HazE *h = NULL;
   struct FooE *f = NULL;
@@ -300,6 +350,10 @@ TEST test_json_parsing_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_json_parsing_corner_cases.
+ * @return Greatest test result.
+ */
 TEST test_json_parsing_corner_cases(void) {
   struct HazE *h = NULL;
   struct FooE *f = NULL;
@@ -330,6 +384,10 @@ TEST test_json_parsing_corner_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_null_args_and_errors.
+ * @return Greatest test result.
+ */
 TEST test_null_args_and_errors(void) {
   char *str = NULL;
   char empty_buf[] = "";
@@ -372,6 +430,10 @@ TEST test_null_args_and_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_debug_and_display.
+ * @return Greatest test result.
+ */
 TEST test_debug_and_display(void) {
   struct HazE *haz = NULL;
   struct FooE *foo = NULL;
@@ -403,6 +465,10 @@ TEST test_debug_and_display(void) {
 }
 
 #ifndef CDD_DISABLE_EXPERIMENTAL_TESTS
+/**
+ * @brief Unit test test_display_fail.
+ * @return Greatest test result.
+ */
 TEST test_display_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
@@ -450,6 +516,10 @@ TEST test_display_fail(void) {
 }
 #endif
 
+/**
+ * @brief Unit test test_eq_null_cases.
+ * @return Greatest test result.
+ */
 TEST test_eq_null_cases(void) {
   struct FooE *f1 = NULL, *f2 = NULL;
   struct HazE *h1 = NULL, *h2 = NULL;
@@ -484,6 +554,10 @@ TEST test_eq_null_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_Tank_to_str_from_str.
+ * @return Greatest test result.
+ */
 TEST test_Tank_to_str_from_str(void) {
   char *str = NULL;
   enum Tank val;
@@ -534,6 +608,10 @@ TEST test_Tank_to_str_from_str(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cleanup_null.
+ * @return Greatest test result.
+ */
 TEST test_cleanup_null(void) {
   FooE_cleanup(NULL);
   HazE_cleanup(NULL);
@@ -541,6 +619,10 @@ TEST test_cleanup_null(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_to_json_with_null_fields.
+ * @return Greatest test result.
+ */
 TEST test_to_json_with_null_fields(void) {
   struct HazE haz = {NULL, Tank_BIG};
   struct FooE foo = {NULL, 12, NULL};
@@ -588,6 +670,10 @@ TEST test_to_json_with_null_fields(void) {
 }
 
 #ifndef CDD_DISABLE_EXPERIMENTAL_TESTS
+/**
+ * @brief Unit test test_debug_fail.
+ * @return Greatest test result.
+ */
 TEST test_debug_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
@@ -636,6 +722,10 @@ TEST test_debug_fail(void) {
 }
 #endif
 
+/**
+ * @brief Unit test test_json_parsing_wrong_types.
+ * @return Greatest test result.
+ */
 TEST test_json_parsing_wrong_types(void) {
   struct FooE *f = NULL;
   struct HazE *h = NULL;
@@ -671,6 +761,10 @@ TEST test_json_parsing_wrong_types(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_deepcopy_null_fields.
+ * @return Greatest test result.
+ */
 TEST test_deepcopy_null_fields(void) {
   struct HazE haz_in = {NULL, Tank_BIG};
   struct HazE *haz_out = NULL;
@@ -700,6 +794,10 @@ TEST test_deepcopy_null_fields(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_json_parsing_missing_fields.
+ * @return Greatest test result.
+ */
 TEST test_json_parsing_missing_fields(void) {
   struct FooE *f = NULL;
   int rc = 0;
@@ -734,6 +832,10 @@ TEST test_json_parsing_missing_fields(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_debug_with_null_nested.
+ * @return Greatest test result.
+ */
 TEST test_debug_with_null_nested(void) {
   struct FooE *f = NULL;
   int rc = 0;
@@ -751,6 +853,10 @@ TEST test_debug_with_null_nested(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_debug_with_empty_strings.
+ * @return Greatest test result.
+ */
 TEST test_debug_with_empty_strings(void) {
   char empty_buf[] = "";
   struct HazE haz;
@@ -779,6 +885,10 @@ TEST test_debug_with_empty_strings(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_HazE_deepcopy_alloc_fail.
+ * @return Greatest test result.
+ */
 TEST test_HazE_deepcopy_alloc_fail(void) {
   char test_buf[] = "test";
   struct HazE haz_in;
@@ -796,6 +906,10 @@ TEST test_HazE_deepcopy_alloc_fail(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_simple_json_HazE_more_eq_cases.
+ * @return Greatest test result.
+ */
 TEST test_simple_json_HazE_more_eq_cases(void) {
   struct HazE *h1 = NULL, *h2 = NULL;
   HazE_default(&h1);
@@ -823,6 +937,10 @@ TEST test_simple_json_HazE_more_eq_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_simple_json_more_eq_cases.
+ * @return Greatest test result.
+ */
 TEST test_simple_json_more_eq_cases(void) {
   struct FooE *f1 = NULL, *f2 = NULL;
   FooE_default(&f1);
@@ -846,6 +964,10 @@ TEST test_simple_json_more_eq_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_FooE_eq_nested_diff.
+ * @return Greatest test result.
+ */
 TEST test_FooE_eq_nested_diff(void) {
   struct FooE *f1 = NULL, *f2 = NULL;
   FooE_default(&f1);
@@ -865,6 +987,10 @@ TEST test_FooE_eq_nested_diff(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_node_helpers_branches.
+ * @return Greatest test result.
+ */
 TEST test_node_helpers_branches(void) {
   struct Node node;
   struct Node *dest = NULL;
@@ -883,6 +1009,9 @@ TEST test_node_helpers_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the dataclasses_suite test suite.
+ */
 SUITE(dataclasses_suite) {
   fprintf(stderr, "Starting test_recursive_cleanup\n");
   RUN_TEST(test_node_helpers_branches);

@@ -19,10 +19,17 @@ extern "C" {
 #include "routes/emit/operation.h"
 /* clang-format on */
 
+/** @brief Test definition g_cdd_fail_json_serialize. */
 extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
+/** @brief Test definition g_cdd_fail_stricmp. */
 extern C_CDD_EXPORT int g_cdd_fail_stricmp;
+/** @brief Test definition g_mapping_fail_init. */
 extern C_CDD_EXPORT int g_mapping_fail_init;
 
+/**
+ * @brief Helper function reset_operation_test.
+ * @param[in,out] op Parameter op.
+ */
 static void reset_operation_test(struct OpenAPI_Operation *op) {
   size_t i;
   if (!op)

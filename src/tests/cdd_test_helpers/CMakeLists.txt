@@ -9,6 +9,7 @@ source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}")
 set(Source_Files
         "cdd_helpers.c"
         "mock_server.c"
+        "../mocks/g_fail_io_after.c"
 )
 source_group("${LIBRARY_NAME} Source Files" FILES "${Source_Files}")
 

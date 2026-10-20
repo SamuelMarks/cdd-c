@@ -16,8 +16,8 @@ extern "C" {
 #ifndef C_CDD_LOG_DEBUG
 /**
  * @brief Logs debug messages.
- * @param fmt Format string.
- * @param ... Arguments.
+ *
+ * @param[in] fmt Printf-style format string.
  * @return CDD_C_SUCCESS on success or error code.
  */
 C_CDD_EXPORT cdd_c_error_t c_cdd_log_debug(const char *fmt, ...);

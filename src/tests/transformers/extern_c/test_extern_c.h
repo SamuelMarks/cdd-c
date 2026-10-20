@@ -10,13 +10,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#ifdef CDD_BUILD_TESTS
-/* extern C_CDD_EXPORT int g_cdd_cst_realloc_fail; (moved to global) */
-extern C_CDD_EXPORT volatile int g_extern_c_top_node_fail;
-extern C_CDD_EXPORT volatile int g_extern_c_bot_node_fail;
-extern C_CDD_EXPORT volatile int g_extern_c_helper_fail;
-#endif
-
 /* clang-format off */
 #include "c_cdd_export.h"
 #include <greatest.h>
@@ -30,6 +23,7 @@ extern C_CDD_EXPORT volatile int g_extern_c_helper_fail;
 
 /* Moved extern declarations for C89 compliance */
 extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 extern C_CDD_EXPORT int g_cdd_query_err_fail;
 extern C_CDD_EXPORT cdd_c_error_t
 cdd_check_node_is_cpp_guard(cdd_cst_node_t *dir, int *out_is_cpp);
@@ -85,6 +79,10 @@ TEST test_cdd_transform_extern_c_null_args(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_extern_c_empty_tree.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_extern_c_empty_tree(void) {
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
@@ -110,6 +108,10 @@ TEST test_cdd_transform_extern_c_empty_tree(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_extern_c_empty_c_file.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_extern_c_empty_c_file(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = cdd_test_mut_str("   \n");
@@ -135,6 +137,10 @@ TEST test_cdd_transform_extern_c_empty_c_file(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_extern_c_malformed_ifdef.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_extern_c_malformed_ifdef(void) {
   cdd_cst_tree_t *tree = NULL;
   /* Missing the identifier after #ifdef */
@@ -160,6 +166,10 @@ TEST test_cdd_transform_extern_c_malformed_ifdef(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_extern_c_already_exists_conditional.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_extern_c_already_exists_conditional(void) {
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
@@ -196,6 +206,10 @@ TEST test_cdd_transform_extern_c_already_exists_conditional(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_transform_extern_c_inner_ifdef.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_extern_c_inner_ifdef(void) {
   cdd_cst_tree_t *tree = NULL;
   /* ifdef __cplusplus inside a function, so it shouldn't prevent wrapping the
@@ -223,6 +237,10 @@ TEST test_cdd_transform_extern_c_inner_ifdef(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_extern_c_null_child.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_extern_c_null_child(void) {
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
@@ -247,6 +265,10 @@ TEST test_cdd_transform_extern_c_null_child(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_extern_c_target_parent_tokens.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_extern_c_target_parent_tokens(void) {
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
@@ -281,6 +303,10 @@ TEST test_cdd_transform_extern_c_target_parent_tokens(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_transform_extern_c_bot_insert_idx.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_extern_c_bot_insert_idx(void) {
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
@@ -325,6 +351,10 @@ TEST test_cdd_transform_extern_c_bot_insert_idx(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_extern_c_close_node_fails.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_extern_c_close_node_fails(void) {
   int i;
   for (i = 0; i <= 50; i++) {
@@ -348,14 +378,10 @@ TEST test_cdd_transform_extern_c_close_node_fails(void) {
 
     root->capacity = root->num_children;
 
-    g_extern_c_top_node_fail = 1; /* Skip top node */
-    g_extern_c_bot_node_fail = 1; /* Skip bot node to simplify */
     g_cdd_cst_realloc_fail = i;
     rc = cdd_transform_extern_c(tree, &config);
     ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_MEMORY);
     g_cdd_cst_realloc_fail = 0;
-    g_extern_c_top_node_fail = 0;
-    g_extern_c_bot_node_fail = 0;
 
     free(tok);
     cdd_cst_tree_free(tree);
@@ -364,6 +390,10 @@ TEST test_cdd_transform_extern_c_close_node_fails(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_extern_c_bot_append_dead_code.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_extern_c_bot_append_dead_code(void) {
   int i;
   for (i = 0; i <= 50; i++) {
@@ -385,16 +415,10 @@ TEST test_cdd_transform_extern_c_bot_append_dead_code(void) {
 
       dir->capacity = dir->num_children;
 
-      g_extern_c_top_node_fail = 1; /* Skip top node */
-      if (i == 50)
-        g_extern_c_bot_node_fail = 999;
-      else
-        g_cdd_cst_realloc_fail = i;
+      g_cdd_cst_realloc_fail = i;
       rc = cdd_transform_extern_c(tree, &config);
       ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_MEMORY);
       g_cdd_cst_realloc_fail = 0;
-      g_extern_c_bot_node_fail = 0;
-      g_extern_c_top_node_fail = 0;
 
       cdd_cst_tree_free(tree);
     }
@@ -403,6 +427,10 @@ TEST test_cdd_transform_extern_c_bot_append_dead_code(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_extern_c_target_parent_no_eof.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_extern_c_target_parent_no_eof(void) {
   int i;
   for (i = 0; i <= 50; i++) {
@@ -426,14 +454,10 @@ TEST test_cdd_transform_extern_c_target_parent_no_eof(void) {
       root->num_children = 1;
       root->capacity = 1;
 
-      if (i == 50)
-        g_extern_c_bot_node_fail = 999;
-      else
-        g_cdd_cst_realloc_fail = i;
+      g_cdd_cst_realloc_fail = i;
       rc = cdd_transform_extern_c(tree, &config);
       ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_MEMORY);
       g_cdd_cst_realloc_fail = 0;
-      g_extern_c_bot_node_fail = 0;
 
       cdd_cst_tree_free(tree);
     }
@@ -442,6 +466,10 @@ TEST test_cdd_transform_extern_c_target_parent_no_eof(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_extern_c_empty_target_parent.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_extern_c_empty_target_parent(void) {
   int i;
   for (i = 0; i < 50; i++) {
@@ -479,6 +507,10 @@ TEST test_cdd_transform_extern_c_empty_target_parent(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_extern_c_append_fails.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_extern_c_append_fails(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = cdd_test_mut_str("void func();");
@@ -533,6 +565,10 @@ TEST test_cdd_transform_extern_c_append_fails(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_transform_extern_c_insert_fails.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_extern_c_insert_fails(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = cdd_test_mut_str("void func();\n#include <late.h>\n");
@@ -591,6 +627,10 @@ TEST test_cdd_transform_extern_c_insert_fails(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_transform_extern_c_already_exists_single_token.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_extern_c_already_exists_single_token(void) {
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
@@ -624,6 +664,10 @@ TEST test_cdd_transform_extern_c_already_exists_single_token(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_transform_extern_c_first_token.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_extern_c_first_token(void) {
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
@@ -650,6 +694,10 @@ TEST test_cdd_transform_extern_c_first_token(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_extern_c_already_exists.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_extern_c_already_exists(void) {
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));

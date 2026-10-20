@@ -1,3 +1,7 @@
+/**
+ * @file simple.h
+ * @brief Unit tests and mocks in simple.h.
+ */
 #include "cdd_c_error.h"
 #ifndef C_CDD_TESTS_MOCKS_SIMPLE_H
 #define C_CDD_TESTS_MOCKS_SIMPLE_H
@@ -17,6 +21,7 @@ struct Haz {
 
 extern SIMPLE_MOCKS_EXPORT cdd_c_error_t Haz_cleanup(struct Haz *);
 
+/** @brief Test definition Foo. */
 struct Foo {
   char *bar;
   int can;

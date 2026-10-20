@@ -22,8 +22,8 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern C_CDD_EXPORT int g_msvc_port_bld_fail;
-extern C_CDD_EXPORT int g_msvc_port_find_fail;
+extern C_CDD_EXPORT int g_cdd_query_err_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
 extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 
@@ -138,6 +138,10 @@ TEST test_cdd_transform_msvc(void) {
 /* extern C_CDD_EXPORT int g_msvc_port_bld_fail; (moved to global) */
 #endif
 
+/**
+ * @brief Unit test test_cdd_transform_msvc_context.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_msvc_context(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "struct A { int strdup; };\n"
@@ -170,6 +174,10 @@ TEST test_cdd_transform_msvc_context(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_msvc_builder_fails.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_msvc_builder_fails(void) {
   cdd_cst_tree_t *tree = NULL;
   int rc = 0;
@@ -194,42 +202,44 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
   {
     const char *simple_code = cdd_test_mut_str("#include <unistd.h>\n");
     cdd_cst_parse(az_span_create_from_str(simple_code), &tree);
-    g_msvc_port_find_fail = 1;
+    g_cdd_query_err_fail = 1;
     rc = cdd_transform_msvc(tree, &config);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    g_msvc_port_find_fail = 0;
+    g_cdd_query_err_fail = 0;
 
-    g_msvc_port_find_fail = 2;
+    g_cdd_cst_alloc_node_fail = 1;
     rc = cdd_transform_msvc(tree, &config);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    g_msvc_port_find_fail = 0;
+    g_cdd_cst_alloc_node_fail = 0;
 
     cdd_cst_tree_free(tree);
     tree = NULL;
   }
 
-  /* Test g_msvc_port_bld_fail = 1 (wrap_node error) */
+  /* Test wrap_node builder error */
   {
     const char *simple_code = cdd_test_mut_str("#include <unistd.h>\n");
     cdd_cst_parse(az_span_create_from_str(simple_code), &tree);
-    g_msvc_port_bld_fail = 1;
+    g_cdd_cst_alloc_token_fail = 1;
     rc = cdd_transform_msvc(tree, &config);
-    ASSERT_EQ(CDD_C_SUCCESS,
-              rc); /* It will just free the wrap_node and not fail the whole
-                      transformation, according to current logic */
-    g_msvc_port_bld_fail = 0;
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    g_cdd_cst_alloc_token_fail = 0;
     cdd_cst_tree_free(tree);
     tree = NULL;
   }
 
-  g_msvc_port_bld_fail = 2;
-  cdd_cst_parse(az_span_create_from_str(code), &tree);
-  rc = cdd_transform_msvc(tree, &config);
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-  g_msvc_port_bld_fail = 0;
-
-  cdd_cst_tree_free(tree);
-  tree = NULL;
+  {
+    int r_idx;
+    for (r_idx = 1; r_idx <= 20; r_idx++) {
+      cdd_cst_parse(az_span_create_from_str(code), &tree);
+      tree->root->capacity = tree->root->num_children;
+      g_cdd_cst_realloc_fail = r_idx;
+      cdd_transform_msvc(tree, &config);
+      g_cdd_cst_realloc_fail = 0;
+      cdd_cst_tree_free(tree);
+      tree = NULL;
+    }
+  }
 
   /* Test all possible allocation failures to cover wrap_node and deps_node NULL
    * branches */

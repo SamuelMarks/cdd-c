@@ -82,7 +82,7 @@ cdd_c_error_t find_component_example(const struct OpenAPI_Spec *spec,
                        &name_enc);
   if (!target || !name_enc) {
     if (resolved.resolved_ref)
-      free(resolved.resolved_ref);
+      C_CDD_FREE(resolved.resolved_ref);
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
@@ -91,17 +91,17 @@ cdd_c_error_t find_component_example(const struct OpenAPI_Spec *spec,
     for (i = 0; i < target->n_component_examples; ++i) {
       if (target->component_example_names[i] &&
           strcmp(target->component_example_names[i], name_dec) == 0) {
-        free(name_dec);
+        C_CDD_FREE(name_dec);
         if (resolved.resolved_ref)
-          free(resolved.resolved_ref);
+          C_CDD_FREE(resolved.resolved_ref);
         *_out_val = &target->component_examples[i];
         return CDD_C_SUCCESS;
       }
     }
   }
-  free(name_dec);
+  C_CDD_FREE(name_dec);
   if (resolved.resolved_ref)
-    free(resolved.resolved_ref);
+    C_CDD_FREE(resolved.resolved_ref);
   *_out_val = NULL;
   return CDD_C_SUCCESS;
 }
@@ -155,7 +155,7 @@ static cdd_c_error_t parse_example_object_inner(const JSON_Object *ex_obj,
 
   summary = json_object_get_string(ex_obj, "summary");
   if (summary) {
-    free(out->summary);
+    C_CDD_FREE(out->summary);
     out->summary = NULL;
     c_cdd_strdup(summary, &out->summary);
     if (!out->summary)
@@ -163,7 +163,7 @@ static cdd_c_error_t parse_example_object_inner(const JSON_Object *ex_obj,
   }
   desc = json_object_get_string(ex_obj, "description");
   if (desc) {
-    free(out->description);
+    C_CDD_FREE(out->description);
     out->description = NULL;
     c_cdd_strdup(desc, &out->description);
     if (!out->description)
@@ -185,7 +185,7 @@ static cdd_c_error_t parse_example_object_inner(const JSON_Object *ex_obj,
 
   serialized = json_object_get_string(ex_obj, "serializedValue");
   if (serialized) {
-    free(out->serialized_value);
+    C_CDD_FREE(out->serialized_value);
     out->serialized_value = NULL;
     c_cdd_strdup(serialized, &out->serialized_value);
     if (!out->serialized_value)
@@ -193,7 +193,7 @@ static cdd_c_error_t parse_example_object_inner(const JSON_Object *ex_obj,
   }
   external = json_object_get_string(ex_obj, "externalValue");
   if (external) {
-    free(out->external_value);
+    C_CDD_FREE(out->external_value);
     out->external_value = NULL;
     c_cdd_strdup(external, &out->external_value);
     if (!out->external_value)
@@ -260,7 +260,7 @@ cdd_c_error_t parse_examples_object(const JSON_Object *examples,
         size_t j;
         for (j = 0; j < count; ++j)
           free_example(&(*out)[j]);
-        free(*out);
+        C_CDD_FREE(*out);
         *out = NULL;
         *out_count = 0;
         return rc;
@@ -325,10 +325,10 @@ cdd_c_error_t parse_oauth_scopes(const JSON_Object *scopes_obj,
     if (!(*out)[i].name) {
       size_t j;
       for (j = 0; j < count; ++j) {
-        free((*out)[j].name);
-        free((*out)[j].description);
+        C_CDD_FREE((*out)[j].name);
+        C_CDD_FREE((*out)[j].description);
       }
-      free(*out);
+      C_CDD_FREE(*out);
       *out = NULL;
       *out_count = 0;
       return CDD_C_ERROR_MEMORY;
@@ -338,10 +338,10 @@ cdd_c_error_t parse_oauth_scopes(const JSON_Object *scopes_obj,
       if (!(*out)[i].description) {
         size_t j;
         for (j = 0; j < count; ++j) {
-          free((*out)[j].name);
-          free((*out)[j].description);
+          C_CDD_FREE((*out)[j].name);
+          C_CDD_FREE((*out)[j].description);
         }
-        free(*out);
+        C_CDD_FREE(*out);
         *out = NULL;
         *out_count = 0;
         return CDD_C_ERROR_MEMORY;
@@ -460,20 +460,20 @@ cdd_c_error_t parse_oauth_flows(const JSON_Object *flows_obj,
   if (rc != CDD_C_SUCCESS && out->flows) {
     size_t f, s;
     for (f = 0; f < out->n_flows; ++f) {
-      free(out->flows[f].authorization_url);
-      free(out->flows[f].token_url);
-      free(out->flows[f].refresh_url);
-      free(out->flows[f].device_authorization_url);
-      free(out->flows[f].extensions_json);
+      C_CDD_FREE(out->flows[f].authorization_url);
+      C_CDD_FREE(out->flows[f].token_url);
+      C_CDD_FREE(out->flows[f].refresh_url);
+      C_CDD_FREE(out->flows[f].device_authorization_url);
+      C_CDD_FREE(out->flows[f].extensions_json);
       if (out->flows[f].scopes) {
         for (s = 0; s < out->flows[f].n_scopes; ++s) {
-          free(out->flows[f].scopes[s].name);
-          free(out->flows[f].scopes[s].description);
+          C_CDD_FREE(out->flows[f].scopes[s].name);
+          C_CDD_FREE(out->flows[f].scopes[s].description);
         }
-        free(out->flows[f].scopes);
+        C_CDD_FREE(out->flows[f].scopes);
       }
     }
-    free(out->flows);
+    C_CDD_FREE(out->flows);
     out->flows = NULL;
     out->n_flows = 0;
   }

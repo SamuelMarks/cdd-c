@@ -65,29 +65,65 @@ typedef CONDITION_VARIABLE cond_t;
 #define THREAD_FUNC_ARG void *
 #else
 typedef ssize_t cdd_ssize_t;
+/** @brief Test definition socket_t. */
 typedef int socket_t;
+/** @brief Test definition thread_t. */
 typedef pthread_t thread_t;
+/** @brief Test definition mutex_t. */
 typedef pthread_mutex_t mutex_t;
+/** @brief Test definition cond_t. */
 typedef pthread_cond_t cond_t;
+/**
+ * @brief Macro INVALID_SOCK.
+ */
 #define INVALID_SOCK (-1)
+/**
+ * @brief Macro SOCK_ERROR.
+ */
 #define SOCK_ERROR (-1)
+/**
+ * @brief Macro THREAD_FUNC_RETURN.
+ */
 #define THREAD_FUNC_RETURN void *
+/**
+ * @brief Macro THREAD_FUNC_ARG.
+ */
 #define THREAD_FUNC_ARG void *
 #endif
 
+/** @brief Test definition g_socket_fail. */
 CDD_TEST_HELPERS_EXPORT int g_socket_fail = 0;
+/** @brief Test definition g_bind_fail. */
 CDD_TEST_HELPERS_EXPORT int g_bind_fail = 0;
+/** @brief Test definition g_listen_fail. */
 CDD_TEST_HELPERS_EXPORT int g_listen_fail = 0;
+/** @brief Test definition g_getsockname_fail. */
 CDD_TEST_HELPERS_EXPORT int g_getsockname_fail = 0;
+/** @brief Test definition g_pthread_create_fail. */
 CDD_TEST_HELPERS_EXPORT int g_pthread_create_fail = 0;
+/** @brief Test definition g_accept_fail. */
 CDD_TEST_HELPERS_EXPORT int g_accept_fail = 0;
 
+/**
+ * @brief Helper function mock_socket.
+ * @param[in] domain Parameter domain.
+ * @param[in] type Parameter type.
+ * @param[in] protocol Parameter protocol.
+ * @return Result status or value.
+ */
 static socket_t mock_socket(int domain, int type, int protocol) {
   if (g_socket_fail)
     return INVALID_SOCK;
   return socket(domain, type, protocol);
 }
 
+/**
+ * @brief Helper function mock_bind.
+ * @param[in] sockfd Parameter sockfd.
+ * @param[in] addr Parameter addr.
+ * @param[in] addrlen Parameter addrlen.
+ * @return Result status or value.
+ */
 static int mock_bind(socket_t sockfd, const struct sockaddr *addr,
                      int addrlen) {
   if (g_bind_fail)
@@ -95,12 +131,25 @@ static int mock_bind(socket_t sockfd, const struct sockaddr *addr,
   return bind(sockfd, addr, (socklen_t)addrlen);
 }
 
+/**
+ * @brief Helper function mock_listen.
+ * @param[in] sockfd Parameter sockfd.
+ * @param[in] backlog Parameter backlog.
+ * @return Result status or value.
+ */
 static int mock_listen(socket_t sockfd, int backlog) {
   if (g_listen_fail)
     return SOCK_ERROR;
   return listen(sockfd, backlog);
 }
 
+/**
+ * @brief Helper function mock_getsockname.
+ * @param[in] sockfd Parameter sockfd.
+ * @param[in,out] addr Parameter addr.
+ * @param[in,out] addrlen Parameter addrlen.
+ * @return Result status or value.
+ */
 static int mock_getsockname(socket_t sockfd, struct sockaddr *addr,
                             void *addrlen) {
   if (g_getsockname_fail)
@@ -124,15 +173,33 @@ static uintptr_t mock_beginthreadex(void *security, unsigned stack_size,
 }
 #define BEGIN_THREAD mock_beginthreadex
 #else
+/**
+ * @brief Helper function mock_pthread_create.
+ * @param[in,out] thread Parameter thread.
+ * @param[in] attr Parameter attr.
+ * @param[in,out] start_routine Parameter start_routine.
+ * @param[in,out] arg Parameter arg.
+ * @return Result status or value.
+ */
 static int mock_pthread_create(pthread_t *thread, const pthread_attr_t *attr,
                                void *(*start_routine)(void *), void *arg) {
   if (g_pthread_create_fail)
     return 1;
   return pthread_create(thread, attr, start_routine, arg);
 }
+/**
+ * @brief Macro PTHREAD_CREATE.
+ */
 #define PTHREAD_CREATE mock_pthread_create
 #endif
 
+/**
+ * @brief Helper function mock_accept.
+ * @param[in] sockfd Parameter sockfd.
+ * @param[in,out] addr Parameter addr.
+ * @param[in,out] addrlen Parameter addrlen.
+ * @return Result status or value.
+ */
 static socket_t mock_accept(socket_t sockfd, struct sockaddr *addr,
                             void *addrlen) {
   if (g_accept_fail == 1) {
@@ -147,22 +214,48 @@ static socket_t mock_accept(socket_t sockfd, struct sockaddr *addr,
 }
 
 #undef socket
+/**
+ * @brief Macro socket.
+ */
 #define socket mock_socket
 #undef bind
+/**
+ * @brief Macro bind.
+ */
 #define bind mock_bind
 #undef listen
+/**
+ * @brief Macro listen.
+ */
 #define listen mock_listen
 #undef getsockname
+/**
+ * @brief Macro getsockname.
+ */
 #define getsockname mock_getsockname
 #undef accept
+/**
+ * @brief Macro accept.
+ */
 #define accept mock_accept
 
+/**
+ * @brief Helper function mock_calloc.
+ * @param[in] count Parameter count.
+ * @param[in] size Parameter size.
+ * @return Result status or value.
+ */
 static void *mock_calloc(size_t count, size_t size) {
   if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0)
     return NULL;
   return calloc(count, size);
 }
 
+/**
+ * @brief Helper function mock_malloc.
+ * @param[in] size Parameter size.
+ * @return Result status or value.
+ */
 static void *mock_malloc(size_t size) {
   if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0)
     return NULL;
@@ -170,10 +263,20 @@ static void *mock_malloc(size_t size) {
 }
 
 #undef calloc
+/**
+ * @brief Macro calloc.
+ */
 #define calloc mock_calloc
 #undef malloc
+/**
+ * @brief Macro malloc.
+ */
 #define malloc mock_malloc
 
+/**
+ * @brief Helper function sleep_ms.
+ * @param[in] ms Parameter ms.
+ */
 static void sleep_ms(int ms) {
 #if defined(_WIN32)
   Sleep((DWORD)ms);
@@ -182,6 +285,10 @@ static void sleep_ms(int ms) {
 #endif
 }
 
+/**
+ * @brief Helper function mutex_init.
+ * @param[in,out] m Parameter m.
+ */
 static void mutex_init(mutex_t *m) {
 #if defined(_WIN32)
   InitializeCriticalSection(m);
@@ -190,6 +297,10 @@ static void mutex_init(mutex_t *m) {
 #endif
 }
 
+/**
+ * @brief Helper function mutex_destroy.
+ * @param[in,out] m Parameter m.
+ */
 static void mutex_destroy(mutex_t *m) {
 #if defined(_WIN32)
   DeleteCriticalSection(m);
@@ -198,6 +309,10 @@ static void mutex_destroy(mutex_t *m) {
 #endif
 }
 
+/**
+ * @brief Helper function mutex_lock.
+ * @param[in,out] m Parameter m.
+ */
 static void mutex_lock(mutex_t *m) {
 #if defined(_WIN32)
   EnterCriticalSection(m);
@@ -206,6 +321,10 @@ static void mutex_lock(mutex_t *m) {
 #endif
 }
 
+/**
+ * @brief Helper function mutex_unlock.
+ * @param[in,out] m Parameter m.
+ */
 static void mutex_unlock(mutex_t *m) {
 #if defined(_WIN32)
   LeaveCriticalSection(m);
@@ -214,6 +333,10 @@ static void mutex_unlock(mutex_t *m) {
 #endif
 }
 
+/**
+ * @brief Helper function cond_init.
+ * @param[in,out] c Parameter c.
+ */
 static void cond_init(cond_t *c) {
 #if defined(_WIN32)
 #if defined(_MSC_VER) && _MSC_VER < 1600
@@ -226,6 +349,10 @@ static void cond_init(cond_t *c) {
 #endif
 }
 
+/**
+ * @brief Helper function cond_signal.
+ * @param[in,out] c Parameter c.
+ */
 static void cond_signal(cond_t *c) {
 #if defined(_WIN32)
 #if defined(_MSC_VER) && _MSC_VER < 1600
@@ -238,6 +365,10 @@ static void cond_signal(cond_t *c) {
 #endif
 }
 
+/**
+ * @brief Helper function close_socket.
+ * @param[in] s Parameter s.
+ */
 static void close_socket(socket_t s) {
 #if defined(_WIN32)
   closesocket(s);
@@ -246,6 +377,10 @@ static void close_socket(socket_t s) {
 #endif
 }
 
+/**
+ * @brief Helper function platform_init.
+ * @return Result status or value.
+ */
 static cdd_c_error_t platform_init(void) {
   if (g_accept_fail == 998)
     return CDD_C_ERROR_UNKNOWN;
@@ -259,6 +394,10 @@ static cdd_c_error_t platform_init(void) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Helper function platform_cleanup.
+ * @return Result status or value.
+ */
 static cdd_c_error_t platform_cleanup(void) {
 #if defined(_WIN32)
   WSACleanup();
@@ -284,6 +423,12 @@ struct MockServer_ {
   int init_success;       /**< Init flag */
 };
 
+/**
+ * @brief Helper function cond_wait_internal.
+ * @param[in,out] c Parameter c.
+ * @param[in,out] m Parameter m.
+ * @param[in,out] server Parameter server.
+ */
 static void cond_wait_internal(cond_t *c, mutex_t *m,
                                struct MockServer_ *server) {
   if (g_accept_fail == 999) {
@@ -305,6 +450,11 @@ static void cond_wait_internal(cond_t *c, mutex_t *m,
 
 /* --- Thread Routine --- */
 
+/**
+ * @brief Helper function server_thread_func.
+ * @param[in] arg Parameter arg.
+ * @return Result status or value.
+ */
 static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
   struct MockServer_ *s;
   const char *response;

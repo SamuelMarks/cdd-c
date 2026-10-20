@@ -14,6 +14,10 @@ extern "C" {
 #include "emit/test_openapi_writer_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_openapi_writer_nail_all_remaining.
+ * @return Greatest test result.
+ */
 TEST test_openapi_writer_nail_all_remaining(void) {
   JSON_Value *val;
   JSON_Object *obj;

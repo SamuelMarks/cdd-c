@@ -30,9 +30,20 @@ extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
 extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
 #endif
 
+/**
+ * @brief Helper function insert_child_at_mutate.
+ * @param[in,out] parent Parameter parent.
+ * @param[in] idx Parameter idx.
+ * @param[in,out] new_node Parameter new_node.
+ * @return Result status or value.
+ */
 cdd_c_error_t insert_child_at_mutate(cdd_cst_node_t *parent, size_t idx,
                                      cdd_cst_node_t *new_node);
 
+/**
+ * @brief Unit test test_cdd_cst_mutate_replace.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_mutate_replace(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *clone = NULL;
@@ -163,6 +174,10 @@ TEST test_cdd_cst_mutate_replace(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_mutate_errors.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_mutate_errors(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *node = NULL;
@@ -409,6 +424,10 @@ TEST test_cst_splice_children(void) {
 /* extern C_CDD_EXPORT int g_cdd_cst_realloc_fail; (moved to global) */
 #endif
 
+/**
+ * @brief Unit test test_cdd_cst_splice_oom.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_splice_oom(void) {
   int i;
   for (i = 0; i < 20; i++) {
@@ -514,6 +533,7 @@ TEST test_cst_find_node_for_token(void) {
 
 /**
  * @brief Rewrite mutate suite to include splice tests
+ * @return Test or helper result.
  */
 
 TEST test_cdd_cst_insert_node_after_success(void) {
@@ -560,6 +580,10 @@ TEST test_cdd_cst_insert_node_after_success(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_insert_node_before_success.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_insert_node_before_success(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *parent = NULL;
@@ -589,6 +613,10 @@ TEST test_cdd_cst_insert_node_before_success(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_detach_node_success.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_detach_node_success(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *parent = NULL;
@@ -649,6 +677,10 @@ TEST test_cdd_cst_detach_node_success(void) {
   cdd_cst_tree_free(tree);
   PASS();
 }
+/**
+ * @brief Unit test test_cdd_cst_remove_child_success.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_remove_child_success(void) {
   cdd_cst_node_t *parent = NULL;
   cdd_cst_node_t *child1 = NULL;
@@ -674,6 +706,10 @@ TEST test_cdd_cst_remove_child_success(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_clone_trivia_list_mutate.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_clone_trivia_list_mutate(void) {
   cdd_trivia_t t1 = {0};
   cdd_trivia_t t2 = {0};
@@ -711,6 +747,9 @@ TEST test_cdd_cst_clone_trivia_list_mutate(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the cdd_cst_mutate_suite test suite.
+ */
 SUITE(cdd_cst_mutate_suite) {
   RUN_TEST(test_cdd_cst_mutate_replace);
   RUN_TEST(test_cdd_cst_mutate_errors);

@@ -20,15 +20,6 @@
 #include <string.h>
 /* clang-format on */
 
-/* Wrapper for fprintf to check errors tersely */
-#ifdef CDD_BUILD_TESTS
-/** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK cdd_io_fprintf_hook
-#else
-/** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK fprintf
-#endif
-
 /** @brief CHECK_IO macro */
 #define CHECK_IO(x)                                                            \
   for (; (x) < 0;)                                                             \

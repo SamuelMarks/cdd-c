@@ -1,3 +1,7 @@
+/**
+ * @file test_ffi_extractor.h
+ * @brief Unit tests and mocks in test_ffi_extractor.h.
+ */
 #ifndef TEST_FFI_EXTRACTOR_H
 #define TEST_FFI_EXTRACTOR_H
 
@@ -31,6 +35,10 @@
 #include "../../functions/ffi/cdd_ffi_emit_ocaml.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_ffi_ir_extract_mock_failures.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_extract_mock_failures(void) {
   const char *filename = "dummy_header.h";
   const char *code = "struct Base { int a; };\n"
@@ -71,14 +79,20 @@ TEST test_ffi_ir_extract_mock_failures(void) {
 extern "C" {
 #endif /* __cplusplus */
 
+/** @brief Test definition g_cdd_ffi_fail_class_name. */
 extern C_CDD_EXPORT int g_cdd_ffi_fail_class_name;
+/** @brief Test definition g_cdd_ffi_fail_is_visited. */
 extern C_CDD_EXPORT int g_cdd_ffi_fail_is_visited;
+/** @brief Test definition g_cdd_ffi_extractor_fail. */
 extern C_CDD_EXPORT int g_cdd_ffi_extractor_fail;
-extern C_CDD_EXPORT int g_cdd_pp_context_init_fail;
-extern C_CDD_EXPORT int g_cdd_pp_scan_defines_fail;
+/** @brief Test definition g_cdd_fail_alloc. */
 extern C_CDD_EXPORT int g_cdd_fail_alloc;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 
+/**
+ * @brief Unit test test_ffi_ir_extract_exports_all_types.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_extract_exports_all_types(void) {
   const char *filename = "all_types.h";
   const char code[] = {
@@ -114,6 +128,10 @@ TEST test_ffi_ir_extract_exports_all_types(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_extract_exports_basic.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_extract_exports_basic(void) {
   const char *filename = "dummy_header.h";
   const char *code = "struct MyStruct { int x; char *s; };\n"
@@ -168,6 +186,10 @@ TEST test_ffi_ir_extract_exports_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_extract_macros.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_extract_macros(void) {
   const char *filename = "dummy_header_macros.h";
   const char *code = "#define PI 3.14159\n"
@@ -225,6 +247,10 @@ TEST test_ffi_ir_extract_macros(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_extract_templates.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_extract_templates(void) {
   const char *filename = "dummy_templates.h";
   const char *code =
@@ -270,6 +296,10 @@ TEST test_ffi_ir_extract_templates(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_extract_includes.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_extract_includes(void) {
   const char *filename_main = "dummy_main.h";
   const char *filename_inc = "dummy_inc.h";
@@ -344,6 +374,10 @@ TEST test_ffi_ir_extract_includes(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_extract_stl_types.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_extract_stl_types(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_ffi_ir_node_t *node;
@@ -402,6 +436,10 @@ TEST test_ffi_ir_extract_stl_types(void) {
 extern C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
 #endif
 
+/**
+ * @brief Unit test test_ffi_ir_extract_exports_oom.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_extract_exports_oom(void) {
 #ifdef CDD_BUILD_TESTS
 
@@ -446,6 +484,10 @@ TEST test_ffi_ir_extract_exports_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_extract_inheritance_casting.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_extract_inheritance_casting(void) {
   cdd_ffi_ir_t ir = {0};
 
@@ -541,6 +583,10 @@ TEST test_ffi_ir_extract_inheritance_casting(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_extract_trampoline.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_extract_trampoline(void) {
   cdd_ffi_ir_t ir = {0};
 
@@ -632,6 +678,10 @@ TEST test_ffi_ir_extract_trampoline(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_free_robustness.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_free_robustness(void) {
   /* Test that free handles partially initialized structures cleanly */
   cdd_ffi_ir_t ir = {0};
@@ -651,12 +701,20 @@ TEST test_ffi_ir_free_robustness(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_toposort_oom.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_toposort_oom(void) {
   /* Skipping OOM test since global mock allocators aren't fully wired for this
    * module yet. */
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_toposort_basic.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_toposort_basic(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -712,6 +770,10 @@ TEST test_ffi_ir_toposort_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_extract_array_out.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_extract_array_out(void) {
   const char *content = "#define _Out_writes_(x)\nvoid "
                         "get_items(_Out_writes_(len) char* buf, int len) {}\n";

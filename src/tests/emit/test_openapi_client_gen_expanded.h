@@ -24,10 +24,16 @@ extern "C" {
 #include "routes/emit/client_gen.h"
 /* clang-format on */
 
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
 extern C_CDD_EXPORT int g_client_gen_fail;
 
+/**
+ * @brief Unit test test_client_gen_extra_cases.
+ * @return Greatest test result.
+ */
 TEST test_client_gen_extra_cases(void) {
   struct OpenAPI_Server srv;
   char *out = NULL;
@@ -135,6 +141,10 @@ TEST test_client_gen_extra_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_gen_create_tests_mocks_expanded.
+ * @return Greatest test result.
+ */
 TEST test_client_gen_create_tests_mocks_expanded(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
@@ -407,6 +417,10 @@ TEST test_client_gen_create_tests_mocks_expanded(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_gen_io_failures.
+ * @return Greatest test result.
+ */
 TEST test_client_gen_io_failures(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
@@ -486,6 +500,9 @@ TEST test_client_gen_io_failures(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the openapi_client_gen_expanded_suite test suite.
+ */
 SUITE(openapi_client_gen_expanded_suite) {
   RUN_TEST(test_client_gen_extra_cases);
   RUN_TEST(test_client_gen_create_tests_mocks_expanded);

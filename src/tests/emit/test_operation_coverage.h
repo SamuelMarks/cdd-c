@@ -14,6 +14,10 @@ extern "C" {
 #include "emit/test_operation_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_operation_100_percent_coverage.
+ * @return Greatest test result.
+ */
 TEST test_operation_100_percent_coverage(void) {
   struct OpenAPI_Link link;
   struct OpenAPI_Parameter param;
@@ -307,9 +311,9 @@ TEST test_operation_100_percent_coverage(void) {
   /* 17. any_from_json_value json_serialize failure (line 106) */
   val_obj = json_parse_string("{\"key\": \"value\"}");
   ASSERT(val_obj != NULL);
-  g_cdd_fail_json_serialize = 1;
+  g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, any_from_json_value(val_obj, &any));
-  g_cdd_fail_json_serialize = 0;
+  g_cdd_strdup_fail = 0;
   json_value_free(val_obj);
 
   /* 19. add_header_to_response existing header content_type OOM (line 667) &

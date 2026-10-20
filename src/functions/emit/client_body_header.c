@@ -17,10 +17,10 @@
  * @param[in] stream Output file stream.
  * @return Non-negative value on success, or -1 on simulated failure.
  */
-static int test_cdd_fputs_hook(const char *s, FILE *stream) {
+static cdd_c_error_t test_cdd_fputs_hook(const char *s, FILE *stream) {
   if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  return fputs(s, stream);
+    return (cdd_c_error_t)-1;
+  return (cdd_c_error_t)fputs(s, stream);
 }
 #define fputs test_cdd_fputs_hook
 #endif

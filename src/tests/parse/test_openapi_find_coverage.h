@@ -15,6 +15,10 @@ extern "C" {
 #include "parse/test_openapi_loader_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_openapi_find_all_components.
+ * @return Greatest test result.
+ */
 TEST test_openapi_find_all_components(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Parameter param;
@@ -523,6 +527,10 @@ TEST test_openapi_find_all_components(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_schemas_all_branches.
+ * @return Greatest test result.
+ */
 TEST test_openapi_schemas_all_branches(void) {
   int nullable = 0;
   const char *type_val = NULL;
@@ -989,6 +997,11 @@ TEST test_openapi_schemas_all_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Helper function free_test_oauth_scopes.
+ * @param[in,out] scopes Parameter scopes.
+ * @param[in] count Parameter count.
+ */
 static void free_test_oauth_scopes(struct OpenAPI_OAuthScope *scopes,
                                    size_t count) {
   size_t i;
@@ -1004,6 +1017,10 @@ static void free_test_oauth_scopes(struct OpenAPI_OAuthScope *scopes,
 }
 
 static void
+/**
+ * @brief Helper function free_test_security_scheme_flows.
+ * @param[in,out] sec Parameter sec.
+ */
 free_test_security_scheme_flows(struct OpenAPI_SecurityScheme *sec) {
   size_t f, s;
   if (!sec || !sec->flows)
@@ -1036,6 +1053,10 @@ free_test_security_scheme_flows(struct OpenAPI_SecurityScheme *sec) {
   sec->n_flows = 0;
 }
 
+/**
+ * @brief Unit test test_openapi_examples_all_branches.
+ * @return Greatest test result.
+ */
 TEST test_openapi_examples_all_branches(void) {
   struct OpenAPI_Example ex_src;
   struct OpenAPI_Example ex_dst;
@@ -1628,6 +1649,11 @@ TEST test_openapi_examples_all_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Helper function free_test_str_array.
+ * @param[in,out] arr Parameter arr.
+ * @param[in] count Parameter count.
+ */
 static void free_test_str_array(char **arr, size_t count) {
   size_t i;
   if (!arr)
@@ -1639,6 +1665,10 @@ static void free_test_str_array(char **arr, size_t count) {
   free(arr);
 }
 
+/**
+ * @brief Unit test test_openapi_validation_all_branches.
+ * @return Greatest test result.
+ */
 TEST test_openapi_validation_all_branches(void) {
   size_t qs_count = 0;
   int has_query = 0;

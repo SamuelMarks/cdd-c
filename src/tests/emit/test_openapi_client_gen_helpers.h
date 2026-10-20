@@ -23,18 +23,28 @@ extern "C" {
 #include "routes/emit/client_gen.h"
 /* clang-format on */
 
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
 extern C_CDD_EXPORT int g_client_gen_fail;
 extern C_CDD_EXPORT cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc);
 extern C_CDD_EXPORT cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc);
 
+/**
+ * @brief Unit test test_client_gen_emit_url_utils_null.
+ * @return Greatest test result.
+ */
 TEST test_client_gen_emit_url_utils_null(void) {
   ASSERT_EQ(CDD_C_SUCCESS, client_gen_emit_url_utils_c1(NULL));
   ASSERT_EQ(CDD_C_SUCCESS, client_gen_emit_url_utils_c2(NULL));
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_gen_find_server_variable.
+ * @return Greatest test result.
+ */
 TEST test_client_gen_find_server_variable(void) {
   struct OpenAPI_Server srv;
   const struct OpenAPI_ServerVariable *out = NULL;
@@ -73,6 +83,10 @@ TEST test_client_gen_find_server_variable(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_gen_render_server_url_default.
+ * @return Greatest test result.
+ */
 TEST test_client_gen_render_server_url_default(void) {
   struct OpenAPI_Server srv;
   char *out = NULL;
@@ -144,6 +158,10 @@ TEST test_client_gen_render_server_url_default(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_gen_escape_c_string_literal.
+ * @return Greatest test result.
+ */
 TEST test_client_gen_escape_c_string_literal(void) {
   char *out = NULL;
 
@@ -165,6 +183,10 @@ TEST test_client_gen_escape_c_string_literal(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_gen_select_operation_server.
+ * @return Greatest test result.
+ */
 TEST test_client_gen_select_operation_server(void) {
   struct OpenAPI_Path path;
   struct OpenAPI_Operation op;
@@ -194,6 +216,10 @@ TEST test_client_gen_select_operation_server(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_gen_build_base_url_literal.
+ * @return Greatest test result.
+ */
 TEST test_client_gen_build_base_url_literal(void) {
   char *out = NULL;
 
@@ -208,6 +234,10 @@ TEST test_client_gen_build_base_url_literal(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_gen_generate_guard.
+ * @return Greatest test result.
+ */
 TEST test_client_gen_generate_guard(void) {
   char *out = NULL;
 
@@ -219,6 +249,10 @@ TEST test_client_gen_generate_guard(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_gen_derive_model_header.
+ * @return Greatest test result.
+ */
 TEST test_client_gen_derive_model_header(void) {
   char *out = NULL;
 
@@ -230,6 +264,10 @@ TEST test_client_gen_derive_model_header(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_gen_sanitize_tag.
+ * @return Greatest test result.
+ */
 TEST test_client_gen_sanitize_tag(void) {
   char *out = NULL;
 
@@ -244,6 +282,10 @@ TEST test_client_gen_sanitize_tag(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_gen_param_keys_match.
+ * @return Greatest test result.
+ */
 TEST test_client_gen_param_keys_match(void) {
   struct OpenAPI_Parameter a, b;
   memset(&a, 0, sizeof(a));
@@ -270,6 +312,10 @@ TEST test_client_gen_param_keys_match(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_gen_build_effective_parameters.
+ * @return Greatest test result.
+ */
 TEST test_client_gen_build_effective_parameters(void) {
   struct OpenAPI_Path path;
   struct OpenAPI_Operation op;
@@ -322,6 +368,10 @@ TEST test_client_gen_build_effective_parameters(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_gen_verb_to_string.
+ * @return Greatest test result.
+ */
 TEST test_client_gen_verb_to_string(void) {
   const char *out = NULL;
 
@@ -359,6 +409,10 @@ TEST test_client_gen_verb_to_string(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_gen_write_docblock.
+ * @return Greatest test result.
+ */
 TEST test_client_gen_write_docblock(void) {
   FILE *fp;
   struct OpenAPI_Path path;
@@ -443,6 +497,10 @@ TEST test_client_gen_write_docblock(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_gen_emit_operation.
+ * @return Greatest test result.
+ */
 TEST test_client_gen_emit_operation(void) {
   struct OpenAPI_Path path;
   struct OpenAPI_Operation op;
@@ -501,6 +559,9 @@ TEST test_client_gen_emit_operation(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the openapi_client_gen_helpers_suite test suite.
+ */
 SUITE(openapi_client_gen_helpers_suite) {
   RUN_TEST(test_client_gen_find_server_variable);
   RUN_TEST(test_client_gen_render_server_url_default);

@@ -1,3 +1,7 @@
+/**
+ * @file test_oom.c
+ * @brief Unit tests and mocks in test_oom.c.
+ */
 /* clang-format off */#include "c_cdd/safe_crt_msvc.h"
 
 #include <errno.h>
@@ -5,6 +9,10 @@
 #include <stdlib.h>
 #include <sys/resource.h>
 /* clang-format on */
+/**
+ * @brief Helper function main.
+ * @return Result status or value.
+ */
 cdd_c_error_t main(void) {
   struct rlimit rl;
   if (getrlimit(RLIMIT_AS, &rl) != 0) {

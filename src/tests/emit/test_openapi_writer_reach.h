@@ -14,6 +14,10 @@ extern "C" {
 #include "emit/test_openapi_writer_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_openapi_writer_component_returns_and_root_oom.
+ * @return Greatest test result.
+ */
 TEST test_openapi_writer_component_returns_and_root_oom(void) {
   JSON_Value *val;
   JSON_Object *obj;
@@ -216,6 +220,10 @@ TEST test_openapi_writer_component_returns_and_root_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_writer_strike_last_19.
+ * @return Greatest test result.
+ */
 TEST test_openapi_writer_strike_last_19(void) {
   JSON_Value *val;
   JSON_Object *obj;
@@ -359,6 +367,10 @@ TEST test_openapi_writer_strike_last_19(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_writer_nail_last_11.
+ * @return Greatest test result.
+ */
 TEST test_openapi_writer_nail_last_11(void) {
   JSON_Value *val;
   JSON_Object *obj;

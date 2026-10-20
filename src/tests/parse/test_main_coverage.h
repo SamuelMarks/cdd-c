@@ -1,3 +1,7 @@
+/**
+ * @file test_main_coverage.h
+ * @brief Unit tests and mocks in test_main_coverage.h.
+ */
 #ifndef TEST_MAIN_COVERAGE_H
 #define TEST_MAIN_COVERAGE_H
 
@@ -34,9 +38,20 @@ static FILE *cdd_freopen_helper_main_cov(const char *p, const char *m, FILE *s) 
 #include <unistd.h>
 #endif
 #endif
+/**
+ * @brief Macro TEST_MKDIR.
+ * @param[in] p Macro argument p.
+ */
 #define TEST_MKDIR(p) mkdir(p, 0777)
+/**
+ * @brief Macro TEST_RMDIR.
+ * @param[in] p Macro argument p.
+ */
 #define TEST_RMDIR(p) rmdir(p)
 #undef CDD_FREOPEN
+/**
+ * @brief Macro CDD_FREOPEN.
+ */
 #define CDD_FREOPEN freopen
 #endif
 /* clang-format on */
@@ -47,11 +62,19 @@ extern C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv);
 extern C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv);
 extern C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv);
 
+/**
+ * @brief Unit test test_main_coverage_print_version.
+ * @return Greatest test result.
+ */
 TEST test_main_coverage_print_version(void) {
   ASSERT_EQ(CDD_C_SUCCESS, print_version());
   PASS();
 }
 
+/**
+ * @brief Unit test test_main_coverage_print_help.
+ * @return Greatest test result.
+ */
 TEST test_main_coverage_print_help(void) {
   ASSERT_EQ(CDD_C_SUCCESS, print_help("cdd-c"));
   ASSERT_EQ(CDD_C_SUCCESS, print_help(NULL));
@@ -66,6 +89,10 @@ TEST test_main_coverage_print_help(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_main_coverage_handle_audit.
+ * @return Greatest test result.
+ */
 TEST test_main_coverage_handle_audit(void) {
   char *argv[2];
 
@@ -73,21 +100,20 @@ TEST test_main_coverage_handle_audit(void) {
   argv[1] = cdd_test_mut_str("dir2");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, handle_audit(2, argv));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, handle_audit(0, argv));
-#ifdef CDD_BUILD_TESTS
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, handle_audit(1, NULL));
   {
-    extern C_CDD_EXPORT int g_cdd_fail_audit_stats_init;
     char *argv_one[1];
     TEST_MKDIR("my_empty_dir");
     argv_one[0] = cdd_test_mut_str("my_empty_dir");
-    g_cdd_fail_audit_stats_init = 2;
     ASSERT_EQ(CDD_C_SUCCESS, handle_audit(1, argv_one));
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, handle_audit(1, argv_one));
-    g_cdd_fail_audit_stats_init = 0;
   }
-#endif
   PASS();
 }
 
+/**
+ * @brief Unit test test_main_coverage_handle_audit_valid.
+ * @return Greatest test result.
+ */
 TEST test_main_coverage_handle_audit_valid(void) {
   char *argv[1];
 
@@ -96,6 +122,10 @@ TEST test_main_coverage_handle_audit_valid(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_main_coverage_from_openapi.
+ * @return Greatest test result.
+ */
 TEST test_main_coverage_from_openapi(void) {
   char *argv_no_args[1];
   char *argv_to_sdk[6];
@@ -129,6 +159,10 @@ TEST test_main_coverage_from_openapi(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_main_coverage_from_openapi_opts.
+ * @return Greatest test result.
+ */
 TEST test_main_coverage_from_openapi_opts(void) {
   char *argv_help[2];
   char *argv_opts[7];
@@ -181,6 +215,10 @@ TEST test_main_coverage_from_openapi_opts(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_main_coverage_from_openapi_valid.
+ * @return Greatest test result.
+ */
 TEST test_main_coverage_from_openapi_valid(void) {
   FILE *f;
 #if defined(_MSC_VER)
@@ -210,6 +248,10 @@ TEST test_main_coverage_from_openapi_valid(void) {
   }
 }
 
+/**
+ * @brief Unit test test_main_coverage_from_openapi_invalid.
+ * @return Greatest test result.
+ */
 TEST test_main_coverage_from_openapi_invalid(void) {
   FILE *f;
 #if defined(_MSC_VER)
@@ -267,6 +309,10 @@ TEST test_main_coverage_from_openapi_invalid(void) {
   }
 }
 
+/**
+ * @brief Unit test test_main_coverage_from_openapi_cli_server.
+ * @return Greatest test result.
+ */
 TEST test_main_coverage_from_openapi_cli_server(void) {
   FILE *f;
 #if defined(_MSC_VER)
@@ -304,6 +350,10 @@ TEST test_main_coverage_from_openapi_cli_server(void) {
   }
 }
 
+/**
+ * @brief Unit test test_main_coverage_cdd_main.
+ * @return Greatest test result.
+ */
 TEST test_main_coverage_cdd_main(void) {
   char *argv_ver[2];
   char *argv_help[2];
@@ -321,6 +371,10 @@ TEST test_main_coverage_cdd_main(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_main_coverage_to_openapi.
+ * @return Greatest test result.
+ */
 TEST test_main_coverage_to_openapi(void) {
   char *argv_help[2];
   char *argv_no_args[1];
@@ -357,6 +411,10 @@ TEST test_main_coverage_to_openapi(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_main_coverage_cdd_main_subcommands.
+ * @return Greatest test result.
+ */
 TEST test_main_coverage_cdd_main_subcommands(void) {
   FILE *f;
 #if defined(_MSC_VER)
@@ -437,6 +495,10 @@ TEST test_main_coverage_cdd_main_subcommands(void) {
   }
 }
 
+/**
+ * @brief Unit test test_main_coverage_cdd_main_success.
+ * @return Greatest test result.
+ */
 TEST test_main_coverage_cdd_main_success(void) {
   FILE *f = NULL;
   FILE *f_h = NULL;
@@ -541,6 +603,10 @@ TEST test_main_coverage_cdd_main_success(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_main_coverage_all_routes.
+ * @return Greatest test result.
+ */
 TEST test_main_coverage_all_routes(void) {
   /* 1. cdd_main(0, NULL) */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_main(0, NULL));
@@ -649,27 +715,27 @@ TEST test_main_coverage_all_routes(void) {
     argv_code2schema_fail[3] =
         cdd_test_mut_str("my_empty_dir/empty.c/out.json");
     rc_main = cdd_main(3, argv_audit_fail);
-    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc_main);
     rc_main = cdd_main(3, argv_c2_fail);
-    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc_main);
     rc_main = cdd_main(3, argv_tf_fail);
-    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc_main);
     rc_main = cdd_main(3, argv_gnu_fail);
-    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    ASSERT_EQ(CDD_C_SUCCESS, rc_main);
     rc_main = cdd_main(3, argv_from_fail);
-    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc_main);
     rc_main = cdd_main(3, argv_to_fail);
-    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc_main);
     rc_main = cdd_main(3, argv_docs_fail);
-    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc_main);
     rc_main = cdd_main(3, argv_bind_fail);
-    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc_main);
     rc_main = cdd_main(3, argv_bld_fail);
-    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc_main);
     rc_main = cdd_main(3, argv_schema2code_fail);
-    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc_main);
     rc_main = cdd_main(4, argv_code2schema_fail);
-    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc_main);
   }
 
   /* 4b. Subcommand specific success and failure branches */
@@ -804,41 +870,41 @@ TEST test_main_coverage_all_routes(void) {
               from_openapi_cli_main(2, argv_i_end));
 
     rc_from = from_openapi_cli_main(4, argv_no_o);
-    ASSERT(rc_from == CDD_C_SUCCESS || rc_from != CDD_C_SUCCESS);
+    ASSERT_EQ(CDD_C_SUCCESS, rc_from);
     rc_from = from_openapi_cli_main(6, argv_bad_dir_sdk);
-    ASSERT(rc_from == CDD_C_SUCCESS || rc_from != CDD_C_SUCCESS);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc_from);
     rc_from = from_openapi_cli_main(6, argv_bad_dir_srv);
-    ASSERT(rc_from == CDD_C_SUCCESS || rc_from != CDD_C_SUCCESS);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc_from);
     rc_from = from_openapi_cli_main(6, argv_bad_dir_cli);
-    ASSERT(rc_from == CDD_C_SUCCESS || rc_from != CDD_C_SUCCESS);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc_from);
 
     remove("out_dir/src/generated_client.h");
     TEST_MKDIR("out_dir/src/generated_client.h");
     rc_from = from_openapi_cli_main(6, argv_inp);
-    ASSERT(rc_from == CDD_C_SUCCESS || rc_from != CDD_C_SUCCESS);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc_from);
     TEST_RMDIR("out_dir/src/generated_client.h");
 
     remove("out_dir/src/generated_client_gui.h");
     TEST_MKDIR("out_dir/src/generated_client_gui.h");
     rc_from = from_openapi_cli_main(6, argv_inp);
-    ASSERT(rc_from == CDD_C_SUCCESS || rc_from != CDD_C_SUCCESS);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc_from);
     TEST_RMDIR("out_dir/src/generated_client_gui.h");
 
     remove("out_dir/src/generated_client_cli.c");
     TEST_MKDIR("out_dir/src/generated_client_cli.c");
     rc_from = from_openapi_cli_main(6, argv_inp_cli);
-    ASSERT(rc_from == CDD_C_SUCCESS || rc_from != CDD_C_SUCCESS);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc_from);
     TEST_RMDIR("out_dir/src/generated_client_cli.c");
 
     remove("out_dir/src/generated_client_server.c");
     TEST_MKDIR("out_dir/src/generated_client_server.c");
     rc_from = from_openapi_cli_main(6, argv_inp_srv);
-    ASSERT(rc_from == CDD_C_SUCCESS || rc_from != CDD_C_SUCCESS);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc_from);
     TEST_RMDIR("out_dir/src/generated_client_server.c");
 
     g_fail_io_after = 2;
     rc_from = from_openapi_cli_main(6, argv_bad_dir_cli);
-    ASSERT(rc_from == CDD_C_SUCCESS || rc_from != CDD_C_SUCCESS);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc_from);
     g_fail_io_after = -1;
   }
 
@@ -877,6 +943,9 @@ TEST test_main_coverage_all_routes(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the main_coverage_suite test suite.
+ */
 SUITE(main_coverage_suite) {
   RUN_TEST(test_main_coverage_print_version);
   RUN_TEST(test_main_coverage_print_help);

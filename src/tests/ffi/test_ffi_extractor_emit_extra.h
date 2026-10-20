@@ -1,3 +1,7 @@
+/**
+ * @file test_ffi_extractor_emit_extra.h
+ * @brief Unit tests and mocks in test_ffi_extractor_emit_extra.h.
+ */
 #ifndef TEST_FFI_EXTRACTOR_EMIT_EXTRA_H
 #define TEST_FFI_EXTRACTOR_EMIT_EXTRA_H
 
@@ -22,6 +26,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/**
+ * @brief Unit test test_ffi_ir_emit_ruby.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_ruby(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -75,6 +83,10 @@ TEST test_ffi_ir_emit_ruby(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_emit_kotlin.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_kotlin(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -128,6 +140,10 @@ TEST test_ffi_ir_emit_kotlin(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_emit_php.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_php(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -181,6 +197,10 @@ TEST test_ffi_ir_emit_php(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_emit_lua.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_lua(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -234,6 +254,10 @@ TEST test_ffi_ir_emit_lua(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_emit_zig.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_zig(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -287,6 +311,10 @@ TEST test_ffi_ir_emit_zig(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_emit_odin.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_odin(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -344,6 +372,10 @@ TEST test_ffi_ir_emit_odin(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_emit_julia.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_julia(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -397,6 +429,10 @@ TEST test_ffi_ir_emit_julia(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_emit_r.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_r(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -450,6 +486,10 @@ TEST test_ffi_ir_emit_r(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_emit_matlab.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_matlab(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -503,6 +543,10 @@ TEST test_ffi_ir_emit_matlab(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_emit_haskell.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_haskell(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -556,6 +600,10 @@ TEST test_ffi_ir_emit_haskell(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_emit_ocaml.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_ocaml(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;

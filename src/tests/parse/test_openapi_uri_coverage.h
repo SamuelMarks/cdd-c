@@ -17,6 +17,9 @@ extern "C" {
 /* clang-format on */
 
 #ifndef RESOLVED_REF_TARGET_DEF
+/**
+ * @brief Macro RESOLVED_REF_TARGET_DEF.
+ */
 #define RESOLVED_REF_TARGET_DEF
 struct ResolvedRefTarget {
   const struct OpenAPI_Spec *spec;
@@ -30,6 +33,7 @@ extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
 /**
  * @brief Test basic URI helper functions in openapi_uri.c.
+ * @return Test or helper result.
  */
 TEST test_openapi_uri_basics(void) {
   char *str = NULL;
@@ -112,6 +116,7 @@ TEST test_openapi_uri_basics(void) {
 
 /**
  * @brief Test normalize_path branches and edge cases.
+ * @return Test or helper result.
  */
 TEST test_openapi_uri_normalize_path_branches(void) {
   char *str = NULL;
@@ -190,6 +195,7 @@ TEST test_openapi_uri_normalize_path_branches(void) {
 
 /**
  * @brief Test resolve_uri_reference branches.
+ * @return Test or helper result.
  */
 TEST test_openapi_uri_resolve_reference_branches(void) {
   char *str = NULL;
@@ -242,6 +248,7 @@ TEST test_openapi_uri_resolve_reference_branches(void) {
 
 /**
  * @brief Test compute_document_uri branches.
+ * @return Test or helper result.
  */
 TEST test_openapi_uri_compute_document_uri_branches(void) {
   char *str = NULL;
@@ -290,6 +297,7 @@ TEST test_openapi_uri_compute_document_uri_branches(void) {
 
 /**
  * @brief Test schema document detection, storage, and ref resolution.
+ * @return Test or helper result.
  */
 TEST test_openapi_uri_schema_and_ref_branches(void) {
   struct OpenAPI_Spec spec;
@@ -482,10 +490,12 @@ TEST test_openapi_uri_schema_and_ref_branches(void) {
   PASS();
 }
 
+/** @brief Test definition g_cdd_fail_json_serialize. */
 extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
 
 /**
  * @brief More targeted branch coverage tests for openapi_uri.c.
+ * @return Test or helper result.
  */
 TEST test_openapi_uri_advanced_branches(void) {
   struct OpenAPI_Spec spec;
@@ -630,6 +640,7 @@ TEST test_openapi_uri_advanced_branches(void) {
 
 /**
  * @brief Test final missing branches in openapi_uri.c.
+ * @return Test or helper result.
  */
 TEST test_openapi_uri_final_edges(void) {
   struct OpenAPI_Spec spec;
@@ -669,6 +680,7 @@ TEST test_openapi_uri_final_edges(void) {
   }
 
   /* 3. resolve_uri_reference where base_uri has scheme but prefix_len > 0 and
+   * @return Test or helper result.
    * base_path has no trailing slash */
   rc = resolve_uri_reference("http://example.com/api", "v1", &str);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -681,6 +693,7 @@ TEST test_openapi_uri_final_edges(void) {
 
 /**
  * @brief Test realloc failure in normalize_path and edge cases.
+ * @return Test or helper result.
  */
 TEST test_openapi_uri_exhaust_branches(void) {
   struct OpenAPI_Spec spec;
@@ -773,6 +786,7 @@ TEST test_openapi_uri_exhaust_branches(void) {
 
 /**
  * @brief Test exact non-matching suffix paths for ref_base_matches_self.
+ * @return Test or helper result.
  */
 TEST test_openapi_uri_non_matching_relative(void) {
   struct OpenAPI_Spec spec;
@@ -805,6 +819,7 @@ TEST test_openapi_uri_non_matching_relative(void) {
 /**
  * @brief Test components check, self_uri with hash, and opaque base in
  * openapi_uri.c.
+ * @return Test or helper result.
  */
 TEST test_openapi_uri_final_unhit_branches(void) {
   struct OpenAPI_Spec spec;
@@ -845,6 +860,7 @@ TEST test_openapi_uri_final_unhit_branches(void) {
 
 /**
  * @brief Test all 10 remaining branch combinations for openapi_uri.c.
+ * @return Test or helper result.
  */
 TEST test_openapi_uri_100_percent_final(void) {
   struct OpenAPI_Spec spec;
@@ -926,6 +942,7 @@ TEST test_openapi_uri_100_percent_final(void) {
   /* 6. ref_base_matches_self:
      - spec->document_uri is empty ""
      - spec->self_uri is empty ""
+ * @return Test or helper result.
   */
   {
     char empty_str[] = "";
@@ -948,6 +965,7 @@ TEST test_openapi_uri_100_percent_final(void) {
 
 /**
  * @brief Test precise branch coverage targets in openapi_uri.c.
+ * @return Test or helper result.
  */
 TEST test_openapi_uri_branch_finishing(void) {
   struct OpenAPI_Spec spec;
@@ -1079,6 +1097,9 @@ TEST test_openapi_uri_branch_finishing(void) {
   PASS();
 }
 
+/**
+ * @brief Macro OPENAPI_URI_COVERAGE_TESTS.
+ */
 #define OPENAPI_URI_COVERAGE_TESTS()                                           \
   RUN_TEST(test_openapi_uri_basics);                                           \
   RUN_TEST(test_openapi_uri_normalize_path_branches);                          \

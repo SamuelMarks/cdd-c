@@ -20,13 +20,24 @@ extern "C" {
 #include <string.h>
 /* clang-format on */
 
-extern C_CDD_EXPORT int g_gnu_standardizer_fail;
+/** @brief Test definition g_gnu_alloc_fail. */
 extern C_CDD_EXPORT volatile int g_gnu_alloc_fail;
+/** @brief Test definition g_gnu_replace_fail. */
 extern C_CDD_EXPORT volatile int g_gnu_replace_fail;
+/** @brief Test definition g_gnu_bld_fail. */
 extern C_CDD_EXPORT volatile int g_gnu_bld_fail;
+/** @brief Test definition g_gnu_malloc_fail. */
 extern C_CDD_EXPORT volatile int g_gnu_malloc_fail;
+/** @brief Test definition g_gnu_find_fail. */
 extern C_CDD_EXPORT volatile int g_gnu_find_fail;
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
+extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 
+/**
+ * @brief Unit test test_gnu_pool_string_safe.
+ * @return Greatest test result.
+ */
 TEST test_gnu_pool_string_safe(void) {
   cdd_cst_tree_t tree;
   const char *pooled = NULL;
@@ -44,11 +55,12 @@ TEST test_gnu_pool_string_safe(void) {
             cdd_pool_string_safe(&tree, "test", NULL));
 
   /* Test fail mocks */
-  g_gnu_standardizer_fail = 1;
+  g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_pool_string_safe(&tree, "fail1", &pooled));
-  g_gnu_standardizer_fail = 4;
+  g_cdd_alloc_fail = 0;
+  g_cdd_cst_realloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_pool_string_safe(&tree, "fail4", &pooled));
-  g_gnu_standardizer_fail = 0;
+  g_cdd_cst_realloc_fail = 0;
 
   rc = cdd_pool_string_safe(&tree, "first", &pooled);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -72,6 +84,10 @@ TEST test_gnu_pool_string_safe(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_pool_string_safe_len.
+ * @return Greatest test result.
+ */
 TEST test_gnu_pool_string_safe_len(void) {
   cdd_cst_tree_t tree;
   const char *pooled = NULL;
@@ -89,13 +105,14 @@ TEST test_gnu_pool_string_safe_len(void) {
             cdd_pool_string_safe_len(&tree, "test", 4, NULL));
 
   /* Test fail mocks */
-  g_gnu_standardizer_fail = 2;
+  g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             cdd_pool_string_safe_len(&tree, "fail2", 5, &pooled));
-  g_gnu_standardizer_fail = 5;
+  g_cdd_alloc_fail = 0;
+  g_cdd_cst_realloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             cdd_pool_string_safe_len(&tree, "fail5", 5, &pooled));
-  g_gnu_standardizer_fail = 0;
+  g_cdd_cst_realloc_fail = 0;
 
   rc = cdd_pool_string_safe_len(&tree, "hello world", 5, &pooled);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -119,6 +136,10 @@ TEST test_gnu_pool_string_safe_len(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_append_int.
+ * @return Greatest test result.
+ */
 TEST test_gnu_append_int(void) {
   char buf[64];
   char *out_p = NULL;
@@ -126,10 +147,6 @@ TEST test_gnu_append_int(void) {
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_append_int(NULL, 0, &out_p));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_append_int(buf, 0, NULL));
-
-  g_gnu_standardizer_fail = 3;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_append_int(buf, 10, &out_p));
-  g_gnu_standardizer_fail = 0;
 
   rc = cdd_append_int(buf, 0, &out_p);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -148,6 +165,10 @@ TEST test_gnu_append_int(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_parse_128_literal.
+ * @return Greatest test result.
+ */
 TEST test_gnu_parse_128_literal(void) {
   uint64_t high = 0;
   uint64_t low = 0;
@@ -183,6 +204,10 @@ TEST test_gnu_parse_128_literal(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_parse_hex_128_literal.
+ * @return Greatest test result.
+ */
 TEST test_gnu_parse_hex_128_literal(void) {
   uint64_t high = 0;
   uint64_t low = 0;
@@ -247,6 +272,10 @@ TEST test_gnu_parse_hex_128_literal(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_infer_type.
+ * @return Greatest test result.
+ */
 TEST test_gnu_infer_type(void) {
   const char *out_type = NULL;
   cdd_token_t tokens[4];
@@ -503,14 +532,25 @@ TEST test_gnu_infer_type(void) {
   PASS();
 }
 
+/**
+ * @brief Macro tok1.
+ */
+#define tok1 toks_arr[0]
+/**
+ * @brief Macro tok2.
+ */
+#define tok2 toks_arr[1]
+
+/**
+ * @brief Unit test test_gnu_asm_and_visitors.
+ * @return Greatest test result.
+ */
 TEST test_gnu_asm_and_visitors(void) {
   struct tramp_ctx tctx;
   cdd_cst_node_t node;
   cdd_cst_child_t children[2];
   cdd_token_t toks_arr[5];
   memset(toks_arr, 0, sizeof(toks_arr));
-#define tok1 toks_arr[0]
-#define tok2 toks_arr[1]
 
   /* Test cdd_asm_visitor */
   ASSERT_EQ(CDD_C_SUCCESS, cdd_asm_visitor(NULL, NULL));
@@ -546,11 +586,9 @@ TEST test_gnu_asm_and_visitors(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_magic_visitor(&mnode, &mctx));
     g_gnu_malloc_fail = 0;
 
-    g_gnu_standardizer_fail = 32;
+    g_cdd_cst_alloc_token_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_magic_visitor(&mnode, &mctx));
-    g_gnu_standardizer_fail = 33;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_magic_visitor(&mnode, &mctx));
-    g_gnu_standardizer_fail = 0;
+    g_cdd_cst_alloc_token_fail = 0;
     {
       size_t mi;
       for (mi = 0; mi < mtree.num_strings; mi++) {
@@ -722,15 +760,18 @@ TEST test_gnu_asm_and_visitors(void) {
       ch_err.kind = CDD_CST_CHILD_TOKEN;
       ch_err.val.token = &tok_err;
 
-      g_gnu_standardizer_fail = 1;
+      g_cdd_alloc_fail = 2;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_magic_visitor(&node_err, &mctx));
-      g_gnu_standardizer_fail = 0;
+      g_cdd_alloc_fail = 0;
     }
   }
 
   PASS();
 }
 
+/**
+ * @brief Executes the transformer_gnu_standardizer_internals_suite test suite.
+ */
 SUITE(transformer_gnu_standardizer_internals_suite) {
   RUN_TEST(test_gnu_pool_string_safe);
   RUN_TEST(test_gnu_pool_string_safe_len);

@@ -38,8 +38,8 @@ static cdd_c_error_t cdd_cli_main_internal(int argc, char **argv) {
 int main(int argc, char **argv) {
   cdd_c_error_t rc;
 
-  cdd_suppress_gui_popups();
-  rc = cdd_cli_main_internal(argc, argv);
+  rc = (cdd_c_error_t)((int)cdd_suppress_gui_popups() |
+                       (int)cdd_cli_main_internal(argc, argv));
   if (rc != CDD_C_SUCCESS) {
     return 1;
   }

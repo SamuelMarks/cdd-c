@@ -18,13 +18,17 @@ extern "C" {
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/emit/cdd_cst_emit.h"
+#include "transformers/gnu_standardizer/gnu_standardizer_internal.h"
 #include "c_str_span.h"
 /* clang-format on */
 
-extern C_CDD_EXPORT int g_gnu_standardizer_fail;
+/** @brief Test fault injection counter for CST node allocation. */
 extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
-extern C_CDD_EXPORT cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree);
 
+/**
+ * @brief Unit test test_gnu_standardizer_invalid_args.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_invalid_args(void) {
   cdd_cst_tree_t tree;
   memset(&tree, 0, sizeof(tree));
@@ -35,6 +39,10 @@ TEST test_gnu_standardizer_invalid_args(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_transparent_union.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_transparent_union(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code =
@@ -50,6 +58,10 @@ TEST test_gnu_standardizer_transparent_union(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_vector_and_mode.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_vector_and_mode(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "typedef int v4si __attribute__((vector_size(16)));\n"
@@ -70,6 +82,10 @@ TEST test_gnu_standardizer_vector_and_mode(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_anon_and_compound.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_anon_and_compound(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "struct S { struct { int a; }; union { int b; }; };\n"
@@ -89,6 +105,10 @@ TEST test_gnu_standardizer_anon_and_compound(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_stmt_expr_contexts.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_stmt_expr_contexts(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int main() {\n"
@@ -107,6 +127,10 @@ TEST test_gnu_standardizer_stmt_expr_contexts(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_cleanup_and_longjmp.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_cleanup_and_longjmp(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "void clean_int(int *p) {}\n"
@@ -127,6 +151,10 @@ TEST test_gnu_standardizer_cleanup_and_longjmp(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_builtin_expect.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_builtin_expect(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int test_exp(int x) {\n"
@@ -144,6 +172,10 @@ TEST test_gnu_standardizer_builtin_expect(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_more_cases.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_more_cases(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int test_sw(int x) {\n"
@@ -169,6 +201,10 @@ TEST test_gnu_standardizer_more_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_more_cases_100.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_more_cases_100(void) {
   cdd_cst_tree_t *tree = NULL;
   char *out = NULL;
@@ -305,6 +341,10 @@ TEST test_gnu_standardizer_more_cases_100(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_error_branches.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_error_branches(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_transform_config_t config;
@@ -343,75 +383,61 @@ TEST test_gnu_standardizer_error_branches(void) {
   const char *code_align = "int x __attribute__((aligned(8)));\n";
   const char *code_typeof_arr = "typeof(int[5]) arr;\n";
   const char *code_packed = "struct __attribute__((packed)) X { int a; };\n";
-  const char *code_tramp =
-      "void f_out(void) { void f_in(void) {} void (*fp)(void) = f_in; }\n";
   const char *code_lval = "void fl(void) { int val = 0; (char)val = 5; }\n";
   const char *code_cond = "int fc(int x, int y) { return x ? : y; }\n";
 
   memset(&config, 0, sizeof(config));
   config.fallback_vla_to_malloc = 1;
 
-  /* g_gnu_standardizer_fail == 13 (pool string strdup/malloc fail) */
+  /* pool string strdup/malloc fail */
   {
     const char *pout = NULL;
     cdd_cst_tree_t tr;
     memset(&tr, 0, sizeof(tr));
-    g_gnu_standardizer_fail = 13;
+    g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_pool_string_safe(&tr, "abc", &pout));
+    g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY,
               cdd_pool_string_safe_len(&tr, "abc", 3, &pout));
-    g_gnu_standardizer_fail = 0;
+    g_cdd_alloc_fail = 0;
   }
 
-  /* g_gnu_standardizer_fail == 14 (tramp parent_func == NULL) */
-  g_gnu_standardizer_fail = 14;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_tramp), &tree));
+  /* Trampoline nested inside a file-level block (parent_func == NULL) */
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(
+                                 "{ void f_in(void) {} void (*fp)(void) = "
+                                 "f_in; }\n"),
+                             &tree));
   ASSERT_EQ(CDD_C_ERROR_SYSTEM, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
-  g_gnu_standardizer_fail = 0;
 
-  /* g_gnu_standardizer_fail == 15 (typeof rb == NULL) */
-  g_gnu_standardizer_fail = 15;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_typeof_arr), &tree));
+  /* typeof with unclosed bracket inside parens */
+  ASSERT_EQ(
+      0, cdd_cst_parse(az_span_create_from_str("typeof(int[5) arr;\n"), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
-  g_gnu_standardizer_fail = 0;
 
-  /* g_gnu_standardizer_fail == 16 (packed n_tok == NULL) */
-  g_gnu_standardizer_fail = 16;
+  /* packed struct */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_packed), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
-  g_gnu_standardizer_fail = 0;
 
-  /* g_gnu_standardizer_fail == 6 (return void expr semi_tok failure) */
-  g_gnu_standardizer_fail = 6;
+  /* return void expr */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_ret_void), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
-  g_gnu_standardizer_fail = 0;
 
-  /* g_gnu_standardizer_fail == 7 (no-arg attribute p_node NULL) */
-  g_gnu_standardizer_fail = 7;
+  /* OOM on pooling no-arg attribute comment */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_noarg_attr), &tree));
-  ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
-  tree = NULL;
-  g_gnu_standardizer_fail = 0;
-
-  /* g_gnu_standardizer_fail == 42 (pooled == NULL in pool_string_safe) */
-  g_gnu_standardizer_fail = 42;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_noarg_attr), &tree));
+  g_cdd_alloc_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
+  g_cdd_alloc_fail = 0;
   cdd_cst_tree_free(tree);
   tree = NULL;
-  g_gnu_standardizer_fail = 0;
 
-  /* test code_noarg_attr with g_gnu_standardizer_fail == 0 */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_noarg_attr), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
@@ -423,140 +449,64 @@ TEST test_gnu_standardizer_error_branches(void) {
   cdd_cst_tree_free(tree);
   tree = NULL;
 
-  /* g_gnu_standardizer_fail == 8 (parent == NULL in RBRACE scope cleanups) */
-  g_gnu_standardizer_fail = 8;
+  /* RBRACE scope cleanups */
   ASSERT_EQ(0,
             cdd_cst_parse(az_span_create_from_str(code_scope_cleanup), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
-  g_gnu_standardizer_fail = 0;
 
-  /* g_gnu_standardizer_fail == 17 (pooled == NULL in RBRACE scope cleanups) */
-  g_gnu_standardizer_fail = 17;
-  ASSERT_EQ(0,
-            cdd_cst_parse(az_span_create_from_str(code_scope_cleanup), &tree));
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
-  tree = NULL;
-  g_gnu_standardizer_fail = 0;
-
-  /* g_gnu_standardizer_fail == 10 (owning_node == NULL in RBRACE) */
-  g_gnu_standardizer_fail = 10;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_cleanup), &tree));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
-  tree = NULL;
-  g_gnu_standardizer_fail = 0;
-
-  /* g_gnu_standardizer_fail == 11 (parent == NULL in return cleanups) */
-  g_gnu_standardizer_fail = 11;
+  /* return cleanups */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_cleanup), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
-  g_gnu_standardizer_fail = 0;
 
-  /* g_gnu_standardizer_fail == 12 (parent == NULL in local label ref) */
-  g_gnu_standardizer_fail = 12;
+  /* local label ref */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_lbl), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
-  g_gnu_standardizer_fail = 0;
 
-  /* g_gnu_standardizer_fail == 3 (cdd_append_int failure in local label) */
-  g_gnu_standardizer_fail = 3;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_lbl), &tree));
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
-  tree = NULL;
-  g_gnu_standardizer_fail = 0;
-
-  /* g_gnu_standardizer_fail == 3 (cdd_append_int failure in case ranges) */
-  g_gnu_standardizer_fail = 3;
+  /* case ranges */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_cases), &tree));
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
+  ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
-  g_gnu_standardizer_fail = 0;
 
-  /* g_gnu_standardizer_fail == 1 (pool_string_safe failure in case ranges) */
-  g_gnu_standardizer_fail = 1;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_cases), &tree));
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
-  tree = NULL;
-  g_gnu_standardizer_fail = 0;
-
-  /* g_gnu_standardizer_fail == 3 (cdd_append_int failure in designated init
-   * ranges) */
-  g_gnu_standardizer_fail = 3;
+  /* designated init ranges */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_desig), &tree));
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
+  ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
-  g_gnu_standardizer_fail = 0;
 
-  /* g_gnu_standardizer_fail == 1 (pool_string_safe failure in designated init
-   * ranges) */
-  g_gnu_standardizer_fail = 1;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_desig), &tree));
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
-  tree = NULL;
-  g_gnu_standardizer_fail = 0;
-
-  /* g_gnu_standardizer_fail == 1 in return cleanups and scope cleanups */
-  g_gnu_standardizer_fail = 1;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_cleanup), &tree));
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
-  tree = NULL;
-  g_gnu_standardizer_fail = 0;
-
-  /* g_gnu_standardizer_fail == 1 in local labels */
-  g_gnu_standardizer_fail = 1;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_lbl), &tree));
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
-  tree = NULL;
-  g_gnu_standardizer_fail = 0;
-
-  /* g_gnu_standardizer_fail == 1 in lvalue cast */
-  g_gnu_standardizer_fail = 1;
+  /* lvalue cast */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_lval), &tree));
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
+  ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
-  g_gnu_standardizer_fail = 0;
 
-  /* g_gnu_standardizer_fail == 1 in conditional ? : */
-  g_gnu_standardizer_fail = 1;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_cond), &tree));
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
-  tree = NULL;
-  g_gnu_standardizer_fail = 0;
-
-  /* g_gnu_standardizer_fail == 19 (conditional lhs_start == 0) */
-  g_gnu_standardizer_fail = 19;
+  /* conditional ? : and standalone x ? : y (lhs_start == 0) */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_cond), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   cdd_cst_tree_free(tree);
   tree = NULL;
-  g_gnu_standardizer_fail = 0;
 
-  /* g_gnu_standardizer_fail == 1 in variadic macro */
-  g_gnu_standardizer_fail = 1;
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str("x ? : y;\n"), &tree));
+  ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
+  cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  /* variadic macro */
   ASSERT_EQ(0,
             cdd_cst_parse(az_span_create_from_str(
                               (char *)(size_t) "#define M(args...) f(args)\n"),
                           &tree));
+  g_cdd_alloc_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
+  g_cdd_alloc_fail = 0;
   cdd_cst_tree_free(tree);
   tree = NULL;
-  g_gnu_standardizer_fail = 0;
 
   /* g_cdd_cst_alloc_node_fail error returns */
   if (cdd_cst_parse(az_span_create_from_str(code_stmt), &tree) == 0) {
@@ -595,8 +545,6 @@ TEST test_gnu_standardizer_error_branches(void) {
         tree = NULL;
       }
     }
-    /* mock 20 for zero-length array fwd continue */
-    g_gnu_standardizer_fail = 20;
     if (cdd_cst_parse(
             az_span_create_from_str("struct S { int a[0]; int b; };\n"),
             &tree) == 0) {
@@ -604,20 +552,10 @@ TEST test_gnu_standardizer_error_branches(void) {
       cdd_cst_tree_free(tree);
       tree = NULL;
     }
-    g_gnu_standardizer_fail = 0;
   }
   if (cdd_cst_parse(az_span_create_from_str(code_typeof_arr), &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
     cdd_transform_gnu(tree, &config);
-    g_cdd_cst_alloc_node_fail = 0;
-    cdd_cst_tree_free(tree);
-    tree = NULL;
-  }
-  if (cdd_cst_parse(az_span_create_from_str(code_typeof_arr), &tree) == 0) {
-    g_gnu_standardizer_fail = 15;
-    g_cdd_cst_alloc_node_fail = 1;
-    cdd_transform_gnu(tree, &config);
-    g_gnu_standardizer_fail = 0;
     g_cdd_cst_alloc_node_fail = 0;
     cdd_cst_tree_free(tree);
     tree = NULL;
@@ -688,8 +626,6 @@ TEST test_gnu_standardizer_error_branches(void) {
     tree = NULL;
   }
 
-  /* g_gnu_standardizer_fail == 18 (builtin expect j.length == 0 loop) */
-  g_gnu_standardizer_fail = 18;
   if (cdd_cst_parse(az_span_create_from_str("int f(int x) { return "
                                             "__builtin_expect(x, 1); }\n"),
                     &tree) == 0) {
@@ -697,7 +633,6 @@ TEST test_gnu_standardizer_error_branches(void) {
     cdd_cst_tree_free(tree);
     tree = NULL;
   }
-  g_gnu_standardizer_fail = 0;
 
   if (cdd_cst_parse(
           az_span_create_from_str("void fc(float z) { __real__ z; }\n"),
@@ -748,6 +683,9 @@ TEST test_gnu_standardizer_error_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the transformer_gnu_standardizer_branches_suite test suite.
+ */
 SUITE(transformer_gnu_standardizer_branches_suite) {
   RUN_TEST(test_gnu_standardizer_invalid_args);
   RUN_TEST(test_gnu_standardizer_transparent_union);

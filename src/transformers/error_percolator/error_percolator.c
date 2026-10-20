@@ -23,15 +23,11 @@
 #include <string.h>
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_err_perc_fail = 0;
-#endif
-
 /**
  * @brief Percolates errors by rewriting function signatures and returning int.
  *
- * @param tree The CST tree.
- * @param config Optional configuration for trivia generation.
+ * @param[in,out] tree The CST tree.
+ * @param[in] config Optional configuration for trivia generation.
  * @return 0 on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
@@ -40,7 +36,6 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
   size_t i, j;
   cdd_c_error_t rc;
   cdd_token_t **modified_funcs = NULL;
-  size_t modified_cap = 32;
   size_t num_modified = 0;
   (void)config;
 
@@ -54,7 +49,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
     return rc;
 
   modified_funcs =
-      (cdd_token_t **)C_CDD_CALLOC(modified_cap, sizeof(cdd_token_t *));
+      (cdd_token_t **)C_CDD_CALLOC(res.size + 1, sizeof(cdd_token_t *));
   if (!modified_funcs) {
     C_CDD_FREE(res.nodes);
     return CDD_C_ERROR_MEMORY;
@@ -150,35 +145,6 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
     if (has_cdd_c_error)
       continue;
 
-#ifdef CDD_BUILD_TESTS
-    if (g_err_perc_fail == 7) {
-      C_CDD_FREE(modified_funcs);
-      C_CDD_FREE(res.nodes);
-      return CDD_C_ERROR_MEMORY;
-    }
-#endif
-
-    if (num_modified >= modified_cap) {
-      size_t new_cap = modified_cap * 2;
-      cdd_token_t **new_funcs;
-#ifdef CDD_BUILD_TESTS
-      if (g_err_perc_fail == 8) {
-        new_funcs = NULL;
-      } else {
-#endif
-        new_funcs = (cdd_token_t **)C_CDD_REALLOC(
-            modified_funcs, new_cap * sizeof(cdd_token_t *));
-#ifdef CDD_BUILD_TESTS
-      }
-#endif
-      if (!new_funcs) {
-        C_CDD_FREE(modified_funcs);
-        C_CDD_FREE(res.nodes);
-        return CDD_C_ERROR_MEMORY;
-      }
-      modified_funcs = new_funcs;
-      modified_cap = new_cap;
-    }
     modified_funcs[num_modified++] = func_name_tok;
 
     if (!is_strict_void) {
@@ -209,10 +175,6 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
       for (k = 0; k < ret_type_end; k++) {
         cdd_token_t *t = func->children[k].val.token;
         char buf[128];
-#ifdef CDD_BUILD_TESTS
-        if (g_err_perc_fail == 9)
-          bld.error_state = 1;
-#endif
         memcpy(buf, t->start, t->length);
         buf[t->length] = '\0';
         cdd_cst_bld_snippet(&bld, buf);
@@ -226,22 +188,12 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
       cdd_cst_bld_ident(&bld, "out_result");
       cdd_cst_bld_punct(&bld, ")");
 
-#ifdef CDD_BUILD_TESTS
-      if (g_err_perc_fail == 11)
-        bld.error_state = 1;
-#endif
-
       if (bld.error_state == 0) {
         cdd_trivia_t *rt = rparen_tok->trailing_trivia;
         rparen_tok->trailing_trivia = NULL;
         temp->children[temp->num_children - 1].val.token->trailing_trivia = rt;
-#ifdef CDD_BUILD_TESTS
-        if (g_err_perc_fail == 15)
-          rc = CDD_C_ERROR_MEMORY;
-        else
-#endif
-          rc = cdd_cst_splice_children(tree, &func, rparen_idx, 1,
-                                       temp->children, temp->num_children);
+        rc = cdd_cst_splice_children(tree, &func, rparen_idx, 1, temp->children,
+                                     temp->num_children);
         if (rc != CDD_C_SUCCESS) {
           rparen_tok->trailing_trivia = rt;
           temp->children[temp->num_children - 1].val.token->trailing_trivia =
@@ -277,25 +229,14 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
       cdd_cst_bld_ident(&bld, "cdd_c_error_t");
       cdd_cst_bld_space(&bld);
 
-#ifdef CDD_BUILD_TESTS
-      if (g_err_perc_fail == 12)
-        bld.error_state = 1;
-#endif
-
       if (bld.error_state == 0) {
         size_t start_idx = 0;
         cdd_trivia_t *lt = func->children[0].val.token->leading_trivia;
         func->children[0].val.token->leading_trivia = NULL;
         temp->children[0].val.token->leading_trivia = lt;
 
-#ifdef CDD_BUILD_TESTS
-        if (g_err_perc_fail == 16)
-          rc = CDD_C_ERROR_MEMORY;
-        else
-#endif
-          rc = cdd_cst_splice_children(tree, &parent_ptr, start_idx,
-                                       ret_type_end, temp->children,
-                                       temp->num_children);
+        rc = cdd_cst_splice_children(tree, &parent_ptr, start_idx, ret_type_end,
+                                     temp->children, temp->num_children);
         if (rc != CDD_C_SUCCESS) {
           func->children[0].val.token->leading_trivia = lt;
           temp->children[0].val.token->leading_trivia = NULL;
@@ -381,12 +322,6 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
             }
 
             cloned = (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
-#ifdef CDD_BUILD_TESTS
-            if (g_err_perc_fail == 17) {
-              C_CDD_FREE(cloned);
-              cloned = NULL;
-            }
-#endif
             if (!cloned) {
               C_CDD_FREE(stmts_res.nodes);
               C_CDD_FREE(modified_funcs);
@@ -419,12 +354,6 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
             }
 
             tmp_name = (char *)C_CDD_MALLOC(len + 1);
-#ifdef CDD_BUILD_TESTS
-            if (g_err_perc_fail == 4) {
-              C_CDD_FREE(tmp_name);
-              tmp_name = NULL;
-            }
-#endif
             if (!tmp_name) {
               C_CDD_FREE(cloned);
               C_CDD_FREE(stmts_res.nodes);
@@ -445,16 +374,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
               char **new_pool;
               if (new_cap < 32)
                 new_cap = 32;
-#ifdef CDD_BUILD_TESTS
-              if (g_err_perc_fail == 18) {
-                new_pool = NULL;
-              } else {
-#endif
-                new_pool = (char **)C_CDD_REALLOC(tree->string_pool,
-                                                  new_cap * sizeof(char *));
-#ifdef CDD_BUILD_TESTS
-              }
-#endif
+              new_pool = (char **)C_CDD_REALLOC(tree->string_pool,
+                                                new_cap * sizeof(char *));
               if (!new_pool) {
                 C_CDD_FREE(tmp_name);
                 C_CDD_FREE(cloned);
@@ -504,10 +425,6 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
             cdd_cst_bld_space(&bld);
             cdd_cst_bld_punct(&bld, "}");
 
-#ifdef CDD_BUILD_TESTS
-            if (g_err_perc_fail == 1)
-              bld.error_state = 1;
-#endif
             if (bld.error_state == 0) {
               cdd_cst_insert_node_after(stmt, cloned);
             } else {
@@ -536,14 +453,22 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
             if (semi_tok) {
               cdd_token_t *prev_t = stmt->children[ret_semi_idx - 1].val.token;
               if (prev_t == ret_tok) {
-                if (allocs_seen > 0) {
-                  ret_tok->start =
-                      (const uint8_t *)"rc = CDD_C_SUCCESS; goto "
-                                       "cleanup;\ncleanup:\n  return rc;";
-                  ret_tok->length = 43;
-                } else {
-                  ret_tok->start = (const uint8_t *)"return 0";
-                  ret_tok->length = 8;
+                cdd_token_t *new_ret_tok = NULL;
+                const char *rep_str =
+                    (allocs_seen > 0)
+                        ? "rc = CDD_C_SUCCESS; goto cleanup;\ncleanup:\n  "
+                          "return rc;"
+                        : "return 0";
+                size_t rep_len = (allocs_seen > 0) ? 43 : 8;
+                if (cdd_cst_create_token_len(tree, ret_tok->kind, rep_str,
+                                             rep_len,
+                                             &new_ret_tok) == CDD_C_SUCCESS) {
+                  new_ret_tok->leading_trivia = ret_tok->leading_trivia;
+                  new_ret_tok->trailing_trivia = ret_tok->trailing_trivia;
+                  ret_tok->leading_trivia = NULL;
+                  ret_tok->trailing_trivia = NULL;
+                  cdd_cst_replace_token_child(stmt, ret_semi_idx - 1,
+                                              new_ret_tok);
                 }
               }
             }
@@ -556,16 +481,6 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
               (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
           cdd_cst_node_t *cleanup_node =
               (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
-
-#ifdef CDD_BUILD_TESTS
-          if (g_err_perc_fail == 19) {
-            C_CDD_FREE(decl_node);
-            decl_node = NULL;
-          } else if (g_err_perc_fail == 21) {
-            C_CDD_FREE(cleanup_node);
-            cleanup_node = NULL;
-          }
-#endif
 
           if (!decl_node || !cleanup_node) {
             if (decl_node)
@@ -598,12 +513,6 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
             cdd_cst_bld_ident(&bld_decl, "CDD_C_SUCCESS");
             cdd_cst_bld_punct(&bld_decl, ";");
 
-#ifdef CDD_BUILD_TESTS
-            if (g_err_perc_fail == 3) {
-              bld_decl.error_state = 1;
-            }
-#endif
-
             cleanup_node->kind = CDD_CST_UNKNOWN;
             cdd_cst_builder_init(&bld_cleanup, tree, cleanup_node);
             cdd_cst_bld_newline(&bld_cleanup);
@@ -617,12 +526,6 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
             cdd_cst_bld_ident(&bld_cleanup, "rc");
             cdd_cst_bld_punct(&bld_cleanup, ";");
             cdd_cst_bld_newline(&bld_cleanup);
-
-#ifdef CDD_BUILD_TESTS
-            if (g_err_perc_fail == 2) {
-              bld_cleanup.error_state = 1;
-            }
-#endif
 
             if (bld_decl.error_state == 0 && bld_cleanup.error_state == 0) {
               int found_lbrace = 0;
@@ -683,19 +586,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
   C_CDD_FREE(res.nodes);
 
   if (num_modified > 0) {
-#ifdef CDD_BUILD_TESTS
-    if (g_err_perc_fail == 20)
-      rc = CDD_C_ERROR_MEMORY;
-    else
-#endif
-      rc = cdd_rewrite_call_sites(tree, tree->root, modified_funcs,
-                                  num_modified);
-    C_CDD_FREE(modified_funcs);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-  } else {
-    C_CDD_FREE(modified_funcs);
+    rc = cdd_rewrite_call_sites(tree, tree->root, modified_funcs, num_modified);
   }
+  C_CDD_FREE(modified_funcs);
 
-  return CDD_C_SUCCESS;
+  return rc;
 }

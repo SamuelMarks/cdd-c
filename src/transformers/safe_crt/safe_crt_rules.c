@@ -57,7 +57,7 @@ C_CDD_EXPORT cdd_c_error_t emit_ast_bld_strip(expr_t *node,
         bld->target_node->children[old_num_children].val.token->leading_trivia;
     while (tr) {
       cdd_trivia_t *next = tr->next;
-      free(tr);
+      C_CDD_FREE(tr);
       tr = next;
     }
     bld->target_node->children[old_num_children].val.token->leading_trivia =
@@ -200,7 +200,7 @@ C_CDD_EXPORT cdd_c_error_t emit_inferred_size(cdd_cst_builder_t *bld,
         cdd_trivia_t *curr = ct->leading_trivia;
         while (curr) {
           cdd_trivia_t *nxt = curr->next;
-          free(curr);
+          C_CDD_FREE(curr);
           curr = nxt;
         }
       }
@@ -208,7 +208,7 @@ C_CDD_EXPORT cdd_c_error_t emit_inferred_size(cdd_cst_builder_t *bld,
         cdd_trivia_t *curr = ct->trailing_trivia;
         while (curr) {
           cdd_trivia_t *nxt = curr->next;
-          free(curr);
+          C_CDD_FREE(curr);
           curr = nxt;
         }
       }
@@ -421,21 +421,12 @@ cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
 
         clone_token(bld->tree, node->tok, &ct);
         if (ct) {
-          char *pooled = (char *)malloc(strlen(safe_name) + 1);
-#if defined(_MSC_VER)
-          strcpy_s(pooled, strlen(safe_name) + 1, safe_name);
-#else
-          strcpy(pooled, safe_name);
-#endif
-          if (tree->num_strings >= tree->string_capacity) {
-            tree->string_capacity =
-                tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
-            tree->string_pool = (char **)realloc(
-                tree->string_pool, tree->string_capacity * sizeof(char *));
+          const char *pooled = NULL;
+          if (safe_crt_pool_string_safe(tree, safe_name, &pooled) ==
+              CDD_C_SUCCESS) {
+            ct->start = (const uint8_t *)pooled;
+            ct->length = strlen(pooled);
           }
-          tree->string_pool[tree->num_strings++] = pooled;
-          ct->start = (const uint8_t *)pooled;
-          ct->length = strlen(pooled);
           {
             rc_err = cdd_cst_append_child_token(bld->target_node, ct);
             if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)

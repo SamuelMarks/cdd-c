@@ -9,22 +9,23 @@
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
 #include <ctype.h>
-#ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
-#endif
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-/** @brief Mock flag to simulate trivia append failure */
-C_CDD_EXPORT int g_cdd_lexer_trivia_fail = 0;
-/** @brief Mock flag to simulate identifier start check failure */
-C_CDD_EXPORT int g_cdd_lexer_id_fail = 0;
-/** @brief Mock flag to simulate identifier part check failure */
-C_CDD_EXPORT int g_cdd_lexer_id2_fail = 0;
-#endif
+/** @brief Checks whether `c` is a valid C/GNU identifier start character. */
+#define CDD_IS_ID_START(c)                                                     \
+  (isalpha((unsigned char)(c)) || (c) == '_' || (c) == '$')
+
+/** @brief Checks whether `c` is a valid C/GNU identifier continuation
+ * character. */
+#define CDD_IS_ID_PART(c)                                                      \
+  (isalnum((unsigned char)(c)) || (c) == '_' || (c) == '$')
+
+/** @brief Appends a trivia node `t` to a singly linked trivia list. */
+#define CDD_APPEND_TRIVIA(head, tail, t)                                       \
+  ((!(head)) ? ((head) = (tail) = (t)) : ((tail)->next = (t), (tail) = (t)))
 
 /**
  * @brief Allocates and initializes a single lexical trivia node.
@@ -38,73 +39,15 @@ C_CDD_EXPORT int g_cdd_lexer_id2_fail = 0;
 static cdd_c_error_t alloc_trivia(enum cdd_trivia_kind_t kind,
                                   const uint8_t *start, size_t length,
                                   cdd_trivia_t **out_trivia) {
-#ifdef CDD_BUILD_TESTS
-
-#endif
-  cdd_trivia_t *t;
-  t = (cdd_trivia_t *)C_CDD_CALLOC(1, sizeof(cdd_trivia_t));
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_cst_alloc_token_fail == 1) {
-    C_CDD_FREE(t);
-    t = NULL;
-  }
-#endif
+  cdd_trivia_t *t = (cdd_trivia_t *)C_CDD_CALLOC(1, sizeof(cdd_trivia_t));
   if (!t) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    C_CDD_LOG_DEBUG("ENOMEM: OOM");
     return CDD_C_ERROR_MEMORY;
   }
   t->kind = kind;
   t->start = start;
   t->length = length;
   *out_trivia = t;
-  return CDD_C_SUCCESS;
-}
-
-/**
- * @brief Appends a trivia node `t` to a singly linked trivia list.
- *
- * @param[in,out] head Pointer to the list head pointer.
- * @param[in,out] tail Pointer to the list tail pointer.
- * @param[in] t Trivia node to append.
- * @return CDD_C_SUCCESS on success.
- */
-static cdd_c_error_t append_trivia(cdd_trivia_t **head, cdd_trivia_t **tail,
-                                   cdd_trivia_t *t) {
-  if (!*head) {
-    *head = t;
-    *tail = t;
-  } else {
-    (*tail)->next = t;
-    *tail = t;
-  }
-  return CDD_C_SUCCESS;
-}
-
-/**
- * @brief Checks whether character `c` is a valid C/GNU identifier start
- * character.
- *
- * @param[in] c Character code to test.
- * @param[out] out_result Pointer to receive non-zero if valid start character,
- * 0 otherwise.
- * @return CDD_C_SUCCESS on success.
- */
-static cdd_c_error_t is_identifier_start(int c, int *out_result) {
-  *out_result = (isalpha(c) || c == '_' || c == '$');
-  return CDD_C_SUCCESS;
-}
-
-/**
- * @brief Checks whether character `c` is a valid C/GNU identifier continuation
- * character.
- *
- * @param[in] c Character code to test.
- * @param[out] out_result Pointer to receive non-zero if valid continuation
- * character, 0 otherwise.
- * @return CDD_C_SUCCESS on success.
- */
-static cdd_c_error_t is_identifier_part(int c, int *out_result) {
-  *out_result = (isalnum(c) || c == '_' || c == '$');
   return CDD_C_SUCCESS;
 }
 
@@ -210,9 +153,6 @@ static enum cdd_token_kind_t classify_identifier(const uint8_t *start,
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
-#ifdef CDD_BUILD_TESTS
-
-#endif
   cdd_token_list_t *list;
   const uint8_t *base = az_span_ptr(source);
   size_t len = (size_t)az_span_size(source);
@@ -228,27 +168,14 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   list = (cdd_token_list_t *)C_CDD_CALLOC(1, sizeof(cdd_token_list_t));
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_cst_alloc_token_fail == 2) {
-    C_CDD_FREE(list);
-    list = NULL;
-  }
-#endif
   if (!list) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    C_CDD_LOG_DEBUG("ENOMEM: OOM");
     return CDD_C_ERROR_MEMORY;
   }
 
   list->capacity = 64;
   list->tokens =
       (cdd_token_t *)C_CDD_CALLOC(list->capacity, sizeof(cdd_token_t));
-#ifdef CDD_BUILD_TESTS
-
-  if (g_cdd_cst_alloc_token_fail == 3) {
-    C_CDD_FREE(list->tokens);
-    list->tokens = NULL;
-  }
-#endif
   if (!list->tokens) {
     C_CDD_FREE(list);
     return CDD_C_ERROR_MEMORY;
@@ -256,17 +183,16 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
 
   while (pos < len) {
     int c = base[pos];
-    int is_id_start = 0;
 
     if (isspace(c)) {
       size_t start = pos;
       int is_newline = 0;
       while (pos < len && isspace(base[pos])) {
-        if (base[pos] == '\n') {
+        if (base[pos] == 10) {
           is_newline = 1;
           line++;
           column = 1;
-        } else if (base[pos] != '\r') {
+        } else if (base[pos] != 13) {
           column++;
         }
         pos++;
@@ -280,21 +206,7 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
         if (!is_newline && prev_token && !pending_trivia_head) {
           prev_token->trailing_trivia = t;
         } else {
-          rc = append_trivia(&pending_trivia_head, &pending_trivia_tail, t);
-#ifdef CDD_BUILD_TESTS
-          {
-            extern C_CDD_EXPORT int g_cdd_lexer_trivia_fail;
-            if (g_cdd_lexer_trivia_fail) {
-              rc = CDD_C_ERROR_MEMORY;
-            }
-            if (g_cdd_lexer_trivia_fail == 1) {
-              rc = CDD_C_ERROR_MEMORY;
-            }
-          }
-#endif
-
-          if (rc != CDD_C_SUCCESS)
-            goto error;
+          CDD_APPEND_TRIVIA(pending_trivia_head, pending_trivia_tail, t);
           prev_token = NULL;
         }
       }
@@ -309,10 +221,10 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
       column += 2;
       if (is_block) {
         while (pos < len) {
-          if (base[pos] == '\n') {
+          if (base[pos] == 10) {
             line++;
             column = 1;
-          } else if (base[pos] != '\r') {
+          } else if (base[pos] != 13) {
             column++;
           }
           if (base[pos] == '*' && pos + 1 < len && base[pos + 1] == '/') {
@@ -323,7 +235,7 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
           pos++;
         }
       } else {
-        while (pos < len && base[pos] != '\n') {
+        while (pos < len && base[pos] != 10) {
           column++;
           pos++;
         }
@@ -334,38 +246,15 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
                           base + start, pos - start, &t);
         if (rc != CDD_C_SUCCESS)
           goto error;
-        rc = append_trivia(&pending_trivia_head, &pending_trivia_tail, t);
-#ifdef CDD_BUILD_TESTS
-        {
-          extern C_CDD_EXPORT int g_cdd_lexer_trivia_fail;
-          if (g_cdd_lexer_trivia_fail) {
-            rc = CDD_C_ERROR_MEMORY;
-          }
-          if (g_cdd_lexer_trivia_fail == 1) {
-            rc = CDD_C_ERROR_MEMORY;
-          }
-        }
-#endif
-
-        if (rc != CDD_C_SUCCESS)
-          goto error;
+        CDD_APPEND_TRIVIA(pending_trivia_head, pending_trivia_tail, t);
       }
       continue;
     }
 
     if (list->size >= list->capacity) {
       size_t new_cap = list->capacity * 2;
-      cdd_token_t *new_arr;
-#ifdef CDD_BUILD_TESTS
-
-      if (g_cdd_cst_alloc_token_fail == 4)
-        new_arr = NULL;
-      else
-#endif
-      {
-        new_arr = (cdd_token_t *)C_CDD_REALLOC(list->tokens,
-                                               new_cap * sizeof(cdd_token_t));
-      }
+      cdd_token_t *new_arr = (cdd_token_t *)C_CDD_REALLOC(
+          list->tokens, new_cap * sizeof(cdd_token_t));
       if (!new_arr)
         goto error;
       memset(new_arr + list->capacity, 0,
@@ -383,35 +272,8 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
       tok->leading_trivia = pending_trivia_head;
       pending_trivia_head = NULL;
       pending_trivia_tail = NULL;
-      rc = is_identifier_start(c, &is_id_start);
-#ifdef CDD_BUILD_TESTS
-      {
-        extern C_CDD_EXPORT int g_cdd_lexer_id_fail;
-        if (g_cdd_lexer_id_fail) {
-          rc = CDD_C_ERROR_MEMORY;
-        }
-      }
-#endif
-
-      if (rc != CDD_C_SUCCESS)
-        goto error;
-      if (is_id_start) {
-        while (pos < len) {
-          int id_part = 0;
-          rc = is_identifier_part(base[pos], &id_part);
-#ifdef CDD_BUILD_TESTS
-          {
-            extern C_CDD_EXPORT int g_cdd_lexer_id2_fail;
-            if (g_cdd_lexer_id2_fail) {
-              rc = CDD_C_ERROR_MEMORY;
-            }
-          }
-#endif
-
-          if (rc != CDD_C_SUCCESS)
-            goto error;
-          if (!id_part)
-            break;
+      if (CDD_IS_ID_START(c)) {
+        while (pos < len && CDD_IS_ID_PART(base[pos])) {
           pos++;
           column++;
         }
@@ -424,22 +286,22 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
         }
         tok->length = pos - tok->offset;
         tok->kind = CDD_TOKEN_NUMBER;
-      } else if (c == '"' || c == '\'') {
+      } else if (c == '"' || c == 39) {
         int quote = c;
         pos++;
         column++;
         while (pos < len) {
-          if (base[pos] == '\\') {
-            if (pos + 1 < len && base[pos + 1] == '\n') {
+          if (base[pos] == 92) {
+            if (pos + 1 < len && base[pos + 1] == 10) {
               pos += 2;
               line++;
               column = 1;
-            } else if (pos + 2 < len && base[pos + 1] == '\r' &&
-                       base[pos + 2] == '\n') {
+            } else if (pos + 2 < len && base[pos + 1] == 13 &&
+                       base[pos + 2] == 10) {
               pos += 3;
               line++;
               column = 1;
-            } else if (pos + 1 < len && base[pos + 1] == '\r') {
+            } else if (pos + 1 < len && base[pos + 1] == 13) {
               pos += 2;
               line++;
               column = 1;
@@ -452,10 +314,10 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
             column++;
             break;
           } else {
-            if (base[pos] == '\n') {
+            if (base[pos] == 10) {
               line++;
               column = 1;
-            } else if (base[pos] != '\r') {
+            } else if (base[pos] != 13) {
               column++;
             }
             pos++;
@@ -466,7 +328,7 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
       } else if (c == '#') {
         size_t id_start = pos + 1;
         while (id_start < len && isspace(base[id_start]) &&
-               base[id_start] != '\n') {
+               base[id_start] != 10) {
           id_start++;
         }
         if (id_start < len &&
@@ -503,19 +365,19 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
           tok->kind = CDD_TOKEN_OTHER;
         }
         while (pos < len) {
-          if (base[pos] == '\\' && pos + 1 < len && base[pos + 1] == '\n') {
+          if (base[pos] == 92 && pos + 1 < len && base[pos + 1] == 10) {
             pos += 2;
             line++;
             column = 1;
-          } else if (base[pos] == '\\' && pos + 2 < len &&
-                     base[pos + 1] == '\r' && base[pos + 2] == '\n') {
+          } else if (base[pos] == 92 && pos + 2 < len && base[pos + 1] == 13 &&
+                     base[pos + 2] == 10) {
             pos += 3;
             line++;
             column = 1;
-          } else if (base[pos] == '\n') {
+          } else if (base[pos] == 10) {
             break;
           } else {
-            if (base[pos] != '\r') {
+            if (base[pos] != 13) {
               column++;
             }
             pos++;
@@ -622,7 +484,6 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
       if (!tail) {
         list->tokens[list->size - 1].trailing_trivia = pending_trivia_head;
       } else {
-        /* Since trailing_trivia only ever has 1 node */
         tail->next = pending_trivia_head;
       }
     } else {
@@ -648,7 +509,7 @@ error:
     pending_trivia_head = n;
   }
   cdd_lexer_free_token_list(list);
-  return rc != CDD_C_SUCCESS ? rc : CDD_C_ERROR_MEMORY;
+  return CDD_C_ERROR_MEMORY;
 }
 
 /**

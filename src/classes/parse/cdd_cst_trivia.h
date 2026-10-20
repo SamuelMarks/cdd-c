@@ -31,8 +31,8 @@ struct cdd_cst_format_config_t {
 
 /**
  * @brief Analyzes a tree to detect indentation configuration.
- * @param tree The CST tree.
- * @param out_config Populated format configuration.
+ * @param[in,out] tree The CST tree.
+ * @param[out] out_config Populated format configuration.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_detect_format_config(
@@ -40,10 +40,10 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_detect_format_config(
 
 /**
  * @brief Generates trivia nodes (newlines and indentation).
- * @param tree The tree (to track synthesized tokens if needed).
- * @param config Formatting config.
- * @param indent_level How many levels to indent.
- * @param out_trivia Head of the generated trivia list.
+ * @param[in,out] tree The tree (to track synthesized tokens if needed).
+ * @param[in] config Formatting config.
+ * @param[in] indent_level How many levels to indent.
+ * @param[out] out_trivia Head of the generated trivia list.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_generate_indent_trivia(

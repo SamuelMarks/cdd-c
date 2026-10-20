@@ -57,7 +57,7 @@ C_CDD_EXPORT cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
     }
     desc = json_object_get_string(hdr_obj, "description");
     if (desc) {
-      free(out_hdr->description);
+      C_CDD_FREE(out_hdr->description);
       out_hdr->description = NULL;
       c_cdd_strdup(desc, &out_hdr->description);
       if (!out_hdr->description)
@@ -331,7 +331,7 @@ C_CDD_EXPORT cdd_c_error_t parse_link_object(const JSON_Object *link_obj,
     }
     summary = json_object_get_string(link_obj, "summary");
     if (summary) {
-      free(out_link->summary);
+      C_CDD_FREE(out_link->summary);
       out_link->summary = NULL;
       c_cdd_strdup(summary, &out_link->summary);
       if (!out_link->summary)
@@ -339,7 +339,7 @@ C_CDD_EXPORT cdd_c_error_t parse_link_object(const JSON_Object *link_obj,
     }
     desc = json_object_get_string(link_obj, "description");
     if (desc) {
-      free(out_link->description);
+      C_CDD_FREE(out_link->description);
       out_link->description = NULL;
       c_cdd_strdup(desc, &out_link->description);
       if (!out_link->description)
@@ -503,7 +503,7 @@ C_CDD_EXPORT cdd_c_error_t parse_headers_object(
   }
 
   if (valid == 0) {
-    free(*out_headers);
+    C_CDD_FREE(*out_headers);
     *out_headers = NULL;
     *out_count = 0;
     return CDD_C_SUCCESS;
@@ -664,7 +664,7 @@ C_CDD_EXPORT cdd_c_error_t parse_encoding_map(const JSON_Object *enc_obj,
   }
 
   if (valid == 0) {
-    free(*out);
+    C_CDD_FREE(*out);
     *out = NULL;
     *out_count = 0;
     return CDD_C_SUCCESS;
@@ -714,7 +714,7 @@ C_CDD_EXPORT cdd_c_error_t parse_encoding_array(const JSON_Array *enc_arr,
   }
 
   if (valid == 0) {
-    free(*out);
+    C_CDD_FREE(*out);
     *out = NULL;
     *out_count = 0;
     return CDD_C_SUCCESS;

@@ -15,12 +15,6 @@
 #include "c_cdd/memory.h"
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_scope_alloc_fail;
-/** @brief Mock allocation failure counter for CST scope tests */
-C_CDD_EXPORT int g_cdd_scope_alloc_fail = 0;
-#endif
-
 /**
  * @brief Initializes a new CST lexical scope environment with a root file
  * scope.
@@ -36,7 +30,7 @@ cdd_c_error_t cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
 
   env = (cdd_cst_scope_env_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_scope_env_t));
   if (!env) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    C_CDD_LOG_DEBUG("ENOMEM: OOM");
     return CDD_C_ERROR_MEMORY;
   }
 
@@ -114,7 +108,7 @@ cdd_c_error_t cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
 
   new_scope = (cdd_cst_scope_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_scope_t));
   if (!new_scope) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    C_CDD_LOG_DEBUG("ENOMEM: OOM");
     return CDD_C_ERROR_MEMORY;
   }
 
@@ -123,8 +117,7 @@ cdd_c_error_t cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
 
   if (parent->num_children >= parent->capacity) {
     size_t new_cap = parent->capacity == 0 ? 4 : parent->capacity * 2;
-    cdd_cst_scope_t **new_arr;
-    new_arr = (cdd_cst_scope_t **)C_CDD_REALLOC(
+    cdd_cst_scope_t **new_arr = (cdd_cst_scope_t **)C_CDD_REALLOC(
         parent->children, new_cap * sizeof(cdd_cst_scope_t *));
     if (!new_arr) {
       C_CDD_FREE(new_scope);
@@ -166,7 +159,7 @@ static cdd_c_error_t cdd_strdup(const char *s, char **out_s) {
   len = strlen(s);
   d = (char *)C_CDD_MALLOC(len + 1);
   if (!d) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    C_CDD_LOG_DEBUG("ENOMEM: OOM");
     return CDD_C_ERROR_MEMORY;
   }
   memcpy(d, s, len + 1);
@@ -190,7 +183,7 @@ cdd_c_error_t cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env,
 
   sym = (cdd_cst_symbol_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_symbol_t));
   if (!sym) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    C_CDD_LOG_DEBUG("ENOMEM: OOM");
     return CDD_C_ERROR_MEMORY;
   }
 
@@ -253,10 +246,6 @@ cdd_c_error_t cdd_cst_scope_lookup_symbol(cdd_cst_scope_env_t *env,
     cdd_cst_symbol_t *sym = curr->symbols;
     while (sym) {
       if (strcmp(sym->name, name) == 0) {
-        /* C has 4 namespaces: tags, labels, members, and ordinary identifiers
-         */
-        /* For this, we just differentiate between tags and everything else for
-         * now */
         int sym_is_tag = 0;
         rc = cdd_cst_symbol_is_tag(sym->kind, &sym_is_tag);
         if (rc != CDD_C_SUCCESS) {

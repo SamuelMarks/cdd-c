@@ -35,6 +35,7 @@ extern "C" {
 /**
  * @brief Tests `arazzo_server_render_to_strings`, `arazzo_server_generate`,
  * `cdd_generate_from_arazzo`, `cdd_generate_to_arazzo`, and `cdd_main`.
+ * @return Test or helper result.
  */
 TEST test_arazzo_server_gen_and_api(void) {
   struct Arazzo_Spec spec;
@@ -178,7 +179,7 @@ TEST test_arazzo_server_gen_and_api(void) {
     fcfg.openapi_input = "nonexistent_oa.json";
     fcfg.output = NULL;
     fcfg.func_prefix = "my_";
-    fcfg.subcommand = NULL;
+    fcfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SDK;
     ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_from_arazzo(&fcfg));
     remove("src/generated_arazzo_workflows.h");
     remove("src/generated_arazzo_workflows.c");
@@ -189,27 +190,27 @@ TEST test_arazzo_server_gen_and_api(void) {
     ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_from_arazzo(&fcfg));
 
     fcfg.openapi_input = oa_path;
-    fcfg.subcommand = "to_sdk";
+    fcfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SDK;
     ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_from_arazzo(&fcfg));
     g_fail_io_after = 0;
     ASSERT_NEQ(CDD_C_SUCCESS, cdd_generate_from_arazzo(&fcfg));
     g_fail_io_after = -1;
-    fcfg.subcommand = "to_sdk_cli";
+    fcfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SDK_CLI;
     ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_from_arazzo(&fcfg));
-    fcfg.subcommand = "to_server";
+    fcfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SERVER;
     ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_from_arazzo(&fcfg));
     g_fail_io_after = 0;
     ASSERT_NEQ(CDD_C_SUCCESS, cdd_generate_from_arazzo(&fcfg));
     g_fail_io_after = -1;
 
     fcfg.openapi_input = NULL;
-    fcfg.subcommand = "to_sdk_cli";
+    fcfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SDK_CLI;
     ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_from_arazzo(&fcfg));
 
-    fcfg.subcommand = "to_server";
+    fcfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SERVER;
     ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_from_arazzo(&fcfg));
 
-    fcfg.subcommand = "invalid_subcmd";
+    fcfg.subcommand = (enum cdd_arazzo_subcommand_t)99;
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_generate_from_arazzo(&fcfg));
   }
 

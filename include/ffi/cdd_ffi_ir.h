@@ -319,7 +319,7 @@ typedef struct cdd_ffi_ir_t {
 /**
  * @brief Performs a topological sort of the FFI IR nodes to resolve
  * dependencies.
- * @param ir The IR to sort.
+ * @param[in,out] ir The IR to sort.
  * @return 0 on success, or an error code (e.g., EINVAL or ENOMEM).
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir);
@@ -345,7 +345,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_from_json(const char *json_str,
 
 /**
  * @brief Frees all memory associated with the FFI IR.
- * @param ir The IR to free.
+ * @param[in,out] ir The IR to free.
  */
 C_CDD_EXPORT void cdd_ffi_ir_free(cdd_ffi_ir_t *ir);
 

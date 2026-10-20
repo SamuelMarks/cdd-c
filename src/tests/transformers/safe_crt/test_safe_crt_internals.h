@@ -27,8 +27,15 @@ extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
 extern C_CDD_EXPORT int g_cdd_query_err_fail;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 
+/**
+ * @brief Macro safe_crt_expr_test.
+ */
 #define safe_crt_expr_test expr_t
 
+/**
+ * @brief Unit test test_cdd_transform_safe_crt_direct_internals.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_safe_crt_direct_internals(void) {
   void *ptr = NULL;
   size_t idx = 0;
@@ -773,15 +780,17 @@ TEST test_cdd_transform_safe_crt_direct_internals(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_safe_crt_emit_oom.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_safe_crt_emit_oom(void) {
   expr_t node;
   expr_t arg;
   cdd_cst_builder_t bld;
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *target = NULL;
-  cdd_c_error_t rc;
   int j;
-  (void)rc;
 
   memset(&node, 0, sizeof(node));
   memset(&arg, 0, sizeof(arg));
@@ -822,6 +831,9 @@ TEST test_cdd_transform_safe_crt_emit_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the transformer_safe_crt_internals_suite test suite.
+ */
 SUITE(transformer_safe_crt_internals_suite) {
   RUN_TEST(test_cdd_transform_safe_crt_emit_oom);
   RUN_TEST(test_cdd_transform_safe_crt_direct_internals);

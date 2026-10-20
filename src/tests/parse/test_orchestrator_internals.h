@@ -1,3 +1,7 @@
+/**
+ * @file test_orchestrator_internals.h
+ * @brief Unit tests and mocks in test_orchestrator_internals.h.
+ */
 #ifndef TEST_ORCHESTRATOR_INTERNALS_H
 #define TEST_ORCHESTRATOR_INTERNALS_H
 
@@ -12,11 +16,19 @@ extern "C" {
 #include <greatest.h>
 /* clang-format on */
 
+/** @brief Test definition g_force_find_allocations_fail. */
 extern C_CDD_EXPORT int g_force_find_allocations_fail;
+/** @brief Test definition g_force_parse_tokens_fail. */
 extern C_CDD_EXPORT int g_force_parse_tokens_fail;
+/** @brief Test definition g_force_tokenize_fail. */
 extern C_CDD_EXPORT int g_force_tokenize_fail;
+/** @brief Test definition g_cdd_fail_stricmp. */
 extern C_CDD_EXPORT int g_cdd_fail_stricmp;
 
+/**
+ * @brief Unit test test_orchestrator_internals.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_internals(void) {
   struct TokenList *tl = NULL;
   char *out_fix = NULL;
@@ -585,6 +597,9 @@ TEST test_orchestrator_internals(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the orchestrator_internals_suite test suite.
+ */
 SUITE(orchestrator_internals_suite) { RUN_TEST(test_orchestrator_internals); }
 
 #ifdef __cplusplus

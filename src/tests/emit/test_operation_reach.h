@@ -14,6 +14,10 @@ extern "C" {
 #include "emit/test_operation_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_operation_reach_100_percent.
+ * @return Greatest test result.
+ */
 TEST test_operation_reach_100_percent(void) {
   /* 1-3. is_reserved_header_name stricmp fails */
   {
@@ -278,6 +282,10 @@ TEST test_operation_reach_100_percent(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_reset_with_link_details.
+ * @return Greatest test result.
+ */
 TEST test_operation_reset_with_link_details(void) {
   struct OpenAPI_Operation op;
   struct OpenAPI_Response *resp;

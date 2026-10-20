@@ -1,3 +1,7 @@
+/**
+ * @file test_dsl_emitter.h
+ * @brief Unit tests and mocks in test_dsl_emitter.h.
+ */
 #ifndef TEST_DSL_EMITTER_H
 #define TEST_DSL_EMITTER_H
 
@@ -18,6 +22,10 @@ extern C_CDD_EXPORT cdd_c_error_t ir_add_node(cdd_ffi_ir_t *ir,
                                               const char *name,
                                               cdd_ffi_ir_node_t **out_node);
 
+/**
+ * @brief Unit test test_dsl_emitter_basic.
+ * @return Greatest test result.
+ */
 TEST test_dsl_emitter_basic(void) {
   cdd_ffi_ir_t *ir;
   cdd_ffi_ir_node_t *node;

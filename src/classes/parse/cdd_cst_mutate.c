@@ -7,6 +7,7 @@
 
 #include "cdd_cst_mutate.h"
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 #include "cdd_cst_factory.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -91,7 +92,7 @@ static cdd_c_error_t find_last_token_mutate(cdd_cst_node_t *node,
 static void free_trivia_list_mutate(cdd_trivia_t *t) {
   while (t) {
     cdd_trivia_t *next = t->next;
-    free(t);
+    C_CDD_FREE(t);
     t = next;
   }
 }
@@ -109,21 +110,13 @@ C_CDD_EXPORT cdd_c_error_t clone_trivia_list_mutate(cdd_trivia_t *head,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_trivia = NULL;
   while (head) {
-    cdd_trivia_t *t;
-#ifdef CDD_BUILD_TESTS
-    extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
-    if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0)
-      t = NULL;
-    else
-#endif
-      t = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
+    cdd_trivia_t *t = (cdd_trivia_t *)C_CDD_CALLOC(1, sizeof(cdd_trivia_t));
     if (!t) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      /* Need to properly loop and free it */
+      C_CDD_LOG_DEBUG("ENOMEM: OOM");
       while (new_head) {
         cdd_trivia_t *tmp = new_head;
         new_head = new_head->next;
-        free(tmp);
+        C_CDD_FREE(tmp);
       }
       return CDD_C_ERROR_MEMORY;
     }
@@ -154,17 +147,10 @@ cdd_c_error_t track_synthesized_token_mutate(cdd_cst_tree_t *tree,
   if (tree->num_synthesized >= tree->synthesized_capacity) {
     size_t new_cap =
         tree->synthesized_capacity == 0 ? 16 : tree->synthesized_capacity * 2;
-    cdd_token_t **new_arr;
-#ifdef CDD_BUILD_TESTS
-    extern int g_cdd_cst_realloc_fail;
-    if (g_cdd_cst_realloc_fail && --g_cdd_cst_realloc_fail == 0)
-      new_arr = NULL;
-    else
-#endif
-      new_arr = (cdd_token_t **)realloc(tree->synthesized_tokens,
-                                        new_cap * sizeof(cdd_token_t *));
+    cdd_token_t **new_arr = (cdd_token_t **)C_CDD_REALLOC(
+        tree->synthesized_tokens, new_cap * sizeof(cdd_token_t *));
     if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+      C_CDD_LOG_DEBUG("ENOMEM: OOM");
       return CDD_C_ERROR_MEMORY;
     }
     tree->synthesized_tokens = new_arr;
@@ -192,8 +178,7 @@ cdd_c_error_t cdd_cst_replace_node(cdd_cst_tree_t *tree,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   parent = old_node->parent;
   if (!parent)
-    return CDD_C_ERROR_INVALID_ARGUMENT; /* Cannot replace root directly this
-                                            way */
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = find_child_index_mutate(parent, old_node, &idx);
   if (rc != CDD_C_SUCCESS)
@@ -223,9 +208,6 @@ cdd_c_error_t cdd_cst_replace_node(cdd_cst_tree_t *tree,
 
   old_node->parent = NULL;
 
-  /* Note: old_node is NOT freed here. Caller's responsibility if they want to
-   * discard it. */
-
   return CDD_C_SUCCESS;
 }
 
@@ -240,22 +222,11 @@ cdd_c_error_t cdd_cst_insert_child_node_at(cdd_cst_node_t *parent, size_t idx,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (parent->num_children >= parent->capacity) {
-#ifdef CDD_BUILD_TESTS
     size_t new_cap = parent->capacity + 1;
-#else
-    size_t new_cap = parent->capacity == 0 ? 8 : parent->capacity * 2;
-#endif
-    cdd_cst_child_t *new_arr;
-#ifdef CDD_BUILD_TESTS
-    extern int g_cdd_cst_realloc_fail;
-    if (g_cdd_cst_realloc_fail && --g_cdd_cst_realloc_fail == 0)
-      new_arr = NULL;
-    else
-#endif
-      new_arr = (cdd_cst_child_t *)realloc(parent->children,
-                                           new_cap * sizeof(cdd_cst_child_t));
+    cdd_cst_child_t *new_arr = (cdd_cst_child_t *)C_CDD_REALLOC(
+        parent->children, new_cap * sizeof(cdd_cst_child_t));
     if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+      C_CDD_LOG_DEBUG("ENOMEM: OOM");
       return CDD_C_ERROR_MEMORY;
     }
     parent->children = new_arr;
@@ -335,14 +306,10 @@ cdd_c_error_t cdd_cst_detach_node(cdd_cst_tree_t *tree, cdd_cst_node_t *node) {
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  /* Free trivia of tokens inside this node so we don't double free or leak them
-   * if we don't fully free node immediately */
   if (find_first_token_mutate(node, &first_tok) != CDD_C_SUCCESS)
     first_tok = NULL;
   if (first_tok && first_tok->leading_trivia) {
-    /* If we delete this node, we should ideally keep the leading whitespace,
-       but for a simple implementation, let's just clear it to avoid crashes. */
-    first_tok->leading_trivia = NULL; /* leaking if not tracked, but safe */
+    first_tok->leading_trivia = NULL;
   }
 
   if (find_last_token_mutate(node, &last_tok) != CDD_C_SUCCESS)
@@ -357,7 +324,7 @@ cdd_c_error_t cdd_cst_detach_node(cdd_cst_tree_t *tree, cdd_cst_node_t *node) {
   }
   parent->num_children--;
 
-  node->parent = NULL; /* explicitly detach */
+  node->parent = NULL;
 
   return CDD_C_SUCCESS;
 }
@@ -377,54 +344,27 @@ cdd_c_error_t cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
   if (!tree || !root || !out_clone)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-#ifdef CDD_BUILD_TESTS
-  {
-    extern int g_cdd_cst_alloc_node_fail;
-    if (g_cdd_cst_alloc_node_fail && --g_cdd_cst_alloc_node_fail == 0)
-      clone = NULL;
-    else
-      clone = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
-  }
-#else
-  clone = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
-#endif
+  clone = (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
   if (!clone) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    C_CDD_LOG_DEBUG("ENOMEM: OOM");
     return CDD_C_ERROR_MEMORY;
   }
 
   clone->kind = root->kind;
   if (root->num_children > 0) {
     clone->capacity = root->capacity;
-#ifdef CDD_BUILD_TESTS
-    {
-      extern int g_cdd_cst_realloc_fail;
-      if (g_cdd_cst_realloc_fail && --g_cdd_cst_realloc_fail == 0)
-        clone->children = NULL;
-      else
-        clone->children =
-            (cdd_cst_child_t *)calloc(clone->capacity, sizeof(cdd_cst_child_t));
-    }
-#else
-    clone->children =
-        (cdd_cst_child_t *)calloc(clone->capacity, sizeof(cdd_cst_child_t));
-#endif
+    clone->children = (cdd_cst_child_t *)C_CDD_REALLOC(
+        NULL, clone->capacity * sizeof(cdd_cst_child_t));
     if (!clone->children) {
-      free(clone);
+      C_CDD_FREE(clone);
       return CDD_C_ERROR_MEMORY;
     }
 
     for (i = 0; i < root->num_children; i++) {
       if (root->children[i].kind == CDD_CST_CHILD_TOKEN) {
         cdd_token_t *orig_tok = root->children[i].val.token;
-        cdd_token_t *new_tok;
-#ifdef CDD_BUILD_TESTS
-        extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
-        if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0)
-          new_tok = NULL;
-        else
-#endif
-          new_tok = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
+        cdd_token_t *new_tok =
+            (cdd_token_t *)C_CDD_CALLOC(1, sizeof(cdd_token_t));
         if (!new_tok) {
           rc = CDD_C_ERROR_MEMORY;
           goto err;
@@ -434,14 +374,14 @@ cdd_c_error_t cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
         rc = clone_trivia_list_mutate(orig_tok->leading_trivia,
                                       &new_tok->leading_trivia);
         if (rc != CDD_C_SUCCESS) {
-          free(new_tok);
+          C_CDD_FREE(new_tok);
           goto err;
         }
         rc = clone_trivia_list_mutate(orig_tok->trailing_trivia,
                                       &new_tok->trailing_trivia);
         if (rc != CDD_C_SUCCESS) {
           free_trivia_list_mutate(new_tok->leading_trivia);
-          free(new_tok);
+          C_CDD_FREE(new_tok);
           goto err;
         }
 
@@ -449,7 +389,7 @@ cdd_c_error_t cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
         if (rc != CDD_C_SUCCESS) {
           free_trivia_list_mutate(new_tok->leading_trivia);
           free_trivia_list_mutate(new_tok->trailing_trivia);
-          free(new_tok);
+          C_CDD_FREE(new_tok);
           goto err;
         }
 

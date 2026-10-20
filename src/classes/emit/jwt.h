@@ -18,9 +18,9 @@ extern "C" {
 
 /**
  * @brief Writes a JWT parsing function for a struct.
- * @param fp The file pointer to write to.
- * @param struct_name The name of the struct.
- * @param sf The fields of the struct.
+ * @param[in,out] fp The file pointer to write to.
+ * @param[in] struct_name The name of the struct.
+ * @param[in] sf The fields of the struct.
  * @return 0 on success, error code otherwise.
  */
 extern C_CDD_EXPORT cdd_c_error_t write_struct_from_jwt_func(

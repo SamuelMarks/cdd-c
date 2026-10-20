@@ -16,10 +16,17 @@ extern "C" {
 #include "openapi/parse/openapi_internal_components.h"
 /* clang-format on */
 
+/** @brief Test definition g_cdd_fail_extensions_init. */
 extern C_CDD_EXPORT int g_cdd_fail_extensions_init;
+/** @brief Test definition g_cdd_fail_find_schema_by_anchor. */
 extern C_CDD_EXPORT int g_cdd_fail_find_schema_by_anchor;
+/** @brief Test definition g_cdd_fail_find_schema_by_id. */
 extern C_CDD_EXPORT int g_cdd_fail_find_schema_by_id;
 
+/**
+ * @brief Unit test test_openapi_null_and_invalid_args.
+ * @return Greatest test result.
+ */
 TEST test_openapi_null_and_invalid_args(void) {
   struct OpenAPI_Spec spec;
   struct StructFields *sf = NULL;
@@ -121,6 +128,10 @@ TEST test_openapi_null_and_invalid_args(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_spec_find_schema_branches.
+ * @return Greatest test result.
+ */
 TEST test_openapi_spec_find_schema_branches(void) {
   struct OpenAPI_Spec spec;
   struct StructFields fields[2];
@@ -153,6 +164,10 @@ TEST test_openapi_spec_find_schema_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_spec_find_schema_by_id_branches.
+ * @return Greatest test result.
+ */
 TEST test_openapi_spec_find_schema_by_id_branches(void) {
   struct OpenAPI_Spec spec;
   struct StructFields fields[2];
@@ -227,6 +242,10 @@ TEST test_openapi_spec_find_schema_by_id_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_spec_find_schema_by_anchor_branches.
+ * @return Greatest test result.
+ */
 TEST test_openapi_spec_find_schema_by_anchor_branches(void) {
   struct OpenAPI_Spec spec;
   struct StructFields fields[2];
@@ -297,6 +316,10 @@ TEST test_openapi_spec_find_schema_by_anchor_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_spec_find_schema_for_ref_branches.
+ * @return Greatest test result.
+ */
 TEST test_openapi_spec_find_schema_for_ref_branches(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Spec target_spec;
@@ -520,6 +543,10 @@ TEST test_openapi_spec_find_schema_for_ref_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_schema_document_extra_branches.
+ * @return Greatest test result.
+ */
 TEST test_openapi_schema_document_extra_branches(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_DocRegistry reg;
@@ -571,6 +598,10 @@ TEST test_openapi_schema_document_extra_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_swagger_oom_and_specs.
+ * @return Greatest test result.
+ */
 TEST test_openapi_swagger_oom_and_specs(void) {
   struct OpenAPI_Spec spec;
   JSON_Value *jv;
@@ -662,6 +693,10 @@ TEST test_openapi_swagger_oom_and_specs(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_oauth2_and_extensions_branches.
+ * @return Greatest test result.
+ */
 TEST test_openapi_oauth2_and_extensions_branches(void) {
   struct OpenAPI_Spec spec;
   JSON_Value *jv;
@@ -776,6 +811,10 @@ TEST test_openapi_oauth2_and_extensions_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_load_extensions_and_validation_errors.
+ * @return Greatest test result.
+ */
 TEST test_openapi_load_extensions_and_validation_errors(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_DocRegistry reg;
@@ -961,6 +1000,9 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Macro OPENAPI_TOP_LEVEL_COVERAGE_TESTS.
+ */
 #define OPENAPI_TOP_LEVEL_COVERAGE_TESTS()                                     \
   RUN_TEST(test_openapi_null_and_invalid_args);                                \
   RUN_TEST(test_openapi_spec_find_schema_branches);                            \

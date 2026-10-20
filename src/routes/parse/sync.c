@@ -86,11 +86,9 @@ static cdd_c_error_t find_function_node(struct CstNodeList *cst,
             if (tokens->tokens[id_idx].kind == TOKEN_IDENTIFIER) {
               rc = token_matches_string(&tokens->tokens[id_idx], func_name,
                                         &matched);
-              if (rc != CDD_C_SUCCESS)
-                return rc;
               if (matched) {
                 *_out_val = node;
-                return CDD_C_SUCCESS;
+                return rc;
               }
             }
           }
@@ -219,8 +217,6 @@ static cdd_c_error_t apply_query_sync(const struct OpenAPI_Operation *op,
         int matched = 0;
         rc = token_matches_string(&tokens->tokens[k], "url_query_init",
                                   &matched);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
         if (matched)
           init_idx = k;
       }
@@ -228,8 +224,6 @@ static cdd_c_error_t apply_query_sync(const struct OpenAPI_Operation *op,
         int matched = 0;
         rc = token_matches_string(&tokens->tokens[k], "url_query_build",
                                   &matched);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
         if (matched)
           build_idx = k;
       }
@@ -311,8 +305,6 @@ static cdd_c_error_t apply_header_sync(const struct OpenAPI_Operation *op,
         if (tokens->tokens[k].kind == TOKEN_COMMENT) {
           int matched = 0;
           rc = token_matches_string(&tokens->tokens[k], comment_text, &matched);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
           if (matched) {
             found_idx = k;
             break;
@@ -429,7 +421,7 @@ static cdd_c_error_t apply_updates(const char *filename,
 
         rc = extract_current_sig(tokens, node, &sig_end_idx, &actual_sig);
         if (rc != CDD_C_SUCCESS) {
-          free(expected_sig);
+          C_CDD_FREE(expected_sig);
           patch_list_free(&patches);
           return rc;
         }
@@ -439,23 +431,23 @@ static cdd_c_error_t apply_updates(const char *filename,
             char *sig_copy = NULL;
             rc = c_cdd_strdup(expected_sig, &sig_copy);
             if (rc != CDD_C_SUCCESS) {
-              free(expected_sig);
-              free(actual_sig);
+              C_CDD_FREE(expected_sig);
+              C_CDD_FREE(actual_sig);
               patch_list_free(&patches);
               return rc;
             }
             rc = patch_list_add(&patches, node->start_token, sig_end_idx,
                                 sig_copy);
             if (rc != CDD_C_SUCCESS) {
-              free(expected_sig);
-              free(actual_sig);
+              C_CDD_FREE(expected_sig);
+              C_CDD_FREE(actual_sig);
               patch_list_free(&patches);
               return rc;
             }
           }
-          free(actual_sig);
+          C_CDD_FREE(actual_sig);
         }
-        free(expected_sig);
+        C_CDD_FREE(expected_sig);
 
         rc = apply_query_sync(op, tokens, node, &patches);
         if (rc != CDD_C_SUCCESS) {
@@ -481,16 +473,8 @@ static cdd_c_error_t apply_updates(const char *filename,
               int match_snprintf = 0;
               rc = token_matches_string(&tokens->tokens[k], "asprintf",
                                         &match_asprintf);
-              if (rc != CDD_C_SUCCESS) {
-                patch_list_free(&patches);
-                return rc;
-              }
               rc = token_matches_string(&tokens->tokens[k], "snprintf",
                                         &match_snprintf);
-              if (rc != CDD_C_SUCCESS) {
-                patch_list_free(&patches);
-                return rc;
-              }
               if (match_asprintf || match_snprintf) {
                 asprintf_idx = k;
                 while (k < node->end_token &&
@@ -508,10 +492,6 @@ static cdd_c_error_t apply_updates(const char *filename,
             for (m = asprintf_idx; m < stmt_end_idx; ++m) {
               int matched = 0;
               rc = token_matches_string(&tokens->tokens[m], var, &matched);
-              if (rc != CDD_C_SUCCESS) {
-                patch_list_free(&patches);
-                return rc;
-              }
               if (matched) {
                 matches_var = 1;
                 break;
@@ -554,7 +534,7 @@ static cdd_c_error_t apply_updates(const char *filename,
     } else {
       rc = CDD_C_ERROR_IO;
     }
-    free(result);
+    C_CDD_FREE(result);
   }
 
   return rc;
@@ -589,14 +569,14 @@ cdd_c_error_t api_sync_file(const char *filename,
 
   rc = tokenize(az_span_create_from_str(content), &tokens);
   if (rc != CDD_C_SUCCESS) {
-    free(content);
+    C_CDD_FREE(content);
     return rc;
   }
 
   rc = parse_tokens(tokens, &cst);
   if (rc != CDD_C_SUCCESS) {
     free_token_list(tokens);
-    free(content);
+    C_CDD_FREE(content);
     return rc;
   }
 
@@ -604,7 +584,7 @@ cdd_c_error_t api_sync_file(const char *filename,
 
   free_cst_node_list(&cst);
   free_token_list(tokens);
-  free(content);
+  C_CDD_FREE(content);
 
   return rc;
 }

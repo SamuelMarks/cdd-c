@@ -259,9 +259,9 @@ cdd_c_error_t write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
   CHECK_IO(fprintf(c, "  http_client_free(client);\n}\n\n"));
 
   if (default_url)
-    free(default_url);
+    C_CDD_FREE(default_url);
   if (default_url_escaped)
-    free(default_url_escaped);
+    C_CDD_FREE(default_url_escaped);
 
   return CDD_C_SUCCESS;
 }

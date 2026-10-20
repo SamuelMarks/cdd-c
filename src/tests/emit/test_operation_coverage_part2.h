@@ -14,6 +14,10 @@ extern "C" {
 #include "emit/test_operation_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_operation_100_percent_coverage_part2.
+ * @return Greatest test result.
+ */
 TEST test_operation_100_percent_coverage_part2(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, find_doc_param(NULL, "x", NULL));
 

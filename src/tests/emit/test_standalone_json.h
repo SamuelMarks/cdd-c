@@ -1,3 +1,7 @@
+/**
+ * @file test_standalone_json.h
+ * @brief Unit tests and mocks in test_standalone_json.h.
+ */
 #include "cdd_test_helpers_export.h"
 CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 #ifndef TEST_STANDALONE_JSON_H
@@ -17,6 +21,10 @@ extern "C" {
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Unit test test_standalone_json_gen.
+ * @return Greatest test result.
+ */
 TEST test_standalone_json_gen(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
@@ -191,6 +199,9 @@ TEST test_standalone_json_gen(void) {
   }
 }
 
+/**
+ * @brief Executes the standalone_json_suite test suite.
+ */
 SUITE(standalone_json_suite) { RUN_TEST(test_standalone_json_gen); }
 
 #ifdef __cplusplus

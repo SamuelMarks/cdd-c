@@ -30,6 +30,11 @@ extern C_CDD_EXPORT int g_cdd_aggregator_fail_path_realloc;
 extern C_CDD_EXPORT int g_cdd_aggregator_fail_ops_realloc;
 extern C_CDD_EXPORT int g_cdd_aggregator_fail_route_strdup;
 
+/**
+ * @brief Helper function dummy_op.
+ * @param[in,out] op Parameter op.
+ * @param[in] id Parameter id.
+ */
 static void dummy_op(struct OpenAPI_Operation *op, const char *id) {
   memset(op, 0, sizeof(*op));
   /* Allocate something to test ownership transfer */

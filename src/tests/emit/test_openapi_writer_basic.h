@@ -14,6 +14,10 @@ extern "C" {
 #include "emit/test_openapi_writer_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_writer_empty_spec.
+ * @return Greatest test result.
+ */
 TEST test_writer_empty_spec(void) {
   int rc = 0;
   char *json;
@@ -40,6 +44,10 @@ TEST test_writer_empty_spec(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_basic_operation.
+ * @return Greatest test result.
+ */
 TEST test_writer_basic_operation(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -74,6 +82,10 @@ TEST test_writer_basic_operation(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_schema_document.
+ * @return Greatest test result.
+ */
 TEST test_writer_schema_document(void) {
   int rc = 0;
   char *_ast_strdup_0 = NULL;
@@ -99,6 +111,10 @@ TEST test_writer_schema_document(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_root_metadata_and_tags.
+ * @return Greatest test result.
+ */
 TEST test_writer_root_metadata_and_tags(void) {
   int rc = 0;
   struct OpenAPI_Tag tags[1];
@@ -164,6 +180,10 @@ TEST test_writer_root_metadata_and_tags(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_path_ref_and_servers.
+ * @return Greatest test result.
+ */
 TEST test_writer_path_ref_and_servers(void) {
   int rc = 0;
   struct OpenAPI_Server path_servers[1];
@@ -235,6 +255,10 @@ TEST test_writer_path_ref_and_servers(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_webhooks.
+ * @return Greatest test result.
+ */
 TEST test_writer_webhooks(void) {
   int rc = 0;
   char *json;
@@ -281,6 +305,10 @@ TEST test_writer_webhooks(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_params_responses.
+ * @return Greatest test result.
+ */
 TEST test_writer_params_responses(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -345,6 +373,10 @@ TEST test_writer_params_responses(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_parameter_metadata.
+ * @return Greatest test result.
+ */
 TEST test_writer_parameter_metadata(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -389,6 +421,10 @@ TEST test_writer_parameter_metadata(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_allow_empty_value.
+ * @return Greatest test result.
+ */
 TEST test_writer_allow_empty_value(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -428,6 +464,10 @@ TEST test_writer_allow_empty_value(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_request_body_metadata_and_response_description.
+ * @return Greatest test result.
+ */
 TEST test_writer_request_body_metadata_and_response_description(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -481,6 +521,10 @@ TEST test_writer_request_body_metadata_and_response_description(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_info_metadata.
+ * @return Greatest test result.
+ */
 TEST test_writer_info_metadata(void) {
   int rc = 0;
   char *json;
@@ -535,6 +579,10 @@ TEST test_writer_info_metadata(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_info_license_identifier_and_url_rejected.
+ * @return Greatest test result.
+ */
 TEST test_writer_info_license_identifier_and_url_rejected(void) {
   int rc = 0;
   char *json;
@@ -555,6 +603,10 @@ TEST test_writer_info_license_identifier_and_url_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_server_url_query_rejected.
+ * @return Greatest test result.
+ */
 TEST test_writer_server_url_query_rejected(void) {
   int rc = 0;
   char *json;
@@ -575,6 +627,10 @@ TEST test_writer_server_url_query_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_operation_metadata.
+ * @return Greatest test result.
+ */
 TEST test_writer_operation_metadata(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -612,6 +668,10 @@ TEST test_writer_operation_metadata(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_response_content_type.
+ * @return Greatest test result.
+ */
 TEST test_writer_response_content_type(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;

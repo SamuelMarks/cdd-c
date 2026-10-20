@@ -21,6 +21,7 @@ extern "C" {
 /* clang-format on */
 #endif
 #else
+/** @brief Test definition _c_cdd_bool. */
 typedef unsigned char _c_cdd_bool;
 
 #ifdef bool
@@ -33,8 +34,17 @@ typedef unsigned char _c_cdd_bool;
 #undef false
 #endif
 
+/**
+ * @brief Macro bool.
+ */
 #define bool _c_cdd_bool
+/**
+ * @brief Macro true.
+ */
 #define true 1
+/**
+ * @brief Macro false.
+ */
 #define false 0
 #endif
 

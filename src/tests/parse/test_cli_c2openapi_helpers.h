@@ -23,7 +23,13 @@ extern "C" {
 
 #ifndef CDD_TEST_CLI_C2OPENAPI_HELPERS_DEFINED
 #define CDD_TEST_CLI_C2OPENAPI_HELPERS_DEFINED
+/** @brief Test definition g_c2o_oom_fail_at. */
 static int g_c2o_oom_fail_at = -1;
+/**
+ * @brief Helper function mock_c2o_oom_malloc.
+ * @param[in] sz Parameter sz.
+ * @return Result status or value.
+ */
 static void *mock_c2o_oom_malloc(size_t sz) {
   if (g_c2o_oom_fail_at == 0) {
     g_c2o_oom_fail_at = -1;
@@ -33,8 +39,16 @@ static void *mock_c2o_oom_malloc(size_t sz) {
     g_c2o_oom_fail_at--;
   return malloc(sz);
 }
+/**
+ * @brief Helper function mock_c2o_oom_free.
+ * @param[in,out] ptr Parameter ptr.
+ */
 static void mock_c2o_oom_free(void *ptr) { free(ptr); }
 
+/**
+ * @brief Helper function get_mocks_dir.
+ * @return Result status or value.
+ */
 static const char *get_mocks_dir(void) {
   FILE *f;
   f = fopen("src/tests/mocks/emit/simple.schema.json", "r");
@@ -45,6 +59,10 @@ static const char *get_mocks_dir(void) {
   return "../src/tests/mocks";
 }
 
+/**
+ * @brief Helper function get_simple_schema.
+ * @return Result status or value.
+ */
 static const char *get_simple_schema(void) {
   FILE *f;
   f = fopen("src/tests/mocks/emit/simple.schema.json", "r");
@@ -56,6 +74,10 @@ static const char *get_simple_schema(void) {
 }
 #endif /* CDD_TEST_CLI_C2OPENAPI_HELPERS_DEFINED */
 
+/**
+ * @brief Unit test test_c2openapi_helpers_register_types_cases.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_helpers_register_types_cases(void) {
   struct OpenAPI_Spec spec;
   struct TypeDefList types;
@@ -169,6 +191,10 @@ TEST test_c2openapi_helpers_register_types_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_to_docs_json_cli_main_all_verbs.
+ * @return Greatest test result.
+ */
 TEST test_to_docs_json_cli_main_all_verbs(void) {
   const char *spec_file = "build/test_docs_all_verbs.json";
   const char *invalid_spec = "build/test_docs_invalid_spec.json";
@@ -241,6 +267,10 @@ TEST test_to_docs_json_cli_main_all_verbs(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_generate_bindings_cli_main_options.
+ * @return Greatest test result.
+ */
 TEST test_generate_bindings_cli_main_options(void) {
   const char *dummy_header = "build/test_cli_bind_dummy.h";
   const char *out_dir = "build/test_cli_bind_out";
@@ -284,6 +314,10 @@ TEST test_generate_bindings_cli_main_options(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c2openapi_cli_main_edge_branches.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_cli_main_edge_branches(void) {
   char *argv_base_missing[2];
   char *argv_self_missing[2];
@@ -334,6 +368,10 @@ TEST test_c2openapi_cli_main_edge_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c2openapi_helpers_tag_meta_and_collection.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_helpers_tag_meta_and_collection(void) {
   struct OpenAPI_Spec spec;
   struct DocTagMeta meta;
@@ -456,6 +494,10 @@ TEST test_c2openapi_helpers_tag_meta_and_collection(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c2openapi_helpers_scopes_and_flow_merge.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_helpers_scopes_and_flow_merge(void) {
   struct OpenAPI_SecurityScheme scheme;
   struct OpenAPI_OAuthFlow flow;
@@ -522,6 +564,10 @@ TEST test_c2openapi_helpers_scopes_and_flow_merge(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c2openapi_helpers_servers_and_security_append.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_helpers_servers_and_security_append(void) {
   struct OpenAPI_Spec spec;
   struct DocMetadata meta;
@@ -632,6 +678,10 @@ TEST test_c2openapi_helpers_servers_and_security_append(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c2openapi_helpers_sig_parsing_extra.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_helpers_sig_parsing_extra(void) {
   struct C2OpenAPI_ParsedSig sig;
   cdd_c_error_t rc = 0;
@@ -645,6 +695,10 @@ TEST test_c2openapi_helpers_sig_parsing_extra(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c2openapi_helpers_security_schemes_all_types.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_helpers_security_schemes_all_types(void) {
   struct OpenAPI_Spec spec;
   struct DocSecurityScheme doc;

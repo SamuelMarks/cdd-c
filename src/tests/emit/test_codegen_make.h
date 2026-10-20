@@ -147,6 +147,10 @@ TEST test_make_invalid(void) {
 #else
 #endif
 
+/**
+ * @brief Unit test test_make_io_failure.
+ * @return Greatest test result.
+ */
 TEST test_make_io_failure(void) {
   struct MakeConfig cfg = {0};
   FILE *f;
@@ -173,6 +177,7 @@ TEST test_make_io_failure(void) {
 
 /**
  * @brief Suite for codegen make
+ * @return Test or helper result.
  */
 
 TEST test_make_oom(void) {
@@ -247,6 +252,9 @@ TEST test_make_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the codegen_make_suite test suite.
+ */
 SUITE(codegen_make_suite) {
   RUN_TEST(test_make_oom);
   RUN_TEST(test_make_simple);

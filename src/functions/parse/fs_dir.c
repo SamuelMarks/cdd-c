@@ -493,7 +493,7 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
     }
 
     handle = _findfirst(search_path, &file_info);
-    free(search_path);
+    C_CDD_FREE(search_path);
 
 #ifdef CDD_BUILD_TESTS
     if (g_fail_io_after == 33) {

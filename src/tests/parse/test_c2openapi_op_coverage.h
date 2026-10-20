@@ -14,6 +14,10 @@ extern "C" {
 #include "parse/test_c2openapi_op_helpers.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_reset_op_coverage.
+ * @return Greatest test result.
+ */
 TEST test_reset_op_coverage(void) {
   struct OpenAPI_Operation op;
   struct OpenAPI_Parameter param;
@@ -773,6 +777,9 @@ TEST test_reset_op_coverage(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the c2openapi_op_coverage_suite test suite.
+ */
 SUITE(c2openapi_op_coverage_suite) { RUN_TEST(test_reset_op_coverage); }
 
 #ifdef __cplusplus

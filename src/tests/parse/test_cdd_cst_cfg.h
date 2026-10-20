@@ -18,7 +18,7 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail;
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
 /**
  * @brief Tests basic functionality of the CFG generator.
@@ -72,7 +72,7 @@ TEST test_cdd_cst_cfg_basic(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-/* extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_alloc_fail; (moved to global) */
 #endif
 
 TEST test_cdd_cst_cfg_oom(void) {
@@ -91,9 +91,9 @@ TEST test_cdd_cst_cfg_oom(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_cfg_build(NULL, &cfg));
 
 #ifdef CDD_BUILD_TESTS
-  g_cdd_cfg_alloc_fail = 1;
+  g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_cfg_build(func, &cfg));
-  g_cdd_cfg_alloc_fail = 0;
+  g_cdd_alloc_fail = 0;
 #endif
 
   {
@@ -111,21 +111,21 @@ TEST test_cdd_cst_cfg_oom(void) {
     cdd_cst_tree_free(t2);
   }
   {
-    /* extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail; (moved to global) */
+    /* extern C_CDD_EXPORT int g_cdd_alloc_fail; (moved to global) */
     int i;
     const char *ret_src = cdd_test_mut_str("int f() { return 0; }");
     cdd_cst_tree_t *ret_t = NULL;
     cdd_cst_cfg_t *ret_cfg = NULL;
     cdd_cst_parse(az_span_create_from_str(ret_src), &ret_t);
     for (i = 1; i < 50; ++i) {
-      g_cdd_cfg_alloc_fail = i;
+      g_cdd_alloc_fail = i;
       rc = cdd_cst_cfg_build(ret_t->root->children[0].val.node, &ret_cfg);
       if (rc == 0) {
         cdd_cst_cfg_free(ret_cfg);
         break;
       }
     }
-    g_cdd_cfg_alloc_fail = 0;
+    g_cdd_alloc_fail = 0;
     cdd_cst_tree_free(ret_t);
 
     {
@@ -134,7 +134,7 @@ TEST test_cdd_cst_cfg_oom(void) {
       cdd_cst_cfg_t *if_cfg = NULL;
       cdd_cst_parse(az_span_create_from_str(if_src), &if_t);
       for (i = 1; i < 150; ++i) {
-        g_cdd_cfg_alloc_fail = i;
+        g_cdd_alloc_fail = i;
         rc = cdd_cst_cfg_build(if_t->root->children[0].val.node, &if_cfg);
         if (if_cfg) {
           cdd_cst_cfg_free(if_cfg);
@@ -143,7 +143,7 @@ TEST test_cdd_cst_cfg_oom(void) {
         if (rc == CDD_C_SUCCESS)
           break;
       }
-      g_cdd_cfg_alloc_fail = 0;
+      g_cdd_alloc_fail = 0;
       cdd_cst_tree_free(if_t);
     }
     {
@@ -152,7 +152,7 @@ TEST test_cdd_cst_cfg_oom(void) {
       cdd_cst_cfg_t *if2_cfg = NULL;
       cdd_cst_parse(az_span_create_from_str(if2_src), &if2_t);
       for (i = 1; i < 150; ++i) {
-        g_cdd_cfg_alloc_fail = i;
+        g_cdd_alloc_fail = i;
         rc = cdd_cst_cfg_build(if2_t->root->children[0].val.node, &if2_cfg);
         if (if2_cfg) {
           cdd_cst_cfg_free(if2_cfg);
@@ -161,7 +161,7 @@ TEST test_cdd_cst_cfg_oom(void) {
         if (rc == CDD_C_SUCCESS)
           break;
       }
-      g_cdd_cfg_alloc_fail = 0;
+      g_cdd_alloc_fail = 0;
       cdd_cst_tree_free(if2_t);
     }
   }
@@ -170,6 +170,10 @@ TEST test_cdd_cst_cfg_oom(void) {
   g_fail_io_after = -1;
   PASS();
 }
+/**
+ * @brief Unit test test_cdd_cst_cfg_errors.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_cfg_errors(void) {
   cdd_cst_cfg_t *cfg = NULL;
 
@@ -271,6 +275,10 @@ TEST test_cdd_cst_cfg_no_return(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_cst_cfg_extra.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_cfg_extra(void) {
   /* Internal functions alloc_block and add_edge are static.
    * To achieve 100% coverage, we trigger failures via public API using OOM
@@ -289,10 +297,10 @@ TEST test_cdd_cst_cfg_extra(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    /* extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail; (moved to global) */
+    /* extern C_CDD_EXPORT int g_cdd_alloc_fail; (moved to global) */
     int i;
     for (i = 1; i < 50; ++i) {
-      g_cdd_cfg_alloc_fail = i;
+      g_cdd_alloc_fail = i;
       {
         cdd_cst_node_t *dummy_node = NULL;
         cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
@@ -308,7 +316,7 @@ TEST test_cdd_cst_cfg_extra(void) {
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
     }
-    g_cdd_cfg_alloc_fail = 0;
+    g_cdd_alloc_fail = 0;
   }
 #endif
 
@@ -327,21 +335,21 @@ TEST test_cdd_cst_cfg_extra(void) {
     cdd_cst_tree_free(t2);
   }
   {
-    /* extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail; (moved to global) */
+    /* extern C_CDD_EXPORT int g_cdd_alloc_fail; (moved to global) */
     int i;
     const char *ret_src = cdd_test_mut_str("int f() { return 0; }");
     cdd_cst_tree_t *ret_t = NULL;
     cdd_cst_cfg_t *ret_cfg = NULL;
     cdd_cst_parse(az_span_create_from_str(ret_src), &ret_t);
     for (i = 1; i < 50; ++i) {
-      g_cdd_cfg_alloc_fail = i;
+      g_cdd_alloc_fail = i;
       rc = cdd_cst_cfg_build(ret_t->root->children[0].val.node, &ret_cfg);
       if (rc == 0) {
         cdd_cst_cfg_free(ret_cfg);
         break;
       }
     }
-    g_cdd_cfg_alloc_fail = 0;
+    g_cdd_alloc_fail = 0;
     cdd_cst_tree_free(ret_t);
 
     {
@@ -350,7 +358,7 @@ TEST test_cdd_cst_cfg_extra(void) {
       cdd_cst_cfg_t *if_cfg = NULL;
       cdd_cst_parse(az_span_create_from_str(if_src), &if_t);
       for (i = 1; i < 150; ++i) {
-        g_cdd_cfg_alloc_fail = i;
+        g_cdd_alloc_fail = i;
         rc = cdd_cst_cfg_build(if_t->root->children[0].val.node, &if_cfg);
         if (if_cfg) {
           cdd_cst_cfg_free(if_cfg);
@@ -359,7 +367,7 @@ TEST test_cdd_cst_cfg_extra(void) {
         if (rc == CDD_C_SUCCESS)
           break;
       }
-      g_cdd_cfg_alloc_fail = 0;
+      g_cdd_alloc_fail = 0;
       cdd_cst_tree_free(if_t);
     }
     {
@@ -368,7 +376,7 @@ TEST test_cdd_cst_cfg_extra(void) {
       cdd_cst_cfg_t *if2_cfg = NULL;
       cdd_cst_parse(az_span_create_from_str(if2_src), &if2_t);
       for (i = 1; i < 150; ++i) {
-        g_cdd_cfg_alloc_fail = i;
+        g_cdd_alloc_fail = i;
         rc = cdd_cst_cfg_build(if2_t->root->children[0].val.node, &if2_cfg);
         if (if2_cfg) {
           cdd_cst_cfg_free(if2_cfg);
@@ -377,7 +385,7 @@ TEST test_cdd_cst_cfg_extra(void) {
         if (rc == CDD_C_SUCCESS)
           break;
       }
-      g_cdd_cfg_alloc_fail = 0;
+      g_cdd_alloc_fail = 0;
       cdd_cst_tree_free(if2_t);
     }
   }
@@ -389,6 +397,7 @@ TEST test_cdd_cst_cfg_extra(void) {
 
 /**
  * @brief CFG test suite.
+ * @return Test or helper result.
  */
 
 TEST test_cdd_cst_cfg_if_else(void) {
@@ -433,7 +442,7 @@ TEST test_cdd_cst_cfg_if_else(void) {
   {
     int j;
     for (j = 1; j < 60; j++) {
-      g_cdd_cfg_alloc_fail = j;
+      g_cdd_alloc_fail = j;
       rc = cdd_cst_cfg_build(func, &cfg);
       if (cfg) {
         cdd_cst_cfg_free(cfg);
@@ -442,7 +451,7 @@ TEST test_cdd_cst_cfg_if_else(void) {
       if (rc == CDD_C_SUCCESS)
         break;
     }
-    g_cdd_cfg_alloc_fail = 0;
+    g_cdd_alloc_fail = 0;
   }
 #endif
   then_stmt->num_children = 0;
@@ -454,6 +463,10 @@ TEST test_cdd_cst_cfg_if_else(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_cfg_if_only.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_cfg_if_only(void) {
   cdd_c_error_t rc;
   cdd_cst_cfg_t *cfg = NULL;
@@ -474,7 +487,7 @@ TEST test_cdd_cst_cfg_if_only(void) {
   {
     int j;
     for (j = 1; j < 60; j++) {
-      g_cdd_cfg_alloc_fail = j;
+      g_cdd_alloc_fail = j;
       rc = cdd_cst_cfg_build(func, &cfg);
       if (cfg) {
         cdd_cst_cfg_free(cfg);
@@ -483,7 +496,7 @@ TEST test_cdd_cst_cfg_if_only(void) {
       if (rc == CDD_C_SUCCESS)
         break;
     }
-    g_cdd_cfg_alloc_fail = 0;
+    g_cdd_alloc_fail = 0;
   }
 #endif
   cdd_cst_free_node(func);
@@ -491,6 +504,10 @@ TEST test_cdd_cst_cfg_if_only(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_cfg_dead_code.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_cfg_dead_code(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *func = NULL;
@@ -512,6 +529,10 @@ TEST test_cdd_cst_cfg_dead_code(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_cfg_if_returns.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_cfg_if_returns(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *func = NULL;
@@ -543,7 +564,7 @@ TEST test_cdd_cst_cfg_if_returns(void) {
   {
     int j;
     for (j = 1; j < 60; j++) {
-      g_cdd_cfg_alloc_fail = j;
+      g_cdd_alloc_fail = j;
       rc = cdd_cst_cfg_build(func, &cfg);
       if (cfg) {
         cdd_cst_cfg_free(cfg);
@@ -552,13 +573,17 @@ TEST test_cdd_cst_cfg_if_returns(void) {
       if (rc == CDD_C_SUCCESS)
         break;
     }
-    g_cdd_cfg_alloc_fail = 0;
+    g_cdd_alloc_fail = 0;
   }
 #endif
   cdd_cst_tree_free(tree);
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_cfg_if_returns_manual.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_cfg_if_returns_manual(void) {
   cdd_c_error_t rc;
   cdd_cst_cfg_t *cfg = NULL;
@@ -595,7 +620,7 @@ TEST test_cdd_cst_cfg_if_returns_manual(void) {
   {
     int j;
     for (j = 1; j < 60; j++) {
-      g_cdd_cfg_alloc_fail = j;
+      g_cdd_alloc_fail = j;
       rc = cdd_cst_cfg_build(func, &cfg);
       if (cfg) {
         cdd_cst_cfg_free(cfg);
@@ -604,7 +629,7 @@ TEST test_cdd_cst_cfg_if_returns_manual(void) {
       if (rc == CDD_C_SUCCESS)
         break;
     }
-    g_cdd_cfg_alloc_fail = 0;
+    g_cdd_alloc_fail = 0;
   }
 #endif
   cdd_cst_free_node_only(stmt);
@@ -615,6 +640,10 @@ TEST test_cdd_cst_cfg_if_returns_manual(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_cfg_loop.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_cfg_loop(void) {
   cdd_c_error_t rc;
   cdd_cst_cfg_t *cfg = NULL;
@@ -647,6 +676,9 @@ TEST test_cdd_cst_cfg_loop(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the cdd_cst_cfg_suite test suite.
+ */
 SUITE(cdd_cst_cfg_suite) {
   RUN_TEST(test_cdd_cst_cfg_if_returns);
   RUN_TEST(test_cdd_cst_cfg_if_returns_manual);

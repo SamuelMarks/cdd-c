@@ -25,6 +25,10 @@ extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 
+/**
+ * @brief Unit test test_orchestrator_simple_propagation.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_simple_propagation(void) {
   /*
      A returns void, allocs.
@@ -65,6 +69,10 @@ TEST test_orchestrator_simple_propagation(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_orchestrator_propagation_ptr.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_propagation_ptr(void) {
   /*
      A returns ptr, allocs.
@@ -98,6 +106,10 @@ TEST test_orchestrator_propagation_ptr(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_orchestrator_main_stop.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_main_stop(void) {
   /*
      A returns void, allocs.
@@ -132,6 +144,10 @@ TEST test_orchestrator_main_stop(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_orchestrator_no_alloc.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_no_alloc(void) {
   const char *input = ""
                       "void A() { int x=1; }";
@@ -148,6 +164,10 @@ TEST test_orchestrator_no_alloc(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_orchestrator_preserves_structs.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_preserves_structs(void) {
   /* Ensure non-function nodes like structs are preserved */
   const char *input =
@@ -161,6 +181,10 @@ TEST test_orchestrator_preserves_structs(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_orchestrator_edge_cases.
+ * @return Greatest test result.
+ */
 TEST test_orchestrator_edge_cases(void) {
   char *out = NULL;
   int rc = 0;
@@ -398,6 +422,9 @@ TEST test_orchestrator_edge_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the refactor_orchestrator_suite test suite.
+ */
 SUITE(refactor_orchestrator_suite) {
   RUN_TEST(test_orchestrator_simple_propagation);
   RUN_TEST(test_orchestrator_propagation_ptr);

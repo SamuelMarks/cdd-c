@@ -25,11 +25,17 @@ extern "C" {
 /* clang-format on */
 
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_cdd_fail_url_segment_alloc;
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
 CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 
+/**
+ * @brief Unit test test_url_primitive_and_object_predicates.
+ * @return Greatest test result.
+ */
 TEST test_url_primitive_and_object_predicates(void) {
   struct OpenAPI_Parameter p;
   memset(&p, 0, sizeof(p));
@@ -66,6 +72,10 @@ TEST test_url_primitive_and_object_predicates(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_media_type_and_param_predicates.
+ * @return Greatest test result.
+ */
 TEST test_url_media_type_and_param_predicates(void) {
   struct OpenAPI_Parameter p;
   const char *out_val = NULL;
@@ -340,6 +350,10 @@ TEST test_url_media_type_and_param_predicates(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_write_query_json_param_all_types.
+ * @return Greatest test result.
+ */
 TEST test_url_write_query_json_param_all_types(void) {
   FILE *fp = cdd_test_tmpfile_global();
   struct OpenAPI_Parameter p;
@@ -421,6 +435,10 @@ TEST test_url_write_query_json_param_all_types(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_write_query_and_path_object_serialization.
+ * @return Greatest test result.
+ */
 TEST test_url_write_query_and_path_object_serialization(void) {
   FILE *fp = cdd_test_tmpfile_global();
   struct OpenAPI_Parameter p;
@@ -555,6 +573,10 @@ TEST test_url_write_query_and_path_object_serialization(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_write_path_array_and_joined_array.
+ * @return Greatest test result.
+ */
 TEST test_url_write_path_array_and_joined_array(void) {
   FILE *fp = cdd_test_tmpfile_global();
   struct OpenAPI_Parameter p;
@@ -647,6 +669,10 @@ TEST test_url_write_path_array_and_joined_array(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_segments_and_find_param.
+ * @return Greatest test result.
+ */
 TEST test_url_segments_and_find_param(void) {
   struct UrlSegment *segs = NULL;
   size_t count = 0;
@@ -778,6 +804,9 @@ TEST test_url_segments_and_find_param(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the codegen_url_internals_suite test suite.
+ */
 SUITE(codegen_url_internals_suite) {
   RUN_TEST(test_url_primitive_and_object_predicates);
   RUN_TEST(test_url_media_type_and_param_predicates);

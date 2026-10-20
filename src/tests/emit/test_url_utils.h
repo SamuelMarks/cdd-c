@@ -16,10 +16,31 @@ struct OpenAPI_KV;
 /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
 /* extern C_CDD_EXPORT int g_mock_oom_countdown; (moved to global) */
 
+/**
+ * @brief Helper function is_pct_encoded_test.
+ * @param[in] p Parameter p.
+ * @return Result status or value.
+ */
 extern cdd_c_error_t is_pct_encoded_test(const char *p);
+/**
+ * @brief Helper function kv_value_to_string_test.
+ * @param[in] kv Parameter kv.
+ * @param[in,out] buf Parameter buf.
+ * @param[in] buf_len Parameter buf_len.
+ * @param[in] _out_val Parameter _out_val.
+ * @return Result status or value.
+ */
 extern cdd_c_error_t kv_value_to_string_test(const struct OpenAPI_KV *kv,
                                              char *buf, size_t buf_len,
                                              const char **_out_val);
+/**
+ * @brief Helper function append_str_test.
+ * @param[in,out] buf Parameter buf.
+ * @param[in,out] len Parameter len.
+ * @param[in,out] cap Parameter cap.
+ * @param[in] s Parameter s.
+ * @return Result status or value.
+ */
 extern cdd_c_error_t append_str_test(char **buf, size_t *len, size_t *cap,
                                      const char *s);
 
@@ -35,13 +56,19 @@ extern cdd_c_error_t append_str_test(char **buf, size_t *len, size_t *cap,
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
 /* --- Encoding Tests --- */
 
+/**
+ * @brief Unit test test_url_encode_simple.
+ * @return Greatest test result.
+ */
 TEST test_url_encode_simple(void) {
   char *res = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, url_encode("hello", &res));
@@ -52,6 +79,10 @@ TEST test_url_encode_simple(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_encode_spaces.
+ * @return Greatest test result.
+ */
 TEST test_url_encode_spaces(void) {
   char *res = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, url_encode("hello world", &res));
@@ -62,6 +93,10 @@ TEST test_url_encode_spaces(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_encode_reserved.
+ * @return Greatest test result.
+ */
 TEST test_url_encode_reserved(void) {
   /* Gen-delims: : / ? # [ ] @ */
   /* Sub-delims: ! $ & ' ( ) * + , ; = */
@@ -79,6 +114,10 @@ TEST test_url_encode_reserved(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_encode_unreserved.
+ * @return Greatest test result.
+ */
 TEST test_url_encode_unreserved(void) {
   /* ALPHA, DIGIT, - . _ ~ */
   const char *input = cdd_test_mut_str("a-b.c_d~1");
@@ -91,6 +130,10 @@ TEST test_url_encode_unreserved(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_encode_allow_reserved.
+ * @return Greatest test result.
+ */
 TEST test_url_encode_allow_reserved(void) {
   const char *input = cdd_test_mut_str(":/?#[]@!$&'()*+,;= %2F");
   const char *expected = cdd_test_mut_str(":/?#[]@!$&'()*+,;=%20%2F");
@@ -103,6 +146,10 @@ TEST test_url_encode_allow_reserved(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_encode_form_spaces.
+ * @return Greatest test result.
+ */
 TEST test_url_encode_form_spaces(void) {
   char *res = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, url_encode_form("hello world", &res));
@@ -113,6 +160,10 @@ TEST test_url_encode_form_spaces(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_encode_form_reserved.
+ * @return Greatest test result.
+ */
 TEST test_url_encode_form_reserved(void) {
   const char *input = cdd_test_mut_str("&=+");
   char *res = NULL;
@@ -124,6 +175,10 @@ TEST test_url_encode_form_reserved(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_encode_form_allow_reserved.
+ * @return Greatest test result.
+ */
 TEST test_url_encode_form_allow_reserved(void) {
   const char *input = cdd_test_mut_str(":/?#[]@!$&'()*+,;= %2F");
   const char *expected = cdd_test_mut_str(":/?#[]@!$%26'()*%2B,;%3D+%2F");
@@ -136,6 +191,10 @@ TEST test_url_encode_form_allow_reserved(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_encode_null.
+ * @return Greatest test result.
+ */
 TEST test_url_encode_null(void) {
   char *res = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, url_encode(NULL, &res));
@@ -146,6 +205,10 @@ TEST test_url_encode_null(void) {
 
 /* --- Query Builder Tests --- */
 
+/**
+ * @brief Unit test test_query_lifecycle.
+ * @return Greatest test result.
+ */
 TEST test_query_lifecycle(void) {
   struct UrlQueryParams qp;
   int rc = 0;
@@ -168,6 +231,10 @@ TEST test_query_lifecycle(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_query_build_empty.
+ * @return Greatest test result.
+ */
 TEST test_query_build_empty(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
@@ -183,6 +250,10 @@ TEST test_query_build_empty(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_query_build_single.
+ * @return Greatest test result.
+ */
 TEST test_query_build_single(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
@@ -200,6 +271,10 @@ TEST test_query_build_single(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_query_build_multiple.
+ * @return Greatest test result.
+ */
 TEST test_query_build_multiple(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
@@ -219,6 +294,10 @@ TEST test_query_build_multiple(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_query_build_form_single.
+ * @return Greatest test result.
+ */
 TEST test_query_build_form_single(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
@@ -236,6 +315,10 @@ TEST test_query_build_form_single(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_query_build_form_multiple.
+ * @return Greatest test result.
+ */
 TEST test_query_build_form_multiple(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
@@ -254,6 +337,10 @@ TEST test_query_build_form_multiple(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_query_build_form_preserves_encoded_value.
+ * @return Greatest test result.
+ */
 TEST test_query_build_form_preserves_encoded_value(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
@@ -271,6 +358,10 @@ TEST test_query_build_form_preserves_encoded_value(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_kv_join_form_comma.
+ * @return Greatest test result.
+ */
 TEST test_openapi_kv_join_form_comma(void) {
   struct OpenAPI_KV kvs[2];
   char *res = NULL;
@@ -290,6 +381,10 @@ TEST test_openapi_kv_join_form_comma(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_kv_join_form_space.
+ * @return Greatest test result.
+ */
 TEST test_openapi_kv_join_form_space(void) {
   struct OpenAPI_KV kvs[2];
   char *res = NULL;
@@ -309,6 +404,10 @@ TEST test_openapi_kv_join_form_space(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_kv_join_form_pipe_allow_reserved.
+ * @return Greatest test result.
+ */
 TEST test_openapi_kv_join_form_pipe_allow_reserved(void) {
   struct OpenAPI_KV kvs[1];
   char *res = NULL;
@@ -325,6 +424,10 @@ TEST test_openapi_kv_join_form_pipe_allow_reserved(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_query_build_preserves_encoded_value.
+ * @return Greatest test result.
+ */
 TEST test_query_build_preserves_encoded_value(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
@@ -344,6 +447,10 @@ TEST test_query_build_preserves_encoded_value(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_query_build_encoding_keys.
+ * @return Greatest test result.
+ */
 TEST test_query_build_encoding_keys(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
@@ -361,6 +468,10 @@ TEST test_query_build_encoding_keys(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_query_null_safety.
+ * @return Greatest test result.
+ */
 TEST test_query_null_safety(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
@@ -382,6 +493,10 @@ TEST test_query_null_safety(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_utils_write_query_json_param.
+ * @return Greatest test result.
+ */
 TEST test_url_utils_write_query_json_param(void) {
   FILE *fp;
   struct OpenAPI_Parameter p;
@@ -416,6 +531,10 @@ TEST test_url_utils_write_query_json_param(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_encode_all_null.
+ * @return Greatest test result.
+ */
 TEST test_url_encode_all_null(void) {
   char *res = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, url_encode(NULL, &res));
@@ -429,6 +548,10 @@ TEST test_url_encode_all_null(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_encode_form_allow_reserved_pct.
+ * @return Greatest test result.
+ */
 TEST test_url_encode_form_allow_reserved_pct(void) {
   char *res = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, url_encode_form_allow_reserved("a b<", &res));
@@ -438,6 +561,10 @@ TEST test_url_encode_form_allow_reserved_pct(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_encode_unreserved_form_asterisk.
+ * @return Greatest test result.
+ */
 TEST test_url_encode_unreserved_form_asterisk(void) {
   char *res = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, url_encode_form("a*", &res));
@@ -447,6 +574,10 @@ TEST test_url_encode_unreserved_form_asterisk(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_query_add_encoded_null.
+ * @return Greatest test result.
+ */
 TEST test_url_query_add_encoded_null(void) {
   struct UrlQueryParams qp;
   url_query_init(&qp);
@@ -460,12 +591,20 @@ TEST test_url_query_add_encoded_null(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_query_build_form_null.
+ * @return Greatest test result.
+ */
 TEST test_url_query_build_form_null(void) {
   char *res = NULL;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, url_query_build_form(NULL, &res));
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_kv_join_form_types.
+ * @return Greatest test result.
+ */
 TEST test_openapi_kv_join_form_types(void) {
   struct OpenAPI_KV kvs[5];
   char *res = NULL;
@@ -490,6 +629,10 @@ TEST test_openapi_kv_join_form_types(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_kv_join_form_null.
+ * @return Greatest test result.
+ */
 TEST test_openapi_kv_join_form_null(void) {
   char *res = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, openapi_kv_join_form(NULL, 0, ",", 0, &res));
@@ -499,6 +642,10 @@ TEST test_openapi_kv_join_form_null(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_kv_join_form_delim_null.
+ * @return Greatest test result.
+ */
 TEST test_openapi_kv_join_form_delim_null(void) {
   struct OpenAPI_KV kvs[1];
   char *res = NULL;
@@ -512,6 +659,10 @@ TEST test_openapi_kv_join_form_delim_null(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_kv_join_form_large_string.
+ * @return Greatest test result.
+ */
 TEST test_openapi_kv_join_form_large_string(void) {
   struct OpenAPI_KV kvs[1];
   char *res = NULL;
@@ -526,6 +677,10 @@ TEST test_openapi_kv_join_form_large_string(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_kv_value_to_string_null.
+ * @return Greatest test result.
+ */
 TEST test_kv_value_to_string_null(void) {
   struct OpenAPI_KV kv;
   char *res = NULL;
@@ -558,6 +713,10 @@ TEST test_kv_value_to_string_null(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_append_str_nulls.
+ * @return Greatest test result.
+ */
 TEST test_append_str_nulls(void) {
   char *buf = NULL;
   size_t len = 0;
@@ -573,11 +732,19 @@ TEST test_append_str_nulls(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_is_pct_encoded_null.
+ * @return Greatest test result.
+ */
 TEST test_is_pct_encoded_null(void) {
   ASSERT_EQ(CDD_C_SUCCESS, is_pct_encoded_test(NULL));
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_kv_join_form_all_skipped.
+ * @return Greatest test result.
+ */
 TEST test_openapi_kv_join_form_all_skipped(void) {
   struct OpenAPI_KV kvs[1];
   char *res = NULL;
@@ -589,6 +756,10 @@ TEST test_openapi_kv_join_form_all_skipped(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_query_build_form_empty.
+ * @return Greatest test result.
+ */
 TEST test_url_query_build_form_empty(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
@@ -601,6 +772,10 @@ TEST test_url_query_build_form_empty(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_is_pct_encoded_branches.
+ * @return Greatest test result.
+ */
 TEST test_is_pct_encoded_branches(void) {
   ASSERT_EQ(0, is_pct_encoded_test(""));
   ASSERT_EQ(0, is_pct_encoded_test("%"));
@@ -611,6 +786,10 @@ TEST test_is_pct_encoded_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_url_utils_full_coverage.
+ * @return Greatest test result.
+ */
 TEST test_url_utils_full_coverage(void) {
   char *res = NULL;
   struct UrlQueryParams qp;
@@ -929,6 +1108,9 @@ TEST test_url_utils_full_coverage(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the url_utils_suite test suite.
+ */
 SUITE(url_utils_suite) {
   RUN_TEST(test_is_pct_encoded_branches);
   RUN_TEST(test_url_utils_full_coverage);

@@ -24,6 +24,12 @@ extern "C" {
 /* Moved extern declarations for C89 compliance */
 extern C_CDD_EXPORT int g_cdd_query_err_fail;
 
+/**
+ * @brief Helper function dummy_visitor.
+ * @param[in,out] node Parameter node.
+ * @param[in,out] user_data Parameter user_data.
+ * @return Result status or value.
+ */
 static cdd_c_error_t dummy_visitor(cdd_cst_node_t *node, void *user_data) {
   int *count = (int *)user_data;
   (*count)++;
@@ -31,6 +37,10 @@ static cdd_c_error_t dummy_visitor(cdd_cst_node_t *node, void *user_data) {
   return 0;
 }
 
+/**
+ * @brief Unit test test_cdd_cst_query_types.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_query_types(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int main() {\n  return 0;\n}";
@@ -137,6 +147,10 @@ TEST test_cdd_cst_query_types(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_query_calls.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_query_calls(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int main() {\n  printf(\"hello\");\n  return 0;\n}";
@@ -241,6 +255,10 @@ TEST test_cdd_cst_query_calls(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_query_extra.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_query_extra(void) {
   cdd_cst_query_result_t res;
   int post_count = 0;
@@ -371,12 +389,22 @@ TEST test_cdd_cst_query_extra(void) {
   PASS();
 }
 
+/**
+ * @brief Helper function fail_visitor_post.
+ * @param[in,out] node Parameter node.
+ * @param[in,out] user_data Parameter user_data.
+ * @return Result status or value.
+ */
 static cdd_c_error_t fail_visitor_post(cdd_cst_node_t *node, void *user_data) {
   (void)user_data;
   if (node->kind == CDD_CST_EXPRESSION)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   return 0;
 }
+/**
+ * @brief Unit test test_query_postorder_fail.
+ * @return Greatest test result.
+ */
 TEST test_query_postorder_fail(void) {
   cdd_cst_node_t *n1 = NULL, *n2 = NULL;
   cdd_cst_alloc_node(CDD_CST_BLOCK, &n1);
@@ -393,6 +421,10 @@ TEST test_query_postorder_fail(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_query_call_expr_coverage.
+ * @return Greatest test result.
+ */
 TEST test_query_call_expr_coverage(void) {
   cdd_cst_query_result_t res = {0};
   cdd_cst_node_t dummy_call = {0};
@@ -701,6 +733,9 @@ TEST test_query_call_expr_coverage(void) {
   }
 }
 
+/**
+ * @brief Executes the cdd_cst_query_suite test suite.
+ */
 SUITE(cdd_cst_query_suite) {
   RUN_TEST(test_query_postorder_fail);
   RUN_TEST(test_query_call_expr_coverage);

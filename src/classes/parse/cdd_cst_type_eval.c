@@ -13,11 +13,6 @@
 #include <string.h>
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-/** @brief Mock flag to simulate pointer type evaluation failure */
-C_CDD_EXPORT int g_cdd_type_eval_ptr_fail = 0;
-#endif
-
 /**
  * @brief Evaluates the byte size and alignment of a C primitive type under a
  * target ABI model.
@@ -28,7 +23,7 @@ C_CDD_EXPORT int g_cdd_type_eval_ptr_fail = 0;
 cdd_c_error_t cdd_cst_eval_primitive_type(const char *type_name,
                                           enum cdd_cst_abi_model_t abi,
                                           cdd_cst_type_info_t *out_info) {
-  C_CDD_LOG_DEBUG("eval_primitive_type called with: %s\n", type_name);
+  C_CDD_LOG_DEBUG("eval_primitive_type called with: %s", type_name);
   if (!type_name || !out_info)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -57,7 +52,7 @@ cdd_c_error_t cdd_cst_eval_primitive_type(const char *type_name,
     if (abi == CDD_CST_ABI_ILP32 || abi == CDD_CST_ABI_LLP64) {
       out_info->size = 4;
       out_info->alignment = 4;
-    } else { /* LP64 */
+    } else {
       out_info->size = 8;
       out_info->alignment = 8;
     }
@@ -89,7 +84,7 @@ cdd_c_error_t cdd_cst_eval_primitive_type(const char *type_name,
       out_info->alignment = 4;
     } else if (abi == CDD_CST_ABI_LLP64) {
       out_info->size = 8;
-      out_info->alignment = 8; /* usually on msvc */
+      out_info->alignment = 8;
     } else {
       out_info->size = 16;
       out_info->alignment = 16;
@@ -164,10 +159,9 @@ static cdd_c_error_t extract_type_name(cdd_cst_node_t *node, char **out_name,
   }
 
   if (buf_len > 0) {
-    char *ret;
-    ret = (char *)C_CDD_MALLOC(buf_len + 1);
+    char *ret = (char *)C_CDD_MALLOC(buf_len + 1);
     if (!ret) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+      C_CDD_LOG_DEBUG("ENOMEM: OOM");
       return CDD_C_ERROR_MEMORY;
     }
     memcpy(ret, buf, buf_len + 1);
@@ -201,33 +195,12 @@ cdd_c_error_t cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env,
     return rc;
   }
 
-  if (is_pointer) {
-
-    rc = cdd_cst_eval_primitive_type("ptr", abi, &info);
-#ifdef CDD_BUILD_TESTS
-    {
-      extern C_CDD_EXPORT int g_cdd_type_eval_ptr_fail;
-      if (g_cdd_type_eval_ptr_fail) {
-        rc = CDD_C_ERROR_MEMORY;
-      }
-    }
-#endif
-
-    if (rc != CDD_C_SUCCESS) {
-      C_CDD_FREE(name);
-      *out_size = 0;
-      return rc;
-    }
-  } else {
-    rc = cdd_cst_eval_primitive_type(name, abi, &info);
-    if (rc != CDD_C_SUCCESS) {
-      C_CDD_FREE(name);
-      *out_size = 0;
-      return rc;
-    }
-    C_CDD_LOG_DEBUG("TYPE NAME: '%s'\n", name);
-  }
+  rc = cdd_cst_eval_primitive_type(is_pointer ? "ptr" : name, abi, &info);
   C_CDD_FREE(name);
+  if (rc != CDD_C_SUCCESS) {
+    *out_size = 0;
+    return rc;
+  }
 
   *out_size = info.size;
   return CDD_C_SUCCESS;
@@ -256,33 +229,12 @@ cdd_c_error_t cdd_cst_eval_alignof(cdd_cst_scope_env_t *env,
     return rc;
   }
 
-  if (is_pointer) {
-
-    rc = cdd_cst_eval_primitive_type("ptr", abi, &info);
-#ifdef CDD_BUILD_TESTS
-    {
-      extern C_CDD_EXPORT int g_cdd_type_eval_ptr_fail;
-      if (g_cdd_type_eval_ptr_fail) {
-        rc = CDD_C_ERROR_MEMORY;
-      }
-    }
-#endif
-
-    if (rc != CDD_C_SUCCESS) {
-      C_CDD_FREE(name);
-      *out_align = 0;
-      return rc;
-    }
-  } else {
-    rc = cdd_cst_eval_primitive_type(name, abi, &info);
-    if (rc != CDD_C_SUCCESS) {
-      C_CDD_FREE(name);
-      *out_align = 0;
-      return rc;
-    }
-    C_CDD_LOG_DEBUG("TYPE NAME: '%s'\n", name);
-  }
+  rc = cdd_cst_eval_primitive_type(is_pointer ? "ptr" : name, abi, &info);
   C_CDD_FREE(name);
+  if (rc != CDD_C_SUCCESS) {
+    *out_align = 0;
+    return rc;
+  }
 
   *out_align = info.alignment;
   return CDD_C_SUCCESS;

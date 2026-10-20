@@ -22,7 +22,9 @@ extern "C" {
 #include "routes/emit/client_gen.h"
 /* clang-format on */
 
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
 
 /**
@@ -196,6 +198,48 @@ TEST test_client_gui_gen_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_IO, rc);
   remove("test_build_dir/bad_gui2/src/bad_gui_gui.c");
   remove("test_build_dir/bad_gui2/src/bad_gui_gui.h");
+
+  /* Case 3: openapi_client_gui_write_streams invalid args and fprintf failure
+   */
+  {
+    FILE *ro_fp = NULL;
+    FILE *rw_fp = NULL;
+#if defined(_MSC_VER)
+    fopen_s(&rw_fp, "test_build_dir/ro_gui.tmp", "w");
+#else
+    rw_fp = fopen("test_build_dir/ro_gui.tmp", "w");
+#endif
+    ASSERT(rw_fp != NULL);
+    fclose(rw_fp);
+#if defined(_MSC_VER)
+    fopen_s(&ro_fp, "test_build_dir/ro_gui.tmp", "r");
+    fopen_s(&rw_fp, "test_build_dir/rw_gui.tmp", "w");
+#else
+    ro_fp = fopen("test_build_dir/ro_gui.tmp", "r");
+    rw_fp = fopen("test_build_dir/rw_gui.tmp", "w");
+#endif
+    ASSERT(ro_fp != NULL);
+    ASSERT(rw_fp != NULL);
+
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              openapi_client_gui_write_streams(NULL, rw_fp, "b", "s"));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              openapi_client_gui_write_streams(rw_fp, NULL, "b", "s"));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              openapi_client_gui_write_streams(rw_fp, rw_fp, NULL, "s"));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              openapi_client_gui_write_streams(rw_fp, rw_fp, "b", NULL));
+
+    ASSERT_EQ(CDD_C_ERROR_IO,
+              openapi_client_gui_write_streams(ro_fp, rw_fp, "b", "s"));
+    ASSERT_EQ(CDD_C_ERROR_IO,
+              openapi_client_gui_write_streams(rw_fp, ro_fp, "b", "s"));
+
+    fclose(ro_fp);
+    fclose(rw_fp);
+    remove("test_build_dir/ro_gui.tmp");
+    remove("test_build_dir/rw_gui.tmp");
+  }
 
   PASS();
 }

@@ -24,11 +24,17 @@ extern "C" {
 /* clang-format on */
 
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_cdd_fail_url_segment_alloc;
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
 CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 
+/**
+ * @brief Unit test test_url_io_failure_branches.
+ * @return Greatest test result.
+ */
 TEST test_url_io_failure_branches(void) {
   FILE *fp = cdd_test_tmpfile_global();
   struct OpenAPI_Operation op;
@@ -705,6 +711,9 @@ TEST test_url_io_failure_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the codegen_url_io_failures_suite test suite.
+ */
 SUITE(codegen_url_io_failures_suite) { RUN_TEST(test_url_io_failure_branches); }
 
 #ifdef __cplusplus

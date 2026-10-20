@@ -61,7 +61,6 @@ extern "C" {
 #endif
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_gnu_standardizer_fail;
 extern C_CDD_EXPORT volatile int g_gnu_alloc_fail;
 extern C_CDD_EXPORT volatile int g_gnu_replace_fail;
 extern C_CDD_EXPORT volatile int g_gnu_bld_fail;
@@ -226,12 +225,21 @@ C_CDD_EXPORT cdd_c_error_t cdd_infer_type(const cdd_token_t *tokens,
                                           const char **out_type);
 
 /**
+ * @brief Per-transformation context for the GNU standardizer pass.
+ */
+struct gnu_standardizer_ctx_t {
+  /** @brief Monotonically increasing counter for generated typeof array
+   * typedefs */
+  int typeof_arr_idx;
+};
+
+/**
  * @brief Standardizes GNU function attributes and nested functions in a CST
  * tree.
  * @param[in,out] tree Target CST tree.
  * @return CDD_C_SUCCESS on success or error code.
  */
-C_CDD_EXPORT cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree);
+extern C_CDD_EXPORT cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree);
 
 /**
  * @brief Standardizes GNU type extensions (__int128, typeof, __auto_type) in a
@@ -239,7 +247,7 @@ C_CDD_EXPORT cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree);
  * @param[in,out] tree Target CST tree.
  * @return CDD_C_SUCCESS on success or error code.
  */
-C_CDD_EXPORT cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree);
+extern C_CDD_EXPORT cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree);
 
 /**
  * @brief Standardizes GNU expression extensions (statement expressions, ?:
@@ -247,7 +255,7 @@ C_CDD_EXPORT cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree);
  * @param[in,out] tree Target CST tree.
  * @return CDD_C_SUCCESS on success or error code.
  */
-C_CDD_EXPORT cdd_c_error_t gnu_standardize_expr(cdd_cst_tree_t *tree);
+extern C_CDD_EXPORT cdd_c_error_t gnu_standardize_expr(cdd_cst_tree_t *tree);
 
 /**
  * @brief Unrolls loops annotated with \#pragma GCC unroll in a CST tree.

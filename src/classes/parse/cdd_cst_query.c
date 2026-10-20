@@ -6,17 +6,12 @@
 #include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_cst_query.h"
+#include "c_cdd/log.h"
 #include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-
-#ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_query_err_fail;
-C_CDD_EXPORT int g_cdd_query_err_fail = 0;
-#endif
-#include "c_cdd/log.h"
 /* clang-format on */
 
 /**
@@ -90,12 +85,10 @@ static cdd_c_error_t append_result(cdd_cst_query_result_t *res,
                                    cdd_cst_node_t *node) {
   if (res->size >= res->capacity) {
     size_t new_cap = res->capacity == 0 ? 16 : res->capacity * 2;
-    cdd_cst_node_t **new_arr;
-    new_arr = (cdd_cst_node_t **)C_CDD_REALLOC(
+    cdd_cst_node_t **new_arr = (cdd_cst_node_t **)C_CDD_REALLOC(
         res->nodes, new_cap * sizeof(cdd_cst_node_t *));
     if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      printf("append_result returning ERROR_MEMORY!\n");
+      C_CDD_LOG_DEBUG("ENOMEM: OOM");
       return CDD_C_ERROR_MEMORY;
     }
     res->nodes = new_arr;
@@ -125,11 +118,6 @@ static cdd_c_error_t type_visitor(cdd_cst_node_t *node, void *user_data) {
   type_query_ctx_t *ctx = (type_query_ctx_t *)user_data;
   if (node->kind == ctx->target_kind) {
     cdd_c_error_t rc = append_result(ctx->res, node);
-#ifdef CDD_BUILD_TESTS
-
-    if (g_cdd_query_err_fail)
-      rc = CDD_C_ERROR_MEMORY;
-#endif
     if (rc != CDD_C_SUCCESS) {
       ctx->err = rc;
       return rc;
@@ -176,7 +164,6 @@ cdd_c_error_t cdd_cst_find_nodes_by_type(cdd_cst_node_t *root,
   return CDD_C_SUCCESS;
 }
 
-/** @brief func_name field */
 /** @brief call_query_ctx_t struct */
 typedef struct call_query_ctx_t {
   /** @brief err field */
@@ -198,77 +185,52 @@ typedef struct call_query_ctx_t {
  */
 static cdd_c_error_t call_visitor(cdd_cst_node_t *node, void *user_data) {
   call_query_ctx_t *ctx = (call_query_ctx_t *)user_data;
+  int matched = 0;
   if (node->kind == CDD_CST_CALL_EXPR) {
-    /* For now, look at children to find an identifier token that matches */
     size_t i;
     for (i = 0; i < node->num_children; i++) {
       if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
         cdd_token_t *tok = node->children[i].val.token;
         if (tok->kind == CDD_TOKEN_IDENTIFIER &&
-            tok->length == ctx->func_name_len) {
-          if (memcmp(tok->start, ctx->func_name, ctx->func_name_len) == 0) {
-            ctx->err = append_result(ctx->res, node);
-#ifdef CDD_BUILD_TESTS
-
-            if (g_cdd_query_err_fail)
-              ctx->err = CDD_C_ERROR_MEMORY;
-#endif
-            if (ctx->err != CDD_C_SUCCESS)
-              return ctx->err;
-            break; /* found match for this call node */
-          }
+            tok->length == ctx->func_name_len &&
+            memcmp(tok->start, ctx->func_name, ctx->func_name_len) == 0) {
+          matched = 1;
+          break;
         }
       } else {
-        /* Sometimes the call expr's first child is an IDENTIFIER node */
         cdd_cst_node_t *child = node->children[i].val.node;
         if (child->kind == CDD_CST_IDENTIFIER && child->num_children > 0 &&
             child->children[0].kind == CDD_CST_CHILD_TOKEN) {
           cdd_token_t *tok = child->children[0].val.token;
           if (tok->kind == CDD_TOKEN_IDENTIFIER &&
-              tok->length == ctx->func_name_len) {
-            if (memcmp(tok->start, ctx->func_name, ctx->func_name_len) == 0) {
-              ctx->err = append_result(ctx->res, node);
-#ifdef CDD_BUILD_TESTS
-
-              if (g_cdd_query_err_fail)
-                ctx->err = CDD_C_ERROR_MEMORY;
-#endif
-              if (ctx->err != CDD_C_SUCCESS)
-                return ctx->err;
-              break;
-            }
+              tok->length == ctx->func_name_len &&
+              memcmp(tok->start, ctx->func_name, ctx->func_name_len) == 0) {
+            matched = 1;
+            break;
           }
         }
       }
     }
   } else if (node->kind == CDD_CST_UNKNOWN) {
-    /* Heuristic check for unknown flat structures containing `func_name(` */
     size_t i;
     for (i = 0; i < node->num_children; i++) {
       if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
         cdd_token_t *tok = node->children[i].val.token;
         if (tok->kind == CDD_TOKEN_IDENTIFIER &&
-            tok->length == ctx->func_name_len) {
-          if (memcmp(tok->start, ctx->func_name, ctx->func_name_len) == 0) {
-            /* Next token should be LPAREN to be a call */
-            if (i + 1 < node->num_children &&
-                node->children[i + 1].kind == CDD_CST_CHILD_TOKEN) {
-              if (node->children[i + 1].val.token->kind == CDD_TOKEN_LPAREN) {
-                ctx->err = append_result(ctx->res, node);
-#ifdef CDD_BUILD_TESTS
-
-                if (g_cdd_query_err_fail)
-                  ctx->err = CDD_C_ERROR_MEMORY;
-#endif
-                if (ctx->err != CDD_C_SUCCESS)
-                  return ctx->err;
-                break;
-              }
-            }
-          }
+            tok->length == ctx->func_name_len &&
+            memcmp(tok->start, ctx->func_name, ctx->func_name_len) == 0 &&
+            i + 1 < node->num_children &&
+            node->children[i + 1].kind == CDD_CST_CHILD_TOKEN &&
+            node->children[i + 1].val.token->kind == CDD_TOKEN_LPAREN) {
+          matched = 1;
+          break;
         }
       }
     }
+  }
+  if (matched) {
+    ctx->err = append_result(ctx->res, node);
+    return ctx->err;
   }
   return CDD_C_SUCCESS;
 }
@@ -298,8 +260,7 @@ cdd_cst_find_function_calls_named(cdd_cst_node_t *root, const char *func_name,
   {
     cdd_c_error_t rc = cdd_cst_traverse_preorder(root, call_visitor, &ctx);
     if (rc != CDD_C_SUCCESS) {
-      if (out_result->nodes)
-        C_CDD_FREE(out_result->nodes);
+      C_CDD_FREE(out_result->nodes);
       out_result->nodes = NULL;
       out_result->size = 0;
       out_result->capacity = 0;

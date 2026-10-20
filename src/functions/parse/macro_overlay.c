@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 #include "functions/parse/macro_overlay.h"
 /* clang-format on */
 
@@ -50,10 +51,10 @@ void macro_overlay_list_free(struct MacroOverlayList *list) {
     for (i = 0; i < list->size; ++i) {
       if (list->nodes[i].expanded_ast) {
         free_cst_node_list(list->nodes[i].expanded_ast);
-        free(list->nodes[i].expanded_ast);
+        C_CDD_FREE(list->nodes[i].expanded_ast);
       }
     }
-    free(list->nodes);
+    C_CDD_FREE(list->nodes);
   }
   list->nodes = NULL;
   list->size = 0;
@@ -85,12 +86,12 @@ static cdd_c_error_t list_add(struct MacroOverlayList *list,
         if (g_cdd_macro_overlay_fail_realloc > 1) {
           g_cdd_macro_overlay_fail_realloc--;
         }
-        new_arr = (struct MacroOverlayNode *)realloc(
+        new_arr = (struct MacroOverlayNode *)C_CDD_REALLOC(
             list->nodes, new_cap * sizeof(struct MacroOverlayNode));
       }
     }
 #else
-    new_arr = (struct MacroOverlayNode *)realloc(
+    new_arr = (struct MacroOverlayNode *)C_CDD_REALLOC(
         list->nodes, new_cap * sizeof(struct MacroOverlayNode));
 #endif
     if (!new_arr) {
@@ -134,11 +135,12 @@ cdd_c_error_t cst_build_macro_overlay(const struct CstNodeList *cst,
           g_cdd_macro_overlay_fail_calloc = 0;
         } else {
           expanded =
-              (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
+              (struct CstNodeList *)C_CDD_CALLOC(1, sizeof(struct CstNodeList));
         }
       }
 #else
-      expanded = (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
+      expanded =
+          (struct CstNodeList *)C_CDD_CALLOC(1, sizeof(struct CstNodeList));
 #endif
       if (!expanded) {
         return CDD_C_ERROR_MEMORY;
@@ -176,16 +178,16 @@ cdd_c_error_t cst_build_macro_overlay(const struct CstNodeList *cst,
             } else {
               if (g_cdd_macro_overlay_fail_inner_realloc > 1)
                 g_cdd_macro_overlay_fail_inner_realloc--;
-              new_arr = (struct CstNode *)realloc(
+              new_arr = (struct CstNode *)C_CDD_REALLOC(
                   expanded->nodes, new_cap * sizeof(struct CstNode));
             }
 #else
-            struct CstNode *new_arr = (struct CstNode *)realloc(
+            struct CstNode *new_arr = (struct CstNode *)C_CDD_REALLOC(
                 expanded->nodes, new_cap * sizeof(struct CstNode));
 #endif
             if (!new_arr) {
               free_cst_node_list(expanded);
-              free(expanded);
+              C_CDD_FREE(expanded);
               return CDD_C_ERROR_MEMORY;
             }
             expanded->nodes = new_arr;
@@ -199,7 +201,7 @@ cdd_c_error_t cst_build_macro_overlay(const struct CstNodeList *cst,
       printf("list_add returned %d\n", rc);
       if (rc != CDD_C_SUCCESS) {
         free_cst_node_list(expanded);
-        free(expanded);
+        C_CDD_FREE(expanded);
         return rc;
       }
     }

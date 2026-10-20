@@ -45,7 +45,7 @@ struct SchemaConstraints {
 
 /**
  * @brief Initializes schema constraints.
- * @param sc Pointer to constraints struct.
+ * @param[in,out] sc Pointer to constraints struct.
  * @return 0 on success, error code otherwise.
  */
 extern C_CDD_EXPORT cdd_c_error_t
@@ -53,8 +53,8 @@ schema_constraints_init(struct SchemaConstraints *sc);
 
 /**
  * @brief Adds a required field to schema constraints.
- * @param sc Pointer to constraints struct.
- * @param field Field name.
+ * @param[in,out] sc Pointer to constraints struct.
+ * @param[in] field Field name.
  * @return 0 on success, error code otherwise.
  */
 extern C_CDD_EXPORT cdd_c_error_t schema_constraints_add_required(
@@ -62,7 +62,7 @@ extern C_CDD_EXPORT cdd_c_error_t schema_constraints_add_required(
 
 /**
  * @brief Cleans up schema constraints.
- * @param sc Pointer to constraints struct.
+ * @param[in,out] sc Pointer to constraints struct.
  */
 extern C_CDD_EXPORT void schema_constraints_free(struct SchemaConstraints *sc);
 

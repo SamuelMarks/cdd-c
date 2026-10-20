@@ -1,3 +1,7 @@
+/**
+ * @file test_sync_code.h
+ * @brief Unit tests and mocks in test_sync_code.h.
+ */
 #ifndef TEST_SYNC_CODE_H
 #define TEST_SYNC_CODE_H
 
@@ -15,12 +19,18 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_cdd_sync_fail_tokenize. */
 extern C_CDD_EXPORT int g_cdd_sync_fail_tokenize;
+/** @brief Test definition g_cdd_sync_fail_patch_list_apply. */
 extern C_CDD_EXPORT int g_cdd_sync_fail_patch_list_apply;
+/** @brief Test definition g_cdd_sync_fail_func_sig_init. */
 extern C_CDD_EXPORT int g_cdd_sync_fail_func_sig_init;
+/** @brief Test definition g_cdd_sync_fail_patch_list_init. */
 extern C_CDD_EXPORT int g_cdd_sync_fail_patch_list_init;
 extern C_CDD_EXPORT int g_cdd_fprintf_fail;
+/** @brief Test definition g_cdd_sync_fail_extract. */
 extern C_CDD_EXPORT int g_cdd_sync_fail_extract;
+/** @brief Test definition g_cdd_sync_fail_fopen_write. */
 extern C_CDD_EXPORT int g_cdd_sync_fail_fopen_write;
 
 /**
@@ -336,6 +346,10 @@ TEST test_patch_header_ignore_others(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_patch_header_bounds.
+ * @return Greatest test result.
+ */
 TEST test_patch_header_bounds(void) {
   const char *h_path = cdd_test_mut_str("bounds_patch.h");
   const char *src = cdd_test_mut_str("int foo() { return 0; }");
@@ -373,6 +387,10 @@ TEST test_patch_header_bounds(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_patch_header_failures.
+ * @return Greatest test result.
+ */
 TEST test_patch_header_failures(void) {
 #ifdef CDD_BUILD_TESTS
   const char *h_path = cdd_test_mut_str("fail_patch.h");
@@ -464,6 +482,7 @@ TEST test_patch_header_failures(void) {
 
 /**
  * @brief test_sync_oom
+ * @return Test or helper result.
  */
 TEST test_sync_oom(void) {
 #ifdef CDD_BUILD_TESTS

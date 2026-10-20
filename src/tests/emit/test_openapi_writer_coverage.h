@@ -14,6 +14,10 @@ extern "C" {
 #include "emit/test_openapi_writer_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_openapi_writer_any_and_examples_coverage.
+ * @return Greatest test result.
+ */
 TEST test_openapi_writer_any_and_examples_coverage(void) {
   JSON_Value *val = NULL;
   JSON_Object *obj;
@@ -118,6 +122,10 @@ TEST test_openapi_writer_any_and_examples_coverage(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_writer_objects_and_maps_coverage.
+ * @return Greatest test result.
+ */
 TEST test_openapi_writer_objects_and_maps_coverage(void) {
   JSON_Value *parent_val;
   JSON_Object *parent;
@@ -375,6 +383,10 @@ TEST test_openapi_writer_objects_and_maps_coverage(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_writer_full_spec_edges.
+ * @return Greatest test result.
+ */
 TEST test_openapi_writer_full_spec_edges(void) {
   struct OpenAPI_Spec spec;
   char *json = NULL;

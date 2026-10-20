@@ -1,3 +1,7 @@
+/**
+ * @file test_dsl_tokenizer_branches.h
+ * @brief Unit tests and mocks in test_dsl_tokenizer_branches.h.
+ */
 #ifndef TEST_DSL_TOKENIZER_BRANCHES_H
 #define TEST_DSL_TOKENIZER_BRANCHES_H
 
@@ -10,6 +14,10 @@ extern "C" {
 #include "../cdd_test_helpers/cdd_helpers.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_dsl_tokenizer_comments.
+ * @return Greatest test result.
+ */
 TEST test_dsl_tokenizer_comments(void) {
   cdd_dsl_token_list_t list;
   cdd_c_error_t rc;
@@ -25,6 +33,10 @@ TEST test_dsl_tokenizer_comments(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_dsl_tokenizer_escapes.
+ * @return Greatest test result.
+ */
 TEST test_dsl_tokenizer_escapes(void) {
   cdd_dsl_token_list_t list;
   cdd_c_error_t rc;

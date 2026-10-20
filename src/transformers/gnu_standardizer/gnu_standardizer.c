@@ -13,7 +13,7 @@
  *
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
-C_CDD_EXPORT cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree) {
+cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree) {
   size_t i;
   cdd_c_error_t rc = CDD_C_SUCCESS;
   cdd_cst_query_result_t res = {0};
@@ -25,13 +25,6 @@ C_CDD_EXPORT cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree) {
 
   rc =
       cdd_cst_find_nodes_by_type(tree->root, CDD_CST_FUNCTION_DEFINITION, &res);
-#ifdef CDD_BUILD_TESTS
-  if (g_gnu_standardizer_fail == 34) {
-    free(res.nodes);
-    res.nodes = NULL;
-    rc = CDD_C_ERROR_MEMORY;
-  }
-#endif
   if (rc != CDD_C_SUCCESS)
     return rc;
   for (i = 0; i < res.size; i++) {
@@ -70,10 +63,6 @@ C_CDD_EXPORT cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree) {
       while (parent_func && parent_func->kind != CDD_CST_FUNCTION_DEFINITION) {
         parent_func = parent_func->parent;
       }
-#ifdef CDD_BUILD_TESTS
-      if (g_gnu_standardizer_fail == 14)
-        parent_func = NULL;
-#endif
       if (parent_func) {
         cdd_cst_traverse_preorder(parent_func, cdd_tramp_visitor, &t_ctx);
       } else {
@@ -88,12 +77,12 @@ C_CDD_EXPORT cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree) {
          * executable thunk. For now, standard C89 cannot safely execute stack
          * trampolines.
          */
-        free(res.nodes);
+        C_CDD_FREE(res.nodes);
         return CDD_C_ERROR_SYSTEM;
       }
     }
   }
-  free(res.nodes);
+  C_CDD_FREE(res.nodes);
   return CDD_C_SUCCESS;
 }
 

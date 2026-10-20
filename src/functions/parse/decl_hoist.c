@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "c_cdd/memory.h"
 #include "functions/parse/decl_hoist.h"
 /* clang-format on */
 
@@ -42,7 +43,7 @@ void hoist_site_list_free(struct HoistSiteList *list) {
   if (!list)
     return;
   if (list->sites) {
-    free(list->sites);
+    C_CDD_FREE(list->sites);
   }
   hoist_site_list_init(list);
 }
@@ -192,12 +193,12 @@ cdd_c_error_t scan_for_mixed_declarations(const struct TokenList *tokens,
                   if (g_cdd_fail_alloc_decl_hoist > 1) {
                     g_cdd_fail_alloc_decl_hoist--;
                   }
-                  new_sites = (struct HoistSite *)realloc(
+                  new_sites = (struct HoistSite *)C_CDD_REALLOC(
                       list->sites, list->capacity * sizeof(struct HoistSite));
                 }
               }
 #else
-              new_sites = (struct HoistSite *)realloc(
+              new_sites = (struct HoistSite *)C_CDD_REALLOC(
                   list->sites, list->capacity * sizeof(struct HoistSite));
 #endif
               if (!new_sites)

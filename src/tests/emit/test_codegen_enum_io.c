@@ -1,8 +1,16 @@
+/**
+ * @file test_codegen_enum_io.c
+ * @brief Unit tests and mocks in test_codegen_enum_io.c.
+ */
 /* clang-format off */#include "c_cdd/safe_crt_msvc.h"
 
 #include <stdio.h>
 #include <string.h>
 /* clang-format on */
+/**
+ * @brief Helper function main.
+ * @return Result status or value.
+ */
 cdd_c_error_t main(void) {
   FILE *f;
   int res;

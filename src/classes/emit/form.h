@@ -18,9 +18,9 @@ extern "C" {
 
 /**
  * @brief Writes a struct-to-form-urlencoded function.
- * @param fp Output file.
- * @param struct_name Name of the struct.
- * @param sf Struct fields list.
+ * @param[in,out] fp Output file.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Struct fields list.
  * @return 0 on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t write_struct_to_form_urlencoded_func(

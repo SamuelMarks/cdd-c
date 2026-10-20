@@ -29,6 +29,7 @@ extern "C" {
 
 /**
  * @brief Tests `arazzo_cli_render_to_string` and `arazzo_cli_generate`.
+ * @return Test or helper result.
  */
 TEST test_arazzo_cli_gen_basic(void) {
   struct Arazzo_Spec spec;

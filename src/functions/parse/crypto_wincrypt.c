@@ -36,6 +36,7 @@
 #endif
 #endif
 
+#include "c_cdd/memory.h"
 #include "functions/parse/crypto_types.h"
 /* clang-format on */
 
@@ -203,7 +204,7 @@ cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
   /* 1. Import the Key */
   /* CAPI requires keys to be imported via blobs. We build a PLAINTEXTKEYBLOB */
   blobSize = (DWORD)(sizeof(BLOBHEADER) + sizeof(DWORD) + key_len);
-  pBlob = (struct PlainTextKeyBlob *)malloc(blobSize);
+  pBlob = (struct PlainTextKeyBlob *)C_CDD_MALLOC(blobSize);
   if (!pBlob) {
     rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
@@ -258,7 +259,7 @@ cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
 
 cleanup:
   if (pBlob)
-    free(pBlob);
+    C_CDD_FREE(pBlob);
   if (hHash)
     CryptDestroyHash(hHash);
   if (hKey)

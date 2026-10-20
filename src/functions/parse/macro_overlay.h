@@ -63,9 +63,9 @@ C_CDD_EXPORT void macro_overlay_list_free(struct MacroOverlayList *list);
 /**
  * @brief Scan a CST for macro invocations and build the overlay mappings.
  *
- * @param cst The root Concrete Syntax Tree to scan.
- * @param tokens The base token stream for resolving macro boundaries.
- * @param overlays Output overlay list to populate.
+ * @param[in] cst The root Concrete Syntax Tree to scan.
+ * @param[in] tokens The base token stream for resolving macro boundaries.
+ * @param[in,out] overlays Output overlay list to populate.
  * @return 0 on success, non-zero error code otherwise.
  */
 C_CDD_EXPORT cdd_c_error_t cst_build_macro_overlay(

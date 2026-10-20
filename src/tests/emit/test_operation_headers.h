@@ -14,6 +14,10 @@ extern "C" {
 #include "emit/test_operation_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_operation_is_reserved_header_name.
+ * @return Greatest test result.
+ */
 TEST test_operation_is_reserved_header_name(void) {
   int out = -1;
   reset_operation_test(NULL);
@@ -35,6 +39,10 @@ TEST test_operation_is_reserved_header_name(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_parse_example_any.
+ * @return Greatest test result.
+ */
 TEST test_operation_parse_example_any(void) {
   struct OpenAPI_Any out;
 
@@ -78,6 +86,10 @@ TEST test_operation_parse_example_any(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_any_from_json_value.
+ * @return Greatest test result.
+ */
 TEST test_operation_any_from_json_value(void) {
   struct OpenAPI_Any out;
   JSON_Value *jv = NULL;
@@ -122,6 +134,10 @@ TEST test_operation_any_from_json_value(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_parse_link_params_json.
+ * @return Greatest test result.
+ */
 TEST test_operation_parse_link_params_json(void) {
   struct OpenAPI_LinkParam *out = NULL;
   size_t count = 0;
@@ -162,6 +178,10 @@ TEST test_operation_parse_link_params_json(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_free_openapi_server_variables_op.
+ * @return Greatest test result.
+ */
 TEST test_operation_free_openapi_server_variables_op(void) {
   struct OpenAPI_Server srv;
   /* NULL */
@@ -189,6 +209,10 @@ TEST test_operation_free_openapi_server_variables_op(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_copy_doc_server_variables_op.
+ * @return Greatest test result.
+ */
 TEST test_operation_copy_doc_server_variables_op(void) {
   struct OpenAPI_Server dst;
   struct DocServer src;
@@ -241,6 +265,10 @@ TEST test_operation_copy_doc_server_variables_op(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_find_response_by_code.
+ * @return Greatest test result.
+ */
 TEST test_operation_find_response_by_code(void) {
   struct OpenAPI_Operation op;
   struct OpenAPI_Response *out = NULL;
@@ -271,6 +299,10 @@ TEST test_operation_find_response_by_code(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_find_media_type_op.
+ * @return Greatest test result.
+ */
 TEST test_operation_find_media_type_op(void) {
   struct OpenAPI_MediaType mts[2];
   struct OpenAPI_MediaType *out = NULL;
@@ -294,6 +326,10 @@ TEST test_operation_find_media_type_op(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_apply_example.
+ * @return Greatest test result.
+ */
 TEST test_operation_apply_example(void) {
   struct OpenAPI_MediaType mt;
   struct OpenAPI_Response resp;
@@ -367,6 +403,10 @@ TEST test_operation_apply_example(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_ensure_response_for_code.
+ * @return Greatest test result.
+ */
 TEST test_operation_ensure_response_for_code(void) {
   struct OpenAPI_Operation op;
   struct OpenAPI_Response *out = NULL;
@@ -407,6 +447,10 @@ TEST test_operation_ensure_response_for_code(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_add_header_to_response.
+ * @return Greatest test result.
+ */
 TEST test_operation_add_header_to_response(void) {
   struct OpenAPI_Response resp;
   struct DocResponseHeader dh;
@@ -461,6 +505,10 @@ TEST test_operation_add_header_to_response(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_add_link_to_response.
+ * @return Greatest test result.
+ */
 TEST test_operation_add_link_to_response(void) {
   struct OpenAPI_Response resp;
   struct DocLink dl;
@@ -515,6 +563,10 @@ TEST test_operation_add_link_to_response(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_add_param_to_op.
+ * @return Greatest test result.
+ */
 TEST test_operation_add_param_to_op(void) {
   struct OpenAPI_Operation op;
   struct OpenAPI_Parameter p;
@@ -533,6 +585,10 @@ TEST test_operation_add_param_to_op(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_schema_ref_has_data_basic.
+ * @return Greatest test result.
+ */
 TEST test_operation_schema_ref_has_data_basic(void) {
   struct OpenAPI_SchemaRef ref;
   int has_data = -1;
@@ -567,6 +623,10 @@ TEST test_operation_schema_ref_has_data_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_copy_schema_ref_basic.
+ * @return Greatest test result.
+ */
 TEST test_operation_copy_schema_ref_basic(void) {
   struct OpenAPI_SchemaRef dst, src;
   memset(&dst, 0, sizeof(dst));
@@ -617,6 +677,10 @@ TEST test_operation_copy_schema_ref_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_response_has_media_type.
+ * @return Greatest test result.
+ */
 TEST test_operation_response_has_media_type(void) {
   struct OpenAPI_Response resp;
   int out = -1;
@@ -650,6 +714,10 @@ TEST test_operation_response_has_media_type(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_is_struct_pointer.
+ * @return Greatest test result.
+ */
 TEST test_operation_is_struct_pointer(void) {
   int is_dp = 0;
   int out = -1;
@@ -678,6 +746,10 @@ TEST test_operation_is_struct_pointer(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_doc_style_to_openapi.
+ * @return Greatest test result.
+ */
 TEST test_operation_doc_style_to_openapi(void) {
   enum OpenAPI_Style out;
   ASSERT_EQ(0, doc_style_to_openapi(DOC_PARAM_STYLE_FORM, &out));

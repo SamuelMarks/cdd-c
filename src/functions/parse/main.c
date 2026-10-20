@@ -110,11 +110,9 @@ C_CDD_EXPORT cdd_c_error_t print_version(void) {
 C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv) {
   struct AuditStats stats;
   cdd_c_error_t rc;
-  if (argc != 1)
+  if (argc != 1 || !argv)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  rc = audit_stats_init(&stats);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  audit_stats_init(&stats);
   rc = audit_project(argv[0], &stats);
   audit_stats_free(&stats);
   return rc;
@@ -198,11 +196,12 @@ C_CDD_EXPORT cdd_c_error_t print_help(const char *program_name) {
  */
 C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
   cdd_from_openapi_config_t api_cfg;
+  const char *subcmd_str = "to_sdk";
   int has_subcommand = 0;
   int i;
 
   memset(&api_cfg, 0, sizeof(api_cfg));
-  api_cfg.subcommand = "to_sdk";
+  api_cfg.subcommand = CDD_OPENAPI_SUBCOMMAND_TO_SDK;
   api_cfg.input =
       getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_FILE");
   api_cfg.input_dir =
@@ -212,17 +211,20 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
 
   if (argc > 1) {
     if (strcmp(argv[1], "to_sdk") == 0) {
-      api_cfg.subcommand = "to_sdk";
+      api_cfg.subcommand = CDD_OPENAPI_SUBCOMMAND_TO_SDK;
+      subcmd_str = "to_sdk";
       has_subcommand = 1;
       argc--;
       argv++;
     } else if (strcmp(argv[1], "to_sdk_cli") == 0) {
-      api_cfg.subcommand = "to_sdk_cli";
+      api_cfg.subcommand = CDD_OPENAPI_SUBCOMMAND_TO_SDK_CLI;
+      subcmd_str = "to_sdk_cli";
       has_subcommand = 1;
       argc--;
       argv++;
     } else if (strcmp(argv[1], "to_server") == 0) {
-      api_cfg.subcommand = "to_server";
+      api_cfg.subcommand = CDD_OPENAPI_SUBCOMMAND_TO_SERVER;
+      subcmd_str = "to_server";
       has_subcommand = 1;
       argc--;
       argv++;
@@ -232,10 +234,10 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
   for (i = 1; i < argc; i++) {
     if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
       if (has_subcommand) {
-        printf("Usage: cdd-c from_openapi %s [args]\n\n", api_cfg.subcommand);
-        if (strcmp(api_cfg.subcommand, "to_sdk") == 0) {
+        printf("Usage: cdd-c from_openapi %s [args]\n\n", subcmd_str);
+        if (api_cfg.subcommand == CDD_OPENAPI_SUBCOMMAND_TO_SDK) {
           puts("Generate a C Client SDK from an OpenAPI specification.");
-        } else if (strcmp(api_cfg.subcommand, "to_sdk_cli") == 0) {
+        } else if (api_cfg.subcommand == CDD_OPENAPI_SUBCOMMAND_TO_SDK_CLI) {
           puts("Generate a C Client SDK CLI from an OpenAPI specification.");
         } else {
           puts("Generate a C Server stub from an OpenAPI specification.");
@@ -274,11 +276,11 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
                i + 1 < argc) {
       api_cfg.output = argv[++i];
     } else if (strcmp(argv[i], "--no-github-actions") == 0) {
-      api_cfg.no_github_actions = 1;
+      api_cfg.no_github_actions = CDD_TRUE;
     } else if (strcmp(argv[i], "--no-installable-package") == 0) {
-      api_cfg.no_installable_package = 1;
+      api_cfg.no_installable_package = CDD_TRUE;
     } else if (strcmp(argv[i], "--tests") == 0) {
-      api_cfg.tests = 1;
+      api_cfg.tests = CDD_TRUE;
     }
   }
 
@@ -341,12 +343,19 @@ C_CDD_EXPORT cdd_c_error_t from_arazzo_cli_main(int argc, char **argv) {
   int i;
 
   memset(&cfg, 0, sizeof(cfg));
-  cfg.subcommand = "to_sdk";
+  cfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SDK;
 
   if (argc >= 2 && argv[1][0] != '-') {
-    if (strcmp(argv[1], "to_sdk") == 0 || strcmp(argv[1], "to_sdk_cli") == 0 ||
-        strcmp(argv[1], "to_server") == 0) {
-      cfg.subcommand = argv[1];
+    if (strcmp(argv[1], "to_sdk") == 0) {
+      cfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SDK;
+      argc--;
+      argv++;
+    } else if (strcmp(argv[1], "to_sdk_cli") == 0) {
+      cfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SDK_CLI;
+      argc--;
+      argv++;
+    } else if (strcmp(argv[1], "to_server") == 0) {
+      cfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SERVER;
       argc--;
       argv++;
     }

@@ -25,15 +25,9 @@
 #include <errno.h>
 #endif
 
+#include "c_cdd/context.h"
 #include "functions/parse/str.h"
 /* clang-format on */
-
-#ifdef CDD_BUILD_TESTS
-/**
- * @brief Counter to simulate failure in `c_cdd_strdup`.
- */
-extern C_CDD_EXPORT int g_cdd_strdup_fail;
-#endif
 
 /**
  * @brief Allocates a duplicate of a null-terminated string.
@@ -41,22 +35,13 @@ extern C_CDD_EXPORT int g_cdd_strdup_fail;
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
  */
 cdd_c_error_t c_cdd_strdup(const char *s, char **out_s) {
+  const cdd_context_t *ctx = NULL;
   if (s == NULL) {
     *out_s = NULL;
     return CDD_C_SUCCESS;
   }
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_strdup_fail && --g_cdd_strdup_fail == 0) {
-    *out_s = NULL;
-    return CDD_C_ERROR_MEMORY;
-  }
-#endif
-#ifdef _WIN32
-  *out_s = _strdup(s);
-#else
-  *out_s = strdup(s);
-#endif
-  return *out_s ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
+  cdd_context_get_global(&ctx);
+  return ctx->allocator.strdup_fn(s, out_s);
 }
 
 /**

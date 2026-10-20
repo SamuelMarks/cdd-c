@@ -18,6 +18,10 @@ extern "C" {
 #include "../mocks/emit/simple_json.h"
 /* clang-format on */
 
+/**
+ * @brief Helper function open_simple_json_tmp.
+ * @return Result status or value.
+ */
 static FILE *open_simple_json_tmp(void) {
   FILE *f = NULL;
   remove("simple_json_test_tmp.txt");
@@ -62,7 +66,6 @@ TEST test_simple_cleanup_and_null(void) {
   {
     struct Foo *foo = (struct Foo *)calloc(1, sizeof(*foo));
     cdd_c_error_t rc = 0;
-    (void)rc;
     ASSERT(foo != NULL);
     foo->haz = NULL;
     rc = Foo_cleanup(foo);
@@ -105,6 +108,10 @@ TEST test_foo_e_json(void) {
 extern SIMPLE_MOCKS_EXPORT int g_simple_json_fail_alloc;
 #endif
 
+/**
+ * @brief Unit test test_foo_e_full_coverage.
+ * @return Greatest test result.
+ */
 TEST test_foo_e_full_coverage(void) {
   struct FooE *foo_e = NULL;
   struct FooE *foo_e2 = NULL;
@@ -117,10 +124,8 @@ TEST test_foo_e_full_coverage(void) {
 #ifdef CDD_BUILD_TESTS
   int i;
   cdd_c_error_t rc = 0;
-  (void)rc;
 #endif
 
-  rc += 0;
   printf("DEBUG: test_foo_e_full_coverage started!\n");
   fflush(stdout);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_default(NULL));
@@ -421,6 +426,9 @@ TEST test_foo_e_full_coverage(void) {
           "{\"can\": 1, \"bar\": \"test\", \"haz\": {\"tank\": \"BIG\"}}");
       g_simple_json_fail_alloc = i;
       rc = FooE_from_jsonObject(json_value_get_object(v), &foo_e2);
+      if (rc != CDD_C_SUCCESS) {
+        ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+      }
       if (foo_e2) {
         FooE_cleanup(foo_e2);
         foo_e2 = NULL;
@@ -437,10 +445,13 @@ TEST test_foo_e_full_coverage(void) {
 #endif
   remove("simple_json_test_tmp.txt");
 
-  rc += 0;
   PASS();
 }
 
+/**
+ * @brief Unit test test_run_mocks_test.
+ * @return Greatest test result.
+ */
 TEST test_run_mocks_test(void) {
   int i;
   cdd_c_error_t rc = 0;

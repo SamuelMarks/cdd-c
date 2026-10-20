@@ -15,6 +15,10 @@ extern "C" {
 #include "emit/test_codegen_client_body_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_body_form_urlencoded.
+ * @return Greatest test result.
+ */
 TEST test_body_form_urlencoded(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -69,6 +73,10 @@ TEST test_body_form_urlencoded(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_form_urlencoded_with_params.
+ * @return Greatest test result.
+ */
 TEST test_body_form_urlencoded_with_params(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -120,6 +128,10 @@ TEST test_body_form_urlencoded_with_params(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_form_urlencoded_object_fields.
+ * @return Greatest test result.
+ */
 TEST test_body_form_urlencoded_object_fields(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -171,6 +183,10 @@ TEST test_body_form_urlencoded_object_fields(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_form_urlencoded_object_style_form_explode_true.
+ * @return Greatest test result.
+ */
 TEST test_body_form_urlencoded_object_style_form_explode_true(void) {
   struct OpenAPI_Encoding enc;
   struct OpenAPI_Response resp;
@@ -243,6 +259,10 @@ TEST test_body_form_urlencoded_object_style_form_explode_true(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_form_urlencoded_object_style_form_explode_false.
+ * @return Greatest test result.
+ */
 TEST test_body_form_urlencoded_object_style_form_explode_false(void) {
   struct OpenAPI_Encoding enc;
   struct OpenAPI_Response resp;
@@ -316,6 +336,10 @@ TEST test_body_form_urlencoded_object_style_form_explode_false(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_form_urlencoded_object_style_deep_object.
+ * @return Greatest test result.
+ */
 TEST test_body_form_urlencoded_object_style_deep_object(void) {
   struct OpenAPI_Encoding enc;
   struct OpenAPI_Response resp;
@@ -388,6 +412,10 @@ TEST test_body_form_urlencoded_object_style_deep_object(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_multipart_primitives_and_arrays.
+ * @return Greatest test result.
+ */
 TEST test_body_multipart_primitives_and_arrays(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -451,6 +479,10 @@ TEST test_body_multipart_primitives_and_arrays(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_multipart_object_fields.
+ * @return Greatest test result.
+ */
 TEST test_body_multipart_object_fields(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -504,6 +536,10 @@ TEST test_body_multipart_object_fields(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_multipart_encoding_content_type.
+ * @return Greatest test result.
+ */
 TEST test_body_multipart_encoding_content_type(void) {
   struct OpenAPI_Encoding enc;
   struct OpenAPI_Response resp;
@@ -564,6 +600,10 @@ TEST test_body_multipart_encoding_content_type(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_multipart_encoding_content_type_list.
+ * @return Greatest test result.
+ */
 TEST test_body_multipart_encoding_content_type_list(void) {
   struct OpenAPI_Encoding enc;
   struct OpenAPI_Response resp;
@@ -624,6 +664,10 @@ TEST test_body_multipart_encoding_content_type_list(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_multipart_encoding_headers.
+ * @return Greatest test result.
+ */
 TEST test_body_multipart_encoding_headers(void) {
   struct OpenAPI_Encoding enc;
   struct OpenAPI_Header headers[3];
@@ -697,6 +741,9 @@ TEST test_body_multipart_encoding_headers(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the client_body_forms_suite test suite.
+ */
 SUITE(client_body_forms_suite) {
   RUN_TEST(test_body_form_urlencoded);
   RUN_TEST(test_body_form_urlencoded_with_params);

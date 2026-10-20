@@ -9,7 +9,7 @@ extern "C" {
 /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
 /* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
 /**
- * @file test_unions.c
+ * @file test_unions.h
  * @brief Unit tests for Tagged Union code generation.
  * Verifies that the generator produces code that correctly handles
  * polymorphism (oneOf) via a discriminator tag.
@@ -28,11 +28,17 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 
 /* Add definitions that need to be in the test runner's main file. */
 
+/**
+ * @brief Unit test test_write_union_to_json.
+ * @return Greatest test result.
+ */
 TEST test_write_union_to_json(void) {
   struct StructFields sf;
   FILE *tmp;
@@ -79,6 +85,10 @@ TEST test_write_union_to_json(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_write_union_from_json_object.
+ * @return Greatest test result.
+ */
 TEST test_write_union_from_json_object(void) {
   struct StructFields sf;
   FILE *tmp;
@@ -122,6 +132,10 @@ TEST test_write_union_from_json_object(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_write_union_from_json.
+ * @return Greatest test result.
+ */
 TEST test_write_union_from_json(void) {
   struct StructFields sf;
   FILE *tmp;
@@ -163,6 +177,10 @@ TEST test_write_union_from_json(void) {
   g_fail_io_after = -1;
   PASS();
 }
+/**
+ * @brief Unit test test_write_union_cleanup.
+ * @return Greatest test result.
+ */
 TEST test_write_union_cleanup(void) {
   struct StructFields sf;
   FILE *tmp;
@@ -206,6 +224,9 @@ TEST test_write_union_cleanup(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the unions_suite test suite.
+ */
 SUITE(unions_suite) {
   RUN_TEST(test_write_union_to_json);
   RUN_TEST(test_write_union_from_json_object);

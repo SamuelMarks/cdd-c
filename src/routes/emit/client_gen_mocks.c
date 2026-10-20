@@ -22,31 +22,16 @@ cdd_c_error_t client_gen_emit_mocks(const char *dir_name,
                                     const struct OpenAPI_Spec *spec) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
   size_t i, j;
-
+  FILE *tfp = NULL;
   char tdir[512], tfile[640];
-  FILE *tfp;
-  CDD_SNPRINTF(tdir, sizeof(tdir), "%s/src/test", dir_name);
+  CDD_SNPRINTF(tdir, 512, "%s/src/test", dir_name);
   rc = makedirs(tdir);
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 51)
-    rc = CDD_C_ERROR_IO;
-#endif
   if (rc != CDD_C_SUCCESS) {
     goto cleanup;
   }
-  CDD_SNPRINTF(tfile, sizeof(tfile), "%s/test_sdk.c", tdir);
-#if defined(_MSC_VER)
-  if (fopen_s(&tfp, tfile, "w") != 0)
-    tfp = NULL;
-#else
-  tfp = fopen(tfile, "w");
-#endif
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 52) {
-    fclose(tfp);
-    tfp = NULL;
-  }
-#endif
+
+  CDD_SNPRINTF(tfile, 512, "%s/test_sdk.c", tdir);
+  cdd_vfs_fopen(tfile, "w", &tfp);
   if (tfp) {
     fprintf(tfp, "#include <stdio.h>\n#include <stdlib.h>\n#include "
                  "<string.h>\n#include \"generated_client_models.h\"\n#include "

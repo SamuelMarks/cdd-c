@@ -126,7 +126,7 @@ cdd_c_error_t gnu_standardize_expr(cdd_cst_tree_t *tree) {
           cdd_cst_free_node_only(temp);
         }
       }
-    } else if (tok->kind == CDD_TOKEN_LPAREN && tok->length > 0) {
+    } else if (tok->kind == CDD_TOKEN_LPAREN) {
       size_t k;
       int is_cast_lvalue = 0;
       size_t rparen_idx = 0;
@@ -195,7 +195,7 @@ cdd_c_error_t gnu_standardize_expr(cdd_cst_tree_t *tree) {
                val_len);
         buf[val_len + 1] = '\0';
         rc = cdd_pool_string_safe(tree, buf, &pooled);
-        free(buf);
+        C_CDD_FREE(buf);
         if (rc != CDD_C_SUCCESS)
           return rc;
         rc = replace_token_with_text(
@@ -260,11 +260,7 @@ cdd_c_error_t gnu_standardize_expr(cdd_cst_tree_t *tree) {
             break;
           }
         }
-        if (
-#ifdef CDD_BUILD_TESTS
-            g_gnu_standardizer_fail == 19 ||
-#endif
-            k == (size_t)-1) {
+        if (k == (size_t)-1) {
           lhs_start = 0;
         }
 
@@ -286,7 +282,7 @@ cdd_c_error_t gnu_standardize_expr(cdd_cst_tree_t *tree) {
           *p++ = ' ';
           *p = '\0';
           rc = cdd_pool_string_safe(tree, buf, &pooled);
-          free(buf);
+          C_CDD_FREE(buf);
           if (rc != CDD_C_SUCCESS)
             return rc;
           rc = replace_token_with_text(tree, tok, tok->kind, pooled,
@@ -310,15 +306,10 @@ cdd_c_error_t gnu_standardize_expr(cdd_cst_tree_t *tree) {
                                          "", 0);
             if (rc != CDD_C_SUCCESS)
               return rc;
-#ifdef CDD_BUILD_TESTS
-            if (g_gnu_standardizer_fail != 6)
-#endif
-            {
-              rc = replace_token_with_text(tree, &tree->base_tokens->tokens[k],
-                                           CDD_TOKEN_SEMICOLON, "; return;", 9);
-              if (rc != CDD_C_SUCCESS)
-                return rc;
-            }
+            rc = replace_token_with_text(tree, &tree->base_tokens->tokens[k],
+                                         CDD_TOKEN_SEMICOLON, "; return;", 9);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
             break;
           }
         }

@@ -450,7 +450,7 @@ static cdd_c_error_t parse_schema_ref_inner(const JSON_Object *schema,
     c_cdd_strdup(ref_val, &out->ref);
     if (!out->ref) {
       if (resolved.resolved_ref)
-        free(resolved.resolved_ref);
+        C_CDD_FREE(resolved.resolved_ref);
       return CDD_C_ERROR_MEMORY;
     }
     out->ref_is_dynamic = ref_is_dynamic ? 1 : 0;
@@ -458,13 +458,13 @@ static cdd_c_error_t parse_schema_ref_inner(const JSON_Object *schema,
       json_pointer_unescape(name_enc, &name_dec);
       if (!name_dec) {
         if (resolved.resolved_ref)
-          free(resolved.resolved_ref);
+          C_CDD_FREE(resolved.resolved_ref);
         return CDD_C_ERROR_MEMORY;
       }
       out->ref_name = name_dec;
     }
     if (resolved.resolved_ref)
-      free(resolved.resolved_ref);
+      C_CDD_FREE(resolved.resolved_ref);
     return CDD_C_SUCCESS;
   }
 
@@ -596,7 +596,7 @@ static cdd_c_error_t parse_schema_ref_inner(const JSON_Object *schema,
         c_cdd_strdup(item_ref_val, &out->items_ref);
         if (!out->items_ref) {
           if (resolved.resolved_ref)
-            free(resolved.resolved_ref);
+            C_CDD_FREE(resolved.resolved_ref);
           return CDD_C_ERROR_MEMORY;
         }
         out->items_ref_is_dynamic = item_ref_is_dynamic ? 1 : 0;
@@ -604,13 +604,13 @@ static cdd_c_error_t parse_schema_ref_inner(const JSON_Object *schema,
           json_pointer_unescape(name_enc, &name_dec);
           if (!name_dec) {
             if (resolved.resolved_ref)
-              free(resolved.resolved_ref);
+              C_CDD_FREE(resolved.resolved_ref);
             return CDD_C_ERROR_MEMORY;
           }
           out->ref_name = name_dec;
         }
         if (resolved.resolved_ref)
-          free(resolved.resolved_ref);
+          C_CDD_FREE(resolved.resolved_ref);
         return CDD_C_SUCCESS;
       }
       if (item_type) {

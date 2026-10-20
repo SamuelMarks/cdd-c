@@ -20,6 +20,7 @@
  */
 cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
   if (uc) {
+    cdd_c_error_t rc = CDD_C_SUCCESS;
     cdd_code_writer_t w;
     cdd_code_writer_init_stream(&w, uc);
     cdd_code_writer_write(
@@ -405,7 +406,9 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
                               "  return CDD_C_SUCCESS;\n"
                               "}\n"
                               "\n");
+    cdd_code_writer_check_error(&w, &rc);
     cdd_code_writer_free(&w);
+    return rc;
   }
   return CDD_C_SUCCESS;
 }

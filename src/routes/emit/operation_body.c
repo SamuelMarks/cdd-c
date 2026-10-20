@@ -21,16 +21,6 @@
 #include "routes/emit/operation.h"
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-#undef malloc
-#define malloc(sz) C_CDD_MALLOC(sz)
-#undef realloc
-#define realloc(ptr, sz) C_CDD_REALLOC(ptr, sz)
-#undef calloc
-#define calloc(n, sz) C_CDD_CALLOC(n, sz)
-extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
-#endif
-
 /**
  * @brief Populates an OpenAPI_Any variant from a Parson JSON_Value.
  */
@@ -68,17 +58,6 @@ cdd_c_error_t any_from_json_value(const JSON_Value *val,
   case JSONObject:
   case JSONArray:
     json_str = json_serialize_to_string(val);
-#ifdef CDD_BUILD_TESTS
-    if (g_cdd_fail_json_serialize) {
-      g_cdd_fail_json_serialize = 0;
-      json_free_serialized_string(json_str);
-      json_str = NULL;
-    }
-#endif
-    if (!json_str) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return CDD_C_ERROR_MEMORY;
-    }
     out->type = OA_ANY_JSON;
     rc = c_cdd_strdup(json_str, &out->json);
     json_free_serialized_string(json_str);
@@ -127,10 +106,10 @@ void free_any_value_local(struct OpenAPI_Any *val) {
     return;
   if (val->type == OA_ANY_STRING) {
     if (val->string)
-      free(val->string);
+      C_CDD_FREE(val->string);
   } else if (val->type == OA_ANY_JSON) {
     if (val->json)
-      free(val->json);
+      C_CDD_FREE(val->json);
   }
   memset(val, 0, sizeof(*val));
 }
@@ -180,19 +159,19 @@ void free_openapi_server_variables_op(struct OpenAPI_Server *srv) {
     size_t e;
     struct OpenAPI_ServerVariable *var = &srv->variables[i];
     if (var->name)
-      free(var->name);
+      C_CDD_FREE(var->name);
     if (var->default_value)
-      free(var->default_value);
+      C_CDD_FREE(var->default_value);
     if (var->description)
-      free(var->description);
+      C_CDD_FREE(var->description);
     if (var->enum_values) {
       for (e = 0; e < var->n_enum_values; ++e) {
-        free(var->enum_values[e]);
+        C_CDD_FREE(var->enum_values[e]);
       }
-      free(var->enum_values);
+      C_CDD_FREE(var->enum_values);
     }
   }
-  free(srv->variables);
+  C_CDD_FREE(srv->variables);
   srv->variables = NULL;
   srv->n_variables = 0;
 }
@@ -207,7 +186,7 @@ cdd_c_error_t copy_doc_server_variables_op(struct OpenAPI_Server *dst,
   if (!dst || !src || src->n_variables == 0)
     return CDD_C_SUCCESS;
 
-  dst->variables = (struct OpenAPI_ServerVariable *)calloc(
+  dst->variables = (struct OpenAPI_ServerVariable *)C_CDD_CALLOC(
       src->n_variables, sizeof(struct OpenAPI_ServerVariable));
   if (!dst->variables) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -244,7 +223,8 @@ cdd_c_error_t copy_doc_server_variables_op(struct OpenAPI_Server *dst,
       }
     }
     if (sv->enum_values && sv->n_enum_values > 0) {
-      dv->enum_values = (char **)calloc(sv->n_enum_values, sizeof(char *));
+      dv->enum_values =
+          (char **)C_CDD_CALLOC(sv->n_enum_values, sizeof(char *));
       if (!dv->enum_values) {
         free_openapi_server_variables_op(dst);
         return CDD_C_ERROR_MEMORY;
@@ -331,23 +311,23 @@ cdd_c_error_t schema_ref_has_data_basic(const struct OpenAPI_SchemaRef *ref,
  */
 static void free_schema_ref_fields(struct OpenAPI_SchemaRef *ref) {
   if (ref->ref_name) {
-    free(ref->ref_name);
+    C_CDD_FREE(ref->ref_name);
     ref->ref_name = NULL;
   }
   if (ref->ref) {
-    free(ref->ref);
+    C_CDD_FREE(ref->ref);
     ref->ref = NULL;
   }
   if (ref->inline_type) {
-    free(ref->inline_type);
+    C_CDD_FREE(ref->inline_type);
     ref->inline_type = NULL;
   }
   if (ref->items_ref) {
-    free(ref->items_ref);
+    C_CDD_FREE(ref->items_ref);
     ref->items_ref = NULL;
   }
   if (ref->format) {
-    free(ref->format);
+    C_CDD_FREE(ref->format);
     ref->format = NULL;
   }
 }
@@ -463,7 +443,7 @@ cdd_c_error_t init_media_type_from_request_body(
     if (is_item_schema) {
       rc = copy_schema_ref_basic(&mt->item_schema, &op->req_body);
       if (rc != CDD_C_SUCCESS) {
-        free(mt->name);
+        C_CDD_FREE(mt->name);
         mt->name = NULL;
         return rc;
       }
@@ -471,7 +451,7 @@ cdd_c_error_t init_media_type_from_request_body(
     } else {
       rc = copy_schema_ref_basic(&mt->schema, &op->req_body);
       if (rc != CDD_C_SUCCESS) {
-        free(mt->name);
+        C_CDD_FREE(mt->name);
         mt->name = NULL;
         return rc;
       }
@@ -496,7 +476,7 @@ cdd_c_error_t add_request_body_media_type(struct OpenAPI_Operation *op,
 
   if (!op->req_body_media_types) {
     size_t base = op->req_body.content_type ? 1 : 0;
-    op->req_body_media_types = (struct OpenAPI_MediaType *)calloc(
+    op->req_body_media_types = (struct OpenAPI_MediaType *)C_CDD_CALLOC(
         base + 1, sizeof(struct OpenAPI_MediaType));
     if (!op->req_body_media_types) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -517,7 +497,7 @@ cdd_c_error_t add_request_body_media_type(struct OpenAPI_Operation *op,
     return CDD_C_SUCCESS;
 
   new_count = op->n_req_body_media_types + 1;
-  new_mts = (struct OpenAPI_MediaType *)realloc(
+  new_mts = (struct OpenAPI_MediaType *)C_CDD_REALLOC(
       op->req_body_media_types, new_count * sizeof(struct OpenAPI_MediaType));
   if (!new_mts) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");

@@ -1,3 +1,7 @@
+/**
+ * @file test_dsl_parser_branches.h
+ * @brief Unit tests and mocks in test_dsl_parser_branches.h.
+ */
 #ifndef TEST_DSL_PARSER_BRANCHES_H
 #define TEST_DSL_PARSER_BRANCHES_H
 
@@ -10,16 +14,19 @@ extern "C" {
 #include "../cdd_test_helpers/cdd_helpers.h"
 /* clang-format on */
 
+/** @brief Test definition g_ffi_extractor_alloc_fail. */
 extern C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
 
+/**
+ * @brief Unit test test_dsl_parser_oom.
+ * @return Greatest test result.
+ */
 TEST test_dsl_parser_oom(void) {
   cdd_dsl_token_list_t list;
   cdd_ffi_ir_t *ir = NULL;
   const char *source = "func foo() {}";
   cdd_c_error_t rc;
-  (void)rc;
 
-  (void)rc;
   rc = cdd_dsl_tokenize(source, &list);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
 
@@ -27,18 +34,21 @@ TEST test_dsl_parser_oom(void) {
   g_fail_io_after = 1;
   rc = cdd_dsl_parse(&list, &ir);
   g_fail_io_after = 0;
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   if (ir) {
     cdd_ffi_ir_free(ir);
     free(ir);
     ir = NULL;
   }
 
-  /* ASSERT_EQ_FMT(CDD_C_ERROR_MEMORY, rc, "%d"); */
-
   cdd_dsl_token_list_free(&list);
   PASS();
 }
 
+/**
+ * @brief Unit test test_dsl_parser_exhaustive_oom.
+ * @return Greatest test result.
+ */
 TEST test_dsl_parser_exhaustive_oom(void) {
   cdd_dsl_token_list_t list;
   cdd_ffi_ir_t *ir = NULL;
@@ -50,7 +60,6 @@ TEST test_dsl_parser_exhaustive_oom(void) {
   cdd_c_error_t rc;
   int i;
 
-  (void)rc;
   rc = cdd_dsl_tokenize(source, &list);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
 
@@ -76,6 +85,10 @@ TEST test_dsl_parser_exhaustive_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_dsl_parser_missing_oom.
+ * @return Greatest test result.
+ */
 TEST test_dsl_parser_missing_oom(void) {
   cdd_dsl_token_list_t list;
   cdd_ffi_ir_t *ir = NULL;
@@ -87,7 +100,6 @@ TEST test_dsl_parser_missing_oom(void) {
                        "/* t */ enum MyEnum { Variant1 = 1 }\n"
                        "func bar() { unknown_token body %{ a }% }\n";
 
-  (void)rc;
   rc = cdd_dsl_tokenize(source, &list);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
 
@@ -103,6 +115,7 @@ TEST test_dsl_parser_missing_oom(void) {
   }
   g_ffi_extractor_alloc_fail = 0;
   rc = cdd_dsl_parse(&list, &ir);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   cdd_dsl_token_list_free(&list);
   if (ir) {
     cdd_ffi_ir_free(ir);
@@ -111,15 +124,19 @@ TEST test_dsl_parser_missing_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_dsl_parser_missing_eof.
+ * @return Greatest test result.
+ */
 TEST test_dsl_parser_missing_eof(void) {
   cdd_dsl_token_list_t list;
   cdd_ffi_ir_t *ir = NULL;
   cdd_c_error_t rc;
 
-  (void)rc;
-
   rc = cdd_dsl_tokenize("func foo(i32 arg ", &list);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   rc = cdd_dsl_parse(&list, &ir);
+  ASSERT_EQ_FMT(CDD_C_ERROR_PARSE, rc, "%d");
   cdd_dsl_token_list_free(&list);
   if (ir) {
     cdd_ffi_ir_free(ir);
@@ -128,7 +145,9 @@ TEST test_dsl_parser_missing_eof(void) {
   }
 
   rc = cdd_dsl_tokenize("func foo() { body %{ ", &list);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   rc = cdd_dsl_parse(&list, &ir);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   cdd_dsl_token_list_free(&list);
   if (ir) {
     cdd_ffi_ir_free(ir);
@@ -137,7 +156,9 @@ TEST test_dsl_parser_missing_eof(void) {
   }
 
   rc = cdd_dsl_tokenize("func foo() { body %{ a ", &list);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   rc = cdd_dsl_parse(&list, &ir);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   cdd_dsl_token_list_free(&list);
   if (ir) {
     cdd_ffi_ir_free(ir);
@@ -148,6 +169,10 @@ TEST test_dsl_parser_missing_eof(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_dsl_parser_invalid.
+ * @return Greatest test result.
+ */
 TEST test_dsl_parser_invalid(void) {
   cdd_dsl_token_list_t list;
   cdd_ffi_ir_t *ir = NULL;
@@ -521,6 +546,10 @@ TEST test_dsl_parser_invalid(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_dsl_parser_enum_oom.
+ * @return Greatest test result.
+ */
 TEST test_dsl_parser_enum_oom(void) {
   cdd_dsl_token_list_t list;
   cdd_ffi_ir_t *ir = NULL;
@@ -545,6 +574,10 @@ TEST test_dsl_parser_enum_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_dsl_parser_missing_branches.
+ * @return Greatest test result.
+ */
 TEST test_dsl_parser_missing_branches(void) {
   cdd_dsl_token_list_t list;
   cdd_ffi_ir_t *ir = NULL;
@@ -569,11 +602,11 @@ TEST test_dsl_parser_missing_branches(void) {
       "pure func p() = 0;\n"
       "virtual \n";
 
-  (void)rc;
   rc = cdd_dsl_tokenize(source, &list);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
 
   rc = cdd_dsl_parse(&list, &ir);
+  ASSERT_EQ_FMT(CDD_C_ERROR_PARSE, rc, "%d");
 
   cdd_dsl_token_list_free(&list);
   if (ir) {
@@ -601,6 +634,7 @@ TEST test_dsl_parser_missing_branches(void) {
       }
     }
     rc = cdd_dsl_parse(&list, &ir);
+    ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
     cdd_dsl_token_list_free(&list);
     if (ir) {
       cdd_ffi_ir_free(ir);
@@ -611,7 +645,9 @@ TEST test_dsl_parser_missing_branches(void) {
 
   /* EOF tests */
   rc = cdd_dsl_tokenize("func my_f([", &list);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   rc = cdd_dsl_parse(&list, &ir);
+  ASSERT_EQ_FMT(CDD_C_ERROR_PARSE, rc, "%d");
   cdd_dsl_token_list_free(&list);
   if (ir) {
     cdd_ffi_ir_free(ir);
@@ -621,7 +657,9 @@ TEST test_dsl_parser_missing_branches(void) {
 
   rc = cdd_dsl_tokenize("func f([@len=123] i32 a, [@unknown_attr] i32 b) = 0;",
                         &list);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   rc = cdd_dsl_parse(&list, &ir);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   cdd_dsl_token_list_free(&list);
   if (ir) {
     cdd_ffi_ir_free(ir);
@@ -630,7 +668,9 @@ TEST test_dsl_parser_missing_branches(void) {
   }
 
   rc = cdd_dsl_tokenize("struct S { i32 a; }", &list);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   rc = cdd_dsl_parse(&list, &ir);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   cdd_dsl_token_list_free(&list);
   if (ir) {
     cdd_ffi_ir_free(ir);
@@ -639,7 +679,9 @@ TEST test_dsl_parser_missing_branches(void) {
   }
 
   rc = cdd_dsl_tokenize("namespace my_ns { ", &list);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   rc = cdd_dsl_parse(&list, &ir);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   cdd_dsl_token_list_free(&list);
   if (ir) {
     cdd_ffi_ir_free(ir);
@@ -648,7 +690,9 @@ TEST test_dsl_parser_missing_branches(void) {
   }
 
   rc = cdd_dsl_tokenize("enum E { A=1, ", &list);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   rc = cdd_dsl_parse(&list, &ir);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   cdd_dsl_token_list_free(&list);
   if (ir) {
     cdd_ffi_ir_free(ir);
@@ -657,7 +701,9 @@ TEST test_dsl_parser_missing_branches(void) {
   }
 
   rc = cdd_dsl_tokenize("macro_expr M(A, ", &list);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   rc = cdd_dsl_parse(&list, &ir);
+  ASSERT_EQ_FMT(CDD_C_ERROR_PARSE, rc, "%d");
   cdd_dsl_token_list_free(&list);
   if (ir) {
     cdd_ffi_ir_free(ir);
@@ -666,7 +712,9 @@ TEST test_dsl_parser_missing_branches(void) {
   }
 
   rc = cdd_dsl_tokenize("macro_expr M() = body;", &list);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   rc = cdd_dsl_parse(&list, &ir);
+  ASSERT_EQ_FMT(CDD_C_ERROR_PARSE, rc, "%d");
   cdd_dsl_token_list_free(&list);
   if (ir) {
     cdd_ffi_ir_free(ir);
@@ -675,7 +723,9 @@ TEST test_dsl_parser_missing_branches(void) {
   }
 
   rc = cdd_dsl_tokenize("func f() ", &list);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   rc = cdd_dsl_parse(&list, &ir);
+  ASSERT_EQ_FMT(CDD_C_ERROR_PARSE, rc, "%d");
   cdd_dsl_token_list_free(&list);
   if (ir) {
     cdd_ffi_ir_free(ir);
@@ -686,17 +736,23 @@ TEST test_dsl_parser_missing_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_dsl_parser_manual_branches.
+ * @return Greatest test result.
+ */
 TEST test_dsl_parser_manual_branches(void) {
   cdd_dsl_token_list_t list;
   cdd_ffi_ir_t *ir = NULL;
   cdd_c_error_t rc;
   cdd_dsl_token_t toks[5];
 
-  (void)rc;
   rc = cdd_dsl_parse(NULL, &ir);
+  ASSERT_EQ_FMT(CDD_C_ERROR_INVALID_ARGUMENT, rc, "%d");
 
   rc = cdd_dsl_tokenize("func f() {}", &list);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   rc = cdd_dsl_parse(&list, NULL);
+  ASSERT_EQ_FMT(CDD_C_ERROR_INVALID_ARGUMENT, rc, "%d");
   cdd_dsl_token_list_free(&list);
 
   memset(toks, 0, sizeof(toks));
@@ -710,6 +766,7 @@ TEST test_dsl_parser_manual_branches(void) {
   list.tokens = toks;
 
   rc = cdd_dsl_parse(&list, &ir);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   if (ir) {
     cdd_ffi_ir_free(ir);
     free(ir);
@@ -721,6 +778,7 @@ TEST test_dsl_parser_manual_branches(void) {
   toks[1].length = 1;
 
   rc = cdd_dsl_parse(&list, &ir);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   if (ir) {
     cdd_ffi_ir_free(ir);
     free(ir);
@@ -739,6 +797,7 @@ TEST test_dsl_parser_manual_branches(void) {
   list.count = 3;
   list.tokens = toks;
   rc = cdd_dsl_parse(&list, &ir);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   if (ir) {
     cdd_ffi_ir_free(ir);
     free(ir);
@@ -749,6 +808,7 @@ TEST test_dsl_parser_manual_branches(void) {
   toks[1].text_copy = cdd_test_mut_str("\"");
   toks[1].length = 1;
   rc = cdd_dsl_parse(&list, &ir);
+  ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   if (ir) {
     cdd_ffi_ir_free(ir);
     free(ir);
@@ -758,6 +818,9 @@ TEST test_dsl_parser_manual_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the dsl_parser_branches_suite test suite.
+ */
 SUITE(dsl_parser_branches_suite) {
   RUN_TEST(test_dsl_parser_missing_branches);
   RUN_TEST(test_dsl_parser_manual_branches);

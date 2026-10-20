@@ -1,3 +1,7 @@
+/**
+ * @file test_cdd_lexer.h
+ * @brief Unit tests and mocks in test_cdd_lexer.h.
+ */
 #ifndef TEST_CDD_LEXER_H
 #define TEST_CDD_LEXER_H
 
@@ -13,10 +17,7 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern C_CDD_EXPORT int g_cdd_lexer_trivia_fail;
-extern C_CDD_EXPORT int g_cdd_lexer_id2_fail;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
-extern C_CDD_EXPORT int g_cdd_lexer_id_fail;
 
 /**
  * @brief test_cdd_lexer_basic
@@ -250,6 +251,7 @@ TEST test_cdd_lexer_cpp_keywords(void) {
 
 /**
  * @brief cdd_lexer_suite
+ * @return Test or helper result.
  */
 
 #ifdef CDD_BUILD_TESTS
@@ -298,7 +300,7 @@ TEST test_cdd_lexer_oom(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_t5);
   tl = NULL;
 
-  g_cdd_cst_alloc_token_fail = 4;
+  g_cdd_cst_realloc_fail = 1;
   tl = NULL;
   rc_t4 = cdd_lexer_tokenize(
       az_span_create_from_str("1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 "
@@ -311,7 +313,7 @@ TEST test_cdd_lexer_oom(void) {
                               "83 84 85 86 87 88 89 90 91 "
                               "92 93 94 95 96 97 98 99"),
       &tl);
-  g_cdd_cst_alloc_token_fail = 0;
+  g_cdd_cst_realloc_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_t4);
   tl = NULL;
   g_fail_io_after = -1;
@@ -327,12 +329,13 @@ TEST test_lexer_branches(void) {
   const char *code2;
   code = "int\r\nmain() { /* c1 */ /* c2 */ }";
   rc = cdd_lexer_tokenize(az_span_create_from_str(code), &list);
-  (void)rc;
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
   cdd_lexer_free_token_list(list);
 
   list = NULL;
   code2 = "/* multiline \r\n comment *";
   rc = cdd_lexer_tokenize(az_span_create_from_str(code2), &list);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
   cdd_lexer_free_token_list(list);
 
   list = NULL;
@@ -517,47 +520,44 @@ TEST test_lexer_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_lexer_oom_injected.
+ * @return Greatest test result.
+ */
 TEST test_lexer_oom_injected(void) {
   cdd_token_list_t *tl = NULL;
+  int r1, r2, r3, r4;
 
-  /* extern C_CDD_EXPORT int g_cdd_lexer_trivia_fail; (moved to global) */
-  g_cdd_lexer_trivia_fail = 1;
-  {
-    int r1 = cdd_lexer_tokenize(
-        az_span_create((uint8_t *)(size_t) "// trivia", 10), &tl);
-    g_cdd_lexer_trivia_fail = 0;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, r1);
+  g_cdd_alloc_fail = 1;
+  r1 = cdd_lexer_tokenize(az_span_create((uint8_t *)(size_t) "// trivia", 9),
+                          &tl);
+  g_cdd_alloc_fail = 0;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, r1);
 
-    g_cdd_lexer_trivia_fail = 1;
-    {
-      int r2 =
-          cdd_lexer_tokenize(az_span_create((uint8_t *)(size_t) "   ", 3), &tl);
-      g_cdd_lexer_trivia_fail = 0;
-      ASSERT_EQ(CDD_C_ERROR_MEMORY, r2);
+  g_cdd_alloc_fail = 2;
+  r2 = cdd_lexer_tokenize(az_span_create((uint8_t *)(size_t) "   ", 3), &tl);
+  g_cdd_alloc_fail = 0;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, r2);
 
-      /* extern C_CDD_EXPORT int g_cdd_lexer_id_fail; (moved to global) */
-      g_cdd_lexer_id_fail = 1;
-      {
-        int r3 = cdd_lexer_tokenize(
-            az_span_create((uint8_t *)(size_t) "my_var", 6), &tl);
-        g_cdd_lexer_id_fail = 0;
-        ASSERT_EQ(CDD_C_ERROR_MEMORY, r3);
+  g_cdd_alloc_fail = 3;
+  r3 = cdd_lexer_tokenize(az_span_create((uint8_t *)(size_t) "// trivia", 9),
+                          &tl);
+  g_cdd_alloc_fail = 0;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, r3);
 
-        /* extern C_CDD_EXPORT int g_cdd_lexer_id2_fail; (moved to global) */
-        g_cdd_lexer_id2_fail = 1;
-        {
-          int r4 = cdd_lexer_tokenize(
-              az_span_create((uint8_t *)(size_t) "my_var", 6), &tl);
-          g_cdd_lexer_id2_fail = 0;
-          ASSERT_EQ(CDD_C_ERROR_MEMORY, r4);
+  /* Test cleanup of pending_trivia_head when second trivia allocation fails */
+  g_cdd_alloc_fail = 4;
+  r4 = cdd_lexer_tokenize(
+      az_span_create((uint8_t *)(size_t) "/* c1 */  my_var", 16), &tl);
+  g_cdd_alloc_fail = 0;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, r4);
 
-          PASS();
-        }
-      }
-    }
-  }
+  PASS();
 }
 
+/**
+ * @brief Executes the cdd_lexer_suite test suite.
+ */
 SUITE(cdd_lexer_suite) {
   RUN_TEST(test_lexer_oom_injected);
   RUN_TEST(test_lexer_branches);

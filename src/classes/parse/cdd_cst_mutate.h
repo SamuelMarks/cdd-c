@@ -18,9 +18,9 @@ extern "C" {
  * @brief Swaps old_node with new_node in the parent's children array.
  *        Original leading/trailing trivia of old_node is preserved and attached
  * to new_node.
- * @param tree The CST tree.
- * @param old_node The node to be replaced.
- * @param new_node The new node to insert.
+ * @param[in,out] tree The CST tree.
+ * @param[in,out] old_node The node to be replaced.
+ * @param[in,out] new_node The new node to insert.
  * @return 0 on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t cdd_cst_replace_node(
@@ -28,8 +28,8 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_cst_replace_node(
 
 /**
  * @brief Inserts new_node into the parent's children array before target.
- * @param target_node The node to insert before.
- * @param new_node The node to insert.
+ * @param[in,out] target_node The node to insert before.
+ * @param[in,out] new_node The node to insert.
  * @return 0 on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t cdd_cst_insert_node_before(
@@ -37,8 +37,8 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_cst_insert_node_before(
 
 /**
  * @brief Inserts new_node into the parent's children array after target.
- * @param target_node The node to insert after.
- * @param new_node The node to insert.
+ * @param[in,out] target_node The node to insert after.
+ * @param[in,out] new_node The node to insert.
  * @return 0 on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t cdd_cst_insert_node_after(
@@ -47,8 +47,8 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_cst_insert_node_after(
 /**
  * @brief Detaches target node from its parent.
  *        Safely cleans up orphaned adjacent whitespace/newlines.
- * @param tree The CST tree.
- * @param node The node to detach.
+ * @param[in,out] tree The CST tree.
+ * @param[in,out] node The node to detach.
  * @return 0 on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t cdd_cst_detach_node(cdd_cst_tree_t *tree,
@@ -57,9 +57,9 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_cst_detach_node(cdd_cst_tree_t *tree,
 /**
  * @brief Clones a tree deeply (including tokens and trivia).
  *        The tokens are added to the tree's synthesized_tokens array.
- * @param tree The CST tree.
- * @param root The root node to clone.
- * @param out_clone The cloned node.
+ * @param[in,out] tree The CST tree.
+ * @param[in,out] root The root node to clone.
+ * @param[out] out_clone The cloned node.
  * @return 0 on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t cdd_cst_clone_tree(
@@ -161,8 +161,8 @@ extern cdd_c_error_t track_synthesized_token_mutate(cdd_cst_tree_t *tree,
 
 /**
  * @brief Removes a child from a node's children array in-place.
- * @param node The node to modify.
- * @param idx The index of the child to remove.
+ * @param[in,out] node The node to modify.
+ * @param[in] idx The index of the child to remove.
  * @return 0 on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t cdd_cst_remove_child(cdd_cst_node_t *node,
@@ -170,9 +170,9 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_cst_remove_child(cdd_cst_node_t *node,
 
 /**
  * @brief Replaces a token child with a new token in-place.
- * @param node The node to modify.
- * @param idx The index of the child to replace.
- * @param new_tok The new token.
+ * @param[in,out] node The node to modify.
+ * @param[in] idx The index of the child to replace.
+ * @param[in,out] new_tok The new token.
  * @return 0 on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t cdd_cst_replace_token_child(

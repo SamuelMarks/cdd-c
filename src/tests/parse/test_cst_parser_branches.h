@@ -24,7 +24,6 @@ extern "C" {
 
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
-extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 extern C_CDD_EXPORT int g_cdd_fail_alloc;
 extern C_CDD_EXPORT int g_cdd_fail_skip_ws;
@@ -38,9 +37,12 @@ extern C_CDD_EXPORT int g_cdd_fail_is_expression_brace;
 extern C_CDD_EXPORT int g_cdd_fail_consume_balanced_braces;
 extern C_CDD_EXPORT int g_cdd_fail_match_function_definition;
 extern C_CDD_EXPORT int g_cdd_fail_cst_list_add;
-extern C_CDD_EXPORT int g_cdd_fail_token_matches_string;
 #endif
 
+/**
+ * @brief Unit test parse_tokens_oom.
+ * @return Greatest test result.
+ */
 TEST parse_tokens_oom(void) {
 #ifdef CDD_BUILD_TESTS
   {
@@ -125,6 +127,10 @@ TEST parse_tokens_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cst_branches.
+ * @return Greatest test result.
+ */
 TEST test_cst_branches(void) {
   struct CstNode *out_node_ptr = NULL;
   ASSERT_EQ(0, cst_find_first(NULL, 0, &out_node_ptr));
@@ -181,6 +187,10 @@ TEST test_cst_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parse_tokens_attributes.
+ * @return Greatest test result.
+ */
 TEST test_parse_tokens_attributes(void) {
   struct TokenList *tl = NULL, *tl2 = NULL, *tl3 = NULL, *tl4 = NULL,
                    *tl5 = NULL;
@@ -284,6 +294,10 @@ TEST test_parse_tokens_attributes(void) {
 
   PASS();
 }
+/**
+ * @brief Unit test test_parse_tokens_static_assert.
+ * @return Greatest test result.
+ */
 TEST test_parse_tokens_static_assert(void) {
   struct TokenList *tl = NULL, *tl2 = NULL, *tl3 = NULL, *tl4 = NULL,
                    *tl5 = NULL;

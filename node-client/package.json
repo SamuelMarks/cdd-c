@@ -1,13 +1,18 @@
 {
   "name": "client",
   "version": "0.0.4",
-  "description": "",
-  "main": "index.js",
+  "description": "TypeScript client and integration test suite for cdd-c",
+  "main": "src/client.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "cdd-c",
+    "openapi",
+    "arazzo"
+  ],
+  "author": "Samuel Marks",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {

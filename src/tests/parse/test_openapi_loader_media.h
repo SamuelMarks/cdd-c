@@ -14,6 +14,10 @@ extern "C" {
 #include "parse/test_openapi_loader_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_load_response_multiple_content.
+ * @return Greatest test result.
+ */
 TEST test_load_response_multiple_content(void) {
   struct OpenAPI_MediaType *_ast_find_media_type_1;
 
@@ -65,6 +69,10 @@ TEST test_load_response_multiple_content(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_request_body_multiple_content_with_ref.
+ * @return Greatest test result.
+ */
 TEST test_load_request_body_multiple_content_with_ref(void) {
   struct OpenAPI_MediaType *_ast_find_media_type_2;
 
@@ -123,6 +131,10 @@ TEST test_load_request_body_multiple_content_with_ref(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_media_type_encoding.
+ * @return Greatest test result.
+ */
 TEST test_load_media_type_encoding(void) {
 
   const char json[] = {
@@ -168,6 +180,10 @@ TEST test_load_media_type_encoding(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_media_type_prefix_item_encoding.
+ * @return Greatest test result.
+ */
 TEST test_load_media_type_prefix_item_encoding(void) {
 
   const char json[] = {
@@ -222,6 +238,10 @@ TEST test_load_media_type_prefix_item_encoding(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_info_metadata.
+ * @return Greatest test result.
+ */
 TEST test_load_info_metadata(void) {
 
   const char json[] = {
@@ -267,6 +287,10 @@ TEST test_load_info_metadata(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_info_missing_title_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_info_missing_title_rejected(void) {
 
   const char *json =
@@ -280,6 +304,10 @@ TEST test_load_info_missing_title_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_info_missing_version_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_info_missing_version_rejected(void) {
 
   const char *json =
@@ -293,6 +321,10 @@ TEST test_load_info_missing_version_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_license_identifier_and_url_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_license_identifier_and_url_rejected(void) {
 
   const char *json =
@@ -310,6 +342,10 @@ TEST test_load_license_identifier_and_url_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_license_missing_name_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_license_missing_name_rejected(void) {
 
   const char *json = "{\"openapi\":\"3.2.0\",\"info\":{"
@@ -325,6 +361,10 @@ TEST test_load_license_missing_name_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_operation_metadata.
+ * @return Greatest test result.
+ */
 TEST test_load_operation_metadata(void) {
 
   const char *json = "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\","
@@ -346,6 +386,10 @@ TEST test_load_operation_metadata(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_response_content_type.
+ * @return Greatest test result.
+ */
 TEST test_load_response_content_type(void) {
 
   const char *json =
@@ -369,6 +413,10 @@ TEST test_load_response_content_type(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_response_content_type_specificity.
+ * @return Greatest test result.
+ */
 TEST test_load_response_content_type_specificity(void) {
 
   const char json[] = {
@@ -398,6 +446,10 @@ TEST test_load_response_content_type_specificity(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_response_content_type_params_json.
+ * @return Greatest test result.
+ */
 TEST test_load_response_content_type_params_json(void) {
 
   const char *json =
@@ -418,6 +470,10 @@ TEST test_load_response_content_type_params_json(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_inline_response_schema_primitive.
+ * @return Greatest test result.
+ */
 TEST test_load_inline_response_schema_primitive(void) {
 
   const char *json =
@@ -438,6 +494,10 @@ TEST test_load_inline_response_schema_primitive(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_inline_response_schema_array.
+ * @return Greatest test result.
+ */
 TEST test_load_inline_response_schema_array(void) {
 
   const char *json =
@@ -459,6 +519,10 @@ TEST test_load_inline_response_schema_array(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_inline_schema_format_and_content.
+ * @return Greatest test result.
+ */
 TEST test_load_inline_schema_format_and_content(void) {
 
   const char json[] = {
@@ -496,6 +560,10 @@ TEST test_load_inline_schema_format_and_content(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_inline_schema_array_item_format_and_content.
+ * @return Greatest test result.
+ */
 TEST test_load_inline_schema_array_item_format_and_content(void) {
 
   const char *json =
@@ -524,6 +592,10 @@ TEST test_load_inline_schema_array_item_format_and_content(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_inline_schema_const_examples_annotations.
+ * @return Greatest test result.
+ */
 TEST test_load_inline_schema_const_examples_annotations(void) {
 
   const char json[] = {
@@ -577,6 +649,10 @@ TEST test_load_inline_schema_const_examples_annotations(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_schema_ref_summary_description.
+ * @return Greatest test result.
+ */
 TEST test_load_schema_ref_summary_description(void) {
 
   const char *json =
@@ -604,6 +680,10 @@ TEST test_load_schema_ref_summary_description(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_parameter_schema_format_and_content.
+ * @return Greatest test result.
+ */
 TEST test_load_parameter_schema_format_and_content(void) {
 
   const char json[] = {
@@ -642,6 +722,10 @@ TEST test_load_parameter_schema_format_and_content(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_inline_schema_enum_default_nullable.
+ * @return Greatest test result.
+ */
 TEST test_load_inline_schema_enum_default_nullable(void) {
 
   const char json[] = {
@@ -685,6 +769,10 @@ TEST test_load_inline_schema_enum_default_nullable(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_inline_schema_type_union.
+ * @return Greatest test result.
+ */
 TEST test_load_inline_schema_type_union(void) {
 
   const char *json =
@@ -712,6 +800,10 @@ TEST test_load_inline_schema_type_union(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_inline_schema_array_items_enum_nullable.
+ * @return Greatest test result.
+ */
 TEST test_load_inline_schema_array_items_enum_nullable(void) {
 
   const char *json =
@@ -742,6 +834,10 @@ TEST test_load_inline_schema_array_items_enum_nullable(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_responses_full_coverage.
+ * @return Greatest test result.
+ */
 TEST test_openapi_responses_full_coverage(void) {
   struct OpenAPI_RequestBody rb;
   struct OpenAPI_Response resp;
@@ -1726,6 +1822,10 @@ TEST test_openapi_responses_full_coverage(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_media_all_branches.
+ * @return Greatest test result.
+ */
 TEST test_openapi_media_all_branches(void) {
   struct OpenAPI_MediaType mt;
   struct OpenAPI_MediaType *out_mts = NULL;

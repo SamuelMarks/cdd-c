@@ -75,8 +75,8 @@ struct cdd_cst_cfg_t {
 
 /**
  * @brief Constructs a Control Flow Graph (CFG) from a function definition node.
- * @param function_node The AST node representing the function.
- * @param out_cfg Pointer to store the constructed CFG.
+ * @param[in,out] function_node The AST node representing the function.
+ * @param[out] out_cfg Pointer to store the constructed CFG.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_cfg_build(cdd_cst_node_t *function_node,
@@ -84,7 +84,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_cfg_build(cdd_cst_node_t *function_node,
 
 /**
  * @brief Frees a CFG and all its blocks and edges.
- * @param cfg The CFG to free.
+ * @param[in,out] cfg The CFG to free.
  */
 C_CDD_EXPORT void cdd_cst_cfg_free(cdd_cst_cfg_t *cfg);
 

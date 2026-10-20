@@ -102,9 +102,9 @@ void openapi_doc_registry_free(struct OpenAPI_DocRegistry *registry) {
     return;
   if (registry->entries) {
     for (i = 0; i < registry->count; ++i) {
-      free(registry->entries[i].base_uri);
+      C_CDD_FREE(registry->entries[i].base_uri);
     }
-    free(registry->entries);
+    C_CDD_FREE(registry->entries);
   }
   registry->entries = NULL;
   registry->count = 0;
@@ -142,7 +142,7 @@ cdd_c_error_t openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
   for (i = 0; i < registry->count; ++i) {
     if (registry->entries[i].base_uri &&
         strcmp(registry->entries[i].base_uri, base) == 0) {
-      free(base);
+      C_CDD_FREE(base);
       return CDD_C_ERROR_INVALID_ARGUMENT;
     }
   }
@@ -152,7 +152,7 @@ cdd_c_error_t openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
     tmp = (struct OpenAPI_DocRegistryEntry *)C_CDD_REALLOC(
         registry->entries, new_cap * sizeof(*registry->entries));
     if (!tmp) {
-      free(base);
+      C_CDD_FREE(base);
       return CDD_C_ERROR_MEMORY;
     }
     memset(tmp + registry->capacity, 0,

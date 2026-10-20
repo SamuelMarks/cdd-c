@@ -14,6 +14,10 @@ extern "C" {
 #include "parse/test_c2openapi_op_helpers.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_build_simple_get.
+ * @return Greatest test result.
+ */
 TEST test_build_simple_get(void) {
   /*
    * Case: int api_user_get(int id);
@@ -70,6 +74,10 @@ TEST test_build_simple_get(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_param_format_from_mapping.
+ * @return Greatest test result.
+ */
 TEST test_build_param_format_from_mapping(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -111,6 +119,10 @@ TEST test_build_param_format_from_mapping(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_param_format_override.
+ * @return Greatest test result.
+ */
 TEST test_build_param_format_override(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -157,6 +169,10 @@ TEST test_build_param_format_override(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_response_header_format.
+ * @return Greatest test result.
+ */
 TEST test_build_response_header_format(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -202,6 +218,10 @@ TEST test_build_response_header_format(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_default_response_when_missing.
+ * @return Greatest test result.
+ */
 TEST test_build_default_response_when_missing(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -237,6 +257,10 @@ TEST test_build_default_response_when_missing(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_operation_id_override.
+ * @return Greatest test result.
+ */
 TEST test_build_operation_id_override(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -275,6 +299,10 @@ TEST test_build_operation_id_override(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_param_content_type.
+ * @return Greatest test result.
+ */
 TEST test_build_param_content_type(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -321,6 +349,10 @@ TEST test_build_param_content_type(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_param_example.
+ * @return Greatest test result.
+ */
 TEST test_build_param_example(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -369,6 +401,10 @@ TEST test_build_param_example(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_return_content_type.
+ * @return Greatest test result.
+ */
 TEST test_build_return_content_type(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -412,6 +448,10 @@ TEST test_build_return_content_type(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_response_example.
+ * @return Greatest test result.
+ */
 TEST test_build_response_example(void) {
   /* */
   /* */
@@ -464,6 +504,10 @@ TEST test_build_response_example(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_post_with_body.
+ * @return Greatest test result.
+ */
 TEST test_build_post_with_body(void) {
   /*
    * Case: int api_pet_create(const struct Pet *p);
@@ -508,6 +552,10 @@ TEST test_build_post_with_body(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_params_explicit.
+ * @return Greatest test result.
+ */
 TEST test_build_params_explicit(void) {
   /*
    * Case: int list(int limit);
@@ -556,6 +604,10 @@ TEST test_build_params_explicit(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_param_style_flags.
+ * @return Greatest test result.
+ */
 TEST test_build_param_style_flags(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -612,6 +664,10 @@ TEST test_build_param_style_flags(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_param_default_styles.
+ * @return Greatest test result.
+ */
 TEST test_build_param_default_styles(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -659,6 +715,10 @@ TEST test_build_param_default_styles(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_reserved_header_param_ignored.
+ * @return Greatest test result.
+ */
 TEST test_build_reserved_header_param_ignored(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -704,6 +764,10 @@ TEST test_build_reserved_header_param_ignored(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_with_tags_description_and_deprecated.
+ * @return Greatest test result.
+ */
 TEST test_build_with_tags_description_and_deprecated(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -758,6 +822,10 @@ TEST test_build_with_tags_description_and_deprecated(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_params_querystring.
+ * @return Greatest test result.
+ */
 TEST test_build_params_querystring(void) {
   /*
    * Case: int search(const char *qs);
@@ -804,6 +872,10 @@ TEST test_build_params_querystring(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_params_querystring_json_struct.
+ * @return Greatest test result.
+ */
 TEST test_build_params_querystring_json_struct(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -845,6 +917,9 @@ TEST test_build_params_querystring_json_struct(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the c2openapi_op_suite test suite.
+ */
 SUITE(c2openapi_op_suite) {
   RUN_TEST(test_build_simple_get);
   RUN_TEST(test_build_param_format_from_mapping);

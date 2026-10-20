@@ -1,3 +1,7 @@
+/**
+ * @file test_macro_overlay.h
+ * @brief Unit tests and mocks in test_macro_overlay.h.
+ */
 #ifndef TEST_MACRO_OVERLAY_H
 #define TEST_MACRO_OVERLAY_H
 
@@ -11,9 +15,16 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_cdd_macro_overlay_fail_realloc. */
 extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_realloc;
+/** @brief Test definition g_cdd_macro_overlay_fail_calloc. */
 extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_calloc;
+/** @brief Test definition g_cdd_macro_overlay_fail_inner_realloc. */
 extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_inner_realloc;
+/**
+ * @brief Unit test test_macro_overlay_basic.
+ * @return Greatest test result.
+ */
 TEST test_macro_overlay_basic(void) {
   struct MacroOverlayList list;
   struct CstNodeList cst;
@@ -41,6 +52,10 @@ TEST test_macro_overlay_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_macro_overlay_null_args.
+ * @return Greatest test result.
+ */
 TEST test_macro_overlay_null_args(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, macro_overlay_list_init(NULL));
   macro_overlay_list_free(NULL);
@@ -48,6 +63,10 @@ TEST test_macro_overlay_null_args(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_macro_overlay_with_nodes.
+ * @return Greatest test result.
+ */
 TEST test_macro_overlay_with_nodes(void) {
   struct MacroOverlayList list;
   struct CstNodeList cst;
@@ -98,6 +117,10 @@ TEST test_macro_overlay_with_nodes(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_macro_overlay_free_with_expanded.
+ * @return Greatest test result.
+ */
 TEST test_macro_overlay_free_with_expanded(void) {
   struct MacroOverlayList list;
   struct CstNodeList *expanded;
@@ -120,6 +143,10 @@ TEST test_macro_overlay_free_with_expanded(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_macro_overlay_non_macro.
+ * @return Greatest test result.
+ */
 TEST test_macro_overlay_non_macro(void) {
   struct MacroOverlayList list;
   struct TokenList *tl = setup_tokens("int a;");
@@ -148,6 +175,10 @@ extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_inner_realloc; (moved to
 global) */
 #endif
 
+/**
+ * @brief Unit test test_macro_overlay_oom.
+ * @return Greatest test result.
+ */
 TEST test_macro_overlay_oom(void) {
 #ifdef CDD_BUILD_TESTS
   struct MacroOverlayList list;
@@ -217,6 +248,10 @@ TEST test_macro_overlay_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_macro_overlay_coverage_edge.
+ * @return Greatest test result.
+ */
 TEST test_macro_overlay_coverage_edge(void) {
   struct MacroOverlayList list;
   struct CstNodeList cst;
@@ -265,6 +300,9 @@ TEST test_macro_overlay_coverage_edge(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the macro_overlay_suite test suite.
+ */
 SUITE(macro_overlay_suite) {
   RUN_TEST(test_macro_overlay_basic);
   RUN_TEST(test_macro_overlay_null_args);

@@ -25,11 +25,18 @@ extern "C" {
 /* clang-format on */
 
 #ifndef C_CDD_STR_LIT
+/**
+ * @brief Macro C_CDD_STR_LIT.
+ * @param[in] s Macro argument s.
+ */
 #define C_CDD_STR_LIT(s) cdd_test_mut_str(s)
 #endif
 
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
+/** @brief Test definition g_cdd_fail_is_primitive_type. */
 extern C_CDD_EXPORT int g_cdd_fail_is_primitive_type;
 
 /**
@@ -240,7 +247,6 @@ static void test_helper_run_io_joined_form_array(
  * @brief Comprehensive test to achieve 100% line, function, and branch coverage
  * for client_body.
  *
- * @return GREATEST_TEST_RES.
  */
 /**
  * @brief Helper for exhaustive IO failure testing on

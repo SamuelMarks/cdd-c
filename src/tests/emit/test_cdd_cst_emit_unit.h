@@ -1,3 +1,7 @@
+/**
+ * @file test_cdd_cst_emit_unit.h
+ * @brief Unit tests and mocks in test_cdd_cst_emit_unit.h.
+ */
 #ifndef TEST_CDD_CST_EMIT_UNIT_H
 #define TEST_CDD_CST_EMIT_UNIT_H
 
@@ -16,6 +20,10 @@ extern "C" {
 /* Moved extern declarations for C89 compliance */
 extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail;
 
+/**
+ * @brief Unit test test_cdd_cst_emit_invalid.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_emit_invalid(void) {
   cdd_cst_tree_t t = {0};
   char *out = NULL;
@@ -25,6 +33,10 @@ TEST test_cdd_cst_emit_invalid(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_emit_empty.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_emit_empty(void) {
   cdd_cst_tree_t tree = {0};
   char *out = NULL;
@@ -39,6 +51,10 @@ TEST test_cdd_cst_emit_empty(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_emit_null_children.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_emit_null_children(void) {
   cdd_cst_tree_t tree = {0};
   cdd_cst_node_t root = {0};
@@ -74,6 +90,10 @@ TEST test_cdd_cst_emit_null_children(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_emit_large_string.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_emit_large_string(void) {
   cdd_cst_tree_t tree = {0};
   cdd_cst_node_t root = {0};
@@ -129,6 +149,10 @@ TEST test_cdd_cst_emit_large_string(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_emit_oom.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_emit_oom(void) {
   cdd_cst_tree_t tree = {0};
   cdd_cst_node_t root = {0};
@@ -153,6 +177,10 @@ TEST test_cdd_cst_emit_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_emit_oom_trivia.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_emit_oom_trivia(void) {
   cdd_cst_tree_t tree = {0};
   cdd_cst_node_t root = {0};
@@ -181,6 +209,10 @@ TEST test_cdd_cst_emit_oom_trivia(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_emit_oom_realloc.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_emit_oom_realloc(void) {
   cdd_cst_tree_t tree = {0};
   cdd_cst_node_t root = {0};
@@ -222,6 +254,10 @@ TEST test_cdd_cst_emit_oom_realloc(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_emit_capacity_overflow.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_emit_capacity_overflow(void) {
   cdd_cst_tree_t tree = {0};
   cdd_cst_node_t root = {0};
@@ -260,6 +296,10 @@ TEST test_cdd_cst_emit_capacity_overflow(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_emit_oom_multi.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_emit_oom_multi(void) {
   cdd_cst_tree_t tree = {0};
   cdd_cst_node_t root = {0};
@@ -293,6 +333,10 @@ TEST test_cdd_cst_emit_oom_multi(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_emit_empty_oom.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_emit_empty_oom(void) {
   cdd_cst_tree_t tree = {0};
   char *out = NULL;
@@ -317,6 +361,9 @@ TEST test_cdd_cst_emit_empty_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the cdd_cst_emit_unit_suite test suite.
+ */
 SUITE(cdd_cst_emit_unit_suite) {
   RUN_TEST(test_cdd_cst_emit_invalid);
   RUN_TEST(test_cdd_cst_emit_empty);

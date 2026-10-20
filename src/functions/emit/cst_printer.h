@@ -24,8 +24,8 @@ extern "C" {
  * (including spliced newlines and trigraphs hidden under the physical byte
  * length). Prints it into the output FILE pointer.
  *
- * @param tokens The full parsed token list.
- * @param out The FILE* to write the byte-for-byte reproduction to.
+ * @param[in] tokens The full parsed token list.
+ * @param[out] out The FILE* to write the byte-for-byte reproduction to.
  * @return 0 on success, non-zero otherwise.
  */
 C_CDD_EXPORT cdd_c_error_t

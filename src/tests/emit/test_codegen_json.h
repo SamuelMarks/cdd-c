@@ -29,6 +29,10 @@ extern "C" {
 /* clang-format on */
 
 /* Common Setup */
+/**
+ * @brief Helper function setup_json_fields.
+ * @param[in,out] sf Parameter sf.
+ */
 static void setup_json_fields(struct StructFields *sf) {
   struct_fields_init(sf);
   struct_fields_add(sf, "id", "integer", NULL, "0", NULL);

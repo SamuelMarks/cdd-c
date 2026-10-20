@@ -30,21 +30,17 @@
 cdd_c_error_t parse_class_or_statement(parser_state_t *s,
                                        cdd_cst_node_t *parent, cdd_token_t *t,
                                        cdd_cst_node_t **out_node) {
-  cdd_c_error_t rc = CDD_C_SUCCESS, app_rc, class_rc;
+  cdd_c_error_t rc = CDD_C_SUCCESS, app_rc;
   cdd_cst_node_t *n = NULL;
   *out_node = NULL;
   if (t->kind == CDD_TOKEN_KEYWORD_CLASS ||
       t->kind == CDD_TOKEN_KEYWORD_STRUCT) {
+    cdd_token_t *nxt = NULL;
     rc = alloc_node(CDD_CST_CLASS_DECLARATION, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
     *out_node = n;
-    while (s->pos < s->list->size) {
-      cdd_token_t *nxt = NULL;
-
-      rc = peek(s, &nxt);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+    while (peek(s, &nxt) == CDD_C_SUCCESS) {
       if (nxt->kind == CDD_TOKEN_LBRACE) {
         cdd_cst_node_t *child = NULL;
         rc = parse_block(s, n, &child);
@@ -70,10 +66,7 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
           return app_rc;
         }
 
-        rc = advance(s, &t);
-        if (rc != CDD_C_SUCCESS)
-          return rc; /* ':' */
-        rc = append_child_token(base_list, t);
+        rc = consume_token(s, base_list);
         if (rc != CDD_C_SUCCESS)
           return rc;
 
@@ -88,64 +81,25 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
             return app_rc;
           }
 
-          /* parse access modifier or virtual */
-
-          rc = peek(s, &nxt);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
-          if ((nxt->kind == CDD_TOKEN_KEYWORD_PUBLIC ||
-               nxt->kind == CDD_TOKEN_KEYWORD_PRIVATE ||
-               nxt->kind == CDD_TOKEN_KEYWORD_PROTECTED ||
-               nxt->kind == CDD_TOKEN_KEYWORD_VIRTUAL)) {
-
-            rc = advance(s, &t);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
-            rc = append_child_token(base_spec, t);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
-            /* might have virtual and access modifier in either order */
-
-            rc = peek(s, &nxt);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
-            if ((nxt->kind == CDD_TOKEN_KEYWORD_PUBLIC ||
-                 nxt->kind == CDD_TOKEN_KEYWORD_PRIVATE ||
-                 nxt->kind == CDD_TOKEN_KEYWORD_PROTECTED ||
-                 nxt->kind == CDD_TOKEN_KEYWORD_VIRTUAL)) {
-
-              rc = advance(s, &t);
-              if (rc != CDD_C_SUCCESS)
-                return rc;
-              rc = append_child_token(base_spec, t);
-              if (rc != CDD_C_SUCCESS)
-                return rc;
-            }
-          }
-          /* base class name */
-
-          rc = peek(s, &nxt);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
-          if (nxt->kind == CDD_TOKEN_IDENTIFIER) {
-
-            rc = advance(s, &t);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
-            rc = append_child_token(base_spec, t);
+          while (peek(s, &nxt) == CDD_C_SUCCESS &&
+                 (nxt->kind == CDD_TOKEN_KEYWORD_PUBLIC ||
+                  nxt->kind == CDD_TOKEN_KEYWORD_PRIVATE ||
+                  nxt->kind == CDD_TOKEN_KEYWORD_PROTECTED ||
+                  nxt->kind == CDD_TOKEN_KEYWORD_VIRTUAL)) {
+            rc = consume_token(s, base_spec);
             if (rc != CDD_C_SUCCESS)
               return rc;
           }
 
-          rc = peek(s, &nxt);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
-          if (nxt->kind == CDD_TOKEN_COMMA) {
-
-            rc = advance(s, &t);
+          if (peek(s, &nxt) == CDD_C_SUCCESS &&
+              nxt->kind == CDD_TOKEN_IDENTIFIER) {
+            rc = consume_token(s, base_spec);
             if (rc != CDD_C_SUCCESS)
               return rc;
-            rc = append_child_token(base_list, t);
+          }
+
+          if (peek(s, &nxt) == CDD_C_SUCCESS && nxt->kind == CDD_TOKEN_COMMA) {
+            rc = consume_token(s, base_list);
             if (rc != CDD_C_SUCCESS)
               return rc;
           } else {
@@ -153,20 +107,12 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
           }
         }
       } else if (nxt->kind == CDD_TOKEN_SEMICOLON) {
-
-        rc = advance(s, &t);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-        rc = append_child_token(n, t);
+        rc = consume_token(s, n);
         if (rc != CDD_C_SUCCESS)
           return rc;
         break;
       } else {
-
-        rc = advance(s, &t);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-        rc = append_child_token(n, t);
+        rc = consume_token(s, n);
         if (rc != CDD_C_SUCCESS)
           return rc;
       }
@@ -183,22 +129,12 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
       return rc;
     *out_node = n;
 
-    rc = advance(s, &t);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    rc = append_child_token(n, t);
+    rc = consume_token(s, n);
     if (rc != CDD_C_SUCCESS)
       return rc;
 
-    rc = peek(s, &t);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    if (t->kind == CDD_TOKEN_COLON) {
-
-      rc = advance(s, &t);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
-      rc = append_child_token(n, t);
+    if (peek(s, &t) == CDD_C_SUCCESS && t->kind == CDD_TOKEN_COLON) {
+      rc = consume_token(s, n);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
@@ -209,35 +145,17 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
   if (t->kind == CDD_TOKEN_IDENTIFIER &&
       ((t->length == 7 && memcmp(t->start, "__asm__", 7) == 0) ||
        (t->length == 3 && memcmp(t->start, "asm", 3) == 0))) {
+    cdd_token_t *nxt = NULL;
     rc = alloc_node(CDD_CST_ASM_STATEMENT, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
     *out_node = n;
-    while (s->pos < s->list->size) {
-      cdd_token_t *nxt = NULL;
-
-      rc = peek(s, &nxt);
+    while (peek(s, &nxt) == CDD_C_SUCCESS && nxt->kind != CDD_TOKEN_RBRACE) {
+      rc = consume_token(s, n);
       if (rc != CDD_C_SUCCESS)
         return rc;
-      if (nxt->kind == CDD_TOKEN_SEMICOLON) {
-
-        rc = advance(s, &t);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-        rc = append_child_token(n, t);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+      if (nxt->kind == CDD_TOKEN_SEMICOLON)
         break;
-      }
-      if (nxt->kind == CDD_TOKEN_RBRACE)
-        break;
-
-      rc = advance(s, &t);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
-      rc = append_child_token(n, t);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
     }
     *out_node = n;
     return CDD_C_SUCCESS;
@@ -260,7 +178,7 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
         break;
       }
       if (s->list->tokens[i].kind == CDD_TOKEN_RBRACE)
-        break; /* syntax error fallback */
+        break;
     }
 
     for (i = s->pos; i < s->list->size; i++) {
@@ -283,46 +201,35 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
       node_kind = CDD_CST_DESTRUCTOR;
     } else if (is_operator) {
       node_kind = CDD_CST_OPERATOR_OVERLOAD;
-    } else {
-      class_rc = get_class_name(parent, &class_name_tok);
-      if (class_rc != CDD_C_SUCCESS) {
-        return class_rc;
-      }
-      if (class_name_tok) {
-        size_t paren_idx = 0;
-        for (i = s->pos; i < s->list->size; i++) {
-          if (s->list->tokens[i].kind == CDD_TOKEN_LPAREN) {
-            paren_idx = i;
-            break;
-          }
-          if (s->list->tokens[i].kind == CDD_TOKEN_SEMICOLON ||
-              s->list->tokens[i].kind == CDD_TOKEN_LBRACE)
-            break;
+    } else if (get_class_name(parent, &class_name_tok) == CDD_C_SUCCESS) {
+      size_t paren_idx = 0;
+      for (i = s->pos; i < s->list->size; i++) {
+        if (s->list->tokens[i].kind == CDD_TOKEN_LPAREN) {
+          paren_idx = i;
+          break;
         }
-        if (paren_idx > s->pos &&
-            s->list->tokens[paren_idx - 1].kind == CDD_TOKEN_IDENTIFIER) {
-          cdd_token_t *name_tok = &s->list->tokens[paren_idx - 1];
-          if (name_tok->length == class_name_tok->length &&
-              memcmp(name_tok->start, class_name_tok->start,
-                     name_tok->length) == 0) {
-            node_kind = CDD_CST_CONSTRUCTOR;
-          }
+        if (s->list->tokens[i].kind == CDD_TOKEN_SEMICOLON ||
+            s->list->tokens[i].kind == CDD_TOKEN_LBRACE)
+          break;
+      }
+      if (paren_idx > s->pos &&
+          s->list->tokens[paren_idx - 1].kind == CDD_TOKEN_IDENTIFIER) {
+        cdd_token_t *name_tok = &s->list->tokens[paren_idx - 1];
+        if (name_tok->length == class_name_tok->length &&
+            memcmp(name_tok->start, class_name_tok->start, name_tok->length) ==
+                0) {
+          node_kind = CDD_CST_CONSTRUCTOR;
         }
       }
     }
 
     if (is_func || node_kind != CDD_CST_UNKNOWN) {
+      cdd_token_t *nxt = NULL;
       rc = alloc_node(node_kind, parent, &n);
       if (rc != CDD_C_SUCCESS)
         return rc;
       *out_node = n;
-      while (s->pos < s->list->size) {
-        cdd_token_t *nxt = NULL;
-
-        rc = peek(s, &nxt);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-
+      while (peek(s, &nxt) == CDD_C_SUCCESS) {
         if (nxt->kind == CDD_TOKEN_KEYWORD_NOEXCEPT) {
           cdd_cst_node_t *noexcept_node = NULL;
           rc = alloc_node(CDD_CST_NOEXCEPT_SPECIFIER, n, &noexcept_node);
@@ -334,37 +241,25 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
             return app_rc;
           }
 
-          rc = advance(s, &t);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
-          rc = append_child_token(noexcept_node, t);
+          rc = consume_token(s, noexcept_node);
           if (rc != CDD_C_SUCCESS)
             return rc;
 
           rc = peek(s, &nxt);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
           if (nxt->kind == CDD_TOKEN_LPAREN) {
             int noexcept_paren = 0;
-            while (s->pos < s->list->size) {
-
-              rc = peek(s, &nxt);
-              if (rc != CDD_C_SUCCESS)
-                return rc;
+            while (peek(s, &nxt) == CDD_C_SUCCESS) {
               if (nxt->kind == CDD_TOKEN_LPAREN)
                 noexcept_paren++;
               else if (nxt->kind == CDD_TOKEN_RPAREN)
                 noexcept_paren--;
 
-              rc = advance(s, &t);
-              if (rc != CDD_C_SUCCESS)
-                return rc;
-              rc = append_child_token(noexcept_node, t);
-              if (rc != CDD_C_SUCCESS)
-                return rc;
-              if (noexcept_paren == 0)
+              rc = consume_token(s, noexcept_node);
+              if (rc != CDD_C_SUCCESS || noexcept_paren == 0)
                 break;
             }
+            if (rc != CDD_C_SUCCESS)
+              return rc;
           }
           continue;
         }
@@ -385,62 +280,42 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
           }
           break;
         }
-        if (!is_func && nxt->kind == CDD_TOKEN_SEMICOLON) {
 
-          rc = advance(s, &t);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
-          rc = append_child_token(n, t);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+        rc = consume_token(s, n);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        if (!is_func && nxt->kind == CDD_TOKEN_SEMICOLON)
           break;
-        }
-
-        rc = advance(s, &t);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-        rc = append_child_token(n, t);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
       }
       *out_node = n;
       return CDD_C_SUCCESS;
     } else {
+      cdd_token_t *nxt = NULL;
+      int paren_depth = 0;
       rc = alloc_node(CDD_CST_UNKNOWN, parent, &n);
       if (rc != CDD_C_SUCCESS)
         return rc;
       *out_node = n;
-      {
-        int paren_depth = 0;
-        while (s->pos < s->list->size) {
-          cdd_token_t *nxt = NULL;
-
-          rc = peek(s, &nxt);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
-          if (nxt->kind == CDD_TOKEN_LPAREN) {
-            paren_depth++;
-          } else if (nxt->kind == CDD_TOKEN_RPAREN) {
-            paren_depth--;
-          }
-          if (nxt->kind == CDD_TOKEN_RBRACE && paren_depth <= 0) {
-            if (n->num_children == 0) {
-              free_node(n);
-              *out_node = NULL;
-              return CDD_C_ERROR_MEMORY;
-            }
-            break;
-          }
-
-          rc = advance(s, &t);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
-          rc = append_child_token(n, t);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
-          if (nxt->kind == CDD_TOKEN_SEMICOLON && paren_depth <= 0)
-            break;
+      while (peek(s, &nxt) == CDD_C_SUCCESS) {
+        if (nxt->kind == CDD_TOKEN_LPAREN) {
+          paren_depth++;
+        } else if (nxt->kind == CDD_TOKEN_RPAREN) {
+          paren_depth--;
         }
+        if (nxt->kind == CDD_TOKEN_RBRACE && paren_depth <= 0) {
+          if (n->num_children == 0) {
+            free_node(n);
+            *out_node = NULL;
+            return CDD_C_ERROR_MEMORY;
+          }
+          break;
+        }
+
+        rc = consume_token(s, n);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        if (nxt->kind == CDD_TOKEN_SEMICOLON && paren_depth <= 0)
+          break;
       }
       *out_node = n;
       return CDD_C_SUCCESS;

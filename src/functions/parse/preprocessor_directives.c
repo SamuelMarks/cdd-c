@@ -134,11 +134,9 @@ cdd_c_error_t pp_is_defined_macro(const struct PreprocessorContext *ctx,
   for (i = 0; i < ctx->macro_count; ++i) {
     cdd_c_error_t rc;
     rc = token_matches_string(tok, ctx->macros[i].name, &is_match);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
     if (is_match) {
       *out_val = 1;
-      return CDD_C_SUCCESS;
+      return rc;
     }
   }
 
@@ -236,8 +234,8 @@ cdd_c_error_t pp_handle_has_include_embed(struct ExprState *s, long *out_val) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  rc = pp_resolve_path(s->ctx, s->ctx ? s->ctx->current_file_dir : NULL, path,
-                       is_header, &resolved);
+  rc = pp_resolve_path(s->ctx, s->ctx->current_file_dir, path, is_header,
+                       &resolved);
   if (rc != CDD_C_SUCCESS) {
     C_CDD_FREE(path);
     return rc;

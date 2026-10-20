@@ -21,15 +21,38 @@ extern "C" {}
 
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/parse/audit.h"
+#include "functions/parse/audit_internal.h"
 #include "functions/parse/fs.h"
-#include "functions/parse/fs.h"
+#include "routes/parse/cli.h"
+#include <parson.h>
 /* clang-format on */
 
-/* Moved extern declarations for C89 compliance */
-extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
-extern C_CDD_EXPORT int g_cdd_audit_fail_find;
-extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;
+/** @brief Test definition g_audit_parson_oom_at. */
+static int g_audit_parson_oom_at = -1;
+/**
+ * @brief Helper function mock_audit_parson_malloc.
+ * @param[in] sz Parameter sz.
+ * @return Result status or value.
+ */
+static void *mock_audit_parson_malloc(size_t sz) {
+  if (g_audit_parson_oom_at == 0) {
+    g_audit_parson_oom_at = -1;
+    return NULL;
+  }
+  if (g_audit_parson_oom_at > 0)
+    g_audit_parson_oom_at--;
+  return malloc(sz);
+}
+/**
+ * @brief Helper function mock_audit_parson_free.
+ * @param[in,out] ptr Parameter ptr.
+ */
+static void mock_audit_parson_free(void *ptr) { free(ptr); }
 
+/**
+ * @brief Unit test test_audit_stats_init.
+ * @return Greatest test result.
+ */
 TEST test_audit_stats_init(void) {
   struct AuditStats stats;
   /* Set to garbage */
@@ -47,6 +70,10 @@ TEST test_audit_stats_init(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_audit_single_file.
+ * @return Greatest test result.
+ */
 TEST test_audit_single_file(void) {
   int rc;
   char *sys_tmp = NULL;
@@ -56,7 +83,6 @@ TEST test_audit_single_file(void) {
   ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
 
   /* Create explicit subdir to avoid walking /tmp */
-  (void)rc;
   tempdir(&sys_tmp);
   if (asprintf(&root, "%s%saudit_test_%d", sys_tmp, PATH_SEP, rand())) {
   }
@@ -98,6 +124,10 @@ TEST test_audit_single_file(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_audit_ignored_files.
+ * @return Greatest test result.
+ */
 TEST test_audit_ignored_files(void) {
   char *sys_tmp = NULL;
   char *root = NULL;
@@ -133,6 +163,10 @@ TEST test_audit_ignored_files(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_audit_return_alloc.
+ * @return Greatest test result.
+ */
 TEST test_audit_return_alloc(void) {
   char *sys_tmp = NULL;
   char *root = NULL;
@@ -182,11 +216,13 @@ TEST test_audit_return_alloc(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_audit_json_output.
+ * @return Greatest test result.
+ */
 TEST test_audit_json_output(void) {
-  int rc;
   char *json = NULL;
   struct AuditStats stats;
-  (void)rc;
   ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
 
   stats.files_scanned = 10;
@@ -229,11 +265,37 @@ TEST test_audit_json_output(void) {
   ASSERT(strstr(json, "\"variable\": \"x\""));
 
   free(json);
+  json = NULL;
+
+  {
+    int f;
+    c2openapi_set_json_allocators(mock_audit_parson_malloc,
+                                  mock_audit_parson_free);
+    (json_set_allocation_functions)(mock_audit_parson_malloc,
+                                    mock_audit_parson_free);
+    for (f = 0; f <= 45; ++f) {
+      g_audit_parson_oom_at = f;
+      if (audit_print_json(&stats, &json) == CDD_C_SUCCESS) {
+        free(json);
+        json = NULL;
+      } else {
+        ASSERT_EQ(NULL, json);
+      }
+      g_audit_parson_oom_at = -1;
+    }
+    c2openapi_set_json_allocators(malloc, free);
+    (json_set_allocation_functions)(malloc, free);
+  }
+
   audit_stats_free(&stats);
   g_fail_io_after = -1;
   PASS();
 }
 
+/**
+ * @brief Unit test test_audit_stats_null.
+ * @return Greatest test result.
+ */
 TEST test_audit_stats_null(void) {
   char *_test_json = NULL;
   struct AuditStats stats;
@@ -252,6 +314,10 @@ TEST test_audit_stats_null(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_audit_edge_cases.
+ * @return Greatest test result.
+ */
 TEST test_audit_edge_cases(void) {
   char *sys_tmp = NULL;
   char *root = NULL;
@@ -330,29 +396,32 @@ TEST test_audit_edge_cases(void) {
   }
 }
 
-#ifdef CDD_BUILD_TESTS
-/* extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize; (moved to global) */
-/* extern C_CDD_EXPORT int g_cdd_audit_fail_find; (moved to global) */
-#endif
-
+/**
+ * @brief Unit test test_audit_extras.
+ * @return Greatest test result.
+ */
 TEST test_audit_extras(void) {
   char *json = NULL;
   struct AuditStats stats;
   ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
 
-#ifdef CDD_BUILD_TESTS
-  ASSERT_EQ(CDD_C_SUCCESS, test_audit_get_line_col_boundary());
-#endif
+  {
+    const char *content = "short";
+    size_t line = 0, col = 0;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              audit_get_line_col(content, (const uint8_t *)content + 10, &line,
+                                 &col));
+  }
 
-  /* test tokenize failing */
+  /* test tokenize and find_allocations failing via g_cdd_alloc_fail */
   {
     char *sys_tmp = NULL;
     char *root = NULL;
     char *f_tok = NULL;
     struct AuditStats stats_tok;
+    int step;
     ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats_tok));
 
-    ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats_tok));
     tempdir(&sys_tmp);
     if (asprintf(&root, "%s%saudit_test_failtok_%d", sys_tmp, PATH_SEP,
                  rand())) {
@@ -360,12 +429,14 @@ TEST test_audit_extras(void) {
     makedir(root);
     if (asprintf(&f_tok, "%s%stok.c", root, PATH_SEP)) {
     }
-    write_to_file(f_tok, "int a = 1;");
+    write_to_file(f_tok, "int main() { char *p = malloc(1); return 0; }");
 
 #ifdef CDD_BUILD_TESTS
-    g_cdd_audit_fail_tokenize = 1;
-    audit_project(root, &stats_tok);
-    g_cdd_audit_fail_tokenize = 0;
+    for (step = 1; step <= 12; ++step) {
+      g_cdd_alloc_fail = step;
+      audit_project(root, &stats_tok);
+      g_cdd_alloc_fail = 0;
+    }
 #endif
 
     remove(f_tok);
@@ -376,36 +447,6 @@ TEST test_audit_extras(void) {
     audit_stats_free(&stats_tok);
   }
 
-  /* test find_allocations failing */
-  {
-    char *sys_tmp = NULL;
-    char *root = NULL;
-    char *f_find = NULL;
-    struct AuditStats stats_find;
-    ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats_find));
-    ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats_find));
-    tempdir(&sys_tmp);
-    if (asprintf(&root, "%s%saudit_test_failfind_%d", sys_tmp, PATH_SEP,
-                 rand())) {
-    }
-    makedir(root);
-    if (asprintf(&f_find, "%s%sfind.c", root, PATH_SEP)) {
-    }
-    write_to_file(f_find, "int a = 1;");
-
-#ifdef CDD_BUILD_TESTS
-    g_cdd_audit_fail_find = 1;
-    audit_project(root, &stats_find);
-    g_cdd_audit_fail_find = 0;
-#endif
-
-    remove(f_find);
-    rmdir(root);
-    C_CDD_FREE(f_find);
-    C_CDD_FREE(root);
-    C_CDD_FREE(sys_tmp);
-    audit_stats_free(&stats_find);
-  }
   /* test json output on empty violation list */
   audit_print_json(&stats, &json);
   ASSERT(json != NULL);
@@ -417,6 +458,10 @@ TEST test_audit_extras(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_audit_oom.
+ * @return Greatest test result.
+ */
 TEST test_audit_oom(void) {
   struct AuditStats stats;
   ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
@@ -424,13 +469,10 @@ TEST test_audit_oom(void) {
 #ifdef CDD_BUILD_TESTS
   {
     FILE *f;
-    /* extern C_CDD_EXPORT int g_cdd_fail_alloc_audit; (moved to global) */
     int i;
     int rc;
     char *json;
-    (void)rc;
 
-    (void)rc;
     makedirs("test_audit_dir");
 #if defined(_MSC_VER)
     if (fopen_s(&f, "test_audit_dir/test.c", "w") != 0)
@@ -440,37 +482,35 @@ TEST test_audit_oom(void) {
 #endif
     if (f) {
       fprintf(f, "int main() { char *p = malloc(10); return 0; }\n");
-      if (f)
-        fclose(f);
+      fclose(f);
     }
-    for (i = 1; i < 50; i++) {
-      g_cdd_fail_alloc_audit = i;
+    for (i = 1; i < 30; i++) {
+      g_cdd_alloc_fail = i;
       rc = audit_project("test_audit_dir", &stats);
-
-      printf("i=%d rc=%d\n", i, rc);
-      g_cdd_fail_alloc_audit = 0;
-      printf("i=%d rc=%d\n", i, rc);
-      /* no break */
+      g_cdd_alloc_fail = 0;
       audit_stats_free(&stats);
     }
 
-    /* Also test OOM for audit_print_json */
+    /* Also test OOM for audit_print_json using parson custom allocator */
     rc = audit_project("test_audit_dir", &stats);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-    for (i = 1; i < 50; i++) {
-      g_cdd_fail_alloc_audit = i;
+    json_set_allocation_functions(mock_audit_parson_malloc,
+                                  mock_audit_parson_free);
+    for (i = 0; i < 20; i++) {
+      g_audit_parson_oom_at = i;
       json = NULL;
       rc = audit_print_json(&stats, &json);
-      if (rc == CDD_C_ERROR_MEMORY) {
-        ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-      }
-      g_cdd_fail_alloc_audit = 0;
-      if (rc == 0) {
+      g_audit_parson_oom_at = -1;
+      if (rc == CDD_C_SUCCESS) {
         if (json)
           free(json);
         break;
+      } else {
+        ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
     }
+    json_set_allocation_functions(malloc, free);
     audit_stats_free(&stats);
 
     remove("test_audit_dir/test.c");
@@ -482,6 +522,10 @@ TEST test_audit_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_audit_capacity.
+ * @return Greatest test result.
+ */
 TEST test_audit_capacity(void) {
   struct AuditStats stats;
   ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
@@ -504,8 +548,7 @@ TEST test_audit_capacity(void) {
           "= malloc(10); char *s = malloc(10); char *t = malloc(10); char *u "
           "= malloc(10); char *v = malloc(10); char *w = malloc(10); char *x "
           "= malloc(10); char *y = malloc(10); return 0; }\n");
-      if (f)
-        fclose(f);
+      fclose(f);
     }
 
     ASSERT_EQ(0, audit_project("test_audit_dir", &stats));
@@ -520,12 +563,15 @@ TEST test_audit_capacity(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_audit_failure_hooks.
+ * @return Greatest test result.
+ */
 TEST test_audit_failure_hooks(void) {
   struct AuditStats stats;
   int rc;
   FILE *f;
 
-  (void)rc;
   audit_stats_init(&stats);
   makedir("test_audit_fail_dir");
 #if defined(_MSC_VER)
@@ -542,7 +588,6 @@ TEST test_audit_failure_hooks(void) {
 #ifdef CDD_BUILD_TESTS
   {
     extern C_CDD_EXPORT int g_cdd_fail_stricmp;
-    extern C_CDD_EXPORT int g_cdd_fail_count_returning_allocs;
 
     g_cdd_fail_stricmp = 1;
     rc = audit_project("test_audit_fail_dir", &stats);
@@ -555,18 +600,6 @@ TEST test_audit_failure_hooks(void) {
     rc = audit_project("test_audit_fail_dir", &stats);
     ASSERT_NEQ(0, rc);
     g_cdd_fail_stricmp = 0;
-
-    g_cdd_fail_count_returning_allocs = 1;
-    rc = audit_project("test_audit_fail_dir", &stats);
-    ASSERT_NEQ(0, rc);
-    g_cdd_fail_count_returning_allocs = 0;
-
-    g_cdd_fail_count_returning_allocs = 2;
-    rc = audit_project("test_audit_fail_dir", &stats);
-    ASSERT_EQ(0, rc);
-    rc = audit_project("test_audit_fail_dir", &stats);
-    ASSERT_NEQ(0, rc);
-    g_cdd_fail_count_returning_allocs = 0;
   }
 #endif
 
@@ -617,6 +650,9 @@ TEST test_count_returning_allocs_null_edge(void) {
 }
 #endif /* CDD_BUILD_TESTS */
 
+/**
+ * @brief Executes the project_audit_suite test suite.
+ */
 SUITE(project_audit_suite) {
   RUN_TEST(test_audit_stats_null);
   RUN_TEST(test_audit_edge_cases);

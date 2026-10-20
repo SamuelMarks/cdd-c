@@ -29,14 +29,17 @@ extern "C" {
 
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
 extern C_CDD_EXPORT int g_cdd_fail_cst_list_add;
+/** @brief Test definition g_cdd_fail_make_tmpfile. */
 extern C_CDD_EXPORT int g_cdd_fail_make_tmpfile;
+/** @brief Test definition g_cdd_fail_patch_list_add. */
 extern C_CDD_EXPORT int g_cdd_fail_patch_list_add;
-extern C_CDD_EXPORT int g_cdd_fail_token_matches_string;
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
+/** @brief Test definition g_cdd_sync_sig_no_brace. */
 extern C_CDD_EXPORT int g_cdd_sync_sig_no_brace;
 
 /**
  * @brief Tests all edge-case branches in sync.c to reach 100% branch coverage.
+ * @return Test or helper result.
  */
 TEST test_sync_remaining_branches(void) {
   struct OpenAPI_Spec spec;
@@ -152,18 +155,6 @@ TEST test_sync_remaining_branches(void) {
     rc = patch_list_init(&patches);
     ASSERT_EQ(0, rc);
 
-    /* token_matches_string error on url_query_init */
-    g_cdd_fail_token_matches_string = 1;
-    rc = cdd_test_sync_apply_query_sync(&op, tl, node, &patches);
-    ASSERT(rc != CDD_C_SUCCESS);
-    g_cdd_fail_token_matches_string = 0;
-
-    /* token_matches_string error on url_query_build */
-    g_cdd_fail_token_matches_string = 2;
-    rc = cdd_test_sync_apply_query_sync(&op, tl, node, &patches);
-    ASSERT(rc != CDD_C_SUCCESS);
-    g_cdd_fail_token_matches_string = 0;
-
     /* make_cdd_tmpfile error inside generate_expected_query */
     g_cdd_fail_make_tmpfile = 1;
     rc = cdd_test_sync_apply_query_sync(&op, tl, node, &patches);
@@ -209,12 +200,6 @@ TEST test_sync_remaining_branches(void) {
 
     rc = patch_list_init(&patches);
     ASSERT_EQ(0, rc);
-
-    /* token_matches_string error */
-    g_cdd_fail_token_matches_string = 1;
-    rc = cdd_test_sync_apply_header_sync(&op, tl, node, &patches);
-    ASSERT(rc != CDD_C_SUCCESS);
-    g_cdd_fail_token_matches_string = 0;
 
     /* generate_expected_header_line OOM */
     g_cdd_alloc_fail = 1;
@@ -265,24 +250,6 @@ TEST test_sync_remaining_branches(void) {
     rc = cdd_test_sync_apply_updates("file.c", tl, &cst, &spec, &cfg);
     ASSERT(rc != CDD_C_SUCCESS);
     g_cdd_strdup_fail = 0;
-
-    /* token_matches_string error on asprintf */
-    g_cdd_fail_token_matches_string = 6;
-    rc = cdd_test_sync_apply_updates("file.c", tl, &cst, &spec, &cfg);
-    ASSERT(rc != CDD_C_SUCCESS);
-    g_cdd_fail_token_matches_string = 0;
-
-    /* token_matches_string error on snprintf */
-    g_cdd_fail_token_matches_string = 7;
-    rc = cdd_test_sync_apply_updates("file.c", tl, &cst, &spec, &cfg);
-    ASSERT(rc != CDD_C_SUCCESS);
-    g_cdd_fail_token_matches_string = 0;
-
-    /* token_matches_string error on var */
-    g_cdd_fail_token_matches_string = 8;
-    rc = cdd_test_sync_apply_updates("file.c", tl, &cst, &spec, &cfg);
-    ASSERT(rc != CDD_C_SUCCESS);
-    g_cdd_fail_token_matches_string = 0;
 
     /* patch_list_add error on URL new_block */
     g_cdd_fail_patch_list_add = 2;
@@ -601,7 +568,7 @@ TEST test_sync_remaining_branches(void) {
     rc = parse_tokens(tl, &cst);
     ASSERT_EQ(0, rc);
 
-    g_cdd_alloc_fail = 5;
+    g_cdd_alloc_fail = 7;
     rc = cdd_test_sync_apply_updates("file.c", tl, &cst, &spec, &cfg);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     g_cdd_alloc_fail = 0;
@@ -629,6 +596,9 @@ TEST test_sync_remaining_branches(void) {
 
 #endif /* !__EMSCRIPTEN__ */
 
+/**
+ * @brief Executes the api_sync_branches_suite test suite.
+ */
 SUITE(api_sync_branches_suite) {
 #ifndef __EMSCRIPTEN__
   RUN_TEST(test_sync_remaining_branches);

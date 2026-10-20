@@ -188,21 +188,11 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
   if (!hfile || !cfile || !path || !op || !config || !prefix)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 40)
-    return CDD_C_ERROR_MEMORY;
-#endif
-
   memset(&sig_cfg, 0, sizeof(sig_cfg));
   sig_cfg.prefix = prefix;
 
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 56)
-    merge_rc = CDD_C_ERROR_MEMORY;
-  else
-#endif
-    merge_rc = build_effective_parameters(path, op, &effective_params,
-                                          &effective_count);
+  merge_rc =
+      build_effective_parameters(path, op, &effective_params, &effective_count);
   if (merge_rc != CDD_C_SUCCESS)
     return merge_rc;
 
@@ -213,12 +203,6 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
   /* Determine Group Name from Tags and Namespace */
   if (effective_op.n_tags > 0 && effective_op.tags[0]) {
     sanitize_tag(effective_op.tags[0], &sanitized_group);
-#ifdef CDD_BUILD_TESTS
-    if (g_client_gen_fail == 41) {
-      free(sanitized_group);
-      sanitized_group = NULL;
-    }
-#endif
     if (!sanitized_group) {
       rc = CDD_C_ERROR_MEMORY;
       {
@@ -231,14 +215,8 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
 
   if (config->namespace_prefix && sanitized_group) {
     /* Name: Namespace_Tag */
-    full_group =
-        malloc(strlen(config->namespace_prefix) + strlen(sanitized_group) + 2);
-#ifdef CDD_BUILD_TESTS
-    if (g_client_gen_fail == 42) {
-      free(full_group);
-      full_group = NULL;
-    }
-#endif
+    full_group = C_CDD_MALLOC(strlen(config->namespace_prefix) +
+                              strlen(sanitized_group) + 2);
     if (!full_group) {
       rc = CDD_C_ERROR_MEMORY;
       {
@@ -259,13 +237,7 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
 #endif
   } else if (config->namespace_prefix) {
     /* Name: Namespace */
-    full_group = strdup(config->namespace_prefix);
-#ifdef CDD_BUILD_TESTS
-    if (g_client_gen_fail == 43) {
-      free(full_group);
-      full_group = NULL;
-    }
-#endif
+    full_group = C_CDD_STRDUP(config->namespace_prefix);
     if (!full_group) {
       rc = CDD_C_ERROR_MEMORY;
       {
@@ -276,13 +248,7 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
     }
   } else if (sanitized_group) {
     /* Name: Tag */
-    full_group = strdup(sanitized_group);
-#ifdef CDD_BUILD_TESTS
-    if (g_client_gen_fail == 44) {
-      free(full_group);
-      full_group = NULL;
-    }
-#endif
+    full_group = C_CDD_STRDUP(sanitized_group);
     if (!full_group) {
       rc = CDD_C_ERROR_MEMORY;
       {
@@ -303,12 +269,6 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
     render_server_url_default(server_override, &override_url);
     if (override_url) {
       build_base_url_literal(override_url, &base_url_expr);
-#ifdef CDD_BUILD_TESTS
-      if (g_client_gen_fail == 45) {
-        free(base_url_expr);
-        base_url_expr = NULL;
-      }
-#endif
       if (!base_url_expr) {
         rc = CDD_C_ERROR_MEMORY;
         {
@@ -320,20 +280,8 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
     }
   }
 
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 46) {
-    rc = CDD_C_ERROR_IO;
-    goto cleanup;
-  }
-#endif
-
   /* 1. Header: DocBlock + Prototype */
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 60)
-    rc = CDD_C_ERROR_IO;
-  else
-#endif
-    rc = write_docblock(hfile, path, &effective_op);
+  rc = write_docblock(hfile, path, &effective_op);
   if (rc != 0) {
     fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
             __LINE__);
@@ -341,12 +289,7 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
   }
 
   sig_cfg.include_semicolon = 1;
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 57)
-    rc = CDD_C_ERROR_IO;
-  else
-#endif
-    rc = codegen_client_write_signature(hfile, &effective_op, &sig_cfg);
+  rc = codegen_client_write_signature(hfile, &effective_op, &sig_cfg);
   if (rc != 0) {
     fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
             __LINE__);
@@ -356,12 +299,7 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
 
   /* 2. Source: Implementation */
   sig_cfg.include_semicolon = 0;
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 58)
-    rc = CDD_C_ERROR_IO;
-  else
-#endif
-    rc = codegen_client_write_signature(cfile, &effective_op, &sig_cfg);
+  rc = codegen_client_write_signature(cfile, &effective_op, &sig_cfg);
   if (rc != 0) {
     fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
             __LINE__);
@@ -369,13 +307,8 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
   }
 
   /* Body generation (Passing spec for security lookup) */
-#ifdef CDD_BUILD_TESTS
-  if (g_client_gen_fail == 59)
-    rc = CDD_C_ERROR_IO;
-  else
-#endif
-    rc = codegen_client_write_body(cfile, &effective_op, spec, path->route,
-                                   base_url_expr);
+  rc = codegen_client_write_body(cfile, &effective_op, spec, path->route,
+                                 base_url_expr);
   if (rc != 0) {
     fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
             __LINE__);
@@ -386,15 +319,15 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
 
 cleanup:
   if (sanitized_group)
-    free(sanitized_group);
+    C_CDD_FREE(sanitized_group);
   if (full_group)
-    free(full_group);
+    C_CDD_FREE(full_group);
   if (effective_params)
-    free(effective_params);
+    C_CDD_FREE(effective_params);
   if (override_url)
-    free(override_url);
+    C_CDD_FREE(override_url);
   if (base_url_expr)
-    free(base_url_expr);
+    C_CDD_FREE(base_url_expr);
 
 #undef CHECK_IO_CLEANUP
 

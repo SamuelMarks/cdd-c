@@ -1,3 +1,7 @@
+/**
+ * @file test_rewriter_sig.h
+ * @brief Unit tests and mocks in test_rewriter_sig.h.
+ */
 #ifndef TEST_REWRITER_SIG_H
 #define TEST_REWRITER_SIG_H
 
@@ -21,6 +25,9 @@ extern "C" {
 /**
  * @brief Helper to run rewrite_signature on a string input and verify against
  * expectation.
+ * @param[in] input Parameter input.
+ * @param[in] expected Parameter expected.
+ * @return Test or helper result.
  */
 static cdd_c_error_t test_rewrite(const char *input, const char *expected) {
   struct TokenList *tl = NULL;
@@ -51,6 +58,11 @@ static cdd_c_error_t test_rewrite(const char *input, const char *expected) {
   return 0; /* Success */
 }
 
+/**
+ * @brief Helper function test_rewrite_error.
+ * @param[in] input Parameter input.
+ * @return Result status or value.
+ */
 static int test_rewrite_error(const char *input) {
   struct TokenList *tl = NULL;
   char *output = NULL;
@@ -263,6 +275,10 @@ TEST test_rewrite_name_comment(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_rewrite_all_ws_ret.
+ * @return Greatest test result.
+ */
 TEST test_rewrite_all_ws_ret(void) {
   struct TokenList *tl = NULL;
   char *output = NULL;
@@ -279,12 +295,20 @@ TEST test_rewrite_all_ws_ret(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_rewrite_trim_empty.
+ * @return Greatest test result.
+ */
 TEST test_rewrite_trim_empty(void) {
   ASSERT_EQ(0, test_rewrite(" f()", "int f(int *out)"));
   g_fail_io_after = -1;
   PASS();
 }
 
+/**
+ * @brief Unit test test_rewrite_leading_ws.
+ * @return Greatest test result.
+ */
 TEST test_rewrite_leading_ws(void) {
   struct TokenList *tl = NULL;
   char *output = NULL;
@@ -302,6 +326,10 @@ TEST test_rewrite_leading_ws(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_rewrite_missing_cov.
+ * @return Greatest test result.
+ */
 TEST test_rewrite_missing_cov(void) {
   struct TokenList *tl = NULL;
   char *output = NULL;
@@ -433,6 +461,10 @@ TEST test_rewrite_missing_cov(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_rewrite_no_parens.
+ * @return Greatest test result.
+ */
 TEST test_rewrite_no_parens(void) {
   /* "int x;" is not a function */
   ASSERT_NEQ(0, test_rewrite("int x;", ""));
@@ -498,6 +530,7 @@ TEST test_rewrite_kr_complex(void) {
 TEST test_rewrite_kr_empty_args(void) {
   /* char *f() int x; -> int f(out) int x; char * *out; */
   /* This is technically invalid C (declaring x but not in param list), but
+   * @return Test or helper result.
    * parser should preserve logic */
   const char *input = cdd_test_mut_str("char *f() int x;");
   const char *expected = cdd_test_mut_str("int f(out) int x; char * *out;");
@@ -509,6 +542,7 @@ TEST test_rewrite_kr_empty_args(void) {
 
 /**
  * @brief rewriter_sig_suite
+ * @return Test or helper result.
  */
 
 TEST test_rewrite_oom(void) {
@@ -556,6 +590,10 @@ TEST test_rewrite_oom(void) {
 /*  (moved to global) */
 #endif
 
+/**
+ * @brief Unit test test_rewrite_sig_oom.
+ * @return Greatest test result.
+ */
 TEST test_rewrite_sig_oom(void) {
 #ifdef CDD_BUILD_TESTS
   int i;
@@ -586,6 +624,10 @@ TEST test_rewrite_sig_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_rewriter_sig_error_hooks.
+ * @return Greatest test result.
+ */
 TEST test_rewriter_sig_error_hooks(void) {
 #ifdef CDD_BUILD_TESTS
   int dummy = 0;
@@ -656,6 +698,9 @@ TEST test_rewriter_sig_error_hooks(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the rewriter_sig_suite test suite.
+ */
 SUITE(rewriter_sig_suite) {
   RUN_TEST(test_rewrite_sig_oom);
   RUN_TEST(test_rewrite_oom);

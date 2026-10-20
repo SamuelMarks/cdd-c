@@ -9,6 +9,7 @@
 
 #include "functions/parse/refactor.h"
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 #include "c_str_span.h"
 #include "functions/parse/analysis.h"
 #include "functions/parse/tokenizer.h"
@@ -16,25 +17,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-
-#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#ifndef strdup
-/** @brief Alias `strdup` to `_strdup` on MSVC. */
-#define strdup _strdup
-#endif
-#endif
-#else
-#include "c_cdd/log.h"
-#include <errno.h>
 /* clang-format on */
-#endif
-
-#ifdef CDD_BUILD_TESTS
-/** @brief Flag to simulate allocation failure in
- * `refactor_context_add_function`. */
-C_CDD_EXPORT int g_cdd_fail_alloc_refactor_add = 0;
-#endif
 
 /**
  * @brief Initializes a refactor context.
@@ -59,7 +42,7 @@ void refactor_context_free(struct RefactorContext *ctx) {
   if (!ctx)
     return;
   if (ctx->funcs) {
-    free(ctx->funcs);
+    C_CDD_FREE(ctx->funcs);
     ctx->funcs = NULL;
   }
   ctx->func_count = 0;
@@ -79,17 +62,8 @@ cdd_c_error_t refactor_context_add_function(struct RefactorContext *ctx,
   if (!ctx || !name)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  new_alloc = (struct RefactoredFunction *)realloc(
+  new_alloc = (struct RefactoredFunction *)C_CDD_REALLOC(
       ctx->funcs, (ctx->func_count + 1) * sizeof(struct RefactoredFunction));
-#ifdef CDD_BUILD_TESTS
-  {
-    extern int g_cdd_fail_alloc_refactor_add;
-    if (g_cdd_fail_alloc_refactor_add) {
-      free(new_alloc);
-      new_alloc = NULL;
-    }
-  }
-#endif
   if (!new_alloc) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -123,34 +97,14 @@ cdd_c_error_t apply_refactoring_to_string(const struct RefactorContext *ctx,
   if (out_code == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-    /* 1. Tokenize */
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;
-    if (g_cdd_audit_fail_tokenize)
-      rc = CDD_C_ERROR_SYSTEM;
-    else
-      rc = tokenize(az_span_create_from_str(source_code), &tokens);
-  }
-#else
+  /* 1. Tokenize */
   rc = tokenize(az_span_create_from_str(source_code), &tokens);
-#endif
   if (rc != CDD_C_SUCCESS) {
     return rc;
   }
 
   /* 2. Analyze Allocations */
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_audit_fail_find;
-    if (g_cdd_audit_fail_find)
-      rc = CDD_C_ERROR_SYSTEM;
-    else
-      rc = find_allocations(tokens, &allocs);
-  }
-#else
   rc = find_allocations(tokens, &allocs);
-#endif
   if (rc != CDD_C_SUCCESS) {
     free_token_list(tokens);
     return rc;

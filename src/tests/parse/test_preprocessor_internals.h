@@ -27,9 +27,16 @@ extern "C" {
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #define TEST_PP_SEP '\\'
 #else
+/**
+ * @brief Macro TEST_PP_SEP.
+ */
 #define TEST_PP_SEP '/'
 #endif
 
+/**
+ * @brief Unit test test_pp_join_path_and_file_exists.
+ * @return Greatest test result.
+ */
 TEST test_pp_join_path_and_file_exists(void) {
   char *out = NULL;
   int exists = 0;
@@ -77,6 +84,10 @@ TEST test_pp_join_path_and_file_exists(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_token_and_reconstruct_path.
+ * @return Greatest test result.
+ */
 TEST test_pp_token_and_reconstruct_path(void) {
   struct TokenList *tl = NULL;
   char *out = NULL;
@@ -137,6 +148,10 @@ TEST test_pp_token_and_reconstruct_path(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_resolve_path_cases.
+ * @return Greatest test result.
+ */
 TEST test_pp_resolve_path_cases(void) {
   struct PreprocessorContext ctx;
   char *resolved = NULL;
@@ -188,6 +203,10 @@ TEST test_pp_resolve_path_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_context_and_macro_operations.
+ * @return Greatest test result.
+ */
 TEST test_pp_context_and_macro_operations(void) {
   struct PreprocessorContext ctx;
   struct EmbedParams params;
@@ -285,6 +304,10 @@ TEST test_pp_context_and_macro_operations(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_conditional_stack_operations.
+ * @return Greatest test result.
+ */
 TEST test_pp_conditional_stack_operations(void) {
   struct ConditionalStack st;
   enum CondState s = COND_ACTIVE;
@@ -358,6 +381,10 @@ TEST test_pp_conditional_stack_operations(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_is_defined_macro_operations.
+ * @return Greatest test result.
+ */
 TEST test_pp_is_defined_macro_operations(void) {
   struct PreprocessorContext ctx;
   struct Token tok;
@@ -401,6 +428,10 @@ TEST test_pp_is_defined_macro_operations(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_parse_embed_params_cases.
+ * @return Greatest test result.
+ */
 TEST test_pp_parse_embed_params_cases(void) {
   struct PreprocessorContext ctx;
   struct TokenList *tl = NULL;
@@ -466,6 +497,10 @@ TEST test_pp_parse_embed_params_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_eval_all_branches.
+ * @return Greatest test result.
+ */
 TEST test_pp_eval_all_branches(void) {
   struct PreprocessorContext ctx;
   struct TokenList *tl = NULL;
@@ -709,6 +744,9 @@ TEST test_pp_eval_all_branches(void) {
 #include "parse/test_preprocessor_internals_coverage.h"
 #include "parse/test_preprocessor_internals_directives.h"
 
+/**
+ * @brief Executes the preprocessor_internals_suite test suite.
+ */
 SUITE(preprocessor_internals_suite) {
   RUN_TEST(test_pp_100_percent_coverage);
   RUN_TEST(test_pp_100_cov_directives);

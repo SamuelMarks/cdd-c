@@ -1,6 +1,13 @@
+/**
+ * @file test_codegen_defaults.h
+ * @brief Unit tests and mocks in test_codegen_defaults.h.
+ */
 #include "cdd_test_helpers_export.h"
 CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 #ifndef TEST_CODEGEN_DEFAULTS_H
+/**
+ * @brief Macro TEST_CODEGEN_DEFAULTS_H.
+ */
 #define TEST_CODEGEN_DEFAULTS_H
 
 #ifdef __cplusplus
@@ -20,7 +27,9 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 
 #ifdef CDD_BUILD_TESTS
@@ -46,8 +55,17 @@ static size_t mock_fread_def(void *ptr, size_t size, size_t nitems,
 #define FTELL mock_ftell_def
 #define FREAD mock_fread_def
 #else
+/**
+ * @brief Macro TMPFILE.
+ */
 #define TMPFILE tmpfile
+/**
+ * @brief Macro FTELL.
+ */
 #define FTELL ftell
+/**
+ * @brief Macro FREAD.
+ */
 #define FREAD fread
 #endif
 
@@ -56,6 +74,13 @@ static size_t mock_fread_def(void *ptr, size_t size, size_t nitems,
 #endif
 
 /* Helper to generate code and return as string buffer */
+/**
+ * @brief Helper function generate_def_code.
+ * @param[in] struct_name Parameter struct_name.
+ * @param[in,out] sf Parameter sf.
+ * @param[in,out] _out_val Parameter _out_val.
+ * @return Result status or value.
+ */
 static cdd_c_error_t generate_def_code(const char *struct_name,
                                        struct StructFields *sf,
                                        char **_out_val) {
@@ -267,6 +292,7 @@ TEST test_default_binary_literal(void) {
 
 /**
  * @brief codegen_defaults_suite
+ * @return Test or helper result.
  */
 
 TEST test_write_forward_decl_bounds(void) {
@@ -281,6 +307,10 @@ TEST test_write_forward_decl_bounds(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_write_forward_decl_io_fail.
+ * @return Greatest test result.
+ */
 TEST test_write_forward_decl_io_fail(void) {
   FILE *tmp = TMPFILE();
   g_fail_io_after = 0;
@@ -297,6 +327,10 @@ TEST test_write_forward_decl_io_fail(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_write_enum_declaration_h_io_fail.
+ * @return Greatest test result.
+ */
 TEST test_write_enum_declaration_h_io_fail(void) {
   struct StructFields sf;
   struct CodegenConfig cfg;
@@ -342,6 +376,10 @@ TEST test_write_enum_declaration_h_io_fail(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_write_struct_declaration_h_io_fail.
+ * @return Greatest test result.
+ */
 TEST test_write_struct_declaration_h_io_fail(void) {
   struct StructFields sf;
   struct CodegenConfig cfg;
@@ -402,6 +440,10 @@ TEST test_write_struct_declaration_h_io_fail(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_write_union_declaration_h_io_fail.
+ * @return Greatest test result.
+ */
 TEST test_write_union_declaration_h_io_fail(void) {
   struct StructFields sf;
   struct CodegenConfig cfg;
@@ -445,6 +487,10 @@ TEST test_write_union_declaration_h_io_fail(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_codegen_h_bounds.
+ * @return Greatest test result.
+ */
 TEST test_codegen_h_bounds(void) {
   FILE *tmp = TMPFILE();
   struct StructFields sf;
@@ -481,6 +527,10 @@ TEST test_codegen_h_bounds(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_def_errors.
+ * @return Greatest test result.
+ */
 TEST test_def_errors(void) {
   char *_out = NULL;
   struct StructFields sf;
@@ -515,6 +565,9 @@ TEST test_def_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the codegen_defaults_suite test suite.
+ */
 SUITE(codegen_defaults_suite) {
   RUN_TEST(test_def_errors);
   RUN_TEST(test_default_primitive);

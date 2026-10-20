@@ -24,6 +24,10 @@ extern "C" {
 extern C_CDD_EXPORT int g_schema_strdup_fail;
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
+/**
+ * @brief Unit test test_schema_constraints_roundtrip.
+ * @return Greatest test result.
+ */
 TEST test_schema_constraints_roundtrip(void) {
   JSON_Value *val;
   JSON_Object *obj;
@@ -201,6 +205,10 @@ TEST test_schema_constraints_roundtrip(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema_annotations_roundtrip.
+ * @return Greatest test result.
+ */
 TEST test_schema_annotations_roundtrip(void) {
   struct StructFields sf;
   JSON_Value *val;
@@ -317,6 +325,10 @@ TEST test_schema_annotations_roundtrip(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema_allof_merge.
+ * @return Greatest test result.
+ */
 TEST test_schema_allof_merge(void) {
   JSON_Value *root_val;
   JSON_Value *schema_val;
@@ -399,6 +411,10 @@ TEST test_schema_allof_merge(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema_anyof_first_object.
+ * @return Greatest test result.
+ */
 TEST test_schema_anyof_first_object(void) {
   JSON_Value *schema_val;
   struct StructField *_ast_struct_fields_get_11 = NULL;
@@ -434,6 +450,10 @@ TEST test_schema_anyof_first_object(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema_oneof_first_object.
+ * @return Greatest test result.
+ */
 TEST test_schema_oneof_first_object(void) {
   JSON_Value *schema_val;
   struct StructField *_ast_struct_fields_get_13 = NULL;
@@ -469,6 +489,10 @@ TEST test_schema_oneof_first_object(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema_keyword_passthrough.
+ * @return Greatest test result.
+ */
 TEST test_schema_keyword_passthrough(void) {
   struct StructFields sf;
   JSON_Value *val;
@@ -606,6 +630,10 @@ TEST test_schema_keyword_passthrough(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema_allof_keyword_merge.
+ * @return Greatest test result.
+ */
 TEST test_schema_allof_keyword_merge(void) {
   JSON_Value *schema_val;
   const char schema[] = {
@@ -679,6 +707,10 @@ TEST test_schema_allof_keyword_merge(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema_type_union_roundtrip.
+ * @return Greatest test result.
+ */
 TEST test_schema_type_union_roundtrip(void) {
   struct StructFields sf;
   JSON_Value *val;
@@ -798,6 +830,10 @@ TEST test_schema_type_union_roundtrip(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema_constraints_free_branch.
+ * @return Greatest test result.
+ */
 TEST test_schema_constraints_free_branch(void) {
   struct SchemaConstraints sc;
 
@@ -868,6 +904,10 @@ TEST test_schema_constraints_free_branch(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema_constraints_free_null_fields.
+ * @return Greatest test result.
+ */
 TEST test_schema_constraints_free_null_fields(void) {
   struct SchemaConstraints sc;
   schema_constraints_init(&sc);
@@ -879,6 +919,9 @@ TEST test_schema_constraints_free_null_fields(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the schema_constraints_suite test suite.
+ */
 SUITE(schema_constraints_suite) {
   RUN_TEST(test_schema_constraints_roundtrip);
   RUN_TEST(test_schema_annotations_roundtrip);

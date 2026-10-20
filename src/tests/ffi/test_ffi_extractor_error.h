@@ -1,3 +1,7 @@
+/**
+ * @file test_ffi_extractor_error.h
+ * @brief Unit tests and mocks in test_ffi_extractor_error.h.
+ */
 #ifndef TEST_FFI_EXTRACTOR_ERROR_H
 #define TEST_FFI_EXTRACTOR_ERROR_H
 
@@ -14,15 +18,23 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/** @brief Test definition g_cdd_ffi_fail_class_name. */
 extern C_CDD_EXPORT int g_cdd_ffi_fail_class_name;
+/** @brief Test definition g_cdd_ffi_fail_is_visited. */
 extern C_CDD_EXPORT int g_cdd_ffi_fail_is_visited;
+/** @brief Test definition g_cdd_ffi_extractor_fail. */
 extern C_CDD_EXPORT int g_cdd_ffi_extractor_fail;
-extern C_CDD_EXPORT int g_cdd_pp_context_init_fail;
-extern C_CDD_EXPORT int g_cdd_pp_scan_defines_fail;
+/** @brief Test definition g_cdd_fail_alloc. */
 extern C_CDD_EXPORT int g_cdd_fail_alloc;
+extern C_CDD_EXPORT int g_cdd_fail_cst_list_add;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
+/** @brief Test definition g_ffi_extractor_alloc_fail. */
 extern C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
 
+/**
+ * @brief Unit test test_ffi_ir_extract_error_paths.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_extract_error_paths(void) {
   cdd_ffi_ir_t *ir = NULL;
   cdd_generate_bindings_config_t config = {0};
@@ -39,12 +51,6 @@ TEST test_ffi_ir_extract_error_paths(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             cdd_ffi_ir_extract_exports("test.h", "int a;", &config, &ir));
   g_ffi_extractor_alloc_fail = 0;
-  ASSERT(ir == NULL);
-
-  g_cdd_pp_context_init_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY,
-            cdd_ffi_ir_extract_exports("test.h", "int a;", &config, &ir));
-  g_cdd_pp_context_init_fail = 0;
   ASSERT(ir == NULL);
 
   ASSERT(cdd_ffi_ir_extract_exports("test.h", "int f( { }", &config, &ir) !=
@@ -273,31 +279,18 @@ TEST test_ffi_ir_extract_error_paths(void) {
     remove("test_cst_fail.h");
     cdd_ffi_ir_free(&test_ir);
 
-    /* Signature extraction failure via g_cdd_fail_alloc */
+    /* Signature extraction failure via g_cdd_fail_cst_list_add */
     write_to_file("bad_sig.h", "int a;");
-    g_cdd_fail_alloc = 1;
+    g_cdd_fail_cst_list_add = 1;
     ASSERT(cdd_ffi_extract_single_file_exports_test(
                &test_ir, "bad_sig.h", "int a;", &config) != CDD_C_SUCCESS);
-    g_cdd_fail_alloc = 0;
+    g_cdd_fail_cst_list_add = 0;
     remove("bad_sig.h");
 
-    /* pp_context_init failure in extract_single_file_exports */
-    write_to_file("test_pp_fail.h", "int a;");
-    g_cdd_pp_context_init_fail = 1;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY,
-              cdd_ffi_extract_single_file_exports_test(
-                  &test_ir, "test_pp_fail.h", "int a;", &config));
-    g_cdd_pp_context_init_fail = 0;
-    remove("test_pp_fail.h");
-
-    /* pp_scan_defines failure via g_cdd_pp_scan_defines_fail */
-    write_to_file("test_pp_scan_fail.h", "int a;");
-    g_cdd_pp_scan_defines_fail = 1;
-    ASSERT_EQ(CDD_C_ERROR_IO,
-              cdd_ffi_extract_single_file_exports_test(
-                  &test_ir, "test_pp_scan_fail.h", "int a;", &config));
-    g_cdd_pp_scan_defines_fail = 0;
-    remove("test_pp_scan_fail.h");
+    /* pp_scan_defines failure via nonexistent file */
+    ASSERT(cdd_ffi_extract_single_file_exports_test(
+               &test_ir, "nonexistent_pp_scan_fail.h", "int a;", &config) !=
+           CDD_C_SUCCESS);
 
     /* Trivia OOM branches for KIND_STRUCT */
     {

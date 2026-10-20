@@ -5,12 +5,16 @@
 
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
+#include "c_cdd/context.h"
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 
 #ifndef __wasi__
 #include "serve_json_rpc.h"
 #include "../parse/cli.h"
 #include "../../cdd_api.h"
+#include "functions/parse/fs.h"
+#include <ctype.h>
 #include <parson.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -68,18 +72,6 @@ typedef int cdd_socket_t;
 #endif
 #endif
 
-#ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_serve_json_rpc_fail_handle;
-extern C_CDD_EXPORT int g_serve_json_rpc_fail_socket;
-extern C_CDD_EXPORT int g_serve_json_rpc_fail_listen;
-extern C_CDD_EXPORT int g_serve_json_rpc_fail_accept;
-extern C_CDD_EXPORT int g_serve_json_rpc_fail_send;
-int g_serve_json_rpc_fail_handle = 0;
-int g_serve_json_rpc_fail_socket = 0;
-int g_serve_json_rpc_fail_listen = 0;
-int g_serve_json_rpc_fail_accept = 0;
-int g_serve_json_rpc_fail_send = 0;
-#endif
 #if !defined(__WATCOMC__) && !defined(__DOS__) && !defined(__EMSCRIPTEN__)
 
 /**
@@ -93,12 +85,13 @@ int g_serve_json_rpc_fail_send = 0;
  */
 static cdd_c_error_t serve_socket_create(int domain, int type, int protocol,
                                          cdd_socket_t *out_socket) {
-#ifdef CDD_BUILD_TESTS
-  if (g_serve_json_rpc_fail_socket) {
-    *out_socket = INVALID_SOCKET;
-  } else
-#endif
-  {
+  const cdd_context_t *ctx = NULL;
+  int fd = -1;
+  cdd_context_get_global(&ctx);
+  if (ctx->socket_vt.socket_fn) {
+    ctx->socket_vt.socket_fn(domain, type, protocol, &fd);
+    *out_socket = (cdd_socket_t)fd;
+  } else {
     *out_socket = socket(domain, type, protocol);
   }
   if (*out_socket == INVALID_SOCKET) {
@@ -115,13 +108,12 @@ static cdd_c_error_t serve_socket_create(int domain, int type, int protocol,
  * @return CDD_C_SUCCESS on success, CDD_C_ERROR_SYSTEM on failure.
  */
 static cdd_c_error_t serve_listen_start(cdd_socket_t s, int backlog) {
+  const cdd_context_t *ctx = NULL;
   int rc;
-#ifdef CDD_BUILD_TESTS
-  if (g_serve_json_rpc_fail_listen) {
-    rc = -1;
-  } else
-#endif
-  {
+  cdd_context_get_global(&ctx);
+  if (ctx->socket_vt.listen_fn) {
+    rc = -(int)ctx->socket_vt.listen_fn((int)s, backlog);
+  } else {
     rc = listen(s, backlog);
   }
   if (rc < 0) {
@@ -146,18 +138,14 @@ static cdd_c_error_t serve_accept_client(cdd_socket_t s, struct sockaddr *addr,
                                          socklen_t *addrlen,
 #endif
                                          cdd_socket_t *out_client) {
-#ifdef CDD_BUILD_TESTS
-  if (g_serve_json_rpc_fail_accept) {
-    --g_serve_json_rpc_fail_accept;
-    *out_client = INVALID_SOCKET;
-  } else
-#endif
-  {
-#if defined(_WIN32)
+  const cdd_context_t *ctx = NULL;
+  int client_fd = -1;
+  cdd_context_get_global(&ctx);
+  if (ctx->socket_vt.accept_fn) {
+    ctx->socket_vt.accept_fn((int)s, &client_fd);
+    *out_client = (cdd_socket_t)client_fd;
+  } else {
     *out_client = accept(s, addr, addrlen);
-#else
-    *out_client = accept(s, addr, addrlen);
-#endif
   }
   if (*out_client == INVALID_SOCKET) {
     return CDD_C_ERROR_SYSTEM;
@@ -166,7 +154,7 @@ static cdd_c_error_t serve_accept_client(cdd_socket_t s, struct sockaddr *addr,
 }
 
 /**
- * @brief Sends a buffer over a socket with test mock interception.
+ * @brief Sends a buffer over a socket with VTable dispatch support.
  *
  * @param[in] s Socket descriptor.
  * @param[in] b Buffer to send.
@@ -176,13 +164,13 @@ static cdd_c_error_t serve_accept_client(cdd_socket_t s, struct sockaddr *addr,
  */
 static cdd_c_error_t serve_send_buffer(cdd_socket_t s, const char *b, size_t l,
                                        int f) {
+  const cdd_context_t *ctx = NULL;
   cdd_ssize_t sent;
-#ifdef CDD_BUILD_TESTS
-  if (g_serve_json_rpc_fail_send) {
-    sent = -1;
-  } else
-#endif
-  {
+  size_t out_sent = 0;
+  cdd_context_get_global(&ctx);
+  if (ctx->socket_vt.send_fn) {
+    sent = -(cdd_ssize_t)ctx->socket_vt.send_fn((int)s, b, l, &out_sent);
+  } else {
     sent = send(s, b, CDD_SEND_LEN_CAST(l), f);
   }
   if (sent < 0) {
@@ -204,47 +192,146 @@ static cdd_c_error_t send_rpc_response(cdd_socket_t client_fd,
 }
 
 /**
- * @brief Sends a JSON-RPC error response over a socket.
+ * @brief Sends a JSON-RPC error response over an HTTP socket, echoing `id_val`.
  *
  * @param[in] client_fd Client socket descriptor.
+ * @param[in] id_val Optional JSON-RPC request ID value (integer, string, or
+ * null).
  * @param[in] code JSON-RPC error code.
  * @param[in] msg Error message string.
  * @return CDD_C_SUCCESS on success, CDD_C_ERROR_SYSTEM on send failure.
  */
-static cdd_c_error_t send_rpc_error(cdd_socket_t client_fd, int code,
-                                    const char *msg) {
-  char resp[1024];
+static cdd_c_error_t send_rpc_error_id(cdd_socket_t client_fd,
+                                       JSON_Value *id_val, int code,
+                                       const char *msg) {
+  char resp[2048];
+  char *id_str = json_serialize_to_string(id_val);
 #if defined(_MSC_VER)
   sprintf_s(resp, sizeof(resp),
             "HTTP/1.1 200 OK\r\nContent-Type: "
             "application/"
             "json\r\n\r\n{\"jsonrpc\":\"2.0\",\"error\":{\"code\":%d,"
-            "\"message\":\"%s\"},\"id\":null}",
-            code, msg);
+            "\"message\":\"%s\"},\"id\":%s}",
+            code, msg, id_str ? id_str : "null");
 #else
   CDD_SNPRINTF(
       resp, sizeof(resp),
       "HTTP/1.1 200 OK\r\nContent-Type: "
       "application/"
       "json\r\n\r\n{\"jsonrpc\":\"2.0\",\"error\":{\"code\":%d,\"message\":"
-      "\"%s\"},\"id\":null}",
-      code, msg);
+      "\"%s\"},\"id\":%s}",
+      code, msg, id_str ? id_str : "null");
 #endif
+  json_free_serialized_string(id_str);
   return send_rpc_response(client_fd, resp);
 }
 
 /**
- * @brief Sends a standard JSON-RPC success response ("ok") over a socket.
+ * @brief Sends a JSON-RPC result response over an HTTP socket, echoing
+ * `id_val`.
  *
  * @param[in] client_fd Client socket descriptor.
+ * @param[in] id_val Optional JSON-RPC request ID value (integer, string, or
+ * null).
+ * @param[in] result_json Serialized JSON result payload.
  * @return CDD_C_SUCCESS on success, CDD_C_ERROR_SYSTEM on send failure.
  */
-static cdd_c_error_t send_rpc_success(cdd_socket_t client_fd) {
-  const char *resp =
-      "HTTP/1.1 200 OK\r\nContent-Type: "
-      "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":\"ok\",\"id\":"
-      "null}";
+static cdd_c_error_t send_rpc_result_id(cdd_socket_t client_fd,
+                                        JSON_Value *id_val,
+                                        const char *result_json) {
+  char resp[8192];
+  char *id_str = json_serialize_to_string(id_val);
+#if defined(_MSC_VER)
+  sprintf_s(resp, sizeof(resp),
+            "HTTP/1.1 200 OK\r\nContent-Type: "
+            "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":%s,"
+            "\"id\":%s}",
+            result_json, id_str ? id_str : "null");
+#else
+  CDD_SNPRINTF(resp, sizeof(resp),
+               "HTTP/1.1 200 OK\r\nContent-Type: "
+               "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":%s,"
+               "\"id\":%s}",
+               result_json, id_str ? id_str : "null");
+#endif
+  json_free_serialized_string(id_str);
   return send_rpc_response(client_fd, resp);
+}
+
+/**
+ * @brief Parses the `Content-Length` header value from an HTTP request header
+ * block.
+ *
+ * @param[in] headers Start of HTTP headers buffer.
+ * @param[in] header_len Length of headers in bytes.
+ * @param[out] out_len Parsed Content-Length value (0 if absent).
+ * @return CDD_C_SUCCESS on success.
+ */
+static cdd_c_error_t parse_content_length(const char *headers,
+                                          size_t header_len, size_t *out_len) {
+  size_t i, k;
+  const char *prefix = "content-length:";
+  *out_len = 0;
+  for (i = 0; i + 15 <= header_len; ++i) {
+    for (k = 0; k < 15 && tolower((unsigned char)headers[i + k]) == prefix[k];
+         ++k) {
+    }
+    if (k == 15) {
+      *out_len = (size_t)atol(headers + i + 15);
+      break;
+    }
+  }
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Builds a dynamic JSON result string for `resources/read` based on the
+ * requested URI.
+ *
+ * @param[in] params Optional JSON-RPC params object containing `"uri"`.
+ * @param[out] out_json Newly allocated JSON string for the result object.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+static cdd_c_error_t build_resources_read_result(const JSON_Object *params,
+                                                 char **out_json) {
+  const char *uri = json_object_get_string(params, "uri");
+  const char *target_uri = uri ? uri : "file:///openapi.json";
+  const char *file_path = NULL;
+  char *content = NULL;
+  size_t sz = 0;
+  JSON_Value *res_val = json_value_init_object();
+  JSON_Object *res_obj = json_value_get_object(res_val);
+  JSON_Value *arr_val = json_value_init_array();
+  JSON_Array *arr = json_value_get_array(arr_val);
+  JSON_Value *item_val = json_value_init_object();
+  JSON_Object *item_obj = json_value_get_object(item_val);
+  char *serialized = NULL;
+
+  if (strncmp(target_uri, "file:///", 8) == 0) {
+    file_path = target_uri + 8;
+  } else if (strncmp(target_uri, "file://", 7) == 0) {
+    file_path = target_uri + 7;
+  } else {
+    file_path = target_uri;
+  }
+
+  json_object_set_string(item_obj, "uri", target_uri);
+  json_object_set_string(item_obj, "mimeType", "application/json");
+  if (read_to_file(file_path, "rb", &content, &sz) == CDD_C_SUCCESS) {
+    json_object_set_string(item_obj, "text", content);
+    C_CDD_FREE(content);
+  } else {
+    json_object_set_string(
+        item_obj, "text",
+        "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"cdd-c\",\"version\":"
+        "\"0.0.4\"},\"paths\":{}}");
+  }
+  json_array_append_value(arr, item_val);
+  json_object_set_value(res_obj, "contents", arr_val);
+  serialized = json_serialize_to_string(res_val);
+  json_value_free(res_val);
+  *out_json = serialized;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -255,44 +342,54 @@ static cdd_c_error_t send_rpc_success(cdd_socket_t client_fd) {
  */
 static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
   char buffer[65536];
+  size_t total_received = 0;
   cdd_ssize_t bytes_received;
-  char *body;
+  char *body = NULL;
+  size_t content_len = 0;
   JSON_Value *root_val;
   JSON_Object *root_obj;
+  JSON_Value *id_val;
   const char *method;
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
-  bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-  if (bytes_received <= 0)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  buffer[bytes_received] = 0;
-
-  body = strstr(buffer, "\r\n\r\n");
-  if (!body) {
-    return send_rpc_error(client_fd, -32700, "Parse error");
+  for (;;) {
+    bytes_received =
+        recv(client_fd, buffer + total_received,
+             CDD_SEND_LEN_CAST(sizeof(buffer) - 1 - total_received), 0);
+    if (bytes_received <= 0)
+      break;
+    total_received += (size_t)bytes_received;
+    buffer[total_received] = 0;
+    body = strstr(buffer, "\r\n\r\n");
+    if (body) {
+      parse_content_length(buffer, (size_t)(body - buffer), &content_len);
+      body += 4;
+      if ((size_t)(buffer + total_received - body) >= content_len)
+        break;
+    }
   }
-  body += 4;
+  if (total_received == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!body)
+    return send_rpc_error_id(client_fd, NULL, -32700, "Parse error");
 
   root_val = json_parse_string(body);
   if (!root_val) {
-    return send_rpc_error(client_fd, -32700, "Parse error");
+    return send_rpc_error_id(client_fd, NULL, -32700, "Parse error");
   }
 
   root_obj = json_value_get_object(root_val);
+  id_val = json_object_get_value(root_obj, "id");
   method = json_object_get_string(root_obj, "method");
   if (!method) {
+    rc = send_rpc_error_id(client_fd, id_val, -32600, "Invalid Request");
     json_value_free(root_val);
-    return send_rpc_error(client_fd, -32600, "Invalid Request");
+    return rc;
   }
 
   if (strcmp(method, "version") == 0) {
-    const char *resp =
-        "HTTP/1.1 200 OK\r\nContent-Type: "
-        "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":\"0.0.4\","
-        "\"id\":null}";
-    rc = send_rpc_response(client_fd, resp);
+    rc = send_rpc_result_id(client_fd, id_val, "\"0.0.4\"");
   } else if (strcmp(method, "initialize") == 0) {
-    const char *resp;
     JSON_Object *params = json_object_get_object(root_obj, "params");
     if (params) {
       JSON_Object *clientInfo = json_object_get_object(params, "clientInfo");
@@ -301,89 +398,72 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
       (void)clientInfo;
       (void)capabilities;
     }
-    resp =
-        "HTTP/1.1 200 OK\r\nContent-Type: "
-        "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{"
-        "\"protocolVersion\":\"2024-11-05\",\"capabilities\":{\"tools\":{"
+    rc = send_rpc_result_id(
+        client_fd, id_val,
+        "{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{\"tools\":{"
         "\"listChanged\":true},\"resources\":{\"listChanged\":true,"
         "\"subscribe\":false},\"prompts\":{\"listChanged\":true},\"logging\":{"
-        "}},\"serverInfo\":{\"name\":\"cdd-c\",\"version\":\"0.0.4\"}},\"id\":"
-        "null}";
-    rc = send_rpc_response(client_fd, resp);
+        "}},\"serverInfo\":{\"name\":\"cdd-c\",\"version\":\"0.0.4\"}}");
   } else if (strcmp(method, "notifications/initialized") == 0) {
   } else if (strcmp(method, "notifications/progress") == 0) {
   } else if (strcmp(method, "notifications/message") == 0) {
   } else if (strcmp(method, "logging/setLevel") == 0) {
-    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: "
-                       "application/json\r\n\r\n{\"jsonrpc\":\"2.0\","
-                       "\"result\":{},\"id\":null}";
-    rc = send_rpc_response(client_fd, resp);
+    rc = send_rpc_result_id(client_fd, id_val, "{}");
   } else if (strcmp(method, "ping") == 0) {
-    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: "
-                       "application/json\r\n\r\n{\"jsonrpc\":\"2.0\","
-                       "\"result\":{},\"id\":null}";
-    rc = send_rpc_response(client_fd, resp);
+    rc = send_rpc_result_id(client_fd, id_val, "{}");
   } else if (strcmp(method, "tools/list") == 0) {
-    const char *resp =
-        "HTTP/1.1 200 OK\r\nContent-Type: "
-        "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"tools\":[{"
-        "\"name\":\"to_openapi\",\"description\":\"Generate OpenAPI spec from "
-        "code\",\"inputSchema\":{\"type\":\"object\"}},{\"name\":\"to_docs_"
-        "json\",\"description\":\"Generate JSON "
-        "docs\",\"inputSchema\":{\"type\":\"object\"}}]},\"id\":null}";
-    rc = send_rpc_response(client_fd, resp);
+    rc = send_rpc_result_id(
+        client_fd, id_val,
+        "{\"tools\":[{\"name\":\"to_openapi\",\"description\":\"Generate "
+        "OpenAPI spec from code\",\"inputSchema\":{\"type\":\"object\"}},"
+        "{\"name\":\"to_docs_json\",\"description\":\"Generate JSON docs\","
+        "\"inputSchema\":{\"type\":\"object\"}},{\"name\":\"to_arazzo\","
+        "\"description\":\"Extract Arazzo spec from C code\",\"inputSchema\":"
+        "{\"type\":\"object\"}},{\"name\":\"from_arazzo\",\"description\":"
+        "\"Generate C workflows from Arazzo spec\",\"inputSchema\":"
+        "{\"type\":\"object\"}}]}");
   } else if (strcmp(method, "resources/list") == 0) {
-    const char *resp =
-        "HTTP/1.1 200 OK\r\nContent-Type: "
-        "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"resources\""
-        ":[{\"uri\":\"file:///openapi.json\",\"name\":\"OpenAPI "
-        "Spec\",\"mimeType\":\"application/json\"}]},\"id\":null}";
-    rc = send_rpc_response(client_fd, resp);
+    rc = send_rpc_result_id(
+        client_fd, id_val,
+        "{\"resources\":[{\"uri\":\"file:///openapi.json\",\"name\":\"OpenAPI "
+        "Spec\",\"mimeType\":\"application/json\"},{\"uri\":"
+        "\"file:///arazzo.json\",\"name\":\"Arazzo Workflow Spec\","
+        "\"mimeType\":\"application/json\"}]}");
   } else if (strcmp(method, "roots/list") == 0) {
-    const char *resp =
-        "HTTP/1.1 200 OK\r\nContent-Type: "
-        "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"roots\":[{"
-        "\"uri\":\"file:///\",\"name\":\"workspace\"}]},\"id\":null}";
-    rc = send_rpc_response(client_fd, resp);
+    rc = send_rpc_result_id(
+        client_fd, id_val,
+        "{\"roots\":[{\"uri\":\"file:///workspace\",\"name\":\"workspace\"}]}");
   } else if (strcmp(method, "resources/templates/list") == 0) {
-    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: "
-                       "application/json\r\n\r\n{\"jsonrpc\":\"2.0\","
-                       "\"result\":{\"resourceTemplates\":[]},\"id\":null}";
-    rc = send_rpc_response(client_fd, resp);
+    rc = send_rpc_result_id(
+        client_fd, id_val,
+        "{\"resourceTemplates\":[{\"uriTemplate\":\"file:///{path}\","
+        "\"name\":\"Workspace File\",\"mimeType\":\"application/json\"}]}");
   } else if (strcmp(method, "resources/read") == 0) {
-    const char *resp =
-        "HTTP/1.1 200 OK\r\nContent-Type: "
-        "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"contents\":"
-        "[{\"uri\":\"file:///openapi.json\",\"mimeType\":\"application/"
-        "json\",\"text\":\"{}\"},{\"uri\":\"file:///image.png\",\"mimeType\":"
-        "\"image/png\",\"blob\":\"iVBORw0KGgo=\"}]},\"id\":null}";
-    rc = send_rpc_response(client_fd, resp);
+    JSON_Object *params = json_object_get_object(root_obj, "params");
+    char *res_str = NULL;
+    build_resources_read_result(params, &res_str);
+    rc = send_rpc_result_id(client_fd, id_val, res_str);
+    json_free_serialized_string(res_str);
   } else if (strcmp(method, "resources/subscribe") == 0) {
-    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: "
-                       "application/json\r\n\r\n{\"jsonrpc\":\"2.0\","
-                       "\"result\":{},\"id\":null}";
-    rc = send_rpc_response(client_fd, resp);
+    rc = send_rpc_result_id(client_fd, id_val, "{}");
   } else if (strcmp(method, "resources/unsubscribe") == 0) {
-    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: "
-                       "application/json\r\n\r\n{\"jsonrpc\":\"2.0\","
-                       "\"result\":{},\"id\":null}";
-    rc = send_rpc_response(client_fd, resp);
+    rc = send_rpc_result_id(client_fd, id_val, "{}");
   } else if (strcmp(method, "tools/read_image") == 0) {
-    const char *resp =
-        "HTTP/1.1 200 OK\r\nContent-Type: "
-        "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"content\":["
-        "{\"type\":\"image\",\"data\":\"iVBORw0KGgo=\",\"mimeType\":\"image/"
-        "png\",\"annotations\":{\"audience\":[\"user\"],\"priority\":1.0}}]},"
-        "\"id\":null}";
-    rc = send_rpc_response(client_fd, resp);
+    rc = send_rpc_result_id(
+        client_fd, id_val,
+        "{\"content\":[{\"type\":\"image\",\"data\":\"iVBORw0KGgo=\","
+        "\"mimeType\":\"image/png\",\"annotations\":{\"audience\":[\"user\"],"
+        "\"priority\":1.0}}]}");
   } else if (strcmp(method, "prompts/list") == 0) {
-    const char *resp =
-        "HTTP/1.1 200 OK\r\nContent-Type: "
-        "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"prompts\":["
-        "{\"name\":\"generate_sdk\",\"description\":\"Generate SDK "
-        "prompt\",\"arguments\":[{\"name\":\"language\",\"description\":"
-        "\"Target language\",\"required\":true}]}]},\"id\":null}";
-    rc = send_rpc_response(client_fd, resp);
+    rc = send_rpc_result_id(
+        client_fd, id_val,
+        "{\"prompts\":[{\"name\":\"generate_sdk\",\"description\":\"Generate "
+        "SDK prompt\",\"arguments\":[{\"name\":\"language\",\"description\":"
+        "\"Target "
+        "language\",\"required\":true}]},{\"name\":\"generate_arazzo\","
+        "\"description\":\"Generate Arazzo workflow orchestrator\","
+        "\"arguments\":[{\"name\":\"subcommand\",\"description\":"
+        "\"to_sdk, to_sdk_cli, or to_server\",\"required\":false}]}]}");
   } else if (strcmp(method, "sampling/createMessage") == 0) {
     JSON_Object *params = json_object_get_object(root_obj, "params");
     JSON_Array *messages =
@@ -404,12 +484,6 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
                                         params, "temperature", JSONNumber))
                              ? json_object_get_number(params, "temperature")
                              : 0.0;
-    const char *resp =
-        "HTTP/1.1 200 OK\r\nContent-Type: "
-        "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"role\":"
-        "\"assistant\",\"content\":{\"type\":\"text\",\"text\":\"Sampled "
-        "message\"},\"model\":\"test-model\",\"stopReason\":\"endSeq\"},\"id\":"
-        "null}";
     (void)messages;
     (void)maxTokens;
     (void)includeContext;
@@ -418,22 +492,29 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
     (void)stopSequences;
     (void)systemPrompt;
     (void)temperature;
-    rc = send_rpc_response(client_fd, resp);
+    rc = send_rpc_result_id(
+        client_fd, id_val,
+        "{\"role\":\"assistant\",\"content\":{\"type\":\"text\",\"text\":"
+        "\"Sampled message\"},\"model\":\"test-model\",\"stopReason\":"
+        "\"endSeq\"}");
   } else if (strcmp(method, "prompts/get") == 0) {
-    const char *resp =
-        "HTTP/1.1 200 OK\r\nContent-Type: "
-        "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{"
-        "\"description\":\"Generate SDK\",\"messages\":[{\"role\":\"user\","
-        "\"content\":{\"type\":\"text\",\"text\":\"Generate SDK\"}}]},\"id\":"
-        "null}";
-    rc = send_rpc_response(client_fd, resp);
+    JSON_Object *params = json_object_get_object(root_obj, "params");
+    const char *prompt_name =
+        params ? json_object_get_string(params, "name") : NULL;
+    char prompt_buf[1024];
+    CDD_SNPRINTF(
+        prompt_buf, sizeof(prompt_buf),
+        "{\"description\":\"Prompt %s\",\"messages\":[{\"role\":\"user\","
+        "\"content\":{\"type\":\"text\",\"text\":\"Execute %s\"}}]}",
+        prompt_name ? prompt_name : "generate_sdk",
+        prompt_name ? prompt_name : "generate_sdk");
+    rc = send_rpc_result_id(client_fd, id_val, prompt_buf);
   } else if (strcmp(method, "completion/complete") == 0) {
-    const char *resp =
-        "HTTP/1.1 200 OK\r\nContent-Type: "
-        "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{"
-        "\"completion\":{\"values\":[\"example\"],\"hasMore\":false,\"total\":"
-        "1}},\"id\":null}";
-    rc = send_rpc_response(client_fd, resp);
+    rc = send_rpc_result_id(
+        client_fd, id_val,
+        "{\"completion\":{\"values\":[\"to_sdk\",\"to_sdk_cli\",\"to_server\","
+        "\"to_openapi\",\"to_arazzo\",\"from_arazzo\"],\"hasMore\":false,"
+        "\"total\":6}}");
   } else if (strcmp(method, "tools/call") == 0) {
     JSON_Object *params = json_object_get_object(root_obj, "params");
     const char *name = params ? json_object_get_string(params, "name") : NULL;
@@ -441,60 +522,58 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
         params ? json_object_get_object(params, "arguments") : NULL;
 
     if (!name || !arguments) {
-      rc = send_rpc_error(client_fd, -32602, "Invalid params for tools/call");
+      rc = send_rpc_error_id(client_fd, id_val, -32602,
+                             "Invalid params for tools/call");
     } else if (strcmp(name, "to_openapi") == 0) {
       const char *input = json_object_get_string(arguments, "input");
       const char *output = json_object_get_string(arguments, "output");
       if (!input || !output) {
-        rc = send_rpc_error(client_fd, -32602,
-                            "Invalid arguments for to_openapi");
+        rc = send_rpc_error_id(client_fd, id_val, -32602,
+                               "Invalid arguments for to_openapi");
       } else {
         cdd_to_openapi_config_t cfg;
-        const char *resp;
         cdd_c_error_t rc_rpc;
         memset(&cfg, 0, sizeof(cfg));
         cfg.input = input;
         cfg.output = output;
         rc_rpc = cdd_generate_to_openapi(&cfg);
         if (rc_rpc != CDD_C_SUCCESS) {
-          rc = send_rpc_error(client_fd, -32603, "OpenAPI generation failed");
+          rc = send_rpc_error_id(client_fd, id_val, -32603,
+                                 "OpenAPI generation failed");
         } else {
-          resp =
-              "HTTP/1.1 200 OK\r\nContent-Type: "
-              "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{"
-              "\"content\":[{\"type\":\"text\",\"text\":\"OpenAPI generation "
-              "successful\"}],\"isError\":false},\"id\":null}";
-          rc = send_rpc_response(client_fd, resp);
+          rc = send_rpc_result_id(
+              client_fd, id_val,
+              "{\"content\":[{\"type\":\"text\",\"text\":\"OpenAPI generation "
+              "successful\"}],\"isError\":false}");
         }
       }
     } else if (strcmp(name, "to_docs_json") == 0) {
       const char *input = json_object_get_string(arguments, "input");
       const char *output = json_object_get_string(arguments, "output");
       if (!input) {
-        rc = send_rpc_error(client_fd, -32602,
-                            "Invalid arguments for to_docs_json");
+        rc = send_rpc_error_id(client_fd, id_val, -32602,
+                               "Invalid arguments for to_docs_json");
       } else {
         cdd_docs_json_config_t cfg;
-        const char *resp;
         cdd_c_error_t rc_rpc;
         memset(&cfg, 0, sizeof(cfg));
         cfg.input = input;
         cfg.output = output;
         if (json_object_get_boolean(arguments, "no_imports") == 1) {
-          cfg.no_imports = 1;
+          cfg.no_imports = CDD_TRUE;
         }
         if (json_object_get_boolean(arguments, "no_wrapping") == 1) {
-          cfg.no_wrapping = 1;
+          cfg.no_wrapping = CDD_TRUE;
         }
         rc_rpc = cdd_generate_docs_json(&cfg);
         if (rc_rpc != CDD_C_SUCCESS) {
-          rc = send_rpc_error(client_fd, -32603, "Docs generation failed");
+          rc = send_rpc_error_id(client_fd, id_val, -32603,
+                                 "Docs generation failed");
         } else {
-          resp = "HTTP/1.1 200 OK\r\nContent-Type: "
-                 "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{"
-                 "\"content\":[{\"type\":\"text\",\"text\":\"Docs generation "
-                 "successful\"}],\"isError\":false},\"id\":null}";
-          rc = send_rpc_response(client_fd, resp);
+          rc = send_rpc_result_id(
+              client_fd, id_val,
+              "{\"content\":[{\"type\":\"text\",\"text\":\"Docs generation "
+              "successful\"}],\"isError\":false}");
         }
       }
     } else if (strcmp(name, "to_arazzo") == 0) {
@@ -503,23 +582,34 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
       cfg.input = json_object_get_string(arguments, "input");
       cfg.output = json_object_get_string(arguments, "output");
       if (cdd_generate_to_arazzo(&cfg) != CDD_C_SUCCESS) {
-        rc = send_rpc_error(client_fd, -32603, "Arazzo extraction failed");
+        rc = send_rpc_error_id(client_fd, id_val, -32603,
+                               "Arazzo extraction failed");
       } else {
-        rc = send_rpc_success(client_fd);
+        rc = send_rpc_result_id(client_fd, id_val, "\"ok\"");
       }
     } else if (strcmp(name, "from_arazzo") == 0) {
       cdd_from_arazzo_config_t cfg;
+      const char *subcmd = json_object_get_string(arguments, "subcommand");
+      if (!subcmd)
+        subcmd = "";
       memset(&cfg, 0, sizeof(cfg));
-      cfg.subcommand = json_object_get_string(arguments, "subcommand");
+      if (strcmp(subcmd, "to_sdk_cli") == 0) {
+        cfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SDK_CLI;
+      } else if (strcmp(subcmd, "to_server") == 0) {
+        cfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SERVER;
+      } else {
+        cfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SDK;
+      }
       cfg.input = json_object_get_string(arguments, "input");
       cfg.output = json_object_get_string(arguments, "output");
       if (cdd_generate_from_arazzo(&cfg) != CDD_C_SUCCESS) {
-        rc = send_rpc_error(client_fd, -32603, "Arazzo generation failed");
+        rc = send_rpc_error_id(client_fd, id_val, -32603,
+                               "Arazzo generation failed");
       } else {
-        rc = send_rpc_success(client_fd);
+        rc = send_rpc_result_id(client_fd, id_val, "\"ok\"");
       }
     } else {
-      rc = send_rpc_error(client_fd, -32601, "Tool not found");
+      rc = send_rpc_error_id(client_fd, id_val, -32601, "Tool not found");
     }
   } else if (strcmp(method, "to_openapi") == 0) {
     JSON_Object *params = json_object_get_object(root_obj, "params");
@@ -527,7 +617,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
     const char *output =
         params ? json_object_get_string(params, "output") : NULL;
     if (!input || !output) {
-      rc = send_rpc_error(client_fd, -32602, "Invalid params");
+      rc = send_rpc_error_id(client_fd, id_val, -32602, "Invalid params");
     } else {
       cdd_to_openapi_config_t cfg;
       cdd_c_error_t rc_sub;
@@ -536,9 +626,10 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
       cfg.output = output;
       rc_sub = cdd_generate_to_openapi(&cfg);
       if (rc_sub != CDD_C_SUCCESS) {
-        rc = send_rpc_error(client_fd, -32603, "OpenAPI generation failed");
+        rc = send_rpc_error_id(client_fd, id_val, -32603,
+                               "OpenAPI generation failed");
       } else {
-        rc = send_rpc_success(client_fd);
+        rc = send_rpc_result_id(client_fd, id_val, "\"ok\"");
       }
     }
   } else if (strcmp(method, "to_docs_json") == 0) {
@@ -547,7 +638,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
     const char *output =
         params ? json_object_get_string(params, "output") : NULL;
     if (!input) {
-      rc = send_rpc_error(client_fd, -32602, "Invalid params");
+      rc = send_rpc_error_id(client_fd, id_val, -32602, "Invalid params");
     } else {
       cdd_docs_json_config_t cfg;
       cdd_c_error_t rc_sub;
@@ -555,16 +646,17 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
       cfg.input = input;
       cfg.output = output;
       if (json_object_get_boolean(params, "no_imports") == 1) {
-        cfg.no_imports = 1;
+        cfg.no_imports = CDD_TRUE;
       }
       if (json_object_get_boolean(params, "no_wrapping") == 1) {
-        cfg.no_wrapping = 1;
+        cfg.no_wrapping = CDD_TRUE;
       }
       rc_sub = cdd_generate_docs_json(&cfg);
       if (rc_sub != CDD_C_SUCCESS) {
-        rc = send_rpc_error(client_fd, -32603, "Docs generation failed");
+        rc = send_rpc_error_id(client_fd, id_val, -32603,
+                               "Docs generation failed");
       } else {
-        rc = send_rpc_success(client_fd);
+        rc = send_rpc_result_id(client_fd, id_val, "\"ok\"");
       }
     }
   } else if (strncmp(method, "from_openapi_", 13) == 0) {
@@ -578,14 +670,15 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
     memset(&cfg, 0, sizeof(cfg));
 
     if (strcmp(method, "from_openapi_to_sdk") == 0) {
-      cfg.subcommand = "to_sdk";
+      cfg.subcommand = CDD_OPENAPI_SUBCOMMAND_TO_SDK;
     } else if (strcmp(method, "from_openapi_to_sdk_cli") == 0) {
-      cfg.subcommand = "to_sdk_cli";
+      cfg.subcommand = CDD_OPENAPI_SUBCOMMAND_TO_SDK_CLI;
     } else if (strcmp(method, "from_openapi_to_server") == 0) {
-      cfg.subcommand = "to_server";
+      cfg.subcommand = CDD_OPENAPI_SUBCOMMAND_TO_SERVER;
     } else {
+      rc = send_rpc_error_id(client_fd, id_val, -32601, "Method not found");
       json_value_free(root_val);
-      return send_rpc_error(client_fd, -32601, "Method not found");
+      return rc;
     }
 
     if (input) {
@@ -599,26 +692,27 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
     }
 
     if (params && json_object_get_boolean(params, "no_github_actions") == 1) {
-      cfg.no_github_actions = 1;
+      cfg.no_github_actions = CDD_TRUE;
     }
     if (params &&
         json_object_get_boolean(params, "no_installable_package") == 1) {
-      cfg.no_installable_package = 1;
+      cfg.no_installable_package = CDD_TRUE;
     }
     if (params && json_object_get_boolean(params, "tests") == 1) {
-      cfg.tests = 1;
+      cfg.tests = CDD_TRUE;
     }
 
     {
       cdd_c_error_t rc_sub = cdd_generate_from_openapi(&cfg);
       if (rc_sub != CDD_C_SUCCESS) {
-        rc = send_rpc_error(client_fd, -32603, "OpenAPI generation failed");
+        rc = send_rpc_error_id(client_fd, id_val, -32603,
+                               "OpenAPI generation failed");
       } else {
-        rc = send_rpc_success(client_fd);
+        rc = send_rpc_result_id(client_fd, id_val, "\"ok\"");
       }
     }
   } else {
-    rc = send_rpc_error(client_fd, -32601, "Method not found");
+    rc = send_rpc_error_id(client_fd, id_val, -32601, "Method not found");
   }
 
   json_value_free(root_val);
@@ -641,19 +735,19 @@ serve_json_rpc_run(const cdd_serve_json_rpc_config_t *config) {
   return CDD_C_ERROR_UNKNOWN;
 #else
   int port;
-  int listen_flag;
+  size_t remaining_requests;
   cdd_socket_t server_fd;
   struct sockaddr_in addr;
   cdd_c_error_t rc;
-  (void)addr;
 
   if (!config)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   port = (config->port > 0) ? config->port : 8080;
-  listen_flag = config->listen_host ? atoi(config->listen_host) : 0;
+  remaining_requests = config->max_requests;
 
-  printf("Starting JSON-RPC server on port %d...\n", port);
+  printf("Starting JSON-RPC server on %s:%d...\n",
+         config->bind_address ? config->bind_address : "0.0.0.0", port);
 
 #if defined(_WIN32)
   {
@@ -669,7 +763,17 @@ serve_json_rpc_run(const cdd_serve_json_rpc_config_t *config) {
 
   memset(&addr, 0, sizeof(addr));
   addr.sin_family = AF_INET;
-  addr.sin_addr.s_addr = htonl(INADDR_ANY);
+  if (config->bind_address && strcmp(config->bind_address, "0.0.0.0") != 0) {
+#if defined(_WIN32)
+    if (inet_pton(AF_INET, config->bind_address, &addr.sin_addr) != 1) {
+      addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    }
+#else
+    addr.sin_addr.s_addr = inet_addr(config->bind_address);
+#endif
+  } else {
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+  }
 #if defined(__APPLE__)
   addr.sin_port = _OSSwapInt16((uint16_t)port);
 #else
@@ -699,7 +803,7 @@ serve_json_rpc_run(const cdd_serve_json_rpc_config_t *config) {
     return rc;
   }
 
-  while (listen_flag) {
+  while (remaining_requests > 0) {
     cdd_socket_t client_fd;
     struct sockaddr_in client_addr;
 #if defined(_WIN32)
@@ -707,10 +811,7 @@ serve_json_rpc_run(const cdd_serve_json_rpc_config_t *config) {
 #else
     socklen_t addr_len = sizeof(client_addr);
 #endif
-    if (listen_flag == 255) {
-      break;
-    }
-    listen_flag--;
+    remaining_requests--;
     rc = serve_accept_client(server_fd, (struct sockaddr *)&client_addr,
                              &addr_len, &client_fd);
     if (rc != CDD_C_SUCCESS) {
@@ -760,7 +861,9 @@ C_CDD_EXPORT cdd_c_error_t serve_json_rpc_main(int argc, char **argv) {
 
   memset(&cfg, 0, sizeof(cfg));
   cfg.port = getenv("CDD_PORT") ? atoi(getenv("CDD_PORT")) : 8080;
-  cfg.listen_host = getenv("CDD_LISTEN") ? "1" : NULL;
+  cfg.bind_address = "0.0.0.0";
+  cfg.max_requests =
+      getenv("CDD_LISTEN") ? (size_t)atoi(getenv("CDD_LISTEN")) : 0;
 
   for (i = 0; i < argc; i++) {
     if (strcmp(argv[i], "--port") == 0 || strcmp(argv[i], "-p") == 0) {
@@ -770,9 +873,16 @@ C_CDD_EXPORT cdd_c_error_t serve_json_rpc_main(int argc, char **argv) {
         return CDD_C_ERROR_INVALID_ARGUMENT;
       }
     } else if (strcmp(argv[i], "--listen") == 0 || strcmp(argv[i], "-l") == 0) {
-      cfg.listen_host = "1";
+      cfg.max_requests = 1;
       if (i + 1 < argc) {
-        cfg.listen_host = argv[++i];
+        const char *arg_val = argv[++i];
+        if (strchr(arg_val, '.') != NULL) {
+          cfg.bind_address = arg_val;
+        } else {
+          int parsed = atoi(arg_val);
+          cfg.max_requests =
+              (parsed == 255 || parsed <= 0) ? 0 : (size_t)parsed;
+        }
       }
     } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
       puts("Usage: cdd-c serve_json_rpc [args]");

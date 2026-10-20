@@ -155,36 +155,22 @@ cdd_c_error_t normalize_path(const char *path, char **_out_val) {
       continue;
     }
     if (seg_len == 1 && path[start] == '.') {
-      if (path[i] == '/')
-        ++i;
       continue;
     }
     if (seg_len == 2 && memcmp(path + start, "..", 2) == 0) {
       if (count > 0 && strcmp(segments[count - 1], "..") != 0) {
-        free(segments[count - 1]);
+        C_CDD_FREE(segments[count - 1]);
         count--;
-      } else if (!absolute) {
-        if (count == cap) {
-          size_t new_cap = cap ? cap * 2 : 4;
-          char **tmp =
-              (char **)c_cdd_realloc(segments, new_cap * sizeof(*segments));
-          if (!tmp)
-            goto cleanup;
-          segments = tmp;
-          cap = new_cap;
-        }
-        segments[count] = NULL;
-        c_cdd_strdup("..", &segments[count]);
-        count++;
+        continue;
       }
-      if (path[i] == '/')
-        ++i;
-      continue;
+      if (absolute) {
+        continue;
+      }
     }
     if (count == cap) {
       size_t new_cap = cap ? cap * 2 : 4;
       char **tmp =
-          (char **)c_cdd_realloc(segments, new_cap * sizeof(*segments));
+          (char **)C_CDD_REALLOC(segments, new_cap * sizeof(*segments));
       if (!tmp)
         goto cleanup;
       segments = tmp;
@@ -195,8 +181,6 @@ cdd_c_error_t normalize_path(const char *path, char **_out_val) {
     if (!segments[count])
       goto cleanup;
     count++;
-    if (path[i] == '/')
-      ++i;
   }
 
   if (count == 0) {
@@ -223,7 +207,7 @@ cdd_c_error_t normalize_path(const char *path, char **_out_val) {
   if (trailing)
     out_len += 1;
 
-  out = (char *)c_cdd_malloc(out_len + 1);
+  out = (char *)C_CDD_MALLOC(out_len + 1);
   if (!out)
     goto cleanup;
   {
@@ -245,8 +229,8 @@ cdd_c_error_t normalize_path(const char *path, char **_out_val) {
 cleanup:
   if (segments) {
     for (i = 0; i < count; ++i)
-      free(segments[i]);
-    free(segments);
+      C_CDD_FREE(segments[i]);
+    C_CDD_FREE(segments);
   }
   *_out_val = out;
   return CDD_C_SUCCESS;
@@ -297,7 +281,7 @@ cdd_c_error_t resolve_uri_reference(const char *base_uri, const char *ref,
     uri_scheme_len(base_uri, b_len, &scheme_len);
     if (scheme_len > 0) {
       size_t out_len = scheme_len + 1 + ref_len;
-      out = (char *)c_cdd_malloc(out_len + 1);
+      out = (char *)C_CDD_MALLOC(out_len + 1);
       if (!out) {
         *_out_val = NULL;
         return CDD_C_SUCCESS;
@@ -346,7 +330,7 @@ cdd_c_error_t resolve_uri_reference(const char *base_uri, const char *ref,
       }
     }
 
-    combined = (char *)c_cdd_malloc(base_dir_len + ref_len + 1);
+    combined = (char *)C_CDD_MALLOC(base_dir_len + ref_len + 1);
     if (!combined) {
       *_out_val = NULL;
       return CDD_C_SUCCESS;
@@ -358,7 +342,7 @@ cdd_c_error_t resolve_uri_reference(const char *base_uri, const char *ref,
     normalize_path(combined, &normalized);
   }
 
-  free(combined);
+  C_CDD_FREE(combined);
   if (!normalized) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -367,9 +351,9 @@ cdd_c_error_t resolve_uri_reference(const char *base_uri, const char *ref,
   {
     size_t norm_len = strlen(normalized);
     size_t out_len = prefix_len + norm_len;
-    out = (char *)c_cdd_malloc(out_len + 1);
+    out = (char *)C_CDD_MALLOC(out_len + 1);
     if (!out) {
-      free(normalized);
+      C_CDD_FREE(normalized);
       *_out_val = NULL;
       return CDD_C_SUCCESS;
     }
@@ -378,7 +362,7 @@ cdd_c_error_t resolve_uri_reference(const char *base_uri, const char *ref,
     memcpy(out + prefix_len, normalized, norm_len);
     out[out_len] = '\0';
   }
-  free(normalized);
+  C_CDD_FREE(normalized);
   *_out_val = out;
   return CDD_C_SUCCESS;
 }
@@ -417,7 +401,7 @@ cdd_c_error_t compute_document_uri(const char *self_uri,
     uri_base_len(resolved, &len);
     dup_substr(resolved, len, &out);
   }
-  free(resolved);
+  C_CDD_FREE(resolved);
   if (!out) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -537,7 +521,7 @@ cdd_c_error_t resolve_ref_target(const struct OpenAPI_Spec *spec,
   if (spec->document_uri && *spec->document_uri) {
     resolve_uri_reference(spec->document_uri, base_part, &resolved_base);
     if (resolved_base) {
-      free(base_part);
+      C_CDD_FREE(base_part);
     } else {
       resolved_base = base_part;
     }
@@ -561,9 +545,9 @@ cdd_c_error_t resolve_ref_target(const struct OpenAPI_Spec *spec,
     if (resolved_base != base_part) {
       size_t resolved_len = strlen(resolved_base);
       size_t hash_len = strlen(hash);
-      out.resolved_ref = (char *)c_cdd_malloc(resolved_len + hash_len + 1);
+      out.resolved_ref = (char *)C_CDD_MALLOC(resolved_len + hash_len + 1);
       if (!out.resolved_ref) {
-        free(resolved_base);
+        C_CDD_FREE(resolved_base);
         *_out_val = out;
         return CDD_C_ERROR_MEMORY;
       }
@@ -572,7 +556,7 @@ cdd_c_error_t resolve_ref_target(const struct OpenAPI_Spec *spec,
       out.resolved_ref[resolved_len + hash_len] = '\0';
       out.ref = out.resolved_ref;
     }
-    free(resolved_base);
+    C_CDD_FREE(resolved_base);
   }
 
   *_out_val = out;

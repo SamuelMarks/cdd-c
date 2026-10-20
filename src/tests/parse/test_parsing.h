@@ -24,6 +24,18 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test parsing_test.
+ * @param[in] test_name Parameter test_name.
+ * @param[in] source Parameter source.
+ * @param[in] expected_structs Parameter expected_structs.
+ * @param[in] expected_enums Parameter expected_enums.
+ * @param[in] expected_unions Parameter expected_unions.
+ * @param[in] expected_comments Parameter expected_comments.
+ * @param[in] expected_macros Parameter expected_macros.
+ * @param[in] expected_whitespace Parameter expected_whitespace.
+ * @return Greatest test result.
+ */
 TEST parsing_test(const char *const test_name, const az_span source,
                   const size_t expected_structs, const size_t expected_enums,
                   const size_t expected_unions, const size_t expected_comments,
@@ -78,12 +90,20 @@ TEST parsing_test(const char *const test_name, const az_span source,
   PASS();
 }
 
+/**
+ * @brief Unit test test_precondition_failure.
+ * @return Greatest test result.
+ */
 TEST test_precondition_failure(void) {
   az_precondition_failed_set_callback(cdd_precondition_failed);
   g_fail_io_after = -1;
   PASS();
 }
 
+/**
+ * @brief Unit test test_parsing_struct.
+ * @return Greatest test result.
+ */
 TEST test_parsing_struct(void) {
 
   CHECK_CALL(
@@ -94,6 +114,10 @@ TEST test_parsing_struct(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parsing_enum.
+ * @return Greatest test result.
+ */
 TEST test_parsing_enum(void) {
 
   CHECK_CALL(
@@ -104,6 +128,10 @@ TEST test_parsing_enum(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parsing_union.
+ * @return Greatest test result.
+ */
 TEST test_parsing_union(void) {
 
   CHECK_CALL(
@@ -114,6 +142,10 @@ TEST test_parsing_union(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parsing_comments.
+ * @return Greatest test result.
+ */
 TEST test_parsing_comments(void) {
 
   CHECK_CALL(parsing_test("Comments parsing",
@@ -124,6 +156,10 @@ TEST test_parsing_comments(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parsing_macros.
+ * @return Greatest test result.
+ */
 TEST test_parsing_macros(void) {
 
   CHECK_CALL(
@@ -135,6 +171,10 @@ TEST test_parsing_macros(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parsing_complex.
+ * @return Greatest test result.
+ */
 TEST test_parsing_complex(void) {
 
   CHECK_CALL(parsing_test("Complex parsing",
@@ -151,6 +191,10 @@ TEST test_parsing_complex(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parsing_empty.
+ * @return Greatest test result.
+ */
 TEST test_parsing_empty(void) {
 
   CHECK_CALL(parsing_test("Empty string", az_span_create_from_str(""), 0, 0, 0,
@@ -159,6 +203,10 @@ TEST test_parsing_empty(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parsing_struct_with_anonymous_union.
+ * @return Greatest test result.
+ */
 TEST test_parsing_struct_with_anonymous_union(void) {
 
   CHECK_CALL(
@@ -174,6 +222,9 @@ TEST test_parsing_struct_with_anonymous_union(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the parsing_suite test suite.
+ */
 SUITE(parsing_suite) {
   az_precondition_failed_set_callback(cdd_precondition_failed);
   RUN_TEST(test_parsing_struct);

@@ -417,8 +417,6 @@ extern C_CDD_EXPORT cdd_c_error_t pp_add_macro_internal(
 #define preprocessor_peek pp_preprocessor_peek
 
 #ifdef CDD_BUILD_TESTS
-/** @brief Test hook to fail pp_file_exists. */
-extern C_CDD_EXPORT int g_cdd_pp_file_exists_fail;
 /** @brief Test hook to fail match. */
 extern C_CDD_EXPORT int g_cdd_pp_match_fail;
 /** @brief Test hook to fail skip_ws. */

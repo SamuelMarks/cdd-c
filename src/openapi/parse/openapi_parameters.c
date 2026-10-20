@@ -71,7 +71,7 @@ parse_parameter_object_inner(const JSON_Object *p_obj,
     }
     desc = json_object_get_string(p_obj, "description");
     if (desc) {
-      free(out_param->description);
+      C_CDD_FREE(out_param->description);
       out_param->description = NULL;
       c_cdd_strdup(desc, &out_param->description);
       if (!out_param->description)
@@ -253,17 +253,17 @@ parse_parameter_object_inner(const JSON_Object *p_obj,
                                 effective_schema_val, &registered);
     if (rc == CDD_C_SUCCESS) {
       if (out_param->schema.inline_type) {
-        free(out_param->schema.inline_type);
+        C_CDD_FREE(out_param->schema.inline_type);
         out_param->schema.inline_type = NULL;
       }
       if (assign_schema_ref_name(&out_param->schema, registered) !=
           CDD_C_SUCCESS) {
-        free(base);
+        C_CDD_FREE(base);
         free_schema_ref_content(&parsed_schema);
         return CDD_C_ERROR_MEMORY;
       }
     }
-    free(base);
+    C_CDD_FREE(base);
   }
 
   if (!out_param->type) {
@@ -422,7 +422,7 @@ cdd_c_error_t parse_parameters_array(const JSON_Array *arr,
         free_parameter(&tmp);
         for (j = 0; j < valid; ++j)
           free_parameter(&(*out_params)[j]);
-        free(*out_params);
+        C_CDD_FREE(*out_params);
         *out_params = NULL;
         *out_count = 0;
         return rc;
@@ -439,7 +439,7 @@ cdd_c_error_t parse_parameters_array(const JSON_Array *arr,
             free_parameter(&tmp);
             for (j = 0; j < valid; ++j)
               free_parameter(&(*out_params)[j]);
-            free(*out_params);
+            C_CDD_FREE(*out_params);
             *out_params = NULL;
             *out_count = 0;
             return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -450,7 +450,7 @@ cdd_c_error_t parse_parameters_array(const JSON_Array *arr,
     }
   }
   if (valid == 0) {
-    free(*out_params);
+    C_CDD_FREE(*out_params);
     *out_params = NULL;
     *out_count = 0;
     return CDD_C_SUCCESS;

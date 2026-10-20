@@ -14,6 +14,10 @@ extern "C" {
 #include "parse/test_openapi_loader_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_load_parameter_array.
+ * @return Greatest test result.
+ */
 TEST test_load_parameter_array(void) {
 
   const char *json =
@@ -42,6 +46,10 @@ TEST test_load_parameter_array(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_schema_parsing.
+ * @return Greatest test result.
+ */
 TEST test_load_schema_parsing(void) {
   struct StructFields *_ast_openapi_spec_find_schema_0;
 
@@ -74,6 +82,10 @@ TEST test_load_schema_parsing(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_schema_external_docs_discriminator_xml.
+ * @return Greatest test result.
+ */
 TEST test_load_schema_external_docs_discriminator_xml(void) {
 
   const char json[] = {
@@ -140,6 +152,10 @@ TEST test_load_schema_external_docs_discriminator_xml(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_form_content_type.
+ * @return Greatest test result.
+ */
 TEST test_load_form_content_type(void) {
 
   const char *json =
@@ -162,6 +178,10 @@ TEST test_load_form_content_type(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_request_body_content_required.
+ * @return Greatest test result.
+ */
 TEST test_request_body_content_required(void) {
 
   const char *json = "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\","
@@ -177,6 +197,10 @@ TEST test_request_body_content_required(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_param_content_multiple_entries_rejected.
+ * @return Greatest test result.
+ */
 TEST test_param_content_multiple_entries_rejected(void) {
 
   const char *json =
@@ -193,6 +217,10 @@ TEST test_param_content_multiple_entries_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_header_content_multiple_entries_rejected.
+ * @return Greatest test result.
+ */
 TEST test_header_content_multiple_entries_rejected(void) {
 
   const char *json =
@@ -209,6 +237,10 @@ TEST test_header_content_multiple_entries_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_response_description_required.
+ * @return Greatest test result.
+ */
 TEST test_response_description_required(void) {
 
   const char *json =
@@ -222,6 +254,10 @@ TEST test_response_description_required(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_responses_required.
+ * @return Greatest test result.
+ */
 TEST test_operation_responses_required(void) {
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
@@ -235,6 +271,10 @@ TEST test_operation_responses_required(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_response_code_key_invalid_rejected.
+ * @return Greatest test result.
+ */
 TEST test_response_code_key_invalid_rejected(void) {
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
@@ -248,6 +288,10 @@ TEST test_response_code_key_invalid_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_response_code_range_valid.
+ * @return Greatest test result.
+ */
 TEST test_response_code_range_valid(void) {
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
@@ -261,6 +305,10 @@ TEST test_response_code_range_valid(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_paths_require_leading_slash.
+ * @return Greatest test result.
+ */
 TEST test_paths_require_leading_slash(void) {
 
   const char *json =
@@ -275,6 +323,10 @@ TEST test_paths_require_leading_slash(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_paths_ambiguous_templates_rejected.
+ * @return Greatest test result.
+ */
 TEST test_paths_ambiguous_templates_rejected(void) {
 
   const char *json = "{\"paths\":{\"/pets/"
@@ -290,6 +342,10 @@ TEST test_paths_ambiguous_templates_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_component_key_regex_rejected.
+ * @return Greatest test result.
+ */
 TEST test_component_key_regex_rejected(void) {
 
   const char *json =
@@ -303,6 +359,10 @@ TEST test_component_key_regex_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_tag_duplicate_rejected.
+ * @return Greatest test result.
+ */
 TEST test_tag_duplicate_rejected(void) {
 
   const char *json =
@@ -316,6 +376,10 @@ TEST test_tag_duplicate_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_tag_name_required.
+ * @return Greatest test result.
+ */
 TEST test_tag_name_required(void) {
 
   const char *json =
@@ -329,6 +393,10 @@ TEST test_tag_name_required(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_tag_parent_missing_rejected.
+ * @return Greatest test result.
+ */
 TEST test_tag_parent_missing_rejected(void) {
 
   const char *json =
@@ -342,6 +410,10 @@ TEST test_tag_parent_missing_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_tag_parent_cycle_rejected.
+ * @return Greatest test result.
+ */
 TEST test_tag_parent_cycle_rejected(void) {
 
   const char *json =
@@ -356,6 +428,10 @@ TEST test_tag_parent_cycle_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_external_docs_url_required.
+ * @return Greatest test result.
+ */
 TEST test_external_docs_url_required(void) {
 
   const char *json =
@@ -369,6 +445,10 @@ TEST test_external_docs_url_required(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_id_duplicate_rejected.
+ * @return Greatest test result.
+ */
 TEST test_operation_id_duplicate_rejected(void) {
 
   const char json[] = {
@@ -396,6 +476,10 @@ TEST test_operation_id_duplicate_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_id_duplicate_in_callback_rejected.
+ * @return Greatest test result.
+ */
 TEST test_operation_id_duplicate_in_callback_rejected(void) {
 
   const char json[] = {
@@ -425,6 +509,10 @@ TEST test_operation_id_duplicate_in_callback_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parameter_duplicates_rejected.
+ * @return Greatest test result.
+ */
 TEST test_parameter_duplicates_rejected(void) {
 
   const char *json =
@@ -441,6 +529,10 @@ TEST test_parameter_duplicates_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_querystring_with_query_rejected.
+ * @return Greatest test result.
+ */
 TEST test_querystring_with_query_rejected(void) {
 
   const char *json =
@@ -458,6 +550,10 @@ TEST test_querystring_with_query_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_querystring_duplicate_rejected.
+ * @return Greatest test result.
+ */
 TEST test_querystring_duplicate_rejected(void) {
 
   const char json[] = {
@@ -490,6 +586,10 @@ TEST test_querystring_duplicate_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_querystring_path_and_operation_mixed_rejected.
+ * @return Greatest test result.
+ */
 TEST test_querystring_path_and_operation_mixed_rejected(void) {
 
   const char *json =
@@ -507,6 +607,10 @@ TEST test_querystring_path_and_operation_mixed_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_querystring_with_query_in_callback_rejected.
+ * @return Greatest test result.
+ */
 TEST test_querystring_with_query_in_callback_rejected(void) {
 
   const char json[] = {
@@ -541,6 +645,10 @@ TEST test_querystring_with_query_in_callback_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parameter_missing_name_or_in_rejected.
+ * @return Greatest test result.
+ */
 TEST test_parameter_missing_name_or_in_rejected(void) {
 
   const char *json =
@@ -556,6 +664,10 @@ TEST test_parameter_missing_name_or_in_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_header_style_non_simple_rejected.
+ * @return Greatest test result.
+ */
 TEST test_header_style_non_simple_rejected(void) {
 
   const char *json =
@@ -572,6 +684,10 @@ TEST test_header_style_non_simple_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_media_type_encoding_conflict_rejected.
+ * @return Greatest test result.
+ */
 TEST test_media_type_encoding_conflict_rejected(void) {
 
   const char json[] = {
@@ -602,6 +718,10 @@ TEST test_media_type_encoding_conflict_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_encoding_object_conflict_rejected.
+ * @return Greatest test result.
+ */
 TEST test_encoding_object_conflict_rejected(void) {
 
   const char json[] = {

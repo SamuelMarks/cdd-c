@@ -28,17 +28,7 @@ extern "C" {
 TEST test_cmake_modifier_basic(void) {
   struct CMakeModifier mod;
   char *diff_str = NULL;
-  FILE *f;
-  FILE *f2;
-  /*  (moved to global) */
-  int i;
-  int rc;
 
-  (void)rc;
-  (void)rc;
-  (void)i;
-  (void)f2;
-  (void)f;
   ASSERT_EQ(0, cmake_modifier_init(&mod, "CMakeLists.txt", "my_target"));
   ASSERT_EQ(0, cmake_modifier_add_compile_opt(&mod, "/W4"));
   ASSERT_EQ(0, cmake_modifier_add_compile_opt(&mod, "/WX"));
@@ -73,17 +63,7 @@ TEST test_cmake_modifier_basic(void) {
 TEST test_cmake_modifier_global(void) {
   struct CMakeModifier mod;
   char *diff_str = NULL;
-  FILE *f;
-  FILE *f2;
-  /*  (moved to global) */
-  int i;
-  int rc;
 
-  (void)rc;
-  (void)rc;
-  (void)i;
-  (void)f2;
-  (void)f;
   ASSERT_EQ(0, cmake_modifier_init(&mod, "CMakeLists.txt", NULL));
   ASSERT_EQ(0, cmake_modifier_add_compile_opt(&mod, "/W4"));
   ASSERT_EQ(0, cmake_modifier_add_link_lib(&mod, "libm.a"));
@@ -126,6 +106,10 @@ TEST test_cmake_modifier_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cmake_parser_oom.
+ * @return Greatest test result.
+ */
 TEST test_cmake_parser_oom(void) {
 
 #ifdef CDD_BUILD_TESTS
@@ -137,7 +121,6 @@ TEST test_cmake_parser_oom(void) {
   int i;
   int rc;
 
-  (void)rc;
   makedirs("test_cmake_dir");
 #if defined(_MSC_VER)
   if (fopen_s(&f, "test_cmake_dir/CMakeLists.txt", "w") != 0)

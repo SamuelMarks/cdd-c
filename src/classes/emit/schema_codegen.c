@@ -12,6 +12,8 @@
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
+#include "c_cdd/code_writer.h"
+#include "c_cdd/memory.h"
 #include "classes/emit/schema_codegen.h"
 #include "classes/emit/enum.h"
 #include "classes/emit/form.h"
@@ -43,35 +45,6 @@
 #else
 #endif
 
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_schema_fail_io_after = -1;
-C_CDD_EXPORT int g_schema_io_calls = 0;
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)));
-#else
-    ;
-#endif
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  va_list args;
-  int rc;
-  printf("hook: after=%d calls=%d\n", g_schema_fail_io_after,
-         g_schema_io_calls);
-  if (g_schema_fail_io_after >= 0 &&
-      ++g_schema_io_calls > g_schema_fail_io_after)
-    return -1;
-  va_start(args, format);
-  rc = vfprintf(stream, format, args);
-  va_end(args);
-  return rc;
-}
-/** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK test_cdd_fprintf_hook
-#else
-/** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK fprintf
-#endif
-
 #ifndef PATH_MAX
 /** @brief PATH_MAX definition */
 #define PATH_MAX 4096
@@ -97,7 +70,6 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
     return CDD_C_ERROR_IO;                                                     \
   }
 
-#ifndef CDD_BUILD_TESTS
 /** @brief Check return code and close file on error */
 #define F_CHECK_RC_TESTABLE(x)                                                 \
   for (;;) {                                                                   \
@@ -119,35 +91,6 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
     }                                                                          \
     break;                                                                     \
   }
-#else
-/** @brief Global flag to force simulated failure in schema codegen */
-C_CDD_EXPORT int g_schema_codegen_force_fail = 0;
-/** @brief Check return code and close file on error */
-#define F_CHECK_RC_TESTABLE(x)                                                 \
-  for (;;) {                                                                   \
-    cdd_c_error_t err = (x);                                                   \
-    if (g_schema_codegen_force_fail && --g_schema_codegen_force_fail == 0)     \
-      err = CDD_C_ERROR_MEMORY;                                                \
-    if (err != 0) {                                                            \
-      fclose(fp);                                                              \
-      return err;                                                              \
-    }                                                                          \
-    break;                                                                     \
-  }
-/** @brief Check return code, free struct fields, and close file on error */
-#define F_CHECK_RC_TESTABLE_SF(x)                                              \
-  for (;;) {                                                                   \
-    cdd_c_error_t err = (x);                                                   \
-    if (g_schema_codegen_force_fail && --g_schema_codegen_force_fail == 0)     \
-      err = CDD_C_ERROR_MEMORY;                                                \
-    if (err != 0) {                                                            \
-      struct_fields_free(&sf);                                                 \
-      fclose(fp);                                                              \
-      return err;                                                              \
-    }                                                                          \
-    break;                                                                     \
-  }
-#endif
 
 /* Write Header Guard Start */
 /**
@@ -502,7 +445,7 @@ cdd_c_error_t schema2code_main(int argc, char **argv) {
 
   root = json_parse_file(schema_file);
   if (!root) {
-    free(basename);
+    C_CDD_FREE(basename);
     return CDD_C_ERROR_UNKNOWN;
   }
 
@@ -514,23 +457,23 @@ cdd_c_error_t schema2code_main(int argc, char **argv) {
 
   if (!schemas) {
     json_value_free(root);
-    free(basename);
+    C_CDD_FREE(basename);
     return CDD_C_ERROR_UNKNOWN;
   }
 
   if (generate_header(prefix, basename, schemas, &config) != 0) {
     json_value_free(root);
-    free(basename);
+    C_CDD_FREE(basename);
     return CDD_C_ERROR_UNKNOWN;
   }
   if (generate_source(prefix, basename, schemas, &config) != 0) {
     json_value_free(root);
-    free(basename);
+    C_CDD_FREE(basename);
     return CDD_C_ERROR_UNKNOWN;
   }
 
   json_value_free(root);
-  free(basename);
+  C_CDD_FREE(basename);
   return CDD_C_SUCCESS;
 }
 

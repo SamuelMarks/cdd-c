@@ -25,7 +25,9 @@ extern "C" {
 #include <parson.h>
 /* clang-format on */
 
+/** @brief Test definition g_cdd_fail_json_set_value. */
 extern C_CDD_EXPORT volatile int g_cdd_fail_json_set_value;
+/** @brief Test definition g_cdd_fail_json_serialize. */
 extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
 
 /**
@@ -740,6 +742,9 @@ TEST test_code2schema_json_object_fields_more_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the code2schema_internals_branches_suite test suite.
+ */
 SUITE(code2schema_internals_branches_suite) {
   RUN_TEST(test_code2schema_json_object_to_struct_fields_full);
   RUN_TEST(test_code2schema_apply_union_ex_full);

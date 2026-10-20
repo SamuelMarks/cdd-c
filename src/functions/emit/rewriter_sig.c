@@ -141,12 +141,12 @@ static cdd_c_error_t is_storage_specifier(const struct Token *tok) {
 /**
  * @brief Find the end of a balanced group (parens or brackets).
  *
- * @param tokens Token list.
- * @param start Index of the opening token (e.g. LPAREN).
- * @param open Kind of opening token.
- * @param close Kind of closing token.
- * @param _out_val Pointer to receive the index of the matching closing token,
- * or tokens->size if not found.
+ * @param[in] tokens Token list.
+ * @param[in] start Index of the opening token (e.g. LPAREN).
+ * @param[in] open Kind of opening token.
+ * @param[in] close Kind of closing token.
+ * @param[in,out] _out_val Pointer to receive the index of the matching closing
+ * token, or tokens->size if not found.
  * @return CDD_C_SUCCESS on success or error code.
  */
 static cdd_c_error_t find_balanced_end(const struct TokenList *tokens,

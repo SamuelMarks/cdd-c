@@ -8,20 +8,18 @@
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 
 #ifndef __wasi__
 #include "serve_json_rpc.h"
 #include "../parse/cli.h"
 #include "../../cdd_api.h"
+#include "functions/parse/fs.h"
 #include <parson.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
-
-#ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_serve_json_rpc_fail_handle;
-#endif
 
 /**
  * @brief Helper to respond with JSON-RPC error over stdio.
@@ -63,6 +61,55 @@ static cdd_c_error_t send_stdio_rpc_response(JSON_Value *id_val,
 }
 
 /**
+ * @brief Builds a dynamic JSON result string for `resources/read` over stdio.
+ *
+ * @param[in] params Optional JSON-RPC params object containing `"uri"`.
+ * @param[out] out_json Newly allocated JSON string for the result object.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+static cdd_c_error_t build_stdio_resources_read(const JSON_Object *params,
+                                                char **out_json) {
+  const char *uri = json_object_get_string(params, "uri");
+  const char *target_uri = uri ? uri : "file:///openapi.json";
+  const char *file_path = NULL;
+  char *content = NULL;
+  size_t sz = 0;
+  JSON_Value *res_val = json_value_init_object();
+  JSON_Object *res_obj = json_value_get_object(res_val);
+  JSON_Value *arr_val = json_value_init_array();
+  JSON_Array *arr = json_value_get_array(arr_val);
+  JSON_Value *item_val = json_value_init_object();
+  JSON_Object *item_obj = json_value_get_object(item_val);
+  char *serialized = NULL;
+
+  if (strncmp(target_uri, "file:///", 8) == 0) {
+    file_path = target_uri + 8;
+  } else if (strncmp(target_uri, "file://", 7) == 0) {
+    file_path = target_uri + 7;
+  } else {
+    file_path = target_uri;
+  }
+
+  json_object_set_string(item_obj, "uri", target_uri);
+  json_object_set_string(item_obj, "mimeType", "application/json");
+  if (read_to_file(file_path, "rb", &content, &sz) == CDD_C_SUCCESS) {
+    json_object_set_string(item_obj, "text", content);
+    C_CDD_FREE(content);
+  } else {
+    json_object_set_string(
+        item_obj, "text",
+        "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"cdd-c\",\"version\":"
+        "\"0.0.4\"},\"paths\":{}}");
+  }
+  json_array_append_value(arr, item_val);
+  json_object_set_value(res_obj, "contents", arr_val);
+  serialized = json_serialize_to_string(res_val);
+  json_value_free(res_val);
+  *out_json = serialized;
+  return CDD_C_SUCCESS;
+}
+
+/**
  * @brief Handles an MCP stdio request.
  *
  * @param[in] body The JSON-RPC request body string.
@@ -74,12 +121,6 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
   const char *method;
   JSON_Value *id_val;
   cdd_c_error_t rc = CDD_C_SUCCESS;
-
-#ifdef CDD_BUILD_TESTS
-  if (g_serve_json_rpc_fail_handle) {
-    return CDD_C_ERROR_UNKNOWN;
-  }
-#endif
 
   if (!body) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -123,26 +164,37 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
     rc = send_stdio_rpc_response(id_val, "{}");
   } else if (strcmp(method, "tools/list") == 0) {
     rc = send_stdio_rpc_response(
-        id_val, "{\"tools\":[{\"name\":\"to_openapi\",\"description\":"
-                "\"Generate OpenAPI spec from "
-                "code\",\"inputSchema\":{\"type\":\"object\"}},{\"name\":\"to_"
-                "docs_json\",\"description\":\"Generate JSON "
-                "docs\",\"inputSchema\":{\"type\":\"object\"}}]}");
+        id_val,
+        "{\"tools\":[{\"name\":\"to_openapi\",\"description\":\"Generate "
+        "OpenAPI spec from code\",\"inputSchema\":{\"type\":\"object\"}},"
+        "{\"name\":\"to_docs_json\",\"description\":\"Generate JSON docs\","
+        "\"inputSchema\":{\"type\":\"object\"}},{\"name\":\"to_arazzo\","
+        "\"description\":\"Extract Arazzo spec from C code\",\"inputSchema\":"
+        "{\"type\":\"object\"}},{\"name\":\"from_arazzo\",\"description\":"
+        "\"Generate C workflows from Arazzo spec\",\"inputSchema\":"
+        "{\"type\":\"object\"}}]}");
   } else if (strcmp(method, "resources/list") == 0) {
     rc = send_stdio_rpc_response(
-        id_val, "{\"resources\":[{\"uri\":\"file:///openapi.json\",\"name\":"
-                "\"OpenAPI Spec\",\"mimeType\":\"application/json\"}]}");
+        id_val,
+        "{\"resources\":[{\"uri\":\"file:///openapi.json\",\"name\":\"OpenAPI "
+        "Spec\",\"mimeType\":\"application/json\"},{\"uri\":"
+        "\"file:///arazzo.json\",\"name\":\"Arazzo Workflow Spec\","
+        "\"mimeType\":\"application/json\"}]}");
   } else if (strcmp(method, "roots/list") == 0) {
     rc = send_stdio_rpc_response(
-        id_val, "{\"roots\":[{\"uri\":\"file:///\",\"name\":\"workspace\"}]}");
+        id_val,
+        "{\"roots\":[{\"uri\":\"file:///workspace\",\"name\":\"workspace\"}]}");
   } else if (strcmp(method, "resources/templates/list") == 0) {
-    rc = send_stdio_rpc_response(id_val, "{\"resourceTemplates\":[]}");
-  } else if (strcmp(method, "resources/read") == 0) {
     rc = send_stdio_rpc_response(
-        id_val, "{\"contents\":[{\"uri\":\"file:///openapi.json\",\"mimeType\":"
-                "\"application/json\",\"text\":\"{}\"},{\"uri\":\"file:///"
-                "image.png\",\"mimeType\":\"image/png\",\"blob\":"
-                "\"iVBORw0KGgo=\"}]}");
+        id_val,
+        "{\"resourceTemplates\":[{\"uriTemplate\":\"file:///{path}\","
+        "\"name\":\"Workspace File\",\"mimeType\":\"application/json\"}]}");
+  } else if (strcmp(method, "resources/read") == 0) {
+    JSON_Object *params = json_object_get_object(root_obj, "params");
+    char *res_str = NULL;
+    build_stdio_resources_read(params, &res_str);
+    rc = send_stdio_rpc_response(id_val, res_str);
+    json_free_serialized_string(res_str);
   } else if (strcmp(method, "resources/subscribe") == 0) {
     rc = send_stdio_rpc_response(id_val, "{}");
   } else if (strcmp(method, "resources/unsubscribe") == 0) {
@@ -154,10 +206,14 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
                 "\"user\"],\"priority\":1.0}}]}");
   } else if (strcmp(method, "prompts/list") == 0) {
     rc = send_stdio_rpc_response(
-        id_val, "{\"prompts\":[{\"name\":\"generate_sdk\",\"description\":"
-                "\"Generate SDK "
-                "prompt\",\"arguments\":[{\"name\":\"language\","
-                "\"description\":\"Target language\",\"required\":true}]}]}");
+        id_val,
+        "{\"prompts\":[{\"name\":\"generate_sdk\",\"description\":\"Generate "
+        "SDK prompt\",\"arguments\":[{\"name\":\"language\",\"description\":"
+        "\"Target "
+        "language\",\"required\":true}]},{\"name\":\"generate_arazzo\","
+        "\"description\":\"Generate Arazzo workflow orchestrator\","
+        "\"arguments\":[{\"name\":\"subcommand\",\"description\":"
+        "\"to_sdk, to_sdk_cli, or to_server\",\"required\":false}]}]}");
   } else if (strcmp(method, "sampling/createMessage") == 0) {
     rc = send_stdio_rpc_response(
         id_val,
@@ -165,14 +221,23 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
         "\"text\":\"Sampled "
         "message\"},\"model\":\"test-model\",\"stopReason\":\"endSeq\"}");
   } else if (strcmp(method, "prompts/get") == 0) {
-    rc = send_stdio_rpc_response(
-        id_val,
-        "{\"description\":\"Generate SDK\",\"messages\":[{\"role\":\"user\","
-        "\"content\":{\"type\":\"text\",\"text\":\"Generate SDK\"}}]}");
+    JSON_Object *params = json_object_get_object(root_obj, "params");
+    const char *prompt_name =
+        params ? json_object_get_string(params, "name") : NULL;
+    char prompt_buf[1024];
+    CDD_SNPRINTF(
+        prompt_buf, sizeof(prompt_buf),
+        "{\"description\":\"Prompt %s\",\"messages\":[{\"role\":\"user\","
+        "\"content\":{\"type\":\"text\",\"text\":\"Execute %s\"}}]}",
+        prompt_name ? prompt_name : "generate_sdk",
+        prompt_name ? prompt_name : "generate_sdk");
+    rc = send_stdio_rpc_response(id_val, prompt_buf);
   } else if (strcmp(method, "completion/complete") == 0) {
     rc = send_stdio_rpc_response(
-        id_val, "{\"completion\":{\"values\":[\"example\"],\"hasMore\":false,"
-                "\"total\":1}}");
+        id_val,
+        "{\"completion\":{\"values\":[\"to_sdk\",\"to_sdk_cli\",\"to_server\","
+        "\"to_openapi\",\"to_arazzo\",\"from_arazzo\"],\"hasMore\":false,"
+        "\"total\":6}}");
   } else if (strcmp(method, "tools/call") == 0) {
     JSON_Object *params = json_object_get_object(root_obj, "params");
     const char *name = params ? json_object_get_string(params, "name") : NULL;
@@ -217,10 +282,10 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
         cfg.input = input;
         cfg.output = output;
         if (json_object_get_boolean(arguments, "no_imports") == 1) {
-          cfg.no_imports = 1;
+          cfg.no_imports = CDD_TRUE;
         }
         if (json_object_get_boolean(arguments, "no_wrapping") == 1) {
-          cfg.no_wrapping = 1;
+          cfg.no_wrapping = CDD_TRUE;
         }
         rc_rpc = cdd_generate_docs_json(&cfg);
         if (rc_rpc != CDD_C_SUCCESS) {
@@ -245,8 +310,17 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
       }
     } else if (strcmp(name, "from_arazzo") == 0) {
       cdd_from_arazzo_config_t cfg;
+      const char *subcmd = json_object_get_string(arguments, "subcommand");
+      if (!subcmd)
+        subcmd = "";
       memset(&cfg, 0, sizeof(cfg));
-      cfg.subcommand = json_object_get_string(arguments, "subcommand");
+      if (strcmp(subcmd, "to_sdk_cli") == 0) {
+        cfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SDK_CLI;
+      } else if (strcmp(subcmd, "to_server") == 0) {
+        cfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SERVER;
+      } else {
+        cfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SDK;
+      }
       cfg.input = json_object_get_string(arguments, "input");
       cfg.output = json_object_get_string(arguments, "output");
       if (cdd_generate_from_arazzo(&cfg) != CDD_C_SUCCESS) {
@@ -283,9 +357,6 @@ C_CDD_EXPORT cdd_c_error_t serve_mcp_stdio_main(int argc, char **argv) {
 
   while (fgets(buffer, sizeof(buffer), stdin)) {
     rc_rpc = handle_stdio_request(buffer);
-    if (rc_rpc != CDD_C_SUCCESS) {
-      return rc_rpc;
-    }
   }
   return rc_rpc;
 }

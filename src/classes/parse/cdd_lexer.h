@@ -18,8 +18,8 @@ extern "C" {
 /**
  * @brief Run the lossless lexer over the given source code.
  *
- * @param source The input source code.
- * @param out_list Pointer to receive the generated token list.
+ * @param[in] source The input source code.
+ * @param[out] out_list Pointer to receive the generated token list.
  * @return 0 on success, or error code (ENOMEM, etc).
  */
 C_CDD_EXPORT cdd_c_error_t cdd_lexer_tokenize(az_span source,
@@ -28,7 +28,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_lexer_tokenize(az_span source,
 /**
  * @brief Free a token list and its associated trivia.
  *
- * @param list The token list to free.
+ * @param[in,out] list The token list to free.
  */
 C_CDD_EXPORT void cdd_lexer_free_token_list(cdd_token_list_t *list);
 

@@ -15,6 +15,10 @@ extern "C" {
 #include "emit/test_codegen_client_sig_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_sig_helpers_coverage_1.
+ * @return Greatest test result.
+ */
 TEST test_sig_helpers_coverage_1(void) {
   const char *str_val = NULL;
   int int_val = 0;
@@ -198,6 +202,10 @@ TEST test_sig_helpers_coverage_1(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_helpers_coverage_2.
+ * @return Greatest test result.
+ */
 TEST test_sig_helpers_coverage_2(void) {
   const char *str_val = NULL;
   int int_val = 0;
@@ -482,6 +490,10 @@ TEST test_sig_helpers_coverage_2(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_helpers_coverage_3.
+ * @return Greatest test result.
+ */
 TEST test_sig_helpers_coverage_3(void) {
   const char *str_val = NULL;
   int int_val = 0;
@@ -652,6 +664,10 @@ TEST test_sig_helpers_coverage_3(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_codegen_branches_coverage.
+ * @return Greatest test result.
+ */
 TEST test_sig_codegen_branches_coverage(void) {
   struct OpenAPI_Operation op;
   struct OpenAPI_Parameter param;
@@ -785,6 +801,9 @@ TEST test_sig_codegen_branches_coverage(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the client_sig_helpers_suite test suite.
+ */
 SUITE(client_sig_helpers_suite) {
   RUN_TEST(test_sig_helpers_coverage_1);
   RUN_TEST(test_sig_helpers_coverage_2);

@@ -1,3 +1,7 @@
+/**
+ * @file test_ffi_extractor_emit.h
+ * @brief Unit tests and mocks in test_ffi_extractor_emit.h.
+ */
 #ifndef TEST_FFI_EXTRACTOR_EMIT_H
 #define TEST_FFI_EXTRACTOR_EMIT_H
 
@@ -21,6 +25,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/**
+ * @brief Unit test test_ffi_ir_emit_python.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_python(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -78,6 +86,10 @@ TEST test_ffi_ir_emit_python(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_emit_rust.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_rust(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -135,6 +147,10 @@ TEST test_ffi_ir_emit_rust(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_emit_csharp.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_csharp(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -192,6 +208,10 @@ TEST test_ffi_ir_emit_csharp(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_emit_typescript.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_typescript(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -245,6 +265,10 @@ TEST test_ffi_ir_emit_typescript(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_emit_napi.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_napi(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -299,6 +323,10 @@ TEST test_ffi_ir_emit_napi(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_emit_java.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_java(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -357,6 +385,10 @@ TEST test_ffi_ir_emit_java(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_emit_cpp.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_cpp(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -410,6 +442,10 @@ TEST test_ffi_ir_emit_cpp(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_emit_go.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_go(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -463,6 +499,10 @@ TEST test_ffi_ir_emit_go(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_emit_swift.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_swift(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
@@ -516,6 +556,10 @@ TEST test_ffi_ir_emit_swift(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ffi_ir_emit_dart.
+ * @return Greatest test result.
+ */
 TEST test_ffi_ir_emit_dart(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;

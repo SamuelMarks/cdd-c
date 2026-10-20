@@ -1,3 +1,7 @@
+/**
+ * @file test_code2schema_coverage.h
+ * @brief Unit tests and mocks in test_code2schema_coverage.h.
+ */
 #ifndef TEST_CODE2SCHEMA_COVERAGE_H
 #define TEST_CODE2SCHEMA_COVERAGE_H
 
@@ -19,6 +23,11 @@ extern C_CDD_EXPORT cdd_c_error_t c2s_parse_union_tokens_and_write(
     const struct TokenList *tl, size_t *idx, JSON_Object *schemas_obj,
     const char *union_name);
 
+/**
+ * @brief Helper function set_both_parson_allocs_c2s.
+ * @param[in,out] malloc_fun Parameter malloc_fun.
+ * @param[in,out] free_fun Parameter free_fun.
+ */
 static void set_both_parson_allocs_c2s(void *(*malloc_fun)(size_t),
                                        void (*free_fun)(void *)) {
   (json_set_allocation_functions)(malloc_fun, free_fun);
@@ -27,9 +36,18 @@ static void set_both_parson_allocs_c2s(void *(*malloc_fun)(size_t),
 #ifdef json_set_allocation_functions
 #undef json_set_allocation_functions
 #endif
+/**
+ * @brief Macro json_set_allocation_functions.
+ */
 #define json_set_allocation_functions set_both_parson_allocs_c2s
 
+/** @brief Test definition g_parson_fail_at. */
 static int g_parson_fail_at = -1;
+/**
+ * @brief Helper function mock_parson_malloc.
+ * @param[in] sz Parameter sz.
+ * @return Result status or value.
+ */
 static void *mock_parson_malloc(size_t sz) {
   if (g_parson_fail_at == 0) {
     g_parson_fail_at = -1;
@@ -39,8 +57,16 @@ static void *mock_parson_malloc(size_t sz) {
     g_parson_fail_at--;
   return malloc(sz);
 }
+/**
+ * @brief Helper function mock_parson_free.
+ * @param[in,out] ptr Parameter ptr.
+ */
 static void mock_parson_free(void *ptr) { free(ptr); }
 
+/**
+ * @brief Unit test test_code2schema_coverage_oom.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_coverage_oom(void) {
   int i;
   JSON_Value *val;
@@ -69,6 +95,10 @@ TEST test_code2schema_coverage_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_code2schema_write_struct_oom.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_write_struct_oom(void) {
   int i;
   for (i = 1; i < 80; ++i) {
@@ -155,6 +185,10 @@ TEST test_code2schema_write_struct_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_code2schema_union_oom.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_union_oom(void) {
   int i;
   for (i = 1; i < 50; ++i) {
@@ -189,6 +223,10 @@ TEST test_code2schema_union_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_code2schema_write_oom.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_write_oom(void) {
   int i;
   for (i = 1; i < 50; ++i) {
@@ -222,6 +260,10 @@ TEST test_code2schema_write_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_code2schema_cdd_alloc_fail_comprehensive.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_cdd_alloc_fail_comprehensive(void) {
   int i;
 
@@ -479,6 +521,9 @@ TEST test_code2schema_cdd_alloc_fail_comprehensive(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the code2schema_coverage_suite test suite.
+ */
 SUITE(code2schema_coverage_suite) {
   RUN_TEST(test_code2schema_cdd_alloc_fail_comprehensive);
   RUN_TEST(test_code2schema_coverage_oom);

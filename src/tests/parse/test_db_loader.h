@@ -1,3 +1,7 @@
+/**
+ * @file test_db_loader.h
+ * @brief Unit tests and mocks in test_db_loader.h.
+ */
 #ifndef TEST_DB_LOADER_H
 #define TEST_DB_LOADER_H
 
@@ -15,8 +19,13 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_cdd_mock_dlopen_success. */
 extern C_CDD_EXPORT int g_cdd_mock_dlopen_success;
 
+/**
+ * @brief Unit test test_db_loader_basic.
+ * @return Greatest test result.
+ */
 TEST test_db_loader_basic(void) {
   int avail;
   ASSERT_EQ(CDD_C_SUCCESS, check_libpq_available(&avail));
@@ -31,6 +40,10 @@ TEST test_db_loader_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_db_loader_success.
+ * @return Greatest test result.
+ */
 TEST test_db_loader_success(void) {
   int avail;
 #ifdef CDD_BUILD_TESTS
@@ -48,6 +61,9 @@ TEST test_db_loader_success(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the db_loader_suite test suite.
+ */
 SUITE(db_loader_suite) {
   RUN_TEST(test_db_loader_basic);
   RUN_TEST(test_db_loader_success);

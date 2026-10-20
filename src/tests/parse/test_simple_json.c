@@ -11,6 +11,10 @@
 /* clang-format on */
 
 /* Add definitions that need to be in the test runner's main file. */
+/**
+ * @brief Helper function GREATEST_MAIN_DEFS.
+ * @return Result status or value.
+ */
 GREATEST_MAIN_DEFS();
 /**
  * @brief Main entry point for the test runner.

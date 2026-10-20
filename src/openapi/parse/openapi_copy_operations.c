@@ -522,7 +522,7 @@ cdd_c_error_t copy_request_body_fields(struct OpenAPI_RequestBody *dst,
   }
   if (src->description) {
     if (dst->description) {
-      free(dst->description);
+      C_CDD_FREE(dst->description);
       dst->description = NULL;
     }
     c_cdd_strdup(src->description, &dst->description);

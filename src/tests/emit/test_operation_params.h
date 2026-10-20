@@ -14,74 +14,113 @@ extern "C" {
 #include "emit/test_operation_common.h"
 /* clang-format on */
 
-ASSERT_EQ(CDD_C_SUCCESS,
-          apply_format_to_schema_ref(&schema, &map, NULL, &applied));
-ASSERT_EQ(1, applied);
-ASSERT_EQ(1, schema.is_array);
-ASSERT_STR_EQ("integer", schema.inline_type);
-ASSERT_STR_EQ("int64", schema.items_format);
+/**
+ * @brief Unit test test_operation_apply_format_to_schema_ref.
+ * @return Greatest test result.
+ */
+TEST test_operation_apply_format_to_schema_ref(void) {
+  struct OpenAPI_SchemaRef schema;
+  struct OpenApiTypeMapping map;
+  int applied = -1;
+  memset(&schema, 0, sizeof(schema));
+  memset(&map, 0, sizeof(map));
 
-ASSERT_EQ(CDD_C_SUCCESS,
-          apply_format_to_schema_ref(&schema, &map, "int32", &applied));
-ASSERT_EQ(1, applied);
-ASSERT_STR_EQ("int32", schema.items_format);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            apply_format_to_schema_ref(NULL, &map, "fmt", &applied));
+  ASSERT_EQ(0, applied);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            apply_format_to_schema_ref(&schema, NULL, "fmt", &applied));
+  ASSERT_EQ(0, applied);
 
-free(schema.inline_type);
-free(schema.items_format);
-schema.inline_type = NULL;
-schema.items_format = NULL;
-schema.is_array = 0;
+  map.oa_type = cdd_test_mut_str("integer");
+  ASSERT_EQ(CDD_C_SUCCESS,
+            apply_format_to_schema_ref(&schema, &map, NULL, &applied));
+  ASSERT_EQ(0, applied);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            apply_format_to_schema_ref(&schema, &map, "", &applied));
+  ASSERT_EQ(0, applied);
 
-map.kind = OA_TYPE_PRIMITIVE;
-ASSERT_EQ(CDD_C_SUCCESS,
-          apply_format_to_schema_ref(&schema, &map, NULL, &applied));
-ASSERT_EQ(1, applied);
-ASSERT_STR_EQ("integer", schema.inline_type);
-ASSERT_STR_EQ("int64", schema.format);
+  map.oa_type = cdd_test_mut_str("object");
+  map.oa_format = cdd_test_mut_str("custom");
+  ASSERT_EQ(CDD_C_SUCCESS,
+            apply_format_to_schema_ref(&schema, &map, NULL, &applied));
+  ASSERT_EQ(0, applied);
 
-ASSERT_EQ(CDD_C_SUCCESS,
-          apply_format_to_schema_ref(&schema, &map, "int32", &applied));
-ASSERT_EQ(1, applied);
-ASSERT_STR_EQ("int32", schema.format);
+  map.kind = OA_TYPE_ARRAY;
+  map.oa_type = cdd_test_mut_str("integer");
+  map.oa_format = cdd_test_mut_str("int64");
+  ASSERT_EQ(CDD_C_SUCCESS,
+            apply_format_to_schema_ref(&schema, &map, NULL, &applied));
+  ASSERT_EQ(1, applied);
+  ASSERT_EQ(1, schema.is_array);
+  ASSERT_STR_EQ("integer", schema.inline_type);
+  ASSERT_STR_EQ("int64", schema.items_format);
 
-free(schema.inline_type);
-free(schema.format);
-schema.inline_type = NULL;
-schema.format = NULL;
+  ASSERT_EQ(CDD_C_SUCCESS,
+            apply_format_to_schema_ref(&schema, &map, "int32", &applied));
+  ASSERT_EQ(1, applied);
+  ASSERT_STR_EQ("int32", schema.items_format);
 
-map.kind = OA_TYPE_ARRAY;
-g_cdd_strdup_fail = 1;
-ASSERT_EQ(CDD_C_ERROR_MEMORY,
-          apply_format_to_schema_ref(&schema, &map, NULL, &applied));
-g_cdd_strdup_fail = 0;
-
-g_cdd_strdup_fail = 2;
-ASSERT_EQ(CDD_C_ERROR_MEMORY,
-          apply_format_to_schema_ref(&schema, &map, NULL, &applied));
-g_cdd_strdup_fail = 0;
-if (schema.inline_type) {
   free(schema.inline_type);
+  free(schema.items_format);
   schema.inline_type = NULL;
-}
+  schema.items_format = NULL;
+  schema.is_array = 0;
 
-map.kind = OA_TYPE_PRIMITIVE;
-g_cdd_strdup_fail = 1;
-ASSERT_EQ(CDD_C_ERROR_MEMORY,
-          apply_format_to_schema_ref(&schema, &map, NULL, &applied));
-g_cdd_strdup_fail = 0;
+  map.kind = OA_TYPE_PRIMITIVE;
+  ASSERT_EQ(CDD_C_SUCCESS,
+            apply_format_to_schema_ref(&schema, &map, NULL, &applied));
+  ASSERT_EQ(1, applied);
+  ASSERT_STR_EQ("integer", schema.inline_type);
+  ASSERT_STR_EQ("int64", schema.format);
 
-g_cdd_strdup_fail = 2;
-ASSERT_EQ(CDD_C_ERROR_MEMORY,
-          apply_format_to_schema_ref(&schema, &map, NULL, &applied));
-g_cdd_strdup_fail = 0;
-if (schema.inline_type) {
+  ASSERT_EQ(CDD_C_SUCCESS,
+            apply_format_to_schema_ref(&schema, &map, "int32", &applied));
+  ASSERT_EQ(1, applied);
+  ASSERT_STR_EQ("int32", schema.format);
+
   free(schema.inline_type);
+  free(schema.format);
   schema.inline_type = NULL;
+  schema.format = NULL;
+
+  map.kind = OA_TYPE_ARRAY;
+  g_cdd_strdup_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            apply_format_to_schema_ref(&schema, &map, NULL, &applied));
+  g_cdd_strdup_fail = 0;
+
+  g_cdd_strdup_fail = 2;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            apply_format_to_schema_ref(&schema, &map, NULL, &applied));
+  g_cdd_strdup_fail = 0;
+  if (schema.inline_type) {
+    free(schema.inline_type);
+    schema.inline_type = NULL;
+  }
+
+  map.kind = OA_TYPE_PRIMITIVE;
+  g_cdd_strdup_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            apply_format_to_schema_ref(&schema, &map, NULL, &applied));
+  g_cdd_strdup_fail = 0;
+
+  g_cdd_strdup_fail = 2;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            apply_format_to_schema_ref(&schema, &map, NULL, &applied));
+  g_cdd_strdup_fail = 0;
+  if (schema.inline_type) {
+    free(schema.inline_type);
+    schema.inline_type = NULL;
+  }
+
+  PASS();
 }
 
-PASS();
-}
-
+/**
+ * @brief Unit test test_operation_set_querystring_schema_from_type_map.
+ * @return Greatest test result.
+ */
 TEST test_operation_set_querystring_schema_from_type_map(void) {
   struct OpenAPI_Parameter param;
   struct OpenApiTypeMapping tm;
@@ -162,6 +201,10 @@ TEST test_operation_set_querystring_schema_from_type_map(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_init_and_add_response_media_type.
+ * @return Greatest test result.
+ */
 TEST test_operation_init_and_add_response_media_type(void) {
   struct OpenAPI_MediaType mt;
   struct OpenAPI_Response resp;
@@ -260,6 +303,10 @@ TEST test_operation_init_and_add_response_media_type(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_request_body_media_types.
+ * @return Greatest test result.
+ */
 TEST test_operation_request_body_media_types(void) {
   struct OpenAPI_Operation op;
   struct OpenAPI_MediaType mt;
@@ -381,6 +428,10 @@ TEST test_operation_request_body_media_types(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_media_types_item_schema_oom.
+ * @return Greatest test result.
+ */
 TEST test_operation_media_types_item_schema_oom(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_MediaType mt;
@@ -434,6 +485,10 @@ TEST test_operation_media_types_item_schema_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_c2openapi_build_operation_nulls.
+ * @return Greatest test result.
+ */
 TEST test_operation_c2openapi_build_operation_nulls(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -450,6 +505,10 @@ TEST test_operation_c2openapi_build_operation_nulls(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_c2openapi_build_operation_verbs.
+ * @return Greatest test result.
+ */
 TEST test_operation_c2openapi_build_operation_verbs(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -560,6 +619,10 @@ TEST test_operation_c2openapi_build_operation_verbs(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_c2openapi_build_operation_metadata.
+ * @return Greatest test result.
+ */
 TEST test_operation_c2openapi_build_operation_metadata(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -631,6 +694,10 @@ TEST test_operation_c2openapi_build_operation_metadata(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_operation_c2openapi_build_operation_arguments.
+ * @return Greatest test result.
+ */
 TEST test_operation_c2openapi_build_operation_arguments(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -728,52 +795,6 @@ TEST test_operation_c2openapi_build_operation_arguments(void) {
 
   PASS();
 }
-
-TEST test_operation_c2openapi_build_operation_bodies_returns_links(void) {
-  struct OpBuilderContext ctx;
-  struct C2OpenAPI_ParsedSig sig;
-  struct C2OpenAPI_ParsedArg args[1];
-  struct DocMetadata doc;
-  struct DocRequestBody rbs[1];
-  struct DocEncoding encs[3];
-  struct DocResponse rets[2];
-  struct DocResponseHeader headers[2];
-  struct DocLink links[2];
-  struct OpenAPI_Operation op;
-
-  memset(&ctx, 0, sizeof(ctx));
-  memset(&sig, 0, sizeof(sig));
-  memset(args, 0, sizeof(args));
-  memset(&doc, 0, sizeof(doc));
-  memset(rbs, 0, sizeof(rbs));
-  memset(encs, 0, sizeof(encs));
-  memset(rets, 0, sizeof(rets));
-  memset(headers, 0, sizeof(headers));
-  memset(links, 0, sizeof(links));
-  memset(&op, 0, sizeof(op));
-
-  ctx.sig = &sig;
-  ctx.doc = &doc;
-  ctx.func_name = "api_upload_post";
-  doc.verb = cdd_test_mut_str("POST");
-
-  sig.args = args;
-  sig.n_args = 1;
-  args[0].name = cdd_test_mut_str("out_data");
-  args[0].type = cdd_test_mut_str("struct UploadResponse **");
-
-  rbs[0].content_type = cdd_test_mut_str("multipart/form-data");
-  rbs[0].item_schema = 0;
-  rbs[0].example = cdd_test_mut_str("{\"file\": \"data\"}");
-
-  encs[0].name = cdd_test_mut_str("avatar");
-  encs[0].content_type = cdd_test_mut_str("image/jpeg");
-  encs[0].kind = 0;
-  encs[0].style = DOC_PARAM_STYLE_FORM;
-  encs[0].explode = 1;
-  encs[0].explode_set = 1;
-  encs[0].allow_reserved = 1;
-  encs[0].allow_reserved_set = 1;
 
 #ifdef __cplusplus
 }

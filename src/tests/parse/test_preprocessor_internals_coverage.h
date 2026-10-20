@@ -25,22 +25,20 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_pp_100_percent_coverage.
+ * @return Greatest test result.
+ */
 TEST test_pp_100_percent_coverage(void) {
   struct PreprocessorContext ctx;
   struct ExprState s;
   struct TokenList *tl = NULL;
   struct MacroDef def;
-  char *out = NULL;
   long val = 0;
   int matched = 0;
   size_t i;
   cdd_c_error_t rc = 0;
-  /* 1. Context init failure and capacity growth in pp_add_macro_internal */
-  g_cdd_pp_context_init_fail = 1;
-  rc = pp_context_init(&ctx);
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-  g_cdd_pp_context_init_fail = 0;
-
+  /* 1. Context init and capacity growth in pp_add_macro_internal */
   rc = pp_context_init(&ctx);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
@@ -75,20 +73,9 @@ TEST test_pp_100_percent_coverage(void) {
   g_cdd_alloc_fail = 0;
   C_CDD_FREE(def.name);
 
-  /* 2. pp_file_exists failure hook in pp_resolve_path */
-  g_cdd_pp_file_exists_fail = 1;
-  rc = pp_resolve_path(&ctx, "current_dir", "header.h", 0, &out);
-  ASSERT_EQ(CDD_C_ERROR_IO, rc);
-  ASSERT_EQ(NULL, out);
-  g_cdd_pp_file_exists_fail = 0;
-
+  /* 2. pp_resolve_path with search_dir */
   rc = pp_add_search_path(&ctx, "search_dir");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  g_cdd_pp_file_exists_fail = 1;
-  rc = pp_resolve_path(&ctx, NULL, "header.h", 1, &out);
-  ASSERT_EQ(CDD_C_ERROR_IO, rc);
-  ASSERT_EQ(NULL, out);
-  g_cdd_pp_file_exists_fail = 0;
 
   /* 3. Helper functions NULL argument checks and hooks */
   rc = pp_expr_skip_ws(NULL);
@@ -138,11 +125,6 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_is_defined_macro(&ctx, &tl->tokens[0], &matched);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_is_defined_macro_fail = 0;
-
-  g_cdd_fail_token_matches_string = 1;
-  rc = pp_is_defined_macro(&ctx, &tl->tokens[0], &matched);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_cdd_fail_token_matches_string = 0;
 
   free_token_list(tl);
   tl = NULL;
@@ -201,10 +183,12 @@ TEST test_pp_100_percent_coverage(void) {
 
   s.pos = 0;
   s.error = 0;
-  g_cdd_pp_resolve_path_fail = 1;
+  s.ctx = &ctx;
+  g_cdd_pp_resolve_path_fail = 2;
   rc = pp_handle_has_include_embed(&s, &val);
-  ASSERT_EQ(CDD_C_ERROR_IO, rc);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_pp_resolve_path_fail = 0;
+  s.ctx = NULL;
 
   free_token_list(tl);
   tl = NULL;
@@ -404,59 +388,6 @@ TEST test_pp_100_percent_coverage(void) {
   free_token_list(tl);
   tl = NULL;
 
-  rc = tokenize(az_span_create_from_str("__has_include ( \"a.h\" )"), &tl);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-  s.tokens = tl;
-  s.pos = 0;
-  s.error = 0;
-  s.end = tl->size;
-  g_cdd_fail_token_matches_string = 1;
-  rc = pp_parse_primary(&s, &val);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_cdd_fail_token_matches_string = 0;
-  free_token_list(tl);
-  tl = NULL;
-
-  rc = tokenize(az_span_create_from_str("__has_embed ( \"a.bin\" )"), &tl);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-  s.tokens = tl;
-  s.pos = 0;
-  s.error = 0;
-  s.end = tl->size;
-  g_cdd_fail_token_matches_string = 2;
-  rc = pp_parse_primary(&s, &val);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_cdd_fail_token_matches_string = 0;
-  free_token_list(tl);
-  tl = NULL;
-
-  rc = tokenize(az_span_create_from_str("__has_c_attribute ( dep )"), &tl);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-  s.tokens = tl;
-  s.pos = 0;
-  s.error = 0;
-  s.end = tl->size;
-  g_cdd_fail_token_matches_string = 3;
-  rc = pp_parse_primary(&s, &val);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_cdd_fail_token_matches_string = 0;
-  free_token_list(tl);
-  tl = NULL;
-
-  rc = tokenize(az_span_create_from_str("MACRO0"), &tl);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-  s.tokens = tl;
-  s.pos = 0;
-  s.error = 0;
-  s.end = tl->size;
-  s.ctx = &ctx;
-  g_cdd_fail_token_matches_string = 4;
-  rc = pp_parse_primary(&s, &val);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_cdd_fail_token_matches_string = 0;
-  free_token_list(tl);
-  tl = NULL;
-
   /* 7. Unary parsing branches */
   rc = pp_parse_unary(NULL, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -528,10 +459,6 @@ TEST test_pp_100_percent_coverage(void) {
   s.pos = 0;
   s.error = 0;
   s.end = tl->size;
-  g_cdd_fail_token_matches_string = 1;
-  rc = pp_parse_unary(&s, &val);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_cdd_fail_token_matches_string = 0;
 
   s.pos = 0;
   s.error = 0;

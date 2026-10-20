@@ -43,8 +43,8 @@ typedef struct cdd_transform_config_t {
 /**
  * @brief Adds extern "C" wrapping to the parsed syntax tree.
  *
- * @param tree The CST tree.
- * @param config Optional configuration for trivia generation.
+ * @param[in,out] tree The CST tree.
+ * @param[in] config Optional configuration for trivia generation.
  * @return 0 on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_transform_extern_c(
@@ -72,8 +72,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_check_node_is_cpp_guard(cdd_cst_node_t *dir,
 /**
  * @brief Ports POSIX/GNU specific syntax to MSVC equivalents.
  *
- * @param tree The CST tree.
- * @param config Optional configuration for trivia generation.
+ * @param[in,out] tree The CST tree.
+ * @param[in] config Optional configuration for trivia generation.
  * @return 0 on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t
@@ -83,8 +83,8 @@ cdd_transform_msvc(cdd_cst_tree_t *tree, const cdd_transform_config_t *config);
  * @brief Standardizes GNU-specific extensions (like __attribute__) into
  * standard C.
  *
- * @param tree The CST tree.
- * @param config Optional configuration for trivia generation.
+ * @param[in,out] tree The CST tree.
+ * @param[in] config Optional configuration for trivia generation.
  * @return 0 on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t
@@ -281,8 +281,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_rewrite_call_sites(cdd_cst_tree_t *tree,
 /**
  * @brief Percolates errors by rewriting function signatures and returning int.
  *
- * @param tree The CST tree.
- * @param config Optional configuration for trivia generation.
+ * @param[in,out] tree The CST tree.
+ * @param[in] config Optional configuration for trivia generation.
  * @return 0 on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
@@ -291,8 +291,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
 /**
  * @brief Migrates standard C functions to MSVC Safe CRT functions.
  *
- * @param tree The CST tree.
- * @param config Optional configuration for trivia generation.
+ * @param[in,out] tree The CST tree.
+ * @param[in] config Optional configuration for trivia generation.
  * @return 0 on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_transform_safe_crt(
@@ -302,8 +302,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_safe_crt(
  * @brief Expands function-like macros (and handles stringification/token
  * pasting) inside the AST.
  *
- * @param tree The CST tree.
- * @param config Optional configuration for trivia generation.
+ * @param[in,out] tree The CST tree.
+ * @param[in] config Optional configuration for trivia generation.
  * @return 0 on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(

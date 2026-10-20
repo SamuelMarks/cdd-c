@@ -85,6 +85,10 @@ TEST test_macro_evaluator_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_macro_evaluator_all_ops.
+ * @return Greatest test result.
+ */
 TEST test_macro_evaluator_all_ops(void) {
   struct PreprocessorContext ctx;
   cdd_macro_eval_result_t res;
@@ -154,6 +158,10 @@ TEST test_macro_evaluator_all_ops(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_macro_evaluator_errors.
+ * @return Greatest test result.
+ */
 TEST test_macro_evaluator_errors(void) {
   struct PreprocessorContext ctx;
   cdd_macro_eval_result_t res;
@@ -410,6 +418,7 @@ TEST test_pp_define_variadic_gcc(void) {
 
 /**
  * @brief Preprocessor macros test suite.
+ * @return Test or helper result.
  */
 
 TEST test_macro_evaluator_uncovered(void) {
@@ -512,6 +521,9 @@ TEST test_macro_evaluator_uncovered(void) {
   }
 }
 
+/**
+ * @brief Executes the preprocessor_macros_suite test suite.
+ */
 SUITE(preprocessor_macros_suite) {
 
   RUN_TEST(test_macro_evaluator_basic);

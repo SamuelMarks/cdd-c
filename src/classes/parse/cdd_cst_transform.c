@@ -6,6 +6,7 @@
 #include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_cst_transform.h"
+#include "c_cdd/memory.h"
 #include "c_str_span.h"
 #include "classes/parse/cdd_cst_mutate.h"
 #include "classes/parse/cdd_cst_parser.h"
@@ -56,7 +57,7 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
         }
       }
     }
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
   }
 
   if (found_cpp)
@@ -222,7 +223,7 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
         }
       }
     }
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
   }
 
   /* 2. Traverse tokens and replace POSIX identifiers directly */
@@ -386,7 +387,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                          (int)prev->length, prev->start, (int)next->length,
                          next->start, (int)prev->length, prev->start);
 #endif
-            heap_buf = strdup(buf);
+            heap_buf = C_CDD_STRDUP(buf);
             prev->start = (const uint8_t *)heap_buf;
             prev->length = strlen(heap_buf);
             t->length = 0;

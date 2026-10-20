@@ -17,10 +17,16 @@
 #include <string.h>
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_fail_io_after;
+/** @brief Fault injection counter for failing after N schema I/O operations */
+C_CDD_EXPORT int g_schema_fail_io_after = -1;
+/** @brief Running counter of schema I/O operations executed */
+C_CDD_EXPORT int g_schema_io_calls = 0;
+/** @brief Global flag to force simulated failure in schema codegen */
+C_CDD_EXPORT int g_schema_codegen_force_fail = 0;
+/** @brief Fault injection step selector for client generator tests */
+C_CDD_EXPORT int g_client_gen_fail = 0;
+/** @brief Countdown counter for failing code_writer fprintf operations */
 extern C_CDD_EXPORT int g_cdd_fprintf_fail;
-#endif
 
 /**
  * @brief Appends raw bytes to the code writer stream or dynamic buffer.
@@ -32,7 +38,6 @@ extern C_CDD_EXPORT int g_cdd_fprintf_fail;
  */
 static cdd_c_error_t writer_raw_append(cdd_code_writer_t *writer,
                                        const char *data, size_t data_len) {
-#ifdef CDD_BUILD_TESTS
   if (g_fail_io_after >= 0) {
     if (g_fail_io_after == 0) {
       writer->error = CDD_C_ERROR_IO;
@@ -40,13 +45,6 @@ static cdd_c_error_t writer_raw_append(cdd_code_writer_t *writer,
     }
     g_fail_io_after--;
   }
-  if (g_cdd_fprintf_fail > 0) {
-    if (--g_cdd_fprintf_fail == 0) {
-      writer->error = CDD_C_ERROR_IO;
-      return CDD_C_ERROR_IO;
-    }
-  }
-#endif
 
   if (writer->fp) {
     size_t written = fwrite(data, 1, data_len, writer->fp);
@@ -185,6 +183,10 @@ cdd_c_error_t cdd_code_writer_write(cdd_code_writer_t *writer,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (writer->error != CDD_C_SUCCESS)
     return writer->error;
+  if (g_cdd_fprintf_fail > 0 && --g_cdd_fprintf_fail == 0) {
+    writer->error = CDD_C_ERROR_IO;
+    return CDD_C_ERROR_IO;
+  }
 
   p = text;
   while (*p) {
@@ -329,4 +331,25 @@ cdd_c_error_t cdd_code_writer_take_string(cdd_code_writer_t *writer,
   writer->len = 0;
   writer->cap = 0;
   return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Centralized stream fprintf wrapper with test fault injection.
+ *
+ * @param[in,out] stream Target output stream.
+ * @param[in] format Printf format string.
+ * @return Number of characters written, or negative on injected/stream error.
+ */
+cdd_c_error_t cdd_io_fprintf_hook(FILE *stream, const char *format, ...) {
+  int ret;
+  va_list args;
+  if ((g_schema_codegen_force_fail > 0 && --g_schema_codegen_force_fail == 0) ||
+      (g_schema_fail_io_after >= 0 &&
+       ++g_schema_io_calls > g_schema_fail_io_after) ||
+      (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after))
+    return (cdd_c_error_t)-1;
+  va_start(args, format);
+  ret = vfprintf(stream, format, args);
+  va_end(args);
+  return (cdd_c_error_t)ret;
 }

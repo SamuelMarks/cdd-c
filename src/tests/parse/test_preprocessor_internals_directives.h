@@ -27,6 +27,12 @@ extern "C" {
 
 #ifndef CDD_TEST_PP_SCAN_CB_DEFINED
 #define CDD_TEST_PP_SCAN_CB_DEFINED
+/**
+ * @brief Helper function test_scan_inc_cb.
+ * @param[in] info Parameter info.
+ * @param[in,out] user_data Parameter user_data.
+ * @return Result status or value.
+ */
 static cdd_c_error_t test_scan_inc_cb(const struct IncludeInfo *info,
                                       void *user_data) {
   int *count = (int *)user_data;
@@ -35,6 +41,12 @@ static cdd_c_error_t test_scan_inc_cb(const struct IncludeInfo *info,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Helper function test_scan_inc_abort_cb.
+ * @param[in] info Parameter info.
+ * @param[in,out] user_data Parameter user_data.
+ * @return Result status or value.
+ */
 static cdd_c_error_t test_scan_inc_abort_cb(const struct IncludeInfo *info,
                                             void *user_data) {
   int *count = (int *)user_data;
@@ -44,6 +56,10 @@ static cdd_c_error_t test_scan_inc_abort_cb(const struct IncludeInfo *info,
 }
 #endif /* CDD_TEST_PP_SCAN_CB_DEFINED */
 
+/**
+ * @brief Unit test test_pp_100_cov_directives.
+ * @return Greatest test result.
+ */
 TEST test_pp_100_cov_directives(void) {
   struct PreprocessorContext ctx;
   struct ExprState s;
@@ -128,22 +144,10 @@ TEST test_pp_100_cov_directives(void) {
     tl = NULL;
   }
 
-  /* 10. Scan defines: g_cdd_pp_scan_defines_fail and GNU variadic macro */
-  g_cdd_pp_scan_defines_fail = 1;
-  rc = pp_scan_defines(&ctx, test_file);
-  ASSERT_EQ(CDD_C_ERROR_IO, rc);
-  g_cdd_pp_scan_defines_fail = 0;
-
+  /* 10. Scan defines: GNU variadic macro */
   write_to_file(test_file, "#define GNU_VAR(a...) a\n");
   rc = pp_scan_defines(&ctx, test_file);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-
-  /* token_matches_string error on scan defines */
-  write_to_file(test_file, "#define\n");
-  g_cdd_fail_token_matches_string = 5;
-  rc = pp_scan_defines(&ctx, test_file);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_cdd_fail_token_matches_string = 0;
 
   /* 11. Scan includes directives and error hooks */
   write_to_file(test_file, "#if 0\n"
@@ -176,40 +180,17 @@ TEST test_pp_100_cov_directives(void) {
   }
 
   /* Error in pp_resolve_path during #include */
-  g_cdd_pp_resolve_path_fail = 1;
+  g_cdd_pp_resolve_path_fail = 2;
   rc = pp_scan_includes(test_file, &ctx, test_scan_inc_cb, &count);
-  ASSERT_EQ(CDD_C_ERROR_IO, rc);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_pp_resolve_path_fail = 0;
-
-  /* 12. Hook count = 2 branches for --hook == 0 */
-  g_cdd_pp_file_exists_fail = 2;
-  rc = pp_file_exists("path", &matched);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = pp_file_exists("path", &matched);
-  ASSERT_EQ(CDD_C_ERROR_IO, rc);
-  g_cdd_pp_file_exists_fail = 0;
 
   g_cdd_pp_resolve_path_fail = 2;
-  rc = pp_resolve_path(&ctx, "dir", "h.h", 0, &out);
+  rc = pp_resolve_path(NULL, "dir", "h.h", 0, &out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = pp_resolve_path(&ctx, "dir", "h.h", 0, &out);
-  ASSERT_EQ(CDD_C_ERROR_IO, rc);
-  g_cdd_pp_resolve_path_fail = 0;
-
-  g_cdd_pp_context_init_fail = 2;
-  pp_context_free(&ctx);
-  rc = pp_context_init(&ctx);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = pp_context_init(&ctx);
+  rc = pp_resolve_path(NULL, "dir", "h.h", 0, &out);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-  g_cdd_pp_context_init_fail = 0;
-
-  g_cdd_pp_scan_defines_fail = 2;
-  rc = pp_scan_defines(&ctx, test_file);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = pp_scan_defines(&ctx, test_file);
-  ASSERT_EQ(CDD_C_ERROR_IO, rc);
-  g_cdd_pp_scan_defines_fail = 0;
+  g_cdd_pp_resolve_path_fail = 0;
 
   rc = tokenize(az_span_create_from_str("1 + 2"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);

@@ -24,7 +24,6 @@ extern "C" {
 
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
-extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 extern C_CDD_EXPORT int g_cdd_fail_alloc;
 extern C_CDD_EXPORT int g_cdd_fail_skip_ws;
@@ -38,9 +37,12 @@ extern C_CDD_EXPORT int g_cdd_fail_is_expression_brace;
 extern C_CDD_EXPORT int g_cdd_fail_consume_balanced_braces;
 extern C_CDD_EXPORT int g_cdd_fail_match_function_definition;
 extern C_CDD_EXPORT int g_cdd_fail_cst_list_add;
-extern C_CDD_EXPORT int g_cdd_fail_token_matches_string;
 #endif
 
+/**
+ * @brief Unit test test_cst_full_coverage_statements.
+ * @return Greatest test result.
+ */
 TEST test_cst_full_coverage_statements(void) {
   struct CstNodeList list;
   struct TokenList *tl = NULL;
@@ -74,18 +76,6 @@ TEST test_cst_full_coverage_statements(void) {
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_cst_node_list(&list);
-  free_token_list(tl);
-  tl = NULL;
-
-  /* 15. token_matches_string failure inside CST_NODE_OTHER loop */
-  rc = tokenize(az_span_create_from_str("int x = 1;"), &tl);
-  ASSERT_EQ(0, rc);
-  g_cdd_fail_token_matches_string = 3;
-  memset(&list, 0, sizeof(list));
-  rc = parse_tokens(tl, &list);
-  ASSERT(rc != CDD_C_SUCCESS);
-  g_cdd_fail_token_matches_string = 0;
   free_cst_node_list(&list);
   free_token_list(tl);
   tl = NULL;

@@ -9,7 +9,7 @@ extern "C" {
        /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
        /* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
        /**
-        * @file test_arrays_primitive.c
+        * @file test_arrays_primitive.h
         * @brief Unit tests for primitive array generation and parsing.
         *
         * Verifies that the code generator correctly handles arrays of integers,
@@ -31,7 +31,9 @@ extern "C" {
 #include "functions/emit/codegen.h"
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 
 /* Add definitions that need to be in the test runner's main file. */
@@ -56,6 +58,10 @@ struct ArrayStruct {
   size_t n_str_arr;
 };
 
+/**
+ * @brief Unit test test_generated_copy_logic.
+ * @return Greatest test result.
+ */
 TEST test_generated_copy_logic(void) {
   /* Since we cannot compile the generated code at runtime easily,
      we rely on manually verifying the logic patterns in a generated file
@@ -106,6 +112,10 @@ TEST test_generated_copy_logic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_code2schema_array_detection.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_array_detection(void) {
   /*
    * Verify that code2schema correctly collapses:
@@ -192,6 +202,9 @@ TEST test_code2schema_array_detection(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the arrays_primitive_suite test suite.
+ */
 SUITE(arrays_primitive_suite) {
   RUN_TEST(test_generated_copy_logic);
   RUN_TEST(test_code2schema_array_detection);

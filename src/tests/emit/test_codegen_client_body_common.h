@@ -29,11 +29,23 @@ extern "C" {
 
 CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 
+/** @brief Test definition g_client_body_fail_tmpfile. */
 static int g_client_body_fail_tmpfile = 0;
 
+/**
+ * @brief Helper function gen_body.
+ * @param[in] op Parameter op.
+ * @param[in] spec Parameter spec.
+ * @param[in] tmpl Parameter tmpl.
+ * @param[in] base_url_expr Parameter base_url_expr.
+ * @param[in,out] _out_val Parameter _out_val.
+ * @return Result status or value.
+ */
 static cdd_c_error_t gen_body(const struct OpenAPI_Operation *op,
                               const struct OpenAPI_Spec *spec, const char *tmpl,
                               const char *base_url_expr, char **_out_val) {

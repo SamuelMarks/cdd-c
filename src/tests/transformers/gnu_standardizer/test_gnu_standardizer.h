@@ -21,9 +21,12 @@ extern "C" {
 #include "c_str_span.h"
 /* clang-format on */
 
-extern C_CDD_EXPORT int g_gnu_standardizer_fail;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
 
+/**
+ * @brief Unit test test_cdd_transform_gnu.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_gnu(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "void foo() __attribute__((unused));\n"
@@ -74,6 +77,10 @@ TEST test_cdd_transform_gnu(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_stmt_expr.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_stmt_expr(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int main() {\n"
@@ -93,6 +100,10 @@ TEST test_gnu_standardizer_stmt_expr(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_computed_goto.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_computed_goto(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int main() {\n  void *ptr = &&my_label;\n  goto "
@@ -110,6 +121,10 @@ TEST test_gnu_standardizer_computed_goto(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_case_ranges.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_case_ranges(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code =
@@ -129,6 +144,10 @@ TEST test_gnu_standardizer_case_ranges(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_range_init.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_range_init(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = cdd_test_mut_str("int main() {\n  int arr[10] = { [2 ... "
@@ -146,6 +165,10 @@ TEST test_gnu_standardizer_range_init(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_local_labels.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_local_labels(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int main() {\n"
@@ -178,6 +201,10 @@ TEST test_gnu_standardizer_local_labels(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_vla_malloc.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_vla_malloc(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int main() {\n"
@@ -212,6 +239,10 @@ TEST test_gnu_standardizer_vla_malloc(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_vla_multidim.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_vla_multidim(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int main() {\n"
@@ -236,6 +267,10 @@ TEST test_gnu_standardizer_vla_multidim(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_trailing_comma.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_trailing_comma(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code =
@@ -254,6 +289,10 @@ TEST test_gnu_standardizer_trailing_comma(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_zero_length_array.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_zero_length_array(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "struct flexible {\n"
@@ -273,6 +312,10 @@ TEST test_gnu_standardizer_zero_length_array(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_empty_initializer.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_empty_initializer(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "struct foo { int a; int b[0]; };\n"
@@ -292,6 +335,10 @@ TEST test_gnu_standardizer_empty_initializer(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_128_bit_literals.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_128_bit_literals(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int main() {\n"
@@ -320,6 +367,10 @@ TEST test_gnu_standardizer_128_bit_literals(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_vla_params.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_vla_params(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = cdd_test_mut_str("void func(int n, int arr[n]) {}\n");
@@ -339,6 +390,10 @@ TEST test_gnu_standardizer_vla_params(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_return_void_expr.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_return_void_expr(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = cdd_test_mut_str("void func() { return (void)0; }\n");
@@ -357,6 +412,10 @@ TEST test_gnu_standardizer_return_void_expr(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_overlapping_case_ranges.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_overlapping_case_ranges(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code =
@@ -379,6 +438,10 @@ TEST test_gnu_standardizer_overlapping_case_ranges(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_empty_fallthrough_block.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_empty_fallthrough_block(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int main() {\n  int x = 1;\n  switch(x) {\n  case 1:\n  "
@@ -401,6 +464,10 @@ TEST test_gnu_standardizer_empty_fallthrough_block(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_attributes.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_attributes(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int __attribute__((vector_size(16))) v;\n"
@@ -429,6 +496,10 @@ TEST test_gnu_standardizer_attributes(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_magic_identifiers.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_magic_identifiers(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "void my_super_func() {\n"
@@ -457,6 +528,10 @@ TEST test_gnu_standardizer_magic_identifiers(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_trampoline.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_trampoline(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "void foo() {\n"
@@ -475,6 +550,10 @@ TEST test_gnu_standardizer_trampoline(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_shuffle.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_shuffle(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "void foo() {\n"
@@ -500,6 +579,10 @@ TEST test_gnu_standardizer_shuffle(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_cleanup.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_cleanup(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "void my_free(int *p) {}\n"
@@ -532,6 +615,10 @@ TEST test_gnu_standardizer_cleanup(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_typeof.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_typeof(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "typeof(int) a = 1;\n"
@@ -569,6 +656,10 @@ TEST test_gnu_standardizer_typeof(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_variadic_macros.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_variadic_macros(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "#define LOG1(fmt, args...) printf(fmt, ##args)\n"
@@ -599,6 +690,10 @@ TEST test_gnu_standardizer_variadic_macros(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_complex_numbers.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_complex_numbers(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "void calc() {\n"
@@ -640,6 +735,10 @@ TEST test_cdd_transform_complex_numbers(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_comment_preservation.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_comment_preservation(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "/* block start */\n"
@@ -668,6 +767,10 @@ TEST test_gnu_standardizer_comment_preservation(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_float_extensions.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_float_extensions(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "_Decimal32 a;\n"
@@ -698,6 +801,10 @@ TEST test_gnu_standardizer_float_extensions(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_lvalue_cast.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_lvalue_cast(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = cdd_test_mut_str("void f() { int x; (char)x = 5; }\n");
@@ -715,6 +822,10 @@ TEST test_gnu_standardizer_lvalue_cast(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_gnu_standardizer_omitted_conditional.
+ * @return Greatest test result.
+ */
 TEST test_gnu_standardizer_omitted_conditional(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int main() {\n"
@@ -738,6 +849,9 @@ TEST test_gnu_standardizer_omitted_conditional(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the transformer_gnu_standardizer_suite test suite.
+ */
 SUITE(transformer_gnu_standardizer_suite) {
   RUN_TEST(test_cdd_transform_gnu);
   RUN_TEST(test_gnu_standardizer_stmt_expr);

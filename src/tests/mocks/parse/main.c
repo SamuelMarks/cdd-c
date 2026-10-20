@@ -16,6 +16,7 @@
 #include "simple_mocks_export.h"
 /* clang-format on */
 
+/** @brief Test definition g_simple_json_fail_alloc. */
 extern SIMPLE_MOCKS_EXPORT int g_simple_json_fail_alloc;
 
 /**

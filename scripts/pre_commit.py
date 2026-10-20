@@ -93,6 +93,25 @@ def main():
 
     elif job == "lint":
         print("=== Linting ===")
+        import re
+
+        test_lint_errors = 0
+        void_rc_re = re.compile(r"\(void\)\s*rc\b")
+        taut_re = re.compile(r"ASSERT\s*\([^)]*==[^)]*\|\|[^)]*!=[^)]*\)")
+        for dp, _, fns in os.walk("src/tests"):
+            for fn in fns:
+                if fn.endswith((".c", ".h")):
+                    fpath = os.path.join(dp, fn)
+                    with open(fpath, "r", encoding="utf-8", errors="ignore") as f:
+                        content = f.read()
+                    for m in void_rc_re.finditer(content):
+                        print(f"Forbidden (void)rc discard in {fpath}")
+                        test_lint_errors += 1
+                    for m in taut_re.finditer(content):
+                        print(f"Forbidden tautological ASSERT in {fpath}: {m.group(0)}")
+                        test_lint_errors += 1
+        if test_lint_errors > 0:
+            sys.exit(1)
         try:
             subprocess.run(
                 ["cppcheck", "--version"],

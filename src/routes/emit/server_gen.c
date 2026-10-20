@@ -24,10 +24,6 @@
 #define SNPRINTF snprintf
 #endif
 
-#ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_fail_server_apply;
-#endif
-
 /**
  * @brief Generates a C HTTP server implementation and test stub from an OpenAPI
  * specification.
@@ -218,13 +214,7 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
                                  (unsigned long)op->n_callbacks);
         }
         {
-          cdd_c_error_t rc;
-#ifdef CDD_BUILD_TESTS
-          if (g_cdd_fail_server_apply && --g_cdd_fail_server_apply == 0)
-            rc = CDD_C_ERROR_SYSTEM;
-          else
-#endif
-            rc = codegen_security_write_server_apply(fp, op, spec);
+          cdd_c_error_t rc = codegen_security_write_server_apply(fp, op, spec);
           if (rc != CDD_C_SUCCESS) {
             cdd_code_writer_free(&w);
             fclose(fp);

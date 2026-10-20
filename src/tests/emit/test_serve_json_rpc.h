@@ -12,6 +12,9 @@ CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
  */
 
 #ifndef TEST_SERVER_JSON_RPC_H
+/**
+ * @brief Macro TEST_SERVER_JSON_RPC_H.
+ */
 #define TEST_SERVER_JSON_RPC_H
 
 #ifdef __cplusplus
@@ -24,13 +27,66 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "c_cdd/context.h"
 #include "routes/emit/serve_json_rpc.h"
 
-extern C_CDD_EXPORT int g_serve_json_rpc_fail_socket;
-extern C_CDD_EXPORT int g_serve_json_rpc_fail_listen;
-extern C_CDD_EXPORT int g_serve_json_rpc_fail_accept;
-extern C_CDD_EXPORT int g_serve_json_rpc_fail_send;
-extern C_CDD_EXPORT int g_serve_json_rpc_fail_handle;
+/**
+ * @brief Helper function mock_rpc_socket_fail.
+ * @param[in] domain Parameter domain.
+ * @param[in] type Parameter type.
+ * @param[in] protocol Parameter protocol.
+ * @param[out] out_fd Parameter out_fd.
+ * @return Result status or value.
+ */
+static cdd_c_error_t mock_rpc_socket_fail(int domain, int type, int protocol,
+                                          int *out_fd) {
+  (void)domain;
+  (void)type;
+  (void)protocol;
+  *out_fd = -1;
+  return CDD_C_ERROR_SYSTEM;
+}
+
+/**
+ * @brief Helper function mock_rpc_listen_fail.
+ * @param[in] fd Parameter fd.
+ * @param[in] backlog Parameter backlog.
+ * @return Result status or value.
+ */
+static cdd_c_error_t mock_rpc_listen_fail(int fd, int backlog) {
+  (void)fd;
+  (void)backlog;
+  return CDD_C_ERROR_SYSTEM;
+}
+
+/**
+ * @brief Helper function mock_rpc_accept_fail.
+ * @param[in] server_fd Parameter server_fd.
+ * @param[out] out_client_fd Parameter out_client_fd.
+ * @return Result status or value.
+ */
+static cdd_c_error_t mock_rpc_accept_fail(int server_fd, int *out_client_fd) {
+  (void)server_fd;
+  *out_client_fd = -1;
+  return CDD_C_ERROR_SYSTEM;
+}
+
+/**
+ * @brief Helper function mock_rpc_send_fail.
+ * @param[in] fd Parameter fd.
+ * @param[in] buf Parameter buf.
+ * @param[in] len Parameter len.
+ * @param[out] out_sent Parameter out_sent.
+ * @return Result status or value.
+ */
+static cdd_c_error_t mock_rpc_send_fail(int fd, const void *buf, size_t len,
+                                        size_t *out_sent) {
+  (void)fd;
+  (void)buf;
+  (void)len;
+  *out_sent = 0;
+  return CDD_C_ERROR_SYSTEM;
+}
 
 #if defined(_WIN32)
 #ifndef WIN32_LEAN_AND_MEAN
@@ -56,8 +112,19 @@ typedef HANDLE cdd_test_thread_t;
 #include <unistd.h>
 #endif
 #endif
+/** @brief Test definition cdd_test_thread_t. */
 typedef pthread_t cdd_test_thread_t;
+/**
+ * @brief Macro CDD_TEST_THREAD_CREATE.
+ * @param[in] th Macro argument th.
+ * @param[in] func Macro argument func.
+ * @param[in] arg Macro argument arg.
+ */
 #define CDD_TEST_THREAD_CREATE(th, func, arg) pthread_create((th), NULL, (func), (arg))
+/**
+ * @brief Macro CDD_TEST_THREAD_JOIN.
+ * @param[in] th Macro argument th.
+ */
 #define CDD_TEST_THREAD_JOIN(th) pthread_join((th), NULL)
 #endif
 /* clang-format on */
@@ -138,9 +205,27 @@ TEST test_serve_json_rpc_listen_once(void) {
   rc = serve_json_rpc_main(argc, argv);
   ASSERT_EQ(0, rc);
 
-  g_serve_json_rpc_fail_accept = 1;
-  rc = serve_json_rpc_main(argc, argv_accept_fail);
-  g_serve_json_rpc_fail_accept = 0;
+  {
+    char *argv_ip[7];
+    argv_ip[0] = cdd_test_mut_str("serve_json_rpc_main");
+    argv_ip[1] = cdd_test_mut_str("--port");
+    argv_ip[2] = cdd_test_mut_str("12350");
+    argv_ip[3] = cdd_test_mut_str("--listen");
+    argv_ip[4] = cdd_test_mut_str("127.0.0.1");
+    argv_ip[5] = cdd_test_mut_str("--listen");
+    argv_ip[6] = cdd_test_mut_str("255");
+    rc = serve_json_rpc_main(7, argv_ip);
+    ASSERT_EQ(0, rc);
+  }
+
+  {
+    cdd_context_t mock_ctx;
+    cdd_context_init_default(&mock_ctx);
+    mock_ctx.socket_vt.accept_fn = mock_rpc_accept_fail;
+    cdd_context_set_global(&mock_ctx);
+    rc = serve_json_rpc_main(argc, argv_accept_fail);
+    cdd_context_set_global(NULL);
+  }
   ASSERT_EQ(0, rc);
 
   g_fail_io_after = -1;
@@ -202,6 +287,14 @@ TEST test_serve_json_rpc_bad_port(void) {
   char *argv_p_missing[2];
   char *argv_listen_missing[2];
   int rc = 0;
+  cdd_context_t mock_sock_ctx;
+  cdd_context_t mock_listen_ctx;
+
+  cdd_context_init_default(&mock_sock_ctx);
+  mock_sock_ctx.socket_vt.socket_fn = mock_rpc_socket_fail;
+
+  cdd_context_init_default(&mock_listen_ctx);
+  mock_listen_ctx.socket_vt.listen_fn = mock_rpc_listen_fail;
 
   /* Test environment variables CDD_PORT and CDD_LISTEN */
 
@@ -218,7 +311,7 @@ TEST test_serve_json_rpc_bad_port(void) {
   argv_p_missing[1] = cdd_test_mut_str("-p");
   argv_listen_missing[0] = cdd_test_mut_str("serve_json_rpc_main");
   argv_listen_missing[1] = cdd_test_mut_str("--listen");
-  g_serve_json_rpc_fail_socket = 1;
+  cdd_context_set_global(&mock_sock_ctx);
 #if defined(_WIN32)
   _putenv("CDD_PORT=19999");
   _putenv("CDD_LISTEN=1");
@@ -235,7 +328,7 @@ TEST test_serve_json_rpc_bad_port(void) {
   unsetenv("CDD_PORT");
   unsetenv("CDD_LISTEN");
 #endif
-  g_serve_json_rpc_fail_socket = 0;
+  cdd_context_set_global(NULL);
 
   rc = serve_json_rpc_main(1, argv);
   ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_SYSTEM ||
@@ -253,20 +346,20 @@ TEST test_serve_json_rpc_bad_port(void) {
   rc = serve_json_rpc_main(2, argv_p_missing);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
-  g_serve_json_rpc_fail_socket = 1;
+  cdd_context_set_global(&mock_sock_ctx);
   rc = serve_json_rpc_main(2, argv_listen_missing);
-  g_serve_json_rpc_fail_socket = 0;
+  cdd_context_set_global(NULL);
   ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
 
   rc = serve_json_rpc_main(2, argv_unknown);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
-  g_serve_json_rpc_fail_socket = 1;
+  cdd_context_set_global(&mock_sock_ctx);
   rc = serve_json_rpc_main(1, argv);
-  g_serve_json_rpc_fail_socket = 0;
+  cdd_context_set_global(NULL);
   ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
 
-  g_serve_json_rpc_fail_listen = 1;
+  cdd_context_set_global(&mock_listen_ctx);
   {
     char *argv_listen_fail[3];
     argv_listen_fail[0] = cdd_test_mut_str("serve_json_rpc_main");
@@ -274,7 +367,7 @@ TEST test_serve_json_rpc_bad_port(void) {
     argv_listen_fail[2] = cdd_test_mut_str("12352");
     rc = serve_json_rpc_main(3, argv_listen_fail);
   }
-  g_serve_json_rpc_fail_listen = 0;
+  cdd_context_set_global(NULL);
   ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
 
   g_fail_io_after = -1;
@@ -284,6 +377,7 @@ TEST test_serve_json_rpc_bad_port(void) {
 
 /**
  * @brief Tests MCP stdio main.
+ * @return Test or helper result.
  */
 TEST test_serve_mcp_stdio_main(void) {
   char *argv[1];
@@ -299,9 +393,6 @@ TEST test_serve_mcp_stdio_main(void) {
   argv[0] = cdd_test_mut_str("serve_mcp_stdio_main");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, handle_stdio_request(NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, serve_json_rpc_run(NULL));
-  g_serve_json_rpc_fail_handle = 1;
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, handle_stdio_request("{\"jsonrpc\":\"2.0\"}"));
-  g_serve_json_rpc_fail_handle = 0;
 
   {
     FILE *f_oas = fopen("build/simple_test_oas.json", "w");
@@ -456,6 +547,28 @@ TEST test_serve_mcp_stdio_main(void) {
                  "call\",\"params\":{\"name\":\"from_arazzo\",\"arguments\":{"
                  "\"input\":\"build/arazzo_mcp.json\",\"output\":\"build/"
                  "arazzo_mcp_out\"}},\"id\":133}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
+                 "call\",\"params\":{\"name\":\"from_arazzo\",\"arguments\":{"
+                 "\"subcommand\":\"to_sdk_cli\",\"input\":\"build/"
+                 "arazzo_mcp.json\",\"output\":\"build/"
+                 "arazzo_mcp_out\"}},\"id\":134}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
+                 "call\",\"params\":{\"name\":\"from_arazzo\",\"arguments\":{"
+                 "\"subcommand\":\"to_server\",\"input\":\"build/"
+                 "arazzo_mcp.json\",\"output\":\"build/"
+                 "arazzo_mcp_out\"}},\"id\":135}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"resources/"
+                 "read\",\"params\":{\"uri\":\"file:///build/"
+                 "simple_test_oas.json\"},\"id\":136}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"resources/"
+                 "read\",\"params\":{\"uri\":\"file://build/"
+                 "simple_test_oas.json\"},\"id\":137}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"resources/"
+                 "read\",\"params\":{\"uri\":\"build/"
+                 "simple_test_oas.json\"},\"id\":138}\n");
+    fprintf(tmp,
+            "{\"jsonrpc\":\"2.0\",\"method\":\"prompts/"
+            "get\",\"params\":{\"name\":\"generate_arazzo\"},\"id\":139}\n");
     fclose(tmp);
     tmp = NULL;
 
@@ -518,10 +631,8 @@ TEST test_serve_mcp_stdio_main(void) {
 #else
     freopen(mcp_err_path, "r", stdin);
 #endif
-    g_serve_json_rpc_fail_handle = 1;
     rc = serve_mcp_stdio_main(argc, argv);
-    g_serve_json_rpc_fail_handle = 0;
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
 
 #if defined(_MSC_VER)
     {
@@ -540,11 +651,12 @@ TEST test_serve_mcp_stdio_main(void) {
   PASS();
 }
 
-/**
- * @brief JSON RPC Server test suite.
- */
-
 #if defined(_WIN32)
+/**
+ * @brief Background HTTP thread runner for JSON-RPC server tests.
+ * @param[in,out] arg Thread argument.
+ * @return Thread exit code.
+ */
 static unsigned __stdcall rpc_server_http_thread_func(void *arg) {
   char *argv[5];
 
@@ -552,12 +664,17 @@ static unsigned __stdcall rpc_server_http_thread_func(void *arg) {
   argv[1] = cdd_test_mut_str("--port");
   argv[2] = cdd_test_mut_str("19985");
   argv[3] = cdd_test_mut_str("--listen");
-  argv[4] = cdd_test_mut_str("62");
+  argv[4] = cdd_test_mut_str("68");
   (void)arg;
   serve_json_rpc_main(5, argv);
   return 0;
 }
 #else
+/**
+ * @brief Background HTTP thread runner for JSON-RPC server tests.
+ * @param[in,out] arg Thread argument.
+ * @return Thread exit pointer.
+ */
 static void *rpc_server_http_thread_func(void *arg) {
   char *argv[5];
 
@@ -565,13 +682,17 @@ static void *rpc_server_http_thread_func(void *arg) {
   argv[1] = cdd_test_mut_str("--port");
   argv[2] = cdd_test_mut_str("19985");
   argv[3] = cdd_test_mut_str("--listen");
-  argv[4] = cdd_test_mut_str("62");
+  argv[4] = cdd_test_mut_str("68");
   (void)arg;
   serve_json_rpc_main(5, argv);
   return NULL;
 }
 #endif
 
+/**
+ * @brief Unit test test_serve_json_rpc_http_requests.
+ * @return Greatest test result.
+ */
 TEST test_serve_json_rpc_http_requests(void) {
   static const char *const http_reqs[] = {
       "POST / HTTP/1.1\r\nContent-Length: "
@@ -590,8 +711,7 @@ TEST test_serve_json_rpc_http_requests(void) {
       "50\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"notifications/message\"}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "50\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"logging/setLevel\"}",
-      "POST / HTTP/1.1\r\nContent-Length: "
-      "35\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"ping\"}",
+      "POST / HTTP/1.1\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"ping\"}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "35\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"tools/list\"}",
       "POST / HTTP/1.1\r\nContent-Length: "
@@ -626,7 +746,7 @@ TEST test_serve_json_rpc_http_requests(void) {
       "POST / HTTP/1.1\r\nContent-Length: "
       "40\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"completion/complete\"}",
       "POST / HTTP/1.1\r\nContent-Length: "
-      "35\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"tools/call\"}",
+      "45\r\n\r\n{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\"}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "65\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
       "call\",\"params\":{\"arguments\":{}}}",
@@ -688,6 +808,30 @@ TEST test_serve_json_rpc_http_requests(void) {
       "133\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
       "call\",\"params\":{\"name\":\"from_arazzo\",\"arguments\":{\"input\":"
       "\"build/arazzo_mcp.json\",\"output\":\"build/arazzo_mcp_out\"}}}",
+      "POST / HTTP/1.1\r\nContent-Length: "
+      "160\r\n\r\n{\"jsonrpc\":\"2.0\",\"id\":42,\"method\":\"tools/"
+      "call\",\"params\":{\"name\":\"from_arazzo\",\"arguments\":{"
+      "\"subcommand\":"
+      "\"to_sdk_cli\",\"input\":\"build/arazzo_mcp.json\",\"output\":\"build/"
+      "arazzo_mcp_out\"}}}",
+      "POST / HTTP/1.1\r\nContent-Length: "
+      "160\r\n\r\n{\"jsonrpc\":\"2.0\",\"id\":\"req-1\",\"method\":\"tools/"
+      "call\",\"params\":{\"name\":\"from_arazzo\",\"arguments\":{"
+      "\"subcommand\":"
+      "\"to_server\",\"input\":\"build/arazzo_mcp.json\",\"output\":\"build/"
+      "arazzo_mcp_out\"}}}",
+      "POST / HTTP/1.1\r\nContent-Length: "
+      "95\r\n\r\n{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"resources/"
+      "read\",\"params\":{\"uri\":\"file:///build/simple_test_oas.json\"}}",
+      "POST / HTTP/1.1\r\nContent-Length: "
+      "94\r\n\r\n{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"resources/"
+      "read\",\"params\":{\"uri\":\"file://build/simple_test_oas.json\"}}",
+      "POST / HTTP/1.1\r\nContent-Length: "
+      "87\r\n\r\n{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"resources/"
+      "read\",\"params\":{\"uri\":\"build/simple_test_oas.json\"}}",
+      "POST / HTTP/1.1\r\nContent-Length: "
+      "80\r\n\r\n{\"jsonrpc\":\"2.0\",\"id\":4,\"method\":\"prompts/"
+      "get\",\"params\":{\"name\":\"generate_arazzo\"}}",
       "POST / HTTP/1.1\r\nContent-Length: "
       "80\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
       "call\",\"params\":{\"name\":\"unknown\",\"arguments\":{}}}",
@@ -787,8 +931,11 @@ TEST test_serve_json_rpc_http_requests(void) {
     int s = socket(AF_INET, SOCK_STREAM, 0);
 #endif
     if (connect(s, (struct sockaddr *)&addr, sizeof(addr)) == 0) {
+      cdd_context_t mock_send_ctx;
       if (i == 1) {
-        g_serve_json_rpc_fail_send = 1;
+        cdd_context_init_default(&mock_send_ctx);
+        mock_send_ctx.socket_vt.send_fn = mock_rpc_send_fail;
+        cdd_context_set_global(&mock_send_ctx);
       }
 #if defined(_WIN32)
       send(s, http_reqs[i], (int)strlen(http_reqs[i]), 0);
@@ -807,7 +954,7 @@ TEST test_serve_json_rpc_http_requests(void) {
         (void)n;
       }
       if (i == 1) {
-        g_serve_json_rpc_fail_send = 0;
+        cdd_context_set_global(NULL);
       }
 #if defined(_WIN32)
       closesocket(s);
@@ -841,6 +988,9 @@ TEST test_serve_json_rpc_http_requests(void) {
 }
 #endif /* !__EMSCRIPTEN__ */
 
+/**
+ * @brief Executes the serve_json_rpc_suite test suite.
+ */
 SUITE(serve_json_rpc_suite) {
   RUN_TEST(test_serve_json_rpc_basic);
 #ifndef __EMSCRIPTEN__

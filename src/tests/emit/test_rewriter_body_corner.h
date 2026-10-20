@@ -23,11 +23,21 @@ extern "C" {
 /* clang-format on */
 
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
+/** @brief Test definition g_patcher_test_cap_1. */
 extern C_CDD_EXPORT int g_patcher_test_cap_1;
 
 #ifndef CDD_RUN_BODY_REWRITE_DEFINED
 #define CDD_RUN_BODY_REWRITE_DEFINED
 static cdd_c_error_t
+/**
+ * @brief Helper function run_body_rewrite.
+ * @param[in] code Parameter code.
+ * @param[in] funcs Parameter funcs.
+ * @param[in] n_funcs Parameter n_funcs.
+ * @param[in] transform Parameter transform.
+ * @param[out] out Parameter out.
+ * @return Result status or value.
+ */
 run_body_rewrite(const char *code, const struct RefactoredFunction *funcs,
                  size_t n_funcs, const struct SignatureTransform *transform,
                  char **out) {
@@ -50,6 +60,10 @@ run_body_rewrite(const char *code, const struct RefactoredFunction *funcs,
 }
 #endif /* CDD_RUN_BODY_REWRITE_DEFINED */
 
+/**
+ * @brief Unit test test_rewrite_body_corner_cases.
+ * @return Greatest test result.
+ */
 TEST test_rewrite_body_corner_cases(void) {
   {
     int i;
@@ -583,6 +597,10 @@ TEST test_rewrite_body_corner_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_rewrite_body_corner_oom_2.
+ * @return Greatest test result.
+ */
 TEST test_rewrite_body_corner_oom_2(void) {
   const char *cases[] = {
       "void f() { char *s = my_strdup(\"a\"); }",
@@ -644,6 +662,7 @@ TEST test_rewrite_body_corner_oom_2(void) {
 
 /**
  * @brief Test error percolation across rewrite_body subroutines.
+ * @return Test or helper result.
  */
 TEST test_rewrite_body_error_percolation(void) {
 #ifdef CDD_BUILD_TESTS

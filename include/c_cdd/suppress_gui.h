@@ -10,6 +10,7 @@
 extern "C" {
 #endif /* __cplusplus */
 /* clang-format off */
+#include "cdd_c_error.h"
 #if defined(_WIN32)
 #include <winsock2.h>
 #endif
@@ -21,8 +22,9 @@ extern "C" {
 
 /**
  * @brief Suppress interactive GUI popups and modal dialogs on Windows/MSVC.
+ * @return CDD_C_SUCCESS on success.
  */
-static __inline void cdd_suppress_gui_popups(void) {
+static __inline cdd_c_error_t cdd_suppress_gui_popups(void) {
 #if defined(_WIN32)
   SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX |
                SEM_NOOPENFILEERRORBOX);
@@ -41,6 +43,7 @@ static __inline void cdd_suppress_gui_popups(void) {
     _set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
   }
 #endif
+  return CDD_C_SUCCESS;
 }
 
 #ifdef __cplusplus

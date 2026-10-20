@@ -50,7 +50,7 @@ static cdd_c_error_t parse_request_body_object_inner(
     desc = json_object_get_string(rb_obj, "description");
     if (desc) {
       if (out_rb->description) {
-        free(out_rb->description);
+        C_CDD_FREE(out_rb->description);
         out_rb->description = NULL;
       }
       c_cdd_strdup(desc, &out_rb->description);
@@ -63,7 +63,7 @@ static cdd_c_error_t parse_request_body_object_inner(
   desc = json_object_get_string(rb_obj, "description");
   if (desc) {
     if (out_rb->description) {
-      free(out_rb->description);
+      C_CDD_FREE(out_rb->description);
       out_rb->description = NULL;
     }
     c_cdd_strdup(desc, &out_rb->description);
@@ -90,7 +90,7 @@ static cdd_c_error_t parse_request_body_object_inner(
       for (k = 0; k < out_rb->n_content_media_types; k++) {
         free_media_type(&out_rb->content_media_types[k]);
       }
-      free(out_rb->content_media_types);
+      C_CDD_FREE(out_rb->content_media_types);
       out_rb->content_media_types = NULL;
       out_rb->n_content_media_types = 0;
       return rc;
@@ -127,15 +127,15 @@ static cdd_c_error_t parse_request_body_object_inner(
               if (base) {
                 if (register_inline_schema(spec, base, items_obj, items_val,
                                            &registered) == CDD_C_SUCCESS) {
-                  free(primary->schema.inline_type);
+                  C_CDD_FREE(primary->schema.inline_type);
                   primary->schema.inline_type = NULL;
                   rc = assign_schema_ref_name(&primary->schema, registered);
                   if (rc != CDD_C_SUCCESS) {
-                    free(base);
+                    C_CDD_FREE(base);
                     return rc;
                   }
                 }
-                free(base);
+                C_CDD_FREE(base);
               }
             }
           } else if (schema_object_is_object_like(schema_obj)) {
@@ -146,16 +146,16 @@ static cdd_c_error_t parse_request_body_object_inner(
               if (register_inline_schema(spec, base, schema_obj, schema_val,
                                          &registered) == CDD_C_SUCCESS) {
                 if (primary->schema.inline_type) {
-                  free(primary->schema.inline_type);
+                  C_CDD_FREE(primary->schema.inline_type);
                   primary->schema.inline_type = NULL;
                 }
                 rc = assign_schema_ref_name(&primary->schema, registered);
                 if (rc != CDD_C_SUCCESS) {
-                  free(base);
+                  C_CDD_FREE(base);
                   return rc;
                 }
               }
-              free(base);
+              C_CDD_FREE(base);
             }
           }
         }
@@ -169,16 +169,16 @@ static cdd_c_error_t parse_request_body_object_inner(
                                        item_schema_val,
                                        &registered) == CDD_C_SUCCESS) {
               if (primary->item_schema.inline_type) {
-                free(primary->item_schema.inline_type);
+                C_CDD_FREE(primary->item_schema.inline_type);
                 primary->item_schema.inline_type = NULL;
               }
               rc = assign_schema_ref_name(&primary->item_schema, registered);
               if (rc != CDD_C_SUCCESS) {
-                free(base);
+                C_CDD_FREE(base);
                 return rc;
               }
             }
-            free(base);
+            C_CDD_FREE(base);
           }
         }
       }
@@ -288,7 +288,7 @@ parse_response_object_inner(const JSON_Object *resp_obj,
 
   summary = json_object_get_string(resp_obj, "summary");
   if (summary) {
-    free(out_resp->summary);
+    C_CDD_FREE(out_resp->summary);
     out_resp->summary = NULL;
     c_cdd_strdup(summary, &out_resp->summary);
     if (!out_resp->summary)
@@ -297,7 +297,7 @@ parse_response_object_inner(const JSON_Object *resp_obj,
 
   desc = json_object_get_string(resp_obj, "description");
   if (desc) {
-    free(out_resp->description);
+    C_CDD_FREE(out_resp->description);
     out_resp->description = NULL;
     c_cdd_strdup(desc, &out_resp->description);
     if (!out_resp->description)
@@ -382,15 +382,15 @@ parse_response_object_inner(const JSON_Object *resp_obj,
               if (base) {
                 if (register_inline_schema(spec, base, items_obj, items_val,
                                            &registered) == CDD_C_SUCCESS) {
-                  free(primary->schema.inline_type);
+                  C_CDD_FREE(primary->schema.inline_type);
                   primary->schema.inline_type = NULL;
                   rc = assign_schema_ref_name(&primary->schema, registered);
                   if (rc != CDD_C_SUCCESS) {
-                    free(base);
+                    C_CDD_FREE(base);
                     return rc;
                   }
                 }
-                free(base);
+                C_CDD_FREE(base);
               }
             }
           } else if (schema_object_is_object_like(schema_obj)) {
@@ -401,16 +401,16 @@ parse_response_object_inner(const JSON_Object *resp_obj,
               if (register_inline_schema(spec, base, schema_obj, schema_val,
                                          &registered) == CDD_C_SUCCESS) {
                 if (primary->schema.inline_type) {
-                  free(primary->schema.inline_type);
+                  C_CDD_FREE(primary->schema.inline_type);
                   primary->schema.inline_type = NULL;
                 }
                 rc = assign_schema_ref_name(&primary->schema, registered);
                 if (rc != CDD_C_SUCCESS) {
-                  free(base);
+                  C_CDD_FREE(base);
                   return rc;
                 }
               }
-              free(base);
+              C_CDD_FREE(base);
             }
           }
         }
@@ -424,16 +424,16 @@ parse_response_object_inner(const JSON_Object *resp_obj,
                                        item_schema_val,
                                        &registered) == CDD_C_SUCCESS) {
               if (primary->item_schema.inline_type) {
-                free(primary->item_schema.inline_type);
+                C_CDD_FREE(primary->item_schema.inline_type);
                 primary->item_schema.inline_type = NULL;
               }
               rc = assign_schema_ref_name(&primary->item_schema, registered);
               if (rc != CDD_C_SUCCESS) {
-                free(base);
+                C_CDD_FREE(base);
                 return rc;
               }
             }
-            free(base);
+            C_CDD_FREE(base);
           }
         }
       }
@@ -631,7 +631,7 @@ parse_callback_object_inner(const JSON_Object *cb_obj,
     summary = json_object_get_string(cb_obj, "summary");
     if (summary) {
       if (out_cb->summary) {
-        free(out_cb->summary);
+        C_CDD_FREE(out_cb->summary);
         out_cb->summary = NULL;
       }
       c_cdd_strdup(summary, &out_cb->summary);
@@ -641,7 +641,7 @@ parse_callback_object_inner(const JSON_Object *cb_obj,
     desc = json_object_get_string(cb_obj, "description");
     if (desc) {
       if (out_cb->description) {
-        free(out_cb->description);
+        C_CDD_FREE(out_cb->description);
         out_cb->description = NULL;
       }
       c_cdd_strdup(desc, &out_cb->description);
@@ -711,7 +711,7 @@ cdd_c_error_t parse_callbacks_object(const JSON_Object *callbacks,
       size_t j;
       for (j = 0; j < count; ++j)
         free_callback(&(*out_callbacks)[j]);
-      free(*out_callbacks);
+      C_CDD_FREE(*out_callbacks);
       *out_callbacks = NULL;
       *out_count = 0;
       return CDD_C_ERROR_MEMORY;
@@ -723,7 +723,7 @@ cdd_c_error_t parse_callbacks_object(const JSON_Object *callbacks,
         size_t j;
         for (j = 0; j < count; ++j)
           free_callback(&(*out_callbacks)[j]);
-        free(*out_callbacks);
+        C_CDD_FREE(*out_callbacks);
         *out_callbacks = NULL;
         *out_count = 0;
         return rc;

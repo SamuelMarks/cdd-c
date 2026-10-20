@@ -23,13 +23,6 @@
 #include <string.h>
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-extern volatile int g_fail_io_after;
-C_CDD_EXPORT volatile int g_extern_c_top_node_fail = 0;
-C_CDD_EXPORT volatile int g_extern_c_bot_node_fail = 0;
-C_CDD_EXPORT volatile int g_extern_c_helper_fail = 0;
-#endif
-
 /**
  * @brief Checks if a CST node is at the top-level global file scope.
  *
@@ -39,11 +32,6 @@ C_CDD_EXPORT volatile int g_extern_c_helper_fail = 0;
  */
 static cdd_c_error_t is_global_wrapper(cdd_cst_node_t *node,
                                        int *out_is_global) {
-#ifdef CDD_BUILD_TESTS
-  if (g_extern_c_helper_fail == -1)
-    return CDD_C_ERROR_MEMORY;
-#endif
-
   while (node != NULL) {
     switch (node->kind) {
     case CDD_CST_DECLARATION:
@@ -74,13 +62,6 @@ C_CDD_EXPORT cdd_c_error_t cdd_tree_has_decl(cdd_cst_node_t *node,
                                              int *out_has_decl) {
   size_t i;
   cdd_c_error_t rc = CDD_C_SUCCESS;
-
-#ifdef CDD_BUILD_TESTS
-  if (g_extern_c_helper_fail > 0) {
-    if (--g_extern_c_helper_fail == 0)
-      return CDD_C_ERROR_MEMORY;
-  }
-#endif
 
   *out_has_decl = 0;
   if (!node)
@@ -116,10 +97,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_tree_has_decl(cdd_cst_node_t *node,
         break;
       }
       rc = cdd_tree_has_decl(child, out_has_decl);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
       if (*out_has_decl)
-        return CDD_C_SUCCESS;
+        return rc;
     }
   }
   return CDD_C_SUCCESS;
@@ -138,10 +117,6 @@ C_CDD_EXPORT cdd_c_error_t cdd_check_node_is_cpp_guard(cdd_cst_node_t *dir,
   size_t k;
 
   *out_is_cpp = 0;
-#ifdef CDD_BUILD_TESTS
-  if (g_extern_c_helper_fail == -2 || g_extern_c_helper_fail == -3)
-    return CDD_C_ERROR_MEMORY;
-#endif
   if (!dir)
     return CDD_C_SUCCESS;
   if (dir->num_children == 0)
@@ -193,10 +168,8 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
 
   /* Verify there are actual C declarations to wrap */
   rc = cdd_tree_has_decl(tree->root, &has_decl);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
   if (!has_decl)
-    return CDD_C_SUCCESS;
+    return rc;
 
   /* 1. Check if __cplusplus is already checked globally */
   rc =
@@ -208,16 +181,8 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
     int is_global = 0;
     cdd_cst_node_t *dir = res.nodes[i];
     rc = is_global_wrapper(dir, &is_global);
-    if (rc != CDD_C_SUCCESS) {
-      C_CDD_FREE(res.nodes);
-      return rc;
-    }
     if (is_global) {
       rc = cdd_check_node_is_cpp_guard(dir, &found_cpp);
-      if (rc != CDD_C_SUCCESS) {
-        C_CDD_FREE(res.nodes);
-        return rc;
-      }
       if (found_cpp)
         break;
     }
@@ -234,16 +199,8 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
       int is_global = 0;
       cdd_cst_node_t *dir = res.nodes[i];
       rc = is_global_wrapper(dir, &is_global);
-      if (rc != CDD_C_SUCCESS) {
-        C_CDD_FREE(res.nodes);
-        return rc;
-      }
       if (is_global) {
         rc = cdd_check_node_is_cpp_guard(dir, &found_cpp);
-        if (rc != CDD_C_SUCCESS) {
-          C_CDD_FREE(res.nodes);
-          return rc;
-        }
         if (found_cpp)
           break;
       }
@@ -353,10 +310,6 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
     cdd_cst_builder_init(&bld, tree, top_node);
     cdd_cst_bld_newline(&bld);
     cdd_cst_bld_extern_c_open(&bld);
-#ifdef CDD_BUILD_TESTS
-    if (g_extern_c_top_node_fail)
-      bld.error_state = 1;
-#endif
     if (bld.error_state == 0) {
       /* Transplant leading trivia from the first token to our top_node so
        * comments stay at the top */
@@ -366,20 +319,11 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
         first_token_of_file->leading_trivia = NULL;
       }
 
-      if (insert_idx < target_parent->num_children) {
-        rc = cdd_cst_insert_child_node_at(target_parent, insert_idx, top_node);
-        if (rc != CDD_C_SUCCESS) {
-          cdd_cst_free_node(top_node);
-          cdd_cst_builder_free(&bld);
-          return rc;
-        }
-      } else {
-        rc = cdd_cst_append_child_node(target_parent, top_node);
-        if (rc != CDD_C_SUCCESS) {
-          cdd_cst_free_node(top_node);
-          cdd_cst_builder_free(&bld);
-          return rc;
-        }
+      rc = cdd_cst_insert_child_node_at(target_parent, insert_idx, top_node);
+      if (rc != CDD_C_SUCCESS) {
+        cdd_cst_free_node(top_node);
+        cdd_cst_builder_free(&bld);
+        return rc;
       }
       in_extern_c = 1;
     } else {
@@ -460,13 +404,9 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
     cdd_cst_builder_init(&bld, tree, bot_node);
     cdd_cst_bld_newline(&bld);
     cdd_cst_bld_extern_c_close(&bld);
-#ifdef CDD_BUILD_TESTS
-    if (g_extern_c_bot_node_fail == 1)
-      bld.error_state = 1;
-#endif
     if (bld.error_state == 0) {
+      size_t bot_insert_idx = target_parent->num_children;
       if (target_parent->num_children > 0) {
-        size_t bot_insert_idx = target_parent->num_children;
         cdd_cst_child_t last_child =
             target_parent->children[target_parent->num_children - 1];
         if (last_child.kind == CDD_CST_CHILD_TOKEN) {
@@ -479,39 +419,13 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
             break;
           }
         }
-        if (bot_insert_idx < target_parent->num_children) {
-#ifdef CDD_BUILD_TESTS
-          if (g_fail_io_after == 12345)
-            rc = CDD_C_ERROR_MEMORY;
-          else
-#endif
-            rc = cdd_cst_insert_child_node_at(target_parent, bot_insert_idx,
-                                              bot_node);
-          if (rc != CDD_C_SUCCESS) {
-            cdd_cst_free_node(bot_node);
-            cdd_cst_builder_free(&bld);
-            return rc;
-          }
-        } else {
-#ifdef CDD_BUILD_TESTS
-          if (g_fail_io_after == 12346)
-            rc = CDD_C_ERROR_MEMORY;
-          else
-#endif
-            rc = cdd_cst_append_child_node(target_parent, bot_node);
-          if (rc != CDD_C_SUCCESS) {
-            cdd_cst_free_node(bot_node);
-            cdd_cst_builder_free(&bld);
-            return rc;
-          }
-        }
-      } else {
-        rc = cdd_cst_append_child_node(target_parent, bot_node);
-        if (rc != CDD_C_SUCCESS) {
-          cdd_cst_free_node(bot_node);
-          cdd_cst_builder_free(&bld);
-          return rc;
-        }
+      }
+      rc =
+          cdd_cst_insert_child_node_at(target_parent, bot_insert_idx, bot_node);
+      if (rc != CDD_C_SUCCESS) {
+        cdd_cst_free_node(bot_node);
+        cdd_cst_builder_free(&bld);
+        return rc;
       }
     } else {
       cdd_cst_free_node(bot_node);

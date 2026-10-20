@@ -1,3 +1,7 @@
+/**
+ * @file test_cdd_c_error.h
+ * @brief Unit tests and mocks in test_cdd_c_error.h.
+ */
 /* clang-format off */
 #ifndef TEST_CDD_C_ERROR_H
 #define TEST_CDD_C_ERROR_H
@@ -10,6 +14,10 @@ extern "C" {
 #include "cdd_c_error.h"
 #include <string.h>
 
+/**
+ * @brief Unit test test_cdd_c_strerror.
+ * @return Greatest test result.
+ */
 TEST test_cdd_c_strerror(void) {
   char *out = NULL;
   cdd_c_error_t rc = 0;
@@ -58,6 +66,9 @@ TEST test_cdd_c_strerror(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the cdd_c_error_suite test suite.
+ */
 SUITE(cdd_c_error_suite) {
   RUN_TEST(test_cdd_c_strerror);
 }

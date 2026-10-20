@@ -25,15 +25,26 @@ extern "C" {
 /* clang-format on */
 
 #ifndef C_CDD_STR_LIT
+/**
+ * @brief Macro C_CDD_STR_LIT.
+ * @param[in] s Macro argument s.
+ */
 #define C_CDD_STR_LIT(s) cdd_test_mut_str(s)
 #endif
 
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
+/** @brief Test definition g_cdd_fail_is_primitive_type. */
 extern C_CDD_EXPORT int g_cdd_fail_is_primitive_type;
 
 #include "emit/test_codegen_client_body_helpers.h"
 
+/**
+ * @brief Unit test test_client_body_exhaustive_remaining.
+ * @return Greatest test result.
+ */
 TEST test_client_body_exhaustive_remaining(void) {
   FILE *fp;
 

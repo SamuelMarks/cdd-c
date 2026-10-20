@@ -42,9 +42,9 @@ struct cdd_cst_builder_t {
 /**
  * @brief Initializes a CST builder.
  *
- * @param builder The builder to initialize.
- * @param tree The CST tree.
- * @param target_node The initial node to append children to.
+ * @param[in,out] builder The builder to initialize.
+ * @param[in,out] tree The CST tree.
+ * @param[in,out] target_node The initial node to append children to.
  * @return int 0 on success, or an error code (e.g., EINVAL).
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_builder_init(cdd_cst_builder_t *builder,
@@ -54,7 +54,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_builder_init(cdd_cst_builder_t *builder,
 /**
  * @brief Frees resources associated with a CST builder (if any).
  *
- * @param builder The builder to free.
+ * @param[in,out] builder The builder to free.
  * @return int 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_builder_free(cdd_cst_builder_t *builder);
@@ -62,8 +62,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_builder_free(cdd_cst_builder_t *builder);
 /**
  * @brief Checks if the builder has encountered an error.
  *
- * @param builder The builder to check.
- * @param out_has_error Pointer to receive 1 if an error occurred, 0 otherwise.
+ * @param[in] builder The builder to check.
+ * @param[out] out_has_error Pointer to receive 1 if an error occurred, 0
+ * otherwise.
  * @return CDD_C_SUCCESS on success or error code.
  */
 C_CDD_EXPORT cdd_c_error_t
@@ -72,8 +73,8 @@ cdd_cst_builder_has_error(const cdd_cst_builder_t *builder, int *out_has_error);
 /**
  * @brief Sets the current insertion point for the builder.
  *
- * @param builder The builder to update.
- * @param node The new target node.
+ * @param[in,out] builder The builder to update.
+ * @param[in,out] node The new target node.
  * @return int 0 on success, or an error code if the builder has already failed.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_builder_set_insert_point(
@@ -82,9 +83,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_builder_set_insert_point(
 /**
  * @brief Appends a token to the current target node.
  *
- * @param builder The builder
- * @param kind The token kind
- * @param text The token text
+ * @param[in,out] builder The builder
+ * @param[in] kind The token kind
+ * @param[in] text The token text
  * @return int 0 on success, or an error code
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_token(cdd_cst_builder_t *builder,
@@ -243,8 +244,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_block_close(cdd_cst_builder_t *builder);
  * @brief Lexes a snippet of C code and appends its tokens to the builder's
  * current target.
  *
- * @param builder The CST builder.
- * @param snippet The C code snippet to lex.
+ * @param[in,out] builder The CST builder.
+ * @param[in] snippet The C code snippet to lex.
  * @return int 0 on success, or an error code (e.g. ENOMEM).
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
@@ -258,8 +259,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
  *   %s - const char * (appended as identifier or literal depending on snippet
  * lexing) %d - int %n - cdd_cst_node_t * (injects an entire sub-tree)
  *
- * @param builder The CST builder.
- * @param format_string The format template.
+ * @param[in,out] builder The CST builder.
+ * @param[in] format_string The format template.
  * @return int 0 on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_quote(cdd_cst_builder_t *builder,
@@ -318,8 +319,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_extract_trailing_trivia(
  * @brief Transfers all leading and trailing trivia from the source node to the
  * target node.
  *
- * @param source_node Node to remove trivia from.
- * @param target_node Node to attach trivia to.
+ * @param[in,out] source_node Node to remove trivia from.
+ * @param[in,out] target_node Node to attach trivia to.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
@@ -328,9 +329,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
 /**
  * @brief Replaces a node preserving its trivia using the builder context.
  *
- * @param builder Builder context.
- * @param target_node Node to be replaced.
- * @param replacement_node New node to put in its place.
+ * @param[in,out] builder Builder context.
+ * @param[in,out] target_node Node to be replaced.
+ * @param[in,out] replacement_node New node to put in its place.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_replace_node_preserve_trivia(
@@ -341,11 +342,11 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_replace_node_preserve_trivia(
  * @brief Splices an array of nodes into a parent block, wrapping them in
  * children wrappers.
  *
- * @param builder Builder context.
- * @param parent Target block/node to inject into.
- * @param index Index to start splicing at.
- * @param new_nodes Array of nodes to inject.
- * @param count Number of nodes in new_nodes.
+ * @param[in,out] builder Builder context.
+ * @param[in,out] parent Target block/node to inject into.
+ * @param[in] index Index to start splicing at.
+ * @param[out] new_nodes Array of nodes to inject.
+ * @param[in] count Number of nodes in new_nodes.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_splice_nodes(cdd_cst_builder_t *builder,

@@ -17,6 +17,7 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/memory.h"
 #include "c_cdd/safe_crt.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"

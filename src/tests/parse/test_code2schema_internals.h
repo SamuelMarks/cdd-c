@@ -25,9 +25,15 @@ extern "C" {
 #include <parson.h>
 /* clang-format on */
 
+/** @brief Test definition g_cdd_fail_json_set_value. */
 extern C_CDD_EXPORT volatile int g_cdd_fail_json_set_value;
+/** @brief Test definition g_cdd_fail_json_serialize. */
 extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
 
+/**
+ * @brief Unit test test_code2schema_c2s_read_line.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_c2s_read_line(void) {
   FILE *fp;
   char buf[128];
@@ -829,6 +835,9 @@ TEST test_code2schema_ref_and_discriminator(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the code2schema_internals_suite test suite.
+ */
 SUITE(code2schema_internals_suite) {
   RUN_TEST(test_code2schema_c2s_read_line);
   RUN_TEST(test_code2schema_c2s_key_in_list);

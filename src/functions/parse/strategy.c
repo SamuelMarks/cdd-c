@@ -231,12 +231,12 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
                    call_expr, DEFAULT_ERROR_CODE, site->var_name);
 #ifdef CDD_BUILD_TESTS
       if (g_cdd_fail_asprintf) {
-        free(replacement);
+        C_CDD_FREE(replacement);
         asprintf_rc = -1;
       }
 #endif
       if (asprintf_rc == -1) {
-        free(call_expr);
+        C_CDD_FREE(call_expr);
         return CDD_C_ERROR_MEMORY;
       }
     }
@@ -260,18 +260,18 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
 #endif
 #ifdef CDD_BUILD_TESTS
         if (g_cdd_fail_asprintf) {
-          free(replacement);
+          C_CDD_FREE(replacement);
           replacement = NULL;
         }
 #endif
       }
       if (!replacement) {
-        free(call_expr);
+        C_CDD_FREE(call_expr);
         return CDD_C_ERROR_MEMORY;
       }
     }
 #endif
-    free(call_expr);
+    C_CDD_FREE(call_expr);
 
     /* Replace the entire statement "p = realloc(...);" with the block */
     /* Range: [stmt_start, semi_idx + 1) (to include semicolon) */

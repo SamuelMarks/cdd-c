@@ -15,6 +15,10 @@ extern "C" {
 #include "emit/test_codegen_client_body_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_body_response_range_success.
+ * @return Greatest test result.
+ */
 TEST test_body_response_range_success(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -46,6 +50,10 @@ TEST test_body_response_range_success(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_default_response_success.
+ * @return Greatest test result.
+ */
 TEST test_body_default_response_success(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -77,6 +85,10 @@ TEST test_body_default_response_success(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_text_plain_response_string.
+ * @return Greatest test result.
+ */
 TEST test_body_text_plain_response_string(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -109,6 +121,10 @@ TEST test_body_text_plain_response_string(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_text_plain_response_range.
+ * @return Greatest test result.
+ */
 TEST test_body_text_plain_response_range(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -141,6 +157,10 @@ TEST test_body_text_plain_response_range(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_text_plain_response_default.
+ * @return Greatest test result.
+ */
 TEST test_body_text_plain_response_default(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -173,6 +193,10 @@ TEST test_body_text_plain_response_default(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_textual_response_xml.
+ * @return Greatest test result.
+ */
 TEST test_body_textual_response_xml(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -205,6 +229,10 @@ TEST test_body_textual_response_xml(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_binary_response_pdf.
+ * @return Greatest test result.
+ */
 TEST test_body_binary_response_pdf(void) {
   struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
@@ -236,6 +264,10 @@ TEST test_body_binary_response_pdf(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_verb_mapping.
+ * @return Greatest test result.
+ */
 TEST test_client_body_verb_mapping(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
@@ -295,6 +327,10 @@ TEST test_client_body_verb_mapping(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_mapped_err_code.
+ * @return Greatest test result.
+ */
 TEST test_client_body_mapped_err_code(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
@@ -328,6 +364,10 @@ TEST test_client_body_mapped_err_code(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_media_type_matching.
+ * @return Greatest test result.
+ */
 TEST test_client_body_media_type_matching(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
@@ -366,6 +406,10 @@ TEST test_client_body_media_type_matching(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_find_media_type_not_found.
+ * @return Greatest test result.
+ */
 TEST test_client_body_find_media_type_not_found(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
@@ -407,6 +451,10 @@ TEST test_client_body_find_media_type_not_found(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_find_encoding_not_found.
+ * @return Greatest test result.
+ */
 TEST test_client_body_find_encoding_not_found(void) {
   struct OpenAPI_Encoding enc;
   struct OpenAPI_Spec spec;
@@ -487,6 +535,10 @@ TEST test_client_body_find_encoding_not_found(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_array_items_statics.
+ * @return Greatest test result.
+ */
 TEST test_client_body_array_items_statics(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
@@ -695,6 +747,9 @@ TEST test_client_body_array_items_statics(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the client_body_responses_suite test suite.
+ */
 SUITE(client_body_responses_suite) {
   RUN_TEST(test_body_response_range_success);
   RUN_TEST(test_body_default_response_success);

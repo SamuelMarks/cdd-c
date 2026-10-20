@@ -21,6 +21,7 @@ extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
 /**
  * @brief Test initialization of query projection.
+ * @return Test or helper result.
  */
 TEST test_query_projection_init(void) {
   cdd_c_query_projection_t proj;
@@ -34,6 +35,7 @@ TEST test_query_projection_init(void) {
 
 /**
  * @brief Test free function of query projection.
+ * @return Test or helper result.
  */
 TEST test_query_projection_free(void) {
   cdd_c_query_projection_t proj;
@@ -46,6 +48,7 @@ TEST test_query_projection_free(void) {
 
 /**
  * @brief Test adding fields to query projection.
+ * @return Test or helper result.
  */
 TEST test_query_projection_add_field(void) {
   cdd_c_query_projection_t proj;
@@ -96,6 +99,7 @@ TEST test_query_projection_add_field(void) {
 
 /**
  * @brief Test OOM error paths in query projection.
+ * @return Test or helper result.
  */
 TEST test_query_projection_oom(void) {
   cdd_c_query_projection_t proj;
@@ -145,6 +149,9 @@ TEST test_query_projection_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the query_projection_suite test suite.
+ */
 SUITE(query_projection_suite) {
   RUN_TEST(test_query_projection_init);
   RUN_TEST(test_query_projection_free);

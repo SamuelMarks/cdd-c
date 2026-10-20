@@ -15,6 +15,10 @@ extern "C" {
 #include "emit/test_codegen_client_body_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_body_header_param_string.
+ * @return Greatest test result.
+ */
 TEST test_body_header_param_string(void) {
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Parameter param = {0};
@@ -45,6 +49,10 @@ TEST test_body_header_param_string(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_header_param_integer.
+ * @return Greatest test result.
+ */
 TEST test_body_header_param_integer(void) {
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Parameter param = {0};
@@ -74,6 +82,10 @@ TEST test_body_header_param_integer(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_header_param_number.
+ * @return Greatest test result.
+ */
 TEST test_body_header_param_number(void) {
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Parameter param = {0};
@@ -103,6 +115,10 @@ TEST test_body_header_param_number(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_body_header_param_boolean.
+ * @return Greatest test result.
+ */
 TEST test_body_header_param_boolean(void) {
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Parameter param = {0};
@@ -131,6 +147,10 @@ TEST test_body_header_param_boolean(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_all_primitive_types.
+ * @return Greatest test result.
+ */
 TEST test_client_body_all_primitive_types(void) {
   int io_fail;
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
@@ -307,6 +327,10 @@ TEST test_client_body_all_primitive_types(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_inline_response_types.
+ * @return Greatest test result.
+ */
 TEST test_client_body_inline_response_types(void) {
   int io_fail;
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
@@ -516,6 +540,10 @@ TEST test_client_body_inline_response_types(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_inline_types.
+ * @return Greatest test result.
+ */
 TEST test_client_body_inline_types(void) {
   int io_fail;
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
@@ -632,6 +660,10 @@ TEST test_client_body_inline_types(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_form_types.
+ * @return Greatest test result.
+ */
 TEST test_client_body_form_types(void) {
   int io_fail;
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
@@ -682,6 +714,10 @@ TEST test_client_body_form_types(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_client_body_multipart_types.
+ * @return Greatest test result.
+ */
 TEST test_client_body_multipart_types(void) {
   int io_fail;
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
@@ -731,6 +767,9 @@ TEST test_client_body_multipart_types(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the client_body_types_suite test suite.
+ */
 SUITE(client_body_types_suite) {
   RUN_TEST(test_body_header_param_string);
   RUN_TEST(test_body_header_param_integer);

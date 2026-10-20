@@ -25,6 +25,10 @@ extern "C" {
 #include "openapi/parse/openapi.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_register_single_struct.
+ * @return Greatest test result.
+ */
 TEST test_register_single_struct(void) {
   struct OpenAPI_Spec spec;
   struct TypeDefList types;
@@ -64,6 +68,10 @@ TEST test_register_single_struct(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_register_deduplication.
+ * @return Greatest test result.
+ */
 TEST test_register_deduplication(void) {
   struct OpenAPI_Spec spec;
   struct TypeDefList types;
@@ -93,6 +101,10 @@ TEST test_register_deduplication(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_register_multiple_structs.
+ * @return Greatest test result.
+ */
 TEST test_register_multiple_structs(void) {
   struct StructFields *_ast_openapi_spec_find_schema_0;
   struct StructFields *_ast_openapi_spec_find_schema_1;
@@ -136,6 +148,10 @@ TEST test_register_multiple_structs(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_register_null_safety.
+ * @return Greatest test result.
+ */
 TEST test_register_null_safety(void) {
   struct OpenAPI_Spec spec;
   struct TypeDefList types;
@@ -154,6 +170,10 @@ TEST test_register_null_safety(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_register_enum_schema.
+ * @return Greatest test result.
+ */
 TEST test_register_enum_schema(void) {
   struct StructFields *_ast_openapi_spec_find_schema_2;
   struct OpenAPI_Spec spec;
@@ -193,6 +213,10 @@ TEST test_register_enum_schema(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_register_type_union_copy.
+ * @return Greatest test result.
+ */
 TEST test_register_type_union_copy(void) {
   struct OpenAPI_Spec spec;
   struct TypeDefList types;
@@ -243,16 +267,28 @@ TEST test_register_type_union_copy(void) {
   }
 }
 
+/**
+ * @brief Unit test test_openapi_spec_init_null.
+ * @return Greatest test result.
+ */
 TEST test_openapi_spec_init_null(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, openapi_spec_init(NULL));
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_spec_init_null2.
+ * @return Greatest test result.
+ */
 TEST test_openapi_spec_init_null2(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, openapi_spec_init(NULL));
   PASS();
 }
 
+/**
+ * @brief Unit test test_register_ids_anchors.
+ * @return Greatest test result.
+ */
 TEST test_register_ids_anchors(void) {
   struct OpenAPI_Spec spec = {0};
   struct TypeDefList types = {0};
@@ -290,6 +326,9 @@ TEST test_register_ids_anchors(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the c2openapi_schema_suite test suite.
+ */
 SUITE(c2openapi_schema_suite) {
   RUN_TEST(test_openapi_spec_init_null);
   RUN_TEST(test_openapi_spec_init_null2);

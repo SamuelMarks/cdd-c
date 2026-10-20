@@ -17,7 +17,13 @@ extern "C" {
 #include "routes/parse/cli.h"
 /* clang-format on */
 
+/** @brief Test definition g_components_parson_oom_fail_at. */
 static int g_components_parson_oom_fail_at = -1;
+/**
+ * @brief Helper function mock_components_parson_malloc.
+ * @param[in] sz Parameter sz.
+ * @return Result status or value.
+ */
 static void *mock_components_parson_malloc(size_t sz) {
   if (g_components_parson_oom_fail_at == 0) {
     g_components_parson_oom_fail_at = -1;
@@ -27,6 +33,10 @@ static void *mock_components_parson_malloc(size_t sz) {
     g_components_parson_oom_fail_at--;
   return malloc(sz);
 }
+/**
+ * @brief Helper function mock_components_parson_free.
+ * @param[in,out] ptr Parameter ptr.
+ */
 static void mock_components_parson_free(void *ptr) { free(ptr); }
 
 /**
@@ -1008,6 +1018,9 @@ TEST test_openapi_components_full_coverage(void) {
   PASS();
 }
 
+/**
+ * @brief Macro OPENAPI_COMPONENTS_COVERAGE_TESTS.
+ */
 #define OPENAPI_COMPONENTS_COVERAGE_TESTS()                                    \
   RUN_TEST(test_openapi_component_parameters_branches);                        \
   RUN_TEST(test_openapi_component_responses_branches);                         \

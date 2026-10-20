@@ -1,3 +1,7 @@
+/**
+ * @file test_dsl_parser.h
+ * @brief Unit tests and mocks in test_dsl_parser.h.
+ */
 #ifndef TEST_DSL_PARSER_H
 #define TEST_DSL_PARSER_H
 
@@ -10,13 +14,16 @@ extern "C" {
 #include "../cdd_test_helpers/cdd_helpers.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_dsl_parser_basic.
+ * @return Greatest test result.
+ */
 TEST test_dsl_parser_basic(void) {
   cdd_dsl_token_list_t list;
   cdd_ffi_ir_t *ir = NULL;
   const char *source = "/* comment */\nfunc my_func([in] *mut i32 arg1) {\n  "
                        "body %{ return 0; }%\n}";
   cdd_c_error_t rc;
-  (void)rc;
 
   rc = cdd_dsl_tokenize(source, &list);
 
@@ -46,6 +53,10 @@ TEST test_dsl_parser_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_dsl_parser_exhaustive.
+ * @return Greatest test result.
+ */
 TEST test_dsl_parser_exhaustive(void) {
   cdd_dsl_token_list_t list;
   cdd_ffi_ir_t *ir = NULL;
@@ -84,8 +95,13 @@ TEST test_dsl_parser_exhaustive(void) {
   PASS();
 }
 
+/** @brief Test definition g_ffi_extractor_alloc_fail. */
 extern C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
 
+/**
+ * @brief Unit test test_dsl_parser_oom_loop.
+ * @return Greatest test result.
+ */
 TEST test_dsl_parser_oom_loop(void) {
   cdd_dsl_token_list_t list;
   cdd_ffi_ir_t *ir = NULL;

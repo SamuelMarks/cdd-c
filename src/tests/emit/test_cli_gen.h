@@ -1,3 +1,7 @@
+/**
+ * @file test_cli_gen.h
+ * @brief Unit tests and mocks in test_cli_gen.h.
+ */
 #ifndef TEST_CLI_GEN_H
 #define TEST_CLI_GEN_H
 
@@ -16,7 +20,9 @@ extern "C" {
 #include "routes/emit/client_gen.h"
 /* clang-format on */
 
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
 
 /**
@@ -193,7 +199,7 @@ TEST test_cli_gen_full(void) {
     spec.servers[0].variables = &dummy_var;
   }
 
-  spec.n_webhooks = 1; /* dummy trigger */
+  spec.n_webhooks = 1;
   spec.external_docs.url = cdd_test_mut_str("https://docs.example.com");
 
   spec.n_paths = 1;
@@ -273,6 +279,10 @@ TEST test_cli_gen_malloc_fail(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cli_gen_partial.
+ * @return Greatest test result.
+ */
 TEST test_cli_gen_partial(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
@@ -354,6 +364,10 @@ TEST test_cli_gen_partial(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cli_gen_partial2.
+ * @return Greatest test result.
+ */
 TEST test_cli_gen_partial2(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
@@ -379,6 +393,9 @@ TEST test_cli_gen_partial2(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the cli_gen_suite test suite.
+ */
 SUITE(cli_gen_suite) {
   RUN_TEST(test_cli_gen_basic);
   RUN_TEST(test_cli_gen_fail_open);

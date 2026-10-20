@@ -66,11 +66,11 @@ void desig_init_list_free(struct DesigInitList *list) {
   if (list->sites) {
     for (i = 0; i < list->count; i++) {
       if (list->sites[i].field_name)
-        free(list->sites[i].field_name);
+        C_CDD_FREE(list->sites[i].field_name);
       if (list->sites[i].value_expr)
-        free(list->sites[i].value_expr);
+        C_CDD_FREE(list->sites[i].value_expr);
     }
-    free(list->sites);
+    C_CDD_FREE(list->sites);
   }
   desig_init_list_init(list);
 }
@@ -199,14 +199,14 @@ cdd_c_error_t scan_for_designated_initializers(const struct TokenList *tokens,
               res = c_cdd_strndup(e_start, (size_t)(e_end - e_start),
                                   &s->value_expr);
               if (res != CDD_C_SUCCESS) {
-                free(s->field_name);
+                C_CDD_FREE(s->field_name);
                 s->field_name = NULL;
                 goto cleanup;
               }
             } else {
               res = c_cdd_strndup("", 0, &s->value_expr);
               if (res != CDD_C_SUCCESS) {
-                free(s->field_name);
+                C_CDD_FREE(s->field_name);
                 s->field_name = NULL;
                 goto cleanup;
               }
@@ -223,7 +223,7 @@ cdd_c_error_t scan_for_designated_initializers(const struct TokenList *tokens,
 
 cleanup:
   if (brace_stack)
-    free(brace_stack);
+    C_CDD_FREE(brace_stack);
   return res;
 }
 

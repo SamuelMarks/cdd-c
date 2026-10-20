@@ -14,6 +14,10 @@ extern "C" {
 #include "parse/test_openapi_loader_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_load_server_url_query_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_server_url_query_rejected(void) {
 
   const char *json =
@@ -28,6 +32,10 @@ TEST test_load_server_url_query_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_security_requirements.
+ * @return Greatest test result.
+ */
 TEST test_load_security_requirements(void) {
 
   const char json[] = {
@@ -79,6 +87,10 @@ TEST test_load_security_requirements(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_security_schemes.
+ * @return Greatest test result.
+ */
 TEST test_load_security_schemes(void) {
   struct OpenAPI_SecurityScheme *_ast_find_scheme_0;
   struct OpenAPI_SecurityScheme *_ast_find_scheme_1;
@@ -124,6 +136,10 @@ TEST test_load_security_schemes(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_security_scheme_deprecated.
+ * @return Greatest test result.
+ */
 TEST test_load_security_scheme_deprecated(void) {
   struct OpenAPI_SecurityScheme *_ast_find_scheme_3;
 
@@ -149,6 +165,10 @@ TEST test_load_security_scheme_deprecated(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_oauth2_flows.
+ * @return Greatest test result.
+ */
 TEST test_load_oauth2_flows(void) {
   struct OpenAPI_SecurityScheme *_ast_find_scheme_4;
 
@@ -198,6 +218,10 @@ TEST test_load_oauth2_flows(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_security_scheme_http_missing_scheme_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_security_scheme_http_missing_scheme_rejected(void) {
 
   const char *json = "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\","
@@ -213,6 +237,10 @@ TEST test_load_security_scheme_http_missing_scheme_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_security_scheme_apikey_missing_name_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_security_scheme_apikey_missing_name_rejected(void) {
 
   const char *json = "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\","
@@ -228,6 +256,10 @@ TEST test_load_security_scheme_apikey_missing_name_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_security_scheme_apikey_missing_in_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_security_scheme_apikey_missing_in_rejected(void) {
 
   const char *json = "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\","
@@ -243,6 +275,10 @@ TEST test_load_security_scheme_apikey_missing_in_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_security_scheme_openid_missing_url_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_security_scheme_openid_missing_url_rejected(void) {
 
   const char *json = "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\","
@@ -258,6 +294,10 @@ TEST test_load_security_scheme_openid_missing_url_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_oauth2_missing_flows_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_oauth2_missing_flows_rejected(void) {
 
   const char *json = "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\","
@@ -273,6 +313,10 @@ TEST test_load_oauth2_missing_flows_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_oauth2_flow_missing_scopes_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_oauth2_flow_missing_scopes_rejected(void) {
 
   const char json[] = {
@@ -301,6 +345,10 @@ TEST test_load_oauth2_flow_missing_scopes_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_oauth2_flow_missing_required_urls_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_oauth2_flow_missing_required_urls_rejected(void) {
 
   const char *json = "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\","
@@ -319,6 +367,10 @@ TEST test_load_oauth2_flow_missing_required_urls_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_oauth2_flow_unknown_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_oauth2_flow_unknown_rejected(void) {
 
   const char json[] = {
@@ -347,6 +399,10 @@ TEST test_load_oauth2_flow_unknown_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_parameter_examples_object.
+ * @return Greatest test result.
+ */
 TEST test_load_parameter_examples_object(void) {
 
   const char *json =
@@ -376,6 +432,10 @@ TEST test_load_parameter_examples_object(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_parameter_examples_media.
+ * @return Greatest test result.
+ */
 TEST test_load_parameter_examples_media(void) {
 
   const char json[] = {
@@ -415,6 +475,10 @@ TEST test_load_parameter_examples_media(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_parameter_example_and_examples_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_parameter_example_and_examples_rejected(void) {
 
   const char *json =
@@ -434,6 +498,10 @@ TEST test_load_parameter_example_and_examples_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_header_example_and_examples_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_header_example_and_examples_rejected(void) {
 
   const char *json =
@@ -454,6 +522,10 @@ TEST test_load_header_example_and_examples_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_media_example_and_examples_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_media_example_and_examples_rejected(void) {
 
   const char *json =
@@ -474,6 +546,10 @@ TEST test_load_media_example_and_examples_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_example_data_value_and_value_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_example_data_value_and_value_rejected(void) {
 
   const char json[] = {
@@ -502,6 +578,10 @@ TEST test_load_example_data_value_and_value_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_example_serialized_and_external_rejected.
+ * @return Greatest test result.
+ */
 TEST test_load_example_serialized_and_external_rejected(void) {
 
   const char *json =
@@ -520,6 +600,10 @@ TEST test_load_example_serialized_and_external_rejected(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_response_examples_media.
+ * @return Greatest test result.
+ */
 TEST test_load_response_examples_media(void) {
 
   const char *json =
@@ -548,6 +632,10 @@ TEST test_load_response_examples_media(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_component_examples.
+ * @return Greatest test result.
+ */
 TEST test_load_component_examples(void) {
 
   const char *json = "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\","
@@ -571,6 +659,10 @@ TEST test_load_component_examples(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_example_component_ref_strict.
+ * @return Greatest test result.
+ */
 TEST test_load_example_component_ref_strict(void) {
 
   const char json[] = {
@@ -625,6 +717,10 @@ TEST test_load_example_component_ref_strict(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_request_body_metadata_and_response_description.
+ * @return Greatest test result.
+ */
 TEST test_load_request_body_metadata_and_response_description(void) {
 
   const char *json =
@@ -654,6 +750,10 @@ TEST test_load_request_body_metadata_and_response_description(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_load_request_body_component_ref.
+ * @return Greatest test result.
+ */
 TEST test_load_request_body_component_ref(void) {
 
   const char json[] = {
@@ -713,6 +813,10 @@ TEST test_load_request_body_component_ref(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_openapi_loader_security_branches.
+ * @return Greatest test result.
+ */
 TEST test_openapi_loader_security_branches(void) {
   struct OpenAPI_Spec spec;
   int k;

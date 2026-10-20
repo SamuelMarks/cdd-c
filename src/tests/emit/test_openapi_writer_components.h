@@ -14,6 +14,10 @@ extern "C" {
 #include "emit/test_openapi_writer_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_writer_components_schemas_raw.
+ * @return Greatest test result.
+ */
 TEST test_writer_components_schemas_raw(void) {
   int rc = 0;
   char *json;
@@ -67,6 +71,10 @@ TEST test_writer_components_schemas_raw(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_schema_ref_external.
+ * @return Greatest test result.
+ */
 TEST test_writer_schema_ref_external(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -114,6 +122,10 @@ TEST test_writer_schema_ref_external(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_schema_dynamic_ref_external.
+ * @return Greatest test result.
+ */
 TEST test_writer_schema_dynamic_ref_external(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -162,6 +174,10 @@ TEST test_writer_schema_dynamic_ref_external(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_schema_items_ref_external.
+ * @return Greatest test result.
+ */
 TEST test_writer_schema_items_ref_external(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -213,6 +229,10 @@ TEST test_writer_schema_items_ref_external(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_schema_items_dynamic_ref_external.
+ * @return Greatest test result.
+ */
 TEST test_writer_schema_items_dynamic_ref_external(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -265,6 +285,10 @@ TEST test_writer_schema_items_dynamic_ref_external(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_additional_operations.
+ * @return Greatest test result.
+ */
 TEST test_writer_additional_operations(void) {
   int rc = 0;
   char *json;
@@ -315,6 +339,10 @@ TEST test_writer_additional_operations(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_component_media_types_and_content_ref.
+ * @return Greatest test result.
+ */
 TEST test_writer_component_media_types_and_content_ref(void) {
   int rc = 0;
   char *media_names[1];
@@ -395,6 +423,10 @@ TEST test_writer_component_media_types_and_content_ref(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_response_multiple_content.
+ * @return Greatest test result.
+ */
 TEST test_writer_response_multiple_content(void) {
   int rc = 0;
   struct OpenAPI_MediaType contents[2];
@@ -451,6 +483,10 @@ TEST test_writer_response_multiple_content(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_request_body_multiple_content_and_encoding.
+ * @return Greatest test result.
+ */
 TEST test_writer_request_body_multiple_content_and_encoding(void) {
   int rc = 0;
   struct OpenAPI_MediaType media[1];
@@ -532,6 +568,10 @@ TEST test_writer_request_body_multiple_content_and_encoding(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_media_type_prefix_item_encoding.
+ * @return Greatest test result.
+ */
 TEST test_writer_media_type_prefix_item_encoding(void) {
   int rc = 0;
   struct OpenAPI_MediaType media[1];

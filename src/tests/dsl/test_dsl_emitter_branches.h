@@ -1,3 +1,7 @@
+/**
+ * @file test_dsl_emitter_branches.h
+ * @brief Unit tests and mocks in test_dsl_emitter_branches.h.
+ */
 #if defined(_MSC_VER) || defined(__MINGW32__)
 /* clang-format off */
 #include <direct.h>
@@ -16,6 +20,10 @@ extern "C" {
 #include "../cdd_test_helpers/cdd_helpers.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_dsl_emitter_invalid.
+ * @return Greatest test result.
+ */
 TEST test_dsl_emitter_invalid(void) {
   cdd_c_error_t rc;
   struct cdd_generate_bindings_config_t {
@@ -28,8 +36,13 @@ TEST test_dsl_emitter_invalid(void) {
   PASS();
 }
 
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 
+/**
+ * @brief Unit test test_dsl_emitter_exhaustive.
+ * @return Greatest test result.
+ */
 TEST test_dsl_emitter_exhaustive(void) {
   cdd_ffi_ir_t *ir;
   cdd_ffi_ir_node_t *node;
@@ -161,6 +174,10 @@ TEST test_dsl_emitter_exhaustive(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_dsl_emitter_null_config.
+ * @return Greatest test result.
+ */
 TEST test_dsl_emitter_null_config(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_c_error_t rc;
@@ -171,6 +188,10 @@ TEST test_dsl_emitter_null_config(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_dsl_emitter_io_fail.
+ * @return Greatest test result.
+ */
 TEST test_dsl_emitter_io_fail(void) {
   cdd_ffi_ir_t ir = {0};
   struct cdd_generate_bindings_config_t {

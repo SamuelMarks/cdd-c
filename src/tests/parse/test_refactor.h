@@ -21,9 +21,6 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern C_CDD_EXPORT int g_cdd_fail_alloc_refactor_add;
-extern C_CDD_EXPORT int g_cdd_audit_fail_find;
-extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;
 
 /**
  * @brief Tests the lifecycle of RefactorContext.
@@ -109,31 +106,39 @@ TEST test_apply_refactoring_to_string_errors(void) {
   PASS();
 }
 
-#ifdef CDD_BUILD_TESTS
-/* extern C_CDD_EXPORT int g_cdd_fail_alloc_refactor_add; (moved to global) */
-/* extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize; (moved to global) */
-/* extern C_CDD_EXPORT int g_cdd_audit_fail_find; (moved to global) */
-#endif
-
+/**
+ * @brief Unit test test_refactor_mocks.
+ * @return Greatest test result.
+ */
 TEST test_refactor_mocks(void) {
 #ifdef CDD_BUILD_TESTS
   struct RefactorContext ctx;
   char *out = NULL;
+  int step;
 
   refactor_context_init(&ctx);
 
-  g_cdd_fail_alloc_refactor_add = 1;
+  g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             refactor_context_add_function(&ctx, "foo", REF_VOID_TO_INT, "int"));
-  g_cdd_fail_alloc_refactor_add = 0;
+  g_cdd_alloc_fail = 0;
 
-  g_cdd_audit_fail_tokenize = 1;
-  ASSERT_NEQ(0, apply_refactoring_to_string(&ctx, "int main() {}", &out));
-  g_cdd_audit_fail_tokenize = 0;
-
-  g_cdd_audit_fail_find = 1;
-  ASSERT_NEQ(0, apply_refactoring_to_string(&ctx, "int main() {}", &out));
-  g_cdd_audit_fail_find = 0;
+  /* Test tokenize and find_allocations OOM inside apply_refactoring_to_string
+   */
+  for (step = 1; step <= 10; ++step) {
+    int rc;
+    g_cdd_alloc_fail = step;
+    rc = apply_refactoring_to_string(
+        &ctx, "int main() { char *p = malloc(1); return 0; }", &out);
+    g_cdd_alloc_fail = 0;
+    if (rc == CDD_C_SUCCESS) {
+      free(out);
+      out = NULL;
+      break;
+    }
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
+  ASSERT(step > 2);
 
   refactor_context_free(&ctx);
 #endif

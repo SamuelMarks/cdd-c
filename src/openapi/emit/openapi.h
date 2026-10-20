@@ -62,8 +62,8 @@ cdd_json_array_append_value_safe(JSON_Array *arr, JSON_Value *val);
 /**
  * @brief Converts verb to string.
  *
- * @param verb The verb.
- * @param _out_val Pointer to the output string.
+ * @param[in] verb The verb.
+ * @param[out] _out_val Pointer to the output string.
  * @return 0 on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t verb_to_str_openapi(enum OpenAPI_Verb verb,
@@ -72,8 +72,8 @@ extern C_CDD_EXPORT cdd_c_error_t verb_to_str_openapi(enum OpenAPI_Verb verb,
 /**
  * @brief Converts parameter in to string.
  *
- * @param in The parameter in.
- * @param _out_val Pointer to the output string.
+ * @param[in] in The parameter in.
+ * @param[out] _out_val Pointer to the output string.
  * @return 0 on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t
@@ -82,8 +82,8 @@ param_in_to_str_openapi(enum OpenAPI_ParamIn in, char **_out_val);
 /**
  * @brief Converts style to string.
  *
- * @param s The style.
- * @param _out_val Pointer to the output string.
+ * @param[in] s The style.
+ * @param[out] _out_val Pointer to the output string.
  * @return 0 on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t style_to_str_openapi(enum OpenAPI_Style s,
@@ -92,8 +92,8 @@ extern C_CDD_EXPORT cdd_c_error_t style_to_str_openapi(enum OpenAPI_Style s,
 /**
  * @brief Converts xml node type to string.
  *
- * @param t The xml node type.
- * @param _out_val Pointer to the output string.
+ * @param[in] t The xml node type.
+ * @param[out] _out_val Pointer to the output string.
  * @return 0 on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t
@@ -102,7 +102,7 @@ xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t, char **_out_val);
 /**
  * @brief Checks if header name is content type.
  *
- * @param name The name.
+ * @param[in] name The name.
  * @return 1 if true, 0 otherwise.
  */
 extern C_CDD_EXPORT cdd_c_error_t
@@ -111,7 +111,7 @@ header_name_is_content_type_openapi(const char *name);
 /**
  * @brief Checks if parameter is a reserved header.
  *
- * @param p The parameter.
+ * @param[in] p The parameter.
  * @return 1 if true, 0 otherwise.
  */
 extern C_CDD_EXPORT cdd_c_error_t
@@ -120,8 +120,8 @@ param_is_reserved_header_openapi(const struct OpenAPI_Parameter *p);
 /**
  * @brief Converts oauth flow type to string.
  *
- * @param t The oauth flow type.
- * @param _out_val Pointer to the output string.
+ * @param[in] t The oauth flow type.
+ * @param[out] _out_val Pointer to the output string.
  * @return 0 on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t
@@ -129,7 +129,7 @@ oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t, char **_out_val);
 /**
  * @brief Checks if a schema type is primitive.
  *
- * @param type The schema type string.
+ * @param[in] type The schema type string.
  * @return 1 if true, 0 otherwise.
  */
 extern C_CDD_EXPORT cdd_c_error_t is_schema_primitive_openapi(const char *type);
@@ -137,8 +137,8 @@ extern C_CDD_EXPORT cdd_c_error_t is_schema_primitive_openapi(const char *type);
 /**
  * @brief Merges extra schema object properties.
  *
- * @param target The target json object.
- * @param extras_json The extra json string.
+ * @param[in,out] target The target json object.
+ * @param[in] extras_json The extra json string.
  * @return 0 on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t merge_schema_extras_object_openapi(

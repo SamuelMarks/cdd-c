@@ -32,10 +32,6 @@ static safe_crt_arena_t *global_arena = NULL;
 cdd_cst_tree_t *safe_crt_current_tree = NULL;
 emit_ctx_t *g_msc_ctx = NULL;
 
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_safe_crt_malloc_fail = 0;
-#endif
-
 /**
  * @brief Frees all memory allocated in the safe CRT arena.
  */
@@ -43,7 +39,7 @@ void arena_free_all(void) {
   safe_crt_arena_t *node = global_arena;
   while (node) {
     safe_crt_arena_t *next = node->next;
-    free(node);
+    C_CDD_FREE(node);
     node = next;
   }
   global_arena = NULL;
@@ -61,17 +57,9 @@ C_CDD_EXPORT cdd_c_error_t arena_alloc(size_t len, void **out_ptr) {
   if (!out_ptr)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_ptr = NULL;
-#ifdef CDD_BUILD_TESTS
-  if (g_safe_crt_malloc_fail > 0 && --g_safe_crt_malloc_fail == 0) {
-    node = NULL;
-  } else {
-#endif
-    node = (safe_crt_arena_t *)malloc(sizeof(safe_crt_arena_t) + len);
-#ifdef CDD_BUILD_TESTS
-  }
-#endif
+  node = (safe_crt_arena_t *)C_CDD_MALLOC(sizeof(safe_crt_arena_t) + len);
   if (!node) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    C_CDD_LOG_DEBUG("ENOMEM: OOM");
     return CDD_C_ERROR_MEMORY;
   }
   node->next = global_arena;
@@ -95,27 +83,16 @@ C_CDD_EXPORT cdd_c_error_t safe_crt_pool_string_safe(cdd_cst_tree_t *tree,
   *out_pooled = NULL;
   if (!tree || !str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-#ifdef CDD_BUILD_TESTS
-  if (g_safe_crt_malloc_fail > 0 && --g_safe_crt_malloc_fail == 0) {
+  dup = C_CDD_STRDUP(str);
+  if (!dup)
     return CDD_C_ERROR_MEMORY;
-  }
-#endif
-  dup = strdup(str);
   if (tree->num_strings >= tree->string_capacity) {
     size_t new_cap =
         tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
-    char **new_pool = NULL;
-#ifdef CDD_BUILD_TESTS
-    if (g_safe_crt_malloc_fail > 0) {
-      g_safe_crt_malloc_fail--;
-      if (g_safe_crt_malloc_fail == 0)
-        new_cap = 0;
-    }
-#endif
-    if (new_cap > 0)
-      new_pool = (char **)realloc(tree->string_pool, new_cap * sizeof(char *));
+    char **new_pool =
+        (char **)C_CDD_REALLOC(tree->string_pool, new_cap * sizeof(char *));
     if (!new_pool) {
-      free(dup);
+      C_CDD_FREE(dup);
       return CDD_C_ERROR_MEMORY;
     }
     tree->string_pool = new_pool;
@@ -142,21 +119,12 @@ C_CDD_EXPORT cdd_c_error_t clone_trivia(cdd_trivia_t *head,
   *out_trivia = NULL;
 
   while (head) {
-    cdd_trivia_t *tr;
-#ifdef CDD_BUILD_TESTS
-    if (g_safe_crt_malloc_fail > 0 && --g_safe_crt_malloc_fail == 0) {
-      tr = NULL;
-    } else {
-#endif
-      tr = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
-#ifdef CDD_BUILD_TESTS
-    }
-#endif
+    cdd_trivia_t *tr = (cdd_trivia_t *)C_CDD_MALLOC(sizeof(cdd_trivia_t));
     if (!tr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+      C_CDD_LOG_DEBUG("ENOMEM: OOM");
       while (new_head) {
         cdd_trivia_t *n = new_head->next;
-        free(new_head);
+        C_CDD_FREE(new_head);
         new_head = n;
       }
       return CDD_C_ERROR_MEMORY;
@@ -164,6 +132,7 @@ C_CDD_EXPORT cdd_c_error_t clone_trivia(cdd_trivia_t *head,
     tr->kind = head->kind;
     tr->start = head->start;
     tr->length = head->length;
+    tr->next = NULL;
     if (!new_head)
       new_head = tr;
     else
@@ -196,7 +165,7 @@ C_CDD_EXPORT cdd_c_error_t clone_token(cdd_cst_tree_t *tree, cdd_token_t *tok,
   if (clone_trivia(tok->leading_trivia, &ct->leading_trivia) != CDD_C_SUCCESS ||
       clone_trivia(tok->trailing_trivia, &ct->trailing_trivia) !=
           CDD_C_SUCCESS) {
-    free(ct->leading_trivia);
+    C_CDD_FREE(ct->leading_trivia);
     ct->leading_trivia = NULL;
     return CDD_C_ERROR_MEMORY;
   }
@@ -255,8 +224,8 @@ C_CDD_EXPORT cdd_c_error_t get_indent_string(cdd_token_t *tok,
 /**
  * @brief Migrates standard C functions to MSVC Safe CRT functions.
  *
- * @param tree The CST tree.
- * @param config Optional configuration for trivia generation.
+ * @param[in,out] tree The CST tree.
+ * @param[in] config Optional configuration for trivia generation.
  * @return 0 on success, or an error code.
  */
 cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
@@ -557,10 +526,6 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
           cdd_cst_bld_newline(&bld);
           cdd_cst_bld_endif(&bld);
 
-#ifdef CDD_BUILD_TESTS
-          if (g_safe_crt_malloc_fail == 6)
-            bld.error_state = 1;
-#endif
           if (bld.error_state == 0) {
             cdd_cst_replace_node(tree, stmt, new_node);
             cdd_cst_free_node(stmt);
@@ -588,7 +553,7 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
       }
     }
 
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
   } while (replaced_any);
 
   arena_free_all();
@@ -596,7 +561,7 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
   return CDD_C_SUCCESS;
 
 loop_err:
-  free(res.nodes);
+  C_CDD_FREE(res.nodes);
   arena_free_all();
   current_tree = NULL;
   return (cdd_c_error_t)rc;

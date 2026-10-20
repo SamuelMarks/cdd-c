@@ -27,41 +27,81 @@ extern "C" {
 
 CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 
+/** @brief Test definition g_cdd_fail_media_type_base_len. */
 extern C_CDD_EXPORT int g_cdd_fail_media_type_base_len;
+/** @brief Test definition g_cdd_fail_media_type_has_suffix. */
 extern C_CDD_EXPORT int g_cdd_fail_media_type_has_suffix;
+/** @brief Test definition g_cdd_fail_media_type_ieq. */
 extern C_CDD_EXPORT int g_cdd_fail_media_type_ieq;
+/** @brief Test definition g_cdd_fail_media_type_is_json. */
 extern C_CDD_EXPORT int g_cdd_fail_media_type_is_json;
+/** @brief Test definition g_cdd_fail_media_type_is_text_plain. */
 extern C_CDD_EXPORT int g_cdd_fail_media_type_is_text_plain;
+/** @brief Test definition g_cdd_fail_media_type_has_prefix. */
 extern C_CDD_EXPORT int g_cdd_fail_media_type_has_prefix;
+/** @brief Test definition g_cdd_fail_media_type_is_form. */
 extern C_CDD_EXPORT int g_cdd_fail_media_type_is_form;
+/** @brief Test definition g_cdd_fail_media_type_is_multipart. */
 extern C_CDD_EXPORT int g_cdd_fail_media_type_is_multipart;
+/** @brief Test definition g_cdd_fail_media_type_is_textual. */
 extern C_CDD_EXPORT int g_cdd_fail_media_type_is_textual;
+/** @brief Test definition g_cdd_fail_media_type_is_binary. */
 extern C_CDD_EXPORT int g_cdd_fail_media_type_is_binary;
+/** @brief Test definition g_cdd_fail_media_type_is_multipart_form. */
 extern C_CDD_EXPORT int g_cdd_fail_media_type_is_multipart_form;
+/** @brief Test definition g_cdd_fail_qs_json_array_item_type. */
 extern C_CDD_EXPORT int g_cdd_fail_qs_json_array_item_type;
+/** @brief Test definition g_cdd_fail_qs_json_array_item_ref. */
 extern C_CDD_EXPORT int g_cdd_fail_qs_json_array_item_ref;
+/** @brief Test definition g_cdd_fail_qs_json_prim. */
 extern C_CDD_EXPORT int g_cdd_fail_qs_json_prim;
+/** @brief Test definition g_cdd_fail_qs_raw. */
 extern C_CDD_EXPORT int g_cdd_fail_qs_raw;
+/** @brief Test definition g_cdd_fail_qs_form_obj. */
 extern C_CDD_EXPORT int g_cdd_fail_qs_form_obj;
+/** @brief Test definition g_cdd_fail_qs_json_ref. */
 extern C_CDD_EXPORT int g_cdd_fail_qs_json_ref;
+/** @brief Test definition g_cdd_fail_map_array_item_type. */
 extern C_CDD_EXPORT int g_cdd_fail_map_array_item_type;
+/** @brief Test definition g_cdd_fail_sanitize_ident. */
 extern C_CDD_EXPORT int g_cdd_fail_sanitize_ident;
+/** @brief Test definition g_cdd_fail_map_type_to_c_arg. */
 extern C_CDD_EXPORT int g_cdd_fail_map_type_to_c_arg;
+/** @brief Test definition g_cdd_fail_is_primitive_type. */
 extern C_CDD_EXPORT int g_cdd_fail_is_primitive_type;
+/** @brief Test definition g_cdd_fail_param_is_object_kv. */
 extern C_CDD_EXPORT int g_cdd_fail_param_is_object_kv;
+/** @brief Test definition g_cdd_fail_find_media_type. */
 extern C_CDD_EXPORT int g_cdd_fail_find_media_type;
+/** @brief Test definition g_cdd_fail_header_name_is_content_type. */
 extern C_CDD_EXPORT int g_cdd_fail_header_name_is_content_type;
+/** @brief Test definition g_cdd_fail_c_cdd_str_iequal. */
 extern C_CDD_EXPORT int g_cdd_fail_c_cdd_str_iequal;
+/** @brief Test definition g_cdd_fail_multipart_header_param_name. */
 extern C_CDD_EXPORT int g_cdd_fail_multipart_header_param_name;
+/** @brief Test definition g_cdd_fail_response_is_binary_success. */
 extern C_CDD_EXPORT int g_cdd_fail_response_is_binary_success;
+/** @brief Test definition g_cdd_fail_get_success_schema. */
 extern C_CDD_EXPORT int g_cdd_fail_get_success_schema;
+/** @brief Test definition g_cdd_fail_get_success_response. */
 extern C_CDD_EXPORT int g_cdd_fail_get_success_response;
+/** @brief Test definition g_cdd_fail_schema_has_inline. */
 extern C_CDD_EXPORT int g_cdd_fail_schema_has_inline;
+/** @brief Test definition g_cdd_fail_map_type_to_c_out. */
 extern C_CDD_EXPORT int g_cdd_fail_map_type_to_c_out;
+/** @brief Test definition g_cdd_fail_map_array_item_type_out. */
 extern C_CDD_EXPORT int g_cdd_fail_map_array_item_type_out;
 
+/** @brief Test definition g_sig_fail_tmpfile. */
 static int g_sig_fail_tmpfile = 0;
 
+/**
+ * @brief Helper function gen_sig.
+ * @param[in] op Parameter op.
+ * @param[in] cfg Parameter cfg.
+ * @param[in,out] _out_val Parameter _out_val.
+ * @return Result status or value.
+ */
 static cdd_c_error_t gen_sig(const struct OpenAPI_Operation *op,
                              const struct CodegenSigConfig *cfg,
                              char **_out_val) {

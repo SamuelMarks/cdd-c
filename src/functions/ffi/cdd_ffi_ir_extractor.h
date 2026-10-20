@@ -33,10 +33,10 @@ extern "C" {
  * @brief Generate a flattened C-compatible FFI symbol from C++ namespace,
  * class, and method names.
  *
- * @param ns_name The namespace (can be NULL).
- * @param class_name The class name (can be NULL).
- * @param method_name The method name.
- * @param out_mangled Pointer to receive the allocated mangled name.
+ * @param[in] ns_name The namespace (can be NULL).
+ * @param[in] class_name The class name (can be NULL).
+ * @param[in] method_name The method name.
+ * @param[out] out_mangled Pointer to receive the allocated mangled name.
  * @return 0 on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_mangle_cpp_name(const char *ns_name,
@@ -46,10 +46,10 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_mangle_cpp_name(const char *ns_name,
 
 /**
  * @brief Extracts public exports into the FFI IR.
- * @param filename The path to the file.
- * @param content The text content of the file.
- * @param config Configuration options.
- * @param out_ir The pointer to the resulting FFI IR.
+ * @param[in] filename The path to the file.
+ * @param[in] content The text content of the file.
+ * @param[in] config Configuration options.
+ * @param[out] out_ir The pointer to the resulting FFI IR.
  * @return 0 on success, non-zero on failure.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_extract_exports(
@@ -59,9 +59,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_extract_exports(
 #ifdef CDD_BUILD_TESTS
 /**
  * @brief Expose int64_to_str for testing.
- * @param val Value to convert.
- * @param buf Destination buffer.
- * @param buf_sz Size of destination buffer.
+ * @param[in] val Value to convert.
+ * @param[in,out] buf Destination buffer.
+ * @param[in] buf_sz Size of destination buffer.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_int64_to_str_test(int64_t val, char *buf,
@@ -69,8 +69,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_int64_to_str_test(int64_t val, char *buf,
 
 /**
  * @brief Expose map_c_type_to_ffi_kind for testing.
- * @param c_type Type string.
- * @param out_kind Destination primitive kind pointer.
+ * @param[in] c_type Type string.
+ * @param[out] out_kind Destination primitive kind pointer.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_map_c_type_to_ffi_kind_test(
@@ -78,8 +78,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_map_c_type_to_ffi_kind_test(
 
 /**
  * @brief Expose parse_template_type for testing.
- * @param c_type Type string.
- * @param out_type Destination FFI type pointer.
+ * @param[in] c_type Type string.
+ * @param[out] out_type Destination FFI type pointer.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 C_CDD_EXPORT cdd_c_error_t
@@ -87,10 +87,10 @@ cdd_ffi_parse_template_type_test(const char *c_type, cdd_ffi_type_t *out_type);
 
 /**
  * @brief Expose extract_single_file_exports for testing.
- * @param ir Pointer to FFI IR structure.
- * @param filename Name of file.
- * @param content String content.
- * @param config Pointer to generator configuration.
+ * @param[in,out] ir Pointer to FFI IR structure.
+ * @param[in] filename Name of file.
+ * @param[in] content String content.
+ * @param[in] config Pointer to generator configuration.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_extract_single_file_exports_test(
@@ -99,9 +99,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_extract_single_file_exports_test(
 
 /**
  * @brief Expose is_visited for testing.
- * @param ctx Pointer to include merge context.
- * @param path File path.
- * @param out_visited Pointer to output integer.
+ * @param[in,out] ctx Pointer to include merge context.
+ * @param[in] path File path.
+ * @param[out] out_visited Pointer to output integer.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_is_visited_test(void *ctx, const char *path,
@@ -109,8 +109,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_is_visited_test(void *ctx, const char *path,
 
 /**
  * @brief Expose add_visited for testing.
- * @param ctx Pointer to include merge context.
- * @param path File path.
+ * @param[in,out] ctx Pointer to include merge context.
+ * @param[in] path File path.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_add_visited_test(void *ctx,
@@ -118,8 +118,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_add_visited_test(void *ctx,
 
 /**
  * @brief Expose include_visitor for testing.
- * @param info Pointer to include information.
- * @param user_data Pointer to user context.
+ * @param[in] info Pointer to include information.
+ * @param[in,out] user_data Pointer to user context.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_include_visitor_test(const void *info,
@@ -127,9 +127,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_include_visitor_test(const void *info,
 
 /**
  * @brief Expose extract_exports_recursive for testing.
- * @param filename File path.
- * @param content String content.
- * @param ctx Pointer to user context.
+ * @param[in] filename File path.
+ * @param[in] content String content.
+ * @param[in,out] ctx Pointer to user context.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_extract_exports_recursive_test(
@@ -137,17 +137,17 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_extract_exports_recursive_test(
 
 /**
  * @brief Expose instantiate_templates for testing.
- * @param ir Pointer to FFI IR.
+ * @param[in,out] ir Pointer to FFI IR.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_instantiate_templates_test(cdd_ffi_ir_t *ir);
 
 /**
  * @brief Expose ir_add_node for testing.
- * @param ir Pointer to FFI IR.
- * @param kind Node kind.
- * @param name Node name.
- * @param out_node Pointer to receive node.
+ * @param[in,out] ir Pointer to FFI IR.
+ * @param[in] kind Node kind.
+ * @param[in] name Node name.
+ * @param[out] out_node Pointer to receive node.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 C_CDD_EXPORT cdd_c_error_t
@@ -156,17 +156,17 @@ cdd_ffi_ir_add_node_test(cdd_ffi_ir_t *ir, cdd_ffi_node_kind_t kind,
 
 /**
  * @brief Expose malloc for testing.
- * @param sz Size to allocate.
- * @param out_p Destination pointer.
+ * @param[in] sz Size to allocate.
+ * @param[out] out_p Destination pointer.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_malloc_test(size_t sz, void **out_p);
 
 /**
  * @brief Expose calloc for testing.
- * @param n Count.
- * @param sz Size of each element.
- * @param out_p Destination pointer.
+ * @param[in] n Count.
+ * @param[in] sz Size of each element.
+ * @param[out] out_p Destination pointer.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_calloc_test(size_t n, size_t sz,
@@ -174,9 +174,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_calloc_test(size_t n, size_t sz,
 
 /**
  * @brief Expose realloc for testing.
- * @param p Pointer to reallocate.
- * @param sz New size.
- * @param out_p Destination pointer.
+ * @param[in,out] p Pointer to reallocate.
+ * @param[in] sz New size.
+ * @param[out] out_p Destination pointer.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_realloc_test(void *p, size_t sz,
@@ -184,8 +184,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_realloc_test(void *p, size_t sz,
 
 /**
  * @brief Expose strdup for testing.
- * @param s String to duplicate.
- * @param out_s Destination string pointer.
+ * @param[in] s String to duplicate.
+ * @param[out] out_s Destination string pointer.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_strdup_test(const char *s, char **out_s);

@@ -42,9 +42,10 @@ struct cdd_cst_type_info_t {
 /**
  * @brief Evaluates sizeof and _Alignof for primitive types (int, long, etc)
  * based on ABI.
- * @param type_name The primitive type name (e.g. "int", "long", "long long").
- * @param abi The ABI model to use.
- * @param out_info Pointer to receive size and alignment.
+ * @param[in] type_name The primitive type name (e.g. "int", "long", "long
+ * long").
+ * @param[in] abi The ABI model to use.
+ * @param[out] out_info Pointer to receive size and alignment.
  * @return 0 on success, or ENOENT if type is unknown.
  */
 C_CDD_EXPORT cdd_c_error_t
@@ -54,10 +55,10 @@ cdd_cst_eval_primitive_type(const char *type_name, enum cdd_cst_abi_model_t abi,
 /**
  * @brief Evaluates sizeof a type node based on the given ABI and scope
  * environment.
- * @param env Scope environment for struct/union/typedef resolution.
- * @param type_node The node representing the type.
- * @param abi The target ABI model.
- * @param out_size Resulting size in bytes.
+ * @param[in,out] env Scope environment for struct/union/typedef resolution.
+ * @param[in,out] type_node The node representing the type.
+ * @param[in] abi The target ABI model.
+ * @param[out] out_size Resulting size in bytes.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env,
@@ -68,10 +69,10 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env,
 /**
  * @brief Evaluates _Alignof a type node based on the given ABI and scope
  * environment.
- * @param env Scope environment for struct/union/typedef resolution.
- * @param type_node The node representing the type.
- * @param abi The target ABI model.
- * @param out_align Resulting alignment in bytes.
+ * @param[in,out] env Scope environment for struct/union/typedef resolution.
+ * @param[in,out] type_node The node representing the type.
+ * @param[in] abi The target ABI model.
+ * @param[out] out_align Resulting alignment in bytes.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_eval_alignof(cdd_cst_scope_env_t *env,

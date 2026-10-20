@@ -23,6 +23,10 @@ extern "C" {
 #include "classes/parse/cdd_cst_factory.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_cdd_cst_builder_oom.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_builder_oom(void) {
 #ifdef CDD_BUILD_TESTS
   cdd_cst_builder_t b;
@@ -238,6 +242,10 @@ TEST test_cdd_cst_builder_oom(void) {
 /*  (moved to global) */
 #endif
 
+/**
+ * @brief Unit test test_cdd_cst_builder_punct_all.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_builder_punct_all(void) {
   cdd_cst_builder_t b;
   cdd_cst_tree_t *tree = NULL;
@@ -300,6 +308,7 @@ TEST test_cdd_cst_builder_punct_all(void) {
   /* Test all remaining builder functions for CDD_C_ERROR_INVALID_ARGUMENT and
    * error_state */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_include(NULL, "a", 0));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_include(&b, NULL, 0));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_ifndef(NULL, "a"));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_ifdef(NULL, "a"));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_line_comment(NULL, "a"));
@@ -313,12 +322,29 @@ TEST test_cdd_cst_builder_punct_all(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_block_comment(&b, "a"));
   b.error_state = 0;
 
-  cdd_cst_bld_include(&b, "a", 0);
-  cdd_cst_bld_ifndef(&b, "a");
-  cdd_cst_bld_ifdef(&b, "a");
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_bld_include(&b, "a", 0));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_bld_include(&b, "", 0));
+  {
+    char long_inc[350];
+    memset(long_inc, 'x', sizeof(long_inc) - 3);
+    long_inc[sizeof(long_inc) - 3] = '.';
+    long_inc[sizeof(long_inc) - 2] = 'h';
+    long_inc[sizeof(long_inc) - 1] = '\0';
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_bld_include(&b, long_inc, 1));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_bld_include(&b, long_inc, 0));
+  }
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_bld_ifndef(&b, "a"));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_bld_ifdef(&b, "a"));
 
 #ifdef CDD_BUILD_TESTS
   {
+    int i;
+    for (i = 1; i <= 10; i++) {
+      g_cdd_alloc_fail = i;
+      cdd_cst_bld_include(&b, "test_alloc_fail.h", 1);
+      g_cdd_alloc_fail = 0;
+      b.error_state = 0;
+    }
     /* extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail; (moved to global) */
     /* pool_string_safe OOM */
     g_cdd_cst_alloc_token_fail = 1;
@@ -378,6 +404,10 @@ TEST test_cdd_cst_builder_punct_all(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_cst_builder_exhaustive.
+ * @return Greatest test result.
+ */
 TEST test_cdd_cst_builder_exhaustive(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_builder_t b;
@@ -528,29 +558,18 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &empty_root);
     cdd_cst_builder_init(&empty_b, empty_tree, empty_root);
 
-    g_cdd_cst_alloc_token_fail = 1;
-    rc = cdd_cst_bld_block_comment(&empty_b, "comment");
-    ASSERT(rc != 0);
-    g_cdd_cst_alloc_token_fail = 0;
-    empty_b.error_state = 0;
-
-    g_cdd_cst_alloc_token_fail = 2;
-    rc = cdd_cst_bld_block_comment(&empty_b, "comment");
-    ASSERT(rc != 0);
-    g_cdd_cst_alloc_token_fail = 0;
-    empty_b.error_state = 0;
-
-    g_cdd_cst_alloc_token_fail = 3;
-    rc = cdd_cst_bld_block_comment(&empty_b, "comment");
-    ASSERT(rc != 0);
-    g_cdd_cst_alloc_token_fail = 0;
-    empty_b.error_state = 0;
-
-    g_cdd_cst_alloc_token_fail = 4;
-    rc = cdd_cst_bld_block_comment(&empty_b, "comment");
-    ASSERT(rc != 0);
-    g_cdd_cst_alloc_token_fail = 0;
-    empty_b.error_state = 0;
+    {
+      int step;
+      for (step = 1; step <= 8; ++step) {
+        g_cdd_alloc_fail = step;
+        rc = cdd_cst_bld_block_comment(&empty_b, "comment");
+        g_cdd_alloc_fail = 0;
+        empty_b.error_state = 0;
+        if (rc == CDD_C_SUCCESS)
+          break;
+        ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+      }
+    }
 
     empty_b.tree = NULL;
     rc = cdd_cst_bld_block_comment(&empty_b, "comment");
@@ -634,10 +653,12 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     g_cdd_alloc_fail = 2;
     g_cdd_cst_alloc_node_fail = 2;
     rc = cdd_cst_splice_nodes(&b, n1, 0, &new_n2, 1);
-    printf("splice_nodes rc=%d\\n", rc);
+    printf("splice_nodes rc=%d\n", rc);
     g_cdd_alloc_fail = 0;
     g_cdd_cst_alloc_node_fail = 0;
-    ASSERT_EQ(0, rc);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    cdd_cst_free_node(new_n2);
+    b.error_state = CDD_C_SUCCESS;
   }
 #endif
 
@@ -916,6 +937,9 @@ TEST test_cdd_cst_builder_exhaustive(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the cdd_cst_builder_exhaustive_suite test suite.
+ */
 SUITE(cdd_cst_builder_exhaustive_suite) {
   RUN_TEST(test_cdd_cst_builder_oom);
   RUN_TEST(test_cdd_cst_builder_punct_all);

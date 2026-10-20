@@ -1,3 +1,7 @@
+/**
+ * @file test_client_sig_utils.c
+ * @brief Unit tests and mocks in test_client_sig_utils.c.
+ */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -6,6 +10,10 @@
 #include "greatest.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_client_sig_utils.
+ * @return Greatest test result.
+ */
 TEST test_client_sig_utils(void) {
   int out;
   const struct OpenAPI_MediaType *mt_out;

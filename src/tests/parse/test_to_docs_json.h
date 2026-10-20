@@ -11,6 +11,9 @@ static FILE *cdd_freopen_helper_to_docs(const char *p, const char *m, FILE *s) {
 #define close _close
 #define fileno _fileno
 #else
+/**
+ * @brief Macro CDD_FREOPEN.
+ */
 #define CDD_FREOPEN freopen
 #endif
 /**
@@ -53,9 +56,18 @@ extern "C" {
 #endif
 /* clang-format on */
 
+/**
+ * @brief Macro TEMP_OUT_FILE.
+ */
 #define TEMP_OUT_FILE "to_docs_json_out.json"
+/**
+ * @brief Macro TEMP_SPEC_FILE.
+ */
 #define TEMP_SPEC_FILE "test_spec.json"
 
+/**
+ * @brief Helper function write_test_spec.
+ */
 static void write_test_spec(void) {
   const char spec[] = {
       123, 10,  32,  32,  34,  111, 112, 101, 110, 97,  112, 105, 34,  58,  32,
@@ -94,6 +106,10 @@ static void write_test_spec(void) {
   }
 }
 
+/**
+ * @brief Unit test test_to_docs_json_basic.
+ * @return Greatest test result.
+ */
 TEST test_to_docs_json_basic(void) {
   char *argv[3];
   int rc = 0;
@@ -172,6 +188,10 @@ TEST test_to_docs_json_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_to_docs_json_no_imports_no_wrapping.
+ * @return Greatest test result.
+ */
 TEST test_to_docs_json_no_imports_no_wrapping(void) {
   char *argv[5];
   int rc = 0;
@@ -252,6 +272,9 @@ TEST test_to_docs_json_no_imports_no_wrapping(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the to_docs_json_suite test suite.
+ */
 SUITE(to_docs_json_suite) {
   RUN_TEST(test_to_docs_json_basic);
   RUN_TEST(test_to_docs_json_no_imports_no_wrapping);

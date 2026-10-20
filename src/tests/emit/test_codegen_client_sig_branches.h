@@ -15,6 +15,10 @@ extern "C" {
 #include "emit/test_codegen_client_sig_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_sig_all_error_percolations_and_branches.
+ * @return Greatest test result.
+ */
 TEST test_sig_all_error_percolations_and_branches(void) {
   int int_val = 0;
   size_t sz_val = 0;
@@ -390,6 +394,9 @@ TEST test_sig_all_error_percolations_and_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the client_sig_branches_suite test suite.
+ */
 SUITE(client_sig_branches_suite) {
   RUN_TEST(test_sig_all_error_percolations_and_branches);
 }

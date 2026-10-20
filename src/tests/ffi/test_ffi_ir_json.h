@@ -1,3 +1,7 @@
+/**
+ * @file test_ffi_ir_json.h
+ * @brief Unit tests and mocks in test_ffi_ir_json.h.
+ */
 #ifndef TEST_FFI_IR_JSON_H
 #define TEST_FFI_IR_JSON_H
 
@@ -10,6 +14,11 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Helper function set_both_parson_allocs_ffi.
+ * @param[in,out] malloc_fun Parameter malloc_fun.
+ * @param[in,out] free_fun Parameter free_fun.
+ */
 static void set_both_parson_allocs_ffi(void *(*malloc_fun)(size_t),
                                        void (*free_fun)(void *)) {
   (json_set_allocation_functions)(malloc_fun, free_fun);
@@ -18,8 +27,15 @@ static void set_both_parson_allocs_ffi(void *(*malloc_fun)(size_t),
 #ifdef json_set_allocation_functions
 #undef json_set_allocation_functions
 #endif
+/**
+ * @brief Macro json_set_allocation_functions.
+ */
 #define json_set_allocation_functions set_both_parson_allocs_ffi
 
+/**
+ * @brief Unit test test_cdd_ffi_ir_json_basic.
+ * @return Greatest test result.
+ */
 TEST test_cdd_ffi_ir_json_basic(void) {
   cdd_ffi_ir_t ir = {0};
   char *json_str = NULL;
@@ -108,6 +124,10 @@ TEST test_cdd_ffi_ir_json_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_ffi_ir_json_nulls.
+ * @return Greatest test result.
+ */
 TEST test_cdd_ffi_ir_json_nulls(void) {
   char *json_str = NULL;
   cdd_ffi_ir_t *out_ir = NULL;
@@ -334,6 +354,10 @@ TEST test_cdd_ffi_ir_json_exhaustive_oom(void) {
 }
 #endif
 
+/**
+ * @brief Unit test test_cdd_ffi_emit_ir_json.
+ * @return Greatest test result.
+ */
 TEST test_cdd_ffi_emit_ir_json(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_generate_bindings_config_t config = {0};
@@ -366,6 +390,9 @@ TEST test_cdd_ffi_emit_ir_json(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the test_ffi_ir_json_suite test suite.
+ */
 SUITE(test_ffi_ir_json_suite) {
   RUN_TEST(test_cdd_ffi_ir_json_basic);
   RUN_TEST(test_cdd_ffi_ir_json_nulls);

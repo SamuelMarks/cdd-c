@@ -18,9 +18,9 @@ extern "C" {
 /**
  * @brief Walks a CST tree and unparses it back to a string.
  *
- * @param tree The CST tree.
- * @param out_str Pointer to a dynamically allocated null-terminated string.
- *                Caller must free it.
+ * @param[in,out] tree The CST tree.
+ * @param[out] out_str Pointer to a dynamically allocated null-terminated
+ * string. Caller must free it.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str);

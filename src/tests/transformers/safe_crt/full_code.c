@@ -7,6 +7,9 @@
 /* Test fixture without external headers */
 /* clang-format on */
 
+/**
+ * @brief Helper function f.
+ */
 void f() {
   char buf[100];
   char *str = "dummy";

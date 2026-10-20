@@ -14,6 +14,10 @@ extern "C" {
 #include "parse/test_c2openapi_op_helpers.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_build_custom_verb_additional.
+ * @return Greatest test result.
+ */
 TEST test_build_custom_verb_additional(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -51,6 +55,10 @@ TEST test_build_custom_verb_additional(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_response_multi_content.
+ * @return Greatest test result.
+ */
 TEST test_build_response_multi_content(void) {
   const struct OpenAPI_MediaType *_ast_find_response_media_type_0;
   const struct OpenAPI_MediaType *_ast_find_response_media_type_1;
@@ -103,6 +111,10 @@ TEST test_build_response_multi_content(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_response_headers.
+ * @return Greatest test result.
+ */
 TEST test_build_response_headers(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -161,6 +173,10 @@ TEST test_build_response_headers(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_response_links.
+ * @return Greatest test result.
+ */
 TEST test_build_response_links(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -225,6 +241,10 @@ TEST test_build_response_links(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_response_output_arg.
+ * @return Greatest test result.
+ */
 TEST test_build_response_output_arg(void) {
   /*
    * Case: int get_obj(struct Obj **out);
@@ -263,6 +283,10 @@ TEST test_build_response_output_arg(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_op_security_servers_request_body.
+ * @return Greatest test result.
+ */
 TEST test_build_op_security_servers_request_body(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -358,6 +382,10 @@ TEST test_build_op_security_servers_request_body(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_op_param_deprecated.
+ * @return Greatest test result.
+ */
 TEST test_build_op_param_deprecated(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -407,6 +435,10 @@ TEST test_build_op_param_deprecated(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_request_body_example.
+ * @return Greatest test result.
+ */
 TEST test_build_request_body_example(void) {
   /* */
   /* */
@@ -456,6 +488,10 @@ TEST test_build_request_body_example(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_request_body_default_content_type.
+ * @return Greatest test result.
+ */
 TEST test_build_request_body_default_content_type(void) {
   /* */
   /* */
@@ -503,6 +539,10 @@ TEST test_build_request_body_default_content_type(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_build_op_request_body_multi_content.
+ * @return Greatest test result.
+ */
 TEST test_build_op_request_body_multi_content(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -551,6 +591,9 @@ TEST test_build_op_request_body_multi_content(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the c2openapi_op_responses_suite test suite.
+ */
 SUITE(c2openapi_op_responses_suite) {
   RUN_TEST(test_build_custom_verb_additional);
   RUN_TEST(test_build_response_multi_content);

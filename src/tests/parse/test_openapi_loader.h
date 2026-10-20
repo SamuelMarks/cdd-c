@@ -35,6 +35,9 @@ extern "C" {
 #include "parse/test_openapi_headers_links_coverage.h"
 /* clang-format on */
 
+/**
+ * @brief Executes the openapi_loader_suite test suite.
+ */
 SUITE(openapi_loader_suite) {
   RUN_TEST(test_openapi_loader_100_percent_final);
   RUN_TEST(test_load_link_full_fields);

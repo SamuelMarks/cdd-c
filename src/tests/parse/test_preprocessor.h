@@ -2,6 +2,9 @@
 #ifdef _WIN32
 #define PATH_SEP_CHAR '\\'
 #else
+/**
+ * @brief Macro PATH_SEP_CHAR.
+ */
 #define PATH_SEP_CHAR '/'
 #endif
 #endif
@@ -51,6 +54,12 @@ struct TestPPCtx {
 };
 
 /* Updated mock callback for new signature */
+/**
+ * @brief Helper function mock_cb.
+ * @param[in] info Parameter info.
+ * @param[in,out] user_data Parameter user_data.
+ * @return Result status or value.
+ */
 static cdd_c_error_t mock_cb(const struct IncludeInfo *info, void *user_data) {
   struct TestPPCtx *ctx = (struct TestPPCtx *)user_data;
   ctx->count++;
@@ -87,20 +96,31 @@ static cdd_c_error_t mock_cb(const struct IncludeInfo *info, void *user_data) {
 
 /* --- Expression Evaluator Tests --- */
 
+/**
+ * @brief Helper function eval.
+ * @param[in] expr Parameter expr.
+ * @param[in,out] ctx Parameter ctx.
+ * @param[out] out Parameter out.
+ * @return Result status or value.
+ */
 static int eval(const char *expr, struct PreprocessorContext *ctx, long *out) {
   struct TokenList *tl = NULL;
   long res = 0;
   int rc;
   rc = tokenize(az_span_create_from_str(expr), &tl);
-  (void)rc;
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   rc = pp_eval_expression(tl, 0, tl->size, ctx, &res);
-  (void)rc;
   free_token_list(tl);
   if (out)
     *out = res;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
+/**
+ * @brief Unit test test_pp_eval_arithmetic.
+ * @return Greatest test result.
+ */
 TEST test_pp_eval_arithmetic(void) {
   {
     long out = 0;
@@ -141,6 +161,10 @@ TEST test_pp_eval_arithmetic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_eval_logical.
+ * @return Greatest test result.
+ */
 TEST test_pp_eval_logical(void) {
   {
     long out = 0;
@@ -176,6 +200,10 @@ TEST test_pp_eval_logical(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_eval_comparison.
+ * @return Greatest test result.
+ */
 TEST test_pp_eval_comparison(void) {
   {
     long out = 0;
@@ -211,6 +239,10 @@ TEST test_pp_eval_comparison(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_eval_defined.
+ * @return Greatest test result.
+ */
 TEST test_pp_eval_defined(void) {
   struct PreprocessorContext ctx;
   pp_context_init(&ctx);
@@ -236,6 +268,10 @@ TEST test_pp_eval_defined(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_eval_macros_as_values.
+ * @return Greatest test result.
+ */
 TEST test_pp_eval_macros_as_values(void) {
   struct PreprocessorContext ctx;
   pp_context_init(&ctx);
@@ -255,6 +291,10 @@ TEST test_pp_eval_macros_as_values(void) {
 
 /* --- Introspection Tests --- */
 
+/**
+ * @brief Unit test test_pp_has_include.
+ * @return Greatest test result.
+ */
 TEST test_pp_has_include(void) {
   struct PreprocessorContext ctx;
   char *tmp = NULL;
@@ -293,6 +333,10 @@ TEST test_pp_has_include(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_embed_params_parsing.
+ * @return Greatest test result.
+ */
 TEST test_pp_embed_params_parsing(void) {
   struct PreprocessorContext ctx;
   struct TestPPCtx tctx;
@@ -344,13 +388,16 @@ TEST test_pp_embed_params_parsing(void) {
 
 /* --- Conditional Inclusion Tests --- */
 
+/**
+ * @brief Unit test test_pp_ifdef_skip.
+ * @return Greatest test result.
+ */
 TEST test_pp_ifdef_skip(void) {
   char *tmp = NULL, *root = NULL, *main_c = NULL, *header = NULL;
   struct PreprocessorContext ctx;
   struct TestPPCtx tctx = {0, "", {-1, NULL, NULL, NULL}};
   int rc;
 
-  (void)rc;
   tempdir(&tmp);
   if (asprintf(&root, "%s%cpp_cond_%d", tmp, PATH_SEP_CHAR, rand())) {
   }
@@ -384,13 +431,16 @@ TEST test_pp_ifdef_skip(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_if_else.
+ * @return Greatest test result.
+ */
 TEST test_pp_if_else(void) {
   char *tmp = NULL, *root = NULL, *main_c = NULL, *h1 = NULL, *h2 = NULL;
   struct PreprocessorContext ctx;
   struct TestPPCtx tctx = {0, "", {-1, NULL, NULL, NULL}};
   int rc;
 
-  (void)rc;
   tempdir(&tmp);
   if (asprintf(&root, "%s%cpp_else_%d", tmp, PATH_SEP_CHAR, rand())) {
   }
@@ -429,13 +479,16 @@ TEST test_pp_if_else(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_nested_if.
+ * @return Greatest test result.
+ */
 TEST test_pp_nested_if(void) {
   char *tmp = NULL, *root = NULL, *main_c = NULL, *h1 = NULL;
   struct PreprocessorContext ctx;
   struct TestPPCtx tctx = {0, "", {-1, NULL, NULL, NULL}};
   int rc;
 
-  (void)rc;
   tempdir(&tmp);
   if (asprintf(&root, "%s%cpp_nest_%d", tmp, PATH_SEP_CHAR, rand())) {
   }
@@ -467,14 +520,26 @@ TEST test_pp_nested_if(void) {
   PASS();
 }
 
+/** @brief Test definition IncludeNextTestResult. */
 struct IncludeNextTestResult {
+  /** @brief Test definition called. */
   int called;
+  /** @brief Test definition kind. */
   enum PpDirectiveKind kind;
+  /** @brief Test definition is_next. */
   int is_next;
+  /** @brief Test definition is_system. */
   int is_system;
+  /** @brief Test definition raw_path[64]. */
   char raw_path[64];
 };
 
+/**
+ * @brief Helper function test_include_next_visitor.
+ * @param[in] info Parameter info.
+ * @param[in,out] user_data Parameter user_data.
+ * @return Result status or value.
+ */
 static cdd_c_error_t test_include_next_visitor(const struct IncludeInfo *info,
                                                void *user_data) {
   struct IncludeNextTestResult *res = (struct IncludeNextTestResult *)user_data;
@@ -488,6 +553,10 @@ static cdd_c_error_t test_include_next_visitor(const struct IncludeInfo *info,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Unit test test_pp_include_next.
+ * @return Greatest test result.
+ */
 TEST test_pp_include_next(void) {
   struct PreprocessorContext ctx;
   struct IncludeNextTestResult res;
@@ -498,7 +567,6 @@ TEST test_pp_include_next(void) {
   const char *sys_file = cdd_test_mut_str("test_include_next_sys/stdlib.h");
 
   memset(&res, 0, sizeof(res));
-  (void)rc;
   makedir(test_dir);
   makedir(sys_dir);
   write_to_file(test_file, "#include_next <stdlib.h>\n");
@@ -525,6 +593,12 @@ TEST test_pp_include_next(void) {
   PASS();
 }
 
+/**
+ * @brief Helper function abort_cb.
+ * @param[in] info Parameter info.
+ * @param[in,out] user_data Parameter user_data.
+ * @return Result status or value.
+ */
 static cdd_c_error_t abort_cb(const struct IncludeInfo *info, void *user_data) {
   int *called;
   called = (int *)user_data;
@@ -533,6 +607,10 @@ static cdd_c_error_t abort_cb(const struct IncludeInfo *info, void *user_data) {
   return 1; /* Abort on first */
 }
 
+/**
+ * @brief Unit test test_preprocessor_abort.
+ * @return Greatest test result.
+ */
 TEST test_preprocessor_abort(void) {
   struct PreprocessorContext ctx;
   int rc;
@@ -544,7 +622,6 @@ TEST test_preprocessor_abort(void) {
   char *sys_file1 = NULL;
   char *sys_file2 = NULL;
 
-  (void)rc;
   tempdir(&tmp);
   if (asprintf(&test_dir, "%s%cpp_abort_test_%d", tmp, PATH_SEP_CHAR, rand())) {
   }
@@ -589,6 +666,10 @@ TEST test_preprocessor_abort(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_scan_defines.
+ * @return Greatest test result.
+ */
 TEST test_pp_scan_defines(void) {
   int i;
   for (i = 1; i < 50; i++) {
@@ -596,7 +677,6 @@ TEST test_pp_scan_defines(void) {
     char *tmp = NULL, *root = NULL, *main_c = NULL;
     int rc;
 
-    (void)rc;
     tempdir(&tmp);
     if (asprintf(&root, "%s%cpp_scan_%d", tmp, PATH_SEP_CHAR, rand())) {
     }
@@ -636,6 +716,10 @@ TEST test_pp_scan_defines(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_pp_has_c_attribute.
+ * @return Greatest test result.
+ */
 TEST test_pp_has_c_attribute(void) {
   struct PreprocessorContext ctx;
   long out = 0;
@@ -652,6 +736,9 @@ TEST test_pp_has_c_attribute(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the preprocessor_suite test suite.
+ */
 SUITE(preprocessor_suite) {
   RUN_TEST(test_pp_scan_defines);
   RUN_TEST(test_pp_has_c_attribute);

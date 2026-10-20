@@ -1,3 +1,7 @@
+/**
+ * @file test_initializer_parser.h
+ * @brief Unit tests and mocks in test_initializer_parser.h.
+ */
 #ifndef TEST_INITIALIZER_PARSER_H
 #define TEST_INITIALIZER_PARSER_H
 
@@ -21,8 +25,15 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_initializer_fail_skip_ws. */
 extern C_CDD_EXPORT int g_initializer_fail_skip_ws;
 
+/**
+ * @brief Helper function tokenize_str.
+ * @param[in] s Parameter s.
+ * @param[in,out] _out_val Parameter _out_val.
+ * @return Result status or value.
+ */
 static cdd_c_error_t tokenize_str(const char *s, struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
   cdd_c_error_t rc = tokenize(az_span_create_from_str(s), &tl);

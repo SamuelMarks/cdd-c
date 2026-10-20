@@ -45,15 +45,26 @@ extern "C" {
 #include "c_cdd/memory.h"
 /* clang-format on */
 
+/** @brief Test definition g_socket_fail. */
 extern CDD_TEST_HELPERS_EXPORT int g_socket_fail;
+/** @brief Test definition g_bind_fail. */
 extern CDD_TEST_HELPERS_EXPORT int g_bind_fail;
+/** @brief Test definition g_listen_fail. */
 extern CDD_TEST_HELPERS_EXPORT int g_listen_fail;
+/** @brief Test definition g_getsockname_fail. */
 extern CDD_TEST_HELPERS_EXPORT int g_getsockname_fail;
+/** @brief Test definition g_pthread_create_fail. */
 extern CDD_TEST_HELPERS_EXPORT int g_pthread_create_fail;
+/** @brief Test definition g_accept_fail. */
 extern CDD_TEST_HELPERS_EXPORT int g_accept_fail;
 
 #ifndef __EMSCRIPTEN__
 
+/**
+ * @brief Helper function http_get.
+ * @param[in] port Parameter port.
+ * @return Result status or value.
+ */
 static cdd_c_error_t http_get(int port) {
   int sock;
   struct sockaddr_in server_addr;
@@ -97,6 +108,11 @@ static cdd_c_error_t http_get(int port) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Helper function http_connect_only.
+ * @param[in] port Parameter port.
+ * @return Result status or value.
+ */
 static cdd_c_error_t http_connect_only(int port) {
   int sock;
   struct sockaddr_in server_addr;
@@ -132,6 +148,10 @@ static cdd_c_error_t http_connect_only(int port) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Unit test test_mock_server_basic.
+ * @return Greatest test result.
+ */
 TEST test_mock_server_basic(void) {
   MockServerPtr server = NULL;
   struct MockServerRequest req;
@@ -171,6 +191,10 @@ TEST test_mock_server_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_mock_server_init_errors.
+ * @return Greatest test result.
+ */
 TEST test_mock_server_init_errors(void) {
   MockServerPtr server = NULL;
   cdd_c_error_t rc = 0;
@@ -200,6 +224,10 @@ TEST test_mock_server_init_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_mock_server_start_errors.
+ * @return Greatest test result.
+ */
 TEST test_mock_server_start_errors(void) {
   MockServerPtr server = NULL;
   cdd_c_error_t rc = 0;
@@ -247,6 +275,10 @@ TEST test_mock_server_start_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_mock_server_get_port_cases.
+ * @return Greatest test result.
+ */
 TEST test_mock_server_get_port_cases(void) {
   MockServerPtr server = NULL;
   int port = 999;
@@ -271,6 +303,10 @@ TEST test_mock_server_get_port_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_mock_server_destroy_cases.
+ * @return Greatest test result.
+ */
 TEST test_mock_server_destroy_cases(void) {
   MockServerPtr server = NULL;
   int port = 0;
@@ -300,6 +336,10 @@ TEST test_mock_server_destroy_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_mock_server_wait_errors.
+ * @return Greatest test result.
+ */
 TEST test_mock_server_wait_errors(void) {
   MockServerPtr server = NULL;
   struct MockServerRequest req;
@@ -331,6 +371,10 @@ TEST test_mock_server_wait_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_mock_server_cleanup_cases.
+ * @return Greatest test result.
+ */
 TEST test_mock_server_cleanup_cases(void) {
   struct MockServerRequest req;
   cdd_c_error_t rc = 0;
@@ -346,6 +390,10 @@ TEST test_mock_server_cleanup_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_mock_server_thread_branches.
+ * @return Greatest test result.
+ */
 TEST test_mock_server_thread_branches(void) {
   MockServerPtr server = NULL;
   struct MockServerRequest req;
@@ -387,8 +435,11 @@ TEST test_mock_server_thread_branches(void) {
   PASS();
 }
 
+/** @brief Test definition ClientThreadArg. */
 struct ClientThreadArg {
+  /** @brief Test definition port. */
   int port;
+  /** @brief Test definition result. */
   cdd_c_error_t result;
 };
 
@@ -400,6 +451,11 @@ static unsigned __stdcall client_thread_func(void *arg) {
   return 0;
 }
 #else
+/**
+ * @brief Helper function client_thread_func.
+ * @param[in,out] arg Parameter arg.
+ * @return Result status or value.
+ */
 static void *client_thread_func(void *arg) {
   struct ClientThreadArg *cta = (struct ClientThreadArg *)arg;
   usleep(20000);
@@ -408,6 +464,10 @@ static void *client_thread_func(void *arg) {
 }
 #endif
 
+/**
+ * @brief Unit test test_mock_server_concurrent_wait.
+ * @return Greatest test result.
+ */
 TEST test_mock_server_concurrent_wait(void) {
   MockServerPtr server = NULL;
   struct MockServerRequest req;
@@ -458,6 +518,10 @@ TEST test_mock_server_concurrent_wait(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_mock_server_client_errors.
+ * @return Greatest test result.
+ */
 TEST test_mock_server_client_errors(void) {
   cdd_c_error_t rc = 0;
 
@@ -478,6 +542,9 @@ TEST test_mock_server_client_errors(void) {
 
 #endif /* !__EMSCRIPTEN__ */
 
+/**
+ * @brief Executes the c_cdd_mock_server_suite test suite.
+ */
 SUITE(c_cdd_mock_server_suite) {
 #ifndef __EMSCRIPTEN__
   RUN_TEST(test_mock_server_basic);

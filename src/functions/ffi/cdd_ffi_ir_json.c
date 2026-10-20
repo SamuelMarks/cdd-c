@@ -524,7 +524,7 @@ static cdd_c_error_t parse_trivia(JSON_Array *arr, cdd_ffi_trivia_t **out) {
     node->kind = (cdd_ffi_trivia_kind_t)json_object_get_number(obj, "kind");
     if (strdup_safe(json_object_get_string(obj, "text"), &node->text) !=
         CDD_C_SUCCESS) {
-      free(node);
+      C_CDD_FREE(node);
       *out = head;
       return CDD_C_ERROR_MEMORY;
     }
@@ -860,7 +860,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_from_json(const char *json_str,
     if (ir->nodes_count > 0) {
       ir->nodes = C_CDD_CALLOC(ir->nodes_count, sizeof(cdd_ffi_ir_node_t));
       if (!ir->nodes) {
-        free(ir);
+        C_CDD_FREE(ir);
         json_value_free(root_val);
         return CDD_C_ERROR_MEMORY;
       }
@@ -869,7 +869,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_from_json(const char *json_str,
         rc = parse_node(json_array_get_object(nodes_arr, i), &ir->nodes[i]);
         if (rc != CDD_C_SUCCESS) {
           cdd_ffi_ir_free(ir);
-          free(ir);
+          C_CDD_FREE(ir);
           json_value_free(root_val);
           return rc;
         }

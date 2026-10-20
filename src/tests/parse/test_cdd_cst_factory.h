@@ -54,7 +54,6 @@ TEST test_cst_create_token(void) {
   int rc;
 
   rc = cdd_cst_parse(az_span_create_from_str(""), &tree);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -182,15 +181,10 @@ TEST test_cst_append_child_token(void) {
   ASSERT_EQ(0, cdd_cst_append_child_token(parent, tok));
   ASSERT_EQ(17, parent->num_children);
 
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_mock_cdd_cst_append_child_token_fail;
-    g_mock_cdd_cst_append_child_token_fail = 2;
-    ASSERT_EQ(0, cdd_cst_append_child_token(parent, tok));
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_cst_append_child_token(parent, tok));
-    g_mock_cdd_cst_append_child_token_fail = 0;
-  }
-#endif
+  parent->capacity = parent->num_children;
+  g_cdd_cst_realloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_append_child_token(parent, tok));
+  g_cdd_cst_realloc_fail = 0;
 
   cdd_cst_free_node_only(parent);
   cdd_cst_tree_free(tree);
@@ -212,7 +206,6 @@ TEST test_cst_parse_format(void) {
   cdd_cst_node_t *node = NULL;
   int rc;
 
-  (void)rc;
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -241,6 +234,7 @@ TEST test_cst_parse_format(void) {
 
 /**
  * @brief Test test_cst_parse_format is now in the suite
+ * @return Test or helper result.
  */
 
 #ifdef CDD_BUILD_TESTS
@@ -271,7 +265,11 @@ TEST test_cdd_cst_parse_format_oom(void) {
       {
         int rc_tmp = cdd_cst_parse_format(tree, &node, "int x;");
         g_cdd_cst_alloc_node_fail = 0;
-        (void)rc_tmp;
+        if (rc_tmp == CDD_C_SUCCESS) {
+          ASSERT(node != NULL);
+        } else {
+          ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_tmp);
+        }
         if (node) {
           cdd_cst_free_node(node);
           node = NULL;
@@ -318,13 +316,16 @@ TEST test_cst_free_node(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cst_parse_format_branches.
+ * @return Greatest test result.
+ */
 TEST test_cst_parse_format_branches(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *node = NULL;
   int rc;
   int i;
 
-  (void)rc;
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
 
   /* Token at root */
@@ -361,12 +362,15 @@ TEST test_cst_parse_format_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cst_parse_format_extra.
+ * @return Greatest test result.
+ */
 TEST test_cst_parse_format_extra(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *node = NULL;
   int rc;
 
-  (void)rc;
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
 
   /* Provide a large formatted string to test `vasprintf` failure path or large
@@ -402,6 +406,9 @@ TEST test_cst_parse_format_extra(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the cdd_cst_factory_suite test suite.
+ */
 SUITE(cdd_cst_factory_suite) {
   RUN_TEST(test_cst_alloc_node);
   RUN_TEST(test_cst_create_token);

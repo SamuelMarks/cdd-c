@@ -831,7 +831,7 @@ static cdd_c_error_t parse_primary(parser_t *p, cdd_macro_eval_result_t *out) {
     next_tok(&p->lex);
   } else if (p->lex.cur.kind == TOK_STR) {
     r.type = MACRO_EVAL_TYPE_STRING;
-    r.str_val = strdup(p->lex.cur.str_val);
+    r.str_val = C_CDD_STRDUP(p->lex.cur.str_val);
     next_tok(&p->lex);
   } else if (p->lex.cur.kind == TOK_IDENT) {
     /* macro reference */

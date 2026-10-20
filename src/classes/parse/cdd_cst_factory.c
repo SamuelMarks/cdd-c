@@ -8,18 +8,13 @@
 
 #include "cdd_cst_factory.h"
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 #include "cdd_cst_mutate.h"
 #include <errno.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
-/** @brief Global flag to simulate token allocation failure */
-C_CDD_EXPORT int g_cdd_cst_alloc_token_fail = 0;
-/** @brief Global flag to simulate realloc failure */
-C_CDD_EXPORT int g_cdd_cst_realloc_fail = 0;
-/** @brief Global flag to simulate node allocation failure */
-C_CDD_EXPORT int g_cdd_cst_alloc_node_fail = 0;
 
 /**
  * @brief Allocates a new empty CST node of the given kind.
@@ -31,14 +26,9 @@ cdd_c_error_t cdd_cst_alloc_node(enum cdd_cst_node_kind_t kind,
   cdd_cst_node_t *n;
   if (!out_node)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_cst_alloc_node_fail && --g_cdd_cst_alloc_node_fail == 0)
-    n = NULL;
-  else
-#endif
-    n = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+  n = (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
   if (!n) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    C_CDD_LOG_DEBUG("ENOMEM: OOM");
     return CDD_C_ERROR_MEMORY;
   }
   n->kind = kind;
@@ -58,16 +48,10 @@ static cdd_c_error_t track_synthesized(cdd_cst_tree_t *tree, cdd_token_t *tok) {
   if (tree->num_synthesized >= tree->synthesized_capacity) {
     size_t new_cap =
         tree->synthesized_capacity == 0 ? 128 : tree->synthesized_capacity * 2;
-    cdd_token_t **new_arr;
-#ifdef CDD_BUILD_TESTS
-    if (g_cdd_cst_realloc_fail && --g_cdd_cst_realloc_fail == 0)
-      new_arr = NULL;
-    else
-#endif
-      new_arr = (cdd_token_t **)realloc(tree->synthesized_tokens,
-                                        new_cap * sizeof(cdd_token_t *));
+    cdd_token_t **new_arr = (cdd_token_t **)C_CDD_REALLOC(
+        tree->synthesized_tokens, new_cap * sizeof(cdd_token_t *));
     if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+      C_CDD_LOG_DEBUG("ENOMEM: OOM");
       return CDD_C_ERROR_MEMORY;
     }
     tree->synthesized_tokens = new_arr;
@@ -89,17 +73,9 @@ cdd_c_error_t cdd_cst_create_token_len(cdd_cst_tree_t *tree,
   cdd_token_t *tok;
   if (!out_token || !tree)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0) {
-    tok = NULL;
-  } else {
-#endif
-    tok = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
-#ifdef CDD_BUILD_TESTS
-  }
-#endif
+  tok = (cdd_token_t *)C_CDD_CALLOC(1, sizeof(cdd_token_t));
   if (!tok) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    C_CDD_LOG_DEBUG("ENOMEM: OOM");
     return CDD_C_ERROR_MEMORY;
   }
 
@@ -110,7 +86,7 @@ cdd_c_error_t cdd_cst_create_token_len(cdd_cst_tree_t *tree,
   {
     cdd_c_error_t rc = track_synthesized(tree, tok);
     if (rc != CDD_C_SUCCESS) {
-      free(tok);
+      C_CDD_FREE(tok);
       return rc;
     }
   }
@@ -140,22 +116,12 @@ cdd_c_error_t cdd_cst_append_child_node(cdd_cst_node_t *parent,
   if (!parent || !child)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (parent->num_children >= parent->capacity) {
-#ifdef CDD_BUILD_TESTS
-    size_t new_cap = parent->capacity + 1;
-#else
-    size_t new_cap = parent->capacity == 0 ? 8 : parent->capacity * 2;
-#endif
-    cdd_cst_child_t *new_arr;
-#ifdef CDD_BUILD_TESTS
-    if (g_cdd_cst_realloc_fail && --g_cdd_cst_realloc_fail == 0)
-      new_arr = NULL;
-    else
-#endif
-      new_arr = (cdd_cst_child_t *)realloc(parent->children,
-                                           new_cap * sizeof(cdd_cst_child_t));
+  {
+    size_t new_cap = parent->num_children + 1;
+    cdd_cst_child_t *new_arr = (cdd_cst_child_t *)C_CDD_REALLOC(
+        parent->children, new_cap * sizeof(cdd_cst_child_t));
     if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+      C_CDD_LOG_DEBUG("ENOMEM: OOM");
       return CDD_C_ERROR_MEMORY;
     }
     parent->children = new_arr;
@@ -169,10 +135,6 @@ cdd_c_error_t cdd_cst_append_child_node(cdd_cst_node_t *parent,
   return CDD_C_SUCCESS;
 }
 
-#ifdef CDD_BUILD_TESTS
-/** @brief Mock failure counter for cdd_cst_append_child_token */
-C_CDD_EXPORT int g_mock_cdd_cst_append_child_token_fail = 0;
-#endif
 /**
  * @brief Appends a child lexical token to a parent CST node.
  *
@@ -180,32 +142,15 @@ C_CDD_EXPORT int g_mock_cdd_cst_append_child_token_fail = 0;
  */
 cdd_c_error_t cdd_cst_append_child_token(cdd_cst_node_t *parent,
                                          cdd_token_t *token) {
-#ifdef CDD_BUILD_TESTS
-  if (g_mock_cdd_cst_append_child_token_fail) {
-    if (--g_mock_cdd_cst_append_child_token_fail == 0) {
-      return CDD_C_ERROR_UNKNOWN;
-    }
-  }
-#endif
   if (!parent || !token)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (parent->num_children >= parent->capacity) {
-#ifdef CDD_BUILD_TESTS
     size_t new_cap = parent->capacity + 1;
-#else
-    size_t new_cap = parent->capacity == 0 ? 8 : parent->capacity * 2;
-#endif
-    cdd_cst_child_t *new_arr;
-#ifdef CDD_BUILD_TESTS
-    if (g_cdd_cst_realloc_fail && --g_cdd_cst_realloc_fail == 0)
-      new_arr = NULL;
-    else
-#endif
-      new_arr = (cdd_cst_child_t *)realloc(parent->children,
-                                           new_cap * sizeof(cdd_cst_child_t));
+    cdd_cst_child_t *new_arr = (cdd_cst_child_t *)C_CDD_REALLOC(
+        parent->children, new_cap * sizeof(cdd_cst_child_t));
     if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+      C_CDD_LOG_DEBUG("ENOMEM: OOM");
       return CDD_C_ERROR_MEMORY;
     }
     parent->children = new_arr;
@@ -225,8 +170,8 @@ void cdd_cst_free_node_only(cdd_cst_node_t *node) {
   if (!node)
     return;
   if (node->children)
-    free(node->children);
-  free(node);
+    C_CDD_FREE(node->children);
+  C_CDD_FREE(node);
 }
 
 /**

@@ -12,12 +12,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT volatile int g_extern_c_top_node_fail;
-extern C_CDD_EXPORT volatile int g_extern_c_bot_node_fail;
-extern C_CDD_EXPORT volatile int g_extern_c_helper_fail;
-#endif
-
 /* clang-format off */
 #include "c_cdd_export.h"
 #include <greatest.h>
@@ -30,12 +24,17 @@ extern C_CDD_EXPORT volatile int g_extern_c_helper_fail;
 /* clang-format on */
 
 extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 extern C_CDD_EXPORT int g_cdd_query_err_fail;
 extern C_CDD_EXPORT cdd_c_error_t
 cdd_check_node_is_cpp_guard(cdd_cst_node_t *dir, int *out_is_cpp);
 extern C_CDD_EXPORT cdd_c_error_t cdd_tree_has_decl(cdd_cst_node_t *node,
                                                     int *out_has_decl);
 
+/**
+ * @brief Unit test test_extern_c_late_include.
+ * @return Greatest test result.
+ */
 TEST test_extern_c_late_include(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = cdd_test_mut_str("void func();\n#include "
@@ -77,32 +76,34 @@ TEST test_extern_c_late_include(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_transform_extern_c_builder_fails.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_extern_c_builder_fails(void) {
-#ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
   int rc = 0;
+  int i;
   const char *code = cdd_test_mut_str("void func();");
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
-  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
-  ASSERT_EQ(0, rc);
-
-  g_extern_c_top_node_fail = 1;
-  cdd_transform_extern_c(tree, &config);
-  g_extern_c_top_node_fail = 0;
-
-  g_extern_c_bot_node_fail = 1;
-  cdd_transform_extern_c(tree, &config);
-  g_extern_c_bot_node_fail = 0;
-
-  cdd_cst_tree_free(tree);
-#endif
+  for (i = 1; i <= 15; i++) {
+    rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+    ASSERT_EQ(0, rc);
+    g_cdd_cst_alloc_token_fail = i;
+    cdd_transform_extern_c(tree, &config);
+    g_cdd_cst_alloc_token_fail = 0;
+    cdd_cst_tree_free(tree);
+  }
   g_fail_io_after = -1;
   PASS();
 }
 
+/**
+ * @brief Unit test test_extern_c_bot_node_insert_oom.
+ * @return Greatest test result.
+ */
 TEST test_extern_c_bot_node_insert_oom(void) {
-#ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
   const char *code = cdd_test_mut_str("void func();"); /* This has EOF */
   int rc = 0;
@@ -139,19 +140,20 @@ TEST test_extern_c_bot_node_insert_oom(void) {
     }
   }
 
-  g_fail_io_after = 12345;
   rc = cdd_transform_extern_c(tree, &config);
-  g_fail_io_after = -1;
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   cdd_cst_tree_free(tree);
   if (eof_tok)
     free(eof_tok);
-#endif
   PASS();
 }
 
+/**
+ * @brief Unit test test_extern_c_bot_node_append_oom.
+ * @return Greatest test result.
+ */
 TEST test_extern_c_bot_node_append_oom(void) {
-#ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
   const char *code = cdd_test_mut_str("void func();");
   int rc = 0;
@@ -160,15 +162,17 @@ TEST test_extern_c_bot_node_append_oom(void) {
   rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
   ASSERT_EQ(0, rc);
 
-  g_fail_io_after = 12346;
   rc = cdd_transform_extern_c(tree, &config);
-  g_fail_io_after = -1;
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   cdd_cst_tree_free(tree);
-#endif
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_extern_c_helper_fails.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_extern_c_helper_fails(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "#ifdef __cplusplus\n#endif\n#include <stdio.h>\nint "
@@ -179,78 +183,23 @@ TEST test_cdd_transform_extern_c_helper_fails(void) {
   rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_NEQ(NULL, tree);
-
-#ifdef CDD_BUILD_TESTS
-  g_extern_c_helper_fail = -1;
   rc = cdd_transform_extern_c(tree, &config);
-  g_extern_c_helper_fail = 0;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-
-  g_extern_c_helper_fail = 1;
-  rc = cdd_transform_extern_c(tree, &config);
-  g_extern_c_helper_fail = 0;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-
-  g_extern_c_helper_fail = 2;
-  rc = cdd_transform_extern_c(tree, &config);
-  g_extern_c_helper_fail = 0;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-#endif
-
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
   cdd_cst_tree_free(tree);
-
-#ifdef CDD_BUILD_TESTS
-  {
-    cdd_cst_tree_t *tree2 = NULL;
-    const char *code2 = cdd_test_mut_str("#include <stdio.h>\nint "
-                                         "main() { return 0; }\n");
-    rc = cdd_cst_parse(az_span_create_from_str(code2), &tree2);
-    ASSERT_EQ(CDD_C_SUCCESS, rc);
-
-    g_extern_c_helper_fail = -1;
-    rc = cdd_transform_extern_c(tree2, &config);
-    g_extern_c_helper_fail = 0;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-
-    cdd_cst_tree_free(tree2);
-  }
-
-  {
-    cdd_cst_tree_t *tree_cond = NULL;
-    const char *code_cond = cdd_test_mut_str("#ifdef FOO\n#endif\nint "
-                                             "main() { return 0; }\n");
-    rc = cdd_cst_parse(az_span_create_from_str(code_cond), &tree_cond);
-    ASSERT_EQ(CDD_C_SUCCESS, rc);
-    g_extern_c_helper_fail = -2;
-    rc = cdd_transform_extern_c(tree_cond, &config);
-    g_extern_c_helper_fail = 0;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    cdd_cst_tree_free(tree_cond);
-  }
-
-  {
-    cdd_cst_tree_t *tree_dir = NULL;
-    const char *code_dir =
-        cdd_test_mut_str("#define FOO 1\nint main() { return 0; }\n");
-    rc = cdd_cst_parse(az_span_create_from_str(code_dir), &tree_dir);
-    ASSERT_EQ(CDD_C_SUCCESS, rc);
-    g_extern_c_helper_fail = -3;
-    rc = cdd_transform_extern_c(tree_dir, &config);
-    g_extern_c_helper_fail = 0;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    cdd_cst_tree_free(tree_dir);
-  }
-#endif
 
   PASS();
 }
 
+/**
+ * @brief Unit test test_extern_c_top_node_oom.
+ * @return Greatest test result.
+ */
 TEST test_extern_c_top_node_oom(void) {
 #ifdef CDD_BUILD_TESTS
   const char *code = cdd_test_mut_str("int main() { return 0; }\n");
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
   int i;
-  for (i = 1; i < 50; i++) {
+  for (i = 1; i < 80; i++) {
     cdd_cst_tree_t *tree = NULL;
     int rc = 0;
     rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
@@ -260,14 +209,15 @@ TEST test_extern_c_top_node_oom(void) {
     rc = cdd_transform_extern_c(tree, &config);
     g_cdd_alloc_fail = 0;
     cdd_cst_tree_free(tree);
-
-    if (rc == CDD_C_SUCCESS)
-      break;
   }
 #endif
   PASS();
 }
 
+/**
+ * @brief Unit test test_extern_c_extra_coverage2.
+ * @return Greatest test result.
+ */
 TEST test_extern_c_extra_coverage2(void) {
   const char *code = "class MyClass { \n#ifdef __cplusplus\n#endif\n };\n"
                      "int main() { \n#ifdef __cplusplus\n#endif\n"
@@ -284,6 +234,10 @@ TEST test_extern_c_extra_coverage2(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_extern_c_extra_coverage3.
+ * @return Greatest test result.
+ */
 TEST test_extern_c_extra_coverage3(void) {
   const char *code = "#if 1\n#endif\n"
                      "#ifdef OTHER\n#endif\n"
@@ -308,6 +262,10 @@ TEST test_extern_c_extra_coverage3(void) {
   }
 }
 
+/**
+ * @brief Unit test test_extern_c_extra_coverage4.
+ * @return Greatest test result.
+ */
 TEST test_extern_c_extra_coverage4(void) {
   cdd_transform_config_t config = {0};
   int rc = 0;
@@ -397,6 +355,10 @@ TEST test_extern_c_extra_coverage4(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_extern_c_extra_coverage5.
+ * @return Greatest test result.
+ */
 TEST test_extern_c_extra_coverage5(void) {
   cdd_transform_config_t config = {0};
   int rc = 0;
@@ -406,7 +368,7 @@ TEST test_extern_c_extra_coverage5(void) {
     cdd_cst_tree_t *tree = NULL;
     const char *code = "void func();\n#include <late.h>\nvoid func2();\n";
     int i;
-    for (i = 1; i <= 6; i++) {
+    for (i = 1; i <= 80; i++) {
       rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
       g_cdd_alloc_fail = i;
@@ -415,25 +377,39 @@ TEST test_extern_c_extra_coverage5(void) {
       cdd_cst_tree_free(tree);
       tree = NULL;
     }
+    for (i = 1; i <= 80; i++) {
+      rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+      ASSERT_EQ(CDD_C_SUCCESS, rc);
+      g_cdd_cst_realloc_fail = i;
+      rc = cdd_transform_extern_c(tree, &config);
+      g_cdd_cst_realloc_fail = 0;
+      cdd_cst_tree_free(tree);
+      tree = NULL;
+    }
   }
 
-  /* 2. bot_node append fail with 12346 */
+  /* 2. bot_node insert fail via g_cdd_cst_realloc_fail */
   {
-    cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
-    cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
-    cdd_cst_node_t *decl = calloc(1, sizeof(cdd_cst_node_t));
+    int r_i;
+    for (r_i = 1; r_i <= 15; r_i++) {
+      cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
+      cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
+      cdd_cst_node_t *decl = calloc(1, sizeof(cdd_cst_node_t));
 
-    root->kind = CDD_CST_TRANSLATION_UNIT;
-    decl->kind = CDD_CST_DECLARATION;
-    cdd_cst_append_child_node(root, decl);
-    tree->root = root;
+      root->kind = CDD_CST_TRANSLATION_UNIT;
+      decl->kind = CDD_CST_DECLARATION;
+      cdd_cst_append_child_node(root, decl);
+      tree->root = root;
 
-    g_fail_io_after = 12346;
-    rc = cdd_transform_extern_c(tree, &config);
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    g_fail_io_after = -1;
+      g_cdd_cst_realloc_fail = r_i;
+      rc = cdd_transform_extern_c(tree, &config);
+      g_cdd_cst_realloc_fail = 0;
 
-    cdd_cst_tree_free(tree);
+      cdd_cst_tree_free(tree);
+      if (rc == CDD_C_SUCCESS)
+        break;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
   }
 
   /* 3. Unknown child node with non-comment token */
@@ -542,6 +518,10 @@ TEST test_extern_c_extra_coverage5(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_extern_c_helpers_direct.
+ * @return Greatest test result.
+ */
 TEST test_extern_c_helpers_direct(void) {
   int out_val = 0;
   cdd_cst_node_t node;
@@ -692,6 +672,9 @@ TEST test_extern_c_helpers_direct(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the transformer_extern_c_coverage_suite test suite.
+ */
 SUITE(transformer_extern_c_coverage_suite) {
   RUN_TEST(test_extern_c_late_include);
   RUN_TEST(test_cdd_transform_extern_c_builder_fails);

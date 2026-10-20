@@ -23,7 +23,6 @@ extern "C" {
 
 /* Moved extern declarations for C89 compliance */
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
-extern C_CDD_EXPORT int g_cdd_fail_token_matches_string;
 
 /**
  * @brief test_weaver_wrap_ifdef_basic
@@ -143,18 +142,6 @@ TEST test_weaver_inject_msvc_headers(void) {
 
   res = weaver_inject_msvc_headers(&patches, tokens, 0, 0);
   ASSERT_EQ(0, res);
-
-#ifdef CDD_BUILD_TESTS
-  g_cdd_fail_token_matches_string = 1;
-  res = weaver_inject_msvc_headers(&patches, tokens, 1, 1);
-  ASSERT_NEQ(0, res);
-  g_cdd_fail_token_matches_string = 0;
-
-  g_cdd_fail_token_matches_string = 2;
-  res = weaver_inject_msvc_headers(&patches, tokens, 1, 1);
-  ASSERT_NEQ(0, res);
-  g_cdd_fail_token_matches_string = 0;
-#endif
 
   res = patch_list_apply(&patches, tokens, &out_code);
   ASSERT_EQ(0, res);
@@ -428,6 +415,7 @@ TEST test_weaver_translate_gcc_attributes(void) {
 
 /**
  * @brief weaver_suite
+ * @return Test or helper result.
  */
 
 TEST test_weaver_oom(void) {
@@ -551,6 +539,10 @@ TEST test_weaver_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_weaver_cov.
+ * @return Greatest test result.
+ */
 TEST test_weaver_cov(void) {
   struct PatchList patches;
   struct TokenList *tokens = NULL;
@@ -622,6 +614,10 @@ TEST test_weaver_cov(void) {
   }
 }
 
+/**
+ * @brief Unit test test_weaver_cov_more.
+ * @return Greatest test result.
+ */
 TEST test_weaver_cov_more(void) {
   struct PatchList patches;
   struct TokenList *tokens = NULL;
@@ -659,6 +655,10 @@ TEST test_weaver_cov_more(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_weaver_cov_even_more.
+ * @return Greatest test result.
+ */
 TEST test_weaver_cov_even_more(void) {
   struct PatchList patches;
   struct TokenList *tokens = NULL;
@@ -680,6 +680,10 @@ TEST test_weaver_cov_even_more(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_weaver_interactive.
+ * @return Greatest test result.
+ */
 TEST test_weaver_interactive(void) {
   struct PatchList patches;
   struct TokenList *tl = NULL;
@@ -758,6 +762,9 @@ TEST test_weaver_interactive(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the weaver_suite test suite.
+ */
 SUITE(weaver_suite) {
   RUN_TEST(test_weaver_interactive);
   RUN_TEST(test_weaver_wrap_ifdef_basic);

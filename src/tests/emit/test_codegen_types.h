@@ -480,6 +480,10 @@ TEST test_root_array_obj_to_json(void) {
 }
 
 /* Guard Logic */
+/**
+ * @brief Unit test test_union_guards.
+ * @return Greatest test result.
+ */
 TEST test_union_guards(void) {
   struct StructFields sf;
   struct CodegenTypesConfig cfg;
@@ -594,6 +598,10 @@ TEST test_types_null_args(void) {
 #else
 #endif
 
+/**
+ * @brief Unit test test_types_io_fail.
+ * @return Greatest test result.
+ */
 TEST test_types_io_fail(void) {
   struct StructFields sf;
   FILE *tmp;
@@ -653,6 +661,7 @@ TEST test_types_io_fail(void) {
 
 /**
  * @brief codegen_types_suite
+ * @return Test or helper result.
  */
 
 #ifdef CDD_BUILD_TESTS
@@ -726,6 +735,9 @@ TEST test_types_edge_cases_no_io(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the codegen_types_suite test suite.
+ */
 SUITE(codegen_types_suite) {
   RUN_TEST(test_write_union_to_json);
   RUN_TEST(test_write_union_from_json_object);

@@ -4,6 +4,7 @@
  */
 /* clang-format off */
 #include "cdd_c_error.h"
+#include "c_cdd/memory.h"
 #include "c_cdd/safe_crt_msvc.h"
 
 #include "../../include/ffi/cdd_ffi_ir.h"
@@ -24,9 +25,9 @@ typedef struct {
 
 /**
  * @brief Finds the index of a node by name.
- * @param ir The IR.
- * @param name The name to find.
- * @param out_idx Pointer to receive the matched node index.
+ * @param[in,out] ir The IR.
+ * @param[in] name The name to find.
+ * @param[out] out_idx Pointer to receive the matched node index.
  * @return CDD_C_SUCCESS if found, CDD_C_ERROR_NOT_FOUND if not found.
  */
 static cdd_c_error_t find_node_index(cdd_ffi_ir_t *ir, const char *name,
@@ -49,8 +50,8 @@ extern C_CDD_EXPORT int g_cdd_ffi_ir_toposort_fail;
 
 /**
  * @brief DFS function for topological sorting.
- * @param ctx The sort context.
- * @param node_idx The index of the current node.
+ * @param[in,out] ctx The sort context.
+ * @param[in] node_idx The index of the current node.
  * @return CDD_C_SUCCESS on success, or an error code on failure.
  */
 static cdd_c_error_t toposort_dfs(toposort_ctx_t *ctx, size_t node_idx) {
@@ -155,7 +156,7 @@ cdd_c_error_t cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir) {
     ctx.visited = NULL;
   else
 #endif
-    ctx.visited = (int *)calloc(ir->nodes_count, sizeof(int));
+    ctx.visited = (int *)C_CDD_CALLOC(ir->nodes_count, sizeof(int));
   if (!ctx.visited) {
     return CDD_C_ERROR_MEMORY;
   }
@@ -165,10 +166,10 @@ cdd_c_error_t cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir) {
     ctx.sorted_nodes = NULL;
   else
 #endif
-    ctx.sorted_nodes = (cdd_ffi_ir_node_t *)malloc(ir->nodes_count *
-                                                   sizeof(cdd_ffi_ir_node_t));
+    ctx.sorted_nodes = (cdd_ffi_ir_node_t *)C_CDD_MALLOC(
+        ir->nodes_count * sizeof(cdd_ffi_ir_node_t));
   if (!ctx.sorted_nodes) {
-    free(ctx.visited);
+    C_CDD_FREE(ctx.visited);
     return CDD_C_ERROR_MEMORY;
   }
   ctx.sorted_count = 0;
@@ -178,8 +179,8 @@ cdd_c_error_t cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir) {
       {
         cdd_c_error_t rc = toposort_dfs(&ctx, i);
         if (rc != CDD_C_SUCCESS) {
-          free(ctx.visited);
-          free(ctx.sorted_nodes);
+          C_CDD_FREE(ctx.visited);
+          C_CDD_FREE(ctx.sorted_nodes);
           return rc;
         }
       }
@@ -187,11 +188,11 @@ cdd_c_error_t cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir) {
   }
 
   /* Replace original nodes array with the sorted one */
-  free(ir->nodes);
+  C_CDD_FREE(ir->nodes);
   ir->nodes = ctx.sorted_nodes;
   ir->nodes_capacity = ir->nodes_count;
 
-  free(ctx.visited);
+  C_CDD_FREE(ctx.visited);
   return CDD_C_SUCCESS;
 }
 
@@ -204,8 +205,8 @@ static void free_trivia_chain(cdd_ffi_trivia_t *trivia) {
   while (trivia) {
     cdd_ffi_trivia_t *next = trivia->next;
     if (trivia->text)
-      free(trivia->text);
-    free(trivia);
+      C_CDD_FREE(trivia->text);
+    C_CDD_FREE(trivia);
     trivia = next;
   }
 }
@@ -218,11 +219,11 @@ static void free_trivia_chain(cdd_ffi_trivia_t *trivia) {
  */
 static void free_type_recursive(cdd_ffi_type_t *type) {
   if (type->ref_name) {
-    free(type->ref_name);
+    C_CDD_FREE(type->ref_name);
     type->ref_name = NULL;
   }
   if (type->raw_spelling) {
-    free(type->raw_spelling);
+    C_CDD_FREE(type->raw_spelling);
     type->raw_spelling = NULL;
   }
   free_trivia_chain(type->leading_trivia);
@@ -232,7 +233,7 @@ static void free_type_recursive(cdd_ffi_type_t *type) {
     for (i = 0; i < type->template_args_count; i++) {
       free_type_recursive(&type->template_args[i]);
     }
-    free(type->template_args);
+    C_CDD_FREE(type->template_args);
     type->template_args = NULL;
   }
 }
@@ -251,16 +252,16 @@ void cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
 
     if (node->name) {
-      free(node->name);
+      C_CDD_FREE(node->name);
     }
     if (node->doc) {
-      free(node->doc);
+      C_CDD_FREE(node->doc);
     }
     if (node->evaluated_value) {
-      free(node->evaluated_value);
+      C_CDD_FREE(node->evaluated_value);
     }
     if (node->raw_body) {
-      free(node->raw_body);
+      C_CDD_FREE(node->raw_body);
     }
     free_trivia_chain(node->leading_trivia);
     free_trivia_chain(node->trailing_trivia);
@@ -270,32 +271,32 @@ void cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
     if (node->fields) {
       for (j = 0; j < node->fields_count; j++) {
         if (node->fields[j].name) {
-          free(node->fields[j].name);
+          C_CDD_FREE(node->fields[j].name);
         }
         if (node->fields[j].doc) {
-          free(node->fields[j].doc);
+          C_CDD_FREE(node->fields[j].doc);
         }
         if (node->fields[j].array_length_ref) {
-          free(node->fields[j].array_length_ref);
+          C_CDD_FREE(node->fields[j].array_length_ref);
         }
         free_trivia_chain(node->fields[j].leading_trivia);
         free_trivia_chain(node->fields[j].trailing_trivia);
         free_type_recursive(&node->fields[j].type);
       }
-      free(node->fields);
+      C_CDD_FREE(node->fields);
     }
 
     /* Free base classes */
     if (node->base_classes) {
       for (j = 0; j < node->base_classes_count; j++) {
         if (node->base_classes[j].name) {
-          free(node->base_classes[j].name);
+          C_CDD_FREE(node->base_classes[j].name);
         }
         if (node->base_classes[j].access) {
-          free(node->base_classes[j].access);
+          C_CDD_FREE(node->base_classes[j].access);
         }
       }
-      free(node->base_classes);
+      C_CDD_FREE(node->base_classes);
     }
 
     /* Free virtual methods */
@@ -303,74 +304,74 @@ void cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
       for (j = 0; j < node->virtual_methods_count; j++) {
         size_t a;
         if (node->virtual_methods[j].name) {
-          free(node->virtual_methods[j].name);
+          C_CDD_FREE(node->virtual_methods[j].name);
         }
         free_type_recursive(&node->virtual_methods[j].return_type);
         if (node->virtual_methods[j].args) {
           for (a = 0; a < node->virtual_methods[j].args_count; a++) {
             if (node->virtual_methods[j].args[a].name) {
-              free(node->virtual_methods[j].args[a].name);
+              C_CDD_FREE(node->virtual_methods[j].args[a].name);
             }
             if (node->virtual_methods[j].args[a].doc) {
-              free(node->virtual_methods[j].args[a].doc);
+              C_CDD_FREE(node->virtual_methods[j].args[a].doc);
             }
             free_type_recursive(&node->virtual_methods[j].args[a].type);
           }
-          free(node->virtual_methods[j].args);
+          C_CDD_FREE(node->virtual_methods[j].args);
         }
       }
-      free(node->virtual_methods);
+      C_CDD_FREE(node->virtual_methods);
     }
 
     /* Free variants */
     if (node->variants) {
       for (j = 0; j < node->variants_count; j++) {
         if (node->variants[j].name) {
-          free(node->variants[j].name);
+          C_CDD_FREE(node->variants[j].name);
         }
         if (node->variants[j].value) {
-          free(node->variants[j].value);
+          C_CDD_FREE(node->variants[j].value);
         }
         if (node->variants[j].doc) {
-          free(node->variants[j].doc);
+          C_CDD_FREE(node->variants[j].doc);
         }
         if (node->variants[j].raw_spelling) {
-          free(node->variants[j].raw_spelling);
+          C_CDD_FREE(node->variants[j].raw_spelling);
         }
         if (node->variants[j].number_details) {
           if (node->variants[j].number_details->raw_spelling) {
-            free(node->variants[j].number_details->raw_spelling);
+            C_CDD_FREE(node->variants[j].number_details->raw_spelling);
           }
-          free(node->variants[j].number_details);
+          C_CDD_FREE(node->variants[j].number_details);
         }
         free_trivia_chain(node->variants[j].leading_trivia);
         free_trivia_chain(node->variants[j].trailing_trivia);
       }
-      free(node->variants);
+      C_CDD_FREE(node->variants);
     }
 
     /* Free macro expansions */
     if (node->macro_expansions) {
       for (j = 0; j < node->macro_expansions_count; j++) {
         if (node->macro_expansions[j].macro_name) {
-          free(node->macro_expansions[j].macro_name);
+          C_CDD_FREE(node->macro_expansions[j].macro_name);
         }
         if (node->macro_expansions[j].raw_args) {
-          free(node->macro_expansions[j].raw_args);
+          C_CDD_FREE(node->macro_expansions[j].raw_args);
         }
         if (node->macro_expansions[j].expanded_text) {
-          free(node->macro_expansions[j].expanded_text);
+          C_CDD_FREE(node->macro_expansions[j].expanded_text);
         }
       }
-      free(node->macro_expansions);
+      C_CDD_FREE(node->macro_expansions);
     }
   }
 
   if (ir->nodes) {
-    free(ir->nodes);
+    C_CDD_FREE(ir->nodes);
   }
   if (ir->module_name) {
-    free(ir->module_name);
+    C_CDD_FREE(ir->module_name);
     ir->module_name = NULL;
   }
 

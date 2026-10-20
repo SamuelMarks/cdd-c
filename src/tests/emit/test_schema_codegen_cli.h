@@ -36,11 +36,16 @@ CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 extern C_CDD_EXPORT int g_schema_fail_io_after;
 extern C_CDD_EXPORT int g_schema_io_calls;
 extern C_CDD_EXPORT int g_schema_strdup_fail;
+/** @brief Test definition g_json_object_to_struct_fields_fail. */
 extern C_CDD_EXPORT int g_json_object_to_struct_fields_fail;
 extern C_CDD_EXPORT int g_schema_realloc_fail;
 extern C_CDD_EXPORT int g_schema_codegen_force_fail;
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
+/**
+ * @brief Unit test test_schema_codegen_cli_exhaustive_io.
+ * @return Greatest test result.
+ */
 TEST test_schema_codegen_cli_exhaustive_io(void) {
 #ifdef CDD_BUILD_TESTS
   int i;
@@ -97,6 +102,10 @@ TEST test_schema_codegen_cli_exhaustive_io(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema_codegen_union_arrays.
+ * @return Greatest test result.
+ */
 TEST test_schema_codegen_union_arrays(void) {
   int rc = 0;
   const char *const filename = "union_array_schema.json";
@@ -158,6 +167,10 @@ TEST test_schema_codegen_union_arrays(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema_codegen_specific_structs.
+ * @return Greatest test result.
+ */
 TEST test_schema_codegen_specific_structs(void) {
   int rc = 0;
   const char *const filename = "specific_structs.json";
@@ -193,6 +206,10 @@ TEST test_schema_codegen_specific_structs(void) {
 /*  (moved to global) */
 #endif
 
+/**
+ * @brief Unit test test_schema_codegen_main_paths.
+ * @return Greatest test result.
+ */
 TEST test_schema_codegen_main_paths(void) {
   int rc = 0;
   const char *const filename = "main_paths.json";
@@ -259,7 +276,7 @@ TEST test_schema_codegen_main_paths(void) {
   {
     int io_i = 1;
     /* extern C_CDD_EXPORT int g_schema_codegen_force_fail; (moved to global) */
-    for (io_i = 1; io_i < 200; io_i++) {
+    for (io_i = 1; io_i < 600; io_i++) {
       g_schema_fail_io_after = io_i;
       g_schema_io_calls = 0;
       rc = schema2code_main(5, (char **)(size_t)argv);
@@ -268,7 +285,7 @@ TEST test_schema_codegen_main_paths(void) {
     }
     g_schema_fail_io_after = -1;
 
-    for (io_i = 1; io_i < 150; io_i++) {
+    for (io_i = 1; io_i < 600; io_i++) {
       g_schema_codegen_force_fail = io_i;
       rc = schema2code_main(5, (char **)(size_t)argv);
       if (rc == 0)
@@ -339,6 +356,10 @@ extern C_CDD_EXPORT int g_schema_codegen_force_fail;
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
 extern C_CDD_EXPORT int g_schema_fail_io_after;
 
+/**
+ * @brief Unit test test_schema_codegen_init_fail.
+ * @return Greatest test result.
+ */
 TEST test_schema_codegen_init_fail(void) {
   void *root;
   void *schemas;
@@ -387,6 +408,10 @@ TEST test_schema_codegen_init_fail(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema_codegen_parse_error.
+ * @return Greatest test result.
+ */
 TEST test_schema_codegen_parse_error(void) {
   void *root;
   void *schemas;
@@ -422,6 +447,10 @@ TEST test_schema_codegen_parse_error(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema_codegen_source_fail.
+ * @return Greatest test result.
+ */
 TEST test_schema_codegen_source_fail(void) {
   void *root;
   void *schemas;
@@ -444,16 +473,10 @@ TEST test_schema_codegen_source_fail(void) {
   schemas = json_object_get_object(json_value_get_object(root), "components");
   schemas = json_object_get_object(schemas, "schemas");
 
-#if defined(_MSC_VER)
-  if (fopen_s(&f, "test_out_source.c", "w") != 0)
-    f = NULL;
-#else
-  f = fopen("test_out_source.c", "w");
-#endif
-  if (f)
-    fclose(f);
-  rc = system("chmod 0444 test_out_source.c");
-  ASSERT(rc == 0 || rc != 0);
+  remove("test_out_source.c");
+  rmdir("test_out_source.c");
+  rc = makedirs("test_out_source.c");
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Call main which calls generate_header and generate_source */
   {
@@ -464,25 +487,20 @@ TEST test_schema_codegen_source_fail(void) {
     argv_bad[1] = cdd_test_mut_str("test_out_source");
     main_rc = schema2code_main(2, argv_bad);
 
-    rc = system("chmod 0666 test_out_source.c");
-    ASSERT(rc == 0 || rc != 0);
-    remove("test_out_source.c");
+    rc = rmdir("test_out_source.c");
+    ASSERT_EQ(0, rc);
     remove("test_out_source.h");
     json_value_free(root);
     remove("test_codegen_schema_io.json");
-#if !defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(__CYGWIN__)
-    if (geteuid() != 0) {
-      ASSERT_EQ(CDD_C_ERROR_UNKNOWN, main_rc);
-    } else {
-      ASSERT(main_rc == CDD_C_SUCCESS || main_rc == CDD_C_ERROR_UNKNOWN);
-    }
-#else
-    ASSERT(main_rc == CDD_C_SUCCESS || main_rc == CDD_C_ERROR_UNKNOWN);
-#endif
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, main_rc);
   }
 
   PASS();
 }
+/**
+ * @brief Unit test test_schema_codegen_system_error.
+ * @return Greatest test result.
+ */
 TEST test_schema_codegen_system_error(void) {
   void *root;
   void *schemas;
@@ -516,6 +534,10 @@ TEST test_schema_codegen_system_error(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema_codegen_main_errors.
+ * @return Greatest test result.
+ */
 TEST test_schema_codegen_main_errors(void) {
   int rc = 0;
   char *argv_bad1[1];
@@ -559,6 +581,10 @@ TEST test_schema_codegen_main_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_schema_codegen_non_object_no_props.
+ * @return Greatest test result.
+ */
 TEST test_schema_codegen_non_object_no_props(void) {
   void *root;
   void *schemas;
@@ -582,6 +608,9 @@ TEST test_schema_codegen_non_object_no_props(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the schema_codegen_cli_suite test suite.
+ */
 SUITE(schema_codegen_cli_suite) {
   RUN_TEST(test_schema_codegen_cli_exhaustive_io);
   RUN_TEST(test_schema_codegen_union_arrays);

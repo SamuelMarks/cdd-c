@@ -14,6 +14,10 @@ extern "C" {
 #include "emit/test_openapi_writer_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_writer_parameter_styles.
+ * @return Greatest test result.
+ */
 TEST test_writer_parameter_styles(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -56,6 +60,10 @@ TEST test_writer_parameter_styles(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_parameter_explode_false.
+ * @return Greatest test result.
+ */
 TEST test_writer_parameter_explode_false(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -99,6 +107,10 @@ TEST test_writer_parameter_explode_false(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_parameter_style_matrix.
+ * @return Greatest test result.
+ */
 TEST test_writer_parameter_style_matrix(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -138,6 +150,10 @@ TEST test_writer_parameter_style_matrix(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_parameter_content_any.
+ * @return Greatest test result.
+ */
 TEST test_writer_parameter_content_any(void) {
   int rc = 0;
   char *json;
@@ -196,6 +212,10 @@ TEST test_writer_parameter_content_any(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_parameter_and_header_content_media_type.
+ * @return Greatest test result.
+ */
 TEST test_writer_parameter_and_header_content_media_type(void) {
   int rc = 0;
   char *json;
@@ -305,6 +325,10 @@ TEST test_writer_parameter_and_header_content_media_type(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_parameter_examples_object.
+ * @return Greatest test result.
+ */
 TEST test_writer_parameter_examples_object(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -357,6 +381,10 @@ TEST test_writer_parameter_examples_object(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_parameter_examples_media.
+ * @return Greatest test result.
+ */
 TEST test_writer_parameter_examples_media(void) {
   int rc = 0;
   struct OpenAPI_Spec spec;
@@ -404,6 +432,10 @@ TEST test_writer_parameter_examples_media(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_component_examples.
+ * @return Greatest test result.
+ */
 TEST test_writer_component_examples(void) {
   int rc = 0;
   struct OpenAPI_Example ex;
@@ -444,6 +476,10 @@ TEST test_writer_component_examples(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_oauth2_flows.
+ * @return Greatest test result.
+ */
 TEST test_writer_oauth2_flows(void) {
   int rc = 0;
   struct OpenAPI_SecurityScheme scheme;
@@ -501,6 +537,10 @@ TEST test_writer_oauth2_flows(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_servers.
+ * @return Greatest test result.
+ */
 TEST test_writer_servers(void) {
   int rc = 0;
   struct OpenAPI_Server servers[1];
@@ -543,6 +583,10 @@ TEST test_writer_servers(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_querystring_param.
+ * @return Greatest test result.
+ */
 TEST test_writer_querystring_param(void) {
   int rc = 0;
   char *json;
@@ -602,6 +646,10 @@ TEST test_writer_querystring_param(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_writer_ignores_reserved_header_params.
+ * @return Greatest test result.
+ */
 TEST test_writer_ignores_reserved_header_params(void) {
   int rc = 0;
   char *json;

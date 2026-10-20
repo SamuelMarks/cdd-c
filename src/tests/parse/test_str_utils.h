@@ -21,10 +21,15 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Test definition g_str_unquote_malloc_fail. */
 extern C_CDD_EXPORT int g_str_unquote_malloc_fail;
 
 /* --- strdup tests --- */
 
+/**
+ * @brief Unit test test_c_cdd_strdup_basic.
+ * @return Greatest test result.
+ */
 TEST test_c_cdd_strdup_basic(void) {
   char *_ast_strdup_0 = NULL;
   const char *input = cdd_test_mut_str("hello world");
@@ -38,6 +43,10 @@ TEST test_c_cdd_strdup_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c_cdd_strdup_null.
+ * @return Greatest test result.
+ */
 TEST test_c_cdd_strdup_null(void) {
   char *_ast_strdup_1 = NULL;
   ASSERT((c_cdd_strdup(NULL, &_ast_strdup_1), _ast_strdup_1) == NULL);
@@ -46,6 +55,10 @@ TEST test_c_cdd_strdup_null(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c_cdd_strdup_empty.
+ * @return Greatest test result.
+ */
 TEST test_c_cdd_strdup_empty(void) {
   char *_ast_strdup_2 = NULL;
   char *dup = (c_cdd_strdup("", &_ast_strdup_2), _ast_strdup_2);
@@ -59,6 +72,10 @@ TEST test_c_cdd_strdup_empty(void) {
 
 /* --- str_starts_with tests --- */
 
+/**
+ * @brief Unit test test_c_cdd_str_starts_with.
+ * @return Greatest test result.
+ */
 TEST test_c_cdd_str_starts_with(void) {
   int _ast_starts_with_3 = false;
   int _ast_starts_with_4 = false;
@@ -83,6 +100,10 @@ TEST test_c_cdd_str_starts_with(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c_cdd_str_starts_with_null.
+ * @return Greatest test result.
+ */
 TEST test_c_cdd_str_starts_with_null(void) {
   int _ast_starts_with_8 = false;
   int _ast_starts_with_9 = false;
@@ -100,6 +121,10 @@ TEST test_c_cdd_str_starts_with_null(void) {
 
 /* --- str_equal tests --- */
 
+/**
+ * @brief Unit test test_c_cdd_str_equal.
+ * @return Greatest test result.
+ */
 TEST test_c_cdd_str_equal(void) {
   int _ast_equal_11 = false;
   int _ast_equal_12 = false;
@@ -112,6 +137,10 @@ TEST test_c_cdd_str_equal(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c_cdd_str_equal_nulls.
+ * @return Greatest test result.
+ */
 TEST test_c_cdd_str_equal_nulls(void) {
   int _ast_equal_14 = false;
   int _ast_equal_15 = false;
@@ -126,6 +155,10 @@ TEST test_c_cdd_str_equal_nulls(void) {
 
 /* --- str_iequal tests --- */
 
+/**
+ * @brief Unit test test_c_cdd_str_iequal.
+ * @return Greatest test result.
+ */
 TEST test_c_cdd_str_iequal(void) {
   int _ast_iequal_17 = false;
   int _ast_iequal_18 = false;
@@ -141,6 +174,10 @@ TEST test_c_cdd_str_iequal(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c_cdd_str_iequal_nulls.
+ * @return Greatest test result.
+ */
 TEST test_c_cdd_str_iequal_nulls(void) {
   int _ast_iequal_21 = false;
   int _ast_iequal_22 = false;
@@ -155,6 +192,10 @@ TEST test_c_cdd_str_iequal_nulls(void) {
 
 /* --- str_after_last tests --- */
 
+/**
+ * @brief Unit test test_c_cdd_str_after_last.
+ * @return Greatest test result.
+ */
 TEST test_c_cdd_str_after_last(void) {
   const char *_ast_after_last_24 = NULL;
   const char *_ast_after_last_25 = NULL;
@@ -180,6 +221,10 @@ TEST test_c_cdd_str_after_last(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c_cdd_str_after_last_null.
+ * @return Greatest test result.
+ */
 TEST test_c_cdd_str_after_last_null(void) {
   const char *_ast_after_last_28 = NULL;
   ASSERT_STR_EQ("", (c_cdd_str_after_last(NULL, '/', &_ast_after_last_28),
@@ -191,6 +236,10 @@ TEST test_c_cdd_str_after_last_null(void) {
 
 /* --- ref_is_type tests --- */
 
+/**
+ * @brief Unit test test_c_cdd_ref_is_type.
+ * @return Greatest test result.
+ */
 TEST test_c_cdd_ref_is_type(void) {
   int _ast_ref_is_type_29 = false;
   int _ast_ref_is_type_30 = false;
@@ -232,6 +281,10 @@ TEST test_c_cdd_ref_is_type(void) {
 
 /* --- trim_trailing tests --- */
 
+/**
+ * @brief Unit test test_c_cdd_str_trim_trailing_whitespace.
+ * @return Greatest test result.
+ */
 TEST test_c_cdd_str_trim_trailing_whitespace(void) {
   char buf[32];
 
@@ -347,6 +400,10 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c_cdd_ref_is_type_null.
+ * @return Greatest test result.
+ */
 TEST test_c_cdd_ref_is_type_null(void) {
   int _ast_ref_is_type_33 = false;
   int _ast_ref_is_type_34 = false;
@@ -362,6 +419,10 @@ TEST test_c_cdd_ref_is_type_null(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c_cdd_str_trim_trailing_whitespace_null.
+ * @return Greatest test result.
+ */
 TEST test_c_cdd_str_trim_trailing_whitespace_null(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             c_cdd_str_trim_trailing_whitespace(NULL));
@@ -370,6 +431,10 @@ TEST test_c_cdd_str_trim_trailing_whitespace_null(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c_cdd_destringize.
+ * @return Greatest test result.
+ */
 TEST test_c_cdd_destringize(void) {
   char *_ast_destringize_36 = NULL;
   char *_ast_destringize_37 = NULL;
@@ -433,6 +498,10 @@ TEST test_c_cdd_destringize(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_c_cdd_stricmp.
+ * @return Greatest test result.
+ */
 TEST test_c_cdd_stricmp(void) {
   int diff;
   ASSERT_EQ(0, c_cdd_stricmp("hello", "hello", &diff));
@@ -466,6 +535,10 @@ TEST test_c_cdd_stricmp(void) {
 /* extern C_CDD_EXPORT int g_str_unquote_malloc_fail; (moved to global) */
 #endif
 
+/**
+ * @brief Unit test test_c_cdd_destringize_oom.
+ * @return Greatest test result.
+ */
 TEST test_c_cdd_destringize_oom(void) {
 #ifdef CDD_BUILD_TESTS
   char *out = NULL;
@@ -489,6 +562,9 @@ TEST test_c_cdd_destringize_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the str_utils_suite test suite.
+ */
 SUITE(str_utils_suite) {
   RUN_TEST(test_c_cdd_stricmp);
   RUN_TEST(test_c_cdd_strdup_basic);

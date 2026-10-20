@@ -22,6 +22,10 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/**
+ * @brief Helper function test_desig_init_internal_errors.
+ * @return Result status or value.
+ */
 extern C_CDD_EXPORT cdd_c_error_t test_desig_init_internal_errors(void);
 
 /**
@@ -58,6 +62,10 @@ TEST test_scan_for_designated_initializers_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_scan_for_designated_initializers_errors.
+ * @return Greatest test result.
+ */
 TEST test_scan_for_designated_initializers_errors(void) {
   struct TokenList *tl = NULL;
   struct DesigInitList list;
@@ -76,6 +84,10 @@ TEST test_scan_for_designated_initializers_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_scan_for_designated_initializers_oom.
+ * @return Greatest test result.
+ */
 TEST test_scan_for_designated_initializers_oom(void) {
   struct TokenList *tokens = NULL;
   struct DesigInitList list;
@@ -102,6 +114,10 @@ TEST test_scan_for_designated_initializers_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_scan_for_designated_initializers_oom_long.
+ * @return Greatest test result.
+ */
 TEST test_scan_for_designated_initializers_oom_long(void) {
   struct TokenList *tokens = NULL;
   struct DesigInitList list;
@@ -130,6 +146,10 @@ TEST test_scan_for_designated_initializers_oom_long(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_scan_for_designated_initializers_edge_cases.
+ * @return Greatest test result.
+ */
 TEST test_scan_for_designated_initializers_edge_cases(void) {
   static const char compound_src[] = "{.x={1,2}}";
   struct TokenList tokens;
@@ -218,6 +238,10 @@ TEST test_scan_for_designated_initializers_edge_cases(void) {
   }
 }
 
+/**
+ * @brief Unit test test_scan_for_designated_initializers_oom_empty.
+ * @return Greatest test result.
+ */
 TEST test_scan_for_designated_initializers_oom_empty(void) {
   struct TokenList tokens;
   struct Token t[10];
@@ -274,6 +298,10 @@ TEST test_scan_for_designated_initializers_oom_empty(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_desig_init_list_free_nulls.
+ * @return Greatest test result.
+ */
 TEST test_desig_init_list_free_nulls(void) {
   struct DesigInitList list;
   ASSERT_EQ(CDD_C_SUCCESS, desig_init_list_init(&list));
@@ -300,6 +328,9 @@ TEST test_desig_init_list_free_nulls(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the desig_init_suite test suite.
+ */
 SUITE(desig_init_suite) {
   RUN_TEST(test_scan_for_designated_initializers_basic);
   RUN_TEST(test_scan_for_designated_initializers_errors);

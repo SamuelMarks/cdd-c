@@ -8,6 +8,7 @@
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "c_str_span.h"
 #include "cdd_cst_transform.h"
@@ -26,8 +27,8 @@
  * @brief Expands function-like macros (and handles stringification/token
  * pasting) inside the AST.
  *
- * @param tree The CST tree.
- * @param config Optional configuration for trivia generation.
+ * @param[in,out] tree The CST tree.
+ * @param[in] config Optional configuration for trivia generation.
  * @return 0 on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(
@@ -59,7 +60,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(
 
     rc = cdd_cst_alloc_node(CDD_CST_EXPRESSION, &replacement);
     if (rc != CDD_C_SUCCESS) {
-      free(calls.nodes);
+      C_CDD_FREE(calls.nodes);
       return rc;
     }
     cdd_cst_builder_init(&bld, tree, replacement);
@@ -74,7 +75,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(
     } else {
       cdd_cst_free_node(replacement);
       rc = bld.error_state;
-      free(calls.nodes);
+      C_CDD_FREE(calls.nodes);
       cdd_cst_builder_free(&bld);
       return rc;
     }
@@ -92,8 +93,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(
 
         rc = cdd_cst_alloc_node(CDD_CST_LITERAL, &replacement);
         if (rc != CDD_C_SUCCESS) {
-          free(stringify_calls.nodes);
-          free(calls.nodes);
+          C_CDD_FREE(stringify_calls.nodes);
+          C_CDD_FREE(calls.nodes);
           return rc;
         }
         cdd_cst_builder_init(&bld, tree, replacement);
@@ -107,13 +108,13 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(
         } else {
           cdd_cst_free_node(replacement);
           rc = bld.error_state;
-          free(stringify_calls.nodes);
+          C_CDD_FREE(stringify_calls.nodes);
           cdd_cst_builder_free(&bld);
-          free(calls.nodes);
+          C_CDD_FREE(calls.nodes);
           return rc;
         }
       }
-      free(stringify_calls.nodes);
+      C_CDD_FREE(stringify_calls.nodes);
     }
   }
 
@@ -128,8 +129,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(
 
         rc = cdd_cst_alloc_node(CDD_CST_LITERAL, &replacement);
         if (rc != CDD_C_SUCCESS) {
-          free(concat_calls.nodes);
-          free(calls.nodes);
+          C_CDD_FREE(concat_calls.nodes);
+          C_CDD_FREE(calls.nodes);
           return rc;
         }
         cdd_cst_builder_init(&bld, tree, replacement);
@@ -143,16 +144,16 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(
         } else {
           cdd_cst_free_node(replacement);
           rc = bld.error_state;
-          free(concat_calls.nodes);
+          C_CDD_FREE(concat_calls.nodes);
           cdd_cst_builder_free(&bld);
-          free(calls.nodes);
+          C_CDD_FREE(calls.nodes);
           return rc;
         }
       }
-      free(concat_calls.nodes);
+      C_CDD_FREE(concat_calls.nodes);
     }
   }
 
-  free(calls.nodes);
+  C_CDD_FREE(calls.nodes);
   return CDD_C_SUCCESS;
 }

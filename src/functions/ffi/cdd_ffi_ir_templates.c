@@ -21,7 +21,7 @@
 /**
  * @brief Instantiates templated types discovered in the FFI IR.
  *
- * @param ir Pointer to FFI IR structure.
+ * @param[in,out] ir Pointer to FFI IR structure.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t instantiate_templates(cdd_ffi_ir_t *ir) {
@@ -124,7 +124,7 @@ cdd_c_error_t instantiate_templates(cdd_ffi_ir_t *ir) {
 
               node = &ir->nodes[i];
               node->fields[j].type.kind = CDD_FFI_KIND_STRUCT_REF;
-              free(node->fields[j].type.ref_name);
+              C_CDD_FREE(node->fields[j].type.ref_name);
               node->fields[j].type.ref_name = CDD_STRDUP(inst_name);
               break;
             }

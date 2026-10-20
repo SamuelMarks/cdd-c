@@ -245,7 +245,7 @@ if(MSVC)
     string(REGEX REPLACE "/W[0-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE /W4 /Gy /WX)
 else()
-    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE -Wall -Wextra -Wcast-qual -Wdeclaration-after-statement -Werror -pedantic)
+    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE -Wall -Wextra -Werror -Wpedantic -Wconversion -Wsign-conversion -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wdeclaration-after-statement -pedantic)
     target_compile_definitions("${PROJECT_NAME}_compiler_flags" INTERFACE __STDC_VERSION__=0)
 endif()
 

@@ -23,7 +23,13 @@ extern "C" {
 
 #ifndef CDD_TEST_CLI_C2OPENAPI_HELPERS_DEFINED
 #define CDD_TEST_CLI_C2OPENAPI_HELPERS_DEFINED
+/** @brief Test definition g_c2o_oom_fail_at. */
 static int g_c2o_oom_fail_at = -1;
+/**
+ * @brief Helper function mock_c2o_oom_malloc.
+ * @param[in] sz Parameter sz.
+ * @return Result status or value.
+ */
 static void *mock_c2o_oom_malloc(size_t sz) {
   if (g_c2o_oom_fail_at == 0) {
     g_c2o_oom_fail_at = -1;
@@ -33,8 +39,16 @@ static void *mock_c2o_oom_malloc(size_t sz) {
     g_c2o_oom_fail_at--;
   return malloc(sz);
 }
+/**
+ * @brief Helper function mock_c2o_oom_free.
+ * @param[in,out] ptr Parameter ptr.
+ */
 static void mock_c2o_oom_free(void *ptr) { free(ptr); }
 
+/**
+ * @brief Helper function get_mocks_dir.
+ * @return Result status or value.
+ */
 static const char *get_mocks_dir(void) {
   FILE *f;
   f = fopen("src/tests/mocks/emit/simple.schema.json", "r");
@@ -45,6 +59,10 @@ static const char *get_mocks_dir(void) {
   return "../src/tests/mocks";
 }
 
+/**
+ * @brief Helper function get_simple_schema.
+ * @return Result status or value.
+ */
 static const char *get_simple_schema(void) {
   FILE *f;
   f = fopen("src/tests/mocks/emit/simple.schema.json", "r");
@@ -56,6 +74,10 @@ static const char *get_simple_schema(void) {
 }
 #endif /* CDD_TEST_CLI_C2OPENAPI_HELPERS_DEFINED */
 
+/**
+ * @brief Unit test test_c2openapi_final_branches.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_final_branches(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Server srv;
@@ -716,7 +738,7 @@ TEST test_c2openapi_final_branches(void) {
       memset(&spec, 0, sizeof(spec));
       g_cdd_strdup_fail = 1;
       rc_proc = process_file(fpath, &spec);
-      ASSERT(rc_proc == CDD_C_SUCCESS || rc_proc != CDD_C_SUCCESS);
+      ASSERT_EQ(CDD_C_SUCCESS, rc_proc);
       g_cdd_strdup_fail = 0;
       openapi_spec_free(&spec);
       remove(fpath);
@@ -823,13 +845,36 @@ TEST test_c2openapi_final_branches(void) {
  * @brief Test client route inference, server routes, and GUI views in cli.c.
  */
 extern C_CDD_EXPORT int g_cdd_aggregator_fail_ops_realloc;
+/**
+ * @brief Helper function cdd_test_c2openapi_infer_client_route.
+ * @param[in] func_node Parameter func_node.
+ * @param[in] tokens Parameter tokens.
+ * @param[out] out_route Parameter out_route.
+ * @return Result status or value.
+ */
 extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_infer_client_route(
     const struct CstNode *func_node, const struct TokenList *tokens,
     char **out_route);
+/**
+ * @brief Helper function cdd_test_c2openapi_scan_server_routes.
+ * @param[in] tokens Parameter tokens.
+ * @param[in,out] spec Parameter spec.
+ * @return Result status or value.
+ */
 extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_server_routes(
     const struct TokenList *tokens, struct OpenAPI_Spec *spec);
+/**
+ * @brief Helper function cdd_test_c2openapi_scan_gui_views.
+ * @param[in] tokens Parameter tokens.
+ * @param[in,out] spec Parameter spec.
+ * @return Result status or value.
+ */
 extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_gui_views(
     const struct TokenList *tokens, struct OpenAPI_Spec *spec);
+/**
+ * @brief Unit test test_c2openapi_infer_routes_and_views.
+ * @return Greatest test result.
+ */
 TEST test_c2openapi_infer_routes_and_views(void) {
   struct OpenAPI_Spec spec;
   cdd_c_error_t rc = 0;
@@ -1257,6 +1302,7 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_gui_views(
 /**
  * @brief Comprehensive tests for c2openapi_infer_client_route, server_routes,
  * and gui_views.
+ * @return Test or helper result.
  */
 TEST test_cli_c2openapi_unit_internals(void) {
   struct OpenAPI_Spec spec;
@@ -1397,6 +1443,7 @@ extern C_CDD_EXPORT int g_cdd_aggregator_fail_ops_realloc;
 /**
  * @brief Test aggregator failure error returns in c2openapi_scan_server_routes
  * and gui_views.
+ * @return Test or helper result.
  */
 TEST test_cli_c2openapi_aggregator_errors(void) {
   struct OpenAPI_Spec spec;

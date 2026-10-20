@@ -174,6 +174,7 @@ TEST test_cdd_cst_trivia_generate(void) {
 
 /**
  * @brief CST trivia test suite.
+ * @return Test or helper result.
  */
 
 #ifdef CDD_BUILD_TESTS
@@ -187,21 +188,21 @@ TEST test_cdd_cst_trivia_oom(void) {
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str("int x;"), &tree));
 
-  g_cdd_cst_alloc_node_fail = 1;
+  g_cdd_alloc_fail = 1;
   rc_tmp = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_tmp);
 
-  g_cdd_cst_alloc_node_fail = 2;
+  g_cdd_alloc_fail = 2;
   rc_tmp = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_tmp);
 
-  g_cdd_cst_alloc_node_fail = 3;
+  g_cdd_alloc_fail = 3;
   rc_tmp3 = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
   ASSERT(rc_tmp3 != 0);
-  g_cdd_cst_alloc_node_fail = 0;
+  g_cdd_alloc_fail = 0;
 
   /* OOM inside cdd_cst_pool_string when tree != NULL */
-  g_cdd_alloc_fail = 2;
+  g_cdd_alloc_fail = 4;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             cdd_cst_generate_indent_trivia(tree, &config, 1, &out));
   g_cdd_alloc_fail = 0;
@@ -245,6 +246,9 @@ TEST test_trivia_branches(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the cdd_cst_trivia_suite test suite.
+ */
 SUITE(cdd_cst_trivia_suite) {
   RUN_TEST(test_trivia_branches);
   RUN_TEST(test_cdd_cst_trivia_detect);

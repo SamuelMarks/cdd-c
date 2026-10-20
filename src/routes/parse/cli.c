@@ -1006,9 +1006,9 @@ C_CDD_EXPORT cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
       if (i + 1 < argc)
         cfg.output = argv[++i];
     } else if (strcmp(argv[i], "--no-imports") == 0) {
-      cfg.no_imports = 1;
+      cfg.no_imports = CDD_TRUE;
     } else if (strcmp(argv[i], "--no-wrapping") == 0) {
-      cfg.no_wrapping = 1;
+      cfg.no_wrapping = CDD_TRUE;
     }
   }
 
@@ -1070,11 +1070,11 @@ C_CDD_EXPORT cdd_c_error_t generate_bindings_cli_main(int argc, char **argv) {
       if (i + 1 < argc)
         config.module_name = argv[++i];
     } else if (strcmp(argv[i], "--skip-static") == 0) {
-      config.skip_static = 1;
+      config.skip_static = CDD_TRUE;
     } else if (strcmp(argv[i], "--opaque-pointers") == 0) {
-      config.opaque_pointers = 1;
+      config.opaque_pointers = CDD_TRUE;
     } else if (strcmp(argv[i], "--generate-tests") == 0) {
-      config.generate_tests = 1;
+      config.generate_tests = CDD_TRUE;
     }
   }
 

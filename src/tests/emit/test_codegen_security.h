@@ -44,6 +44,13 @@ scheme_is_active_test(const struct OpenAPI_SecurityScheme *sch,
                       const struct OpenAPI_Spec *spec);
 
 /* Helper to capture output */
+/**
+ * @brief Helper function gen_sec_code.
+ * @param[in] spec Parameter spec.
+ * @param[in] op_in Parameter op_in.
+ * @param[in,out] _out_val Parameter _out_val.
+ * @return Result status or value.
+ */
 static cdd_c_error_t gen_sec_code(const struct OpenAPI_Spec *spec,
                                   const struct OpenAPI_Operation *op_in,
                                   char **_out_val) {
@@ -83,6 +90,10 @@ static cdd_c_error_t gen_sec_code(const struct OpenAPI_Spec *spec,
   }
 }
 
+/**
+ * @brief Unit test test_sec_bearer_token.
+ * @return Greatest test result.
+ */
 TEST test_sec_bearer_token(void) {
   char *_astgen_sec_code_0 = NULL;
   struct OpenAPI_Spec spec;
@@ -115,6 +126,10 @@ TEST test_sec_bearer_token(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sec_oauth2_bearer_token.
+ * @return Greatest test result.
+ */
 TEST test_sec_oauth2_bearer_token(void) {
   char *_astgen_sec_code_1 = NULL;
   struct OpenAPI_Spec spec;
@@ -142,6 +157,10 @@ TEST test_sec_oauth2_bearer_token(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sec_openid_bearer_token.
+ * @return Greatest test result.
+ */
 TEST test_sec_openid_bearer_token(void) {
   char *_astgen_sec_code_2 = NULL;
   struct OpenAPI_Spec spec;
@@ -169,6 +188,10 @@ TEST test_sec_openid_bearer_token(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sec_basic_token.
+ * @return Greatest test result.
+ */
 TEST test_sec_basic_token(void) {
   char *_astgen_sec_code_3 = NULL;
   struct OpenAPI_Spec spec;
@@ -197,6 +220,10 @@ TEST test_sec_basic_token(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sec_api_key_header.
+ * @return Greatest test result.
+ */
 TEST test_sec_api_key_header(void) {
   char *_astgen_sec_code_4 = NULL;
   struct OpenAPI_Spec spec;
@@ -228,6 +255,10 @@ TEST test_sec_api_key_header(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sec_uri_requirement_matches_component.
+ * @return Greatest test result.
+ */
 TEST test_sec_uri_requirement_matches_component(void) {
   char *_astgen_sec_code_5 = NULL;
   struct OpenAPI_Spec spec;
@@ -272,6 +303,10 @@ TEST test_sec_uri_requirement_matches_component(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sec_api_key_query.
+ * @return Greatest test result.
+ */
 TEST test_sec_api_key_query(void) {
   char *_astgen_sec_code_6 = NULL;
   struct OpenAPI_Spec spec;
@@ -301,6 +336,10 @@ TEST test_sec_api_key_query(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sec_api_key_cookie.
+ * @return Greatest test result.
+ */
 TEST test_sec_api_key_cookie(void) {
   char *_astgen_sec_code_7 = NULL;
   struct OpenAPI_Spec spec;
@@ -329,6 +368,10 @@ TEST test_sec_api_key_cookie(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sec_multiple_schemes.
+ * @return Greatest test result.
+ */
 TEST test_sec_multiple_schemes(void) {
   char *_astgen_sec_code_8 = NULL;
   /* Test mixing Bearer and API Key */
@@ -375,6 +418,10 @@ TEST test_sec_multiple_schemes(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sec_null_safety.
+ * @return Greatest test result.
+ */
 TEST test_sec_null_safety(void) {
   char *code = NULL;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -387,6 +434,10 @@ TEST test_sec_null_safety(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sec_server_apply_basic_and_bearer.
+ * @return Greatest test result.
+ */
 TEST test_sec_server_apply_basic_and_bearer(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme schemes[5];
@@ -444,6 +495,10 @@ TEST test_sec_server_apply_basic_and_bearer(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sec_security_requirements_filter.
+ * @return Greatest test result.
+ */
 TEST test_sec_security_requirements_filter(void) {
   char *_astgen_sec_code_9 = NULL;
   struct OpenAPI_Spec spec;
@@ -499,6 +554,10 @@ TEST test_sec_security_requirements_filter(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_uri_has_scheme_prefix.
+ * @return Greatest test result.
+ */
 TEST test_uri_has_scheme_prefix(void) {
   ASSERT_EQ(CDD_C_SUCCESS, uri_has_scheme_prefix_test(NULL, 1));
   ASSERT_EQ(CDD_C_SUCCESS, uri_has_scheme_prefix_test("abc", 0));
@@ -509,6 +568,10 @@ TEST test_uri_has_scheme_prefix(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_ref_base_matches_self_uri.
+ * @return Greatest test result.
+ */
 TEST test_ref_base_matches_self_uri(void) {
   ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test(NULL, "a", 1));
   ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test("a", NULL, 1));
@@ -548,6 +611,10 @@ TEST test_ref_base_matches_self_uri(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_scheme_ref_matches_name.
+ * @return Greatest test result.
+ */
 TEST test_scheme_ref_matches_name(void) {
   struct OpenAPI_Spec spec;
   memset(&spec, 0, sizeof(spec));
@@ -585,6 +652,10 @@ TEST test_scheme_ref_matches_name(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_scheme_in_security_sets.
+ * @return Greatest test result.
+ */
 TEST test_scheme_in_security_sets(void) {
   struct OpenAPI_SecurityRequirement req;
   struct OpenAPI_SecurityRequirementSet set;
@@ -603,6 +674,10 @@ TEST test_scheme_in_security_sets(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_resolve_active_security.
+ * @return Greatest test result.
+ */
 TEST test_resolve_active_security(void) {
   struct OpenAPI_Operation op;
   struct OpenAPI_Spec spec;
@@ -634,6 +709,10 @@ TEST test_resolve_active_security(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_scheme_is_active.
+ * @return Greatest test result.
+ */
 TEST test_scheme_is_active(void) {
   struct OpenAPI_SecurityScheme sch;
   struct OpenAPI_SecurityRequirementSet set;
@@ -647,6 +726,9 @@ TEST test_scheme_is_active(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the codegen_security_suite test suite.
+ */
 SUITE(codegen_security_suite) {
   RUN_TEST(test_sec_bearer_token);
   RUN_TEST(test_sec_oauth2_bearer_token);

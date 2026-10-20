@@ -12,15 +12,10 @@
 #include <string.h>
 
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 #include "functions/parse/str.h"
 #include "routes/emit/aggregator.h"
 /* clang-format on */
-
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_cdd_aggregator_fail_path_realloc = 0;
-C_CDD_EXPORT int g_cdd_aggregator_fail_ops_realloc = 0;
-C_CDD_EXPORT int g_cdd_aggregator_fail_route_strdup = 0;
-#endif
 
 /**
  * @brief Comparison function to find a path by route string.
@@ -65,20 +60,8 @@ static cdd_c_error_t append_path_to_list(struct OpenAPI_Path **paths,
   struct OpenAPI_Path *new_arr;
 
   new_count = *n_paths + 1;
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_aggregator_fail_path_realloc;
-    if (g_cdd_aggregator_fail_path_realloc) {
-      new_arr = NULL;
-    } else {
-      new_arr = (struct OpenAPI_Path *)realloc(
-          *paths, new_count * sizeof(struct OpenAPI_Path));
-    }
-  }
-#else
-  new_arr = (struct OpenAPI_Path *)realloc(
+  new_arr = (struct OpenAPI_Path *)C_CDD_REALLOC(
       *paths, new_count * sizeof(struct OpenAPI_Path));
-#endif
   if (!new_arr) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -91,18 +74,7 @@ static cdd_c_error_t append_path_to_list(struct OpenAPI_Path **paths,
   *out_ptr = &(*paths)[new_count - 1];
   memset(*out_ptr, 0, sizeof(struct OpenAPI_Path));
 
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_aggregator_fail_route_strdup;
-    if (g_cdd_aggregator_fail_route_strdup) {
-      (*out_ptr)->route = NULL;
-    } else {
-      c_cdd_strdup(route, &(*out_ptr)->route);
-    }
-  }
-#else
   c_cdd_strdup(route, &(*out_ptr)->route);
-#endif
   if (!(*out_ptr)->route)
     return CDD_C_ERROR_MEMORY;
 
@@ -124,20 +96,8 @@ static cdd_c_error_t append_operation(struct OpenAPI_Operation **ops,
   size_t new_count;
 
   new_count = *count + 1;
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_aggregator_fail_ops_realloc;
-    if (g_cdd_aggregator_fail_ops_realloc) {
-      new_ops = NULL;
-    } else {
-      new_ops = (struct OpenAPI_Operation *)realloc(
-          *ops, new_count * sizeof(struct OpenAPI_Operation));
-    }
-  }
-#else
-  new_ops = (struct OpenAPI_Operation *)realloc(
+  new_ops = (struct OpenAPI_Operation *)C_CDD_REALLOC(
       *ops, new_count * sizeof(struct OpenAPI_Operation));
-#endif
   if (!new_ops) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;

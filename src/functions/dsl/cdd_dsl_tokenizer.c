@@ -182,11 +182,11 @@ C_CDD_EXPORT void cdd_dsl_token_list_free(cdd_dsl_token_list_t *list) {
     size_t i;
     for (i = 0; i < list->count; i++) {
       if (list->tokens[i].text_copy) {
-        free(list->tokens[i].text_copy);
+        C_CDD_FREE(list->tokens[i].text_copy);
       }
     }
     if (list->tokens)
-      free(list->tokens);
+      C_CDD_FREE(list->tokens);
     list->tokens = NULL;
     list->count = 0;
     list->capacity = 0;

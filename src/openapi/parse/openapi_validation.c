@@ -251,7 +251,7 @@ cdd_c_error_t path_item_ref_matches_component(const struct OpenAPI_Spec *spec,
   if (!name_dec)
     return CDD_C_SUCCESS;
   match = (strcmp(name_dec, name) == 0);
-  free(name_dec);
+  C_CDD_FREE(name_dec);
   return (cdd_c_error_t)match;
 }
 
@@ -296,7 +296,7 @@ cdd_c_error_t callback_ref_matches_component(const struct OpenAPI_Spec *spec,
   if (!name_dec)
     return CDD_C_SUCCESS;
   match = (strcmp(name_dec, name) == 0);
-  free(name_dec);
+  C_CDD_FREE(name_dec);
   return (cdd_c_error_t)match;
 }
 
@@ -502,8 +502,8 @@ cdd_c_error_t validate_unique_operation_ids(const struct OpenAPI_Spec *spec) {
 
 cleanup:
   for (i = 0; i < count; ++i) {
-    free(ids[i]);
+    C_CDD_FREE(ids[i]);
   }
-  free(ids);
+  C_CDD_FREE(ids);
   return rc;
 }

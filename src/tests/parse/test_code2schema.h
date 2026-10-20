@@ -57,6 +57,10 @@ extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
 /* Updated test cases to reflect new return types (int vs void) */
 
+/**
+ * @brief Unit test test_write_enum_functions.
+ * @return Greatest test result.
+ */
 TEST test_write_enum_functions(void) {
 
   struct EnumMembers em;
@@ -100,6 +104,10 @@ TEST test_write_enum_functions(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_struct_fields_manage.
+ * @return Greatest test result.
+ */
 TEST test_struct_fields_manage(void) {
 
   struct StructFields sf;
@@ -112,6 +120,10 @@ TEST test_struct_fields_manage(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_str_starts_with.
+ * @return Greatest test result.
+ */
 TEST test_str_starts_with(void) {
   int _ast_str_starts_with_0 = 0;
   int _ast_str_starts_with_1 = 0;
@@ -127,6 +139,10 @@ TEST test_str_starts_with(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parse_struct_member_line.
+ * @return Greatest test result.
+ */
 TEST test_parse_struct_member_line(void) {
 
   struct StructFields sf;
@@ -146,6 +162,10 @@ TEST test_parse_struct_member_line(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parse_struct_member_bitfield.
+ * @return Greatest test result.
+ */
 TEST test_parse_struct_member_bitfield(void) {
 
   struct StructFields sf;
@@ -177,6 +197,10 @@ TEST test_parse_struct_member_bitfield(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_parse_struct_member_format_mapping.
+ * @return Greatest test result.
+ */
 TEST test_parse_struct_member_format_mapping(void) {
 
   struct StructFields sf;
@@ -205,8 +229,13 @@ TEST test_parse_struct_member_format_mapping(void) {
   PASS();
 }
 
+/** @brief Test definition test_struct_fields. */
 static struct StructFields test_struct_fields;
 
+/**
+ * @brief Unit test test_write_struct_functions.
+ * @return Greatest test result.
+ */
 TEST test_write_struct_functions(void) {
   FILE *tmpf;
 #if defined(_MSC_VER)
@@ -243,6 +272,10 @@ TEST test_write_struct_functions(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_struct_fields_overflow.
+ * @return Greatest test result.
+ */
 TEST test_struct_fields_overflow(void) {
 
   struct StructFields sf;
@@ -272,6 +305,10 @@ TEST test_struct_fields_overflow(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_enum_members_overflow.
+ * @return Greatest test result.
+ */
 TEST test_enum_members_overflow(void) {
 
   struct EnumMembers em;
@@ -300,6 +337,10 @@ TEST test_enum_members_overflow(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_trim_trailing.
+ * @return Greatest test result.
+ */
 TEST test_trim_trailing(void) {
 
   enum { n = 32 };
@@ -330,6 +371,10 @@ TEST test_trim_trailing(void) {
 
 /* test_code2schema_oom */
 /* test_code2schema_branches */
+/**
+ * @brief Unit test test_code2schema_main_bad_args.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_main_bad_args(void) {
 
   /* code2schema expects 2 args: in out */
@@ -344,6 +389,10 @@ TEST test_code2schema_main_bad_args(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_code2schema_parsing_details.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_parsing_details(void) {
   char *argv[2];
   const char *header_content = "enum Color {RED,GREEN=5,BLUE,};\n"
@@ -363,6 +412,10 @@ TEST test_code2schema_parsing_details(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_code2schema_parse_struct_and_enum.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_parse_struct_and_enum(void) {
   char *argv[2];
   const char *filename;
@@ -407,6 +460,10 @@ TEST test_code2schema_parse_struct_and_enum(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_code2schema_file_not_found.
+ * @return Greatest test result.
+ */
 TEST test_code2schema_file_not_found(void) {
   char *argv[2];
 
@@ -417,6 +474,10 @@ TEST test_code2schema_file_not_found(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_codegen_enum_null_args.
+ * @return Greatest test result.
+ */
 TEST test_codegen_enum_null_args(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
@@ -482,6 +543,10 @@ TEST test_codegen_enum_null_args(void) {
   }
 }
 
+/**
+ * @brief Unit test test_codegen_enum_with_unknown.
+ * @return Greatest test result.
+ */
 TEST test_codegen_enum_with_unknown(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
@@ -520,6 +585,10 @@ TEST test_codegen_enum_with_unknown(void) {
   }
 }
 
+/**
+ * @brief Unit test test_codegen_all_field_types.
+ * @return Greatest test result.
+ */
 TEST test_codegen_all_field_types(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
@@ -580,6 +649,10 @@ TEST test_codegen_all_field_types(void) {
   }
 }
 
+/**
+ * @brief Unit test test_codegen_empty_struct_and_enum.
+ * @return Greatest test result.
+ */
 TEST test_codegen_empty_struct_and_enum(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
@@ -624,6 +697,10 @@ TEST test_codegen_empty_struct_and_enum(void) {
   }
 }
 
+/**
+ * @brief Unit test test_codegen_struct_null_args.
+ * @return Greatest test result.
+ */
 TEST test_codegen_struct_null_args(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
@@ -754,6 +831,9 @@ TEST test_codegen_struct_null_args(void) {
   }
 }
 
+/**
+ * @brief Executes the code2schema_suite test suite.
+ */
 SUITE(code2schema_suite) {
   RUN_TEST(test_write_enum_functions);
   RUN_TEST(test_struct_fields_manage);

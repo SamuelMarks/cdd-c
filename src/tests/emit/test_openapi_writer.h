@@ -28,6 +28,9 @@ extern "C" {
 #include "emit/test_openapi_writer_finish.h"
 /* clang-format on */
 
+/**
+ * @brief Executes the openapi_writer_suite test suite.
+ */
 SUITE(openapi_writer_suite) {
   RUN_TEST(test_openapi_writer_close_100_percent);
   RUN_TEST(test_openapi_writer_nail_all_remaining);

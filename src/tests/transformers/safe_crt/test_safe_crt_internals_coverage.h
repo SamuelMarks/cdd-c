@@ -28,9 +28,16 @@ extern C_CDD_EXPORT int g_cdd_query_err_fail;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 
 #ifndef safe_crt_expr_test
+/**
+ * @brief Macro safe_crt_expr_test.
+ */
 #define safe_crt_expr_test expr_t
 #endif
 
+/**
+ * @brief Unit test test_cdd_transform_safe_crt_direct_internals_coverage.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
   {
     /* infer_buffer_size Pattern 1 & 2 comprehensive branches */
@@ -811,6 +818,10 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_safe_crt_manual_lines.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_safe_crt_manual_lines(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *node = NULL;
@@ -873,6 +884,9 @@ TEST test_cdd_transform_safe_crt_manual_lines(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the transformer_safe_crt_internals_coverage_suite test suite.
+ */
 SUITE(transformer_safe_crt_internals_coverage_suite) {
   RUN_TEST(test_cdd_transform_safe_crt_manual_lines);
 

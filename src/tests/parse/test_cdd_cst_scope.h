@@ -265,6 +265,7 @@ TEST test_cdd_cst_scope_tag(void) {
  */
 TEST test_cdd_cst_scope_mem(void) {
   /* Test handled via alloc limits if injected, otherwise basic execution covers
+   * @return Test or helper result.
    * paths. */
   g_fail_io_after = -1;
   PASS();
@@ -272,6 +273,7 @@ TEST test_cdd_cst_scope_mem(void) {
 
 /**
  * @brief CST scope test suite.
+ * @return Test or helper result.
  */
 
 #ifdef CDD_BUILD_TESTS
@@ -376,6 +378,9 @@ TEST test_cdd_cst_scope_invalid_symbol_kind(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the cdd_cst_scope_suite test suite.
+ */
 SUITE(cdd_cst_scope_suite) {
   RUN_TEST(test_scope_invalid_tag);
   RUN_TEST(test_cdd_cst_scope_invalid_symbol_kind);

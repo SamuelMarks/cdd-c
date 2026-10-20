@@ -31,22 +31,6 @@
 #include "functions/parse/cst_match.h"
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_fail_alloc;
-extern C_CDD_EXPORT int g_cdd_fail_skip_ws;
-extern C_CDD_EXPORT int g_cdd_fail_skip_ws_back;
-extern C_CDD_EXPORT int g_cdd_fail_is_type_start;
-extern C_CDD_EXPORT int g_cdd_fail_consume_balanced_parens;
-extern C_CDD_EXPORT int g_cdd_fail_consume_attributes;
-extern C_CDD_EXPORT int g_cdd_fail_consume_static_assert;
-extern C_CDD_EXPORT int g_cdd_fail_consume_generic_selection;
-extern C_CDD_EXPORT int g_cdd_fail_is_expression_brace;
-extern C_CDD_EXPORT int g_cdd_fail_consume_balanced_braces;
-extern C_CDD_EXPORT int g_cdd_fail_match_function_definition;
-extern C_CDD_EXPORT int g_cdd_fail_cst_list_add;
-extern C_CDD_EXPORT int g_cdd_fail_token_matches_string;
-#endif
-
 /**
  * @brief Append a node to CST node list.
  *
@@ -56,23 +40,15 @@ cdd_c_error_t cst_list_add(struct CstNodeList *list, enum CstNodeKind kind,
                            const uint8_t *start, size_t length,
                            size_t start_tok, size_t end_tok) {
   struct CstNode *new_arr;
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_fail_cst_list_add && --g_cdd_fail_cst_list_add == 0)
-    return CDD_C_ERROR_MEMORY;
-#endif
   if (!list)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
-    return CDD_C_ERROR_MEMORY;
-#endif
   if (list->size >= list->capacity) {
-    const size_t new_cap = (list->capacity == 0) ? 64 : list->capacity * 2;
+    const size_t new_cap = list->capacity + 1;
     new_arr = (struct CstNode *)C_CDD_REALLOC(list->nodes,
                                               new_cap * sizeof(struct CstNode));
     if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+      C_CDD_LOG_DEBUG("ENOMEM: OOM");
       return CDD_C_ERROR_MEMORY;
     }
     list->nodes = new_arr;
@@ -213,18 +189,8 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
     {
       int match_gen = 0;
       int match_gen_sel = 0;
-      {
-        cdd_c_error_t rc_cst =
-            token_matches_string(tok, "_Generic", &match_gen);
-        if (rc_cst != CDD_C_SUCCESS)
-          return rc_cst;
-      }
-      {
-        cdd_c_error_t rc_cst =
-            token_matches_string(tok, "generic_selection", &match_gen_sel);
-        if (rc_cst != CDD_C_SUCCESS)
-          return rc_cst;
-      }
+      rc = token_matches_string(tok, "_Generic", &match_gen);
+      rc = token_matches_string(tok, "generic_selection", &match_gen_sel);
       if ((tok->kind == TOKEN_IDENTIFIER && match_gen) ||
           (tok->kind == TOKEN_IDENTIFIER && match_gen_sel)) {
         size_t gen_end = 0;
@@ -456,10 +422,7 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
         }
         {
           int match_gen = 0;
-          cdd_c_error_t rc_cst =
-              token_matches_string(&tokens->tokens[j], "_Generic", &match_gen);
-          if (rc_cst != CDD_C_SUCCESS)
-            return rc_cst;
+          rc = token_matches_string(&tokens->tokens[j], "_Generic", &match_gen);
           if (kind == TOKEN_IDENTIFIER && match_gen) {
             break;
           }
@@ -543,14 +506,9 @@ cdd_c_error_t cst_find_first(struct CstNodeList *list,
   return CDD_C_SUCCESS;
 }
 
-#ifdef CDD_BUILD_TESTS
 /**
  * @brief Test wrapper for `parse_recursive`.
  *
- * @param[in] tokens Token list.
- * @param[in] start Start token index.
- * @param[in] end End token index.
- * @param[in,out] out CST node list to populate.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t cdd_test_cst_parse_recursive(const struct TokenList *tokens,
@@ -558,4 +516,3 @@ cdd_c_error_t cdd_test_cst_parse_recursive(const struct TokenList *tokens,
                                            struct CstNodeList *out) {
   return parse_recursive(tokens, start, end, out);
 }
-#endif /* CDD_BUILD_TESTS */

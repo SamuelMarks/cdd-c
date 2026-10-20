@@ -14,6 +14,10 @@ extern "C" {
 #include "emit/test_codegen_client_sig_common.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_sig_simple_get.
+ * @return Greatest test result.
+ */
 TEST test_sig_simple_get(void) {
   char *_ast_gen_sig_0 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -74,6 +78,10 @@ TEST test_sig_simple_get(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_verify_apierror.
+ * @return Greatest test result.
+ */
 TEST test_sig_verify_apierror(void) {
   char *_ast_gen_sig_1 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -121,6 +129,10 @@ TEST test_sig_verify_apierror(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_grouped.
+ * @return Greatest test result.
+ */
 TEST test_sig_grouped(void) {
   char *_ast_gen_sig_2 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -174,6 +186,10 @@ TEST test_sig_grouped(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_success_range_response.
+ * @return Greatest test result.
+ */
 TEST test_sig_success_range_response(void) {
   char *_ast_gen_sig_3 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -228,6 +244,10 @@ TEST test_sig_success_range_response(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_default_response_success.
+ * @return Greatest test result.
+ */
 TEST test_sig_default_response_success(void) {
   char *_ast_gen_sig_4 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -282,6 +302,10 @@ TEST test_sig_default_response_success(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_inline_response_string.
+ * @return Greatest test result.
+ */
 TEST test_sig_inline_response_string(void) {
   char *_ast_gen_sig_5 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -336,6 +360,10 @@ TEST test_sig_inline_response_string(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_inline_response_array.
+ * @return Greatest test result.
+ */
 TEST test_sig_inline_response_array(void) {
   char *_ast_gen_sig_6 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -391,6 +419,10 @@ TEST test_sig_inline_response_array(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_inline_request_body_string.
+ * @return Greatest test result.
+ */
 TEST test_sig_inline_request_body_string(void) {
   char *_ast_gen_sig_7 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -441,6 +473,10 @@ TEST test_sig_inline_request_body_string(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_sig_inline_request_body_array.
+ * @return Greatest test result.
+ */
 TEST test_sig_inline_request_body_array(void) {
   char *_ast_gen_sig_8 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -492,6 +528,9 @@ TEST test_sig_inline_request_body_array(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the client_sig_suite test suite.
+ */
 SUITE(client_sig_suite) {
   RUN_TEST(test_sig_simple_get);
   RUN_TEST(test_sig_verify_apierror);

@@ -25,13 +25,24 @@ extern "C" {
 /* clang-format on */
 
 #ifndef C_CDD_STR_LIT
+/**
+ * @brief Macro C_CDD_STR_LIT.
+ * @param[in] s Macro argument s.
+ */
 #define C_CDD_STR_LIT(s) cdd_test_mut_str(s)
 #endif
 
+/** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
+/** @brief Test definition g_cdd_fail_is_primitive_type. */
 extern C_CDD_EXPORT int g_cdd_fail_is_primitive_type;
 
+/**
+ * @brief Unit test test_client_body_verb_and_method_helpers.
+ * @return Greatest test result.
+ */
 TEST test_client_body_verb_and_method_helpers(void) {
   const char *val = NULL;
   cdd_c_error_t rc = 0;
@@ -901,6 +912,9 @@ TEST test_client_body_fail_is_primitive_type_branches(void) {
 #include "emit/test_codegen_client_body_operations.h"
 #include "emit/test_codegen_client_body_params.h"
 
+/**
+ * @brief Executes the client_body_internals_suite test suite.
+ */
 SUITE(client_body_internals_suite) {
   RUN_TEST(test_client_body_verb_and_method_helpers);
   RUN_TEST(test_client_body_find_helpers);

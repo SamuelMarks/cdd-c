@@ -14,22 +14,12 @@
 #include <string.h>
 
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 #include "c_cdd_stdbool.h"
+#include "classes/parse/cdd_token.h"
 #include "functions/parse/analysis.h"
 #include "functions/parse/str.h"
 /* clang-format on */
-
-#ifdef CDD_BUILD_TESTS
-/** @brief Counter to simulate allocation failure in
- * `allocation_site_list_init`. */
-C_CDD_EXPORT int g_cdd_analysis_fail_alloc_init = 0;
-/** @brief Counter to simulate allocation failure in `allocation_site_list_add`.
- */
-C_CDD_EXPORT int g_cdd_analysis_fail_alloc_add = 0;
-/** @brief Counter to simulate variable name allocation failure in
- * `allocation_site_list_add`. */
-C_CDD_EXPORT int g_cdd_analysis_fail_alloc_varname = 0;
-#endif
 
 /** @brief Table of known C memory allocator specifications. */
 static const struct AllocatorSpec ALLOCATOR_SPECS[] = {
@@ -54,24 +44,8 @@ cdd_c_error_t allocation_site_list_init(struct AllocationSiteList *list) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   list->size = 0;
   list->capacity = 8;
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_analysis_fail_alloc_init;
-    if (g_cdd_analysis_fail_alloc_init == 1) {
-      list->sites = NULL;
-      g_cdd_analysis_fail_alloc_init = 0;
-    } else {
-      if (g_cdd_analysis_fail_alloc_init > 1) {
-        g_cdd_analysis_fail_alloc_init--;
-      }
-      list->sites = (struct AllocationSite *)malloc(
-          list->capacity * sizeof(struct AllocationSite));
-    }
-  }
-#else
-  list->sites = (struct AllocationSite *)malloc(list->capacity *
-                                                sizeof(struct AllocationSite));
-#endif
+  list->sites = (struct AllocationSite *)C_CDD_MALLOC(
+      list->capacity * sizeof(struct AllocationSite));
   if (!list->sites) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -89,9 +63,9 @@ void allocation_site_list_free(struct AllocationSiteList *list) {
   if (list->sites) {
     for (i = 0; i < list->size; ++i) {
       if (list->sites[i].var_name)
-        free(list->sites[i].var_name);
+        C_CDD_FREE(list->sites[i].var_name);
     }
-    free(list->sites);
+    C_CDD_FREE(list->sites);
     list->sites = NULL;
   }
   list->size = 0;
@@ -112,25 +86,8 @@ cdd_c_error_t allocation_site_list_add(struct AllocationSiteList *list,
 
   if (list->size >= list->capacity) {
     const size_t new_cap = (list->capacity == 0) ? 8 : list->capacity * 2;
-    struct AllocationSite *new_sites;
-#ifdef CDD_BUILD_TESTS
-    {
-      extern C_CDD_EXPORT int g_cdd_analysis_fail_alloc_add;
-      if (g_cdd_analysis_fail_alloc_add == 1) {
-        new_sites = NULL;
-        g_cdd_analysis_fail_alloc_add = 0;
-      } else {
-        if (g_cdd_analysis_fail_alloc_add > 1) {
-          g_cdd_analysis_fail_alloc_add--;
-        }
-        new_sites = (struct AllocationSite *)realloc(
-            list->sites, new_cap * sizeof(struct AllocationSite));
-      }
-    }
-#else
-    new_sites = (struct AllocationSite *)realloc(
+    struct AllocationSite *new_sites = (struct AllocationSite *)C_CDD_REALLOC(
         list->sites, new_cap * sizeof(struct AllocationSite));
-#endif
     if (!new_sites) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -146,22 +103,7 @@ cdd_c_error_t allocation_site_list_add(struct AllocationSiteList *list,
   list->sites[list->size].spec = spec;
 
   if (var_name) {
-#ifdef CDD_BUILD_TESTS
-    {
-      extern C_CDD_EXPORT int g_cdd_analysis_fail_alloc_varname;
-      if (g_cdd_analysis_fail_alloc_varname == 1) {
-        list->sites[list->size].var_name = NULL;
-        g_cdd_analysis_fail_alloc_varname = 0;
-      } else {
-        if (g_cdd_analysis_fail_alloc_varname > 1) {
-          g_cdd_analysis_fail_alloc_varname--;
-        }
-        c_cdd_strdup(var_name, &list->sites[list->size].var_name);
-      }
-    }
-#else
     c_cdd_strdup(var_name, &list->sites[list->size].var_name);
-#endif
     if (!list->sites[list->size].var_name)
       return CDD_C_ERROR_MEMORY;
   } else {
@@ -207,11 +149,11 @@ static cdd_c_error_t get_assigned_var(const struct TokenList *tokens,
         if (g_cdd_fail_alloc > 1) {
           g_cdd_fail_alloc--;
         }
-        name = (char *)malloc(tok->length + 1);
+        name = (char *)C_CDD_MALLOC(tok->length + 1);
       }
     }
 #else
-    name = (char *)malloc(tok->length + 1);
+    name = (char *)C_CDD_MALLOC(tok->length + 1);
 #endif
     if (!name) {
       *_out_val = NULL;
@@ -504,13 +446,13 @@ cdd_c_error_t find_allocations(const struct TokenList *tokens,
               cdd_c_error_t rc_an =
                   is_checked(tokens, i, var_name, spec, &used_before, &checked);
               if (rc_an != CDD_C_SUCCESS) {
-                free(var_name);
+                C_CDD_FREE(var_name);
                 return rc_an;
               }
             }
             rc = allocation_site_list_add(out, i, var_name, checked,
                                           used_before, 0, spec);
-            free(var_name);
+            C_CDD_FREE(var_name);
             if (rc != CDD_C_SUCCESS)
               return rc;
           } else {

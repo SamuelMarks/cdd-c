@@ -1,3 +1,7 @@
+/**
+ * @file test_macros.h
+ * @brief Unit tests and mocks in test_macros.h.
+ */
 #ifndef TEST_CDD_TRANSFORM_MACROS_H
 #define TEST_CDD_TRANSFORM_MACROS_H
 
@@ -54,6 +58,10 @@ TEST test_cdd_transform_macros(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_macros_operators.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_macros_operators(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "#define STRINGIFY(x) #x\n"
@@ -89,6 +97,10 @@ TEST test_cdd_transform_macros_operators(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_macros_alloc_fails.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_macros_alloc_fails(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "#define STRINGIFY(x) #x\n"

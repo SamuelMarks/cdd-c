@@ -19,9 +19,8 @@
 #include "win_compat_sym.h"
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
+/** @brief fprintf macro alias for stream hook */
 #define fprintf cdd_io_fprintf_hook
-#endif
 
 /** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \

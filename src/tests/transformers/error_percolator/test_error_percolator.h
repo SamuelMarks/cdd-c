@@ -1,3 +1,7 @@
+/**
+ * @file test_error_percolator.h
+ * @brief Unit tests and mocks in test_error_percolator.h.
+ */
 #ifndef CDD_TEST_TRANSFORMER_ERROR_PERCOLATOR_H
 #define CDD_TEST_TRANSFORMER_ERROR_PERCOLATOR_H
 
@@ -10,12 +14,17 @@
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern C_CDD_EXPORT int g_err_perc_fail;
+extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
+/**
+ * @brief Unit test test_cdd_transform_percolate_errors.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_percolate_errors(void) {
   cdd_cst_tree_t *tree;
   const char *code = "void func_void() { }\n"
@@ -35,6 +44,10 @@ TEST test_cdd_transform_percolate_errors(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_transform_percolate_errors_complex.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_percolate_errors_complex(void) {
   cdd_cst_tree_t *tree = NULL;
   const char code[] = {
@@ -519,6 +532,10 @@ TEST test_cdd_transform_percolate_errors_complex(void) {
   }
 }
 
+/**
+ * @brief Unit test test_cdd_transform_percolate_errors_edge_cases.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_percolate_errors_edge_cases(void) {
   cdd_cst_tree_t *tree = NULL;
   const char code[] = {
@@ -572,8 +589,11 @@ TEST test_cdd_transform_percolate_errors_edge_cases(void) {
 /* extern C_CDD_EXPORT int g_err_perc_fail; (moved to global) */
 #endif
 
+/**
+ * @brief Unit test test_cdd_transform_percolate_errors_bld_fail.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_percolate_errors_bld_fail(void) {
-#ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
   cdd_token_t *rbrace_tok_to_free = NULL;
   cdd_cst_node_t *unknown_node = NULL;
@@ -582,11 +602,12 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
   const char *code = cdd_test_mut_str("void foo() { void *p = malloc(1); void "
                                       "*p2 = malloc(1); return; }");
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
-
-  g_err_perc_fail = 1;
+  int f_idx;
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   cdd_transform_percolate_errors(tree, &config);
+  cdd_cst_tree_free(tree);
+  tree = NULL;
 
   {
     cdd_cst_tree_t *t = NULL;
@@ -628,10 +649,6 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
     cdd_transform_percolate_errors(t, &config);
     cdd_cst_tree_free(t);
   }
-  cdd_cst_tree_free(tree);
-  tree = NULL;
-
-  g_err_perc_fail = 2; /* Custom trigger for cleanup node */
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
 
@@ -642,76 +659,46 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
   rbrace_tok_to_free = rbrace_tok;
 
   unknown_node->kind = CDD_CST_UNKNOWN;
-  /* Add an RBRACE to it so it matches */
   rbrace_tok->kind = CDD_TOKEN_RBRACE;
   c->kind = CDD_CST_CHILD_TOKEN;
   c->val.token = rbrace_tok;
   unknown_node->children = c;
   unknown_node->num_children = 1;
-  /* Add to end of first function definition in tree */
   if (tree->root && tree->root->num_children > 0 &&
       tree->root->children[0].kind == CDD_CST_CHILD_NODE) {
     cdd_cst_append_child_node(tree->root->children[0].val.node, unknown_node);
   }
 
   cdd_transform_percolate_errors(tree, &config);
-  /* The unknown_node was appended. Does it get freed? No, append_child_node
-   * just adds it to the children array. But cdd_cst_tree_free frees tokens. The
-   * nodes must be freed. */
-
   cdd_cst_tree_free(tree);
   if (rbrace_tok_to_free)
     free(rbrace_tok_to_free);
   tree = NULL;
 
-  g_err_perc_fail = 3; /* For return builder mock */
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
-  cdd_transform_percolate_errors(tree, &config);
-  cdd_cst_tree_free(tree);
-  tree = NULL;
+  for (f_idx = 1; f_idx <= 120; f_idx++) {
+    ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
+    g_cdd_alloc_fail = f_idx;
+    cdd_transform_percolate_errors(tree, &config);
+    g_cdd_alloc_fail = 0;
+    cdd_cst_tree_free(tree);
+    tree = NULL;
 
-  g_err_perc_fail = 4; /* For tmp_name malloc mock */
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
-  cdd_transform_percolate_errors(tree, &config);
-  cdd_cst_tree_free(tree);
-  tree = NULL;
+    ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
+    g_cdd_cst_realloc_fail = f_idx;
+    cdd_transform_percolate_errors(tree, &config);
+    g_cdd_cst_realloc_fail = 0;
+    cdd_cst_tree_free(tree);
+    tree = NULL;
+  }
 
-  g_err_perc_fail = 17; /* For cloned calloc mock */
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
-  cdd_transform_percolate_errors(tree, &config);
-  cdd_cst_tree_free(tree);
-  tree = NULL;
-
-  g_err_perc_fail = 18; /* For string_pool realloc mock */
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
-  cdd_transform_percolate_errors(tree, &config);
-  cdd_cst_tree_free(tree);
-  tree = NULL;
-
-  g_err_perc_fail = 19; /* For decl_node / cleanup_node mock */
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
-  cdd_transform_percolate_errors(tree, &config);
-  cdd_cst_tree_free(tree);
-  tree = NULL;
-
-  g_err_perc_fail = 21; /* For cleanup_node mock */
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
-  cdd_transform_percolate_errors(tree, &config);
-  cdd_cst_tree_free(tree);
-  tree = NULL;
-
-  g_err_perc_fail = 20; /* For rewrite_call_sites failure mock */
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_percolate_errors(tree, &config));
-  cdd_cst_tree_free(tree);
-  tree = NULL;
-
-  g_err_perc_fail = 0;
-#endif
   g_fail_io_after = -1;
   PASS();
 }
 
+/**
+ * @brief Unit test test_cdd_transform_percolate_errors_oom.
+ * @return Greatest test result.
+ */
 TEST test_cdd_transform_percolate_errors_oom(void) {
 #ifdef CDD_BUILD_TESTS
   const char code[] = {
@@ -895,32 +882,19 @@ TEST test_cdd_transform_percolate_errors_oom(void) {
       10,  0};
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
   int i;
-  for (i = 1; i < 50; i++) {
+  for (i = 1; i < 120; i++) {
     cdd_cst_tree_t *tree = NULL;
     int rc = 0;
     rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
     ASSERT_EQ(0, rc);
 
     {
-      cdd_cst_query_result_t res_test;
-      rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_FUNCTION_DEFINITION,
-                                      &res_test);
-      if (rc == 0) {
-        printf("Found %lu functions at i=%d\n", (unsigned long)res_test.size,
-               i);
-        /*
-        size_t k;
-        for (k = 0; k < res_test.size; k++) {
-           printf("Func %" CDD_PRIz "\n", k);
-        }
-        */
-        C_CDD_FREE(res_test.nodes);
-      }
-
       g_cdd_alloc_fail = i;
       rc = cdd_transform_percolate_errors(tree, &config);
       g_cdd_alloc_fail = 0;
       cdd_cst_tree_free(tree);
+      if (rc == CDD_C_SUCCESS)
+        break;
     }
   }
   g_cdd_alloc_fail = 0;

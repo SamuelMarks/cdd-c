@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/code_writer.h"
 #include "c_cdd_stdbool.h"
 #include "functions/parse/str.h"
 #include "routes/emit/security.h"
@@ -442,7 +443,9 @@ codegen_security_write_server_apply(FILE *fp,
     if ((sch->type == OA_SEC_HTTP && sch->scheme &&
          strcmp(sch->scheme, "bearer") == 0) ||
         sch->type == OA_SEC_OAUTH2 || sch->type == OA_SEC_OPENID) {
-      fprintf(fp, "    /* Validate Bearer Token / OAuth2 */\n");
+      if ((int)FPRINTF_HOOK(fp, "    /* Validate Bearer Token / OAuth2 */\n") <
+          0)
+        return CDD_C_ERROR_IO;
       fprintf(fp, "    if (c_rest_middleware_bearer_auth(conn) != 0) {\n");
       fprintf(fp, "      mg_printf(conn, \"HTTP/1.1 401 "
                   "Unauthorized\\r\\nContent-Length: 0\\r\\n\\r\\n\");\n");
@@ -462,56 +465,96 @@ codegen_security_write_server_apply(FILE *fp,
   return CDD_C_SUCCESS;
 }
 
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT cdd_c_error_t uri_has_scheme_prefix_test(const char *uri,
-                                                      size_t len);
-C_CDD_EXPORT cdd_c_error_t ref_base_matches_self_uri_test(const char *self_uri,
-                                                          const char *ref,
-                                                          size_t base_len);
-C_CDD_EXPORT cdd_c_error_t
-scheme_ref_matches_name_test(const char *req_scheme, const char *scheme_name,
-                             const struct OpenAPI_Spec *spec);
-C_CDD_EXPORT cdd_c_error_t scheme_in_security_sets_test(
-    const struct OpenAPI_SecurityRequirementSet *sets, size_t n_sets,
-    const char *scheme_name, const struct OpenAPI_Spec *spec);
-C_CDD_EXPORT cdd_c_error_t resolve_active_security_test(
-    const struct OpenAPI_Operation *op, const struct OpenAPI_Spec *spec,
-    const struct OpenAPI_SecurityRequirementSet **out_sets, size_t *out_count,
-    int *out_set_flag);
-C_CDD_EXPORT cdd_c_error_t scheme_is_active_test(
-    const struct OpenAPI_SecurityScheme *sch,
-    const struct OpenAPI_SecurityRequirementSet *sets, size_t n_sets,
-    int security_set, const struct OpenAPI_Spec *spec);
-
+/**
+ * @brief Checks if a URI string begins with a scheme prefix (`scheme:`).
+ *
+ * @param[in] uri URI string to inspect.
+ * @param[in] len Length of the prefix to inspect.
+ * @return Non-zero if a scheme prefix is present, 0 otherwise.
+ */
 C_CDD_EXPORT cdd_c_error_t uri_has_scheme_prefix_test(const char *uri,
                                                       size_t len) {
   return uri_has_scheme_prefix(uri, len);
 }
+
+/**
+ * @brief Checks if a reference base URI matches the specification `$self` URI.
+ *
+ * @param[in] self_uri Specification `$self` URI.
+ * @param[in] ref Reference string to compare.
+ * @param[in] base_len Length of the reference base portion.
+ * @return Non-zero if matching, 0 otherwise.
+ */
 C_CDD_EXPORT cdd_c_error_t ref_base_matches_self_uri_test(const char *self_uri,
                                                           const char *ref,
                                                           size_t base_len) {
   return ref_base_matches_self_uri(self_uri, ref, base_len);
 }
+
+/**
+ * @brief Checks if a security requirement scheme reference matches a named
+ * security scheme.
+ *
+ * @param[in] req_scheme Requirement scheme name or `$ref`.
+ * @param[in] scheme_name Defined security scheme name.
+ * @param[in] spec OpenAPI specification context.
+ * @return Non-zero if matching, 0 otherwise.
+ */
 C_CDD_EXPORT cdd_c_error_t
 scheme_ref_matches_name_test(const char *req_scheme, const char *scheme_name,
                              const struct OpenAPI_Spec *spec) {
   return scheme_ref_matches_name(req_scheme, scheme_name, spec);
 }
+
+/**
+ * @brief Checks if a named security scheme is referenced in an array of
+ * security requirement sets.
+ *
+ * @param[in] sets Array of security requirement sets.
+ * @param[in] n_sets Number of requirement sets.
+ * @param[in] scheme_name Security scheme name to search for.
+ * @param[in] spec OpenAPI specification context.
+ * @return Non-zero if present, 0 otherwise.
+ */
 C_CDD_EXPORT cdd_c_error_t scheme_in_security_sets_test(
     const struct OpenAPI_SecurityRequirementSet *sets, size_t n_sets,
     const char *scheme_name, const struct OpenAPI_Spec *spec) {
   return scheme_in_security_sets(sets, n_sets, scheme_name, spec);
 }
+
+/**
+ * @brief Resolves the active security requirement sets for an operation.
+ *
+ * @param[in] op Operation context (may be NULL).
+ * @param[in] spec OpenAPI specification context.
+ * @param[out] out_sets Output pointer to the active requirement sets.
+ * @param[out] out_count Output count of requirement sets.
+ * @param[out] out_set_flag Output flag indicating whether security was
+ * explicitly set.
+ * @return CDD_C_SUCCESS on success.
+ */
 C_CDD_EXPORT cdd_c_error_t resolve_active_security_test(
     const struct OpenAPI_Operation *op, const struct OpenAPI_Spec *spec,
     const struct OpenAPI_SecurityRequirementSet **out_sets, size_t *out_count,
     int *out_set_flag) {
   return resolve_active_security(op, spec, out_sets, out_count, out_set_flag);
 }
+
+/**
+ * @brief Determines if a security scheme is active for the resolved security
+ * sets.
+ *
+ * @param[in] sch Security scheme definition.
+ * @param[in] sets Active security requirement sets.
+ * @param[in] n_sets Number of active security requirement sets.
+ * @param[in] security_set Non-zero if security requirements were explicitly
+ * specified.
+ * @param[in] spec OpenAPI specification context.
+ * @return Non-zero if active, 0 otherwise.
+ */
 C_CDD_EXPORT cdd_c_error_t scheme_is_active_test(
     const struct OpenAPI_SecurityScheme *sch,
     const struct OpenAPI_SecurityRequirementSet *sets, size_t n_sets,
     int security_set, const struct OpenAPI_Spec *spec) {
   return scheme_is_active(sch, sets, n_sets, security_set, spec);
 }
-#endif

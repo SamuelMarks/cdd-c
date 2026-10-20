@@ -1,3 +1,7 @@
+/**
+ * @file test_rewriter_body.h
+ * @brief Unit tests and mocks in test_rewriter_body.h.
+ */
 #ifndef TEST_REWRITER_BODY_H
 #define TEST_REWRITER_BODY_H
 
@@ -21,11 +25,21 @@ extern "C" {
 /* Moved extern declarations for C89 compliance */
 
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
+/** @brief Test definition g_patcher_test_cap_1. */
 extern C_CDD_EXPORT int g_patcher_test_cap_1;
 
 #ifndef CDD_RUN_BODY_REWRITE_DEFINED
 #define CDD_RUN_BODY_REWRITE_DEFINED
 static cdd_c_error_t
+/**
+ * @brief Helper function run_body_rewrite.
+ * @param[in] code Parameter code.
+ * @param[in] funcs Parameter funcs.
+ * @param[in] n_funcs Parameter n_funcs.
+ * @param[in] transform Parameter transform.
+ * @param[out] out Parameter out.
+ * @return Result status or value.
+ */
 run_body_rewrite(const char *code, const struct RefactoredFunction *funcs,
                  size_t n_funcs, const struct SignatureTransform *transform,
                  char **out) {
@@ -270,6 +284,10 @@ TEST test_propagate_ptr_assignment2(void) {
 
   PASS();
 }
+/**
+ * @brief Unit test test_propagate_ptr_assignment.
+ * @return Greatest test result.
+ */
 TEST test_propagate_ptr_assignment(void) {
   const char *input = ""
                       "void f() { char *s; s = my_strdup(\"a\"); }";

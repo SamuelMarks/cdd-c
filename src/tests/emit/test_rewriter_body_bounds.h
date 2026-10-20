@@ -23,11 +23,21 @@ extern "C" {
 /* clang-format on */
 
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
+/** @brief Test definition g_patcher_test_cap_1. */
 extern C_CDD_EXPORT int g_patcher_test_cap_1;
 
 #ifndef CDD_RUN_BODY_REWRITE_DEFINED
 #define CDD_RUN_BODY_REWRITE_DEFINED
 static cdd_c_error_t
+/**
+ * @brief Helper function run_body_rewrite.
+ * @param[in] code Parameter code.
+ * @param[in] funcs Parameter funcs.
+ * @param[in] n_funcs Parameter n_funcs.
+ * @param[in] transform Parameter transform.
+ * @param[out] out Parameter out.
+ * @return Result status or value.
+ */
 run_body_rewrite(const char *code, const struct RefactoredFunction *funcs,
                  size_t n_funcs, const struct SignatureTransform *transform,
                  char **out) {
@@ -50,6 +60,10 @@ run_body_rewrite(const char *code, const struct RefactoredFunction *funcs,
 }
 #endif /* CDD_RUN_BODY_REWRITE_DEFINED */
 
+/**
+ * @brief Unit test test_rewriter_body_bounds.
+ * @return Greatest test result.
+ */
 TEST test_rewriter_body_bounds(void) {
   struct RefactoredFunction funcs2[] = {{"do_work", REF_VOID_TO_INT, NULL}};
   char *output = NULL;
@@ -144,6 +158,10 @@ TEST test_rewriter_body_bounds(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_rewriter_body_oom.
+ * @return Greatest test result.
+ */
 TEST test_rewriter_body_oom(void) {
   const char *input = cdd_test_mut_str("void f() { do_work(); }");
   char *output = NULL;
@@ -273,6 +291,10 @@ TEST test_rewriter_body_oom(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_rewriter_body_bounds2.
+ * @return Greatest test result.
+ */
 TEST test_rewriter_body_bounds2(void) {
   struct TokenList tl = {0};
   struct AllocationSiteList sites = {0};
@@ -372,6 +394,10 @@ TEST test_rewriter_body_bounds2(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_propagate_void_stmt_return.
+ * @return Greatest test result.
+ */
 TEST test_propagate_void_stmt_return(void) {
   const char *input = cdd_test_mut_str("void f() { do_work(); return ; }");
   char *output = NULL;
@@ -475,6 +501,10 @@ TEST test_propagate_void_stmt_return(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_propagate_void_stmt_transform.
+ * @return Greatest test result.
+ */
 TEST test_propagate_void_stmt_transform(void) {
   const char *input = cdd_test_mut_str("void f() { do_work(); }");
   char *output = NULL;
@@ -578,6 +608,10 @@ TEST test_propagate_void_stmt_transform(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_propagate_nested_parens.
+ * @return Greatest test result.
+ */
 TEST test_propagate_nested_parens(void) {
   const char *input = cdd_test_mut_str("void f() { char* tmp; "
                                        "inner ((1 + 2)); }");
@@ -689,6 +723,10 @@ TEST test_propagate_nested_parens(void) {
 /*  (moved to global) */
 #endif
 
+/**
+ * @brief Unit test test_rewrite_body_oom.
+ * @return Greatest test result.
+ */
 TEST test_rewrite_body_oom(void) {
 #ifdef CDD_BUILD_TESTS
   int i;

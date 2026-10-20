@@ -108,6 +108,10 @@ TEST test_oauth2_error_generation(void) {
   }
 }
 
+/**
+ * @brief Unit test test_oauth2_error_generation_non_string.
+ * @return Greatest test result.
+ */
 TEST test_oauth2_error_generation_non_string(void) {
   FILE *tmp;
 #if defined(_MSC_VER)

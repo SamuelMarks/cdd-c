@@ -367,7 +367,7 @@ cdd_c_error_t parse_content_object(const JSON_Object *content,
       size_t j;
       for (j = 0; j < count; ++j)
         free_media_type(&(*out)[j]);
-      free(*out);
+      C_CDD_FREE(*out);
       *out = NULL;
       *out_count = 0;
       return CDD_C_ERROR_MEMORY;
@@ -377,7 +377,7 @@ cdd_c_error_t parse_content_object(const JSON_Object *content,
       size_t j;
       for (j = 0; j < count; ++j)
         free_media_type(&(*out)[j]);
-      free(*out);
+      C_CDD_FREE(*out);
       *out = NULL;
       *out_count = 0;
       return rc;

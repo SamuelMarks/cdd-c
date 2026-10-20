@@ -272,7 +272,7 @@ fail:
   for (i = 0; i < count; ++i) {
     free_security_requirement_set(&(*out)[i]);
   }
-  free(*out);
+  C_CDD_FREE(*out);
   *out = NULL;
   *out_count = 0;
   return rc;

@@ -29,6 +29,10 @@ extern "C" {
 #include "routes/emit/operation.h"
 /* clang-format on */
 
+/**
+ * @brief Helper function reset_op.
+ * @param[in,out] op Parameter op.
+ */
 static void reset_op(struct OpenAPI_Operation *op) {
   size_t i;
   /* Use openapi_spec_free or manual free?
@@ -353,6 +357,13 @@ static void reset_op(struct OpenAPI_Operation *op) {
 }
 
 static cdd_c_error_t
+/**
+ * @brief Helper function find_response_media_type.
+ * @param[in] resp Parameter resp.
+ * @param[in] name Parameter name.
+ * @param[in] _out_val Parameter _out_val.
+ * @return Result status or value.
+ */
 find_response_media_type(const struct OpenAPI_Response *resp, const char *name,
                          const struct OpenAPI_MediaType **_out_val) {
   size_t i;

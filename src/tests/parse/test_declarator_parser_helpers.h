@@ -23,17 +23,28 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
+/** @brief Test definition g_cdd_fail_skip_ws. */
 extern C_CDD_EXPORT int g_cdd_fail_skip_ws;
+/** @brief Test definition g_cdd_fail_skip_ws_back. */
 extern C_CDD_EXPORT int g_cdd_fail_skip_ws_back;
+/** @brief Test definition g_cdd_fail_skip_group. */
 extern C_CDD_EXPORT int g_cdd_fail_skip_group;
+/** @brief Test definition g_cdd_fail_add_type_node. */
 extern C_CDD_EXPORT int g_cdd_fail_add_type_node;
+/** @brief Test definition g_cdd_fail_create_node. */
 extern C_CDD_EXPORT int g_cdd_fail_create_node;
+/** @brief Test definition g_cdd_fail_find_pivot. */
 extern C_CDD_EXPORT int g_cdd_fail_find_pivot;
+/** @brief Test definition g_cdd_fail_is_grouping_paren. */
 extern C_CDD_EXPORT int g_cdd_fail_is_grouping_paren;
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
+/** @brief Test definition g_fail_io_after. */
 extern C_CDD_EXPORT int g_fail_io_after;
 
+/**
+ * @brief Helper function reset_decl_helpers_mocks.
+ */
 static void reset_decl_helpers_mocks(void) {
   g_cdd_fail_skip_ws = 0;
   g_cdd_fail_skip_ws_back = 0;
@@ -47,6 +58,11 @@ static void reset_decl_helpers_mocks(void) {
   g_fail_io_after = -1;
 }
 
+/**
+ * @brief Helper function setup_tokens_helpers.
+ * @param[in] code Parameter code.
+ * @return Result status or value.
+ */
 static struct TokenList *setup_tokens_helpers(const char *code) {
   struct TokenList *tl = NULL;
   cdd_c_error_t rc = 0;
@@ -59,6 +75,7 @@ static struct TokenList *setup_tokens_helpers(const char *code) {
 
 /**
  * @brief Tests unit helper functions for declarator parser.
+ * @return Test or helper result.
  */
 TEST test_declarator_unit_helpers(void) {
   struct TokenList *tl;
@@ -225,6 +242,7 @@ TEST test_declarator_unit_helpers(void) {
 
 /**
  * @brief Tests declarator parser mock failures and edge cases.
+ * @return Test or helper result.
  */
 TEST test_declarator_mock_failures(void) {
   struct TokenList *tl;
@@ -370,6 +388,7 @@ TEST test_declarator_mock_failures(void) {
 
 /**
  * @brief Tests abstract pivot error branches.
+ * @return Test or helper result.
  */
 TEST test_declarator_abstract_pivot_branches(void) {
   struct TokenList *tl;
@@ -444,6 +463,7 @@ TEST test_declarator_abstract_pivot_branches(void) {
 
 /**
  * @brief Tests find_pivot error branches.
+ * @return Test or helper result.
  */
 TEST test_declarator_find_pivot_branches(void) {
   struct TokenList *tl;
@@ -504,6 +524,7 @@ TEST test_declarator_find_pivot_branches(void) {
 
 /**
  * @brief Tests mock cycling for 100% branch coverage of mock conditions.
+ * @return Test or helper result.
  */
 TEST test_declarator_mock_cycles(void) {
   struct TokenList *tl;
@@ -613,6 +634,9 @@ TEST test_declarator_mock_cycles(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the declarator_parser_helpers_suite test suite.
+ */
 SUITE(declarator_parser_helpers_suite) {
 #if defined(_MSC_VER) && _MSC_VER <= 1400
   /* skipped on old msvc */

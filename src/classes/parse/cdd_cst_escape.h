@@ -18,8 +18,8 @@ extern "C" {
 /**
  * @brief Analyzes a CST tree to determine which local variables have their
  * addresses taken or are captured by nested functions (closures).
- * @param tree The AST to analyze.
- * @param env The populated semantic scope environment.
+ * @param[in,out] tree The AST to analyze.
+ * @param[in,out] env The populated semantic scope environment.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_analyze_escapes(cdd_cst_tree_t *tree,
@@ -27,8 +27,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_analyze_escapes(cdd_cst_tree_t *tree,
 
 /**
  * @brief Checks if a specific symbol escapes its local scope.
- * @param symbol The symbol to check.
- * @param out_escapes Populated with 1 if it escapes, 0 otherwise.
+ * @param[in,out] symbol The symbol to check.
+ * @param[out] out_escapes Populated with 1 if it escapes, 0 otherwise.
  * @return 0 on success.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_symbol_escapes(cdd_cst_symbol_t *symbol,

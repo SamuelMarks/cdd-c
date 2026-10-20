@@ -27,7 +27,9 @@ extern "C" {
 
 /* Moved extern declarations for C89 compliance */
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
+/** @brief Test definition g_cdd_fail_skip_qualifiers. */
 extern C_CDD_EXPORT int g_cdd_fail_skip_qualifiers;
+/** @brief Test definition g_cdd_fail_str_starts_with. */
 extern C_CDD_EXPORT int g_cdd_fail_str_starts_with;
 extern C_CDD_EXPORT cdd_c_error_t test_mapping_internal_errors(void);
 
@@ -206,6 +208,10 @@ TEST test_mapping_void_ptr(void) {
   PASS();
 }
 
+/**
+ * @brief Unit test test_mapping_coverage.
+ * @return Greatest test result.
+ */
 TEST test_mapping_coverage(void) {
   struct OpenApiTypeMapping m = {0};
 

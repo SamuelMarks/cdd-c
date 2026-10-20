@@ -25,6 +25,10 @@ extern "C" {
 #include "classes/emit/types.h"
 /* clang-format on */
 
+/**
+ * @brief Unit test test_types_uncovered.
+ * @return Greatest test result.
+ */
 TEST test_types_uncovered(void) {
   int i, rc;
   struct StructFields sf;
@@ -671,6 +675,9 @@ TEST test_types_uncovered(void) {
   PASS();
 }
 
+/**
+ * @brief Executes the codegen_types_uncovered_suite test suite.
+ */
 SUITE(codegen_types_uncovered_suite) { RUN_TEST(test_types_uncovered); }
 
 #ifdef __cplusplus

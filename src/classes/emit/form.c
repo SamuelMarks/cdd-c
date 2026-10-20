@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/code_writer.h"
 #include "classes/emit/form.h"
 #include "classes/emit/struct.h"
 #include "win_compat_sym.h"
@@ -29,8 +30,9 @@ write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
   if (!fp || !struct_name || !sf)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  fprintf(fp, "/**\n * @brief Percent-encode a string for "
-              "application/x-www-form-urlencoded.\n */\n");
+  if ((int)FPRINTF_HOOK(fp, "/**\n * @brief Percent-encode a string for "
+                            "application/x-www-form-urlencoded.\n */\n") < 0)
+    return CDD_C_ERROR_IO;
   fprintf(fp,
           "static cdd_c_error_t %s_url_encode_form(const char *str, char "
           "**out) {\n",
