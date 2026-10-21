@@ -31,6 +31,7 @@
 #include "c_cdd_export.h"
 #include "cdd_helpers.h"
 #include "cdd_test_helpers_export.h"
+#include "cdd_crt_bridge.h"
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */

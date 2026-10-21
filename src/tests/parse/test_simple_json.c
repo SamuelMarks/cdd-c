@@ -3,7 +3,10 @@
  * @brief Test runner for simple json tests.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
+#include "c_cdd/suppress_gui.h"
+#include "../cdd_test_helpers/cdd_crt_bridge.h"
 
 #include <greatest.h>
 
@@ -24,6 +27,13 @@ GREATEST_MAIN_DEFS();
  * @return EXIT_SUCCESS on success, EXIT_FAILURE on failure.
  */
 int main(int argc, char **argv) {
+  if (cdd_suppress_gui_popups() != CDD_C_SUCCESS)
+    return EXIT_FAILURE;
+  if (c_cdd_crt_init_runtime() != CDD_C_SUCCESS)
+    return EXIT_FAILURE;
+#if defined(_MSC_VER)
+  json_set_allocation_functions(test_crt_malloc, c_cdd_crt_free);
+#endif
   GREATEST_MAIN_BEGIN();
   RUN_SUITE(simple_mocks_suite);
   GREATEST_MAIN_END();

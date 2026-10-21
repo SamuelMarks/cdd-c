@@ -373,6 +373,13 @@ cdd_c_error_t c_cdd_do_strdup(const char *s, char **out_str) {
 }
 
 /**
+ * @brief Frees a memory block through the active allocator context.
+ *
+ * @param[in,out] p Pointer to free (or `NULL`).
+ */
+void c_cdd_do_free(void *p) { g_active_context->allocator.free_fn(p); }
+
+/**
  * @brief Initializes `ctx` with the default standard C allocator, VFS, and
  * socket VTables.
  *

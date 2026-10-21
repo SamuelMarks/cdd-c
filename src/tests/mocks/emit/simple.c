@@ -2,11 +2,13 @@
  * @file simple.c
  * @brief Unit tests and mocks in simple.c.
  */
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <stdlib.h>
 
 #include "simple.h"
+#include "cdd_test_helpers/cdd_crt_bridge.h"
 /* clang-format on */
 
 cdd_c_error_t Haz_cleanup(struct Haz *haz) {

@@ -5,6 +5,7 @@
 
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
+#include "c_cdd/suppress_gui.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,6 +15,7 @@
 #include "cdd_c_error.h"
 #include "../emit/simple_json.h"
 #include "simple_mocks_export.h"
+#include "../../cdd_test_helpers/cdd_crt_bridge.h"
 /* clang-format on */
 
 /** @brief Test definition g_simple_json_fail_alloc. */
@@ -28,6 +30,16 @@ extern SIMPLE_MOCKS_EXPORT int g_simple_json_fail_alloc;
  */
 int main(int argc, char **argv) {
   cdd_c_error_t rc = 0;
+
+  rc = cdd_suppress_gui_popups();
+  if (rc != CDD_C_SUCCESS)
+    return (int)rc;
+  rc = c_cdd_crt_init_runtime();
+  if (rc != CDD_C_SUCCESS)
+    return (int)rc;
+#if defined(_MSC_VER)
+  json_set_allocation_functions(test_crt_malloc, c_cdd_crt_free);
+#endif
 
   if (argc > 1 && strcmp(argv[1], "--fail-alloc") == 0) {
     g_simple_json_fail_alloc = 1;

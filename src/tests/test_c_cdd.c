@@ -83,6 +83,10 @@ CDD_TEST_HELPERS_EXPORT char* cdd_test_mut_str(const char *str);
 #define C_CDD_STR_LIT(s) cdd_test_mut_str(s)
 #endif
 
+#include <c89stringutils_string_extras.h>
+#include <parson.h>
+#include "cdd_test_helpers/cdd_crt_bridge.h"
+#include "parse/test_simple_json.h"
 
 #include "c_cdd/test_int128.h"
 #include "emit/test_cdd_cst_emit_unit.h"
@@ -252,7 +256,6 @@ static FILE *mock_tmpfile_fuzzer(void) {
 #include "parse/test_refactor_orchestrator.h"
 #include "parse/test_schema_constraints.h"
 #include "parse/test_schema_enum_required.h"
-#include "parse/test_simple_json.h"
 #include "parse/test_str_utils.h"
 #include "parse/test_tokenizer.h"
 #include "parse/test_tokenizer_trigraphs.h"
@@ -657,6 +660,13 @@ static void test_teardown_cb(void *udata) {
  * @return Result status or value.
  */
 int main(int argc, char **argv) {
+  if (cdd_suppress_gui_popups() != CDD_C_SUCCESS)
+    return EXIT_FAILURE;
+  if (c_cdd_crt_init_runtime() != CDD_C_SUCCESS)
+    return EXIT_FAILURE;
+#if defined(_MSC_VER)
+  json_set_allocation_functions(test_crt_malloc, c_cdd_crt_free);
+#endif
   setvbuf(stdout, NULL, _IONBF, 0);
   atexit(cdd_test_tmpfile_cleanup);
   GREATEST_MAIN_BEGIN();

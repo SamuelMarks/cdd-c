@@ -500,7 +500,7 @@ extern C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
 /* extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail; (moved to global) */
 
 #include "cdd_test_helpers_export.h"
-extern CDD_TEST_HELPERS_EXPORT int g_cdd_alloc_fail;
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
 /**
  * @brief Unit test test_cdd_generate_bindings.

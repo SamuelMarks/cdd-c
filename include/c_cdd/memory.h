@@ -91,6 +91,13 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_do_realloc(void *p, size_t sz, void **out_ptr);
  */
 C_CDD_EXPORT cdd_c_error_t c_cdd_do_strdup(const char *s, char **out_str);
 
+/**
+ * @brief Frees a memory block through the active allocator context.
+ *
+ * @param[in,out] p Pointer to free (or `NULL`).
+ */
+C_CDD_EXPORT void c_cdd_do_free(void *p);
+
 /** @brief Allocates sz bytes of memory with optional test fault injection */
 #define c_cdd_malloc(sz)                                                       \
   (c_cdd_do_malloc((sz), &g_cdd_last_alloc_ptr), g_cdd_last_alloc_ptr)
@@ -119,7 +126,7 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_do_strdup(const char *s, char **out_str);
 /** @brief Duplicates null-terminated string s */
 #define C_CDD_STRDUP(s) c_cdd_strdup_macro(s)
 /** @brief Frees allocated pointer p */
-#define C_CDD_FREE(p) free(p)
+#define C_CDD_FREE(p) c_cdd_do_free(p)
 
 #ifdef __cplusplus
 }

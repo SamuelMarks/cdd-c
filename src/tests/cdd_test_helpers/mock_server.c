@@ -47,6 +47,7 @@
 #include "c_cdd_export.h"
 #include "cdd_test_helpers_export.h"
 #include "c_cdd/memory.h"
+#include "cdd_crt_bridge.h"
 /* clang-format on */
 
 #if defined(_WIN32)

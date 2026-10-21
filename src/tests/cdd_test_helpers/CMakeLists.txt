@@ -1,6 +1,7 @@
 get_filename_component(LIBRARY_NAME "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
 
 set(Header_Files
+        "cdd_crt_bridge.h"
         "cdd_helpers.h"
         "mock_server.h"
 )
@@ -12,7 +13,8 @@ set(Source_Files
 )
 source_group("${LIBRARY_NAME} Source Files" FILES "${Source_Files}")
 
-add_library("${LIBRARY_NAME}" "${Header_Files}" "${Source_Files}")
+add_library("${LIBRARY_NAME}" STATIC "${Header_Files}" "${Source_Files}")
+target_compile_definitions("${LIBRARY_NAME}" PUBLIC CDD_TEST_HELPERS_STATIC_DEFINE)
 
 include(GenerateExportHeader)
 set(_export_file "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}_export.h")

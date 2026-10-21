@@ -52,6 +52,7 @@ char *strdup(const char *s);
 
 #include <c89stringutils_string_extras.h>
 
+#include "cdd_test_helpers/cdd_crt_bridge.h"
 #include "simple_json.h"
 #include "simple_mocks_export.h"
 
