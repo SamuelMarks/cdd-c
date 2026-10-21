@@ -93,12 +93,12 @@ append_source_description(struct Arazzo_Spec *spec,
   spec->source_descriptions = next_arr;
   sd = &spec->source_descriptions[spec->n_source_descriptions];
   memset(sd, 0, sizeof(*sd));
+  spec->n_source_descriptions++;
 
   rc = c_cdd_strdup(sDoc->name, &sd->name);
   if (rc != CDD_C_SUCCESS) {
     return rc;
   }
-  spec->n_source_descriptions++;
 
   rc = c_cdd_strdup(sDoc->url, &sd->url);
   if (rc != CDD_C_SUCCESS) {
@@ -144,6 +144,7 @@ static cdd_c_error_t convert_doc_params(const struct DocArazzoParam *src,
 
   for (i = 0; i < n_src; ++i) {
     struct Arazzo_Parameter *dst = &arr[i];
+    (*out_count)++;
     if (src[i].reference) {
       dst->reusable.is_reusable = 1;
       rc = c_cdd_strdup(src[i].reference, &dst->reusable.reference);
@@ -181,7 +182,6 @@ static cdd_c_error_t convert_doc_params(const struct DocArazzoParam *src,
         }
       }
     }
-    (*out_count)++;
   }
   return CDD_C_SUCCESS;
 }
@@ -428,6 +428,7 @@ static cdd_c_error_t convert_doc_step(const struct DocArazzoStep *src,
     }
     for (i = 0; i < src->n_on_success; ++i) {
       struct Arazzo_SuccessAction *sa = &dst->on_success[i];
+      dst->n_on_success++;
       if (src->on_success[i].reference) {
         sa->reusable.is_reusable = 1;
         rc =
@@ -460,7 +461,6 @@ static cdd_c_error_t convert_doc_step(const struct DocArazzoStep *src,
           }
         }
       }
-      dst->n_on_success++;
     }
   }
 
@@ -472,6 +472,7 @@ static cdd_c_error_t convert_doc_step(const struct DocArazzoStep *src,
     }
     for (i = 0; i < src->n_on_failure; ++i) {
       struct Arazzo_FailureAction *fa = &dst->on_failure[i];
+      dst->n_on_failure++;
       if (src->on_failure[i].reference) {
         fa->reusable.is_reusable = 1;
         rc =
@@ -512,7 +513,6 @@ static cdd_c_error_t convert_doc_step(const struct DocArazzoStep *src,
           fa->retry_limit = src->on_failure[i].retry_limit;
         }
       }
-      dst->n_on_failure++;
     }
   }
 
@@ -607,11 +607,11 @@ cdd_c_error_t c2arazzo_apply_doc_metadata(const struct DocMetadata *meta,
       spec->workflows = next_wfs;
       wf = &spec->workflows[spec->n_workflows];
       memset(wf, 0, sizeof(*wf));
+      spec->n_workflows++;
 
       rc = c_cdd_strdup(meta->workflow_id, &wf->workflow_id);
       if (rc != CDD_C_SUCCESS)
         return rc;
-      spec->n_workflows++;
 
       if (meta->workflow_summary) {
         rc = c_cdd_strdup(meta->workflow_summary, &wf->summary);
@@ -661,10 +661,10 @@ cdd_c_error_t c2arazzo_apply_doc_metadata(const struct DocMetadata *meta,
       if (!wf->steps)
         return CDD_C_ERROR_MEMORY;
       for (i = 0; i < meta->n_arazzo_steps; ++i) {
+        wf->n_steps++;
         rc = convert_doc_step(&meta->arazzo_steps[i], &wf->steps[i]);
         if (rc != CDD_C_SUCCESS)
           return rc;
-        wf->n_steps++;
       }
     }
   }
@@ -801,6 +801,7 @@ extract_workflow_from_function_node(const struct CstNode *func_node,
             free_token_list(tl);
             return CDD_C_ERROR_MEMORY;
           }
+          wf->n_steps = 1;
           rc = c_cdd_strdup("step_1", &wf->steps[0].step_id);
           if (rc != CDD_C_SUCCESS) {
             free_token_list(tl);
@@ -812,7 +813,6 @@ extract_workflow_from_function_node(const struct CstNode *func_node,
             free_token_list(tl);
             return rc;
           }
-          wf->n_steps = 1;
         }
       }
     }

@@ -550,12 +550,18 @@ static cdd_c_error_t parse_trivia(JSON_Array *arr, cdd_ffi_trivia_t **out) {
 static cdd_c_error_t parse_number(JSON_Object *obj,
                                   struct cdd_ffi_number_t **out) {
   struct cdd_ffi_number_t *num;
+  cdd_c_error_t rc;
   if (!obj)
     return CDD_C_SUCCESS;
   num = C_CDD_CALLOC(1, sizeof(struct cdd_ffi_number_t));
   if (!num)
     return CDD_C_ERROR_MEMORY;
-  strdup_safe(json_object_get_string(obj, "raw_spelling"), &num->raw_spelling);
+  rc = strdup_safe(json_object_get_string(obj, "raw_spelling"),
+                   &num->raw_spelling);
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(num);
+    return rc;
+  }
   num->prefix = (cdd_ffi_number_prefix_t)json_object_get_number(obj, "prefix");
   num->has_separators = (int)json_object_get_number(obj, "has_separators");
   *out = num;
@@ -571,9 +577,17 @@ static cdd_c_error_t parse_number(JSON_Object *obj,
  */
 static cdd_c_error_t
 parse_macro_expansion(JSON_Object *obj, struct cdd_ffi_macro_expansion_t *m) {
-  strdup_safe(json_object_get_string(obj, "macro_name"), &m->macro_name);
-  strdup_safe(json_object_get_string(obj, "raw_args"), &m->raw_args);
-  strdup_safe(json_object_get_string(obj, "expanded_text"), &m->expanded_text);
+  cdd_c_error_t rc;
+  rc = strdup_safe(json_object_get_string(obj, "macro_name"), &m->macro_name);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = strdup_safe(json_object_get_string(obj, "raw_args"), &m->raw_args);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = strdup_safe(json_object_get_string(obj, "expanded_text"),
+                   &m->expanded_text);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   return CDD_C_SUCCESS;
 }
 
@@ -622,10 +636,14 @@ static cdd_c_error_t parse_type(JSON_Object *obj, cdd_ffi_type_t *type) {
     }
   }
 
-  parse_trivia(json_object_get_array(obj, "leading_trivia"),
-               &type->leading_trivia);
-  parse_trivia(json_object_get_array(obj, "trailing_trivia"),
-               &type->trailing_trivia);
+  rc = parse_trivia(json_object_get_array(obj, "leading_trivia"),
+                    &type->leading_trivia);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = parse_trivia(json_object_get_array(obj, "trailing_trivia"),
+                    &type->trailing_trivia);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   rc = strdup_safe(json_object_get_string(obj, "raw_spelling"),
                    &type->raw_spelling);
@@ -666,10 +684,14 @@ static cdd_c_error_t parse_field(JSON_Object *obj, cdd_ffi_field_t *field) {
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  parse_trivia(json_object_get_array(obj, "leading_trivia"),
-               &field->leading_trivia);
-  parse_trivia(json_object_get_array(obj, "trailing_trivia"),
-               &field->trailing_trivia);
+  rc = parse_trivia(json_object_get_array(obj, "leading_trivia"),
+                    &field->leading_trivia);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = parse_trivia(json_object_get_array(obj, "trailing_trivia"),
+                    &field->trailing_trivia);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   return CDD_C_SUCCESS;
 }
@@ -761,12 +783,18 @@ static cdd_c_error_t parse_node(JSON_Object *obj, cdd_ffi_ir_node_t *node) {
       if (rc != CDD_C_SUCCESS)
         return rc;
 
-      parse_number(json_object_get_object(v_obj, "number_details"),
-                   &node->variants[i].number_details);
-      parse_trivia(json_object_get_array(v_obj, "leading_trivia"),
-                   &node->variants[i].leading_trivia);
-      parse_trivia(json_object_get_array(v_obj, "trailing_trivia"),
-                   &node->variants[i].trailing_trivia);
+      rc = parse_number(json_object_get_object(v_obj, "number_details"),
+                        &node->variants[i].number_details);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = parse_trivia(json_object_get_array(v_obj, "leading_trivia"),
+                        &node->variants[i].leading_trivia);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = parse_trivia(json_object_get_array(v_obj, "trailing_trivia"),
+                        &node->variants[i].trailing_trivia);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
   }
 
@@ -778,8 +806,10 @@ static cdd_c_error_t parse_node(JSON_Object *obj, cdd_ffi_ir_node_t *node) {
     if (!node->macro_expansions)
       return CDD_C_ERROR_MEMORY;
     for (i = 0; i < node->macro_expansions_count; ++i) {
-      parse_macro_expansion(json_array_get_object(arr, i),
-                            &node->macro_expansions[i]);
+      rc = parse_macro_expansion(json_array_get_object(arr, i),
+                                 &node->macro_expansions[i]);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
   }
 
@@ -804,10 +834,14 @@ static cdd_c_error_t parse_node(JSON_Object *obj, cdd_ffi_ir_node_t *node) {
   if (json_object_has_value(obj, "is_variadic"))
     node->is_variadic = (int)json_object_get_number(obj, "is_variadic");
 
-  parse_trivia(json_object_get_array(obj, "leading_trivia"),
-               &node->leading_trivia);
-  parse_trivia(json_object_get_array(obj, "trailing_trivia"),
-               &node->trailing_trivia);
+  rc = parse_trivia(json_object_get_array(obj, "leading_trivia"),
+                    &node->leading_trivia);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = parse_trivia(json_object_get_array(obj, "trailing_trivia"),
+                    &node->trailing_trivia);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   rc = strdup_safe(json_object_get_string(obj, "raw_body"), &node->raw_body);
   if (rc != CDD_C_SUCCESS)

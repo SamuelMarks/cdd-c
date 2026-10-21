@@ -426,7 +426,10 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
             cdd_cst_bld_punct(&bld, "}");
 
             if (bld.error_state == 0) {
-              cdd_cst_insert_node_after(stmt, cloned);
+              if (cdd_cst_insert_node_after(stmt, cloned) != CDD_C_SUCCESS) {
+                C_CDD_FREE(cloned->children);
+                C_CDD_FREE(cloned);
+              }
             } else {
               C_CDD_FREE(cloned->children);
               C_CDD_FREE(cloned);

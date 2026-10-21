@@ -25,8 +25,9 @@ extern "C" {
  * @param[out] out_str The pooled string pointer.
  * @return CDD_C_SUCCESS on success, or error code.
  */
-cdd_c_error_t cdd_cst_pool_string(cdd_cst_tree_t *tree, const char *str,
-                                  const char **out_str);
+C_CDD_EXPORT cdd_c_error_t cdd_cst_pool_string(cdd_cst_tree_t *tree,
+                                               const char *str,
+                                               const char **out_str);
 
 /**
  * @brief Duplicates and pools a string of explicit length inside the CST tree.
@@ -37,8 +38,9 @@ cdd_c_error_t cdd_cst_pool_string(cdd_cst_tree_t *tree, const char *str,
  * @param[out] out_str The pooled null-terminated string pointer.
  * @return CDD_C_SUCCESS on success, or error code.
  */
-cdd_c_error_t cdd_cst_pool_string_len(cdd_cst_tree_t *tree, const char *str,
-                                      size_t len, const char **out_str);
+C_CDD_EXPORT cdd_c_error_t cdd_cst_pool_string_len(cdd_cst_tree_t *tree,
+                                                   const char *str, size_t len,
+                                                   const char **out_str);
 
 /**
  * @brief Gets the last leaf token under a CST node.
@@ -47,8 +49,8 @@ cdd_c_error_t cdd_cst_pool_string_len(cdd_cst_tree_t *tree, const char *str,
  * @param[out] out_tok Pointer to receive the token.
  * @return CDD_C_SUCCESS on success, or error code.
  */
-cdd_c_error_t cdd_cst_get_last_token(cdd_cst_node_t *node,
-                                     cdd_token_t **out_tok);
+C_CDD_EXPORT cdd_c_error_t cdd_cst_get_last_token(cdd_cst_node_t *node,
+                                                  cdd_token_t **out_tok);
 
 #ifdef __cplusplus
 }

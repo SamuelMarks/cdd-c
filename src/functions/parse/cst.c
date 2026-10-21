@@ -455,6 +455,7 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
  */
 cdd_c_error_t parse_tokens(const struct TokenList *tokens,
                            struct CstNodeList *out) {
+  cdd_c_error_t rc;
   if (!tokens || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -463,7 +464,11 @@ cdd_c_error_t parse_tokens(const struct TokenList *tokens,
     out->size = 0;
   }
 
-  return parse_recursive(tokens, 0, tokens->size, out);
+  rc = parse_recursive(tokens, 0, tokens->size, out);
+  if (rc != CDD_C_SUCCESS) {
+    free_cst_node_list(out);
+  }
+  return rc;
 }
 
 /**

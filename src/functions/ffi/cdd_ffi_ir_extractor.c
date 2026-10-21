@@ -493,13 +493,17 @@ static cdd_c_error_t extract_single_file_exports_impl(
                           } else if (tok->kind == CDD_TOKEN_IDENTIFIER) {
                             char *bname = (char *)CDD_CALLOC(tok->length + 1,
                                                              sizeof(char));
-                            if (bname) {
-                              memcpy(bname, tok->start, tok->length);
-                              bname[tok->length] = '\0';
-                              node->base_classes[bi].name = bname;
+                            if (!bname) {
+                              rc = CDD_C_ERROR_MEMORY;
+                              break;
                             }
+                            memcpy(bname, tok->start, tok->length);
+                            bname[tok->length] = '\0';
+                            node->base_classes[bi].name = bname;
                           }
                         }
+                        if (rc != CDD_C_SUCCESS)
+                          break;
                         bi++;
                       }
                     }
@@ -507,6 +511,8 @@ static cdd_c_error_t extract_single_file_exports_impl(
                   break;
                 }
               }
+              if (rc != CDD_C_SUCCESS)
+                break;
             }
           }
           C_CDD_FREE(structs_base.nodes);
@@ -535,6 +541,10 @@ static cdd_c_error_t extract_single_file_exports_impl(
         for (j = 0; j < sf->size; j++) {
           const char *target_c_type;
           node->fields[j].name = CDD_STRDUP(sf->fields[j].name);
+          if (!node->fields[j].name) {
+            rc = CDD_C_ERROR_MEMORY;
+            break;
+          }
           target_c_type = sf->fields[j].ref[0] != '\0' ? sf->fields[j].ref
                                                        : sf->fields[j].type;
           rc =
@@ -634,6 +644,10 @@ static cdd_c_error_t extract_single_file_exports_impl(
     node->is_variadic = sigs.items[i].is_variadic;
     if (sigs.items[i].doc) {
       node->doc = CDD_STRDUP(sigs.items[i].doc);
+      if (!node->doc) {
+        rc = CDD_C_ERROR_MEMORY;
+        break;
+      }
       if (strstr(sigs.items[i].doc, "@ffi_release_gil") ||
           strstr(sigs.items[i].doc, "@blocking")) {
         node->requires_gil_release = 1;
@@ -669,7 +683,11 @@ static cdd_c_error_t extract_single_file_exports_impl(
           size_t new_cap = node->fields_count + 1;
           new_fields = (cdd_ffi_field_t *)CDD_REALLOC(
               node->fields, new_cap * sizeof(cdd_ffi_field_t));
-          if (new_fields) {
+          if (!new_fields) {
+            rc = CDD_C_ERROR_MEMORY;
+            break;
+          }
+          {
             char *last_space = strrchr(param_trim, ' ');
             char *name = last_space ? last_space + 1 : param_trim;
             char *astx = strchr(name, '*');
@@ -680,6 +698,11 @@ static cdd_c_error_t extract_single_file_exports_impl(
             memset(&node->fields[node->fields_count], 0,
                    sizeof(cdd_ffi_field_t));
             node->fields[node->fields_count].name = CDD_STRDUP(name);
+            if (!node->fields[node->fields_count].name) {
+              node->fields_count++;
+              rc = CDD_C_ERROR_MEMORY;
+              break;
+            }
             node->fields[node->fields_count].type.kind = CDD_FFI_KIND_INT32;
             node->fields[node->fields_count].intent = CDD_FFI_INTENT_UNKNOWN;
 
@@ -741,6 +764,8 @@ static cdd_c_error_t extract_single_file_exports_impl(
         p = strtok_r(NULL, ",", &ctx);
 #endif
       }
+      if (rc != CDD_C_SUCCESS)
+        break;
     }
   }
   func_sig_list_free(&sigs);
@@ -768,6 +793,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
             node->variants = (cdd_ffi_enum_variant_t *)CDD_CALLOC(
                 1, sizeof(cdd_ffi_enum_variant_t));
             if (!node->variants) {
+              node->variants_count = 0;
               rc = CDD_C_ERROR_MEMORY;
               break;
             }
@@ -827,9 +853,6 @@ static cdd_c_error_t extract_single_file_exports_impl(
           cdd_ffi_ir_node_t *downcast_node = NULL;
           char up_name[256];
           char down_name[256];
-
-          if (!ir->nodes[k].base_classes[b].name)
-            continue;
 
 #if defined(_MSC_VER)
           sprintf_s(up_name, sizeof(up_name), "%s_upcast_to_%s",
@@ -901,6 +924,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
         trampoline_node->fields = (cdd_ffi_field_t *)CDD_CALLOC(
             trampoline_node->fields_count, sizeof(cdd_ffi_field_t));
         if (!trampoline_node->fields) {
+          trampoline_node->fields_count = 0;
           return CDD_C_ERROR_MEMORY;
         }
 

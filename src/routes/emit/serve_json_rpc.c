@@ -791,7 +791,7 @@ serve_json_rpc_run(const cdd_serve_json_rpc_config_t *config) {
     return CDD_C_ERROR_SYSTEM;
   }
 
-  rc = serve_listen_start(server_fd, 5);
+  rc = serve_listen_start(server_fd, SOMAXCONN);
   if (rc != CDD_C_SUCCESS) {
     perror("listen");
 #if defined(_WIN32)

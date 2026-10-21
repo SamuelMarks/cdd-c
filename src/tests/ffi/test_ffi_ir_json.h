@@ -317,7 +317,7 @@ TEST test_cdd_ffi_ir_json_exhaustive_oom(void) {
   json_set_allocation_functions(malloc, free);
 
   /* Also test C_CDD_CALLOC and C_CDD_STRDUP OOM in cdd_ffi_ir_from_json */
-  for (i = 1; i < 100; i++) {
+  for (i = 1; i < 200; i++) {
     g_cdd_alloc_fail = i;
     out_ir = NULL;
     rc = cdd_ffi_ir_from_json(json_str, &out_ir);

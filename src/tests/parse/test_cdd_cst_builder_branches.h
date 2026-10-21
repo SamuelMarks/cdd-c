@@ -128,6 +128,7 @@ TEST test_cdd_cst_builder_branches(void) {
     cdd_cst_splice_nodes(&b, node, 0, &s1, 1);
     g_cdd_alloc_fail = 0;
     b.error_state = 0;
+    cdd_cst_free_node(s1);
 
     cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &s2);
     g_cdd_alloc_fail = 1;

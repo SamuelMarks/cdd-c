@@ -303,10 +303,14 @@ TEST test_cdd_cst_cfg_extra(void) {
       g_cdd_alloc_fail = i;
       {
         cdd_cst_node_t *dummy_node = NULL;
-        cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
-        cdd_cst_append_child_node(func, dummy_node);
+        cdd_c_error_t app_rc = CDD_C_ERROR_MEMORY;
+        if (cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node) == CDD_C_SUCCESS) {
+          app_rc = cdd_cst_append_child_node(func, dummy_node);
+        }
         rc = cdd_cst_cfg_build(func, &cfg);
-        func->num_children--;
+        if (app_rc == CDD_C_SUCCESS) {
+          func->num_children--;
+        }
         cdd_cst_free_node_only(dummy_node);
         if (rc == 0) {
           cdd_cst_cfg_free(cfg);

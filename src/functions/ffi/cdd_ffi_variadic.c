@@ -148,6 +148,7 @@ cdd_c_error_t cdd_ffi_format_variadic(char *out_buf, size_t out_cap,
       int len_mod = 0;
       char conv;
       int written = 0;
+      char tmp[128];
 
       p++;
       while (*p == '-' || *p == '+' || *p == ' ' || *p == '#' || *p == '0' ||
@@ -168,34 +169,38 @@ cdd_c_error_t cdd_ffi_format_variadic(char *out_buf, size_t out_cap,
       p++;
 
       if (conv == 'f') {
-        written =
-            CDD_SNPRINTF(out_buf + pos, out_cap - pos, "%f", args[arg_idx].d);
+        written = CDD_SNPRINTF(tmp, sizeof(tmp), "%f", args[arg_idx].d);
       } else if (conv == 'g') {
-        written =
-            CDD_SNPRINTF(out_buf + pos, out_cap - pos, "%g", args[arg_idx].d);
+        written = CDD_SNPRINTF(tmp, sizeof(tmp), "%g", args[arg_idx].d);
       } else if (conv == 's') {
-        written = CDD_SNPRINTF(out_buf + pos, out_cap - pos, "%s",
-                               (const char *)args[arg_idx].p);
+        const char *s_arg = (const char *)args[arg_idx].p;
+        size_t s_len = strlen(s_arg);
+        size_t rem = out_cap - 1 - pos;
+        size_t copy_len = s_len < rem ? s_len : rem;
+        memcpy(out_buf + pos, s_arg, copy_len);
+        pos += copy_len;
+        out_buf[pos] = '\0';
+        arg_idx++;
+        continue;
       } else if (conv == 'p') {
-        written =
-            CDD_SNPRINTF(out_buf + pos, out_cap - pos, "%p", args[arg_idx].p);
+        written = CDD_SNPRINTF(tmp, sizeof(tmp), "%p", args[arg_idx].p);
       } else if (len_mod == 2) {
-        written = CDD_SNPRINTF(out_buf + pos, out_cap - pos, "%" CDD_PRId64,
-                               args[arg_idx].ll);
+        written =
+            CDD_SNPRINTF(tmp, sizeof(tmp), "%" CDD_PRId64, args[arg_idx].ll);
       } else if (len_mod == 1) {
-        written =
-            CDD_SNPRINTF(out_buf + pos, out_cap - pos, "%ld", args[arg_idx].l);
+        written = CDD_SNPRINTF(tmp, sizeof(tmp), "%ld", args[arg_idx].l);
       } else if (conv == 'u') {
-        written =
-            CDD_SNPRINTF(out_buf + pos, out_cap - pos, "%u", args[arg_idx].u);
+        written = CDD_SNPRINTF(tmp, sizeof(tmp), "%u", args[arg_idx].u);
       } else {
-        written =
-            CDD_SNPRINTF(out_buf + pos, out_cap - pos, "%d", args[arg_idx].i);
+        written = CDD_SNPRINTF(tmp, sizeof(tmp), "%d", args[arg_idx].i);
       }
 
-      if (written > 0) {
+      {
         size_t adv = (size_t)written;
-        pos = (pos + adv < out_cap) ? (pos + adv) : (out_cap - 1);
+        size_t rem = out_cap - 1 - pos;
+        size_t copy_len = adv < rem ? adv : rem;
+        memcpy(out_buf + pos, tmp, copy_len);
+        pos += copy_len;
       }
       out_buf[pos] = '\0';
       arg_idx++;

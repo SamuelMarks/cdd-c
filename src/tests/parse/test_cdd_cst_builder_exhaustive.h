@@ -49,8 +49,7 @@ TEST test_cdd_cst_builder_oom(void) {
   b.error_state = 0;
 
   /* Trigger realloc in track_synthesized */
-  tree->synthesized_capacity = 0;
-  tree->num_synthesized = 0;
+  tree->synthesized_capacity = tree->num_synthesized;
   g_cdd_cst_realloc_fail = 1;
   {
     cdd_token_t *out_tok = NULL;
@@ -76,8 +75,7 @@ TEST test_cdd_cst_builder_oom(void) {
 
   /* To trigger append_child_token failure inside cdd_cst_bld_token */
   cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "success1");
-  b.target_node->capacity = 0;
-  b.target_node->num_children = 0;
+  b.target_node->capacity = b.target_node->num_children;
   g_cdd_cst_realloc_fail = 1;
   {
     cdd_c_error_t rc = cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "trigger");
@@ -88,8 +86,7 @@ TEST test_cdd_cst_builder_oom(void) {
 
   /* To trigger append_child_node failure inside cdd_cst_bld_block_open */
   cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "success2");
-  b.target_node->capacity = 0;
-  b.target_node->num_children = 0;
+  b.target_node->capacity = b.target_node->num_children;
   g_cdd_cst_realloc_fail = 1;
   {
     cdd_c_error_t rc = cdd_cst_bld_block_open(&b);
@@ -421,7 +418,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
 
   /* pool_string expansion failure */
 #ifdef CDD_BUILD_TESTS
-  tree->string_capacity = 0;
+  tree->string_capacity = tree->num_strings;
   g_cdd_cst_alloc_token_fail = 1;
   {
     /* cdd_cst_bld_int calls pool_string directly before allocating token */

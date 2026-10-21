@@ -156,6 +156,7 @@ TEST test_ffi_variadic_invoke(void) {
   char *s_val = s_buf;
   void *p_val = &d_val;
 
+  memset(args, 0, sizeof(args));
   args[0].i = d_val;
   args[1].p = s_val;
   args[2].p = p_val;
@@ -205,6 +206,8 @@ TEST test_ffi_variadic_invoke(void) {
     char empty_buf[] = "";
     cdd_ffi_var_arg_t fmt_args[10];
     int dummy_target = 7;
+
+    memset(fmt_args, 0, sizeof(fmt_args));
 
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               cdd_ffi_format_variadic(NULL, sizeof(buf), "%d", fmt_args, 1));

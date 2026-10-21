@@ -327,9 +327,10 @@ arazzo_client_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
                                 char **out_hdr, char **out_src) {
   cdd_code_writer_t wh, wc;
   const char *pfx = prefix ? prefix : "";
-  size_t i = (size_t)openapi_spec & 0;
-  size_t j, k;
+  size_t i, j, k;
   cdd_c_error_t rc;
+
+  (void)openapi_spec;
 
   if (!arazzo_spec || !base_name || !out_hdr || !out_src) {
     return CDD_C_ERROR_INVALID_ARGUMENT;

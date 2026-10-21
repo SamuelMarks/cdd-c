@@ -207,6 +207,12 @@ TEST test_cdd_cst_trivia_oom(void) {
             cdd_cst_generate_indent_trivia(tree, &config, 1, &out));
   g_cdd_alloc_fail = 0;
 
+  tree->string_capacity = tree->num_strings;
+  g_cdd_alloc_fail = 5;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            cdd_cst_generate_indent_trivia(tree, &config, 1, &out));
+  g_cdd_alloc_fail = 0;
+
   cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();

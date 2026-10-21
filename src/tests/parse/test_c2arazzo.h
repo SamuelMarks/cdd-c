@@ -234,6 +234,7 @@ TEST test_doc_arazzo_all_directives(void) {
       {
         struct Arazzo_Spec s2;
         if (arazzo_spec_init(&s2) == CDD_C_SUCCESS) {
+          C_CDD_FREE(meta.workflow_id);
           meta.workflow_id = C_CDD_STRDUP("impWf");
           c2arazzo_apply_doc_metadata(&meta, &s2);
           arazzo_spec_free(&s2);

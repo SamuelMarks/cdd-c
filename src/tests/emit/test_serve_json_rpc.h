@@ -893,7 +893,8 @@ TEST test_serve_json_rpc_http_requests(void) {
       "50\r\n\r\n{\"jsonrpc\":\"2.0\",\"method\":\"unknown_method\"}",
       "POST / HTTP/1.1\r\nContent-Length: 20\r\n\r\n{\"jsonrpc\":\"2.0\"}",
       "POST / HTTP/1.1\r\nContent-Length: 10\r\n\r\nnot json",
-      "not http at all"};
+      "not http at all",
+      ""};
   size_t num_reqs = sizeof(http_reqs) / sizeof(http_reqs[0]);
   cdd_test_thread_t th;
   struct sockaddr_in addr;
@@ -944,7 +945,7 @@ TEST test_serve_json_rpc_http_requests(void) {
       send(s, http_reqs[i], strlen(http_reqs[i]), 0);
       shutdown(s, SHUT_WR);
 #endif
-      if (i != 3 && i != 4 && i != 5) {
+      if (i != 3 && i != 4 && i != 5 && http_reqs[i][0] != '\0') {
         char buf[1024];
 #if defined(_WIN32)
         int n = recv(s, buf, (int)(sizeof(buf) - 1), 0);
@@ -960,22 +961,6 @@ TEST test_serve_json_rpc_http_requests(void) {
       closesocket(s);
 #else
       close(s);
-#endif
-    }
-  }
-
-  /* Dummy connect to wake up and exit server loop */
-  {
-#if defined(_WIN32)
-    SOCKET s_dummy = socket(AF_INET, SOCK_STREAM, 0);
-#else
-    int s_dummy = socket(AF_INET, SOCK_STREAM, 0);
-#endif
-    if (connect(s_dummy, (struct sockaddr *)&addr, sizeof(addr)) == 0) {
-#if defined(_WIN32)
-      closesocket(s_dummy);
-#else
-      close(s_dummy);
 #endif
     }
   }
