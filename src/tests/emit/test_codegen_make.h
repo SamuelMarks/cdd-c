@@ -208,10 +208,11 @@ TEST test_make_oom(void) {
   ASSERT(fp);
 
 #ifdef CDD_BUILD_TESTS
-  for (i = 1; i < 50; i++) {
-    g_cdd_fprintf_fail = i;
+  for (i = 0; i < 50; i++) {
+    g_fail_io_after = i;
+    g_io_calls = 0;
     rc = codegen_make_generate(fp, &config);
-    g_cdd_fprintf_fail = 0;
+    g_fail_io_after = -1;
     if (rc == 0)
       break;
   }

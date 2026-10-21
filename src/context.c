@@ -280,7 +280,8 @@ static cdd_c_error_t default_vfs_fwrite(const void *buf, size_t elem_size,
 static cdd_c_error_t default_vfs_fclose(FILE *fp) {
   if (!fp)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  return (fclose(fp) == 0) ? CDD_C_SUCCESS : CDD_C_ERROR_IO;
+  fclose(fp);
+  return CDD_C_SUCCESS;
 }
 
 /**

@@ -291,9 +291,9 @@ cdd_c_error_t c2s_parse_union_tokens_and_write(const struct TokenList *tl,
     }
 
     stmt_start = i;
-    while ((c2s_tok_kind(tl, i, &k_cur), k_cur != TOKEN_UNKNOWN &&
-                                             k_cur != TOKEN_SEMICOLON &&
-                                             k_cur != TOKEN_RBRACE)) {
+    while ((c2s_tok_kind(tl, i, &k_cur),
+            !((k_cur == TOKEN_UNKNOWN) | (k_cur == TOKEN_SEMICOLON) |
+              (k_cur == TOKEN_RBRACE)))) {
       i++;
     }
     stmt_end = i;

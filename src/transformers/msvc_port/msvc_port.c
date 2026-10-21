@@ -54,15 +54,16 @@ static cdd_c_error_t replace_msvc_identifiers(
           }
           /* skip variable declarations by heuristic: if previous is a type
              keyword, or previous is * and prev_prev is a type keyword */
-          if ((pk >= CDD_TOKEN_KEYWORD_INT && pk <= CDD_TOKEN_KEYWORD__ACCUM) ||
-              pk == CDD_TOKEN_IDENTIFIER) {
+          if (((pk >= CDD_TOKEN_KEYWORD_INT) &
+               (pk <= CDD_TOKEN_KEYWORD__ACCUM)) |
+              (pk == CDD_TOKEN_IDENTIFIER)) {
             should_skip = 1;
           }
           if (pk == CDD_TOKEN_STAR && *prev_prev_token) {
             enum cdd_token_kind_t ppk = (*prev_prev_token)->kind;
-            if ((ppk >= CDD_TOKEN_KEYWORD_INT &&
-                 ppk <= CDD_TOKEN_KEYWORD__ACCUM) ||
-                ppk == CDD_TOKEN_IDENTIFIER) {
+            if (((ppk >= CDD_TOKEN_KEYWORD_INT) &
+                 (ppk <= CDD_TOKEN_KEYWORD__ACCUM)) |
+                (ppk == CDD_TOKEN_IDENTIFIER)) {
               should_skip = 1;
             }
           }

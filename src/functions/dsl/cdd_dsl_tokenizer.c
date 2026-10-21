@@ -601,9 +601,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
         (c == '\'' &&
          isdigit((unsigned char)state.source[state.current_pos + 1]))) {
       while (!IS_AT_END(&state) &&
-             (isalnum((unsigned char)state.source[state.current_pos]) ||
-              state.source[state.current_pos] == '\'' ||
-              state.source[state.current_pos] == '.')) {
+             ((isalnum((unsigned char)state.source[state.current_pos]) != 0) |
+              (state.source[state.current_pos] == '\'') |
+              (state.source[state.current_pos] == '.'))) {
         {
           rc = advance(&state);
           if (rc != CDD_C_SUCCESS)

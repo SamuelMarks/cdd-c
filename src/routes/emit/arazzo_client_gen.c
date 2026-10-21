@@ -133,9 +133,10 @@ static cdd_c_error_t emit_workflow_docblock(cdd_code_writer_t *w,
                            wf->description ? wf->description : "");
   }
   if (wf->n_depends_on > 0) {
+    static const char *const k_sep[2] = {"", ", "};
     cdd_code_writer_write(w, " * @workflowDependsOn ");
     for (i = 0; i < wf->n_depends_on; ++i) {
-      cdd_code_writer_printf(w, "%s%s", i > 0 ? ", " : "", wf->depends_on[i]);
+      cdd_code_writer_printf(w, "%s%s", k_sep[i > 0], wf->depends_on[i]);
     }
     cdd_code_writer_write(w, "\n");
   }
@@ -194,9 +195,10 @@ static cdd_c_error_t emit_workflow_docblock(cdd_code_writer_t *w,
     cdd_code_writer_write(w, "\n");
 
     if (st->n_depends_on > 0) {
+      static const char *const k_sep[2] = {"", ", "};
       cdd_code_writer_write(w, " * @stepDependsOn ");
       for (j = 0; j < st->n_depends_on; ++j) {
-        cdd_code_writer_printf(w, "%s%s", j > 0 ? ", " : "", st->depends_on[j]);
+        cdd_code_writer_printf(w, "%s%s", k_sep[j > 0], st->depends_on[j]);
       }
       cdd_code_writer_write(w, "\n");
     }

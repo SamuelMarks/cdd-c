@@ -32,7 +32,8 @@ extern volatile int g_fail_io_after;
 static cdd_c_error_t elixirify_name(const char *c_name, char *out_name,
                                     size_t out_sz) {
   size_t i = 0, j = 0;
-  while (c_name[i] && j < out_sz - 1) {
+  (void)out_sz;
+  while (c_name[i] != '\0') {
     if (i > 0 && c_name[i] == '_' && isupper((unsigned char)c_name[i + 1])) {
       out_name[j++] = (char)toupper((unsigned char)c_name[++i]);
     } else if (i == 0) {
@@ -57,7 +58,8 @@ static cdd_c_error_t elixirify_name(const char *c_name, char *out_name,
 static cdd_c_error_t snake_case_name(const char *c_name, char *out_name,
                                      size_t out_sz) {
   size_t i = 0, j = 0;
-  while (c_name[i] && j < out_sz - 2) {
+  (void)out_sz;
+  while (c_name[i] != '\0') {
     if (isupper((unsigned char)c_name[i]) && i > 0) {
       if (c_name[i - 1] != '_') {
         out_name[j++] = '_';

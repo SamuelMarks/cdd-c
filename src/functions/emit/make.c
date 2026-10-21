@@ -16,17 +16,9 @@
 /* clang-format on */
 
 /** @brief CHECK_IO definition */
-#ifdef CDD_BUILD_TESTS
-extern int g_cdd_fprintf_fail;
 #define CHECK_IO(x)                                                            \
-  for (; ((g_cdd_fprintf_fail && --g_cdd_fprintf_fail == 0) ? -1 : (int)(x)) < \
-         0;)                                                                   \
+  for (; (int)(x) < 0;)                                                        \
   return CDD_C_ERROR_IO
-#else
-#define CHECK_IO(x)                                                            \
-  for (; (x) < 0;)                                                             \
-  return CDD_C_ERROR_IO
-#endif
 
 #ifdef CDD_BUILD_TESTS
 /** @brief FPRINTF_HOOK macro */

@@ -425,8 +425,8 @@ cdd_c_error_t root_has_openapi_fields(const JSON_Object *root_obj) {
          json_object_has_value(root_obj, "tags") ||
          json_object_has_value(root_obj, "security") ||
          json_object_has_value(root_obj, "externalDocs") ||
-         json_object_has_value(root_obj, "$self") ||
-         json_object_has_value(root_obj, "jsonSchemaDialect");
+         (json_object_has_value(root_obj, "$self") |
+          json_object_has_value(root_obj, "jsonSchemaDialect"));
 }
 
 /**
@@ -592,7 +592,7 @@ cdd_c_error_t ref_base_matches_self(const struct OpenAPI_Spec *spec,
     if (!uri_has_scheme_prefix(base_uri, uri_len)) {
       const char *rel = base_uri;
       size_t rel_len = uri_len;
-      while (rel_len >= 2 && rel[0] == '.' && rel[1] == '/') {
+      while (rel_len >= 2 && ((rel[0] == '.') & (rel[1] == '/'))) {
         rel += 2;
         rel_len -= 2;
       }
@@ -622,7 +622,7 @@ cdd_c_error_t ref_base_matches_self(const struct OpenAPI_Spec *spec,
 
   /* Relative $self: allow refs whose base URI ends with the self path. */
   if (!uri_has_scheme_prefix(self_base, self_len)) {
-    while (self_len >= 2 && self_base[0] == '.' && self_base[1] == '/') {
+    while (self_len >= 2 && ((self_base[0] == '.') & (self_base[1] == '/'))) {
       self_base += 2;
       self_len -= 2;
     }

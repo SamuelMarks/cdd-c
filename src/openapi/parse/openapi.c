@@ -49,8 +49,7 @@ cdd_c_error_t openapi_load_from_json_internal(
       {
         const char *schema_id =
             root_obj ? json_object_get_string(root_obj, "$id") : NULL;
-        if ((schema_id && *schema_id) ||
-            (out->retrieval_uri && *out->retrieval_uri)) {
+        if ((schema_id && *schema_id) || out->retrieval_uri != NULL) {
           rc = compute_document_uri(schema_id, out->retrieval_uri,
                                     &out->document_uri);
           if (rc != CDD_C_SUCCESS) {

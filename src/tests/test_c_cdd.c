@@ -385,9 +385,10 @@ TEST test_cdd_helpers(void) {
 
     extern C_CDD_EXPORT int g_schema_strdup_fail;
 
-    extern C_CDD_EXPORT int g_cdd_helpers_fopen_err;
+    extern CDD_TEST_HELPERS_EXPORT int g_cdd_helpers_fopen_err;
 
-    /* extern C_CDD_EXPORT int g_cdd_helpers_fopen_err; (moved to global) */
+    /* extern CDD_TEST_HELPERS_EXPORT int g_cdd_helpers_fopen_err; (moved to
+     * global) */
     g_io_calls = 0;
     g_fail_io_after = 1;
     g_cdd_helpers_fopen_err = ENOENT;

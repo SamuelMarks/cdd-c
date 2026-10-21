@@ -282,8 +282,8 @@ c2openapi_infer_client_route(const struct CstNode *func_node,
   }
   *out_route = NULL;
 
-  for (k = func_node->start_token; k < func_node->end_token && k < tokens->size;
-       ++k) {
+  for (k = func_node->start_token;
+       (k < func_node->end_token) & (k < tokens->size); ++k) {
     const struct Token *tok = &tokens->tokens[k];
     if (tok->kind == TOKEN_IDENTIFIER) {
       int m = 0;
@@ -390,8 +390,9 @@ c2openapi_scan_server_routes(const struct TokenList *tokens,
         }
         if (j < tokens->size) {
           j++;
-          while (j < tokens->size && tokens->tokens[j].kind != TOKEN_RPAREN &&
-                 tokens->tokens[j].kind != TOKEN_SEMICOLON) {
+          while (j < tokens->size &&
+                 !((tokens->tokens[j].kind == TOKEN_RPAREN) |
+                   (tokens->tokens[j].kind == TOKEN_SEMICOLON))) {
             if (tokens->tokens[j].kind == TOKEN_COMMA) {
               arg_idx++;
             } else if (arg_idx == 1 &&
@@ -404,7 +405,7 @@ c2openapi_scan_server_routes(const struct TokenList *tokens,
             } else if (arg_idx == 2 &&
                        tokens->tokens[j].kind == TOKEN_STRING_LITERAL) {
               size_t len = tokens->tokens[j].length - 2;
-              if (len > 0 && len < sizeof(path_str)) {
+              if ((len > 0) & (len < sizeof(path_str))) {
                 memcpy(path_str, tokens->tokens[j].start + 1, len);
                 path_str[len] = '\0';
               }

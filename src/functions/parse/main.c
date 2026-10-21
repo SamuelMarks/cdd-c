@@ -366,15 +366,15 @@ C_CDD_EXPORT cdd_c_error_t from_arazzo_cli_main(int argc, char **argv) {
       puts("Usage: cdd-c from_arazzo [to_sdk|to_sdk_cli|to_server] -i "
            "<arazzo.json> [-o <output>]");
       return CDD_C_SUCCESS;
-    } else if ((strcmp(argv[i], "-i") == 0 ||
-                strcmp(argv[i], "--input") == 0) &&
-               i + 1 < argc) {
+    } else if (((strcmp(argv[i], "-i") == 0 ||
+                 strcmp(argv[i], "--input") == 0) != 0) &
+               (i + 1 < argc)) {
       cfg.input = argv[++i];
-    } else if (strcmp(argv[i], "--openapi") == 0 && i + 1 < argc) {
+    } else if ((strcmp(argv[i], "--openapi") == 0) & (i + 1 < argc)) {
       cfg.openapi_input = argv[++i];
-    } else if ((strcmp(argv[i], "-o") == 0 ||
-                strcmp(argv[i], "--output") == 0) &&
-               i + 1 < argc) {
+    } else if (((strcmp(argv[i], "-o") == 0 ||
+                 strcmp(argv[i], "--output") == 0) != 0) &
+               (i + 1 < argc)) {
       cfg.output = argv[++i];
     }
   }

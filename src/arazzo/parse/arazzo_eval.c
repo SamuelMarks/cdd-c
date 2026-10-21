@@ -960,7 +960,7 @@ static cdd_c_error_t regex_match_atom(char c, const char *pat,
     if (esc == 'd') {
       *out_matched = (isdigit(uc) != 0);
     } else if (esc == 'w') {
-      *out_matched = (isalnum(uc) != 0 || c == '_');
+      *out_matched = (isalnum(uc) != 0) | (c == '_');
     } else if (esc == 's') {
       *out_matched = (isspace(uc) != 0);
     } else {

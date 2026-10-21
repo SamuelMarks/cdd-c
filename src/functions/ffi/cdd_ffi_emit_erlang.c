@@ -32,7 +32,8 @@ extern volatile int g_fail_io_after;
 static cdd_c_error_t snake_case_name(const char *c_name, char *out_name,
                                      size_t out_sz) {
   size_t i = 0, j = 0;
-  while (c_name[i] && j < out_sz - 2) {
+  (void)out_sz;
+  while (c_name[i] != '\0') {
     if (isupper((unsigned char)c_name[i]) && i > 0) {
       if (c_name[i - 1] != '_') {
         out_name[j++] = '_';

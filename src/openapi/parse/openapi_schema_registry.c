@@ -181,8 +181,8 @@ cdd_c_error_t sanitize_component_name(const char *name, char **_out_val) {
   }
   for (i = 0; i < len; ++i) {
     const char c = name[i];
-    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
-        (c >= '0' && c <= '9') || c == '.' || c == '_' || c == '-') {
+    if (((c >= 'a') & (c <= 'z')) | ((c >= 'A') & (c <= 'Z')) |
+        ((c >= '0') & (c <= '9')) | (c == '.') | (c == '_') | (c == '-')) {
       out[i] = c;
     } else {
       out[i] = '_';

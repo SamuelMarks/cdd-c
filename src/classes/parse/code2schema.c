@@ -64,8 +64,9 @@ static cdd_c_error_t c2s_extract_member_decl(const struct TokenList *tl,
   enum TokenKind k;
 
   out_line[0] = '\0';
-  while ((c2s_tok_kind(tl, i, &k),
-          k != TOKEN_UNKNOWN && k != TOKEN_SEMICOLON && k != TOKEN_RBRACE)) {
+  while ((
+      c2s_tok_kind(tl, i, &k),
+      !((k == TOKEN_UNKNOWN) | (k == TOKEN_SEMICOLON) | (k == TOKEN_RBRACE)))) {
     const struct Token *t = &tl->tokens[i];
     if (t->kind == TOKEN_WHITESPACE) {
       out_line[pos++] = ' ';
