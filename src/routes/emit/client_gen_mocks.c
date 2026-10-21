@@ -24,13 +24,13 @@ cdd_c_error_t client_gen_emit_mocks(const char *dir_name,
   size_t i, j;
   FILE *tfp = NULL;
   char tdir[512], tfile[640];
-  CDD_SNPRINTF(tdir, 512, "%s/src/test", dir_name);
+  CDD_SNPRINTF(tdir, sizeof(tdir), "%s/src/test", dir_name);
   rc = makedirs(tdir);
   if (rc != CDD_C_SUCCESS) {
     goto cleanup;
   }
 
-  CDD_SNPRINTF(tfile, 512, "%s/test_sdk.c", tdir);
+  CDD_SNPRINTF(tfile, sizeof(tfile), "%s/test_sdk.c", tdir);
   cdd_vfs_fopen(tfile, "w", &tfp);
   if (tfp) {
     fprintf(tfp, "#include <stdio.h>\n#include <stdlib.h>\n#include "

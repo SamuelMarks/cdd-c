@@ -22,26 +22,24 @@ extern "C" {
 #include "routes/emit/security.h"
 /* clang-format on */
 
-extern cdd_c_error_t uri_has_scheme_prefix_test(const char *uri, size_t len);
-extern cdd_c_error_t ref_base_matches_self_uri_test(const char *self_uri,
-                                                    const char *ref,
-                                                    size_t base_len);
-extern cdd_c_error_t
+extern C_CDD_EXPORT cdd_c_error_t uri_has_scheme_prefix_test(const char *uri,
+                                                             size_t len);
+extern C_CDD_EXPORT cdd_c_error_t ref_base_matches_self_uri_test(
+    const char *self_uri, const char *ref, size_t base_len);
+extern C_CDD_EXPORT cdd_c_error_t
 scheme_ref_matches_name_test(const char *req_scheme, const char *scheme_name,
                              const struct OpenAPI_Spec *spec);
-extern cdd_c_error_t
-scheme_in_security_sets_test(const struct OpenAPI_SecurityRequirementSet *sets,
-                             size_t n_sets, const char *scheme_name,
-                             const struct OpenAPI_Spec *spec);
-extern cdd_c_error_t resolve_active_security_test(
+extern C_CDD_EXPORT cdd_c_error_t scheme_in_security_sets_test(
+    const struct OpenAPI_SecurityRequirementSet *sets, size_t n_sets,
+    const char *scheme_name, const struct OpenAPI_Spec *spec);
+extern C_CDD_EXPORT cdd_c_error_t resolve_active_security_test(
     const struct OpenAPI_Operation *op, const struct OpenAPI_Spec *spec,
     const struct OpenAPI_SecurityRequirementSet **out_sets, size_t *out_count,
     int *out_set_flag);
-extern cdd_c_error_t
-scheme_is_active_test(const struct OpenAPI_SecurityScheme *sch,
-                      const struct OpenAPI_SecurityRequirementSet *sets,
-                      size_t n_sets, int security_set,
-                      const struct OpenAPI_Spec *spec);
+extern C_CDD_EXPORT cdd_c_error_t scheme_is_active_test(
+    const struct OpenAPI_SecurityScheme *sch,
+    const struct OpenAPI_SecurityRequirementSet *sets, size_t n_sets,
+    int security_set, const struct OpenAPI_Spec *spec);
 
 /* Helper to capture output */
 /**

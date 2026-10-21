@@ -4,6 +4,11 @@
  */
 #ifndef TEST_C_REST_C_ORM_H
 #define TEST_C_REST_C_ORM_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -70,5 +75,9 @@ TEST test_c_rest_c_orm_integration(void) {
  * @brief Executes the c_rest_c_orm_suite test suite.
  */
 SUITE(c_rest_c_orm_suite) { RUN_TEST(test_c_rest_c_orm_integration); }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_C_REST_C_ORM_H */

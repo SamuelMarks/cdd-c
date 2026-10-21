@@ -5,6 +5,10 @@
 #ifndef TEST_FFI_IR_JSON_H
 #define TEST_FFI_IR_JSON_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /* clang-format off */
 #include "../../../include/ffi/cdd_ffi_ir.h"
 #include "../../functions/ffi/cdd_ffi_emit_ir_json.h"
@@ -402,5 +406,9 @@ SUITE(test_ffi_ir_json_suite) {
   RUN_TEST(test_cdd_ffi_ir_json_exhaustive_oom);
 #endif
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_FFI_IR_JSON_H */

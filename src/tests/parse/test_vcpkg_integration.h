@@ -16,7 +16,7 @@ extern "C" {
  * @brief Helper function test_vcpkg_my_strdup_errors.
  * @return Result status or value.
  */
-extern cdd_c_error_t test_vcpkg_my_strdup_errors(void);
+extern C_CDD_EXPORT cdd_c_error_t test_vcpkg_my_strdup_errors(void);
 
 #include <greatest.h>
 #include <string.h>

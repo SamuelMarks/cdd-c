@@ -125,6 +125,7 @@ TEST test_cdd_context_lifecycle_and_vtables(void) {
   ASSERT_EQ(CDD_C_SUCCESS, active->vfs.fopen_fn(tmp_file, "rb", &fp));
   /* Writing to a read-only stream fails */
   ASSERT_EQ(CDD_C_ERROR_IO, active->vfs.fwrite_fn("abc", 1, 3, fp, &n_io));
+  clearerr(fp);
   memset(buf, 0, sizeof(buf));
   ASSERT_EQ(CDD_C_SUCCESS, active->vfs.fread_fn(buf, 1, 3, fp, &n_io));
   ASSERT_EQ(3, n_io);

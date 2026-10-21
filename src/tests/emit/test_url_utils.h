@@ -10,42 +10,6 @@
 extern "C" {
 #endif
 
-struct OpenAPI_KV;
-
-/* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
-/* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
-/* extern C_CDD_EXPORT int g_mock_oom_countdown; (moved to global) */
-
-/**
- * @brief Helper function is_pct_encoded_test.
- * @param[in] p Parameter p.
- * @return Result status or value.
- */
-extern cdd_c_error_t is_pct_encoded_test(const char *p);
-/**
- * @brief Helper function kv_value_to_string_test.
- * @param[in] kv Parameter kv.
- * @param[in,out] buf Parameter buf.
- * @param[in] buf_len Parameter buf_len.
- * @param[in] _out_val Parameter _out_val.
- * @return Result status or value.
- */
-extern cdd_c_error_t kv_value_to_string_test(const struct OpenAPI_KV *kv,
-                                             char *buf, size_t buf_len,
-                                             const char **_out_val);
-/**
- * @brief Helper function append_str_test.
- * @param[in,out] buf Parameter buf.
- * @param[in,out] len Parameter len.
- * @param[in,out] cap Parameter cap.
- * @param[in] s Parameter s.
- * @return Result status or value.
- */
-extern cdd_c_error_t append_str_test(char **buf, size_t *len, size_t *cap,
-                                     const char *s);
-
-/* __cplusplus */
-
 /* clang-format off */
 #include "c_cdd_export.h"
 #include <greatest.h>
@@ -54,6 +18,36 @@ extern cdd_c_error_t append_str_test(char **buf, size_t *len, size_t *cap,
 
 #include "routes/parse/url.h"
 /* clang-format on */
+
+struct OpenAPI_KV;
+
+/**
+ * @brief Helper function is_pct_encoded_test.
+ * @param[in] p Parameter p.
+ * @return Result status or value.
+ */
+extern C_CDD_EXPORT cdd_c_error_t is_pct_encoded_test(const char *p);
+/**
+ * @brief Helper function kv_value_to_string_test.
+ * @param[in] kv Parameter kv.
+ * @param[in,out] buf Parameter buf.
+ * @param[in] buf_len Parameter buf_len.
+ * @param[in] _out_val Parameter _out_val.
+ * @return Result status or value.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+kv_value_to_string_test(const struct OpenAPI_KV *kv, char *buf, size_t buf_len,
+                        const char **_out_val);
+/**
+ * @brief Helper function append_str_test.
+ * @param[in,out] buf Parameter buf.
+ * @param[in,out] len Parameter len.
+ * @param[in,out] cap Parameter cap.
+ * @param[in] s Parameter s.
+ * @return Result status or value.
+ */
+extern C_CDD_EXPORT cdd_c_error_t append_str_test(char **buf, size_t *len,
+                                                  size_t *cap, const char *s);
 
 /* Moved extern declarations for C89 compliance */
 /** @brief Test definition g_io_calls. */

@@ -26,7 +26,8 @@ extern "C" {
  * @param[out] out_is_basic Parameter out_is_basic.
  * @return Result status or value.
  */
-extern cdd_c_error_t is_basic_type_keyword_test(enum TokenKind k, int *out_is_basic);
+extern C_CDD_EXPORT cdd_c_error_t is_basic_type_keyword_test(enum TokenKind k,
+                                                             int *out_is_basic);
 
 /* clang-format on */
 

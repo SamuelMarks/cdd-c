@@ -583,8 +583,8 @@ cdd_c_error_t arazzo_client_generate(const struct Arazzo_Spec *arazzo_spec,
     goto cleanup;
   }
 
-  CDD_SNPRINTF(h_path, path_cap, "%s/%s_workflows.h", src_dir, base_name);
-  CDD_SNPRINTF(c_path, path_cap, "%s/%s_workflows.c", src_dir, base_name);
+  CDD_SNPRINTF(h_path, path_cap, "%s/src/%s_workflows.h", dir_name, base_name);
+  CDD_SNPRINTF(c_path, path_cap, "%s/src/%s_workflows.c", dir_name, base_name);
 
   rc = arazzo_client_render_to_strings(arazzo_spec, openapi_spec, base_name,
                                        config->func_prefix ? config->func_prefix

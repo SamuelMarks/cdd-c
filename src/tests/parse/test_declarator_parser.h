@@ -25,10 +25,13 @@ extern "C" {
 #include "functions/parse/declarator.h"
 #include "functions/parse/tokenizer.h"
 
-extern cdd_c_error_t add_type_node(struct DeclInfo *info, struct DeclType **current_tail, struct DeclType *node);
+extern C_CDD_EXPORT cdd_c_error_t add_type_node(struct DeclInfo *info,
+                                                struct DeclType **current_tail,
+                                                struct DeclType *node);
 
-
-extern cdd_c_error_t is_grouping_paren(const struct TokenList *tokens, size_t paren_idx, size_t limit, int *out_is_grouping);
+extern C_CDD_EXPORT cdd_c_error_t
+is_grouping_paren(const struct TokenList *tokens, size_t paren_idx,
+                  size_t limit, int *out_is_grouping);
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */

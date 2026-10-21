@@ -613,8 +613,10 @@ typedef struct parser_state_t {
   struct test_parser_macros_t macros;
 } parser_state_t;
 
-extern cdd_c_error_t peek(parser_state_t *s, cdd_token_t **out_tok);
-extern cdd_c_error_t advance(parser_state_t *s, cdd_token_t **out_tok);
+extern C_CDD_EXPORT cdd_c_error_t peek(parser_state_t *s,
+                                       cdd_token_t **out_tok);
+extern C_CDD_EXPORT cdd_c_error_t advance(parser_state_t *s,
+                                          cdd_token_t **out_tok);
 
 /**
  * @brief Unit test test_cdd_cst_peek_advance_eof.

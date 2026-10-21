@@ -185,8 +185,10 @@ cdd_c_error_t cdd_ffi_format_variadic(char *out_buf, size_t out_cap,
       } else if (conv == 'p') {
         written = CDD_SNPRINTF(tmp, sizeof(tmp), "%p", args[arg_idx].p);
       } else if (len_mod == 2) {
-        written =
-            CDD_SNPRINTF(tmp, sizeof(tmp), "%" CDD_PRId64, args[arg_idx].ll);
+        uint64_t u64 = (uint64_t)args[arg_idx].ll;
+        unsigned long hi_part = (unsigned long)(u64 / (uint64_t)1000000000UL);
+        unsigned long lo_part = (unsigned long)(u64 % (uint64_t)1000000000UL);
+        written = CDD_SNPRINTF(tmp, sizeof(tmp), "%lu%09lu", hi_part, lo_part);
       } else if (len_mod == 1) {
         written = CDD_SNPRINTF(tmp, sizeof(tmp), "%ld", args[arg_idx].l);
       } else if (conv == 'u') {

@@ -230,10 +230,15 @@ TEST test_client_gui_gen_errors(void) {
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               openapi_client_gui_write_streams(rw_fp, rw_fp, "b", NULL));
 
+    g_io_calls = 0;
+    g_fail_io_after = 0;
     ASSERT_EQ(CDD_C_ERROR_IO,
               openapi_client_gui_write_streams(ro_fp, rw_fp, "b", "s"));
+    g_io_calls = 0;
+    g_fail_io_after = 20;
     ASSERT_EQ(CDD_C_ERROR_IO,
               openapi_client_gui_write_streams(rw_fp, ro_fp, "b", "s"));
+    g_fail_io_after = -1;
 
     fclose(ro_fp);
     fclose(rw_fp);

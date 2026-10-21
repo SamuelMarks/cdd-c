@@ -69,10 +69,10 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
       C_CDD_FREE(base_name);
       return rc;
     }
-    actual_base = C_CDD_MALLOC(strlen(src_dir) + strlen(base_name) + 2);
+    actual_base = C_CDD_MALLOC(strlen(dir_name) + strlen(base_name) + 6);
     if (actual_base) {
-      CDD_SNPRINTF(actual_base, strlen(src_dir) + strlen(base_name) + 2,
-                   "%s/%s", src_dir, base_name);
+      CDD_SNPRINTF(actual_base, strlen(dir_name) + strlen(base_name) + 6,
+                   "%s/src/%s", dir_name, base_name);
     }
     C_CDD_FREE(src_dir);
   }

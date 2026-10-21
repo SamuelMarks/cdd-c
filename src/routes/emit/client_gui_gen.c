@@ -7,6 +7,7 @@
 #include "c_cdd/safe_crt_msvc.h"
 
 #include "routes/emit/client_gui_gen.h"
+#include "c_cdd/code_writer.h"
 #include "c_cdd/memory.h"
 #include "c_cdd/safe_crt.h"
 #include "functions/parse/fs.h"
@@ -52,185 +53,200 @@ cdd_c_error_t openapi_client_gui_write_streams(FILE *fp_h, FILE *fp_c,
   if (!fp_h || !fp_c || !base || !default_server)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  gui_check_fprintf(fprintf(fp_h, "/* Generated GUI & Token Flow Code */\n"),
-                    &rc);
-  gui_check_fprintf(fprintf(fp_h, "#ifndef CLIENT_GUI_H\n"), &rc);
-  gui_check_fprintf(fprintf(fp_h, "#define CLIENT_GUI_H\n\n"), &rc);
-  gui_check_fprintf(fprintf(fp_h, "#ifdef __cplusplus\n"), &rc);
-  gui_check_fprintf(fprintf(fp_h, "extern \"C\" {\n"), &rc);
-  gui_check_fprintf(fprintf(fp_h, "#endif /* __cplusplus */\n\n"), &rc);
-  gui_check_fprintf(fprintf(fp_h, "struct OAuth2TokenResponse;\n"), &rc);
-  gui_check_fprintf(fprintf(fp_h,
-                            "cdd_c_error_t cmp_oauth2_format_redirect_uri(int "
-                            "redirect_port, char *out_uri, size_t out_cap);\n"),
-                    &rc);
-  gui_check_fprintf(fprintf(fp_h,
-                            "cdd_c_error_t cmp_oauth2_escape_html(const char "
-                            "*raw_html, char *out_text, size_t out_cap);\n"),
-                    &rc);
-  gui_check_fprintf(fprintf(fp_h, "cdd_c_error_t cmp_oauth2_view_render(const "
-                                  "char* token_endpoint);\n"),
-                    &rc);
   gui_check_fprintf(
-      fprintf(fp_h, "cdd_c_error_t execute_password_grant(const char* "
-                    "token_endpoint, const "
-                    "char* username, const char* "
-                    "password, struct OAuth2TokenResponse** out_token);\n\n"),
+      FPRINTF_HOOK(fp_h, "/* Generated GUI & Token Flow Code */\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_h, "#ifndef CLIENT_GUI_H\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_h, "#define CLIENT_GUI_H\n\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_h, "#ifdef __cplusplus\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_h, "extern \"C\" {\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_h, "#endif /* __cplusplus */\n\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_h, "struct OAuth2TokenResponse;\n"), &rc);
+  gui_check_fprintf(
+      FPRINTF_HOOK(fp_h, "cdd_c_error_t cmp_oauth2_format_redirect_uri(int "
+                         "redirect_port, char *out_uri, size_t out_cap);\n"),
       &rc);
   gui_check_fprintf(
-      fprintf(fp_h, "cdd_c_error_t cmp_ui_builder_begin_column(void);\n"), &rc);
+      FPRINTF_HOOK(fp_h, "cdd_c_error_t cmp_oauth2_escape_html(const char "
+                         "*raw_html, char *out_text, size_t out_cap);\n"),
+      &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_h, "cdd_c_error_t cmp_oauth2_view_render("
+                                       "const char* token_endpoint);\n"),
+                    &rc);
   gui_check_fprintf(
-      fprintf(fp_h, "cdd_c_error_t m3_text_field_init(const char* label);\n"),
+      FPRINTF_HOOK(fp_h,
+                   "cdd_c_error_t execute_password_grant(const char* "
+                   "token_endpoint, const "
+                   "char* username, const char* "
+                   "password, struct OAuth2TokenResponse** out_token);\n\n"),
       &rc);
   gui_check_fprintf(
-      fprintf(fp_h, "cdd_c_error_t m3_button_init(const char* label);\n"), &rc);
-  gui_check_fprintf(fprintf(fp_h, "#ifdef __cplusplus\n"), &rc);
-  gui_check_fprintf(fprintf(fp_h, "}\n"), &rc);
-  gui_check_fprintf(fprintf(fp_h, "#endif /* __cplusplus */\n\n"), &rc);
-  gui_check_fprintf(fprintf(fp_h, "#endif /* CLIENT_GUI_H */\n"), &rc);
+      FPRINTF_HOOK(fp_h, "cdd_c_error_t cmp_ui_builder_begin_column(void);\n"),
+      &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_h,
+                                 "cdd_c_error_t m3_text_field_init(const char* "
+                                 "label);\n"),
+                    &rc);
+  gui_check_fprintf(
+      FPRINTF_HOOK(fp_h, "cdd_c_error_t m3_button_init(const char* label);\n"),
+      &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_h, "#ifdef __cplusplus\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_h, "}\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_h, "#endif /* __cplusplus */\n\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_h, "#endif /* CLIENT_GUI_H */\n"), &rc);
 
   gui_check_fprintf(
-      fprintf(fp_c, "/* Generated GUI & Token Flow Implementation */\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "#include \"%s_gui.h\"\n", base), &rc);
-  gui_check_fprintf(fprintf(fp_c, "#include <stdio.h>\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "#include <stdlib.h>\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "#include <string.h>\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "/* Expected imports from c-abstract-http "
-                                  "and c-orm definitions */\n"),
-                    &rc);
-  gui_check_fprintf(fprintf(fp_c,
-                            "#include <c_abstract_http/http_types.h>\n#include "
-                            "<cdd_c_error.h>\n "),
+      FPRINTF_HOOK(fp_c, "/* Generated GUI & Token Flow Implementation */\n"),
+      &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "#include \"%s_gui.h\"\n", base), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "#include <stdio.h>\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "#include <stdlib.h>\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "#include <string.h>\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c,
+                                 "/* Expected imports from c-abstract-http "
+                                 "and c-orm definitions */\n"),
                     &rc);
   gui_check_fprintf(
-      fprintf(fp_c, "extern cdd_c_error_t cdd_c_parse_oauth2_token(const char "
-                    "*json, struct "
-                    "OAuth2TokenResponse **const out);\n\n"),
+      FPRINTF_HOOK(fp_c, "#include <c_abstract_http/http_types.h>\n#include "
+                         "<cdd_c_error.h>\n "),
       &rc);
   gui_check_fprintf(
-      fprintf(fp_c,
-              "/* GUI Stub implementations (for standalone compilation) */\n"),
+      FPRINTF_HOOK(fp_c, "extern cdd_c_error_t cdd_c_parse_oauth2_token(const "
+                         "char *json, struct "
+                         "OAuth2TokenResponse **const out);\n\n"),
       &rc);
   gui_check_fprintf(
-      fprintf(fp_c, "cdd_c_error_t cmp_ui_builder_begin_column(void) { return "
-                    "CDD_C_SUCCESS; }\n"),
+      FPRINTF_HOOK(
+          fp_c,
+          "/* GUI Stub implementations (for standalone compilation) */\n"),
       &rc);
   gui_check_fprintf(
-      fprintf(fp_c, "cdd_c_error_t m3_text_field_init(const char* label) { "
-                    "(void)label; return CDD_C_SUCCESS; }\n"),
+      FPRINTF_HOOK(fp_c, "cdd_c_error_t cmp_ui_builder_begin_column(void) { "
+                         "return CDD_C_SUCCESS; }\n"),
       &rc);
-  gui_check_fprintf(fprintf(fp_c,
-                            "cdd_c_error_t m3_button_init(const char* label) { "
-                            "(void)label; return CDD_C_SUCCESS; }\n\n"),
+  gui_check_fprintf(
+      FPRINTF_HOOK(fp_c,
+                   "cdd_c_error_t m3_text_field_init(const char* label) { "
+                   "(void)label; return CDD_C_SUCCESS; }\n"),
+      &rc);
+  gui_check_fprintf(
+      FPRINTF_HOOK(fp_c, "cdd_c_error_t m3_button_init(const char* label) { "
+                         "(void)label; return CDD_C_SUCCESS; }\n\n"),
+      &rc);
+  gui_check_fprintf(
+      FPRINTF_HOOK(fp_c, "cdd_c_error_t cmp_oauth2_format_redirect_uri(int "
+                         "redirect_port, char *out_uri, size_t out_cap) {\n"
+                         "  int port = (redirect_port > 0 && redirect_port <= "
+                         "65535) ? redirect_port : 8888;\n"
+                         "  if (!out_uri || out_cap < 32) return "
+                         "CDD_C_ERROR_INVALID_ARGUMENT;\n"
+                         "  snprintf(out_uri, out_cap, "
+                         "\"http://127.0.0.1:%%d/callback\", port);\n"
+                         "  return CDD_C_SUCCESS;\n"
+                         "}\n\n"),
+      &rc);
+  gui_check_fprintf(
+      FPRINTF_HOOK(
+          fp_c, "cdd_c_error_t cmp_oauth2_escape_html(const char "
+                "*raw_html, char *out_text, size_t out_cap) {\n"
+                "  size_t i = 0, j = 0;\n"
+                "  int in_tag = 0;\n"
+                "  if (!raw_html || !out_text || out_cap == 0) return "
+                "CDD_C_ERROR_INVALID_ARGUMENT;\n"
+                "  while (raw_html[i] && j + 1 < out_cap) {\n"
+                "    if (raw_html[i] == '<') { in_tag = 1; i++; continue; }\n"
+                "    if (raw_html[i] == '>') { in_tag = 0; i++; continue; }\n"
+                "    if (!in_tag) out_text[j++] = raw_html[i];\n"
+                "    i++;\n"
+                "  }\n"
+                "  out_text[j] = 0;\n"
+                "  return CDD_C_SUCCESS;\n"
+                "}\n\n"),
+      &rc);
+  gui_check_fprintf(
+      FPRINTF_HOOK(fp_c, "cdd_c_error_t cmp_oauth2_view_render(const char* "
+                         "token_endpoint) {\n"),
+      &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  if (!token_endpoint) {\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c,
+                                 "    token_endpoint = \"%s/oauth/token\";\n",
+                                 default_server),
+                    &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  }\n"), &rc);
+  gui_check_fprintf(
+      FPRINTF_HOOK(fp_c,
+                   "  { cdd_c_error_t rc = cmp_ui_builder_begin_column(); "
+                   "if(rc != CDD_C_SUCCESS) return rc; }\n"),
+      &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  m3_text_field_init(\"Username\");\n"),
+                    &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  m3_text_field_init(\"Password\");\n"),
+                    &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  m3_button_init(\"Login\");\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  return CDD_C_SUCCESS;\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "}\n\n"), &rc);
+  gui_check_fprintf(
+      FPRINTF_HOOK(fp_c,
+                   "cdd_c_error_t execute_password_grant(const char* "
+                   "token_endpoint, const "
+                   "char* username, const char* "
+                   "password, struct OAuth2TokenResponse** out_token) {\n"),
+      &rc);
+  gui_check_fprintf(
+      FPRINTF_HOOK(fp_c, "  /* Generated automated request-handling logic "
+                         "mapping OpenAPI password flow */\n"),
+      &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  struct HttpRequest req;\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  struct HttpResponse res;\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  cdd_c_error_t rc = CDD_C_SUCCESS;\n"),
+                    &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  char payload[512];\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  memset(&req, 0, sizeof(req));\n"),
+                    &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  memset(&res, 0, sizeof(res));\n"),
+                    &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "#if defined(_MSC_VER)\n"), &rc);
+  gui_check_fprintf(
+      FPRINTF_HOOK(fp_c, "  sprintf_s(payload, sizeof(payload), "
+                         "\"grant_type=password&username=%%s&password=%%s\", "
+                         "username, password);\n"),
+      &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "#else\n"), &rc);
+  gui_check_fprintf(
+      FPRINTF_HOOK(fp_c, "  spr"
+                         "intf(payload, "
+                         "\"grant_type=password&username=%%s&password=%%s\", "
+                         "username, password);\n"),
+      &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "#endif\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  req.method = HTTP_POST;\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  if (!token_endpoint) {\n"), &rc);
+  gui_check_fprintf(
+      FPRINTF_HOOK(fp_c, "    req.url = \"%s/oauth/token\";\n", default_server),
+      &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  } else {\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "    req.url = token_endpoint;\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  }\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  req.body = payload;\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  req.body_len = strlen(payload);\n"),
                     &rc);
   gui_check_fprintf(
-      fprintf(fp_c, "cdd_c_error_t cmp_oauth2_format_redirect_uri(int "
-                    "redirect_port, char *out_uri, size_t out_cap) {\n"
-                    "  int port = (redirect_port > 0 && redirect_port <= "
-                    "65535) ? redirect_port : 8888;\n"
-                    "  if (!out_uri || out_cap < 32) return "
-                    "CDD_C_ERROR_INVALID_ARGUMENT;\n"
-                    "  snprintf(out_uri, out_cap, "
-                    "\"http://127.0.0.1:%%d/callback\", port);\n"
-                    "  return CDD_C_SUCCESS;\n"
-                    "}\n\n"),
+      FPRINTF_HOOK(fp_c, "  http_headers_add(&req.headers, \"Content-Type\", "
+                         "\"application/x-www-form-urlencoded\");\n"),
       &rc);
   gui_check_fprintf(
-      fprintf(fp_c,
-              "cdd_c_error_t cmp_oauth2_escape_html(const char "
-              "*raw_html, char *out_text, size_t out_cap) {\n"
-              "  size_t i = 0, j = 0;\n"
-              "  int in_tag = 0;\n"
-              "  if (!raw_html || !out_text || out_cap == 0) return "
-              "CDD_C_ERROR_INVALID_ARGUMENT;\n"
-              "  while (raw_html[i] && j + 1 < out_cap) {\n"
-              "    if (raw_html[i] == '<') { in_tag = 1; i++; continue; }\n"
-              "    if (raw_html[i] == '>') { in_tag = 0; i++; continue; }\n"
-              "    if (!in_tag) out_text[j++] = raw_html[i];\n"
-              "    i++;\n"
-              "  }\n"
-              "  out_text[j] = 0;\n"
-              "  return CDD_C_SUCCESS;\n"
-              "}\n\n"),
-      &rc);
-  gui_check_fprintf(fprintf(fp_c,
-                            "cdd_c_error_t cmp_oauth2_view_render(const char* "
-                            "token_endpoint) {\n"),
-                    &rc);
-  gui_check_fprintf(fprintf(fp_c, "  if (!token_endpoint) {\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "    token_endpoint = \"%s/oauth/token\";\n",
-                            default_server),
-                    &rc);
-  gui_check_fprintf(fprintf(fp_c, "  }\n"), &rc);
-  gui_check_fprintf(
-      fprintf(fp_c, "  { cdd_c_error_t rc = cmp_ui_builder_begin_column(); "
-                    "if(rc != CDD_C_SUCCESS) return rc; }\n"),
-      &rc);
-  gui_check_fprintf(fprintf(fp_c, "  m3_text_field_init(\"Username\");\n"),
-                    &rc);
-  gui_check_fprintf(fprintf(fp_c, "  m3_text_field_init(\"Password\");\n"),
-                    &rc);
-  gui_check_fprintf(fprintf(fp_c, "  m3_button_init(\"Login\");\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "  return CDD_C_SUCCESS;\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "}\n\n"), &rc);
-  gui_check_fprintf(
-      fprintf(fp_c, "cdd_c_error_t execute_password_grant(const char* "
-                    "token_endpoint, const "
-                    "char* username, const char* "
-                    "password, struct OAuth2TokenResponse** out_token) {\n"),
+      FPRINTF_HOOK(fp_c,
+                   "  rc = -1; /* http_client_send(&req, &res); stubbed */\n"),
       &rc);
   gui_check_fprintf(
-      fprintf(fp_c, "  /* Generated automated request-handling logic mapping "
-                    "OpenAPI password flow */\n"),
-      &rc);
-  gui_check_fprintf(fprintf(fp_c, "  struct HttpRequest req;\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "  struct HttpResponse res;\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "  cdd_c_error_t rc = CDD_C_SUCCESS;\n"),
-                    &rc);
-  gui_check_fprintf(fprintf(fp_c, "  char payload[512];\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "  memset(&req, 0, sizeof(req));\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "  memset(&res, 0, sizeof(res));\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "#if defined(_MSC_VER)\n"), &rc);
+      FPRINTF_HOOK(fp_c, "  if (rc == CDD_C_SUCCESS && res.body) {\n"), &rc);
   gui_check_fprintf(
-      fprintf(fp_c, "  sprintf_s(payload, sizeof(payload), "
-                    "\"grant_type=password&username=%%s&password=%%s\", "
-                    "username, password);\n"),
+      FPRINTF_HOOK(fp_c,
+                   "    rc = cdd_c_parse_oauth2_token(res.body, out_token);\n"),
       &rc);
-  gui_check_fprintf(fprintf(fp_c, "#else\n"), &rc);
-  gui_check_fprintf(
-      fprintf(fp_c, "  spr"
-                    "intf(payload, "
-                    "\"grant_type=password&username=%%s&password=%%s\", "
-                    "username, password);\n"),
-      &rc);
-  gui_check_fprintf(fprintf(fp_c, "#endif\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "  req.method = HTTP_POST;\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "  if (!token_endpoint) {\n"), &rc);
-  gui_check_fprintf(
-      fprintf(fp_c, "    req.url = \"%s/oauth/token\";\n", default_server),
-      &rc);
-  gui_check_fprintf(fprintf(fp_c, "  } else {\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "    req.url = token_endpoint;\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "  }\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "  req.body = payload;\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "  req.body_len = strlen(payload);\n"), &rc);
-  gui_check_fprintf(
-      fprintf(fp_c, "  http_headers_add(&req.headers, \"Content-Type\", "
-                    "\"application/x-www-form-urlencoded\");\n"),
-      &rc);
-  gui_check_fprintf(
-      fprintf(fp_c, "  rc = -1; /* http_client_send(&req, &res); stubbed */\n"),
-      &rc);
-  gui_check_fprintf(fprintf(fp_c, "  if (rc == CDD_C_SUCCESS && res.body) {\n"),
-                    &rc);
-  gui_check_fprintf(
-      fprintf(fp_c,
-              "    rc = cdd_c_parse_oauth2_token(res.body, out_token);\n"),
-      &rc);
-  gui_check_fprintf(fprintf(fp_c, "    C_CDD_FREE(res.body);\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "  }\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "  return rc;\n"), &rc);
-  gui_check_fprintf(fprintf(fp_c, "}\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "    C_CDD_FREE(res.body);\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  }\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "  return rc;\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "}\n"), &rc);
   return rc;
 }
 

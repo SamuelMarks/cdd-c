@@ -30,6 +30,7 @@ extern "C" {
 #include "c_cdd/context.h"
 #include "routes/emit/serve_json_rpc.h"
 
+#ifndef __EMSCRIPTEN__
 /**
  * @brief Helper function mock_rpc_socket_fail.
  * @param[in] domain Parameter domain.
@@ -87,6 +88,7 @@ static cdd_c_error_t mock_rpc_send_fail(int fd, const void *buf, size_t len,
   *out_sent = 0;
   return CDD_C_ERROR_SYSTEM;
 }
+#endif /* !__EMSCRIPTEN__ */
 
 #if defined(_WIN32)
 #ifndef WIN32_LEAN_AND_MEAN

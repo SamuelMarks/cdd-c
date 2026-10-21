@@ -72,7 +72,7 @@ TEST test_scrape_makefile_basic(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern cdd_c_error_t test_my_strdup_errors(void);
+extern C_CDD_EXPORT cdd_c_error_t test_my_strdup_errors(void);
 #endif
 
 /**
