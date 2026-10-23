@@ -27,16 +27,16 @@ Implementing MCP across the generated output ensures maximum flexibility for the
 | Generated Boundary | Presence `[To, From]` | Absence `[To, From]` | Skipped `[To, From]` | Notes / Implementation Strategy |
 | :--- | :---: | :---: | :---: | :--- |
 | **CLI Integration (Local Desktop)** | | | | |
-| CLI `mcp` Subcommand | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[x]` | Generates a command (e.g., app mcp) to start the server |
-| `stdio` Transport Bindings | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[x]` | Wires stdin/stdout to the generated CLI logic |
+| CLI `mcp` Subcommand | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Generates a command (e.g., app mcp) to start the server |
+| `stdio` Transport Bindings | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Wires stdin/stdout to the generated CLI logic |
 | **SDK Integration (Programmatic)** | | | | |
-| Native MCP Tool Adapter | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[x]` | E.g., client.mcp.get_tools() mapping SDK methods |
-| Native MCP Resource Adapter | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[x]` | Exposes internal state/docs as MCP resources |
-| LLM Execution Router | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[x]` | Native execution via client.mcp.execute_tool(name, args) |
+| Native MCP Tool Adapter | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | E.g., client.mcp.get_tools() mapping SDK methods |
+| Native MCP Resource Adapter | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Exposes internal state/docs as MCP resources |
+| LLM Execution Router | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Native execution via client.mcp.execute_tool(name, args) |
 | **Server Integration (Remote / SSE)** | | | | |
-| SSE Endpoint Generation | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[x]` | Wires MCP endpoints (e.g. /mcp/sse, /mcp/message) |
-| HTTP Request/Auth Bridging | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[x]` | Passes standard API auth into the MCP context |
-| Dynamic API-to-Tool Proxy | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[x]` | Resolves incoming tool calls to backend route handlers |
+| SSE Endpoint Generation | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Wires MCP endpoints (e.g. /mcp/sse, /mcp/message) |
+| HTTP Request/Auth Bridging | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Passes standard API auth into the MCP context |
+| Dynamic API-to-Tool Proxy | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Resolves incoming tool calls to backend route handlers |
 
 ### 1B. Generator/Tooling Artifacts (Meta-MCP)
 Exposing the `cdd` bidirectional code generator itself to MCP allows AI models to natively orchestrate code generation, schema manipulation, and code-to-schema extraction.
@@ -47,366 +47,366 @@ Exposing the `cdd` bidirectional code generator itself to MCP allows AI models t
 | Generator Boundary | Presence `[To, From]` | Absence `[To, From]` | Skipped `[To, From]` | Notes / Implementation Strategy |
 | :--- | :---: | :---: | :---: | :--- |
 | **Generator CLI (`stdio`)** | | | | |
-| Code Scaffold / Generate Tools | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[x]` | AI can invoke standard generator CLI commands via MCP |
-| Schema Inspection Tools | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[x]` | AI can query loaded OpenAPI/AsyncAPI schemas |
-| Bidirectional Sync Tools | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[x]` | AI can trigger code-to-schema extraction natively |
+| Code Scaffold / Generate Tools | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | AI can invoke standard generator CLI commands via MCP |
+| Schema Inspection Tools | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | AI can query loaded OpenAPI/AsyncAPI schemas |
+| Bidirectional Sync Tools | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | AI can trigger code-to-schema extraction natively |
 | **Generator SDK / Core** | | | | |
-| AST / Type Query Resources | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[x]` | AI can read internal AST structures as MCP resources |
-| In-Memory Generation Router | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[x]` | Native bindings to run the generator core directly via MCP |
+| AST / Type Query Resources | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | AI can read internal AST structures as MCP resources |
+| In-Memory Generation Router | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Native bindings to run the generator core directly via MCP |
 
 ## 2. Semantic & Conceptual Features
 
 | MCP Feature / Behavior | Presence `[To, From]` | Absence `[To, From]` | Skipped `[To, From]` | Notes / Implementation Strategy |
 | :--- | :---: | :---: | :---: | :--- |
 | **Transports** | | | | |
-| Standard I/O (stdio) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` | stdin/stdout message passing |
-| Server-Sent Events (sse) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` | HTTP POST + SSE streams |
-| Custom Transports | `[ ]` , `[ ]` | `[x]` , `[x]` | `[ ]` , `[ ]` | [ ] , [ ] |
+| Standard I/O (stdio) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | stdin/stdout message passing |
+| Server-Sent Events (sse) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | HTTP POST + SSE streams |
+| Custom Transports | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Pluggable transport interface |
 | **JSON-RPC 2.0 Mechanics** | | | | |
-| Message Parsing & Serialization | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| Request ID Mapping/Resolution | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` | Resolving async responses to requests |
-| Error Code Mapping (Standard) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` | Codes like -32600, -32603 |
-| Notification Handling | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | Processing fire-and-forget messages |
+| Message Parsing & Serialization | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Message Parsing & Serialization) |
+| Request ID Mapping/Resolution | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Resolving async responses to requests |
+| Error Code Mapping (Standard) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Codes like -32600, -32603 |
+| Notification Handling | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Processing fire-and-forget messages |
 | **Connection Lifecycle** | | | | |
-| initialize Handshake Sequence | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` | Capability negotiation & version matching |
-| initialized Acknowledgment | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` | Sent by client after successful initialization |
-| Graceful Disconnect / Close | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| Liveness (ping) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` | Periodic connection checks |
-| Request Cancellation (cancelled) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` | Thread/Task abortion mechanics |
+| initialize Handshake Sequence | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Capability negotiation & version matching |
+| initialized Acknowledgment | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Sent by client after successful initialization |
+| Graceful Disconnect / Close | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Graceful Disconnect / Close) |
+| Liveness (ping) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Periodic connection checks |
+| Request Cancellation (cancelled) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Thread/Task abortion mechanics |
 | **Behavioral & Security** | | | | |
-| Pagination Cursor Management | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` | Handling nextCursor fetch loops |
-| Progress Tracking (progress) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` | Emitting/handling progress events |
-| Human-in-the-loop (Sampling) | `[ ]` , `[ ]` | `[x]` , `[x]` | `[ ]` , `[ ]` | [ ] , [ ] |
-| Human-in-the-loop (Tools) | `[ ]` , `[ ]` | `[x]` , `[x]` | `[ ]` , `[ ]` | [ ] , [ ] |
-| Root Boundary Enforcement | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` | Preventing traversal outside allowed directories |
-| URI Protocol Handling | `[ ]` , `[ ]` | `[x]` , `[x]` | `[ ]` , `[ ]` | [ ] , [ ] |
+| Pagination Cursor Management | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Handling nextCursor fetch loops |
+| Progress Tracking (progress) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Emitting/handling progress events |
+| Human-in-the-loop (Sampling) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Prompting user before LLM generation |
+| Human-in-the-loop (Tools) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Security approvals/denials for tool calls |
+| Root Boundary Enforcement | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Preventing traversal outside allowed directories |
+| URI Protocol Handling | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Resolving custom URI schemes |
 
 ## 3. Schema & Object Conformance
 
 | Schema Definition / Property | Presence `[To, From]` | Absence `[To, From]` | Skipped `[To, From]` | Notes |
 | :--- | :---: | :---: | :---: | :--- |
-| **Annotated** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| Annotated (`annotations`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| Annotated (`annotations`) (`audience`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| Annotated (`annotations`) (`priority`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **BlobResourceContents** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| BlobResourceContents (`blob`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| BlobResourceContents (`mimeType`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| BlobResourceContents (`uri`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **CallToolRequest** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CallToolRequest (`method`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CallToolRequest (`params`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CallToolRequest (`params`) (`arguments`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CallToolRequest (`params`) (`name`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **CallToolResult** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| CallToolResult (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| CallToolResult (`content`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| CallToolResult (`isError`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **CancelledNotification** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| CancelledNotification (`method`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| CancelledNotification (`params`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| CancelledNotification (`params`) (`reason`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| CancelledNotification (`params`) (`requestId`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ClientCapabilities** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ClientCapabilities (`experimental`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ClientCapabilities (`roots`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ClientCapabilities (`roots`) (`listChanged`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ClientCapabilities (`sampling`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ClientNotification** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ClientRequest** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ClientResult** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **CompleteRequest** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CompleteRequest (`method`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CompleteRequest (`params`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CompleteRequest (`params`) (`argument`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CompleteRequest (`params`) (`argument`) (`name`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CompleteRequest (`params`) (`argument`) (`value`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CompleteRequest (`params`) (`ref`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **CompleteResult** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| CompleteResult (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| CompleteResult (`completion`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| CompleteResult (`completion`) (`hasMore`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| CompleteResult (`completion`) (`total`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| CompleteResult (`completion`) (`values`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **CreateMessageRequest** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CreateMessageRequest (`method`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CreateMessageRequest (`params`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CreateMessageRequest (`params`) (`includeContext`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CreateMessageRequest (`params`) (`maxTokens`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CreateMessageRequest (`params`) (`messages`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CreateMessageRequest (`params`) (`metadata`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CreateMessageRequest (`params`) (`modelPreferences`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CreateMessageRequest (`params`) (`stopSequences`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CreateMessageRequest (`params`) (`systemPrompt`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| CreateMessageRequest (`params`) (`temperature`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **CreateMessageResult** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| CreateMessageResult (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| CreateMessageResult (`content`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| CreateMessageResult (`model`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| CreateMessageResult (`role`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| CreateMessageResult (`stopReason`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **Cursor** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **EmbeddedResource** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| EmbeddedResource (`annotations`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| EmbeddedResource (`annotations`) (`audience`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| EmbeddedResource (`annotations`) (`priority`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| EmbeddedResource (`resource`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| EmbeddedResource (`type`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **EmptyResult** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **GetPromptRequest** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| GetPromptRequest (`method`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| GetPromptRequest (`params`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| GetPromptRequest (`params`) (`arguments`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| GetPromptRequest (`params`) (`name`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **GetPromptResult** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| GetPromptResult (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| GetPromptResult (`description`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| GetPromptResult (`messages`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ImageContent** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ImageContent (`annotations`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ImageContent (`annotations`) (`audience`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ImageContent (`annotations`) (`priority`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ImageContent (`data`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ImageContent (`mimeType`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ImageContent (`type`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **Implementation** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| Implementation (`name`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| Implementation (`version`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **InitializeRequest** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| InitializeRequest (`method`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| InitializeRequest (`params`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| InitializeRequest (`params`) (`capabilities`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| InitializeRequest (`params`) (`clientInfo`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| InitializeRequest (`params`) (`protocolVersion`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **InitializeResult** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| InitializeResult (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| InitializeResult (`capabilities`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| InitializeResult (`instructions`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| InitializeResult (`protocolVersion`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| InitializeResult (`serverInfo`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **InitializedNotification** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| InitializedNotification (`method`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| InitializedNotification (`params`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| InitializedNotification (`params`) (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **JSONRPCError** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| JSONRPCError (`error`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| JSONRPCError (`error`) (`code`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| JSONRPCError (`error`) (`data`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| JSONRPCError (`error`) (`message`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| JSONRPCError (`id`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| JSONRPCError (`jsonrpc`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **JSONRPCMessage** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **JSONRPCNotification** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| JSONRPCNotification (`jsonrpc`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| JSONRPCNotification (`method`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| JSONRPCNotification (`params`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| JSONRPCNotification (`params`) (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **JSONRPCRequest** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| JSONRPCRequest (`id`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| JSONRPCRequest (`jsonrpc`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| JSONRPCRequest (`method`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| JSONRPCRequest (`params`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| JSONRPCRequest (`params`) (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| JSONRPCRequest (`params`) (`_meta`) (`progressToken`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **JSONRPCResponse** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| JSONRPCResponse (`id`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| JSONRPCResponse (`jsonrpc`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| JSONRPCResponse (`result`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ListPromptsRequest** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ListPromptsRequest (`method`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ListPromptsRequest (`params`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ListPromptsRequest (`params`) (`cursor`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **ListPromptsResult** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListPromptsResult (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListPromptsResult (`nextCursor`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListPromptsResult (`prompts`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ListResourceTemplatesRequest** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListResourceTemplatesRequest (`method`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListResourceTemplatesRequest (`params`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListResourceTemplatesRequest (`params`) (`cursor`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ListResourceTemplatesResult** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListResourceTemplatesResult (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListResourceTemplatesResult (`nextCursor`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListResourceTemplatesResult (`resourceTemplates`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ListResourcesRequest** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ListResourcesRequest (`method`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ListResourcesRequest (`params`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ListResourcesRequest (`params`) (`cursor`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **ListResourcesResult** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListResourcesResult (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListResourcesResult (`nextCursor`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListResourcesResult (`resources`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ListRootsRequest** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListRootsRequest (`method`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListRootsRequest (`params`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListRootsRequest (`params`) (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListRootsRequest (`params`) (`_meta`) (`progressToken`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ListRootsResult** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListRootsResult (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListRootsResult (`roots`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ListToolsRequest** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ListToolsRequest (`method`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ListToolsRequest (`params`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ListToolsRequest (`params`) (`cursor`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **ListToolsResult** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListToolsResult (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListToolsResult (`nextCursor`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ListToolsResult (`tools`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **LoggingLevel** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **LoggingMessageNotification** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| LoggingMessageNotification (`method`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| LoggingMessageNotification (`params`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| LoggingMessageNotification (`params`) (`data`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| LoggingMessageNotification (`params`) (`level`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| LoggingMessageNotification (`params`) (`logger`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ModelHint** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ModelHint (`name`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **ModelPreferences** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ModelPreferences (`costPriority`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ModelPreferences (`hints`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ModelPreferences (`intelligencePriority`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ModelPreferences (`speedPriority`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **Notification** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| Notification (`method`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| Notification (`params`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| Notification (`params`) (`_meta`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **PaginatedRequest** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| PaginatedRequest (`method`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| PaginatedRequest (`params`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| PaginatedRequest (`params`) (`cursor`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **PaginatedResult** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| PaginatedResult (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| PaginatedResult (`nextCursor`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **PingRequest** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| PingRequest (`method`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| PingRequest (`params`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| PingRequest (`params`) (`_meta`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| PingRequest (`params`) (`_meta`) (`progressToken`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **ProgressNotification** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ProgressNotification (`method`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ProgressNotification (`params`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ProgressNotification (`params`) (`progressToken`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ProgressNotification (`params`) (`progress`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ProgressNotification (`params`) (`total`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ProgressToken** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **Prompt** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| Prompt (`arguments`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| Prompt (`description`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| Prompt (`name`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **PromptArgument** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| PromptArgument (`description`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| PromptArgument (`name`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| PromptArgument (`required`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **PromptListChangedNotification** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| PromptListChangedNotification (`method`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| PromptListChangedNotification (`params`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| PromptListChangedNotification (`params`) (`_meta`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **PromptMessage** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| PromptMessage (`content`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| PromptMessage (`role`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **PromptReference** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| PromptReference (`name`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| PromptReference (`type`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **ReadResourceRequest** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ReadResourceRequest (`method`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ReadResourceRequest (`params`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ReadResourceRequest (`params`) (`uri`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **ReadResourceResult** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ReadResourceResult (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ReadResourceResult (`contents`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **Request** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| Request (`method`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| Request (`params`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| Request (`params`) (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| Request (`params`) (`_meta`) (`progressToken`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **RequestId** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **Resource** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| Resource (`annotations`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| Resource (`annotations`) (`audience`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| Resource (`annotations`) (`priority`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| Resource (`description`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| Resource (`mimeType`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| Resource (`name`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| Resource (`size`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| Resource (`uri`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ResourceContents** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ResourceContents (`mimeType`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ResourceContents (`uri`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ResourceListChangedNotification** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ResourceListChangedNotification (`method`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ResourceListChangedNotification (`params`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ResourceListChangedNotification (`params`) (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ResourceReference** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ResourceReference (`type`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ResourceReference (`uri`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ResourceTemplate** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ResourceTemplate (`annotations`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ResourceTemplate (`annotations`) (`audience`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ResourceTemplate (`annotations`) (`priority`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ResourceTemplate (`description`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ResourceTemplate (`mimeType`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ResourceTemplate (`name`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ResourceTemplate (`uriTemplate`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ResourceUpdatedNotification** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ResourceUpdatedNotification (`method`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ResourceUpdatedNotification (`params`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ResourceUpdatedNotification (`params`) (`uri`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **Result** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| Result (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **Role** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **Root** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| Root (`name`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| Root (`uri`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **RootsListChangedNotification** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| RootsListChangedNotification (`method`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| RootsListChangedNotification (`params`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| RootsListChangedNotification (`params`) (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **SamplingMessage** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| SamplingMessage (`content`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| SamplingMessage (`role`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ServerCapabilities** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ServerCapabilities (`experimental`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ServerCapabilities (`logging`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ServerCapabilities (`prompts`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ServerCapabilities (`prompts`) (`listChanged`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ServerCapabilities (`resources`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ServerCapabilities (`resources`) (`listChanged`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ServerCapabilities (`resources`) (`subscribe`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ServerCapabilities (`tools`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ServerCapabilities (`tools`) (`listChanged`) | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ServerNotification** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ServerRequest** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **ServerResult** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| **SetLevelRequest** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| SetLevelRequest (`method`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| SetLevelRequest (`params`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| SetLevelRequest (`params`) (`level`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **SubscribeRequest** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| SubscribeRequest (`method`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| SubscribeRequest (`params`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| SubscribeRequest (`params`) (`uri`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **TextContent** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| TextContent (`annotations`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| TextContent (`annotations`) (`audience`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| TextContent (`annotations`) (`priority`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| TextContent (`text`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| TextContent (`type`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **TextResourceContents** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| TextResourceContents (`mimeType`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| TextResourceContents (`text`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| TextResourceContents (`uri`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **Tool** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| Tool (`description`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| Tool (`inputSchema`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| Tool (`inputSchema`) (`properties`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| Tool (`inputSchema`) (`required`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| Tool (`inputSchema`) (`type`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| Tool (`name`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **ToolListChangedNotification** | `[x]` , `[ ]` | `[ ]` , `[x]` | `[ ]` , `[ ]` |  |
-| ToolListChangedNotification (`method`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ToolListChangedNotification (`params`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| ToolListChangedNotification (`params`) (`_meta`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| **UnsubscribeRequest** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| UnsubscribeRequest (`method`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| UnsubscribeRequest (`params`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
-| UnsubscribeRequest (`params`) (`uri`) | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` |  |
+| **Annotated** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Annotated) |
+| Annotated (`annotations`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Annotated (`annotations`)) |
+| Annotated (`annotations`) (`audience`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Annotated (`annotations`) (`audience`)) |
+| Annotated (`annotations`) (`priority`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Annotated (`annotations`) (`priority`)) |
+| **BlobResourceContents** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (BlobResourceContents) |
+| BlobResourceContents (`blob`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (BlobResourceContents (`blob`)) |
+| BlobResourceContents (`mimeType`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (BlobResourceContents (`mimeType`)) |
+| BlobResourceContents (`uri`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (BlobResourceContents (`uri`)) |
+| **CallToolRequest** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CallToolRequest) |
+| CallToolRequest (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CallToolRequest (`method`)) |
+| CallToolRequest (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CallToolRequest (`params`)) |
+| CallToolRequest (`params`) (`arguments`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CallToolRequest (`params`) (`arguments`)) |
+| CallToolRequest (`params`) (`name`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CallToolRequest (`params`) (`name`)) |
+| **CallToolResult** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CallToolResult) |
+| CallToolResult (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CallToolResult (`_meta`)) |
+| CallToolResult (`content`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CallToolResult (`content`)) |
+| CallToolResult (`isError`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CallToolResult (`isError`)) |
+| **CancelledNotification** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CancelledNotification) |
+| CancelledNotification (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CancelledNotification (`method`)) |
+| CancelledNotification (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CancelledNotification (`params`)) |
+| CancelledNotification (`params`) (`reason`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CancelledNotification (`params`) (`reason`)) |
+| CancelledNotification (`params`) (`requestId`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CancelledNotification (`params`) (`requestId`)) |
+| **ClientCapabilities** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ClientCapabilities) |
+| ClientCapabilities (`experimental`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ClientCapabilities (`experimental`)) |
+| ClientCapabilities (`roots`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ClientCapabilities (`roots`)) |
+| ClientCapabilities (`roots`) (`listChanged`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ClientCapabilities (`roots`) (`listChanged`)) |
+| ClientCapabilities (`sampling`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ClientCapabilities (`sampling`)) |
+| **ClientNotification** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Not applicable to this profile |
+| **ClientRequest** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Not applicable to this profile |
+| **ClientResult** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Not applicable to this profile |
+| **CompleteRequest** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CompleteRequest) |
+| CompleteRequest (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CompleteRequest (`method`)) |
+| CompleteRequest (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CompleteRequest (`params`)) |
+| CompleteRequest (`params`) (`argument`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CompleteRequest (`params`) (`argument`)) |
+| CompleteRequest (`params`) (`argument`) (`name`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CompleteRequest (`params`) (`argument`) (`name`)) |
+| CompleteRequest (`params`) (`argument`) (`value`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CompleteRequest (`params`) (`argument`) (`value`)) |
+| CompleteRequest (`params`) (`ref`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CompleteRequest (`params`) (`ref`)) |
+| **CompleteResult** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CompleteResult) |
+| CompleteResult (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CompleteResult (`_meta`)) |
+| CompleteResult (`completion`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CompleteResult (`completion`)) |
+| CompleteResult (`completion`) (`hasMore`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CompleteResult (`completion`) (`hasMore`)) |
+| CompleteResult (`completion`) (`total`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CompleteResult (`completion`) (`total`)) |
+| CompleteResult (`completion`) (`values`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CompleteResult (`completion`) (`values`)) |
+| **CreateMessageRequest** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CreateMessageRequest) |
+| CreateMessageRequest (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CreateMessageRequest (`method`)) |
+| CreateMessageRequest (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CreateMessageRequest (`params`)) |
+| CreateMessageRequest (`params`) (`includeContext`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CreateMessageRequest (`params`) (`includeContext`)) |
+| CreateMessageRequest (`params`) (`maxTokens`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CreateMessageRequest (`params`) (`maxTokens`)) |
+| CreateMessageRequest (`params`) (`messages`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CreateMessageRequest (`params`) (`messages`)) |
+| CreateMessageRequest (`params`) (`metadata`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CreateMessageRequest (`params`) (`metadata`)) |
+| CreateMessageRequest (`params`) (`modelPreferences`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CreateMessageRequest (`params`) (`modelPreferences`)) |
+| CreateMessageRequest (`params`) (`stopSequences`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CreateMessageRequest (`params`) (`stopSequences`)) |
+| CreateMessageRequest (`params`) (`systemPrompt`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CreateMessageRequest (`params`) (`systemPrompt`)) |
+| CreateMessageRequest (`params`) (`temperature`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CreateMessageRequest (`params`) (`temperature`)) |
+| **CreateMessageResult** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CreateMessageResult) |
+| CreateMessageResult (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CreateMessageResult (`_meta`)) |
+| CreateMessageResult (`content`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CreateMessageResult (`content`)) |
+| CreateMessageResult (`model`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CreateMessageResult (`model`)) |
+| CreateMessageResult (`role`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CreateMessageResult (`role`)) |
+| CreateMessageResult (`stopReason`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (CreateMessageResult (`stopReason`)) |
+| **Cursor** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Cursor) |
+| **EmbeddedResource** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (EmbeddedResource) |
+| EmbeddedResource (`annotations`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (EmbeddedResource (`annotations`)) |
+| EmbeddedResource (`annotations`) (`audience`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (EmbeddedResource (`annotations`) (`audience`)) |
+| EmbeddedResource (`annotations`) (`priority`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (EmbeddedResource (`annotations`) (`priority`)) |
+| EmbeddedResource (`resource`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (EmbeddedResource (`resource`)) |
+| EmbeddedResource (`type`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (EmbeddedResource (`type`)) |
+| **EmptyResult** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (EmptyResult) |
+| **GetPromptRequest** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (GetPromptRequest) |
+| GetPromptRequest (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (GetPromptRequest (`method`)) |
+| GetPromptRequest (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (GetPromptRequest (`params`)) |
+| GetPromptRequest (`params`) (`arguments`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (GetPromptRequest (`params`) (`arguments`)) |
+| GetPromptRequest (`params`) (`name`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (GetPromptRequest (`params`) (`name`)) |
+| **GetPromptResult** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (GetPromptResult) |
+| GetPromptResult (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (GetPromptResult (`_meta`)) |
+| GetPromptResult (`description`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (GetPromptResult (`description`)) |
+| GetPromptResult (`messages`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (GetPromptResult (`messages`)) |
+| **ImageContent** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ImageContent) |
+| ImageContent (`annotations`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ImageContent (`annotations`)) |
+| ImageContent (`annotations`) (`audience`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ImageContent (`annotations`) (`audience`)) |
+| ImageContent (`annotations`) (`priority`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ImageContent (`annotations`) (`priority`)) |
+| ImageContent (`data`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ImageContent (`data`)) |
+| ImageContent (`mimeType`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ImageContent (`mimeType`)) |
+| ImageContent (`type`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ImageContent (`type`)) |
+| **Implementation** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Implementation) |
+| Implementation (`name`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Implementation (`name`)) |
+| Implementation (`version`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Implementation (`version`)) |
+| **InitializeRequest** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (InitializeRequest) |
+| InitializeRequest (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (InitializeRequest (`method`)) |
+| InitializeRequest (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (InitializeRequest (`params`)) |
+| InitializeRequest (`params`) (`capabilities`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (InitializeRequest (`params`) (`capabilities`)) |
+| InitializeRequest (`params`) (`clientInfo`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (InitializeRequest (`params`) (`clientInfo`)) |
+| InitializeRequest (`params`) (`protocolVersion`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (InitializeRequest (`params`) (`protocolVersion`)) |
+| **InitializeResult** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (InitializeResult) |
+| InitializeResult (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (InitializeResult (`_meta`)) |
+| InitializeResult (`capabilities`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (InitializeResult (`capabilities`)) |
+| InitializeResult (`instructions`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (InitializeResult (`instructions`)) |
+| InitializeResult (`protocolVersion`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (InitializeResult (`protocolVersion`)) |
+| InitializeResult (`serverInfo`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (InitializeResult (`serverInfo`)) |
+| **InitializedNotification** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (InitializedNotification) |
+| InitializedNotification (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (InitializedNotification (`method`)) |
+| InitializedNotification (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (InitializedNotification (`params`)) |
+| InitializedNotification (`params`) (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (InitializedNotification (`params`) (`_meta`)) |
+| **JSONRPCError** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCError) |
+| JSONRPCError (`error`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCError (`error`)) |
+| JSONRPCError (`error`) (`code`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCError (`error`) (`code`)) |
+| JSONRPCError (`error`) (`data`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCError (`error`) (`data`)) |
+| JSONRPCError (`error`) (`message`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCError (`error`) (`message`)) |
+| JSONRPCError (`id`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCError (`id`)) |
+| JSONRPCError (`jsonrpc`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCError (`jsonrpc`)) |
+| **JSONRPCMessage** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Not applicable to this profile |
+| **JSONRPCNotification** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCNotification) |
+| JSONRPCNotification (`jsonrpc`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCNotification (`jsonrpc`)) |
+| JSONRPCNotification (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCNotification (`method`)) |
+| JSONRPCNotification (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCNotification (`params`)) |
+| JSONRPCNotification (`params`) (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCNotification (`params`) (`_meta`)) |
+| **JSONRPCRequest** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCRequest) |
+| JSONRPCRequest (`id`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCRequest (`id`)) |
+| JSONRPCRequest (`jsonrpc`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCRequest (`jsonrpc`)) |
+| JSONRPCRequest (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCRequest (`method`)) |
+| JSONRPCRequest (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCRequest (`params`)) |
+| JSONRPCRequest (`params`) (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCRequest (`params`) (`_meta`)) |
+| JSONRPCRequest (`params`) (`_meta`) (`progressToken`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCRequest (`params`) (`_meta`) (`progressToken`)) |
+| **JSONRPCResponse** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCResponse) |
+| JSONRPCResponse (`id`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCResponse (`id`)) |
+| JSONRPCResponse (`jsonrpc`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCResponse (`jsonrpc`)) |
+| JSONRPCResponse (`result`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (JSONRPCResponse (`result`)) |
+| **ListPromptsRequest** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListPromptsRequest) |
+| ListPromptsRequest (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListPromptsRequest (`method`)) |
+| ListPromptsRequest (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListPromptsRequest (`params`)) |
+| ListPromptsRequest (`params`) (`cursor`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListPromptsRequest (`params`) (`cursor`)) |
+| **ListPromptsResult** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListPromptsResult) |
+| ListPromptsResult (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListPromptsResult (`_meta`)) |
+| ListPromptsResult (`nextCursor`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListPromptsResult (`nextCursor`)) |
+| ListPromptsResult (`prompts`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListPromptsResult (`prompts`)) |
+| **ListResourceTemplatesRequest** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListResourceTemplatesRequest) |
+| ListResourceTemplatesRequest (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListResourceTemplatesRequest (`method`)) |
+| ListResourceTemplatesRequest (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListResourceTemplatesRequest (`params`)) |
+| ListResourceTemplatesRequest (`params`) (`cursor`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListResourceTemplatesRequest (`params`) (`cursor`)) |
+| **ListResourceTemplatesResult** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListResourceTemplatesResult) |
+| ListResourceTemplatesResult (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListResourceTemplatesResult (`_meta`)) |
+| ListResourceTemplatesResult (`nextCursor`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListResourceTemplatesResult (`nextCursor`)) |
+| ListResourceTemplatesResult (`resourceTemplates`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListResourceTemplatesResult (`resourceTemplates`)) |
+| **ListResourcesRequest** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListResourcesRequest) |
+| ListResourcesRequest (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListResourcesRequest (`method`)) |
+| ListResourcesRequest (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListResourcesRequest (`params`)) |
+| ListResourcesRequest (`params`) (`cursor`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListResourcesRequest (`params`) (`cursor`)) |
+| **ListResourcesResult** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListResourcesResult) |
+| ListResourcesResult (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListResourcesResult (`_meta`)) |
+| ListResourcesResult (`nextCursor`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListResourcesResult (`nextCursor`)) |
+| ListResourcesResult (`resources`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListResourcesResult (`resources`)) |
+| **ListRootsRequest** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListRootsRequest) |
+| ListRootsRequest (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListRootsRequest (`method`)) |
+| ListRootsRequest (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListRootsRequest (`params`)) |
+| ListRootsRequest (`params`) (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListRootsRequest (`params`) (`_meta`)) |
+| ListRootsRequest (`params`) (`_meta`) (`progressToken`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListRootsRequest (`params`) (`_meta`) (`progressToken`)) |
+| **ListRootsResult** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListRootsResult) |
+| ListRootsResult (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListRootsResult (`_meta`)) |
+| ListRootsResult (`roots`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListRootsResult (`roots`)) |
+| **ListToolsRequest** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListToolsRequest) |
+| ListToolsRequest (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListToolsRequest (`method`)) |
+| ListToolsRequest (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListToolsRequest (`params`)) |
+| ListToolsRequest (`params`) (`cursor`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListToolsRequest (`params`) (`cursor`)) |
+| **ListToolsResult** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListToolsResult) |
+| ListToolsResult (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListToolsResult (`_meta`)) |
+| ListToolsResult (`nextCursor`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListToolsResult (`nextCursor`)) |
+| ListToolsResult (`tools`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ListToolsResult (`tools`)) |
+| **LoggingLevel** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (LoggingLevel) |
+| **LoggingMessageNotification** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (LoggingMessageNotification) |
+| LoggingMessageNotification (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (LoggingMessageNotification (`method`)) |
+| LoggingMessageNotification (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (LoggingMessageNotification (`params`)) |
+| LoggingMessageNotification (`params`) (`data`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (LoggingMessageNotification (`params`) (`data`)) |
+| LoggingMessageNotification (`params`) (`level`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (LoggingMessageNotification (`params`) (`level`)) |
+| LoggingMessageNotification (`params`) (`logger`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (LoggingMessageNotification (`params`) (`logger`)) |
+| **ModelHint** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ModelHint) |
+| ModelHint (`name`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ModelHint (`name`)) |
+| **ModelPreferences** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ModelPreferences) |
+| ModelPreferences (`costPriority`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ModelPreferences (`costPriority`)) |
+| ModelPreferences (`hints`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ModelPreferences (`hints`)) |
+| ModelPreferences (`intelligencePriority`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ModelPreferences (`intelligencePriority`)) |
+| ModelPreferences (`speedPriority`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ModelPreferences (`speedPriority`)) |
+| **Notification** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Not applicable to this profile |
+| Notification (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Not applicable to this profile |
+| Notification (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Not applicable to this profile |
+| Notification (`params`) (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Not applicable to this profile |
+| **PaginatedRequest** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PaginatedRequest) |
+| PaginatedRequest (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PaginatedRequest (`method`)) |
+| PaginatedRequest (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PaginatedRequest (`params`)) |
+| PaginatedRequest (`params`) (`cursor`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PaginatedRequest (`params`) (`cursor`)) |
+| **PaginatedResult** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PaginatedResult) |
+| PaginatedResult (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PaginatedResult (`_meta`)) |
+| PaginatedResult (`nextCursor`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PaginatedResult (`nextCursor`)) |
+| **PingRequest** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PingRequest) |
+| PingRequest (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PingRequest (`method`)) |
+| PingRequest (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PingRequest (`params`)) |
+| PingRequest (`params`) (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PingRequest (`params`) (`_meta`)) |
+| PingRequest (`params`) (`_meta`) (`progressToken`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PingRequest (`params`) (`_meta`) (`progressToken`)) |
+| **ProgressNotification** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ProgressNotification) |
+| ProgressNotification (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ProgressNotification (`method`)) |
+| ProgressNotification (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ProgressNotification (`params`)) |
+| ProgressNotification (`params`) (`progressToken`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ProgressNotification (`params`) (`progressToken`)) |
+| ProgressNotification (`params`) (`progress`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ProgressNotification (`params`) (`progress`)) |
+| ProgressNotification (`params`) (`total`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ProgressNotification (`params`) (`total`)) |
+| **ProgressToken** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ProgressToken) |
+| **Prompt** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Prompt) |
+| Prompt (`arguments`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Prompt (`arguments`)) |
+| Prompt (`description`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Prompt (`description`)) |
+| Prompt (`name`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Prompt (`name`)) |
+| **PromptArgument** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PromptArgument) |
+| PromptArgument (`description`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PromptArgument (`description`)) |
+| PromptArgument (`name`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PromptArgument (`name`)) |
+| PromptArgument (`required`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PromptArgument (`required`)) |
+| **PromptListChangedNotification** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PromptListChangedNotification) |
+| PromptListChangedNotification (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PromptListChangedNotification (`method`)) |
+| PromptListChangedNotification (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PromptListChangedNotification (`params`)) |
+| PromptListChangedNotification (`params`) (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PromptListChangedNotification (`params`) (`_meta`)) |
+| **PromptMessage** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PromptMessage) |
+| PromptMessage (`content`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PromptMessage (`content`)) |
+| PromptMessage (`role`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PromptMessage (`role`)) |
+| **PromptReference** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PromptReference) |
+| PromptReference (`name`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PromptReference (`name`)) |
+| PromptReference (`type`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (PromptReference (`type`)) |
+| **ReadResourceRequest** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ReadResourceRequest) |
+| ReadResourceRequest (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ReadResourceRequest (`method`)) |
+| ReadResourceRequest (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ReadResourceRequest (`params`)) |
+| ReadResourceRequest (`params`) (`uri`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ReadResourceRequest (`params`) (`uri`)) |
+| **ReadResourceResult** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ReadResourceResult) |
+| ReadResourceResult (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ReadResourceResult (`_meta`)) |
+| ReadResourceResult (`contents`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ReadResourceResult (`contents`)) |
+| **Request** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Not applicable to this profile |
+| Request (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Not applicable to this profile |
+| Request (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Not applicable to this profile |
+| Request (`params`) (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Not applicable to this profile |
+| Request (`params`) (`_meta`) (`progressToken`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Not applicable to this profile |
+| **RequestId** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (RequestId) |
+| **Resource** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Resource) |
+| Resource (`annotations`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Resource (`annotations`)) |
+| Resource (`annotations`) (`audience`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Resource (`annotations`) (`audience`)) |
+| Resource (`annotations`) (`priority`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Resource (`annotations`) (`priority`)) |
+| Resource (`description`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Resource (`description`)) |
+| Resource (`mimeType`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Resource (`mimeType`)) |
+| Resource (`name`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Resource (`name`)) |
+| Resource (`size`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Resource (`size`)) |
+| Resource (`uri`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Resource (`uri`)) |
+| **ResourceContents** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceContents) |
+| ResourceContents (`mimeType`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceContents (`mimeType`)) |
+| ResourceContents (`uri`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceContents (`uri`)) |
+| **ResourceListChangedNotification** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceListChangedNotification) |
+| ResourceListChangedNotification (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceListChangedNotification (`method`)) |
+| ResourceListChangedNotification (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceListChangedNotification (`params`)) |
+| ResourceListChangedNotification (`params`) (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceListChangedNotification (`params`) (`_meta`)) |
+| **ResourceReference** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceReference) |
+| ResourceReference (`type`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceReference (`type`)) |
+| ResourceReference (`uri`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceReference (`uri`)) |
+| **ResourceTemplate** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceTemplate) |
+| ResourceTemplate (`annotations`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceTemplate (`annotations`)) |
+| ResourceTemplate (`annotations`) (`audience`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceTemplate (`annotations`) (`audience`)) |
+| ResourceTemplate (`annotations`) (`priority`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceTemplate (`annotations`) (`priority`)) |
+| ResourceTemplate (`description`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceTemplate (`description`)) |
+| ResourceTemplate (`mimeType`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceTemplate (`mimeType`)) |
+| ResourceTemplate (`name`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceTemplate (`name`)) |
+| ResourceTemplate (`uriTemplate`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceTemplate (`uriTemplate`)) |
+| **ResourceUpdatedNotification** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceUpdatedNotification) |
+| ResourceUpdatedNotification (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceUpdatedNotification (`method`)) |
+| ResourceUpdatedNotification (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceUpdatedNotification (`params`)) |
+| ResourceUpdatedNotification (`params`) (`uri`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ResourceUpdatedNotification (`params`) (`uri`)) |
+| **Result** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Result) |
+| Result (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Result (`_meta`)) |
+| **Role** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Role) |
+| **Root** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Root) |
+| Root (`name`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Root (`name`)) |
+| Root (`uri`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Root (`uri`)) |
+| **RootsListChangedNotification** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (RootsListChangedNotification) |
+| RootsListChangedNotification (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (RootsListChangedNotification (`method`)) |
+| RootsListChangedNotification (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (RootsListChangedNotification (`params`)) |
+| RootsListChangedNotification (`params`) (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (RootsListChangedNotification (`params`) (`_meta`)) |
+| **SamplingMessage** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (SamplingMessage) |
+| SamplingMessage (`content`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (SamplingMessage (`content`)) |
+| SamplingMessage (`role`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (SamplingMessage (`role`)) |
+| **ServerCapabilities** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ServerCapabilities) |
+| ServerCapabilities (`experimental`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ServerCapabilities (`experimental`)) |
+| ServerCapabilities (`logging`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ServerCapabilities (`logging`)) |
+| ServerCapabilities (`prompts`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ServerCapabilities (`prompts`)) |
+| ServerCapabilities (`prompts`) (`listChanged`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ServerCapabilities (`prompts`) (`listChanged`)) |
+| ServerCapabilities (`resources`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ServerCapabilities (`resources`)) |
+| ServerCapabilities (`resources`) (`listChanged`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ServerCapabilities (`resources`) (`listChanged`)) |
+| ServerCapabilities (`resources`) (`subscribe`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ServerCapabilities (`resources`) (`subscribe`)) |
+| ServerCapabilities (`tools`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ServerCapabilities (`tools`)) |
+| ServerCapabilities (`tools`) (`listChanged`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ServerCapabilities (`tools`) (`listChanged`)) |
+| **ServerNotification** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Not applicable to this profile |
+| **ServerRequest** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Not applicable to this profile |
+| **ServerResult** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Not applicable to this profile |
+| **SetLevelRequest** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (SetLevelRequest) |
+| SetLevelRequest (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (SetLevelRequest (`method`)) |
+| SetLevelRequest (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (SetLevelRequest (`params`)) |
+| SetLevelRequest (`params`) (`level`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (SetLevelRequest (`params`) (`level`)) |
+| **SubscribeRequest** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (SubscribeRequest) |
+| SubscribeRequest (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (SubscribeRequest (`method`)) |
+| SubscribeRequest (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (SubscribeRequest (`params`)) |
+| SubscribeRequest (`params`) (`uri`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (SubscribeRequest (`params`) (`uri`)) |
+| **TextContent** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (TextContent) |
+| TextContent (`annotations`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (TextContent (`annotations`)) |
+| TextContent (`annotations`) (`audience`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (TextContent (`annotations`) (`audience`)) |
+| TextContent (`annotations`) (`priority`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (TextContent (`annotations`) (`priority`)) |
+| TextContent (`text`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (TextContent (`text`)) |
+| TextContent (`type`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (TextContent (`type`)) |
+| **TextResourceContents** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (TextResourceContents) |
+| TextResourceContents (`mimeType`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (TextResourceContents (`mimeType`)) |
+| TextResourceContents (`text`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (TextResourceContents (`text`)) |
+| TextResourceContents (`uri`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (TextResourceContents (`uri`)) |
+| **Tool** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Tool) |
+| Tool (`description`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Tool (`description`)) |
+| Tool (`inputSchema`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Tool (`inputSchema`)) |
+| Tool (`inputSchema`) (`properties`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Tool (`inputSchema`) (`properties`)) |
+| Tool (`inputSchema`) (`required`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Tool (`inputSchema`) (`required`)) |
+| Tool (`inputSchema`) (`type`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Tool (`inputSchema`) (`type`)) |
+| Tool (`name`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (Tool (`name`)) |
+| **ToolListChangedNotification** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ToolListChangedNotification) |
+| ToolListChangedNotification (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ToolListChangedNotification (`method`)) |
+| ToolListChangedNotification (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ToolListChangedNotification (`params`)) |
+| ToolListChangedNotification (`params`) (`_meta`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (ToolListChangedNotification (`params`) (`_meta`)) |
+| **UnsubscribeRequest** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (UnsubscribeRequest) |
+| UnsubscribeRequest (`method`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (UnsubscribeRequest (`method`)) |
+| UnsubscribeRequest (`params`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (UnsubscribeRequest (`params`)) |
+| UnsubscribeRequest (`params`) (`uri`) | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Implemented in `src/routes/emit/serve_json_rpc.c` and `src/routes/parse/cli.c` (UnsubscribeRequest (`params`) (`uri`)) |

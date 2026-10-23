@@ -572,6 +572,14 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
         curr_param.deprecated_set = 1;
         curr_param.deprecated = dp->deprecated ? 1 : 0;
       }
+      if (dp->collection_format) {
+        rc = c_cdd_strdup(dp->collection_format, &curr_param.collection_format);
+        if (rc != CDD_C_SUCCESS) {
+          free_param_fields(&curr_param);
+          c_mapping_free(&type_map);
+          return rc;
+        }
+      }
     }
     if (!curr_param.content_type && (!dp || !dp->style_set)) {
       if (curr_param.in == OA_PARAM_IN_QUERY ||

@@ -63,6 +63,8 @@ write_parameter_object(JSON_Object *p_obj, const struct OpenAPI_Parameter *p) {
   if (p->allow_empty_value_set && p->in == OA_PARAM_IN_QUERY)
     json_object_set_boolean(p_obj, "allowEmptyValue",
                             p->allow_empty_value ? 1 : 0);
+  if (p->collection_format)
+    json_object_set_string(p_obj, "collectionFormat", p->collection_format);
   if (p->example_location == OA_EXAMPLE_LOC_OBJECT) {
     write_example_fields(p_obj, &p->example, p->example_set, p->examples,
                          p->n_examples);
@@ -167,6 +169,8 @@ C_CDD_EXPORT cdd_c_error_t write_header_object(JSON_Object *h_obj,
     if (style_str)
       json_object_set_string(h_obj, "style", style_str);
   }
+  if (h->collection_format)
+    json_object_set_string(h_obj, "collectionFormat", h->collection_format);
   if (h->explode_set)
     json_object_set_boolean(h_obj, "explode", h->explode ? 1 : 0);
   if (h->example_location == OA_EXAMPLE_LOC_OBJECT) {

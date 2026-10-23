@@ -370,6 +370,9 @@ C_CDD_EXPORT cdd_c_error_t write_items_schema_fields(
   }
   if (ref->items_format)
     json_object_set_string(item_obj, "format", ref->items_format);
+  if (ref->items_collection_format)
+    json_object_set_string(item_obj, "collectionFormat",
+                           ref->items_collection_format);
   if (ref->items_content_media_type)
     json_object_set_string(item_obj, "contentMediaType",
                            ref->items_content_media_type);
@@ -512,6 +515,8 @@ C_CDD_EXPORT cdd_c_error_t write_schema_ref(
 
   if (ref->format)
     json_object_set_string(sch_obj, "format", ref->format);
+  if (ref->collection_format)
+    json_object_set_string(sch_obj, "collectionFormat", ref->collection_format);
   write_numeric_constraints(sch_obj, ref->has_min, ref->min_val,
                             ref->exclusive_min, ref->has_max, ref->max_val,
                             ref->exclusive_max);

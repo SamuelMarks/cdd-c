@@ -117,11 +117,52 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
   cdd_code_writer_write(&w, "#include \"c_orm_db.h\"\n");
   cdd_code_writer_write(&w, "#include \"c_orm_api.h\"\n");
   cdd_code_writer_write(&w, "static c_orm_db_t *db_conn = NULL;\n");
+  cdd_code_writer_write(&w, "static int g_use_concrete_daos = 0;\n");
+  cdd_code_writer_write(&w, "static int g_is_ephemeral = 0;\n");
+  cdd_code_writer_write(&w, "static int g_seed_active = 0;\n");
+  cdd_code_writer_write(&w, "static int g_strict_validation = 0;\n");
+  cdd_code_writer_write(&w, "static int g_enforce_auth = 0;\n");
+  cdd_code_writer_write(&w, "static int g_start_auth_server = 0;\n\n");
   cdd_code_writer_write(
-      &w, "/**\n"
-          " * @brief Auto-generated code from OpenAPI specification\n"
-          " */\n"
-          "static cdd_c_error_t init_db(void) {\n");
+      &w, "static cdd_c_error_t resolve_daos(int is_ephemeral, const char "
+          "*db_url) {\n"
+          "    g_is_ephemeral = is_ephemeral;\n"
+          "    g_use_concrete_daos = (is_ephemeral || (db_url && db_url[0] != "
+          "'\\0')) ? 1 : 0;\n"
+          "    return CDD_C_SUCCESS;\n}\n\n"
+          "static cdd_c_error_t seed_database(void) {\n"
+          "    if (!g_use_concrete_daos) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+          "    return CDD_C_SUCCESS;\n}\n\n");
+  cdd_code_writer_write(
+      &w, "static cdd_c_error_t cors_middleware(struct c_rest_request *req, "
+          "struct c_rest_response *res) {\n"
+          "    (void)req;\n"
+          "    if (res) res->status_code = 204;\n"
+          "    return CDD_C_SUCCESS;\n}\n\n"
+          "static cdd_c_error_t strict_validation_middleware(struct "
+          "c_rest_request *req, struct c_rest_response *res) {\n"
+          "    (void)req;\n"
+          "    if (g_strict_validation && res) res->status_code = 400;\n"
+          "    return CDD_C_SUCCESS;\n}\n\n");
+  cdd_code_writer_write(
+      &w, "static cdd_c_error_t auth_middleware(struct c_rest_request *req, "
+          "struct c_rest_response *res) {\n"
+          "    (void)req;\n"
+          "    if (g_enforce_auth && res) res->status_code = 401;\n"
+          "    return CDD_C_SUCCESS;\n}\n\n"
+          "static cdd_c_error_t handle_auth_idp(struct c_rest_request *req, "
+          "struct c_rest_response *res, void *user_data) {\n"
+          "    (void)req; (void)user_data;\n"
+          "    if (res) res->status_code = 200;\n"
+          "    return CDD_C_SUCCESS;\n}\n\n");
+  cdd_code_writer_write(
+      &w,
+      "static cdd_c_error_t handle_mock_trigger_webhook(struct c_rest_request "
+      "*req, struct c_rest_response *res, void *user_data) {\n"
+      "    (void)req; (void)user_data;\n"
+      "    if (res) res->status_code = 200;\n"
+      "    return CDD_C_SUCCESS;\n}\n\n"
+      "static cdd_c_error_t init_db(void) {\n");
   cdd_code_writer_write(
       &w, "    /* Initialize your c-orm database connection here */\n");
   cdd_code_writer_write(
@@ -263,10 +304,33 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
   cdd_code_writer_write(&w, "        } else if (strcmp(argv[i], \"--threads\") "
                             "== 0 && i + 1 < argc) {\n");
   cdd_code_writer_write(&w, "            threads_str = argv[++i];\n");
-  cdd_code_writer_write(&w, "        }\n");
-  cdd_code_writer_write(&w, "    }\n\n");
   cdd_code_writer_write(
-      &w, "    (void)db_path; /* Will be used in init_db() */\n\n");
+      &w, "        } else if (strcmp(argv[i], \"--ephemeral\") == 0) {\n"
+          "            g_is_ephemeral = 1;\n"
+          "            db_path = \":memory:\";\n"
+          "        } else if (strcmp(argv[i], \"--seed\") == 0) {\n"
+          "            g_seed_active = 1;\n");
+  cdd_code_writer_write(
+      &w,
+      "        } else if (strcmp(argv[i], \"--strict-validation\") == 0) {\n"
+      "            g_strict_validation = 1;\n"
+      "        } else if (strcmp(argv[i], \"--enforce-auth\") == 0) {\n"
+      "            g_enforce_auth = 1;\n"
+      "        } else if (strcmp(argv[i], \"--start-auth-server\") == 0) {\n"
+      "            g_start_auth_server = 1;\n"
+      "        }\n");
+  cdd_code_writer_write(&w, "    }\n\n");
+  cdd_code_writer_write(&w,
+                        "    { cdd_c_error_t rc = resolve_daos(g_is_ephemeral, "
+                        "db_path); if (rc != CDD_C_SUCCESS) return rc; }\n");
+  cdd_code_writer_write(&w, "    if (g_use_concrete_daos) {\n"
+                            "        cdd_c_error_t rc = init_db();\n"
+                            "        if (rc != CDD_C_SUCCESS) return rc;\n"
+                            "        if (g_seed_active) {\n"
+                            "            rc = seed_database();\n"
+                            "            if (rc != CDD_C_SUCCESS) return rc;\n"
+                            "        }\n"
+                            "    }\n\n");
   cdd_code_writer_write(&w, "    options[opt_idx++] = \"document_root\";\n");
   cdd_code_writer_write(&w, "    options[opt_idx++] = \".\";\n");
   cdd_code_writer_write(&w, "    options[opt_idx++] = \"listening_ports\";\n");

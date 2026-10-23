@@ -146,6 +146,15 @@ TEST test_server_gen_basic(void) {
     buf[n] = '\0';
     ASSERT(strstr(buf, "handle_mcp_sse") != NULL);
     ASSERT(strstr(buf, "handle_mcp_message") != NULL);
+    ASSERT(strstr(buf, "resolve_daos") != NULL);
+    ASSERT(strstr(buf, "seed_database") != NULL);
+    ASSERT(strstr(buf, "cors_middleware") != NULL);
+    ASSERT(strstr(buf, "strict_validation_middleware") != NULL);
+    ASSERT(strstr(buf, "auth_middleware") != NULL);
+    ASSERT(strstr(buf, "handle_auth_idp") != NULL);
+    ASSERT(strstr(buf, "handle_mock_trigger_webhook") != NULL);
+    ASSERT(strstr(buf, "--ephemeral") != NULL);
+    ASSERT(strstr(buf, "--seed") != NULL);
     if (f)
       fclose(f);
   }

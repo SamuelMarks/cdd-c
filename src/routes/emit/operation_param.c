@@ -124,6 +124,10 @@ cdd_c_error_t free_param_fields(struct OpenAPI_Parameter *p) {
     C_CDD_FREE(p->items_type);
     p->items_type = NULL;
   }
+  if (p->collection_format) {
+    C_CDD_FREE(p->collection_format);
+    p->collection_format = NULL;
+  }
   if (p->content_type) {
     C_CDD_FREE(p->content_type);
     p->content_type = NULL;

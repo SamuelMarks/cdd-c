@@ -161,6 +161,10 @@ void free_schema_ref_content(struct OpenAPI_SchemaRef *ref) {
     free_any_value(&ref->items_default_value);
   if (ref->items_extra_json)
     C_CDD_FREE(ref->items_extra_json);
+  if (ref->collection_format)
+    C_CDD_FREE(ref->collection_format);
+  if (ref->items_collection_format)
+    C_CDD_FREE(ref->items_collection_format);
   if (ref->multipart_fields) {
     size_t i;
     for (i = 0; i < ref->n_multipart_fields; ++i) {
@@ -299,6 +303,8 @@ void free_parameter(struct OpenAPI_Parameter *param) {
     C_CDD_FREE(param->extensions_json);
   if (param->items_type)
     C_CDD_FREE(param->items_type);
+  if (param->collection_format)
+    C_CDD_FREE(param->collection_format);
   if (param->ref)
     C_CDD_FREE(param->ref);
   if (param->example_set)
@@ -347,6 +353,8 @@ void free_header(struct OpenAPI_Header *hdr) {
     C_CDD_FREE(hdr->type);
   if (hdr->items_type)
     C_CDD_FREE(hdr->items_type);
+  if (hdr->collection_format)
+    C_CDD_FREE(hdr->collection_format);
   if (hdr->example_set)
     free_any_value(&hdr->example);
   if (hdr->examples) {

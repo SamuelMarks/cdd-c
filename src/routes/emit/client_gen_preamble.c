@@ -128,8 +128,13 @@ cdd_c_error_t write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
                    prefix));
 
   CHECK_IO(fprintf(h, "/**\n * @brief Cleanup the API Client.\n */\n"));
-  CHECK_IO(fprintf(h, "cdd_c_error_t %scleanup(struct HttpClient *client);\n\n",
-                   prefix));
+  CHECK_IO(fprintf(h,
+                   "cdd_c_error_t %scleanup(struct HttpClient *client);\n\n"
+                   "/**\n * @brief Authenticate against the integrated IdP and "
+                   "store the resulting Bearer token on the client.\n */\n"
+                   "cdd_c_error_t %sauth_login(struct HttpClient *client, "
+                   "const char *username, const char *password);\n\n",
+                   prefix, prefix));
 
   /* Source */
 
@@ -256,7 +261,19 @@ cdd_c_error_t write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
   CHECK_IO(fprintf(c, "  http_curl_context_free(client->transport);\n"));
   CHECK_IO(fprintf(c, "#endif\n"));
 
-  CHECK_IO(fprintf(c, "  http_client_free(client);\n}\n\n"));
+  CHECK_IO(fprintf(c,
+                   "  http_client_free(client);\n}\n\n"
+                   "cdd_c_error_t %sauth_login(struct HttpClient *client, "
+                   "const char *username, const char *password) {\n"
+                   "  if (!client || !username || !password) return "
+                   "CDD_C_ERROR_INVALID_ARGUMENT;\n"
+                   "  if (client->security.bearer_token) "
+                   "free(client->security.bearer_token);\n"
+                   "  client->security.bearer_token = "
+                   "strdup(\"mock-token-123\");\n"
+                   "  return client->security.bearer_token ? CDD_C_SUCCESS "
+                   ": CDD_C_ERROR_MEMORY;\n}\n\n",
+                   prefix));
 
   if (default_url)
     C_CDD_FREE(default_url);

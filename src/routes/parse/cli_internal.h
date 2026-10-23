@@ -77,6 +77,16 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_server_routes(
 extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_gui_views(
     const struct TokenList *tokens, struct OpenAPI_Spec *spec);
 
+/**
+ * @brief Test helper for c2openapi_scan_mcp_tools.
+ *
+ * @param[in] tokens Token list to scan for MCP tool registrations.
+ * @param[in,out] spec Target OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_mcp_tools(
+    const struct TokenList *tokens, struct OpenAPI_Spec *spec);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

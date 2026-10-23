@@ -48,6 +48,7 @@ parse_parameter_object_inner(const JSON_Object *p_obj,
   int parsed_schema_set;
   const char *type;
   const char *style_str;
+  const char *collection_format;
   int explode_present;
   int explode_val;
   cdd_c_error_t rc;
@@ -129,6 +130,7 @@ parse_parameter_object_inner(const JSON_Object *p_obj,
   type = NULL;
   parsed_schema_set = 0;
   style_str = json_object_get_string(p_obj, "style");
+  collection_format = json_object_get_string(p_obj, "collectionFormat");
   explode_present = json_object_has_value(p_obj, "explode");
   explode_val = json_object_get_boolean(p_obj, "explode");
 
@@ -275,12 +277,36 @@ parse_parameter_object_inner(const JSON_Object *p_obj,
     }
   }
 
+  if (!collection_format && out_param->schema.collection_format)
+    collection_format = out_param->schema.collection_format;
+  if (collection_format) {
+    c_cdd_strdup(collection_format, &out_param->collection_format);
+    if (!out_param->collection_format) {
+      if (parsed_schema_set)
+        free_schema_ref_content(&parsed_schema);
+      return CDD_C_ERROR_MEMORY;
+    }
+  }
+
   if (style_str) {
     parse_param_style(style_str, &out_param->style);
     if (out_param->style == OA_STYLE_UNKNOWN) {
       if (parsed_schema_set)
         free_schema_ref_content(&parsed_schema);
       return CDD_C_ERROR_INVALID_ARGUMENT;
+    }
+  } else if (out_param->collection_format) {
+    if (out_param->in == OA_PARAM_IN_QUERY) {
+      if (strcmp(out_param->collection_format, "ssv") == 0)
+        out_param->style = OA_STYLE_SPACE_DELIMITED;
+      else if (strcmp(out_param->collection_format, "pipes") == 0)
+        out_param->style = OA_STYLE_PIPE_DELIMITED;
+      else
+        out_param->style = OA_STYLE_FORM;
+    } else if (out_param->in == OA_PARAM_IN_COOKIE) {
+      out_param->style = OA_STYLE_FORM;
+    } else {
+      out_param->style = OA_STYLE_SIMPLE;
     }
   } else {
     if (out_param->in == OA_PARAM_IN_QUERY)
@@ -296,6 +322,10 @@ parse_parameter_object_inner(const JSON_Object *p_obj,
   if (explode_present) {
     out_param->explode_set = 1;
     out_param->explode = explode_val;
+  } else if (out_param->collection_format) {
+    out_param->explode_set = 1;
+    out_param->explode =
+        (strcmp(out_param->collection_format, "multi") == 0) ? 1 : 0;
   } else {
     if (out_param->style == OA_STYLE_FORM)
       out_param->explode = 1;

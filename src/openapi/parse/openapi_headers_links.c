@@ -18,6 +18,7 @@ C_CDD_EXPORT cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
   const char *ref;
   const char *desc;
   const char *style_str;
+  const char *collection_format;
   int required_present;
   int required_val;
   int deprecated_present;
@@ -86,6 +87,12 @@ C_CDD_EXPORT cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
   }
 
   style_str = json_object_get_string(hdr_obj, "style");
+  collection_format = json_object_get_string(hdr_obj, "collectionFormat");
+  if (collection_format) {
+    c_cdd_strdup(collection_format, &out_hdr->collection_format);
+    if (!out_hdr->collection_format)
+      return CDD_C_ERROR_MEMORY;
+  }
   if (style_str) {
     enum OpenAPI_Style parsed_style = OA_STYLE_UNKNOWN;
     parse_param_style(style_str, &parsed_style);
@@ -102,6 +109,9 @@ C_CDD_EXPORT cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
   if (explode_present) {
     out_hdr->explode_set = 1;
     out_hdr->explode = explode_val;
+  } else if (out_hdr->collection_format) {
+    out_hdr->explode_set = 1;
+    out_hdr->explode = 0;
   }
 
   schema_val = json_object_get_value(hdr_obj, "schema");

@@ -102,6 +102,7 @@ struct DocParam {
                          schema */
   int deprecated;     /**< 1 if deprecated */
   int deprecated_set; /**< 1 if deprecated explicitly set */
+  char *collection_format; /**< Optional Swagger 2.0 collectionFormat */
 
   /* Optional OpenAPI serialization flags */
   enum DocParamStyle style;  /**< Parameter style override */
@@ -139,8 +140,9 @@ struct DocResponseHeader {
       *content_type; /**< Optional content media type (Header Object content) */
   char *description; /**< Header description */
   char *example;     /**< Optional example (raw JSON or string) */
-  int required;      /**< 1 if required */
-  int required_set;  /**< 1 if required explicitly set */
+  char *collection_format; /**< Optional Swagger 2.0 collectionFormat */
+  int required;            /**< 1 if required */
+  int required_set;        /**< 1 if required explicitly set */
 };
 
 /**

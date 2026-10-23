@@ -511,6 +511,67 @@ static cdd_c_error_t c2openapi_scan_gui_views(const struct TokenList *tokens,
 }
 
 /**
+ * @brief Scans a token list for MCP `tool_obj` registrations and adds them to
+ * the OpenAPI specification.
+ *
+ * @param[in] tokens Token list to scan.
+ * @param[in,out] spec Target OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
+static cdd_c_error_t c2openapi_scan_mcp_tools(const struct TokenList *tokens,
+                                              struct OpenAPI_Spec *spec) {
+  size_t i;
+  cdd_c_error_t rc;
+
+  if (!tokens || !spec) {
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+
+  for (i = 0; i < tokens->size; ++i) {
+    if (tokens->tokens[i].kind == TOKEN_IDENTIFIER) {
+      int is_tool_obj = 0;
+      token_matches_string(&tokens->tokens[i], "tool_obj", &is_tool_obj);
+      if (is_tool_obj && i + 4 < tokens->size &&
+          tokens->tokens[i + 1].kind == TOKEN_COMMA &&
+          tokens->tokens[i + 2].kind == TOKEN_STRING_LITERAL &&
+          tokens->tokens[i + 3].kind == TOKEN_COMMA &&
+          tokens->tokens[i + 4].kind == TOKEN_STRING_LITERAL) {
+        const struct Token *key_tok = &tokens->tokens[i + 2];
+        const struct Token *val_tok = &tokens->tokens[i + 4];
+        if (key_tok->length == 6 &&
+            strncmp((const char *)key_tok->start, "\"name\"", 6) == 0 &&
+            val_tok->length > 2 && val_tok->length - 2 < 128) {
+          char op_id[128];
+          char route_str[160];
+          struct OpenAPI_Operation op;
+          size_t name_len = val_tok->length - 2;
+          memcpy(op_id, val_tok->start + 1, name_len);
+          op_id[name_len] = '\0';
+          memset(&op, 0, sizeof(op));
+          rc = c_cdd_strdup(op_id, &op.operation_id);
+          if (rc != CDD_C_SUCCESS) {
+            return rc;
+          }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+          sprintf_s(route_str, sizeof(route_str), "POST /mcp/tools/%s", op_id);
+#else
+          CDD_SNPRINTF(route_str, sizeof(route_str), "POST /mcp/tools/%s",
+                       op_id);
+#endif
+          rc = openapi_aggregator_add_operation(spec, route_str, &op);
+          C_CDD_FREE(op.operation_id);
+          if (rc != CDD_C_SUCCESS) {
+            return rc;
+          }
+        }
+      }
+    }
+  }
+
+  return CDD_C_SUCCESS;
+}
+
+/**
  * @brief Parses a single C source/header file and extracts schemas and route
  * operations.
  *
@@ -741,6 +802,18 @@ cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
     C_CDD_FREE(content);
     C_CDD_FREE(comment_used);
     return rc;
+  }
+
+  /* Scan for MCP tool definitions if no routes were registered yet */
+  if (spec->n_paths == 0) {
+    rc = c2openapi_scan_mcp_tools(tokens, spec);
+    if (rc != CDD_C_SUCCESS) {
+      free_cst_node_list(&cst);
+      free_token_list(tokens);
+      C_CDD_FREE(content);
+      C_CDD_FREE(comment_used);
+      return rc;
+    }
   }
 
   free_cst_node_list(&cst);
@@ -1236,5 +1309,17 @@ C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_server_routes(
 C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_gui_views(
     const struct TokenList *tokens, struct OpenAPI_Spec *spec) {
   return c2openapi_scan_gui_views(tokens, spec);
+}
+
+/**
+ * @brief Helper function cdd_test_c2openapi_scan_mcp_tools.
+ *
+ * @param[in] tokens Token list to scan for MCP tool registrations.
+ * @param[in,out] spec Target OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_mcp_tools(
+    const struct TokenList *tokens, struct OpenAPI_Spec *spec) {
+  return c2openapi_scan_mcp_tools(tokens, spec);
 }
 #endif /* CDD_BUILD_TESTS */

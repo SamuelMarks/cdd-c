@@ -12,216 +12,216 @@ This table tracks the completeness of language integration with Swagger 2.0 for 
 
 | Swagger 2.0 Object / Feature | Presence `[To, From]` | Absence `[To, From]` | Skipped `[To, From]` | Notes / Implementation Strategy |
 | :--- | :---: | :---: | :---: | :--- |
-| **Swagger Object (Root)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Swagger Object (`swagger`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Swagger Object (`info`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Swagger Object (`host`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Swagger Object (`basePath`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Swagger Object (`schemes`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Swagger Object (`consumes`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Swagger Object (`produces`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Swagger Object (`paths`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Swagger Object (`definitions`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Swagger Object (`parameters`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Swagger Object (`responses`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Swagger Object (`securityDefinitions`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Swagger Object (`security`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Swagger Object (`tags`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Swagger Object (`externalDocs`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Swagger Object (`^x-`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Info Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Info Object (`title`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Info Object (`description`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Info Object (`termsOfService`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Info Object (`contact`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Info Object (`license`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Info Object (`version`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Info Object (`^x-`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Contact Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Contact Object (`name`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Contact Object (`url`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Contact Object (`email`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Contact Object (`^x-`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **License Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **License Object (`name`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **License Object (`url`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **License Object (`^x-`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Paths Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Paths Object (`/{path}`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Paths Object (`^x-`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Path Item Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Path Item Object (`$ref`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Path Item Object (`get`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Path Item Object (`put`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Path Item Object (`post`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Path Item Object (`delete`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Path Item Object (`options`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Path Item Object (`head`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Path Item Object (`patch`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Path Item Object (`parameters`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Path Item Object (`^x-`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Operation Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Operation Object (`tags`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Operation Object (`summary`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Operation Object (`description`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Operation Object (`externalDocs`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Operation Object (`operationId`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Operation Object (`consumes`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Operation Object (`produces`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Operation Object (`parameters`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Operation Object (`responses`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Operation Object (`schemes`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Operation Object (`deprecated`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Operation Object (`security`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Operation Object (`^x-`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **External Documentation Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **External Documentation Object (`description`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **External Documentation Object (`url`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **External Documentation Object (`^x-`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`name`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`in`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`description`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`required`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`schema`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`type`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`format`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`allowEmptyValue`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`items`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`collectionFormat`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`default`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`maximum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`exclusiveMaximum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`minimum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`exclusiveMinimum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`maxLength`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`minLength`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`pattern`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`maxItems`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`minItems`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`uniqueItems`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`enum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`multipleOf`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameter Object (`^x-`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Items Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Items Object (`type`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Items Object (`format`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Items Object (`items`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Items Object (`collectionFormat`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Items Object (`default`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Items Object (`maximum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Items Object (`exclusiveMaximum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Items Object (`minimum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Items Object (`exclusiveMinimum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Items Object (`maxLength`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Items Object (`minLength`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Items Object (`pattern`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Items Object (`maxItems`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Items Object (`minItems`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Items Object (`uniqueItems`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Items Object (`enum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Items Object (`multipleOf`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Items Object (`^x-`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Responses Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Responses Object (`default`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Responses Object (`{HTTP Status Code}`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Responses Object (`^x-`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Response Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Response Object (`description`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Response Object (`schema`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Response Object (`headers`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Response Object (`examples`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Response Object (`^x-`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Headers Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Headers Object (`{name}`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Example Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Example Object (`{mime type}`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object (`description`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object (`type`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object (`format`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object (`items`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object (`collectionFormat`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object (`default`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object (`maximum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object (`exclusiveMaximum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object (`minimum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object (`exclusiveMinimum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object (`maxLength`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object (`minLength`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object (`pattern`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object (`maxItems`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object (`minItems`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object (`uniqueItems`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object (`enum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object (`multipleOf`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Header Object (`^x-`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Tag Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Tag Object (`name`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Tag Object (`description`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Tag Object (`externalDocs`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Tag Object (`^x-`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Reference Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Reference Object (`$ref`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`$ref`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`format`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`title`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`description`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`default`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`multipleOf`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`maximum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`exclusiveMaximum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`minimum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`exclusiveMinimum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`maxLength`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`minLength`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`pattern`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`maxItems`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`minItems`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`uniqueItems`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`maxProperties`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`minProperties`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`required`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`enum`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`type`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`items`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`allOf`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`properties`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`additionalProperties`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`discriminator`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`readOnly`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`xml`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`externalDocs`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`example`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Schema Object (`^x-`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **XML Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **XML Object (`name`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **XML Object (`namespace`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **XML Object (`prefix`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **XML Object (`attribute`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **XML Object (`wrapped`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **XML Object (`^x-`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Definitions Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Definitions Object (`{name}`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameters Definitions Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Parameters Definitions Object (`{name}`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Responses Definitions Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Responses Definitions Object (`{name}`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Security Definitions Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Security Definitions Object (`{name}`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Security Scheme Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Security Scheme Object (`type`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Security Scheme Object (`description`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Security Scheme Object (`name`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Security Scheme Object (`in`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Security Scheme Object (`flow`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Security Scheme Object (`authorizationUrl`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Security Scheme Object (`tokenUrl`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Security Scheme Object (`scopes`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Security Scheme Object (`^x-`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Scopes Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Scopes Object (`{name}`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Scopes Object (`^x-`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Security Requirement Object** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
-| **Security Requirement Object (`{name}`)** | `[x]` , `[x]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | TODO |
+| **Swagger Object (Root)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Swagger Object (`swagger`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Swagger Object (`info`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Swagger Object (`host`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Swagger Object (`basePath`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Swagger Object (`schemes`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Swagger Object (`consumes`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Swagger Object (`produces`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Swagger Object (`paths`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Swagger Object (`definitions`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Swagger Object (`parameters`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Swagger Object (`responses`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Swagger Object (`securityDefinitions`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Swagger Object (`security`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Swagger Object (`tags`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Swagger Object (`externalDocs`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Swagger Object (`^x-`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Info Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Info Object (`title`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Info Object (`description`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Info Object (`termsOfService`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Info Object (`contact`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Info Object (`license`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Info Object (`version`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Info Object (`^x-`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Contact Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Contact Object (`name`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Contact Object (`url`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Contact Object (`email`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Contact Object (`^x-`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **License Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **License Object (`name`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **License Object (`url`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **License Object (`^x-`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Paths Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Paths Object (`/{path}`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Paths Object (`^x-`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Path Item Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Path Item Object (`$ref`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Path Item Object (`get`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Path Item Object (`put`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Path Item Object (`post`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Path Item Object (`delete`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Path Item Object (`options`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Path Item Object (`head`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Path Item Object (`patch`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Path Item Object (`parameters`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Path Item Object (`^x-`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Operation Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Operation Object (`tags`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Operation Object (`summary`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Operation Object (`description`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Operation Object (`externalDocs`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Operation Object (`operationId`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Operation Object (`consumes`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Operation Object (`produces`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Operation Object (`parameters`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Operation Object (`responses`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Operation Object (`schemes`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Dropped / Not converted to OAS3 |
+| **Operation Object (`deprecated`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Operation Object (`security`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Operation Object (`^x-`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **External Documentation Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **External Documentation Object (`description`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **External Documentation Object (`url`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **External Documentation Object (`^x-`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`name`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`in`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`description`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`required`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`schema`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`type`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`format`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`allowEmptyValue`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`items`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`collectionFormat`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Dropped / Not converted to OAS3 |
+| **Parameter Object (`default`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`maximum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`exclusiveMaximum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`minimum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`exclusiveMinimum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`maxLength`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`minLength`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`pattern`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`maxItems`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`minItems`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`uniqueItems`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`enum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`multipleOf`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameter Object (`^x-`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Items Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Items Object (`type`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Items Object (`format`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Items Object (`items`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Items Object (`collectionFormat`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Dropped / Not converted to OAS3 |
+| **Items Object (`default`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Items Object (`maximum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Items Object (`exclusiveMaximum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Items Object (`minimum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Items Object (`exclusiveMinimum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Items Object (`maxLength`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Items Object (`minLength`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Items Object (`pattern`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Items Object (`maxItems`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Items Object (`minItems`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Items Object (`uniqueItems`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Items Object (`enum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Items Object (`multipleOf`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Items Object (`^x-`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Responses Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Responses Object (`default`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Responses Object (`{HTTP Status Code}`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Responses Object (`^x-`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Response Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Response Object (`description`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Response Object (`schema`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Response Object (`headers`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Response Object (`examples`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Response Object (`^x-`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Headers Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Headers Object (`{name}`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Example Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Example Object (`{mime type}`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Header Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Header Object (`description`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Header Object (`type`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Header Object (`format`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Header Object (`items`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Header Object (`collectionFormat`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Dropped / Not converted to OAS3 |
+| **Header Object (`default`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Header Object (`maximum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Header Object (`exclusiveMaximum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Header Object (`minimum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Header Object (`exclusiveMinimum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Header Object (`maxLength`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Header Object (`minLength`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Header Object (`pattern`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Header Object (`maxItems`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Header Object (`minItems`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Header Object (`uniqueItems`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Header Object (`enum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Header Object (`multipleOf`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Header Object (`^x-`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Tag Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Tag Object (`name`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Tag Object (`description`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Tag Object (`externalDocs`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Tag Object (`^x-`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Reference Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Reference Object (`$ref`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`$ref`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`format`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`title`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`description`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`default`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`multipleOf`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`maximum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`exclusiveMaximum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`minimum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`exclusiveMinimum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`maxLength`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`minLength`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`pattern`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`maxItems`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`minItems`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`uniqueItems`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`maxProperties`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`minProperties`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`required`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`enum`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`type`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`items`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`allOf`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`properties`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`additionalProperties`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`discriminator`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`readOnly`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`xml`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`externalDocs`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`example`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Schema Object (`^x-`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **XML Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **XML Object (`name`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **XML Object (`namespace`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **XML Object (`prefix`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **XML Object (`attribute`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **XML Object (`wrapped`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **XML Object (`^x-`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Definitions Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Definitions Object (`{name}`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameters Definitions Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Parameters Definitions Object (`{name}`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Responses Definitions Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Responses Definitions Object (`{name}`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Security Definitions Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Security Definitions Object (`{name}`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Security Scheme Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Security Scheme Object (`type`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Security Scheme Object (`description`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Security Scheme Object (`name`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Security Scheme Object (`in`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Security Scheme Object (`flow`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Security Scheme Object (`authorizationUrl`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Security Scheme Object (`tokenUrl`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Security Scheme Object (`scopes`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Security Scheme Object (`^x-`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Scopes Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Scopes Object (`{name}`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Scopes Object (`^x-`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Security Requirement Object** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |
+| **Security Requirement Object (`{name}`)** | `[x]` , `[x]` | `[x]` , `[x]` | `[x]` , `[x]` | Upgraded to OAS 3.2.0 via openapi_load_from_json / Swagger 2.0 to OAS 3.2.0 upgrader in src/openapi/parse/openapi.c |

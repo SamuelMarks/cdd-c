@@ -335,6 +335,16 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     if (!dst->items_extra_json)
       return CDD_C_ERROR_MEMORY;
   }
+  if (src->collection_format) {
+    c_cdd_strdup(src->collection_format, &dst->collection_format);
+    if (!dst->collection_format)
+      return CDD_C_ERROR_MEMORY;
+  }
+  if (src->items_collection_format) {
+    c_cdd_strdup(src->items_collection_format, &dst->items_collection_format);
+    if (!dst->items_collection_format)
+      return CDD_C_ERROR_MEMORY;
+  }
   dst->items_schema_is_boolean = src->items_schema_is_boolean;
   dst->items_schema_boolean_value = src->items_schema_boolean_value;
   dst->has_multiple_of = src->has_multiple_of;

@@ -601,9 +601,21 @@ In addition to the unified `from_openapi` and `to_openapi` subcommands, `cdd-c` 
 - **`cdd-c schema2code [-gGuardPrefix] <schema.json> <output_file_prefix>`**: Compile a standalone JSON Schema into C89 structs, enums, array helpers, and Parson JSON serialization/deserialization codecs.
 - **`cdd-c generate_build_system <cmake> <out_dir> <project_name> [test_file]`**: Generate cross-platform `CMakeLists.txt` build scaffolding with automatic platform networking detection (`ws2_32`, `wininet`, `winhttp`, `CFNetwork`, `libcurl`).
 
-### 5. `c-orm` Database Schema & Migration Integration
+### 5. `c-orm` Database Schema, Migration & Multi-Tier Mock Server Integration
 
 `cdd-c` integrates with [`c-orm`](https://github.com/offscale/c-orm) and [`c-rest-framework`](https://github.com/offscale/c-rest-framework) to bridge OpenAPI 3.2.0 schemas, SQL DDL (`CREATE TABLE`, foreign keys, indexes), and C89 ORM entity structs across **PostgreSQL**, **SQLite**, and **MySQL/MariaDB** (see [USAGE.md](USAGE.md) and [CAPABILITIES.md](CAPABILITIES.md)).
+
+Generated servers support four orthogonal execution modes and advanced mock capabilities out of the box:
+
+- **`start` (No DB configured — Stub Mode)**: Server runs using traditional Stub DAO scaffolds, returning `501 Not Implemented` (`NotImplementedError`) or static defaults without requiring a database connection.
+- **`start` (With `DATABASE_URL` / `--db-path` — Production Mode)**: Server resolves Concrete DAOs and executes real `c-orm` SQL queries and session authentication against the configured database.
+- **`start --ephemeral` (Sandbox Mode)**: Overrides `DATABASE_URL` with a fresh, isolated throwaway `:memory:` SQLite database and runs schema migrations automatically.
+- **`start --ephemeral --seed` (Full Mock Mode)**: Initializes an ephemeral database and populates a topologically sorted relational fake data graph (`seed_database()`) maintaining foreign-key referential integrity.
+- **Advanced Mock Flags & Administrative Endpoints**:
+  - `--strict-validation`: Enables strict schema constraint validation middleware returning detailed `400 Bad Request` error payloads.
+  - `--enforce-auth`: Enforces hybrid authentication middleware (`Bearer mock-token-123` in mock/ephemeral mode or Concrete DAO verification in production mode, returning `401 Unauthorized` / `403 Forbidden` when invalid).
+  - `--start-auth-server`: Mounts integrated Identity Provider (IdP) endpoints (`POST /auth/register`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`) backed by the same `User` DAO, paired with the generated SDK `<prefix>auth_login` helper.
+  - `POST /_mock/trigger-webhook/{webhook_name}`: Administrative trigger endpoint that dispatches outgoing webhook/callback payloads to a registered target URL.
 
 ### 6. Pluggable Cross-Platform HTTP & TLS Backends (`c-abstract-http`)
 

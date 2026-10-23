@@ -406,8 +406,10 @@ struct OpenAPI_SchemaRef {
   int items_const_value_set;              /**< 1 if items const present */
   struct OpenAPI_Any items_default_value; /**< Items default value */
   int items_default_value_set;            /**< 1 if items default present */
-  char *items_extra_json;      /**< Serialized JSON for array items keywords */
-  int items_schema_is_boolean; /**< 1 if items schema is boolean */
+  char *items_extra_json;  /**< Serialized JSON for array items keywords */
+  char *collection_format; /**< Swagger 2.0 collectionFormat */
+  char *items_collection_format;  /**< Swagger 2.0 items collectionFormat */
+  int items_schema_is_boolean;    /**< 1 if items schema is boolean */
   int items_schema_boolean_value; /**< Items schema boolean value */
 
   /* OpenAPI 3.2.0 Advanced Constraints & Composition */
@@ -507,6 +509,7 @@ struct OpenAPI_Parameter {
   char *items_type; /**< If array, the type of items (e.g. "integer") */
 
   /* Serialization settings */
+  char *collection_format;   /**< Swagger 2.0 collectionFormat */
   enum OpenAPI_Style style;  /**< Serialization style */
   int explode;               /**< 1 if explode=true */
   int explode_set;           /**< 1 if explode explicitly set */
@@ -542,6 +545,7 @@ struct OpenAPI_Header {
   char *type;                      /**< Schema type */
   int is_array;                    /**< 1 if array */
   char *items_type;                /**< Array item type */
+  char *collection_format;         /**< Swagger 2.0 collectionFormat */
   enum OpenAPI_Style
       style;       /**< Serialization style (header only allows simple) */
   int style_set;   /**< 1 if style explicitly set */

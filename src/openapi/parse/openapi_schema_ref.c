@@ -51,7 +51,8 @@ static const char *k_schema_skip_keys[] = {"$ref",
                                            "description",
                                            "deprecated",
                                            "readOnly",
-                                           "writeOnly"};
+                                           "writeOnly",
+                                           "collectionFormat"};
 
 /** @brief Keys skipped when collecting extra array items schema reference
  * fields */
@@ -83,7 +84,8 @@ static const char *k_items_skip_keys[] = {"$ref",
                                           "description",
                                           "deprecated",
                                           "readOnly",
-                                          "writeOnly"};
+                                          "writeOnly",
+                                          "collectionFormat"};
 
 /**
  * @brief Internal helper to parse an OpenAPI Schema or Reference object.
@@ -103,6 +105,8 @@ static cdd_c_error_t parse_schema_ref_inner(const JSON_Object *schema,
   const char *summary = json_object_get_string(schema, "summary");
   const char *desc = json_object_get_string(schema, "description");
   const char *format = json_object_get_string(schema, "format");
+  const char *collection_format =
+      json_object_get_string(schema, "collectionFormat");
   const char *content_media_type =
       json_object_get_string(schema, "contentMediaType");
   const char *content_encoding =
@@ -232,6 +236,8 @@ static cdd_c_error_t parse_schema_ref_inner(const JSON_Object *schema,
   out->items_default_value_set = 0;
   memset(&out->items_default_value, 0, sizeof(out->items_default_value));
   out->items_extra_json = NULL;
+  out->collection_format = NULL;
+  out->items_collection_format = NULL;
   out->items_schema_is_boolean = 0;
   out->items_schema_boolean_value = 0;
   out->multipart_fields = NULL;
@@ -349,6 +355,12 @@ static cdd_c_error_t parse_schema_ref_inner(const JSON_Object *schema,
   if (format) {
     c_cdd_strdup(format, &out->format);
     if (!out->format)
+      return CDD_C_ERROR_MEMORY;
+  }
+
+  if (collection_format) {
+    c_cdd_strdup(collection_format, &out->collection_format);
+    if (!out->collection_format)
       return CDD_C_ERROR_MEMORY;
   }
 
@@ -485,6 +497,8 @@ static cdd_c_error_t parse_schema_ref_inner(const JSON_Object *schema,
       const char *item_ref_val = item_ref ? item_ref : item_dynamic_ref;
       const int item_ref_is_dynamic = (!item_ref && item_dynamic_ref);
       const char *item_format = json_object_get_string(items, "format");
+      const char *item_collection_format =
+          json_object_get_string(items, "collectionFormat");
       const char *item_type = NULL;
       const JSON_Array *item_types_arr = NULL;
       const JSON_Array *item_enum = NULL;
@@ -536,6 +550,11 @@ static cdd_c_error_t parse_schema_ref_inner(const JSON_Object *schema,
       if (item_format) {
         c_cdd_strdup(item_format, &out->items_format);
         if (!out->items_format)
+          return CDD_C_ERROR_MEMORY;
+      }
+      if (item_collection_format) {
+        c_cdd_strdup(item_collection_format, &out->items_collection_format);
+        if (!out->items_collection_format)
           return CDD_C_ERROR_MEMORY;
       }
       if (item_content_media_type) {

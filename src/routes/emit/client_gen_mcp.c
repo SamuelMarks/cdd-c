@@ -392,8 +392,10 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
-                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+  if (fprintf(cfile,
+              "  ret = json_serialize_to_string(req_val);\n  "
+              "if (out) *out = ret; else if (ret) free(ret);\n  "
+              "json_value_free(req_val);\n  return CDD_C_SUCCESS;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "cdd_c_error_t %smcp_client_call_tool(void* params, "
@@ -419,8 +421,10 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
-                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+  if (fprintf(cfile,
+              "  ret = json_serialize_to_string(req_val);\n  "
+              "if (out) *out = ret; else if (ret) free(ret);\n  "
+              "json_value_free(req_val);\n  return CDD_C_SUCCESS;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "cdd_c_error_t %smcp_client_ping(void* params, "
@@ -444,8 +448,10 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
-                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+  if (fprintf(cfile,
+              "  ret = json_serialize_to_string(req_val);\n  "
+              "if (out) *out = ret; else if (ret) free(ret);\n  "
+              "json_value_free(req_val);\n  return CDD_C_SUCCESS;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "cdd_c_error_t %smcp_client_initialize(void* params, "
@@ -471,8 +477,10 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
-                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+  if (fprintf(cfile,
+              "  ret = json_serialize_to_string(req_val);\n  "
+              "if (out) *out = ret; else if (ret) free(ret);\n  "
+              "json_value_free(req_val);\n  return CDD_C_SUCCESS;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "cdd_c_error_t %smcp_client_list_resources(void* params, "
@@ -496,8 +504,10 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
-                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+  if (fprintf(cfile,
+              "  ret = json_serialize_to_string(req_val);\n  "
+              "if (out) *out = ret; else if (ret) free(ret);\n  "
+              "json_value_free(req_val);\n  return CDD_C_SUCCESS;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "cdd_c_error_t %smcp_client_read_resource(void* params, "
@@ -521,8 +531,10 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
-                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+  if (fprintf(cfile,
+              "  ret = json_serialize_to_string(req_val);\n  "
+              "if (out) *out = ret; else if (ret) free(ret);\n  "
+              "json_value_free(req_val);\n  return CDD_C_SUCCESS;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "cdd_c_error_t %smcp_client_list_prompts(void* params, "
@@ -546,8 +558,10 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
-                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+  if (fprintf(cfile,
+              "  ret = json_serialize_to_string(req_val);\n  "
+              "if (out) *out = ret; else if (ret) free(ret);\n  "
+              "json_value_free(req_val);\n  return CDD_C_SUCCESS;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "cdd_c_error_t %smcp_client_get_prompt(void* params, "
@@ -573,8 +587,10 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
-                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+  if (fprintf(cfile,
+              "  ret = json_serialize_to_string(req_val);\n  "
+              "if (out) *out = ret; else if (ret) free(ret);\n  "
+              "json_value_free(req_val);\n  return CDD_C_SUCCESS;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "cdd_c_error_t %smcp_client_complete(void* params, "
@@ -598,8 +614,10 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
-                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+  if (fprintf(cfile,
+              "  ret = json_serialize_to_string(req_val);\n  "
+              "if (out) *out = ret; else if (ret) free(ret);\n  "
+              "json_value_free(req_val);\n  return CDD_C_SUCCESS;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "cdd_c_error_t %smcp_client_subscribe(void* params, "
@@ -623,8 +641,10 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
-                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+  if (fprintf(cfile,
+              "  ret = json_serialize_to_string(req_val);\n  "
+              "if (out) *out = ret; else if (ret) free(ret);\n  "
+              "json_value_free(req_val);\n  return CDD_C_SUCCESS;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "cdd_c_error_t %smcp_client_unsubscribe(void* params, "
@@ -648,8 +668,10 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
-                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+  if (fprintf(cfile,
+              "  ret = json_serialize_to_string(req_val);\n  "
+              "if (out) *out = ret; else if (ret) free(ret);\n  "
+              "json_value_free(req_val);\n  return CDD_C_SUCCESS;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "cdd_c_error_t %smcp_client_set_level(void* params, "
@@ -673,8 +695,10 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
-                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+  if (fprintf(cfile,
+              "  ret = json_serialize_to_string(req_val);\n  "
+              "if (out) *out = ret; else if (ret) free(ret);\n  "
+              "json_value_free(req_val);\n  return CDD_C_SUCCESS;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "cdd_c_error_t %smcp_client_create_message(void* params, "
@@ -698,8 +722,10 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
-                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+  if (fprintf(cfile,
+              "  ret = json_serialize_to_string(req_val);\n  "
+              "if (out) *out = ret; else if (ret) free(ret);\n  "
+              "json_value_free(req_val);\n  return CDD_C_SUCCESS;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile, "#ifdef __cplusplus\n}\n#endif\n") < 0) {
     rc = CDD_C_SUCCESS;

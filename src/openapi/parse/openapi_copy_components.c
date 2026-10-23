@@ -72,6 +72,11 @@ cdd_c_error_t copy_parameter_fields(struct OpenAPI_Parameter *dst,
     if (!dst->items_type)
       return CDD_C_ERROR_MEMORY;
   }
+  if (src->collection_format) {
+    c_cdd_strdup(src->collection_format, &dst->collection_format);
+    if (!dst->collection_format)
+      return CDD_C_ERROR_MEMORY;
+  }
   if (src->example_set) {
     cdd_c_error_t rc = copy_any_value(&dst->example, &src->example);
     if (rc != CDD_C_SUCCESS)
@@ -148,6 +153,11 @@ cdd_c_error_t copy_header_fields(struct OpenAPI_Header *dst,
   if (src->items_type) {
     c_cdd_strdup(src->items_type, &dst->items_type);
     if (!dst->items_type)
+      return CDD_C_ERROR_MEMORY;
+  }
+  if (src->collection_format) {
+    c_cdd_strdup(src->collection_format, &dst->collection_format);
+    if (!dst->collection_format)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->example_set) {

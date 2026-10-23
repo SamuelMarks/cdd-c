@@ -99,6 +99,8 @@ void doc_metadata_free(struct DocMetadata *meta) {
         C_CDD_FREE(meta->params[i].content_type);
       if (meta->params[i].example)
         C_CDD_FREE(meta->params[i].example);
+      if (meta->params[i].collection_format)
+        C_CDD_FREE(meta->params[i].collection_format);
     }
     C_CDD_FREE(meta->params);
   }
@@ -129,6 +131,8 @@ void doc_metadata_free(struct DocMetadata *meta) {
       C_CDD_FREE(meta->response_headers[i].description);
       if (meta->response_headers[i].example)
         C_CDD_FREE(meta->response_headers[i].example);
+      if (meta->response_headers[i].collection_format)
+        C_CDD_FREE(meta->response_headers[i].collection_format);
     }
     C_CDD_FREE(meta->response_headers);
   }

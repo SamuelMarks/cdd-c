@@ -872,6 +872,14 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_server_routes(
 extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_gui_views(
     const struct TokenList *tokens, struct OpenAPI_Spec *spec);
 /**
+ * @brief Helper function cdd_test_c2openapi_scan_mcp_tools.
+ * @param[in] tokens Parameter tokens.
+ * @param[in,out] spec Parameter spec.
+ * @return Result status or value.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_mcp_tools(
+    const struct TokenList *tokens, struct OpenAPI_Spec *spec);
+/**
  * @brief Unit test test_c2openapi_infer_routes_and_views.
  * @return Greatest test result.
  */
@@ -1298,6 +1306,8 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_server_routes(
     const struct TokenList *tokens, struct OpenAPI_Spec *spec);
 extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_gui_views(
     const struct TokenList *tokens, struct OpenAPI_Spec *spec);
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_mcp_tools(
+    const struct TokenList *tokens, struct OpenAPI_Spec *spec);
 
 /**
  * @brief Comprehensive tests for c2openapi_infer_client_route, server_routes,
@@ -1487,6 +1497,203 @@ TEST test_cli_c2openapi_aggregator_errors(void) {
 
     openapi_spec_free(&spec);
     free_token_list(tokens);
+  }
+
+  /* 3. MCP tool scan and aggregator/OOM errors */
+  {
+    const char code[] =
+        "void f(void) {\n"
+        "  int other_id = 0;\n"
+        "  json_object_set_string(tool_obj,\"name\",\"mcpListPets\");\n"
+        "  tool_obj,\"other\",\"val\";\n"
+        "  tool_obj,\"abcd\",\"val\";\n"
+        "  tool_obj,\"name\",\"\";\n"
+        "  tool_obj,\"name\",\""
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\";\n"
+        "  tool_obj+1,\"name\",\"x\";\n"
+        "  tool_obj,123,\"x\";\n"
+        "  tool_obj,\"name\"+1,\"x\";\n"
+        "  tool_obj,\"name\",123;\n"
+        "  tool_obj;\n"
+        "}";
+    az_span span = az_span_create((uint8_t *)(size_t)code, strlen(code));
+    ASSERT_EQ(0, tokenize(span, &tokens));
+
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_test_c2openapi_scan_mcp_tools(NULL, &spec));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_test_c2openapi_scan_mcp_tools(tokens, NULL));
+
+    memset(&spec, 0, sizeof(spec));
+    rc = openapi_spec_init(&spec);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+
+    rc = cdd_test_c2openapi_scan_mcp_tools(tokens, &spec);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, spec.n_paths);
+
+    g_cdd_strdup_fail = 1;
+    rc = cdd_test_c2openapi_scan_mcp_tools(tokens, &spec);
+    g_cdd_strdup_fail = 0;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+
+    g_cdd_aggregator_fail_ops_realloc = 1;
+    rc = cdd_test_c2openapi_scan_mcp_tools(tokens, &spec);
+    g_cdd_aggregator_fail_ops_realloc = 0;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+
+    openapi_spec_free(&spec);
+    free_token_list(tokens);
+  }
+
+  /* 4. process_file with MCP tool only (and OOM branch) */
+  {
+    FILE *fp = fopen("test_c2openapi_mcp_only.c", "w");
+    if (fp) {
+      fputs("void f(void) { json_object_set_string(tool_obj,\"name\","
+            "\"mcpToolOp\"); }\n",
+            fp);
+      fclose(fp);
+    }
+    memset(&spec, 0, sizeof(spec));
+    rc = openapi_spec_init(&spec);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    rc = process_file("test_c2openapi_mcp_only.c", &spec);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, spec.n_paths);
+    openapi_spec_free(&spec);
+
+    memset(&spec, 0, sizeof(spec));
+    rc = openapi_spec_init(&spec);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    g_cdd_aggregator_fail_ops_realloc = 1;
+    rc = process_file("test_c2openapi_mcp_only.c", &spec);
+    g_cdd_aggregator_fail_ops_realloc = 0;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    openapi_spec_free(&spec);
+    remove("test_c2openapi_mcp_only.c");
+  }
+
+  /* 5. Swagger 2.0 collectionFormat in Parameter, Items, Header, and Docstrings
+   */
+  {
+    char sw2_json[2048];
+    const char *p1 =
+        "{\"swagger\":\"2.0\",\"info\":{\"title\":\"T\",\"version\":\"1.0\"},"
+        "\"paths\":{\"/items/{id}\":{\"get\":{\"operationId\":\"getItems\","
+        "\"parameters\":["
+        "{\"name\":\"id\",\"in\":\"path\",\"required\":true,\"type\":\"array\","
+        "\"collectionFormat\":\"csv\",\"items\":{\"type\":\"string\","
+        "\"collectionFormat\":\"pipes\"}},"
+        "{\"name\":\"q1\",\"in\":\"query\",\"type\":\"array\","
+        "\"collectionFormat\":\"ssv\",\"items\":{\"type\":\"string\"}},"
+        "{\"name\":\"q2\",\"in\":\"query\",\"type\":\"array\","
+        "\"collectionFormat\":\"pipes\",\"items\":{\"type\":\"string\"}},";
+    const char *p2 =
+        "{\"name\":\"q3\",\"in\":\"query\",\"type\":\"array\","
+        "\"collectionFormat\":\"multi\",\"items\":{\"type\":\"string\"}},"
+        "{\"name\":\"q4\",\"in\":\"query\",\"type\":\"array\","
+        "\"collectionFormat\":\"tsv\",\"items\":{\"type\":\"string\"}},"
+        "{\"name\":\"c1\",\"in\":\"cookie\",\"type\":\"array\","
+        "\"collectionFormat\":\"csv\",\"items\":{\"type\":\"string\"}},"
+        "{\"name\":\"b1\",\"in\":\"query\",\"collectionFormat\":\"csv\","
+        "\"schema\":true},"
+        "{\"name\":\"n1\",\"in\":\"header\",\"collectionFormat\":\"csv\","
+        "\"content\":{\"text/plain\":{\"schema\":{\"type\":\"string\"}}}},";
+    const char *p3 =
+        "{\"name\":\"s1\",\"in\":\"query\",\"schema\":{\"type\":\"array\","
+        "\"collectionFormat\":\"csv\",\"items\":{\"type\":\"string\","
+        "\"collectionFormat\":\"ssv\"}}},"
+        "{\"name\":\"s2\",\"in\":\"query\",\"schema\":{\"$ref\":\"#/"
+        "definitions/ArrSch\"}},"
+        "{\"$ref\":\"#/components/parameters/CompParam\"}]"
+        ",\"responses\":{\"200\":{\"description\":\"ok\",\"headers\":{"
+        "\"X-Rate\":{\"type\":\"array\",\"collectionFormat\":\"csv\",\"items\":"
+        "{\"type\":\"string\"}},"
+        "\"X-Ref\":{\"$ref\":\"#/components/headers/CompHdr\"}}}}}}},";
+    const char *p4 =
+        "\"definitions\":{\"ArrSch\":{\"type\":\"array\",\"collectionFormat\":"
+        "\"csv\",\"items\":{\"type\":\"string\",\"collectionFormat\":\"pipes\"}"
+        "}},"
+        "\"parameters\":{\"CompParam\":{\"name\":\"cp\",\"in\":\"query\","
+        "\"collectionFormat\":\"csv\",\"schema\":{\"type\":\"array\","
+        "\"collectionFormat\":\"csv\",\"items\":{\"type\":\"string\","
+        "\"collectionFormat\":\"pipes\"}}}},"
+        "\"headers\":{\"CompHdr\":{\"collectionFormat\":\"pipes\",\"schema\":{"
+        "\"type\":\"array\",\"items\":{\"type\":\"string\"}}}}}";
+    char *dumped = NULL;
+    JSON_Value *root_val = NULL;
+    int oom_idx;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+    sprintf_s(sw2_json, sizeof(sw2_json), "%s%s%s%s", p1, p2, p3, p4);
+#else
+    CDD_SNPRINTF(sw2_json, sizeof(sw2_json), "%s%s%s%s", p1, p2, p3, p4);
+#endif
+    root_val = json_parse_string(sw2_json);
+    ASSERT(root_val != NULL);
+    memset(&spec, 0, sizeof(spec));
+    rc = openapi_load_from_json(root_val, &spec);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    rc = openapi_write_spec_to_json(&spec, &dumped);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT(dumped != NULL);
+    ASSERT(strstr(dumped, "\"collectionFormat\"") != NULL);
+    C_CDD_FREE(dumped);
+    openapi_spec_free(&spec);
+
+    for (oom_idx = 1; oom_idx <= 150; ++oom_idx) {
+      memset(&spec, 0, sizeof(spec));
+      g_cdd_strdup_fail = oom_idx;
+      openapi_load_from_json(root_val, &spec);
+      g_cdd_strdup_fail = 0;
+      openapi_spec_free(&spec);
+    }
+    json_value_free(root_val);
+
+    /* Docstring collectionFormat parsing & operation mapping */
+    {
+      FILE *fp = fopen("test_c2openapi_colfmt.c", "w");
+      if (fp) {
+        fputs("/**\n"
+              " * @route GET /colfmt\n"
+              " * @param tags [in:query] [collectionFormat:csv] "
+              "[collectionFormat=pipes] [example:ex1] Tags\n"
+              " * @param plain [in:query] Plain\n"
+              " * @return 200 OK\n",
+              fp);
+        fputs(" * @responseHeader 200 X-Tags [type:string] "
+              "[collectionFormat:csv] [collectionFormat=pipes] [format:uuid] "
+              "Header\n"
+              " * @responseHeader 200 X-Other [type:string] HeaderA\n"
+              " * @responseHeader 200 X-Other [type:string] "
+              "[collectionFormat:ssv] HeaderB\n"
+              " * @responseHeader 200 X-Other [type:string] "
+              "[collectionFormat:csv] HeaderC\n"
+              " */\n"
+              "int get_colfmt(const char *tags, const char *plain) { return 0; "
+              "}\n",
+              fp);
+        fclose(fp);
+      }
+      memset(&spec, 0, sizeof(spec));
+      rc = openapi_spec_init(&spec);
+      ASSERT_EQ(CDD_C_SUCCESS, rc);
+      rc = process_file("test_c2openapi_colfmt.c", &spec);
+      ASSERT_EQ(CDD_C_SUCCESS, rc);
+      openapi_spec_free(&spec);
+
+      for (oom_idx = 1; oom_idx <= 80; ++oom_idx) {
+        memset(&spec, 0, sizeof(spec));
+        rc = openapi_spec_init(&spec);
+        ASSERT_EQ(CDD_C_SUCCESS, rc);
+        g_cdd_strdup_fail = oom_idx;
+        process_file("test_c2openapi_colfmt.c", &spec);
+        g_cdd_strdup_fail = 0;
+        openapi_spec_free(&spec);
+      }
+      remove("test_c2openapi_colfmt.c");
+    }
   }
 
   PASS();

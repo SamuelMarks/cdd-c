@@ -301,6 +301,10 @@ static void free_header_fields(struct OpenAPI_Header *hdr) {
     C_CDD_FREE(hdr->content_type);
     hdr->content_type = NULL;
   }
+  if (hdr->collection_format) {
+    C_CDD_FREE(hdr->collection_format);
+    hdr->collection_format = NULL;
+  }
   if (hdr->schema.inline_type) {
     C_CDD_FREE(hdr->schema.inline_type);
     hdr->schema.inline_type = NULL;
@@ -344,6 +348,11 @@ cdd_c_error_t add_header_to_response(struct OpenAPI_Response *resp,
         }
         if (dh->content_type && !hdr->content_type) {
           rc = c_cdd_strdup(dh->content_type, &hdr->content_type);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
+        }
+        if (dh->collection_format && !hdr->collection_format) {
+          rc = c_cdd_strdup(dh->collection_format, &hdr->collection_format);
           if (rc != CDD_C_SUCCESS)
             return rc;
         }
@@ -408,6 +417,14 @@ cdd_c_error_t add_header_to_response(struct OpenAPI_Response *resp,
   }
   if (dh->content_type) {
     rc = c_cdd_strdup(dh->content_type, &hdr->content_type);
+    if (rc != CDD_C_SUCCESS) {
+      free_header_fields(hdr);
+      resp->n_headers--;
+      return rc;
+    }
+  }
+  if (dh->collection_format) {
+    rc = c_cdd_strdup(dh->collection_format, &hdr->collection_format);
     if (rc != CDD_C_SUCCESS) {
       free_header_fields(hdr);
       resp->n_headers--;

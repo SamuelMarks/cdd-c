@@ -108,6 +108,15 @@ cdd_c_error_t doc_parse_param_line(const char *line, const char *end,
               return rc;
             }
           }
+        } else if (strncmp(attr, "collectionFormat:", 17) == 0 ||
+                   strncmp(attr, "collectionFormat=", 17) == 0) {
+          if (p->collection_format)
+            C_CDD_FREE(p->collection_format);
+          rc = c_cdd_strdup(attr + 17, &p->collection_format);
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
         } else if (strncmp(attr, "style:", 6) == 0) {
           enum DocParamStyle style = DOC_PARAM_STYLE_UNSET;
           if (doc_parse_style_text(attr + 6, &style) == CDD_C_SUCCESS) {
@@ -361,6 +370,15 @@ cdd_c_error_t doc_parse_response_header_line(const char *line, const char *end,
               C_CDD_FREE(attr);
               return rc;
             }
+          }
+        } else if (strncmp(attr, "collectionFormat:", 17) == 0 ||
+                   strncmp(attr, "collectionFormat=", 17) == 0) {
+          if (h->collection_format)
+            C_CDD_FREE(h->collection_format);
+          rc = c_cdd_strdup(attr + 17, &h->collection_format);
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
           }
         } else if (strncmp(attr, "contentType:", 12) == 0 ||
                    strncmp(attr, "contentType=", 12) == 0) {
