@@ -590,13 +590,14 @@ TEST test_serve_mcp_stdio_main(void) {
 #if defined(_MSC_VER)
     {
       FILE *f_re = NULL;
-      freopen_s(&f_re, "CONIN$", "r", stdin);
+      freopen_s(&f_re, "NUL", "r", stdin);
     }
 #elif defined(_WIN32)
-    freopen("CONIN$", "r", stdin);
+    freopen("NUL", "r", stdin);
 #else
-    freopen("/dev/tty", "r", stdin);
+    freopen("/dev/null", "r", stdin);
 #endif
+    dup2(old_stdin, fileno(stdin));
     dup2(old_stdout, fileno(stdout));
     close(old_stdin);
     close(old_stdout);
@@ -639,13 +640,14 @@ TEST test_serve_mcp_stdio_main(void) {
 #if defined(_MSC_VER)
     {
       FILE *f_re = NULL;
-      freopen_s(&f_re, "CONIN$", "r", stdin);
+      freopen_s(&f_re, "NUL", "r", stdin);
     }
 #elif defined(_WIN32)
-    freopen("CONIN$", "r", stdin);
+    freopen("NUL", "r", stdin);
 #else
-    freopen("/dev/tty", "r", stdin);
+    freopen("/dev/null", "r", stdin);
 #endif
+    dup2(old_stdin, fileno(stdin));
     close(old_stdin);
     remove(mcp_err_path);
   }
