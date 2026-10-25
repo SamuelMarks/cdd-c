@@ -281,17 +281,23 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_mangle_cpp_name(const char *ns_name,
   return CDD_C_SUCCESS;
 }
 
+#ifdef CDD_BUILD_TESTS
 /** @brief Countdown counter for failing FFI IR extractor allocations in tests
  */
 extern C_CDD_EXPORT int g_ffi_extractor_alloc_fail;
+#endif
 
 /**
  * @brief Allocates memory for FFI IR with test fault injection.
  */
 cdd_c_error_t cdd_ffi_do_malloc(size_t sz, void **out_ptr) {
+#ifdef CDD_BUILD_TESTS
   *out_ptr = (g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)
                  ? NULL
                  : C_CDD_MALLOC(sz);
+#else
+  *out_ptr = C_CDD_MALLOC(sz);
+#endif
   return *out_ptr ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
@@ -299,9 +305,13 @@ cdd_c_error_t cdd_ffi_do_malloc(size_t sz, void **out_ptr) {
  * @brief Zero-allocates memory for FFI IR with test fault injection.
  */
 cdd_c_error_t cdd_ffi_do_calloc(size_t n, size_t sz, void **out_ptr) {
+#ifdef CDD_BUILD_TESTS
   *out_ptr = (g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)
                  ? NULL
                  : C_CDD_CALLOC(n, sz);
+#else
+  *out_ptr = C_CDD_CALLOC(n, sz);
+#endif
   return *out_ptr ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
@@ -309,9 +319,13 @@ cdd_c_error_t cdd_ffi_do_calloc(size_t n, size_t sz, void **out_ptr) {
  * @brief Reallocates memory for FFI IR with test fault injection.
  */
 cdd_c_error_t cdd_ffi_do_realloc(void *ptr, size_t sz, void **out_ptr) {
+#ifdef CDD_BUILD_TESTS
   *out_ptr = (g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)
                  ? NULL
                  : C_CDD_REALLOC(ptr, sz);
+#else
+  *out_ptr = C_CDD_REALLOC(ptr, sz);
+#endif
   return *out_ptr ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
@@ -319,10 +333,14 @@ cdd_c_error_t cdd_ffi_do_realloc(void *ptr, size_t sz, void **out_ptr) {
  * @brief Duplicates a string for FFI IR with test fault injection.
  */
 cdd_c_error_t cdd_ffi_do_strdup(const char *s, char **out_str) {
+#ifdef CDD_BUILD_TESTS
   *out_str =
       (!s || (g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0))
           ? NULL
           : C_CDD_STRDUP(s);
+#else
+  *out_str = (!s) ? NULL : C_CDD_STRDUP(s);
+#endif
   return *out_str ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 

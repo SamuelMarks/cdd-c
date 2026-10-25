@@ -9,9 +9,9 @@
 #include "c_cdd/safe_crt_msvc.h"
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
+#include "serve_json_rpc.h"
 
 #ifndef __wasi__
-#include "serve_json_rpc.h"
 #include "../parse/cli.h"
 #include "../../cdd_api.h"
 #include "functions/parse/fs.h"
@@ -362,11 +362,11 @@ C_CDD_EXPORT cdd_c_error_t serve_mcp_stdio_main(int argc, char **argv) {
 }
 
 #else
-cdd_c_error_t handle_stdio_request(const char *body) {
+C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
   (void)body;
   return CDD_C_ERROR_UNKNOWN;
 }
-cdd_c_error_t serve_mcp_stdio_main(int argc, char **argv) {
+C_CDD_EXPORT cdd_c_error_t serve_mcp_stdio_main(int argc, char **argv) {
   (void)argc;
   (void)argv;
   return CDD_C_ERROR_UNKNOWN;

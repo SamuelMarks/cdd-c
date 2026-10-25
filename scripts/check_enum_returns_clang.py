@@ -136,6 +136,7 @@ def should_exclude(
             or "_deps" in path.parts
             or "vcpkg" in path.parts
             or "vcpkg_installed" in path.parts
+            or "wasi-sdk" in path.parts
         ):
             return True
     return False

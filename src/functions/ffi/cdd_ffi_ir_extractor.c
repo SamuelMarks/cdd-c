@@ -15,19 +15,17 @@
 #include "../../functions/parse/preprocessor.h"
 #include "c_cdd/format_specifiers.h"
 #include "c_cdd/memory.h"
+#include "c_cdd_export.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#ifdef CDD_BUILD_TESTS
-#include "c_cdd_export.h"
-#endif
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
 /** @brief Counter to simulate allocation failure in FFI IR extractor tests. */
 C_CDD_EXPORT int g_ffi_extractor_alloc_fail = 0;
+
+#ifdef CDD_BUILD_TESTS
 /** @brief Flag to simulate class name lookup failure in tests. */
 C_CDD_EXPORT int g_cdd_ffi_fail_class_name = 0;
 /** @brief Flag to simulate `is_visited` failure in tests. */

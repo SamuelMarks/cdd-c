@@ -20,6 +20,7 @@
   for (; (int)(x) < 0;)                                                        \
   return CDD_C_ERROR_IO
 
+#undef FPRINTF_HOOK
 #ifdef CDD_BUILD_TESTS
 /** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK cdd_io_fprintf_hook

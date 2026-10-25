@@ -8,9 +8,9 @@
 #include "c_cdd/context.h"
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
+#include "serve_json_rpc.h"
 
 #ifndef __wasi__
-#include "serve_json_rpc.h"
 #include "../parse/cli.h"
 #include "../../cdd_api.h"
 #include "functions/parse/fs.h"
@@ -902,12 +902,13 @@ C_CDD_EXPORT cdd_c_error_t serve_json_rpc_main(int argc, char **argv) {
 }
 
 #else
-cdd_c_error_t serve_json_rpc_run(const cdd_serve_json_rpc_config_t *config) {
+C_CDD_EXPORT cdd_c_error_t
+serve_json_rpc_run(const cdd_serve_json_rpc_config_t *config) {
   (void)config;
   return CDD_C_ERROR_UNKNOWN;
 }
 
-cdd_c_error_t serve_json_rpc_main(int argc, char **argv) {
+C_CDD_EXPORT cdd_c_error_t serve_json_rpc_main(int argc, char **argv) {
   (void)argc;
   (void)argv;
   return CDD_C_ERROR_UNKNOWN;
