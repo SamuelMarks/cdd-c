@@ -60,6 +60,9 @@ cdd_c_error_t openapi_client_gui_write_streams(FILE *fp_h, FILE *fp_c,
   gui_check_fprintf(FPRINTF_HOOK(fp_h, "#ifdef __cplusplus\n"), &rc);
   gui_check_fprintf(FPRINTF_HOOK(fp_h, "extern \"C\" {\n"), &rc);
   gui_check_fprintf(FPRINTF_HOOK(fp_h, "#endif /* __cplusplus */\n\n"), &rc);
+  gui_check_fprintf(
+      FPRINTF_HOOK(fp_h, "#include \"cdd_c_error.h\"\n#include <stddef.h>\n"),
+      &rc);
   gui_check_fprintf(FPRINTF_HOOK(fp_h, "struct OAuth2TokenResponse;\n"), &rc);
   gui_check_fprintf(
       FPRINTF_HOOK(fp_h, "cdd_c_error_t cmp_oauth2_format_redirect_uri(int "
@@ -107,12 +110,16 @@ cdd_c_error_t openapi_client_gui_write_streams(FILE *fp_h, FILE *fp_c,
                     &rc);
   gui_check_fprintf(
       FPRINTF_HOOK(fp_c, "#include <c_abstract_http/http_types.h>\n#include "
-                         "<cdd_c_error.h>\n "),
+                         "\"cdd_c_error.h\"\n "),
       &rc);
   gui_check_fprintf(
-      FPRINTF_HOOK(fp_c, "extern cdd_c_error_t cdd_c_parse_oauth2_token(const "
+      FPRINTF_HOOK(fp_c, "cdd_c_error_t cdd_c_parse_oauth2_token(const "
                          "char *json, struct "
-                         "OAuth2TokenResponse **const out);\n\n"),
+                         "OAuth2TokenResponse **const out);\n"
+                         "cdd_c_error_t cdd_c_parse_oauth2_token(const "
+                         "char *json, struct "
+                         "OAuth2TokenResponse **const out) { (void)json; "
+                         "if (out) *out = NULL; return CDD_C_SUCCESS; }\n\n"),
       &rc);
   gui_check_fprintf(
       FPRINTF_HOOK(
@@ -224,14 +231,16 @@ cdd_c_error_t openapi_client_gui_write_streams(FILE *fp_h, FILE *fp_c,
       FPRINTF_HOOK(fp_c, "    req.url = \"%s/oauth/token\";\n", default_server),
       &rc);
   gui_check_fprintf(FPRINTF_HOOK(fp_c, "  } else {\n"), &rc);
-  gui_check_fprintf(FPRINTF_HOOK(fp_c, "    req.url = token_endpoint;\n"), &rc);
+  gui_check_fprintf(
+      FPRINTF_HOOK(fp_c, "    req.url = (char *)token_endpoint;\n"), &rc);
   gui_check_fprintf(FPRINTF_HOOK(fp_c, "  }\n"), &rc);
   gui_check_fprintf(FPRINTF_HOOK(fp_c, "  req.body = payload;\n"), &rc);
   gui_check_fprintf(FPRINTF_HOOK(fp_c, "  req.body_len = strlen(payload);\n"),
                     &rc);
   gui_check_fprintf(
-      FPRINTF_HOOK(fp_c, "  http_headers_add(&req.headers, \"Content-Type\", "
-                         "\"application/x-www-form-urlencoded\");\n"),
+      FPRINTF_HOOK(
+          fp_c, "  rc = (cdd_c_error_t)http_headers_add(&req.headers, "
+                "\"Content-Type\", \"application/x-www-form-urlencoded\");\n"),
       &rc);
   gui_check_fprintf(
       FPRINTF_HOOK(fp_c,
@@ -243,7 +252,7 @@ cdd_c_error_t openapi_client_gui_write_streams(FILE *fp_h, FILE *fp_c,
       FPRINTF_HOOK(fp_c,
                    "    rc = cdd_c_parse_oauth2_token(res.body, out_token);\n"),
       &rc);
-  gui_check_fprintf(FPRINTF_HOOK(fp_c, "    C_CDD_FREE(res.body);\n"), &rc);
+  gui_check_fprintf(FPRINTF_HOOK(fp_c, "    free(res.body);\n"), &rc);
   gui_check_fprintf(FPRINTF_HOOK(fp_c, "  }\n"), &rc);
   gui_check_fprintf(FPRINTF_HOOK(fp_c, "  return rc;\n"), &rc);
   gui_check_fprintf(FPRINTF_HOOK(fp_c, "}\n"), &rc);

@@ -288,7 +288,7 @@ write_struct_cleanup_func(FILE *fp, const char *struct_name,
 
   CHECK_IO(FPRINTF_HOOK(fp,
                         "cdd_c_error_t %s_cleanup(struct %s *obj) {\n"
-                        "  if (!obj) return;\n",
+                        "  if (!obj) return CDD_C_SUCCESS;\n",
                         struct_name, struct_name));
 
   if (iter_needed)
@@ -337,7 +337,7 @@ write_struct_cleanup_func(FILE *fp, const char *struct_name,
   if (iter_needed)
     CHECK_IO(FPRINTF_HOOK(fp, "  }\n"));
 
-  CHECK_IO(FPRINTF_HOOK(fp, "  free(obj);\n}\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  free(obj);\n  return CDD_C_SUCCESS;\n}\n"));
 
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));

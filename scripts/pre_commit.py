@@ -48,12 +48,16 @@ def main():
 
         if os.path.exists("build_cmake/bin/cdd-c"):
             shutil.copy("build_cmake/bin/cdd-c", "bin/cdd-c")
+        elif os.path.exists("build_cmake/cdd-c"):
+            shutil.copy("build_cmake/cdd-c", "bin/cdd-c")
         elif os.path.exists("build_cmake/bin/Release/cdd-c.exe"):
             shutil.copy("build_cmake/bin/Release/cdd-c.exe", "bin/cdd-c.exe")
         elif os.path.exists("build_cmake/Release/cdd-c.exe"):
             shutil.copy("build_cmake/Release/cdd-c.exe", "bin/cdd-c.exe")
         elif os.path.exists("build_cmake/bin/cdd-c.exe"):
             shutil.copy("build_cmake/bin/cdd-c.exe", "bin/cdd-c.exe")
+        elif os.path.exists("build_cmake/cdd-c.exe"):
+            shutil.copy("build_cmake/cdd-c.exe", "bin/cdd-c.exe")
         else:
             print("Warning: cdd-c binary not found after build.")
 

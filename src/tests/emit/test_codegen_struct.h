@@ -73,7 +73,7 @@ TEST test_cleanup_generation(void) {
     }
 
     ASSERT(strstr(content, "cdd_c_error_t User_cleanup(struct User *obj)"));
-    ASSERT(strstr(content, "if (!obj) return;"));
+    ASSERT(strstr(content, "if (!obj) return CDD_C_SUCCESS;"));
     ASSERT(strstr(content, "if (obj->name) free((void*)obj->name);"));
     ASSERT(strstr(content, "free(obj);"));
 

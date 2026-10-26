@@ -149,7 +149,8 @@ cdd_c_error_t write_header_param_logic(FILE *fp,
             CHECK_IO(fprintf(
 
                 fp,
-                "    rc = http_headers_add(&req.headers, \"%s\", hdr_json);\n",
+                "    rc = (cdd_c_error_t)http_headers_add(&req.headers, "
+                "\"%s\", hdr_json);\n",
                 p->name));
 
             CHECK_IO(
@@ -238,7 +239,8 @@ cdd_c_error_t write_header_param_logic(FILE *fp,
             CHECK_IO(fprintf(
 
                 fp,
-                "    rc = http_headers_add(&req.headers, \"%s\", hdr_json);\n",
+                "    rc = (cdd_c_error_t)http_headers_add(&req.headers, "
+                "\"%s\", hdr_json);\n",
                 p->name));
 
             CHECK_IO(
@@ -277,7 +279,8 @@ cdd_c_error_t write_header_param_logic(FILE *fp,
                 fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
             CHECK_IO(fprintf(
                 fp,
-                "    rc = http_headers_add(&req.headers, \"%s\", hdr_json);\n",
+                "    rc = (cdd_c_error_t)http_headers_add(&req.headers, "
+                "\"%s\", hdr_json);\n",
                 p->name));
             CHECK_IO(fprintf(fp, "    free(hdr_json);\n"));
             CHECK_IO(
@@ -371,7 +374,8 @@ cdd_c_error_t write_header_param_logic(FILE *fp,
             CHECK_IO(fprintf(
 
                 fp,
-                "    rc = http_headers_add(&req.headers, \"%s\", hdr_json);\n",
+                "    rc = (cdd_c_error_t)http_headers_add(&req.headers, "
+                "\"%s\", hdr_json);\n",
                 p->name));
 
             CHECK_IO(
@@ -445,11 +449,12 @@ cdd_c_error_t write_header_param_logic(FILE *fp,
 
                                    "CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
 
-              CHECK_IO(fprintf(fp,
+              CHECK_IO(fprintf(
+                  fp,
 
-                               "    rc = http_headers_add(&req.headers, "
-                               "\"%s\", hdr_json);\n",
-                               p->name));
+                  "    rc = (cdd_c_error_t)http_headers_add(&req.headers, "
+                  "\"%s\", hdr_json);\n",
+                  p->name));
 
               CHECK_IO(
 
@@ -530,9 +535,11 @@ cdd_c_error_t write_header_param_logic(FILE *fp,
         CHECK_IO(fprintf(fp, "      }\n"));
         CHECK_IO(fprintf(fp, "    }\n"));
         CHECK_IO(fprintf(fp, "    if (joined) {\n"));
-        CHECK_IO(fprintf(
-            fp, "      rc = http_headers_add(&req.headers, \"%s\", joined);\n",
-            p->name));
+        CHECK_IO(
+            fprintf(fp,
+                    "      rc = (cdd_c_error_t)http_headers_add(&req.headers, "
+                    "\"%s\", joined);\n",
+                    p->name));
         CHECK_IO(fprintf(fp, "      free(joined);\n"));
         CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "    }\n"));
@@ -622,9 +629,11 @@ cdd_c_error_t write_header_param_logic(FILE *fp,
         CHECK_IO(fprintf(fp, "      first = 0;\n"));
         CHECK_IO(fprintf(fp, "    }\n"));
         CHECK_IO(fprintf(fp, "    if (joined) {\n"));
-        CHECK_IO(fprintf(
-            fp, "      rc = http_headers_add(&req.headers, \"%s\", joined);\n",
-            p->name));
+        CHECK_IO(
+            fprintf(fp,
+                    "      rc = (cdd_c_error_t)http_headers_add(&req.headers, "
+                    "\"%s\", joined);\n",
+                    p->name));
         CHECK_IO(fprintf(fp, "      free(joined);\n"));
         CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "    }\n"));
@@ -634,7 +643,9 @@ cdd_c_error_t write_header_param_logic(FILE *fp,
         CHECK_IO(fprintf(fp, "  if (%s) {\n", p->name));
         CHECK_IO(fprintf(
 
-            fp, "    rc = http_headers_add(&req.headers, \"%s\", %s);\n",
+            fp,
+            "    rc = (cdd_c_error_t)http_headers_add(&req.headers, \"%s\", "
+            "%s);\n",
             p->name, p->name));
 
         CHECK_IO(fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
@@ -649,7 +660,9 @@ cdd_c_error_t write_header_param_logic(FILE *fp,
                          p->name));
         CHECK_IO(fprintf(
 
-            fp, "    rc = http_headers_add(&req.headers, \"%s\", num_buf);\n",
+            fp,
+            "    rc = (cdd_c_error_t)http_headers_add(&req.headers, \"%s\", "
+            "num_buf);\n",
             p->name));
 
         CHECK_IO(
@@ -661,18 +674,21 @@ cdd_c_error_t write_header_param_logic(FILE *fp,
                          "    spr"
                          "intf(num_buf, \"%%g\", %s);\n",
                          p->name));
-        CHECK_IO(fprintf(
-            fp, "    rc = http_headers_add(&req.headers, \"%s\", num_buf);\n",
-            p->name));
+        CHECK_IO(
+            fprintf(fp,
+                    "    rc = (cdd_c_error_t)http_headers_add(&req.headers, "
+                    "\"%s\", num_buf);\n",
+                    p->name));
         CHECK_IO(
             fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n  }\n"));
 
       } else if (strcmp(p->type, "boolean") == 0) {
-        CHECK_IO(fprintf(fp,
+        CHECK_IO(fprintf(
+            fp,
 
-                         "  rc = http_headers_add(&req.headers, \"%s\", %s ? "
-                         "\"true\" : \"false\");\n",
-                         p->name, p->name));
+            "  rc = (cdd_c_error_t)http_headers_add(&req.headers, \"%s\", %s ? "
+            "\"true\" : \"false\");\n",
+            p->name, p->name));
 
         CHECK_IO(fprintf(fp, "  if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       }

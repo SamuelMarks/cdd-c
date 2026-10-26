@@ -496,7 +496,114 @@ TEST test_client_gen_io_failures(void) {
   remove("build/test_out/src/test_cg_io_models.c");
   remove("build/test_out/src/url_utils.h");
   remove("build/test_out/src/url_utils.c");
+  remove("build/test_out/src/cdd_c_error.h");
+  remove("build/test_out/src/c_cdd_stdbool.h");
   remove("build/test_out/CMakeLists.txt");
+  PASS();
+}
+
+/**
+ * @brief Integration test that generates a standalone SDK, configures, builds,
+ * and runs ctest.
+ * @return Greatest test result.
+ */
+TEST test_client_gen_sdk_cmake_ctest_integration(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Path path;
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Response resp;
+  struct OpenAPI_SecurityScheme sec_schemes[2];
+  struct OpenApiClientConfig config;
+  int rc = 0;
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&path, 0, sizeof(path));
+  memset(&op, 0, sizeof(op));
+  memset(&resp, 0, sizeof(resp));
+  memset(sec_schemes, 0, sizeof(sec_schemes));
+  memset(&config, 0, sizeof(config));
+
+  sec_schemes[0].name = cdd_test_mut_str("bearerAuth");
+  sec_schemes[0].type = OA_SEC_HTTP;
+  sec_schemes[0].scheme = cdd_test_mut_str("bearer");
+  sec_schemes[1].name = cdd_test_mut_str("api_key");
+  sec_schemes[1].type = OA_SEC_APIKEY;
+  sec_schemes[1].in = OA_SEC_IN_HEADER;
+  sec_schemes[1].key_name = cdd_test_mut_str("api_key");
+
+  resp.code = cdd_test_mut_str("200");
+  op.operation_id = cdd_test_mut_str("getHealth");
+  op.verb = OA_VERB_GET;
+  op.responses = &resp;
+  op.n_responses = 1;
+
+  path.route = cdd_test_mut_str("/health");
+  path.operations = &op;
+  path.n_operations = 1;
+
+  spec.paths = &path;
+  spec.n_paths = 1;
+  spec.security_schemes = sec_schemes;
+  spec.n_security_schemes = 2;
+
+  config.filename_base =
+      cdd_test_mut_str("build/test_sdk_integration/generated_client");
+  config.func_prefix = cdd_test_mut_str("api_");
+  config.create_tests_and_mocks = 1;
+  config.no_installable_package = 0;
+
+#if !defined(_WIN32) && !defined(__CYGWIN__) && !defined(__EMSCRIPTEN__) &&    \
+    !defined(__wasi__)
+  if (system("rm -rf build/test_sdk_integration") != 0) {
+  }
+#endif
+
+  rc = openapi_client_generate(&spec, &config);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+
+  /* Overwrite test_sdk.c with a self-contained offline test of the generated
+   * SDK so ctest succeeds without requiring a live HTTP server on port 8080 */
+  {
+    FILE *tf = fopen("build/test_sdk_integration/src/test/test_sdk.c", "w");
+    ASSERT(tf != NULL);
+    fputs("#include \"generated_client.h\"\n"
+          "#include \"url_utils.h\"\n"
+          "#include <stdlib.h>\n"
+          "#include <string.h>\n"
+          "int main(void) {\n"
+          "  int failures = 0;\n"
+          "  char *encoded = NULL;\n"
+          "  if (url_encode(\"hello world\", &encoded) != CDD_C_SUCCESS || "
+          "!encoded) {\n"
+          "    failures++;\n"
+          "  } else {\n"
+          "    if (strcmp(encoded, \"hello%20world\") != 0) failures++;\n"
+          "    free(encoded);\n"
+          "  }\n"
+          "  return failures > 0 ? 1 : 0;\n"
+          "}\n",
+          tf);
+    fclose(tf);
+  }
+
+#if !defined(_WIN32) && !defined(__CYGWIN__) && !defined(__EMSCRIPTEN__) &&    \
+    !defined(__wasi__)
+  {
+    int sys_rc;
+    unsetenv("GIT_DIR");
+    unsetenv("GIT_WORK_TREE");
+    unsetenv("GIT_INDEX_FILE");
+    sys_rc = system("cmake -S build/test_sdk_integration -B "
+                    "build/test_sdk_integration/build "
+                    "&& cmake --build build/test_sdk_integration/build "
+                    "&& ctest --test-dir build/test_sdk_integration/build "
+                    "--output-on-failure");
+    ASSERT_EQ(0, sys_rc);
+    if (system("rm -rf build/test_sdk_integration") != 0) {
+    }
+  }
+#endif
+
   PASS();
 }
 
@@ -507,6 +614,7 @@ SUITE(openapi_client_gen_expanded_suite) {
   RUN_TEST(test_client_gen_extra_cases);
   RUN_TEST(test_client_gen_create_tests_mocks_expanded);
   RUN_TEST(test_client_gen_io_failures);
+  RUN_TEST(test_client_gen_sdk_cmake_ctest_integration);
 }
 
 #ifdef __cplusplus

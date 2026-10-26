@@ -317,10 +317,12 @@ cdd_c_error_t codegen_security_write_apply(FILE *fp,
       if (sch->name && sch->key_name) {
         /* "if (ctx->security.api_key_NAME) ..." */
         fprintf(fp, "  if (0 /* api_key_%s */) {\n", sch->name);
-        fprintf(fp,
-                "    http_headers_add(&req.headers, \"%s\", "
-                "NULL /* api_key_%s */);\n",
-                sch->key_name, sch->name);
+        fprintf(
+            fp,
+            "    rc = (cdd_c_error_t)http_headers_add(&req.headers, \"%s\", "
+            "NULL /* api_key_%s */);\n    if (rc != CDD_C_SUCCESS) goto "
+            "cleanup;\n",
+            sch->key_name, sch->name);
         fprintf(fp, "  }\n");
         has_security = 1;
       }
@@ -331,18 +333,18 @@ cdd_c_error_t codegen_security_write_apply(FILE *fp,
              sch->type == OA_SEC_OAUTH2 || sch->type == OA_SEC_OPENID) {
 
       /* Usually generic, or scoped by scheme name if multiple exist */
-      fprintf(fp, "  if (bearer_token) {\n");
-      fprintf(fp, "    rc = http_request_set_auth_bearer(&req, "
+      fprintf(fp, "  { const char *bearer_token = NULL; if (bearer_token) {\n");
+      fprintf(fp, "    rc = (cdd_c_error_t)http_request_set_auth_bearer(&req, "
                   "NULL /* bearer_token */);\n");
       fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n");
-      fprintf(fp, "  }\n");
+      fprintf(fp, "  } }\n");
       has_security = 1;
     }
     /* Scheme: HTTP Basic (token must be base64 of "user:pass") */
     else if (sch->type == OA_SEC_HTTP && sch->scheme &&
              strcmp(sch->scheme, "basic") == 0) {
       fprintf(fp, "  if (0 /* basic_token */) {\n");
-      fprintf(fp, "    rc = http_request_set_auth_basic(&req, "
+      fprintf(fp, "    rc = (cdd_c_error_t)http_request_set_auth_basic(&req, "
                   "NULL /* basic_token */);\n");
       fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n");
       fprintf(fp, "  }\n");

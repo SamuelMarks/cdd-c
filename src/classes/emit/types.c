@@ -805,7 +805,7 @@ write_union_cleanup_func(FILE *fp, const char *union_name,
 
   CHECK_IO(FPRINTF_HOOK(fp, "cdd_c_error_t %s_cleanup(struct %s *obj) {\n",
                         union_name, union_name));
-  CHECK_IO(FPRINTF_HOOK(fp, "  if (!obj) return;\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  if (!obj) return CDD_C_SUCCESS;\n"));
   if (iter_needed)
     CHECK_IO(FPRINTF_HOOK(fp, "  size_t i;\n"));
   CHECK_IO(FPRINTF_HOOK(fp, "  switch (obj->tag) {\n"));
@@ -845,7 +845,9 @@ write_union_cleanup_func(FILE *fp, const char *union_name,
     CHECK_IO(FPRINTF_HOOK(fp, "      break;\n"));
   }
 
-  CHECK_IO(FPRINTF_HOOK(fp, "    default: break;\n  }\n  free(obj);\n}\n"));
+  CHECK_IO(FPRINTF_HOOK(
+      fp,
+      "    default: break;\n  }\n  free(obj);\n  return CDD_C_SUCCESS;\n}\n"));
 
   if (config && config->utils_guard)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->utils_guard));

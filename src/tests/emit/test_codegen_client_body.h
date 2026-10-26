@@ -509,7 +509,7 @@ TEST test_body_textual_request_body_xml(void) {
   code = (gen_body(&op, &spec, "/pets", NULL, &_ast_gen_body_12),
           _ast_gen_body_12);
   ASSERT(code);
-  ASSERT(strstr(code, "req.body = req_body") != NULL);
+  ASSERT(strstr(code, "req.body = (void *)req_body") != NULL);
   ASSERT(strstr(code, "\"Content-Type\", \"application/xml\"") != NULL);
   ASSERT(strstr(code, "Pet_to_json") == NULL);
 
@@ -540,7 +540,7 @@ TEST test_body_binary_request_body_pdf(void) {
   code =
       (gen_body(&op, &spec, "/pdf", NULL, &_ast_gen_body_13), _ast_gen_body_13);
   ASSERT(code);
-  ASSERT(strstr(code, "req.body = body") != NULL);
+  ASSERT(strstr(code, "req.body = (void *)body") != NULL);
   ASSERT(strstr(code, "\"Content-Type\", \"application/pdf\"") != NULL);
   ASSERT(strstr(code, "Pet_to_json") == NULL);
 

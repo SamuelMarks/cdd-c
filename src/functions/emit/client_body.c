@@ -287,7 +287,7 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
     CHECK_IO(fprintf(fp, "  /* Array serialization not supported by cdd-c yet "
                          "*/\n  return CDD_C_ERROR_SYSTEM; /* ENOTSUP */\n"));
   }
-  CHECK_IO(fprintf(fp, "  rc = http_request_init(&req);\n"));
+  CHECK_IO(fprintf(fp, "  rc = (cdd_c_error_t)http_request_init(&req);\n"));
   CHECK_IO(fprintf(fp, "  if (rc != CDD_C_SUCCESS) return rc;\n\n"));
 
   if (spec) {
@@ -334,9 +334,10 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
         CHECK_IO(fprintf(fp, "  if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "  req.body = req_json;\n"));
         CHECK_IO(fprintf(fp, "  req.body_len = strlen(req_json);\n"));
-        CHECK_IO(fprintf(fp, "  http_headers_add(&req.headers, "
-
-                             "\"Content-Type\", \"application/json\");\n\n"));
+        CHECK_IO(
+            fprintf(fp, "  rc = (cdd_c_error_t)http_headers_add(&req.headers, "
+                        "\"Content-Type\", \"application/json\");\n  if (rc != "
+                        "CDD_C_SUCCESS) goto cleanup;\n\n"));
       } else if (req_is_json && req_body_has_inline) {
         CHECK_IO(fprintf(fp, "  {\n"));
         CHECK_IO(fprintf(fp, "    JSON_Value *req_val = NULL;\n"));
@@ -444,25 +445,31 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
             "    if (!req_json) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
         CHECK_IO(fprintf(fp, "    req.body = req_json;\n"));
         CHECK_IO(fprintf(fp, "    req.body_len = strlen(req_json);\n"));
-        CHECK_IO(fprintf(fp, "    http_headers_add(&req.headers, "
-                             "\"Content-Type\", \"application/json\");\n"));
+        CHECK_IO(fprintf(
+            fp, "    rc = (cdd_c_error_t)http_headers_add(&req.headers, "
+                "\"Content-Type\", \"application/json\");\n    if (rc != "
+                "CDD_C_SUCCESS) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "  }\n\n"));
       } else if (req_is_textual) {
         CHECK_IO(fprintf(fp, "  if (req_body) {\n"));
-        CHECK_IO(fprintf(fp, "    req.body = req_body;\n"));
+        CHECK_IO(fprintf(fp, "    req.body = (void *)req_body;\n"));
         CHECK_IO(fprintf(fp, "    req.body_len = strlen(req_body);\n"));
-        CHECK_IO(fprintf(fp,
-                         "    http_headers_add(&req.headers, "
-                         "\"Content-Type\", \"%s\");\n",
-                         ct));
+        CHECK_IO(fprintf(
+            fp,
+            "    rc = (cdd_c_error_t)http_headers_add(&req.headers, "
+            "\"Content-Type\", \"%s\");\n    if (rc != CDD_C_SUCCESS) goto "
+            "cleanup;\n",
+            ct));
         CHECK_IO(fprintf(fp, "  }\n\n"));
       } else if (req_is_binary || req_is_mp) {
-        CHECK_IO(fprintf(fp, "  req.body = body;\n"));
+        CHECK_IO(fprintf(fp, "  req.body = (void *)body;\n"));
         CHECK_IO(fprintf(fp, "  req.body_len = body_len;\n"));
-        CHECK_IO(fprintf(fp,
-                         "  http_headers_add(&req.headers, "
-                         "\"Content-Type\", \"%s\");\n\n",
-                         ct));
+        CHECK_IO(fprintf(
+            fp,
+            "  rc = (cdd_c_error_t)http_headers_add(&req.headers, "
+            "\"Content-Type\", \"%s\");\n  if (rc != CDD_C_SUCCESS) goto "
+            "cleanup;\n\n",
+            ct));
       }
     }
   }
@@ -511,7 +518,8 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
   CHECK_IO(fprintf(fp, "      /* Implement backoff delay here if needed */\n"));
   CHECK_IO(fprintf(fp, "    }\n"));
 
-  CHECK_IO(fprintf(fp, "    rc = ctx->send(ctx->transport, &req, &res);\n"));
+  CHECK_IO(fprintf(
+      fp, "    rc = (cdd_c_error_t)ctx->send(ctx->transport, &req, &res);\n"));
   CHECK_IO(fprintf(fp, "    attempt++;\n"));
   CHECK_IO(fprintf(fp, "  } while (rc != CDD_C_SUCCESS && attempt <= "
                        "ctx->config.retry_count);\n\n"));
@@ -648,8 +656,7 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
           fp, "        cdd_c_error_t api_rc = ApiError_from_json((const "
               "char*)res->body, api_error);\n"));
       CHECK_IO(fprintf(fp, "        if (api_rc != CDD_C_SUCCESS) { "
-                           "C_CDD_LOG_DEBUG(\"Failed to parse ApiError: "
-                           "%%d\\n\", api_rc); }\n"));
+                           "(void)api_rc; }\n"));
       CHECK_IO(fprintf(fp, "      }\n"));
       CHECK_IO(fprintf(fp, "      break;\n"));
     }
@@ -719,8 +726,7 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
 
         CHECK_IO(fprintf(fp, "        if (api_rc != CDD_C_SUCCESS) { "
 
-                             "C_CDD_LOG_DEBUG(\"Failed to parse ApiError: "
-                             "%%d\\n\", api_rc); }\n"));
+                             "(void)api_rc; }\n"));
 
         CHECK_IO(fprintf(fp, "      }\n"));
         CHECK_IO(fprintf(fp, "    }\n"));
@@ -795,8 +801,7 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
 
       CHECK_IO(fprintf(fp, "      if (api_rc != CDD_C_SUCCESS) { "
 
-                           "C_CDD_LOG_DEBUG(\"Failed to parse ApiError: "
-                           "%%d\\n\", api_rc); }\n"));
+                           "(void)api_rc; }\n"));
 
       CHECK_IO(fprintf(fp, "    }\n"));
     }
@@ -807,8 +812,7 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
                      "      cdd_c_error_t api_rc = ApiError_from_json((const "
                      "char*)res->body, api_error);\n"));
     CHECK_IO(fprintf(fp, "      if (api_rc != CDD_C_SUCCESS) { "
-                         "C_CDD_LOG_DEBUG(\"Failed to parse ApiError: "
-                         "%%d\\n\", api_rc); }\n"));
+                         "(void)api_rc; }\n"));
     CHECK_IO(fprintf(fp, "    }\n"));
   }
   CHECK_IO(fprintf(fp, "  }\n\n"));
@@ -832,8 +836,9 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
   if (cookie_exists) {
     CHECK_IO(fprintf(fp, "  if (cookie_str) free(cookie_str);\n"));
   }
-  CHECK_IO(fprintf(fp, "  http_request_free(&req);\n"));
-  CHECK_IO(fprintf(fp, "  if (res) { http_response_free(res); free(res); }\n"));
+  CHECK_IO(fprintf(fp, "  if (http_request_free(&req) != 0) {}\n"));
+  CHECK_IO(fprintf(
+      fp, "  if (res) { if (http_response_free(res) != 0) {} free(res); }\n"));
   CHECK_IO(fprintf(fp, "  return rc;\n}\n"));
 
   return CDD_C_SUCCESS;

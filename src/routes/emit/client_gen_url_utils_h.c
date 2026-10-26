@@ -22,6 +22,87 @@ cdd_c_error_t client_gen_emit_url_utils_h(const char *dir_name) {
   char hpath[512];
   FILE *uh = NULL;
 
+  CDD_SNPRINTF(hpath, 512, "%s/src/cdd_c_error.h", dir_name);
+  {
+    FILE *ef = fopen(hpath, "w");
+    if (ef) {
+      fputs("#ifndef CDD_C_ERROR_H\n"
+            "#define CDD_C_ERROR_H\n"
+            "\n"
+            "#ifdef __cplusplus\n"
+            "extern \"C\" {\n"
+            "#endif /* __cplusplus */\n"
+            "\n"
+            "enum cdd_c_error {\n"
+            "  CDD_C_SUCCESS = 0,\n"
+            "  CDD_C_ERROR_INVALID_ARGUMENT = 1,\n"
+            "  CDD_C_ERROR_MEMORY = 2,\n"
+            "  CDD_C_ERROR_IO = 3,\n"
+            "  CDD_C_ERROR_SYSTEM = 4,\n"
+            "  CDD_C_ERROR_NOT_FOUND = 5,\n"
+            "  CDD_C_ERROR_PARSE = 6,\n"
+            "  CDD_C_ERROR_UNKNOWN = 999\n"
+            "};\n"
+            "\n"
+            "typedef enum cdd_c_error cdd_c_error_t;\n"
+            "\n"
+            "#ifdef __cplusplus\n"
+            "}\n"
+            "#endif /* __cplusplus */\n"
+            "\n"
+            "#endif /* CDD_C_ERROR_H */\n",
+            ef);
+      fclose(ef);
+    }
+  }
+
+  CDD_SNPRINTF(hpath, 512, "%s/src/c_cdd_stdbool.h", dir_name);
+  {
+    FILE *bf = fopen(hpath, "w");
+    if (bf) {
+      fputs("#ifndef C_CDD_STDBOOL_H_INTERNAL\n"
+            "#define C_CDD_STDBOOL_H_INTERNAL\n"
+            "\n"
+            "#ifdef __cplusplus\n"
+            "extern \"C\" {\n"
+            "#endif /* __cplusplus */\n"
+            "\n"
+            "#include <stddef.h>\n"
+            "#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) "
+            "|| \\\n"
+            "    (defined(_MSC_VER) && _MSC_VER >= 1800) || "
+            "defined(__cplusplus)\n"
+            "#include <stdbool.h>\n"
+            "#else\n",
+            bf);
+      fputs("#ifndef _c_cdd_bool_defined\n"
+            "#define _c_cdd_bool_defined\n"
+            "typedef signed char _c_cdd_bool;\n"
+            "#endif\n"
+            "#ifdef bool\n"
+            "#undef bool\n"
+            "#endif\n"
+            "#ifdef true\n"
+            "#undef true\n"
+            "#endif\n"
+            "#ifdef false\n"
+            "#undef false\n"
+            "#endif\n"
+            "#define bool _c_cdd_bool\n"
+            "#define true 1\n"
+            "#define false 0\n"
+            "#endif\n"
+            "\n"
+            "#ifdef __cplusplus\n"
+            "}\n"
+            "#endif /* __cplusplus */\n"
+            "\n"
+            "#endif /* C_CDD_STDBOOL_H_INTERNAL */\n",
+            bf);
+      fclose(bf);
+    }
+  }
+
   CDD_SNPRINTF(hpath, 512, "%s/src/url_utils.h", dir_name);
   cdd_vfs_fopen(hpath, "w", &uh);
   if (uh) {
@@ -55,6 +136,7 @@ cdd_c_error_t client_gen_emit_url_utils_h(const char *dir_name) {
             "/* clang-format "
             "off */\n"
             "\n"
+            "#include \"cdd_c_error.h\"\n"
             "#include <stddef.h>\n"
             "/* clang-format "
             "on */\n"

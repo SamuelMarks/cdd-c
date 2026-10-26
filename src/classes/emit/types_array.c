@@ -44,16 +44,17 @@ write_root_array_cleanup_func(FILE *fp, const char *name, const char *item_type,
     /* Simple flat array */
     CHECK_IO(FPRINTF_HOOK(fp,
                           "cdd_c_error_t %s_cleanup(int *in, size_t len) {\n"
-                          "  (void)len; free(in);\n}\n",
+                          "  (void)len; free(in); return CDD_C_SUCCESS;\n}\n",
                           name));
   } else if (strcmp(item_type, "string") == 0) {
     /* Array of pointers to strings */
     CHECK_IO(FPRINTF_HOOK(fp,
                           "cdd_c_error_t %s_cleanup(char **in, size_t len) {\n"
                           "  size_t i;\n"
-                          "  if (!in) return;\n"
+                          "  if (!in) return CDD_C_SUCCESS;\n"
                           "  for(i=0; i<len; ++i) free(in[i]);\n"
                           "  free(in);\n"
+                          "  return CDD_C_SUCCESS;\n"
                           "}\n",
                           name));
   } else if (strcmp(item_type, "object") == 0) {
@@ -64,16 +65,17 @@ write_root_array_cleanup_func(FILE *fp, const char *name, const char *item_type,
         FPRINTF_HOOK(fp,
                      "cdd_c_error_t %s_cleanup(struct %s **in, size_t len) {\n"
                      "  size_t i;\n"
-                     "  if (!in) return;\n"
+                     "  if (!in) return CDD_C_SUCCESS;\n"
                      "  for(i=0; i<len; ++i) %s_cleanup(in[i]);\n"
                      "  free(in);\n"
+                     "  return CDD_C_SUCCESS;\n"
                      "}\n",
                      name, tn, tn));
   } else {
     /* Fallback generic void* */
     CHECK_IO(FPRINTF_HOOK(fp,
                           "cdd_c_error_t %s_cleanup(void *in, size_t len) { "
-                          "(void)len; free(in); }\n",
+                          "(void)len; free(in); return CDD_C_SUCCESS; }\n",
                           name));
   }
 

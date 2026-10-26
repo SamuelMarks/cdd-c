@@ -110,7 +110,8 @@ client_body_write_multipart_part_headers(FILE *fp,
       CHECK_IO(fprintf(fp, "        }\n"));
       CHECK_IO(fprintf(fp, "        if (%s) {\n", joined_name));
       CHECK_IO(fprintf(fp,
-                       "          rc = http_request_add_part_header_last(&req, "
+                       "          rc = "
+                       "(cdd_c_error_t)http_request_add_part_header_last(&req, "
                        "\"%s\", %s);\n",
                        hdr->name, joined_name));
       CHECK_IO(fprintf(fp, "          free(%s);\n", joined_name));
@@ -238,7 +239,8 @@ client_body_write_multipart_part_headers(FILE *fp,
       CHECK_IO(fprintf(fp, "        if (%s) {\n", joined_name));
       CHECK_IO(fprintf(fp,
 
-                       "          rc = http_request_add_part_header_last(&req, "
+                       "          rc = "
+                       "(cdd_c_error_t)http_request_add_part_header_last(&req, "
                        "\"%s\", %s);\n",
                        hdr->name, joined_name));
 
@@ -257,11 +259,12 @@ client_body_write_multipart_part_headers(FILE *fp,
                   "intf(num_buf, \"%%d\", %s);\n",
                   param_name));
 
-      CHECK_IO(fprintf(fp,
+      CHECK_IO(fprintf(
+          fp,
 
-                       "        rc = http_request_add_part_header_last(&req, "
-                       "\"%s\", num_buf);\n",
-                       hdr->name));
+          "        rc = (cdd_c_error_t)http_request_add_part_header_last(&req, "
+          "\"%s\", num_buf);\n",
+          hdr->name));
 
       CHECK_IO(fprintf(fp, "        if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       CHECK_IO(fprintf(fp, "      }\n"));
@@ -274,31 +277,34 @@ client_body_write_multipart_part_headers(FILE *fp,
                   "intf(num_buf, \"%%g\", %s);\n",
                   param_name));
 
-      CHECK_IO(fprintf(fp,
+      CHECK_IO(fprintf(
+          fp,
 
-                       "        rc = http_request_add_part_header_last(&req, "
-                       "\"%s\", num_buf);\n",
-                       hdr->name));
+          "        rc = (cdd_c_error_t)http_request_add_part_header_last(&req, "
+          "\"%s\", num_buf);\n",
+          hdr->name));
 
       CHECK_IO(fprintf(fp, "        if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       CHECK_IO(fprintf(fp, "      }\n"));
     } else if (strcmp(hdr_type, "boolean") == 0) {
-      CHECK_IO(fprintf(fp,
+      CHECK_IO(fprintf(
+          fp,
 
-                       "      rc = http_request_add_part_header_last(&req, "
-                       "\"%s\", %s ? \"true\" : \"false\");\n",
-                       hdr->name, param_name));
+          "      rc = (cdd_c_error_t)http_request_add_part_header_last(&req, "
+          "\"%s\", %s ? \"true\" : \"false\");\n",
+          hdr->name, param_name));
 
       CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
 
     } else {
 
       CHECK_IO(fprintf(fp, "      if (%s) {\n", param_name));
-      CHECK_IO(fprintf(fp,
+      CHECK_IO(fprintf(
+          fp,
 
-                       "        rc = http_request_add_part_header_last(&req, "
-                       "\"%s\", %s);\n",
-                       hdr->name, param_name));
+          "        rc = (cdd_c_error_t)http_request_add_part_header_last(&req, "
+          "\"%s\", %s);\n",
+          hdr->name, param_name));
 
       CHECK_IO(fprintf(fp, "        if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       CHECK_IO(fprintf(fp, "      }\n"));
@@ -378,10 +384,11 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
             fprintf(fp, "      rc = %s_to_json(req_body->%s[i], &part_json);\n",
                     items_type, f->name));
         CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
-        CHECK_IO(fprintf(fp,
-                         "      rc = http_request_add_part(&req, \"%s\", "
-                         "NULL, %s, part_json, strlen(part_json));\n",
-                         f->name, ct_arg));
+        CHECK_IO(fprintf(
+            fp,
+            "      rc = (cdd_c_error_t)http_request_add_part(&req, \"%s\", "
+            "NULL, %s, part_json, strlen(part_json));\n",
+            f->name, ct_arg));
         CHECK_IO(fprintf(fp, "      free(part_json);\n"));
         CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
@@ -395,10 +402,11 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
         CHECK_IO(
             fprintf(fp, "      const char *val = req_body->%s[i];\n", f->name));
         CHECK_IO(fprintf(fp, "      if (!val) continue;\n"));
-        CHECK_IO(fprintf(fp,
-                         "      rc = http_request_add_part(&req, \"%s\", "
-                         "NULL, %s, val, strlen(val));\n",
-                         f->name, ct_arg));
+        CHECK_IO(fprintf(
+            fp,
+            "      rc = (cdd_c_error_t)http_request_add_part(&req, \"%s\", "
+            "NULL, %s, val, strlen(val));\n",
+            f->name, ct_arg));
         CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
 
@@ -414,10 +422,11 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
                          "intf(num_buf, \"%%d\", "
                          "req_body->%s[i]);\n",
                          f->name));
-        CHECK_IO(fprintf(fp,
-                         "      rc = http_request_add_part(&req, \"%s\", "
-                         "NULL, %s, num_buf, strlen(num_buf));\n",
-                         f->name, ct_arg));
+        CHECK_IO(fprintf(
+            fp,
+            "      rc = (cdd_c_error_t)http_request_add_part(&req, \"%s\", "
+            "NULL, %s, num_buf, strlen(num_buf));\n",
+            f->name, ct_arg));
         CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
 
@@ -438,11 +447,12 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
                          "req_body->%s[i]);\n",
                          f->name));
 
-        CHECK_IO(fprintf(fp,
+        CHECK_IO(fprintf(
+            fp,
 
-                         "      rc = http_request_add_part(&req, \"%s\", "
-                         "NULL, %s, num_buf, strlen(num_buf));\n",
-                         f->name, ct_arg));
+            "      rc = (cdd_c_error_t)http_request_add_part(&req, \"%s\", "
+            "NULL, %s, num_buf, strlen(num_buf));\n",
+            f->name, ct_arg));
 
         CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
@@ -461,11 +471,12 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
                          "\"true\" : \"false\";\n",
                          f->name));
 
-        CHECK_IO(fprintf(fp,
+        CHECK_IO(fprintf(
+            fp,
 
-                         "      rc = http_request_add_part(&req, \"%s\", "
-                         "NULL, %s, val, strlen(val));\n",
-                         f->name, ct_arg));
+            "      rc = (cdd_c_error_t)http_request_add_part(&req, \"%s\", "
+            "NULL, %s, val, strlen(val));\n",
+            f->name, ct_arg));
 
         CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
@@ -491,10 +502,11 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
         ct_arg = ct_buf;
       }
       CHECK_IO(fprintf(fp, "    if (req_body->%s) {\n", f->name));
-      CHECK_IO(fprintf(fp,
-                       "      rc = http_request_add_part(&req, \"%s\", NULL, "
-                       "%s, req_body->%s, strlen(req_body->%s));\n",
-                       f->name, ct_arg, f->name, f->name));
+      CHECK_IO(fprintf(
+          fp,
+          "      rc = (cdd_c_error_t)http_request_add_part(&req, \"%s\", NULL, "
+          "%s, req_body->%s, strlen(req_body->%s));\n",
+          f->name, ct_arg, f->name, f->name));
       CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       if (write_multipart_part_headers(fp, enc) != 0)
 
@@ -518,10 +530,11 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
                        "      spr"
                        "intf(num_buf, \"%%d\", req_body->%s);\n",
                        f->name));
-      CHECK_IO(fprintf(fp,
-                       "      rc = http_request_add_part(&req, \"%s\", NULL, "
-                       "%s, num_buf, strlen(num_buf));\n",
-                       f->name, ct_arg));
+      CHECK_IO(fprintf(
+          fp,
+          "      rc = (cdd_c_error_t)http_request_add_part(&req, \"%s\", NULL, "
+          "%s, num_buf, strlen(num_buf));\n",
+          f->name, ct_arg));
       CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       if (write_multipart_part_headers(fp, enc) != 0)
 
@@ -545,10 +558,11 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
                        "      spr"
                        "intf(num_buf, \"%%g\", req_body->%s);\n",
                        f->name));
-      CHECK_IO(fprintf(fp,
-                       "      rc = http_request_add_part(&req, \"%s\", NULL, "
-                       "%s, num_buf, strlen(num_buf));\n",
-                       f->name, ct_arg));
+      CHECK_IO(fprintf(
+          fp,
+          "      rc = (cdd_c_error_t)http_request_add_part(&req, \"%s\", NULL, "
+          "%s, num_buf, strlen(num_buf));\n",
+          f->name, ct_arg));
       CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       if (write_multipart_part_headers(fp, enc) != 0)
 
@@ -571,10 +585,11 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
                        "    {\n      const char *val = req_body->%s ? "
                        "\"true\" : \"false\";\n",
                        f->name));
-      CHECK_IO(fprintf(fp,
-                       "      rc = http_request_add_part(&req, \"%s\", NULL, "
-                       "%s, val, strlen(val));\n",
-                       f->name, ct_arg));
+      CHECK_IO(fprintf(
+          fp,
+          "      rc = (cdd_c_error_t)http_request_add_part(&req, \"%s\", NULL, "
+          "%s, val, strlen(val));\n",
+          f->name, ct_arg));
       CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       if (write_multipart_part_headers(fp, enc) != 0)
 
@@ -603,10 +618,11 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
                          "      rc = %s_to_json(req_body->%s, &part_json);\n",
                          f->ref, f->name));
         CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
-        CHECK_IO(fprintf(fp,
-                         "      rc = http_request_add_part(&req, \"%s\", "
-                         "NULL, %s, part_json, strlen(part_json));\n",
-                         f->name, ct_arg));
+        CHECK_IO(fprintf(
+            fp,
+            "      rc = (cdd_c_error_t)http_request_add_part(&req, \"%s\", "
+            "NULL, %s, part_json, strlen(part_json));\n",
+            f->name, ct_arg));
         CHECK_IO(fprintf(fp, "      free(part_json);\n"));
         CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
@@ -622,7 +638,8 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
       }
     }
   }
-  CHECK_IO(fprintf(fp, "  rc = http_request_flatten_parts(&req);\n"));
+  CHECK_IO(
+      fprintf(fp, "  rc = (cdd_c_error_t)http_request_flatten_parts(&req);\n"));
   CHECK_IO(fprintf(fp, "  if (rc != CDD_C_SUCCESS) goto cleanup;\n\n"));
   return CDD_C_SUCCESS;
 }

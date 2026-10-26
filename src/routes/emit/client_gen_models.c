@@ -50,7 +50,8 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
     }
   }
   if (fprintf(mhfile,
-              "#include <c_cdd_stdbool.h>\n#include <cdd_c_error.h>\n") < 0) {
+              "#include \"c_cdd_stdbool.h\"\n#include \"cdd_c_error.h\"\n") <
+      0) {
     rc = CDD_C_SUCCESS;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",

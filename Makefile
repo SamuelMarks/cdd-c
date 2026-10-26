@@ -38,7 +38,10 @@ build:
 
 test:
 	mkdir -p build_cmake
-	cd build_cmake && cmake -S .. -B . && cmake --build . && ctest --output-on-failure
+	cd build_cmake && cmake -S .. -B . && cmake --build .
+	mkdir -p $(BIN_DIR)
+	cp build_cmake/bin/cdd-c $(BIN_DIR)/cdd-c 2>/dev/null || cp build_cmake/cdd-c $(BIN_DIR)/cdd-c 2>/dev/null || cp build_cmake/bin/Release/cdd-c.exe $(BIN_DIR)/ 2>/dev/null || cp build_cmake/Release/cdd-c.exe $(BIN_DIR)/ 2>/dev/null || echo "Ensure cdd-c is built."
+	cd build_cmake && ctest --output-on-failure
 
 run: build
 	$(CLI_BIN) $(ARGS)

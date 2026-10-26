@@ -18,6 +18,7 @@ cdd_c_error_t
 client_body_write_cookie_param_logic(FILE *fp,
                                      const struct OpenAPI_Operation *op) {
   size_t i;
+  int has_cookie_param = 0;
 
   if (!fp || !op)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -29,6 +30,7 @@ client_body_write_cookie_param_logic(FILE *fp,
 
       continue;
 
+    has_cookie_param = 1;
     {
       const struct OpenAPI_Parameter *p = &op->parameters[i];
       const char *item_type = p->items_type ? p->items_type : "string";
@@ -788,10 +790,13 @@ client_body_write_cookie_param_logic(FILE *fp,
     }
   }
 
+  if (!has_cookie_param)
+    return CDD_C_SUCCESS;
+
   CHECK_IO(fprintf(fp, "  if (cookie_str) {\n"));
   CHECK_IO(fprintf(
-      fp,
-      "    rc = http_headers_add(&req.headers, \"Cookie\", cookie_str);\n"));
+      fp, "    rc = (cdd_c_error_t)http_headers_add(&req.headers, \"Cookie\", "
+          "cookie_str);\n"));
   CHECK_IO(fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
   CHECK_IO(fprintf(fp, "  }\n"));
 

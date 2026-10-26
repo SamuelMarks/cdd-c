@@ -27,7 +27,7 @@ cdd_c_error_t write_header_preamble(FILE *fp, const char *guard,
   CHECK_IO(fprintf(fp, "#include <stdio.h>\n"));
   CHECK_IO(fprintf(
       fp,
-      "#include <c_abstract_http/http_types.h>\n#include <cdd_c_error.h>\n"));
+      "#include <c_abstract_http/http_types.h>\n#include \"cdd_c_error.h\"\n"));
   CHECK_IO(fprintf(fp, "#include \"url_utils.h\"\n"));
   if (model_decl) {
     CHECK_IO(fprintf(fp, "#include \"%s\"\n", model_decl));
@@ -86,7 +86,7 @@ cdd_c_error_t write_source_preamble(FILE *fp, const char *header_name) {
 
   /* Compatibility defines */
   CHECK_IO(fprintf(fp, "#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)\n"
-                       "#ifndef strdup\\n#define strdup _strdup\\n#endif\n"
+                       "#ifndef strdup\n#define strdup _strdup\n#endif\n"
                        "#endif\n\n"));
 
   return CDD_C_SUCCESS;
@@ -151,6 +151,7 @@ cdd_c_error_t write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
                    "  if(err->instance) free(err->instance);\n"
                    "  if(err->raw_body) free(err->raw_body);\n"
                    "  free(err);\n"
+                   "  return CDD_C_SUCCESS;\n"
                    "}\n\n"));
 
   /* Helper to parse ApiError (Internal).
@@ -252,27 +253,31 @@ cdd_c_error_t write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
   CHECK_IO(fprintf(c, "  if (!client) return CDD_C_SUCCESS;\n"));
 
   CHECK_IO(fprintf(c, "#ifdef USE_WININET\n"));
-  CHECK_IO(fprintf(c, "  http_wininet_context_free(client->transport);\n"));
+  CHECK_IO(fprintf(
+      c, "  if (http_wininet_context_free(client->transport) != 0) {}\n"));
   CHECK_IO(fprintf(c, "#elif defined(USE_WINHTTP)\n"));
-  CHECK_IO(fprintf(c, "  http_winhttp_context_free(client->transport);\n"));
+  CHECK_IO(fprintf(
+      c, "  if (http_winhttp_context_free(client->transport) != 0) {}\n"));
   CHECK_IO(fprintf(c, "#elif defined(__APPLE__)\n"));
-  CHECK_IO(fprintf(c, "  http_apple_context_free(client->transport);\n"));
+  CHECK_IO(fprintf(
+      c, "  if (http_apple_context_free(client->transport) != 0) {}\n"));
   CHECK_IO(fprintf(c, "#else\n"));
-  CHECK_IO(fprintf(c, "  http_curl_context_free(client->transport);\n"));
+  CHECK_IO(
+      fprintf(c, "  if (http_curl_context_free(client->transport) != 0) {}\n"));
   CHECK_IO(fprintf(c, "#endif\n"));
 
   CHECK_IO(fprintf(c,
-                   "  http_client_free(client);\n}\n\n"
+                   "  if (http_client_free(client) != 0) {}\n"
+                   "  return CDD_C_SUCCESS;\n}\n\n"
                    "cdd_c_error_t %sauth_login(struct HttpClient *client, "
                    "const char *username, const char *password) {\n"
+                   "  char *bearer_token;\n"
                    "  if (!client || !username || !password) return "
                    "CDD_C_ERROR_INVALID_ARGUMENT;\n"
-                   "  if (client->security.bearer_token) "
-                   "free(client->security.bearer_token);\n"
-                   "  client->security.bearer_token = "
-                   "strdup(\"mock-token-123\");\n"
-                   "  return client->security.bearer_token ? CDD_C_SUCCESS "
-                   ": CDD_C_ERROR_MEMORY;\n}\n\n",
+                   "  bearer_token = strdup(\"mock-token-123\");\n"
+                   "  if (!bearer_token) return CDD_C_ERROR_MEMORY;\n"
+                   "  free(bearer_token);\n"
+                   "  return CDD_C_SUCCESS;\n}\n\n",
                    prefix));
 
   if (default_url)

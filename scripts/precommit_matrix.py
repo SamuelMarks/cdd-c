@@ -157,6 +157,8 @@ def main():
 
             if os.path.exists(os.path.join(build_dir, "bin", "cdd-c")):
                 shutil.copy(os.path.join(build_dir, "bin", "cdd-c"), "bin/cdd-c")
+            elif os.path.exists(os.path.join(build_dir, "cdd-c")):
+                shutil.copy(os.path.join(build_dir, "cdd-c"), "bin/cdd-c")
             if os.path.exists(os.path.join(build_dir, "compile_commands.json")):
                 shutil.copy(
                     os.path.join(build_dir, "compile_commands.json"),
@@ -184,6 +186,8 @@ def main():
 
             if os.path.exists(os.path.join(build_dir, "bin", "cdd-c")):
                 shutil.copy(os.path.join(build_dir, "bin", "cdd-c"), "bin/cdd-c")
+            elif os.path.exists(os.path.join(build_dir, "cdd-c")):
+                shutil.copy(os.path.join(build_dir, "cdd-c"), "bin/cdd-c")
             if os.path.exists(os.path.join(build_dir, "compile_commands.json")):
                 shutil.copy(
                     os.path.join(build_dir, "compile_commands.json"),

@@ -127,7 +127,7 @@ TEST test_walk_directory(void) {
              asprintf(&root, "%s%swalk_test_%d", sys_tmp, PATH_SEP, rand()));
   free(sys_tmp);
 
-  rc = makedir(root);
+  rc = makedirs(root);
   ASSERT_EQ(0, rc);
 
   {

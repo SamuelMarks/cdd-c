@@ -32,6 +32,9 @@ extern C_CDD_EXPORT int g_cdd_fopen_fail;
 extern C_CDD_EXPORT int g_cdd_fprintf_fail;
 /** @brief Test definition g_build_system_fail_io_after. */
 extern C_CDD_EXPORT int g_build_system_fail_io_after;
+/** @brief Prototype for client_gen_emit_url_utils_h. */
+extern C_CDD_EXPORT cdd_c_error_t
+client_gen_emit_url_utils_h(const char *dir_name);
 
 /**
  * @brief Unit test test_client_gen_defined_schemas.
@@ -679,6 +682,7 @@ TEST test_client_gen_mock_errors(void) {
   config.model_header = NULL;
 
   /* mock 54: uh fopen fail */
+  ASSERT_EQ(CDD_C_SUCCESS, client_gen_emit_url_utils_h("/nonexistent_dir_xyz"));
   config.no_installable_package = 0;
   g_cdd_fopen_fail = 5;
   ASSERT_EQ(CDD_C_SUCCESS, openapi_client_generate(&spec, &config));

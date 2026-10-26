@@ -33,9 +33,12 @@ cdd_c_error_t client_gen_emit_mocks(const char *dir_name,
   CDD_SNPRINTF(tfile, sizeof(tfile), "%s/test_sdk.c", tdir);
   cdd_vfs_fopen(tfile, "w", &tfp);
   if (tfp) {
-    fprintf(tfp, "#include <stdio.h>\n#include <stdlib.h>\n#include "
-                 "<string.h>\n#include \"generated_client_models.h\"\n#include "
-                 "\"c_cdd/safe_crt.h\"\n");
+    fprintf(tfp,
+            "#include <stdio.h>\n#include <stdlib.h>\n#include "
+            "<string.h>\n#include <c_abstract_http/http_types.h>\n#include "
+            "\"generated_client_models.h\"\n#if defined(_MSC_VER)\n#define "
+            "CDD_SNPRINTF _snprintf\n#else\n#define CDD_SNPRINTF "
+            "snprintf\n#endif\n");
     fprintf(tfp, "#if defined(__APPLE__)\n#include "
                  "<c_abstract_http/http_apple.h>\n#define "
                  "C_ABSTRACT_HTTP_INIT http_apple_context_init\n#define "
@@ -43,9 +46,12 @@ cdd_c_error_t client_gen_emit_mocks(const char *dir_name,
                  "<c_abstract_http/http_curl.h>\n#define "
                  "C_ABSTRACT_HTTP_INIT http_curl_context_init\n#define "
                  "C_ABSTRACT_HTTP_SEND http_curl_send\n#endif\n");
-    fprintf(tfp, "int main(void) {\n  struct HttpClient client;\n  "
-                 "C_ABSTRACT_HTTP_INIT(&client.transport);\n  client.send = "
-                 "C_ABSTRACT_HTTP_SEND;\n");
+    fprintf(tfp,
+            "int main(void) {\n  int failures = 0;\n  struct HttpClient "
+            "client;\n  "
+            "if (C_ABSTRACT_HTTP_INIT(&client.transport) != 0) failures++;\n  "
+            "client.send = "
+            "C_ABSTRACT_HTTP_SEND;\n");
 
     for (i = 0; i < spec->n_paths; ++i) {
       for (j = 0; j < spec->paths[i].n_operations; ++j) {
@@ -74,7 +80,7 @@ cdd_c_error_t client_gen_emit_mocks(const char *dir_name,
                 "    const char *base_url = NULL;\n    char url_buf[1024];\n"
                 "    struct HttpResponse *res = NULL;\n"
                 "    int allowed = 0;\n    "
-                "http_request_init(&req);\n");
+                "if (http_request_init(&req) != 0) failures++;\n");
         fprintf(tfp, "    req.method = HTTP_%s;\n", method);
         if (op->verb == OA_VERB_POST || op->verb == OA_VERB_PUT ||
             op->verb == OA_VERB_PATCH) {
@@ -179,7 +185,8 @@ cdd_c_error_t client_gen_emit_mocks(const char *dir_name,
                 parsed_base_path, formatted_path);
         fprintf(tfp, "    }\n");
         fprintf(tfp, "    req.url = url_buf;\n");
-        fprintf(tfp, "    client.send(client.transport, &req, &res);\n");
+        fprintf(tfp,
+                "    if (client.send(client.transport, &req, &res) != 0) {}\n");
 
         fprintf(tfp, "    if (res && res->status_code >= 200 && "
                      "res->status_code < 300) allowed = 1;\n");
@@ -191,6 +198,7 @@ cdd_c_error_t client_gen_emit_mocks(const char *dir_name,
                     atoi(op->responses[r].code));
           }
         }
+        fprintf(tfp, "    if (!res || res->status_code >= 400) allowed = 0;\n");
         fprintf(tfp, "    if (allowed) {\n");
 
         if (op->n_responses > 0 && op->responses[0].schema.ref_name &&
@@ -211,19 +219,21 @@ cdd_c_error_t client_gen_emit_mocks(const char *dir_name,
                   op->responses[0].schema.ref_name);
           fprintf(tfp, "            if (rc != CDD_C_SUCCESS) { "
                        "fprintf(stderr, \"Parse "
-                       "failed\\n\");  }\n");
+                       "failed\\n\"); failures++; }\n");
           fprintf(tfp, "            free(body_str);\n");
           fprintf(tfp, "        }\n");
         }
         fprintf(tfp,
                 "    } else { fprintf(stderr, \"Status %%d on %%s\\n\", res ? "
-                "res->status_code : 0, req.url);  }\n");
-        fprintf(tfp, "    http_response_free(res);\n");
+                "res->status_code : 0, req.url); failures++; }\n");
+        fprintf(tfp, "    if (res) { if (http_response_free(res) != 0) {} "
+                     "free(res); }\n");
+        fprintf(tfp, "    free(hdrs);\n");
         fprintf(tfp, "  }\n");
       }
     }
 
-    fprintf(tfp, "  return CDD_C_SUCCESS;\n}\n");
+    fprintf(tfp, "  return failures > 0 ? 1 : 0;\n}\n");
     fclose(tfp);
   }
 

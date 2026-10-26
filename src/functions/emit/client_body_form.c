@@ -681,8 +681,10 @@ client_body_write_form_urlencoded_body(FILE *fp,
   CHECK_IO(fprintf(fp, "  req.body = form_body;\n"));
   CHECK_IO(fprintf(fp, "  req.body_len = strlen(form_body);\n"));
   CHECK_IO(fprintf(
-      fp, "  http_headers_add(&req.headers, "
-          "\"Content-Type\", \"application/x-www-form-urlencoded\");\n\n"));
+      fp,
+      "  rc = (cdd_c_error_t)http_headers_add(&req.headers, "
+      "\"Content-Type\", \"application/x-www-form-urlencoded\");\n  if (rc != "
+      "CDD_C_SUCCESS) goto cleanup;\n\n"));
 
   return CDD_C_SUCCESS;
 }

@@ -115,23 +115,43 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
     return CDD_C_ERROR_IO;
 
   /* Dependency Logic */
-  if (CHECK_IO_RC(
-          fprintf(fp, "set(BUILD_TESTING OFF CACHE BOOL \"\" FORCE)\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(
-          fprintf(fp, "set(BUILD_TESTING OFF CACHE BOOL \"\" FORCE)\n")))
+  if (CHECK_IO_RC(fprintf(
+          fp, "set(_CDD_OLD_BUILD_TESTING \"${BUILD_TESTING}\")\n"
+              "set(PARSON_BUILD_TESTING OFF CACHE BOOL \"\" FORCE)\n"
+              "set(C89STRINGUTILS_BUILD_TESTING OFF CACHE BOOL \"\" FORCE)\n"
+              "set(C_STR_SPAN_BUILD_TESTING OFF CACHE BOOL \"\" FORCE)\n"
+              "set(CFS_BUILD_TESTS OFF CACHE BOOL \"\" FORCE)\n"
+              "set(C_ABSTRACT_HTTP_BUILD_TESTS OFF CACHE BOOL \"\" FORCE)\n"
+              "set(BUILD_TESTING OFF)\n")))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "include(FetchContent)\n")))
     return CDD_C_ERROR_IO;
-
   if (CHECK_IO_RC(
-          fprintf(fp, "set(BUILD_TESTING OFF CACHE BOOL \"\" FORCE)\n")))
+          fprintf(fp, "macro(cdd_sdk_declare_dep NAME DIR_NAME "
+                      "GIT_REPO)\n"
+                      "    set(_DEP_DIR \"\")\n"
+                      "    get_filename_component(_CUR_REAL "
+                      "\"${CMAKE_CURRENT_SOURCE_DIR}\" REALPATH)\n"
+                      "    foreach(_rel \"../..\" \"../../..\" \"../../../..\" "
+                      "\"../../../../..\")\n"
+                      "        if(EXISTS "
+                      "\"${_CUR_REAL}/${_rel}/${DIR_NAME}/"
+                      "CMakeLists.txt\")\n"
+                      "            get_filename_component(_DEP_DIR "
+                      "\"${_CUR_REAL}/${_rel}/${DIR_NAME}\" REALPATH)\n"
+                      "            break()\n"
+                      "        endif()\n"
+                      "    endforeach()\n")))
     return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(
-          fprintf(fp, "set(BUILD_TESTING OFF CACHE BOOL \"\" FORCE)\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(
-          fprintf(fp, "set(BUILD_TESTING OFF CACHE BOOL \"\" FORCE)\n")))
+  if (CHECK_IO_RC(fprintf(fp,
+                          "    if(_DEP_DIR)\n"
+                          "        FetchContent_Declare(${NAME} SOURCE_DIR "
+                          "\"${_DEP_DIR}\")\n"
+                          "    else()\n"
+                          "        FetchContent_Declare(${NAME} GIT_REPOSITORY "
+                          "\"${GIT_REPO}\" GIT_TAG \"master\")\n"
+                          "    endif()\n"
+                          "endmacro()\n\n")))
     return CDD_C_ERROR_IO;
   /* parson */
   if (CHECK_IO_RC(
@@ -155,32 +175,10 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
   if (CHECK_IO_RC(fprintf(fp, "    if(NOT parson_RESOLVED)\n")))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp,
-                          "        if(EXISTS "
-                          "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../parson/"
-                          "CMakeLists.txt\")\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(
-          fp, "            FetchContent_Declare(parson SOURCE_DIR "
-              "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../parson\")\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        else()\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(
-          fp, "            FetchContent_Declare(parson GIT_REPOSITORY "
-              "\"https://github.com/SamuelMarks/parson.git\"\n"
-              "                                        GIT_TAG \"master\")\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        endif()\n")))
+                          "        cdd_sdk_declare_dep(parson \"parson\" "
+                          "\"https://github.com/SamuelMarks/parson.git\")\n")))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "        FetchContent_MakeAvailable(parson)\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        if(NOT TARGET parson)\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(
-          fprintf(fp, "            add_subdirectory(\"${parson_SOURCE_DIR}\" "
-                      "\"${parson_BINARY_DIR}\")\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        endif()\n")))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(
           fp,
@@ -212,34 +210,12 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "    if(NOT c89stringutils_RESOLVED)\n")))
     return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        if(EXISTS "
-                              "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../"
-                              "c89stringutils/CMakeLists.txt\")\n")))
-    return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(
-          fp,
-          "            FetchContent_Declare(c89stringutils SOURCE_DIR "
-          "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../c89stringutils\")\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        else()\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(
-          fp, "            FetchContent_Declare(c89stringutils GIT_REPOSITORY "
-              "\"https://github.com/offscale/c89stringutils.git\"\n"
-              "                                        GIT_TAG \"master\")\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        endif()\n")))
+          fp, "        cdd_sdk_declare_dep(c89stringutils \"c89stringutils\" "
+              "\"https://github.com/offscale/c89stringutils.git\")\n")))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(
           fprintf(fp, "        FetchContent_MakeAvailable(c89stringutils)\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        if(NOT TARGET c89stringutils)\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(
-          fp, "            add_subdirectory(\"${c89stringutils_SOURCE_DIR}\" "
-              "\"${c89stringutils_BINARY_DIR}\")\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        endif()\n")))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(
           fprintf(fp, "        include_directories(SYSTEM "
@@ -272,36 +248,48 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
   if (CHECK_IO_RC(fprintf(fp, "    if(NOT c_str_span_RESOLVED)\n")))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(
-          fprintf(fp, "        if(EXISTS "
-                      "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../c-str-span/"
-                      "CMakeLists.txt\")\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(
-          fp, "            FetchContent_Declare(c_str_span SOURCE_DIR "
-              "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../c-str-span\")\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        else()\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(
-          fp, "            FetchContent_Declare(c_str_span GIT_REPOSITORY "
-              "\"https://github.com/SamuelMarks/c-str-span.git\"\n"
-              "                                        GIT_TAG \"master\")\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        endif()\n")))
+          fprintf(fp, "        cdd_sdk_declare_dep(c_str_span \"c-str-span\" "
+                      "\"https://github.com/SamuelMarks/c-str-span.git\")\n")))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(
           fprintf(fp, "        FetchContent_MakeAvailable(c_str_span)\n")))
     return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        if(NOT TARGET c_str_span)\n")))
+  if (CHECK_IO_RC(fprintf(fp, "        include_directories(SYSTEM "
+                              "\"${c_str_span_SOURCE_DIR}\")\n")))
     return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(
-          fp, "            add_subdirectory(\"${c_str_span_SOURCE_DIR}\" "
-              "\"${c_str_span_BINARY_DIR}\")\n")))
+  if (CHECK_IO_RC(fprintf(fp, "    endif()\n")))
+    return CDD_C_ERROR_IO;
+  if (CHECK_IO_RC(fprintf(fp, "endif()\n\n")))
+    return CDD_C_ERROR_IO;
+  /* cfs */
+  if (CHECK_IO_RC(fprintf(fp,
+                          "if(TARGET cfs)\n    message(STATUS \"cfs already "
+                          "provided by parent\")\nelse()\n")))
+    return CDD_C_ERROR_IO;
+  if (CHECK_IO_RC(fprintf(fp, "    set(cfs_RESOLVED OFF)\n")))
+    return CDD_C_ERROR_IO;
+  if (CHECK_IO_RC(fprintf(fp, "    if(VCPKG_TOOLCHAIN)\n")))
+    return CDD_C_ERROR_IO;
+  if (CHECK_IO_RC(fprintf(fp, "        find_package(cfs CONFIG QUIET)\n")))
+    return CDD_C_ERROR_IO;
+  if (CHECK_IO_RC(fprintf(fp, "        if(cfs_FOUND)\n")))
+    return CDD_C_ERROR_IO;
+  if (CHECK_IO_RC(fprintf(fp, "            set(cfs_RESOLVED ON)\n")))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "        endif()\n")))
     return CDD_C_ERROR_IO;
+  if (CHECK_IO_RC(fprintf(fp, "    endif()\n")))
+    return CDD_C_ERROR_IO;
+  if (CHECK_IO_RC(fprintf(fp, "    if(NOT cfs_RESOLVED)\n")))
+    return CDD_C_ERROR_IO;
+  if (CHECK_IO_RC(fprintf(fp,
+                          "        cdd_sdk_declare_dep(cfs \"c-fs\" "
+                          "\"https://github.com/SamuelMarks/c-fs.git\")\n")))
+    return CDD_C_ERROR_IO;
+  if (CHECK_IO_RC(fprintf(fp, "        FetchContent_MakeAvailable(cfs)\n")))
+    return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "        include_directories(SYSTEM "
-                              "\"${c_str_span_SOURCE_DIR}\")\n")))
+                              "\"${cfs_SOURCE_DIR}/include\")\n")))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "    endif()\n")))
     return CDD_C_ERROR_IO;
@@ -330,34 +318,12 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "    if(NOT c_abstract_http_RESOLVED)\n")))
     return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        if(EXISTS "
-                              "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../"
-                              "c-abstract-http/CMakeLists.txt\")\n")))
-    return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(
-          fp,
-          "            FetchContent_Declare(c-abstract-http SOURCE_DIR "
-          "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../c-abstract-http\")\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        else()\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(
-          fp, "            FetchContent_Declare(c-abstract-http GIT_REPOSITORY "
-              "\"https://github.com/SamuelMarks/c-abstract-http.git\"\n"
-              "                                        GIT_TAG \"master\")\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        endif()\n")))
+          fp, "        cdd_sdk_declare_dep(c-abstract-http \"c-abstract-http\" "
+              "\"https://github.com/SamuelMarks/c-abstract-http.git\")\n")))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(
           fprintf(fp, "        FetchContent_MakeAvailable(c-abstract-http)\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        if(NOT TARGET c-abstract-http)\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(
-          fp, "            add_subdirectory(\"${c-abstract-http_SOURCE_DIR}\" "
-              "\"${c-abstract-http_BINARY_DIR}\")\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        endif()\n")))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "        include_directories(SYSTEM "
                               "\"${c-abstract-http_SOURCE_DIR}/include\")\n")))
@@ -367,8 +333,23 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
   if (CHECK_IO_RC(fprintf(fp, "endif()\n\n")))
     return CDD_C_ERROR_IO;
 
+  if (CHECK_IO_RC(fprintf(
+          fp, "if(APPLE AND TARGET c-abstract-http)\n"
+              "    get_target_property(_cah_opts c-abstract-http "
+              "COMPILE_OPTIONS)\n"
+              "    if(_cah_opts)\n"
+              "        list(REMOVE_ITEM _cah_opts \"-Werror\")\n"
+              "        set_target_properties(c-abstract-http PROPERTIES "
+              "COMPILE_OPTIONS \"${_cah_opts}\")\n"
+              "    endif()\n"
+              "endif()\n"
+              "set(BUILD_TESTING \"${_CDD_OLD_BUILD_TESTING}\")\n\n")))
+    return CDD_C_ERROR_IO;
+
   if (CHECK_IO_RC(
-          fprintf(fp, "target_link_libraries(%s PUBLIC c-abstract-http)\n\n",
+          fprintf(fp,
+                  "target_link_libraries(%s PUBLIC c-abstract-http parson "
+                  "c89stringutils)\n\n",
                   project_name)))
     return CDD_C_ERROR_IO;
 
@@ -391,23 +372,11 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
 
   /* Tests */
   if (has_tests) {
-    if (CHECK_IO_RC(
-            fprintf(fp, "set(BUILD_TESTING ON CACHE BOOL \"\" FORCE)\n")))
-      return CDD_C_ERROR_IO;
-    if (CHECK_IO_RC(
-            fprintf(fp, "set(BUILD_TESTING ON CACHE BOOL \"\" FORCE)\n")))
-      return CDD_C_ERROR_IO;
-    if (CHECK_IO_RC(
-            fprintf(fp, "set(BUILD_TESTING ON CACHE BOOL \"\" FORCE)\n")))
-      return CDD_C_ERROR_IO;
-    if (CHECK_IO_RC(
-            fprintf(fp, "set(BUILD_TESTING ON CACHE BOOL \"\" FORCE)\n")))
-      return CDD_C_ERROR_IO;
     if (CHECK_IO_RC(fprintf(fp, "include(CTest)\n")))
       return CDD_C_ERROR_IO;
-    if (CHECK_IO_RC(fprintf(fp, "if (BUILD_TESTING)\n")))
+    if (CHECK_IO_RC(fprintf(fp, "enable_testing()\n")))
       return CDD_C_ERROR_IO;
-    if (CHECK_IO_RC(fprintf(fp, "    enable_testing()\n")))
+    if (CHECK_IO_RC(fprintf(fp, "if (BUILD_TESTING)\n")))
       return CDD_C_ERROR_IO;
 
     if (CHECK_IO_RC(fprintf(fp, "    if(VCPKG_TOOLCHAIN)\n")))
@@ -418,10 +387,30 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
     if (CHECK_IO_RC(fprintf(fp, "    else()\n")))
       return CDD_C_ERROR_IO;
     if (CHECK_IO_RC(fprintf(
+            fp, "        set(_GREATEST_H \"\")\n"
+                "        get_filename_component(_CUR_REAL "
+                "\"${CMAKE_CURRENT_SOURCE_DIR}\" REALPATH)\n"
+                "        foreach(_rel \"../..\" \"../../..\" \"../../../..\" "
+                "\"../../../../..\")\n"
+                "            if(EXISTS "
+                "\"${_CUR_REAL}/${_rel}/greatest/greatest.h\")\n"
+                "                get_filename_component(_GREATEST_H "
+                "\"${_CUR_REAL}/${_rel}/greatest/greatest.h\" "
+                "REALPATH)\n"
+                "                break()\n"
+                "            endif()\n"
+                "        endforeach()\n")))
+      return CDD_C_ERROR_IO;
+    if (CHECK_IO_RC(fprintf(
             fp,
-            "        file(DOWNLOAD "
+            "        if(_GREATEST_H)\n"
+            "            file(COPY \"${_GREATEST_H}\" DESTINATION "
+            "\"${CMAKE_CURRENT_BINARY_DIR}\")\n"
+            "        else()\n"
+            "            file(DOWNLOAD "
             "https://raw.githubusercontent.com/silentbicycle/greatest/master/"
-            "greatest.h \"${CMAKE_CURRENT_BINARY_DIR}/greatest.h\")\n")))
+            "greatest.h \"${CMAKE_CURRENT_BINARY_DIR}/greatest.h\")\n"
+            "        endif()\n")))
       return CDD_C_ERROR_IO;
     if (CHECK_IO_RC(fprintf(fp, "    endif()\n\n")))
       return CDD_C_ERROR_IO;
@@ -526,21 +515,38 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
     fclose(fp);
     return CDD_C_ERROR_IO;
   }
-  if (CHECK_IO_RC(fprintf(fp, "if(BUILD_TESTING)\n"))) {
-    fclose(fp);
-    return CDD_C_ERROR_IO;
-  }
-  if (CHECK_IO_RC(fprintf(fp, "  enable_testing()\n"))) {
-    fclose(fp);
-    return CDD_C_ERROR_IO;
-  }
-  if (CHECK_IO_RC(fprintf(fp, "endif()\n\n"))) {
-    fclose(fp);
-    return CDD_C_ERROR_IO;
+  if (has_tests) {
+    if (CHECK_IO_RC(fprintf(fp, "enable_testing()\n\n"))) {
+      fclose(fp);
+      return CDD_C_ERROR_IO;
+    }
+  } else {
+    if (CHECK_IO_RC(fprintf(fp, "if(BUILD_TESTING)\n"))) {
+      fclose(fp);
+      return CDD_C_ERROR_IO;
+    }
+    if (CHECK_IO_RC(fprintf(fp, "  enable_testing()\n"))) {
+      fclose(fp);
+      return CDD_C_ERROR_IO;
+    }
+    if (CHECK_IO_RC(fprintf(fp, "endif()\n\n"))) {
+      fclose(fp);
+      return CDD_C_ERROR_IO;
+    }
   }
   if (CHECK_IO_RC(fprintf(fp, "add_subdirectory(src)\n"))) {
     fclose(fp);
     return CDD_C_ERROR_IO;
+  }
+  if (has_tests) {
+    if (CHECK_IO_RC(fprintf(
+            fp,
+            "if(TARGET test_%s)\n  add_test(NAME test_%s COMMAND test_%s)\n"
+            "endif()\n",
+            project_name, project_name, project_name))) {
+      fclose(fp);
+      return CDD_C_ERROR_IO;
+    }
   }
   fclose(fp);
 
