@@ -549,7 +549,7 @@ add_subdirectory("src")
 
 
 find_program(MEMORYCHECK_COMMAND NAMES valgrind)
-set(MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full --error-exitcode=1")
+set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --error-exitcode=1")
 option(C_CDD_USE_ASAN "Enable AddressSanitizer" OFF)
 option(C_CDD_USE_UBSAN "Enable UndefinedBehaviorSanitizer" OFF)
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)

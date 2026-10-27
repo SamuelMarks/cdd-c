@@ -688,11 +688,9 @@ TEST test_weaver_interactive(void) {
   struct PatchList patches;
   struct TokenList *tl = NULL;
   const char *src = cdd_test_mut_str("int a[n];");
-  int res;
   FILE *fake_stdin;
   char tmp_name[32];
 
-  (void)res;
   patch_list_init(&patches);
   patches.capacity = 1;
   patches.size = 1;
@@ -721,6 +719,7 @@ TEST test_weaver_interactive(void) {
 #ifndef _WIN32
 
   {
+    int res;
     FILE *f;
 #if defined(_MSC_VER)
     if (fopen_s(&f, tmp_name, "w") != 0)
@@ -734,7 +733,6 @@ TEST test_weaver_interactive(void) {
     if (freopen(tmp_name, "r", stdin)) {
     }
     res = weaver_vla_to_alloca(&patches, tl, 0, 1, "int", "a", "n", 1);
-    (void)res;
     ASSERT_EQ(CDD_C_SUCCESS, res);
 
     res = weaver_vla_to_alloca(&patches, tl, 0, 1, "int", "a", "n", 1);

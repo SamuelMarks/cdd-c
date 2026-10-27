@@ -35,7 +35,6 @@ jobs:
       - name: Run Tests with Valgrind
         run: |
           cd build_valgrind
-          export RUNNING_UNDER_VALGRIND=1
           ctest -T memcheck --output-on-failure
 
   release-wasm:

@@ -394,7 +394,6 @@ def main():
                 sys.exit(0)
             print("Running valgrind on tests...")
             env = os.environ.copy()
-            env["RUNNING_UNDER_VALGRIND"] = "1"
             for dp, dn, filenames in os.walk(build_dir):
                 if "_deps" in dp:
                     continue

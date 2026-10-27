@@ -655,8 +655,7 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
       CHECK_IO(fprintf(
           fp, "        cdd_c_error_t api_rc = ApiError_from_json((const "
               "char*)res->body, api_error);\n"));
-      CHECK_IO(fprintf(fp, "        if (api_rc != CDD_C_SUCCESS) { "
-                           "(void)api_rc; }\n"));
+      CHECK_IO(fprintf(fp, "        if (api_rc != CDD_C_SUCCESS) {}\n"));
       CHECK_IO(fprintf(fp, "      }\n"));
       CHECK_IO(fprintf(fp, "      break;\n"));
     }
@@ -724,9 +723,7 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
                              "ApiError_from_json((const char*)res->body, "
                              "api_error);\n"));
 
-        CHECK_IO(fprintf(fp, "        if (api_rc != CDD_C_SUCCESS) { "
-
-                             "(void)api_rc; }\n"));
+        CHECK_IO(fprintf(fp, "        if (api_rc != CDD_C_SUCCESS) {}\n"));
 
         CHECK_IO(fprintf(fp, "      }\n"));
         CHECK_IO(fprintf(fp, "    }\n"));
@@ -799,9 +796,7 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
           fp, "      cdd_c_error_t api_rc = ApiError_from_json((const "
               "char*)res->body, api_error);\n"));
 
-      CHECK_IO(fprintf(fp, "      if (api_rc != CDD_C_SUCCESS) { "
-
-                           "(void)api_rc; }\n"));
+      CHECK_IO(fprintf(fp, "      if (api_rc != CDD_C_SUCCESS) {}\n"));
 
       CHECK_IO(fprintf(fp, "    }\n"));
     }
@@ -811,8 +806,7 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
     CHECK_IO(fprintf(fp,
                      "      cdd_c_error_t api_rc = ApiError_from_json((const "
                      "char*)res->body, api_error);\n"));
-    CHECK_IO(fprintf(fp, "      if (api_rc != CDD_C_SUCCESS) { "
-                         "(void)api_rc; }\n"));
+    CHECK_IO(fprintf(fp, "      if (api_rc != CDD_C_SUCCESS) {}\n"));
     CHECK_IO(fprintf(fp, "    }\n"));
   }
   CHECK_IO(fprintf(fp, "  }\n\n"));
