@@ -21,6 +21,8 @@
  * @brief Wraps a CST header tree in `#ifdef __cplusplus extern "C" { #endif`
  * guards if not already present.
  *
+ * @param[in,out] tree CST tree to transform.
+ * @param[in] config Optional transformation configuration.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
@@ -143,6 +145,8 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
  * @brief Transforms POSIX headers and identifiers in a CST for MSVC
  * compatibility.
  *
+ * @param[in,out] tree CST tree to transform.
+ * @param[in] config Optional transformation configuration.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
@@ -257,6 +261,8 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
  * @brief Transforms GNU C extensions in a CST into portable standard C
  * constructs.
  *
+ * @param[in,out] tree CST tree to transform.
+ * @param[in] config Optional transformation configuration.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,

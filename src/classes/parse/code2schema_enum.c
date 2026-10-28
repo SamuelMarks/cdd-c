@@ -11,6 +11,8 @@
 /**
  * @brief Converts a JSON array of strings to an EnumMembers structure.
  *
+ * @param[in] enum_arr Parson JSON_Array of enum member strings.
+ * @param[in,out] em Target EnumMembers container to populate.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t json_array_to_enum_members(const JSON_Array *enum_arr,
@@ -33,6 +35,11 @@ cdd_c_error_t json_array_to_enum_members(const JSON_Array *enum_arr,
 /**
  * @brief Determines if a JSON Schema object represents a string enum.
  *
+ * @param[in] schema_obj JSON Schema object to inspect.
+ * @param[out] enum_arr_out Optional output pointer receiving the `enum`
+ * JSON_Array.
+ * @param[out] out_is_enum Output pointer receiving 1 if string enum, 0
+ * otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
  * `out_is_enum` is NULL.
  */
@@ -77,6 +84,10 @@ cdd_c_error_t schema_object_is_string_enum(const JSON_Object *schema_obj,
 /**
  * @brief Checks if a JSON Schema $ref points to a string enum.
  *
+ * @param[in] root Root `components.schemas` JSON_Object.
+ * @param[in] ref JSON Schema `$ref` path string.
+ * @param[out] out_points_to_enum Output pointer receiving 1 if target is string
+ * enum, 0 otherwise.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t ref_points_to_string_enum(const JSON_Object *root,
@@ -107,6 +118,9 @@ cdd_c_error_t ref_points_to_string_enum(const JSON_Object *root,
  * @brief Checks if a given property name is present in a required
  * properties list.
  *
+ * @param[in] required JSON_Array of required property names.
+ * @param[in] name Property name to look for.
+ * @param[out] out_in_list Output pointer receiving 1 if present, 0 otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
  * `out_in_list` is NULL.
  */
@@ -132,6 +146,10 @@ cdd_c_error_t required_name_in_list(const JSON_Array *required,
 /**
  * @brief Resolves a JSON Schema $ref to its corresponding object.
  *
+ * @param[in] root Root `components.schemas` JSON_Object.
+ * @param[in] ref JSON Schema `$ref` path string.
+ * @param[out] _out_val Output pointer receiving the resolved schema
+ * JSON_Object.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t resolve_schema_ref_object(const JSON_Object *root,

@@ -30,6 +30,10 @@
 /**
  * @brief Emits C source code for union to json func.
  *
+ * @param[in] fp Output file stream.
+ * @param[in] union_name Name of the union type.
+ * @param[in] sf Struct fields descriptor container for the union variants.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
@@ -202,6 +206,10 @@ write_union_to_json_func(FILE *fp, const char *union_name,
 /**
  * @brief Emits C source code for union from jsonObject func.
  *
+ * @param[in] fp Output file stream.
+ * @param[in] union_name Name of the union type.
+ * @param[in] sf Struct fields descriptor container for the union variants.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
@@ -372,6 +380,10 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
 /**
  * @brief Emits C source code for union from json func.
  *
+ * @param[in] fp Output file stream.
+ * @param[in] union_name Name of the union type.
+ * @param[in] sf Struct fields descriptor container for the union variants.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
@@ -782,6 +794,10 @@ write_union_from_json_func(FILE *fp, const char *union_name,
 /**
  * @brief Emits C source code for union cleanup func.
  *
+ * @param[in] fp Output file stream.
+ * @param[in] union_name Name of the union type.
+ * @param[in] sf Struct fields descriptor container for the union variants.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t

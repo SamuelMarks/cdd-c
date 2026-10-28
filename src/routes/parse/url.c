@@ -127,8 +127,15 @@ static cdd_c_error_t is_unreserved_form(unsigned char c) {
 }
 
 /**
- * @brief Percent-encodes a string according to RFC 3986 unreserved character
- * rules.
+ * @brief Percent-encode a string for use in a URL.
+ *
+ * Conforms to RFC 3986. Encodes all characters except:
+ * ALPHA, DIGIT, "-", ".", "_", "~".
+ * Spaces are encoded as "%20".
+ *
+ * @param[in] str Input string to encode.
+ * @param[out] _out_val Newly allocated percent-encoded string.
+ * @return CDD_C_SUCCESS on success, error code on allocation failure.
  */
 cdd_c_error_t url_encode(const char *str, char **_out_val) {
   char hex_hi;
@@ -182,8 +189,15 @@ cdd_c_error_t url_encode(const char *str, char **_out_val) {
 }
 
 /**
- * @brief Percent-encodes a string while preserving RFC 3986 reserved characters
- * and %HH triples.
+ * @brief Percent-encode a string while allowing reserved characters.
+ *
+ * Encodes all characters except RFC 3986 unreserved and reserved sets.
+ * Preserves existing percent-encoded triples ("%HH") verbatim.
+ * Spaces are encoded as "%20".
+ *
+ * @param[in] str Input string to encode.
+ * @param[out] _out_val Newly allocated percent-encoded string.
+ * @return CDD_C_SUCCESS on success, error code on allocation failure.
  */
 cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
   char hex_hi;
@@ -245,8 +259,14 @@ cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
 }
 
 /**
- * @brief Percent-encodes a string for application/x-www-form-urlencoded (spaces
- * as +).
+ * @brief Percent-encode a string for application/x-www-form-urlencoded.
+ *
+ * Encodes all characters except: ALPHA, DIGIT, "-", ".", "_", "*".
+ * Spaces are encoded as "+".
+ *
+ * @param[in] str Input string to encode.
+ * @param[out] _out_val Newly allocated form-encoded string.
+ * @return CDD_C_SUCCESS on success, error code on allocation failure.
  */
 cdd_c_error_t url_encode_form(const char *str, char **_out_val) {
   char hex_hi;
@@ -301,8 +321,16 @@ cdd_c_error_t url_encode_form(const char *str, char **_out_val) {
 }
 
 /**
- * @brief Form-encodes a string while preserving non-delimiter reserved
- * characters.
+ * @brief Percent-encode a string for application/x-www-form-urlencoded while
+ * allowing reserved characters (except delimiters).
+ *
+ * Preserves RFC3986 reserved characters except for '&', '=' and '+', which are
+ * always encoded to avoid breaking form key/value delimiters. Spaces are
+ * encoded as "+" and existing percent-encoded triples are preserved.
+ *
+ * @param[in] str Input string to encode.
+ * @param[out] _out_val Newly allocated form-encoded string.
+ * @return CDD_C_SUCCESS on success, error code on allocation failure.
  */
 cdd_c_error_t url_encode_form_allow_reserved(const char *str, char **_out_val) {
   char hex_hi;
@@ -376,7 +404,10 @@ cdd_c_error_t url_encode_form_allow_reserved(const char *str, char **_out_val) {
 }
 
 /**
- * @brief Initializes a UrlQueryParams container to empty state.
+ * @brief Initialize a query parameters container.
+ *
+ * @param[out] qp The query parameters container to initialize.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t url_query_init(struct UrlQueryParams *qp) {
   if (!qp)
@@ -388,8 +419,10 @@ cdd_c_error_t url_query_init(struct UrlQueryParams *qp) {
 }
 
 /**
- * @brief Releases all key/value strings and storage in a UrlQueryParams
- * container.
+ * @brief Free resources associated with a query parameters container.
+ * Frees all key/value strings and the internal array.
+ *
+ * @param[in,out] qp The query parameters container to free.
  */
 void url_query_free(struct UrlQueryParams *qp) {
   size_t i;
@@ -410,7 +443,12 @@ void url_query_free(struct UrlQueryParams *qp) {
 }
 
 /**
- * @brief Appends a raw key/value parameter pair to a UrlQueryParams container.
+ * @brief Add a key-value pair to the query container.
+ *
+ * @param[in,out] qp The query parameters container.
+ * @param[in] key Parameter key string.
+ * @param[in] value Parameter raw value string.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t url_query_add(struct UrlQueryParams *qp, const char *key,
                             const char *value) {
@@ -445,8 +483,16 @@ cdd_c_error_t url_query_add(struct UrlQueryParams *qp, const char *key,
 }
 
 /**
- * @brief Appends a pre-encoded value parameter pair to a UrlQueryParams
- * container.
+ * @brief Add a key-value pair where the value is already percent-encoded.
+ *
+ * The value will be copied as-is and will not be encoded again during
+ * url_query_build(). Use this for OpenAPI styles that require reserved
+ * delimiters (e.g. comma for form-style explode=false).
+ *
+ * @param[in,out] qp The query parameters container.
+ * @param[in] key Parameter key string.
+ * @param[in] value Parameter pre-encoded value string.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
                                     const char *value) {
@@ -481,8 +527,15 @@ cdd_c_error_t url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
 }
 
 /**
- * @brief Serializes a UrlQueryParams container into a ?-prefixed RFC 3986 query
- * string.
+ * @brief Build the final query string starting with '?'.
+ *
+ * Iterates through parameters, URL-encodes keys and values, and joins them
+ * with '&'.
+ * Example output: "?q=hello%20world&page=1"
+ *
+ * @param[in] qp The query parameters container.
+ * @param[out] out_str Newly allocated query string (or "" if empty).
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, char **out_str) {
   size_t i;
@@ -597,8 +650,13 @@ cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, char **out_str) {
 }
 
 /**
- * @brief Serializes a UrlQueryParams container into an
- * application/x-www-form-urlencoded body.
+ * @brief Build a application/x-www-form-urlencoded body string.
+ *
+ * Uses form encoding (space -> "+") and does not prefix with '?'.
+ *
+ * @param[in] qp The query parameters container.
+ * @param[out] out_str Newly allocated form-urlencoded string (or "" if empty).
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t url_query_build_form(const struct UrlQueryParams *qp,
                                    char **out_str) {
@@ -778,8 +836,19 @@ static cdd_c_error_t kv_value_to_string(const struct OpenAPI_KV *kv, char *buf,
 }
 
 /**
- * @brief Joins an array of OpenAPI_KV pairs using a delimiter and form
- * encoding.
+ * @brief Join object-style key/value pairs into a form-encoded value string.
+ *
+ * Produces a single string suitable for use as the value of a form-style
+ * parameter when explode=false (or space/pipe-delimited object styles).
+ * Keys and values are percent-encoded using form rules; the delimiter is
+ * inserted as-is between tokens.
+ *
+ * @param[in] kvs Array of key/value pairs.
+ * @param[in] n Number of pairs in `kvs`.
+ * @param[in] delim Delimiter string between tokens (e.g. ",", "%20", "%7C").
+ * @param[in] allow_reserved Non-zero to allow reserved characters in values.
+ * @param[out] _out_val Newly allocated joined form string.
+ * @return CDD_C_SUCCESS on success, error code on allocation failure.
  */
 cdd_c_error_t openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
                                    const char *delim, int allow_reserved,

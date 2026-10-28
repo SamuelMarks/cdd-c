@@ -10,6 +10,10 @@
 
 /**
  * @brief Parses component parameters from the given input.
+ *
+ * @param[in] components The components JSON object.
+ * @param[in,out] out The target OpenAPI_Spec structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t parse_component_parameters(
     const JSON_Object *components, struct OpenAPI_Spec *out) {
@@ -57,6 +61,10 @@ C_CDD_EXPORT cdd_c_error_t parse_component_parameters(
 
 /**
  * @brief Parses component responses from the given input.
+ *
+ * @param[in] components The components JSON object.
+ * @param[in,out] out The target OpenAPI_Spec structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t parse_component_responses(
     const JSON_Object *components, struct OpenAPI_Spec *out) {
@@ -106,6 +114,10 @@ C_CDD_EXPORT cdd_c_error_t parse_component_responses(
 
 /**
  * @brief Parses component headers from the given input.
+ *
+ * @param[in] components The components JSON object.
+ * @param[in,out] out The target OpenAPI_Spec structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t parse_component_headers(
     const JSON_Object *components, struct OpenAPI_Spec *out) {
@@ -153,6 +165,10 @@ C_CDD_EXPORT cdd_c_error_t parse_component_headers(
 
 /**
  * @brief Parses component request bodies from the given input.
+ *
+ * @param[in] components The components JSON object.
+ * @param[in,out] out The target OpenAPI_Spec structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t parse_component_request_bodies(
     const JSON_Object *components, struct OpenAPI_Spec *out) {
@@ -203,6 +219,10 @@ C_CDD_EXPORT cdd_c_error_t parse_component_request_bodies(
 
 /**
  * @brief Parses component media types from the given input.
+ *
+ * @param[in] components The components JSON object.
+ * @param[in,out] out The target OpenAPI_Spec structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t parse_component_media_types(
     const JSON_Object *components, struct OpenAPI_Spec *out) {
@@ -256,6 +276,10 @@ C_CDD_EXPORT cdd_c_error_t parse_component_media_types(
 
 /**
  * @brief Parses component examples from the given input.
+ *
+ * @param[in] components The components JSON object.
+ * @param[in,out] out The target OpenAPI_Spec structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t parse_component_examples(
     const JSON_Object *components, struct OpenAPI_Spec *out) {
@@ -303,6 +327,10 @@ C_CDD_EXPORT cdd_c_error_t parse_component_examples(
 
 /**
  * @brief Parses component links from the given input.
+ *
+ * @param[in] components The components JSON object.
+ * @param[in,out] out The target OpenAPI_Spec structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t parse_component_links(const JSON_Object *components,
                                                  struct OpenAPI_Spec *out) {
@@ -349,6 +377,10 @@ C_CDD_EXPORT cdd_c_error_t parse_component_links(const JSON_Object *components,
 
 /**
  * @brief Parses component callbacks from the given input.
+ *
+ * @param[in] components The components JSON object.
+ * @param[in,out] out The target OpenAPI_Spec structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t parse_component_callbacks(
     const JSON_Object *components, struct OpenAPI_Spec *out) {
@@ -395,6 +427,10 @@ C_CDD_EXPORT cdd_c_error_t parse_component_callbacks(
 
 /**
  * @brief Parses component path items from the given input.
+ *
+ * @param[in] components The components JSON object.
+ * @param[in,out] out The target OpenAPI_Spec structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t parse_component_path_items(
     const JSON_Object *components, struct OpenAPI_Spec *out) {
@@ -437,6 +473,10 @@ C_CDD_EXPORT cdd_c_error_t parse_component_path_items(
 
 /**
  * @brief Parses components from the given input.
+ *
+ * @param[in] components The components JSON object.
+ * @param[in,out] out The target OpenAPI_Spec structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t parse_components(const JSON_Object *components,
                                             struct OpenAPI_Spec *out) {

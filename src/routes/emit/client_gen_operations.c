@@ -21,6 +21,13 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Converts an OpenAPI HTTP verb enum into its uppercase string literal.
+ *
+ * @param[in] verb HTTP verb enum.
+ * @param[out] _out_val Pointer to receive the static uppercase verb string.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
 cdd_c_error_t verb_to_string(enum OpenAPI_Verb verb, const char **_out_val) {
   switch (verb) {
   case OA_VERB_GET: {
@@ -67,7 +74,12 @@ cdd_c_error_t verb_to_string(enum OpenAPI_Verb verb, const char **_out_val) {
 }
 
 /**
- * @brief Emits C source code for docblock.
+ * @brief Writes a Doxygen docblock for an OpenAPI operation.
+ *
+ * @param[in,out] fp Output file stream.
+ * @param[in] path Enclosing OpenAPI path item.
+ * @param[in] op OpenAPI operation descriptor.
+ * @return CDD_C_SUCCESS on success or error code.
  */
 cdd_c_error_t write_docblock(FILE *fp, const struct OpenAPI_Path *path,
                              const struct OpenAPI_Operation *op) {
@@ -162,10 +174,18 @@ cdd_c_error_t write_docblock(FILE *fp, const struct OpenAPI_Path *path,
   return CDD_C_SUCCESS;
 }
 /**
- * @brief Emits the header declaration and C implementation for a single OpenAPI
+ * @brief Emits the declaration and implementation for a single OpenAPI
  * operation.
+ *
+ * @param[in,out] hfile Output header file stream.
+ * @param[in,out] cfile Output source file stream.
+ * @param[in] path Enclosing OpenAPI path item.
+ * @param[in] op OpenAPI operation descriptor.
+ * @param[in] spec Parsed OpenAPI specification.
+ * @param[in] config Client generator configuration.
+ * @param[in] prefix Function name prefix.
+ * @return CDD_C_SUCCESS on success or error code.
  */
-
 cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
                              const struct OpenAPI_Path *path,
                              const struct OpenAPI_Operation *op,

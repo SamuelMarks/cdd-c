@@ -18,6 +18,13 @@
 
 /**
  * @brief Emit MCP adapters into client header and source.
+ *
+ * @param[in,out] hfile Output client header file stream.
+ * @param[in,out] cfile Output client source file stream.
+ * @param[in] guard Include guard macro for client header.
+ * @param[in] prefix Function name prefix.
+ * @param[in] spec Parsed OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
                                   const char *prefix,

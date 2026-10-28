@@ -43,6 +43,10 @@ static cdd_c_error_t gui_check_fprintf(int written, cdd_c_error_t *rc) {
  * @brief Writes the generated OAuth2 GUI header and source contents to open
  * streams.
  *
+ * @param[in,out] fp_h Open header output stream.
+ * @param[in,out] fp_c Open C source output stream.
+ * @param[in] base Base filename prefix.
+ * @param[in] default_server Default server base URL.
  * @return `CDD_C_SUCCESS` on success, `CDD_C_ERROR_INVALID_ARGUMENT` on NULL
  * inputs, or `CDD_C_ERROR_IO` on stream write failure.
  */
@@ -260,9 +264,15 @@ cdd_c_error_t openapi_client_gui_write_streams(FILE *fp_h, FILE *fp_c,
 }
 
 /**
- * @brief Generates client GUI bindings based on OpenAPI specs.
+ * @brief Generate a c-multiplatform OAuth2 GUI and Token Flow logic.
  *
- * @return `CDD_C_SUCCESS` on success, or error code on failure.
+ * This generates the GUI code that pre-fills the API URL and available scopes
+ * from the OpenAPI spec. It also generates the automated request-handling logic
+ * for the 'password' flow object to fetch access tokens.
+ *
+ * @param[in] spec The parsed OpenAPI specification.
+ * @param[in] config Configuration options for the client.
+ * @return 0 on success, error code on failure.
  */
 cdd_c_error_t
 openapi_client_gui_generate(const struct OpenAPI_Spec *spec,

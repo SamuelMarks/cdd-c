@@ -11,6 +11,9 @@
 /**
  * @brief Parses a struct member line and populates a StructFields object.
  *
+ * @param[in] line Raw C struct member declaration line.
+ * @param[in,out] sf Target StructFields container to append the parsed field
+ * to.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t parse_struct_member_line(const char *line,
@@ -258,6 +261,11 @@ cdd_c_error_t parse_struct_member_line(const char *line,
  * @brief Parses union member tokens from a TokenList starting after '{' and
  * writes the resulting oneOf schema to schemas_obj.
  *
+ * @param[in] tl Lexical token list containing the union body.
+ * @param[in,out] idx Pointer to the current token index (updated past closing
+ * `}`).
+ * @param[in,out] schemas_obj Target `components.schemas` JSON_Object.
+ * @param[in] union_name Name of the C union type.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_parse_union_tokens_and_write(const struct TokenList *tl,
@@ -359,6 +367,9 @@ cdd_c_error_t c2s_parse_union_tokens_and_write(const struct TokenList *tl,
  * @brief Parses a union definition and writes it to a JSON Schema
  * object.
  *
+ * @param[in,out] fp Open file stream positioned at the union body.
+ * @param[in,out] schemas_obj Target `components.schemas` JSON_Object.
+ * @param[in] union_name Name of the C union type.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_parse_union_and_write(FILE *fp, JSON_Object *schemas_obj,

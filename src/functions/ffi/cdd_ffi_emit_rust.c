@@ -481,6 +481,8 @@ static cdd_c_error_t maybe_mkdir(const char *path) {
  * @brief Emits a complete Rust Cargo crate (`Cargo.toml`, `src/sys.rs`,
  * `src/lib.rs`, and optional integration tests) for the given FFI IR.
  *
+ * @param[in] ir FFI Intermediate Representation to emit.
+ * @param[in] config Binding generation configuration parameters.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t cdd_ffi_emit_rust(cdd_ffi_ir_t *ir,

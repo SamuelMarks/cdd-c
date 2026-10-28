@@ -10,6 +10,10 @@
 
 /**
  * @brief Parses servers from the given input.
+ *
+ * @param[in] root_obj The root OpenAPI JSON object.
+ * @param[in,out] out The target OpenAPI_Spec structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_servers(const JSON_Object *root_obj,
                             struct OpenAPI_Spec *out) {
@@ -153,6 +157,10 @@ static cdd_c_error_t parse_security_schemes_inner(const JSON_Object *components,
 
 /**
  * @brief Parses security schemes from the given input.
+ *
+ * @param[in] components The components JSON object.
+ * @param[in,out] out The target OpenAPI_Spec structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_security_schemes(const JSON_Object *components,
                                      struct OpenAPI_Spec *out) {
@@ -164,6 +172,11 @@ cdd_c_error_t parse_security_schemes(const JSON_Object *components,
 
 /**
  * @brief Parses security requirements from the given input.
+ *
+ * @param[in] arr The source security requirements JSON array.
+ * @param[out] out Output array of OpenAPI_SecurityRequirementSet structures.
+ * @param[out] out_count Output count of requirement sets.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t
 parse_security_requirements(const JSON_Array *arr,
@@ -280,6 +293,13 @@ fail:
 
 /**
  * @brief Parses security field from the given input.
+ *
+ * @param[in] obj The parent JSON object.
+ * @param[in] key The security property key name.
+ * @param[out] out Output array of OpenAPI_SecurityRequirementSet structures.
+ * @param[out] out_count Output count of requirement sets.
+ * @param[out] out_set Output flag set to 1 if security field was present.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_security_field(const JSON_Object *obj, const char *key,
                                    struct OpenAPI_SecurityRequirementSet **out,

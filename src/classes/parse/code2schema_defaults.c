@@ -11,6 +11,10 @@
 /**
  * @brief Strips enclosing quotes from a string.
  *
+ * @param[in] in Input string possibly enclosed in double quotes.
+ * @param[out] buf Scratch buffer used when quotes are stripped.
+ * @param[in] bufsz Size of `buf` in bytes.
+ * @param[out] _out_val Output pointer receiving the unquoted string.
  * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t c2s_strip_quotes(const char *in, char *buf, size_t bufsz,
@@ -41,6 +45,10 @@ cdd_c_error_t c2s_strip_quotes(const char *in, char *buf, size_t bufsz,
 /**
  * @brief Parses a boolean default value from a string.
  *
+ * @param[in] in Input default literal string (`"1"`, `"0"`, `"true"`,
+ * `"false"`).
+ * @param[out] out Output pointer receiving 1 for true or 0 for false.
+ * @param[out] out_has_val Output pointer receiving 1 if parsed, 0 otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
  * `out_has_val` is NULL.
  */
@@ -68,6 +76,10 @@ cdd_c_error_t c2s_parse_bool_default(const char *in, int *out,
 /**
  * @brief Parses a numeric default value from a string.
  *
+ * @param[in] in Input numeric literal string.
+ * @param[out] out Output pointer receiving the parsed numeric value as
+ * `double`.
+ * @param[out] out_has_val Output pointer receiving 1 if parsed, 0 otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
  * `out_has_val` is NULL.
  */
@@ -97,6 +109,9 @@ cdd_c_error_t c2s_parse_number_default(const char *in, double *out,
 /**
  * @brief Detects the underlying JSON type of a union schema object.
  *
+ * @param[in] schema_obj JSON Schema object to inspect.
+ * @param[out] _out_val Output pointer receiving the detected union variant JSON
+ * type.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
  * `_out_val` is NULL.
  */

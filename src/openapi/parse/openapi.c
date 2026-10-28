@@ -11,6 +11,12 @@
 /**
  * @brief Parses a Parson JSON object into an OpenAPI_Spec with document
  * context.
+ *
+ * @param[in] root The root Parson JSON_Value.
+ * @param[out] out The target OpenAPI_Spec structure.
+ * @param[in] retrieval_uri Optional document retrieval URI.
+ * @param[in,out] registry Optional document registry for multi-file resolution.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t openapi_load_from_json_internal(
     const JSON_Value *root, struct OpenAPI_Spec *out, const char *retrieval_uri,
@@ -506,7 +512,20 @@ cdd_c_error_t openapi_load_from_json_internal(
 }
 
 /**
- * @brief Parses a JSON string into an OpenAPI_Spec structure.
+ * @brief Parse an OpenAPI or Schema document from a JSON Value.
+ *
+ * Traverses the JSON to populate the Spec structure. For OpenAPI documents:
+ * 1. Extracts Paths, Operations, Params, Bodies, and Tags.
+ * 2. Extracts Security Schemes from components.
+ * 3. Extracts and flattening Schemas definitions.
+ *
+ * For Schema documents (JSON Schema at the root), the loader sets
+ * `is_schema_document` and stores the serialized root schema in
+ * `schema_root_json`.
+ *
+ * @param[in] root The root JSON Value of the OpenAPI or Schema document.
+ * @param[out] out Destination structure to populate.
+ * @return 0 on success, error code (EINVAL/ENOMEM) on failure.
  */
 cdd_c_error_t openapi_load_from_json(const JSON_Value *root,
                                      struct OpenAPI_Spec *out) {
@@ -514,8 +533,22 @@ cdd_c_error_t openapi_load_from_json(const JSON_Value *root,
 }
 
 /**
- * @brief Parses a JSON string into an OpenAPI_Spec with base URI and registry
- * context.
+ * @brief Parse a JSON Value with document context for multi-doc resolution.
+ *
+ * Resolves relative $self and $ref bases using the provided retrieval URI,
+ * and optionally consults a registry for external component references.
+ *
+ * For Schema documents, $id (when present) is used as the base URI for
+ * registry resolution.
+ *
+ * If a registry is provided, this function registers the parsed document on
+ * success.
+ *
+ * @param[in] root The root JSON Value of the OpenAPI file.
+ * @param[in] retrieval_uri Retrieval/base URI for this document (optional).
+ * @param[out] out The spec structure to populate (must be initialized).
+ * @param[in,out] registry Optional registry for multi-doc resolution.
+ * @return 0 on success, EINVAL on invalid input, ENOMEM on allocation failure.
  */
 cdd_c_error_t openapi_load_from_json_with_context(
     const JSON_Value *root, const char *retrieval_uri, struct OpenAPI_Spec *out,
@@ -524,7 +557,12 @@ cdd_c_error_t openapi_load_from_json_with_context(
 }
 
 /**
- * @brief Looks up a component schema by name in an OpenAPI_Spec.
+ * @param[out] _out_val Pointer to store the result
+ * @brief Look up a schema definition by name in the loaded spec.
+ *
+ * @param[in] spec The spec to search.
+ * @param[in] name The schema name (e.g. "LoginRequest").
+ * @return Pointer to StructFields if found, NULL otherwise.
  */
 cdd_c_error_t openapi_spec_find_schema(const struct OpenAPI_Spec *spec,
                                        const char *name,
@@ -553,6 +591,11 @@ cdd_c_error_t openapi_spec_find_schema(const struct OpenAPI_Spec *spec,
 
 /**
  * @brief Looks up a schema in an OpenAPI_Spec by its JSON Schema $id URI.
+ *
+ * @param[in] spec The OpenAPI specification.
+ * @param[in] ref The $id reference string.
+ * @param[out] _out_val Output pointer to the found StructFields.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t openapi_spec_find_schema_by_id(const struct OpenAPI_Spec *spec,
                                              const char *ref,
@@ -607,6 +650,13 @@ cdd_c_error_t openapi_spec_find_schema_by_id(const struct OpenAPI_Spec *spec,
 
 /**
  * @brief Looks up a schema in an OpenAPI_Spec by its JSON Schema $anchor.
+ *
+ * @param[in] spec The OpenAPI specification.
+ * @param[in] ref The anchor reference string.
+ * @param[in] dynamic_anchor Non-zero to search $dynamicAnchor instead of
+ * $anchor.
+ * @param[out] _out_val Output pointer to the found StructFields.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t
 openapi_spec_find_schema_by_anchor(const struct OpenAPI_Spec *spec,
@@ -664,7 +714,14 @@ openapi_spec_find_schema_by_anchor(const struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Resolves a local or external $ref URI to a target OpenAPI_SchemaRef.
+ * @param[out] _out_val Pointer to store the result
+ * @brief Find a schema definition by following a SchemaRef.
+ *
+ * Uses the document registry when present to resolve external component refs.
+ *
+ * @param[in] spec The current specification.
+ * @param[in] ref The schema reference.
+ * @return Pointer to StructFields if found, NULL otherwise.
  */
 cdd_c_error_t
 openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,

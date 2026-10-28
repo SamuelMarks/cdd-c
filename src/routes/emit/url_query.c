@@ -34,7 +34,21 @@
 #endif
 
 /**
- * @brief Generates C code to append query parameters to a constructed URL.
+ * @brief Generate C code for adding query parameters to the URL builder.
+ *
+ * Handles scalar values (by mapping to `url_query_add`) and Array values.
+ * For Arrays with `style=form, explode=true`, generates a `for` loop emitting
+ * multiple key-value pairs (e.g. `?id=1&id=2`). For `style=form,
+ * explode=false`, generates a comma-separated value and uses
+ * `url_query_add_encoded` to preserve the delimiter. Also supports
+ * `spaceDelimited` and `pipeDelimited` array styles. Object parameters in
+ * `style=form` and `style=deepObject` are serialized from
+ * `struct OpenAPI_KV` pairs.
+ *
+ * @param[in] fp The file stream to write to.
+ * @param[in] op The operation containing parameters.
+ * @param[in] qp_tracking Non-zero if `qp_initialized` is available in scope.
+ * @return 0 on success, error code on failure.
  */
 cdd_c_error_t codegen_url_write_query_params(FILE *fp,
                                              const struct OpenAPI_Operation *op,

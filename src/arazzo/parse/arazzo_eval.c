@@ -103,6 +103,10 @@ static cdd_c_error_t json_val_to_str(const JSON_Value *val, char **out_str) {
 /**
  * @brief Evaluates an RFC 6901 JSON Pointer against a Parson `JSON_Value`.
  *
+ * @param[in] root Root Parson JSON value to traverse.
+ * @param[in] pointer RFC 6901 JSON Pointer string (optionally starting with
+ * `#`).
+ * @param[out] out_val Output pointer receiving the resolved JSON_Value.
  * @return `CDD_C_SUCCESS` on success, `CDD_C_ERROR_NOT_FOUND` if missing, or
  * `CDD_C_ERROR_INVALID_ARGUMENT` if malformed.
  */
@@ -172,6 +176,9 @@ cdd_c_error_t arazzo_eval_json_pointer(const JSON_Value *root,
  * indices (`$[0]`, `$[-1]`), and returns `CDD_C_ERROR_NOT_SUPPORTED` for
  * slices (`[start:end]`) and filter selectors (`[?(...)]`).
  *
+ * @param[in] root Root Parson JSON value to query.
+ * @param[in] jsonpath RFC 9535 JSONPath query string starting with `$`.
+ * @param[out] out_val Output pointer receiving the matched JSON_Value.
  * @return `CDD_C_SUCCESS` on match, `CDD_C_ERROR_NOT_FOUND` if not matched,
  * `CDD_C_ERROR_NOT_SUPPORTED` for unsupported RFC 9535 selectors, or
  * `CDD_C_ERROR_INVALID_ARGUMENT` if syntax is invalid.
@@ -306,6 +313,10 @@ cdd_c_error_t arazzo_eval_jsonpath(const JSON_Value *root, const char *jsonpath,
  * Walks each `/segment` in hierarchy order, supporting both double- and
  * single-quoted XML attributes (`/@attr`) and namespace-prefixed element tags.
  *
+ * @param[in] xml_str Input XML document string.
+ * @param[in] xpath XPath query string starting with `/`.
+ * @param[out] out_str Output pointer receiving the newly allocated matched
+ * text.
  * @return `CDD_C_SUCCESS` on match, `CDD_C_ERROR_NOT_FOUND` if not found, or
  * error code.
  */
@@ -546,6 +557,11 @@ eval_single_expr_to_str(const struct Arazzo_RuntimeExpr *expr,
  * @brief Evaluates an Arazzo runtime expression or embedded template string to
  * a newly allocated string.
  *
+ * @param[in] expr_str Runtime expression or template string to evaluate.
+ * @param[in] ctx Execution context containing request, response, step, and
+ * workflow state.
+ * @param[out] out_str Output pointer receiving the newly allocated evaluated
+ * string.
  * @return `CDD_C_SUCCESS` on success, `CDD_C_ERROR_NOT_FOUND` if missing, or
  * error code.
  */
@@ -1126,6 +1142,10 @@ static cdd_c_error_t match_simple_regex(const char *text, const char *pattern,
 /**
  * @brief Evaluates a single `Arazzo_Criterion` against an execution context.
  *
+ * @param[in] criterion Criterion structure defining the condition and dialect.
+ * @param[in] ctx Execution context to evaluate against.
+ * @param[out] out_passed Output pointer receiving 1 if the criterion passed, 0
+ * otherwise.
  * @return `CDD_C_SUCCESS` on success, or error code if malformed.
  */
 cdd_c_error_t arazzo_eval_criterion(const struct Arazzo_Criterion *criterion,
@@ -1201,6 +1221,11 @@ cdd_c_error_t arazzo_eval_criterion(const struct Arazzo_Criterion *criterion,
  * @brief Evaluates an `Arazzo_Selector` (`context` + `selector`) to extract a
  * value from the execution context.
  *
+ * @param[in] selector Selector structure defining the context and query
+ * expression.
+ * @param[in] ctx Execution context to query.
+ * @param[out] out_str Output pointer receiving the newly allocated extracted
+ * string.
  * @return `CDD_C_SUCCESS` on success, `CDD_C_ERROR_NOT_FOUND` if missing, or
  * error code.
  */
@@ -1257,6 +1282,12 @@ cdd_c_error_t arazzo_eval_selector(const struct Arazzo_Selector *selector,
  * Supports RFC 6901 unescaping (`~0`, `~1`) on the final property token as
  * well as replacing elements inside `JSONArray` targets via numeric indices.
  *
+ * @param[in,out] payload Mutable Parson JSON_Value representing the request
+ * body.
+ * @param[in] replacements Array of payload replacement rules.
+ * @param[in] n_replacements Number of replacement rules in the array.
+ * @param[in] ctx Execution context used to resolve runtime expressions in
+ * replacement values.
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 cdd_c_error_t arazzo_apply_payload_replacements(

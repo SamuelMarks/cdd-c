@@ -22,6 +22,7 @@
 /**
  * @brief Initializes a C-to-OpenAPI type mapping table.
  *
+ * @param[out] out Pointer to the OpenApiTypeMapping structure to initialize.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c_mapping_init(struct OpenApiTypeMapping *out) {
@@ -41,6 +42,8 @@ cdd_c_error_t c_mapping_init(struct OpenApiTypeMapping *out) {
 
 /**
  * @brief Releases memory held by a C-to-OpenAPI type mapping table.
+ *
+ * @param[in,out] out Pointer to the OpenApiTypeMapping structure to free.
  */
 void c_mapping_free(struct OpenApiTypeMapping *out) {
   if (out) {
@@ -160,6 +163,11 @@ static cdd_c_error_t clean_type_str(const char *in, char **_out_val) {
  * @brief Maps a C type declaration string to its corresponding OpenAPI type and
  * format.
  *
+ * @param[in] c_type_in Raw C type specifier string.
+ * @param[in] decl_name Optional declarator name (used for array `[...]`
+ * detection).
+ * @param[out] out Output OpenApiTypeMapping structure receiving the mapped
+ * type.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,

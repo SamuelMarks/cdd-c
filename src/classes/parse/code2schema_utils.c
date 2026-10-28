@@ -14,6 +14,10 @@
  * Reads up to `bufsz - 1` characters from the file into the buffer
  * `buf`. Any trailing carriage return or newline characters are removed.
  *
+ * @param[in,out] fp Open file stream to read from.
+ * @param[out] buf Destination character buffer.
+ * @param[in] bufsz Size of `buf` in bytes.
+ * @param[out] has_line Output pointer receiving 1 if a line was read, 0 on EOF.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t c2s_read_line(FILE *fp, char *buf, size_t bufsz, int *has_line) {
@@ -80,6 +84,10 @@ cdd_c_error_t str_starts_with(const char *str, const char *prefix,
  * Iterates linearly over a null-safe list to find a string-matched key.
  * Returns early if either the key or the list are NULL.
  *
+ * @param[in] key Key string to search for.
+ * @param[in] list Array of string pointers to search within.
+ * @param[in] count Number of elements in `list`.
+ * @param[out] out_found Output pointer receiving 1 if found, 0 otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
  * `out_found` is NULL.
  */
@@ -106,6 +114,8 @@ cdd_c_error_t c2s_key_in_list(const char *key, const char **list, size_t count,
  * Provides deep cloning of JSON values. Will fail (set _out_val to NULL)
  * if the input value is NULL or serialization fails.
  *
+ * @param[in] val Source JSON_Value to clone.
+ * @param[out] _out_val Output pointer receiving the newly cloned JSON_Value.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_clone_json_value(const JSON_Value *val,
@@ -141,6 +151,9 @@ cdd_c_error_t c2s_clone_json_value(const JSON_Value *val,
  *
  * Loops over the first `n` elements of `arr` and frees them before
  * freeing the parent array pointer itself. Handles NULLs defensively.
+ *
+ * @param[in,out] arr Array of dynamically allocated strings to free.
+ * @param[in] n Number of elements in `arr`.
  */
 void free_string_array_code2schema(char **arr, size_t n) {
   size_t i;
@@ -163,6 +176,10 @@ void free_string_array_code2schema(char **arr, size_t n) {
  * strings. Handles cleanup via `free_string_array` if memory exhaustion
  * occurs.
  *
+ * @param[out] dst Output pointer receiving the newly allocated string array.
+ * @param[out] dst_count Output pointer receiving the number of strings copied.
+ * @param[in] src Source array of string pointers.
+ * @param[in] src_count Number of elements in `src`.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t copy_string_array_code2schema(char ***dst, size_t *dst_count,
@@ -205,6 +222,15 @@ cdd_c_error_t copy_string_array_code2schema(char ***dst, size_t *dst_count,
  * "null"]`. Extracts each distinct type, determining the primary C type,
  * while flagging nullability if `"null"` is encountered in the list.
  *
+ * @param[in] arr JSON_Array of type strings.
+ * @param[out] out_union Optional output pointer receiving the allocated array
+ * of type strings.
+ * @param[out] out_count Optional output pointer receiving the count of type
+ * strings.
+ * @param[out] out_primary Optional output pointer receiving the primary
+ * non-null type string.
+ * @param[out] out_nullable Optional output pointer receiving 1 if `"null"` is
+ * present, 0 otherwise.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,

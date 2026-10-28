@@ -574,6 +574,9 @@ static cdd_c_error_t write_step_object(JSON_Object *sobj,
 /**
  * @brief Serializes an `Arazzo_Spec` structure into a Parson `JSON_Value` tree.
  *
+ * @param[in] spec Parsed Arazzo specification to serialize.
+ * @param[out] out_root Output pointer receiving the newly created Parson
+ * JSON_Value.
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 cdd_c_error_t arazzo_write_spec_to_json_value(const struct Arazzo_Spec *spec,
@@ -778,6 +781,9 @@ cdd_c_error_t arazzo_write_spec_to_json_value(const struct Arazzo_Spec *spec,
 /**
  * @brief Serializes an `Arazzo_Spec` structure into a formatted JSON string.
  *
+ * @param[in] spec Parsed Arazzo specification to serialize.
+ * @param[out] out_json Output pointer receiving the newly allocated JSON
+ * string.
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 cdd_c_error_t arazzo_write_spec_to_json(const struct Arazzo_Spec *spec,

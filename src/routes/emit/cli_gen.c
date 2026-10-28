@@ -23,7 +23,10 @@
 #endif
 
 /**
- * @brief Generates a standalone C CLI application for an OpenAPI specification.
+ * @brief Generate CLI C source file.
+ * @param[in] spec OpenAPI specification.
+ * @param[in] config Client configuration.
+ * @return 0 on success, non-zero on error.
  */
 cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
                                    const struct OpenApiClientConfig *config) {

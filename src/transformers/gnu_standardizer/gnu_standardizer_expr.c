@@ -13,6 +13,7 @@
  * `__builtin_shuffle`, `__alignof__`, anonymous structs/unions, cast-as-lvalue,
  * omitted ternary middle operands, and `return (void)expr;`).
  *
+ * @param[in,out] tree CST tree to transform.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t gnu_standardize_expr(cdd_cst_tree_t *tree) {

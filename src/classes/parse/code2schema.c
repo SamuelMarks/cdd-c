@@ -11,6 +11,9 @@
 /**
  * @brief Retrieves token kind at index or TOKEN_UNKNOWN if out of bounds.
  *
+ * @param[in] tl Token list to inspect.
+ * @param[in] idx Token index to look up.
+ * @param[out] out_kind Output pointer receiving the token kind.
  * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t c2s_tok_kind(const struct TokenList *tl, size_t idx,
@@ -38,6 +41,8 @@ static cdd_c_error_t c2s_skip_ws(const struct TokenList *tl, size_t *idx) {
 /**
  * @brief Copies up to 63 characters from a token into a 64-byte buffer.
  *
+ * @param[out] dst Destination 64-byte character buffer.
+ * @param[in] tok Source token to copy from.
  * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t c2s_copy_token_ident(char *dst, const struct Token *tok) {
@@ -130,6 +135,8 @@ static cdd_c_error_t c2s_skip_brace_block(const struct TokenList *tl,
 /**
  * @brief CLI entry point for code2schema command.
  *
+ * @param[in] argc Argument count.
+ * @param[in] argv Argument vector.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t code2schema_main(int argc, char **argv) {

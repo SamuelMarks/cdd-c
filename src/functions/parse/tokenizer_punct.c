@@ -28,6 +28,14 @@
 /**
  * @brief Tokenizes punctuators and comments starting with character c.
  *
+ * @param[in] base Base pointer of the source byte buffer.
+ * @param[in] len Total length of the source byte buffer.
+ * @param[in,out] pos Current byte offset in `base` (updated after consuming
+ * token).
+ * @param[in] start Starting byte offset of the current token.
+ * @param[in] c First logical character of the punctuator or comment.
+ * @param[in] consumed Physical bytes consumed by `c`.
+ * @param[in,out] list Target TokenList container to append the token to.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t tokenize_punct(const uint8_t *base, size_t len, size_t *pos,

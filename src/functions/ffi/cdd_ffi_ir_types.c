@@ -134,6 +134,9 @@ cdd_c_error_t parse_template_type(const char *c_type,
  * @brief Maps a C/C++ type spelling to its `cdd_ffi_primitive_kind_t` enum
  * value.
  *
+ * @param[in] c_type Raw C/C++ type spelling string.
+ * @param[out] out_kind Output pointer receiving the mapped
+ * `cdd_ffi_primitive_kind_t`.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
  * invalid.
  */
@@ -231,6 +234,11 @@ cdd_c_error_t map_c_type_to_ffi_kind(const char *c_type,
  * @brief Mangles a C++ namespace, class name, and method name into a flat C ABI
  * identifier (`ns_class_method`).
  *
+ * @param[in] ns_name Optional C++ namespace name (may be NULL).
+ * @param[in] class_name Optional C++ class name (may be NULL).
+ * @param[in] method_name Method or function identifier.
+ * @param[out] out_mangled Output pointer receiving the newly allocated mangled
+ * symbol string.
  * @return `CDD_C_SUCCESS` on success, `CDD_C_ERROR_INVALID_ARGUMENT` if NULL,
  * or `CDD_C_ERROR_MEMORY` on OOM.
  */
@@ -289,6 +297,10 @@ extern C_CDD_EXPORT int g_ffi_extractor_alloc_fail;
 
 /**
  * @brief Allocates memory for FFI IR with test fault injection.
+ *
+ * @param[in] sz Number of bytes to allocate.
+ * @param[out] out_ptr Output pointer receiving the allocated memory block.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on failure.
  */
 cdd_c_error_t cdd_ffi_do_malloc(size_t sz, void **out_ptr) {
 #ifdef CDD_BUILD_TESTS
@@ -303,6 +315,11 @@ cdd_c_error_t cdd_ffi_do_malloc(size_t sz, void **out_ptr) {
 
 /**
  * @brief Zero-allocates memory for FFI IR with test fault injection.
+ *
+ * @param[in] n Number of elements.
+ * @param[in] sz Size of each element in bytes.
+ * @param[out] out_ptr Output pointer receiving the zeroed memory block.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on failure.
  */
 cdd_c_error_t cdd_ffi_do_calloc(size_t n, size_t sz, void **out_ptr) {
 #ifdef CDD_BUILD_TESTS
@@ -317,6 +334,11 @@ cdd_c_error_t cdd_ffi_do_calloc(size_t n, size_t sz, void **out_ptr) {
 
 /**
  * @brief Reallocates memory for FFI IR with test fault injection.
+ *
+ * @param[in,out] ptr Existing pointer to reallocate (or NULL).
+ * @param[in] sz New size in bytes.
+ * @param[out] out_ptr Output pointer receiving the resized memory block.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on failure.
  */
 cdd_c_error_t cdd_ffi_do_realloc(void *ptr, size_t sz, void **out_ptr) {
 #ifdef CDD_BUILD_TESTS
@@ -331,6 +353,10 @@ cdd_c_error_t cdd_ffi_do_realloc(void *ptr, size_t sz, void **out_ptr) {
 
 /**
  * @brief Duplicates a string for FFI IR with test fault injection.
+ *
+ * @param[in] s Source null-terminated string to duplicate.
+ * @param[out] out_str Output pointer receiving the duplicated string.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on failure.
  */
 cdd_c_error_t cdd_ffi_do_strdup(const char *s, char **out_str) {
 #ifdef CDD_BUILD_TESTS

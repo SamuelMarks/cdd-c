@@ -11,6 +11,7 @@
  * @brief Standardizes GNU case ranges (`case A ... B:`), array range
  * designators (`[A ... B] = V`), empty braces (`{}`), and `__builtin_expect`.
  *
+ * @param[in,out] tree CST tree to transform.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t gnu_standardize_ranges(cdd_cst_tree_t *tree) {

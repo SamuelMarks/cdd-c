@@ -19,6 +19,7 @@
 /**
  * @brief Initializes a `SchemaConstraints` structure.
  *
+ * @param[out] sc Pointer to the SchemaConstraints structure to initialize.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t schema_constraints_init(struct SchemaConstraints *sc) {
@@ -35,6 +36,8 @@ cdd_c_error_t schema_constraints_init(struct SchemaConstraints *sc) {
 /**
  * @brief Adds a required field name to a `SchemaConstraints` structure.
  *
+ * @param[in,out] sc Target SchemaConstraints structure.
+ * @param[in] field Required property name to add.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t schema_constraints_add_required(struct SchemaConstraints *sc,
@@ -70,6 +73,8 @@ cdd_c_error_t schema_constraints_add_required(struct SchemaConstraints *sc,
 /**
  * @brief Frees all dynamically allocated memory inside a `SchemaConstraints`
  * structure.
+ *
+ * @param[in,out] sc Pointer to the SchemaConstraints structure to free.
  */
 void schema_constraints_free(struct SchemaConstraints *sc) {
   size_t i;

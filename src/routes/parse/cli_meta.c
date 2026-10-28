@@ -147,7 +147,11 @@ cdd_c_error_t spec_find_tag(struct OpenAPI_Spec *spec, const char *name,
 }
 
 /**
- * @brief Adds or sets str if missing.
+ * @brief Sets a dynamically allocated string if destination pointer is NULL.
+ *
+ * @param[in,out] dst Destination string pointer.
+ * @param[in] src Source string to duplicate if dst is NULL.
+ * @return CDD_C_SUCCESS on success or error code.
  */
 cdd_c_error_t set_str_if_missing(char **dst, const char *src) {
   if (!src || !*src)
@@ -613,6 +617,10 @@ cdd_c_error_t collect_spec_tags(struct OpenAPI_Spec *spec) {
 
 /**
  * @brief Applies all doc metadata (tags, security schemes, and global).
+ *
+ * @param[in,out] spec OpenAPI specification.
+ * @param[in] meta Doc metadata.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t c2openapi_apply_all_doc_meta(struct OpenAPI_Spec *spec,
                                            const struct DocMetadata *meta) {

@@ -136,6 +136,10 @@ cdd_c_error_t peek_logical(const uint8_t *base, size_t len, size_t pos,
 /**
  * @brief Appends a token to a dynamic token list.
  *
+ * @param[in,out] tl Target TokenList container.
+ * @param[in] kind Classification of the token.
+ * @param[in] start Pointer to the start of the token in the source buffer.
+ * @param[in] length Byte length of the token span.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
  */
 cdd_c_error_t token_list_add(struct TokenList *tl, const enum TokenKind kind,
@@ -181,6 +185,12 @@ cdd_c_error_t token_list_add(struct TokenList *tl, const enum TokenKind kind,
 /**
  * @brief Searches forward in a token list for the next token of a given kind.
  *
+ * @param[in] list Lexical token list to search.
+ * @param[in] start_idx Inclusive starting token index.
+ * @param[in] end_idx Exclusive ending token index limit.
+ * @param[in] kind Target TokenKind to locate.
+ * @param[out] _out_val Output pointer receiving the matched token index (or
+ * limit).
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
  * NULL.
  */
@@ -214,6 +224,8 @@ cdd_c_error_t token_find_next(const struct TokenList *list, size_t start_idx,
 
 /**
  * @brief Frees the memory associated with token list.
+ *
+ * @param[in,out] tl Pointer to the TokenList structure to free.
  */
 void free_token_list(struct TokenList *tl) {
 
@@ -234,6 +246,9 @@ void free_token_list(struct TokenList *tl) {
 /**
  * @brief Checks whether a token at a given index matches a literal string.
  *
+ * @param[in] tok Token to compare.
+ * @param[in] match Null-terminated literal string to match against.
+ * @param[out] _out_val Output pointer receiving 1 if matched, 0 otherwise.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
  * NULL.
  */
@@ -286,6 +301,8 @@ cdd_c_error_t token_matches_string(const struct Token *tok, const char *match,
 /**
  * @brief Lexes a C source string into a list of tokens including trivia.
  *
+ * @param[in] source Source code byte span to tokenize.
+ * @param[out] out Output pointer receiving the newly allocated TokenList.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t tokenize(az_span source, struct TokenList **out) {

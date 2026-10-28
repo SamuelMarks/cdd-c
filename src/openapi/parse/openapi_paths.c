@@ -179,6 +179,14 @@ static cdd_c_error_t parse_paths_object_inner(const JSON_Object *paths_obj,
 
 /**
  * @brief Parses paths object from the given input.
+ *
+ * @param[in] paths_obj The source paths map JSON object.
+ * @param[out] out_paths Output array of OpenAPI_Path structures.
+ * @param[out] out_count Output count of paths.
+ * @param[in,out] spec The parent OpenAPI specification.
+ * @param[in] require_leading_slash Non-zero if routes must begin with '/'.
+ * @param[in] resolve_refs Non-zero to resolve component references.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_paths_object(const JSON_Object *paths_obj,
                                  struct OpenAPI_Path **out_paths,
@@ -199,7 +207,13 @@ cdd_c_error_t parse_paths_object(const JSON_Object *paths_obj,
 }
 
 /**
- * @brief Checks whether a parameter name is present in a string array.
+ * @brief Checks if `name` is present in a string array `names`.
+ *
+ * @param[in] name Target string to find.
+ * @param[in] names Array of strings.
+ * @param[in] count Number of strings.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if present, CDD_C_SUCCESS (0)
+ * otherwise.
  */
 cdd_c_error_t name_in_list(const char *name, char **names, size_t count) {
   size_t i;
@@ -213,7 +227,12 @@ cdd_c_error_t name_in_list(const char *name, char **names, size_t count) {
 }
 
 /**
- * @brief Collects path template names.
+ * @brief Extracts `{param}` template parameter names from a route path.
+ *
+ * @param[in] route Route path template string.
+ * @param[out] out_names Output array of allocated parameter names.
+ * @param[out] out_count Output number of extracted names.
+ * @return CDD_C_SUCCESS on success, or error code on malformed template/OOM.
  */
 cdd_c_error_t collect_path_template_names(const char *route, char ***out_names,
                                           size_t *out_count) {
@@ -285,7 +304,13 @@ cdd_c_error_t collect_path_template_names(const char *route, char ***out_names,
 }
 
 /**
- * @brief Retrieves the path param.
+ * @brief Finds a path parameter (`in: path`) by name in a parameter array.
+ *
+ * @param[in] params Array of parameters.
+ * @param[in] n Number of parameters.
+ * @param[in] name Path parameter name to look for.
+ * @param[out] _out_val Matching parameter pointer, or NULL if not found.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t find_path_param(const struct OpenAPI_Parameter *params, size_t n,
                               const char *name,
@@ -312,7 +337,14 @@ cdd_c_error_t find_path_param(const struct OpenAPI_Parameter *params, size_t n,
 }
 
 /**
- * @brief Validates path parameters for required=true and duplicate names.
+ * @brief Validates that all `in: path` parameters in `params` are required and
+ * appear in `template_names`.
+ *
+ * @param[in] params Array of parameters.
+ * @param[in] n_params Number of parameters.
+ * @param[in] template_names Extracted template parameter names.
+ * @param[in] n_template_names Number of template parameter names.
+ * @return CDD_C_SUCCESS if valid, or CDD_C_ERROR_INVALID_ARGUMENT.
  */
 cdd_c_error_t validate_path_params_list(const struct OpenAPI_Parameter *params,
                                         size_t n_params, char **template_names,
@@ -333,8 +365,13 @@ cdd_c_error_t validate_path_params_list(const struct OpenAPI_Parameter *params,
 }
 
 /**
- * @brief Verifies that all path template variables are declared as path
- * parameters.
+ * @brief Validates path template parameter coverage for a single operation.
+ *
+ * @param[in] path Parent path item.
+ * @param[in] op Operation to validate.
+ * @param[in] template_names Extracted template parameter names.
+ * @param[in] n_template_names Number of template parameter names.
+ * @return CDD_C_SUCCESS if valid, or CDD_C_ERROR_INVALID_ARGUMENT.
  */
 cdd_c_error_t validate_path_template_for_operation(
     const struct OpenAPI_Path *path, const struct OpenAPI_Operation *op,
@@ -365,8 +402,13 @@ cdd_c_error_t validate_path_template_for_operation(
 }
 
 /**
- * @brief Validates path template syntax and parameter bindings across all
- * paths.
+ * @brief Validates path template syntax and parameter definitions across
+ * `paths`.
+ *
+ * @param[in] paths Array of path items.
+ * @param[in] n_paths Number of path items.
+ * @return CDD_C_SUCCESS if valid, or error code on invalid template/missing
+ * param.
  */
 cdd_c_error_t validate_path_templates(const struct OpenAPI_Path *paths,
                                       size_t n_paths) {
@@ -429,8 +471,12 @@ cdd_c_error_t validate_path_templates(const struct OpenAPI_Path *paths,
 }
 
 /**
- * @brief Normalizes parameter placeholders in a route path to canonical form
- * for collision detection.
+ * @brief Normalizes a path template by replacing `{...}` segments with `{}` for
+ * collision detection.
+ *
+ * @param[in] route Route path string.
+ * @param[out] _out_val Newly allocated normalized signature string.
+ * @return CDD_C_SUCCESS on success, or error code on OOM.
  */
 cdd_c_error_t normalize_path_template_route(const char *route,
                                             char **_out_val) {
@@ -486,8 +532,11 @@ cdd_c_error_t normalize_path_template_route(const char *route,
 }
 
 /**
- * @brief Detects ambiguous or colliding path templates in an OpenAPI
- * specification.
+ * @brief Validates that no path template collisions exist across `paths`.
+ *
+ * @param[in] paths Array of path items.
+ * @param[in] n_paths Number of path items.
+ * @return CDD_C_SUCCESS if valid, or error code on collision/OOM.
  */
 cdd_c_error_t
 validate_path_template_collisions(const struct OpenAPI_Path *paths,
@@ -705,6 +754,14 @@ static cdd_c_error_t parse_operation_inner(const char *verb_str,
 
 /**
  * @brief Parses operation from the given input.
+ *
+ * @param[in] verb_str The HTTP method string.
+ * @param[in] op_obj The source operation JSON object.
+ * @param[out] out_op Output OpenAPI_Operation structure.
+ * @param[in,out] spec The parent OpenAPI specification.
+ * @param[in] is_additional Non-zero if parsed from additionalOperations.
+ * @param[in] route_hint Route path string used for fallback naming.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_operation(const char *verb_str, const JSON_Object *op_obj,
                               struct OpenAPI_Operation *out_op,
@@ -769,6 +826,11 @@ parse_additional_operations_inner(const JSON_Object *path_obj,
 
 /**
  * @brief Parses additional operations from the given input.
+ *
+ * @param[in] path_obj The source path item JSON object.
+ * @param[in,out] path The target OpenAPI_Path structure.
+ * @param[in,out] spec The parent OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_additional_operations(const JSON_Object *path_obj,
                                           struct OpenAPI_Path *path,

@@ -12,6 +12,11 @@
  * @brief Collects non-standard/extra JSON Schema keys not present in
  * `skip_keys` and serializes them to a JSON string.
  *
+ * @param[in] obj Source JSON_Object to inspect.
+ * @param[in] skip_keys Array of standard key names to ignore.
+ * @param[in] skip_count Number of entries in `skip_keys`.
+ * @param[out] out_json Output pointer receiving the serialized JSON extras
+ * string (or NULL if none).
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_collect_schema_extras(const JSON_Object *obj,
@@ -90,6 +95,9 @@ cdd_c_error_t c2s_collect_schema_extras(const JSON_Object *obj,
  * directly on `target`. Returns early if there are no extras. Does not
  * override existing keys on `target`.
  *
+ * @param[in,out] target Target JSON_Object to merge extra properties into.
+ * @param[in] extras_json Serialized JSON object string containing extra
+ * properties.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_merge_schema_extras_object(JSON_Object *target,
@@ -153,6 +161,9 @@ cdd_c_error_t c2s_merge_schema_extras_object(JSON_Object *target,
  * `dest_json`. If `dest_json` was NULL, `src_json` is effectively
  * duplicated into it.
  *
+ * @param[in,out] dest_json Pointer to destination JSON string pointer to
+ * update.
+ * @param[in] src_json Source serialized JSON object string to merge in.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_merge_schema_extras_strings(char **dest_json,
@@ -256,6 +267,9 @@ cdd_c_error_t c2s_merge_schema_extras_strings(char **dest_json,
 /**
  * @brief Checks if an OpenAPI type is a primitive type.
  *
+ * @param[in] type OpenAPI type name string.
+ * @param[out] out_is_primitive Output pointer receiving 1 if primitive, 0
+ * otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
  * `out_is_primitive` is NULL.
  */

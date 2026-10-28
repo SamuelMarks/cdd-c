@@ -541,7 +541,26 @@ static cdd_c_error_t apply_updates(const char *filename,
 }
 
 /**
- * @brief Synchronize a C source file with an OpenAPI specification.
+ * @brief Synchronize a C source file with an OpenAPI
+ * specification.
+ *
+ * Reads `filename`, parses it into a CST, and iterates through
+ * all operations defined in `spec`.
+ *
+ * For each operation found in the source:
+ * 1. **Signature Sync**: Updates parameter list to match Spec.
+ * 2. **Query Logic Sync**: Identifies existing
+ * `url_query_init`...`build` blocks and replaces them with
+ * generated logic handling Arrays/Explode. If no block exists but
+ * params do, attempts partial insertion.
+ * 3. **Header Sync**: Scans for markers like `Header Parameter: name` and
+ *    updates the associated logic statements.
+ * 4. **URL Sync**: Updates the `asprintf` call to use correct path variables.
+ *
+ * @param[in] filename Path to the C source file to update.
+ * @param[in] spec The parsed OpenAPI specification.
+ * @param[in] config Configuration options.
+ * @return 0 on success, error code on failure.
  */
 cdd_c_error_t api_sync_file(const char *filename,
                             const struct OpenAPI_Spec *spec,

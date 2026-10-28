@@ -524,6 +524,9 @@ static cdd_c_error_t convert_doc_step(const struct DocArazzoStep *src,
  * @brief Applies parsed `@arazzo*` and `@workflow*` docstring metadata onto an
  * `Arazzo_Spec`.
  *
+ * @param[in] meta Parsed docstring metadata containing Arazzo and workflow
+ * tags.
+ * @param[in,out] spec Target Arazzo specification to populate.
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 cdd_c_error_t c2arazzo_apply_doc_metadata(const struct DocMetadata *meta,
@@ -896,6 +899,9 @@ static cdd_c_error_t ensure_spec_defaults(struct Arazzo_Spec *spec) {
  * @brief Parses an in-memory C source or header string and merges discovered
  * Arazzo workflows and metadata into `spec`.
  *
+ * @param[in] source Null-terminated C source or header text.
+ * @param[in,out] spec Target Arazzo specification to merge discovered workflows
+ * into.
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 cdd_c_error_t c2arazzo_parse_source(const char *source,
@@ -964,6 +970,9 @@ cleanup:
  * @brief Parses a single C source or header file and merges discovered Arazzo
  * workflows into `spec`.
  *
+ * @param[in] path File system path to the C source or header file.
+ * @param[in,out] spec Target Arazzo specification to merge discovered workflows
+ * into.
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 cdd_c_error_t c2arazzo_parse_file(const char *path, struct Arazzo_Spec *spec) {
@@ -1005,6 +1014,8 @@ static cdd_c_error_t c2arazzo_walker_cb(const char *path, void *user_data) {
  * @brief Recursively scans a directory (or single file) of C code to build an
  * `Arazzo_Spec`.
  *
+ * @param[in] dir_path Directory or file path to scan.
+ * @param[in,out] spec Target Arazzo specification to populate.
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 cdd_c_error_t c2arazzo_parse_dir(const char *dir_path,
@@ -1035,6 +1046,8 @@ cdd_c_error_t c2arazzo_parse_dir(const char *dir_path,
 /**
  * @brief CLI entry point for `c2arazzo` / `to_arazzo`.
  *
+ * @param[in] argc Argument count.
+ * @param[in] argv Argument vector.
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 cdd_c_error_t c2arazzo_cli_main(int argc, char **argv) {

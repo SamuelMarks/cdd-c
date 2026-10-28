@@ -233,7 +233,7 @@ def main():
                 cwd=build_dir,
                 env=env,
             )
-            run_cmd(["cmake", "--build", "."], cwd=build_dir, env=env)
+            run_cmd(["cmake", "--build", ".", "--parallel", "4"], cwd=build_dir, env=env)
         elif toolchain == "msvc" and has_msvc():
             build_dir = "build_msvc"
             os.makedirs(build_dir, exist_ok=True)

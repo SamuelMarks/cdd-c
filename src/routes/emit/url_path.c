@@ -34,7 +34,12 @@
 #endif
 
 /**
- * @brief Emits C source code for path object serialization.
+ * @brief Emits C code to serialize an object path parameter (`simple`, `label`,
+ * `matrix`).
+ *
+ * @param[in,out] fp Output file stream.
+ * @param[in] p The OpenAPI parameter structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_path_object_serialization(FILE *fp, const struct OpenAPI_Parameter *p) {
@@ -213,7 +218,13 @@ write_path_object_serialization(FILE *fp, const struct OpenAPI_Parameter *p) {
 }
 
 /**
- * @brief Emits C source code for path array serialization.
+ * @brief Emits C code to serialize an array path parameter.
+ *
+ * @param[in,out] fp Output file stream.
+ * @param[in] p The OpenAPI parameter structure.
+ * @param[in] prefix Style prefix string (e.g. `.` or `;`).
+ * @param[in] delim Element delimiter string.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_path_array_serialization(FILE *fp, const struct OpenAPI_Parameter *p,
@@ -347,8 +358,13 @@ write_path_array_serialization(FILE *fp, const struct OpenAPI_Parameter *p,
 }
 
 /**
- * @brief Finds an OpenAPI parameter by name within an array of
- * parameters.
+ * @brief Finds a parameter by name in a parameter array.
+ *
+ * @param[in] name Parameter name to search for.
+ * @param[in] params Array of OpenAPI parameters.
+ * @param[in] n_params Number of parameters in `params`.
+ * @param[out] _out_val Output pointer to the found parameter, or NULL.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t
 find_param(const char *name, const struct OpenAPI_Parameter *params,
@@ -370,7 +386,12 @@ find_param(const char *name, const struct OpenAPI_Parameter *params,
 }
 
 /**
- * @brief Parses segments from the given input.
+ * @brief Parses a URL path template into literal and variable segments.
+ *
+ * @param[in] tmpl URL path template string.
+ * @param[out] out_segments Output array of parsed URL segments.
+ * @param[out] out_count Output number of segments.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t parse_segments(const char *tmpl,
                                           struct UrlSegment **out_segments,
@@ -490,8 +511,14 @@ C_CDD_EXPORT cdd_c_error_t parse_segments(const char *tmpl,
 }
 
 /**
- * @brief Generates C code to construct a URL string from a path template and
- * parameters.
+ * @brief Generate C code to construct a URL from a path template.
+ *
+ * @param[in] fp The file stream to write C code to.
+ * @param[in] path_template The raw OpenAPI route string (e.g. "/users/{id}").
+ * @param[in] params Array of operation parameters to look up types.
+ * @param[in] n_params param count.
+ * @param[in] config Configuration options (can be NULL for defaults).
+ * @return 0 on success, error code (EINVAL/ENOMEM) on failure.
  */
 cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
                                         const struct OpenAPI_Parameter *params,

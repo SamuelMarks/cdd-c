@@ -198,6 +198,15 @@ static cdd_c_error_t join_tokens_range(const struct TokenList *tokens,
 /**
  * @brief Rewrites a C function body to propagate error return codes.
  *
+ * @param[in] tokens Lexical token list of the function body.
+ * @param[in] allocs Optional list of discovered allocation sites for OOM check
+ * injection.
+ * @param[in] funcs Optional array of refactored callee descriptors.
+ * @param[in] func_count Number of entries in `funcs`.
+ * @param[in] transform Optional signature transformation descriptor for return
+ * statement rewriting.
+ * @param[out] out_code Output pointer receiving the newly allocated rewritten C
+ * source string.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t rewrite_body(const struct TokenList *tokens,

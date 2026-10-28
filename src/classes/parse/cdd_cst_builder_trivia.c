@@ -28,6 +28,8 @@ static cdd_c_error_t get_first_token(cdd_cst_node_t *node,
  * @brief Appends a line comment (mapped to a C89 block comment) to the builder
  * target node.
  *
+ * @param[in,out] builder Target CST builder.
+ * @param[in] text Comment text string.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_line_comment(cdd_cst_builder_t *builder,
@@ -84,6 +86,8 @@ static cdd_c_error_t create_trivia(cdd_cst_tree_t *tree, const char *text,
  * @brief Appends a C89 block comment as trivia on the builder's current target
  * node.
  *
+ * @param[in,out] builder Target CST builder.
+ * @param[in] text Comment text string.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
@@ -185,6 +189,8 @@ static cdd_c_error_t get_first_token(cdd_cst_node_t *node,
 /**
  * @brief Finds the last lexical token in a CST subtree.
  *
+ * @param[in] node Root CST node to search.
+ * @param[out] out_tok Pointer to receive the last lexical token.
  * @return CDD_C_SUCCESS on success, CDD_C_ERROR_NOT_FOUND if none, or error
  * code.
  */
@@ -216,6 +222,9 @@ cdd_c_error_t cdd_cst_get_last_token(cdd_cst_node_t *node,
  * @brief Extracts and detaches leading trivia from the first token of a CST
  * node.
  *
+ * @param[in,out] node Target CST node.
+ * @param[out] out_trivia Output pointer receiving the detached leading trivia
+ * chain.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_extract_leading_trivia(cdd_cst_node_t *node,
@@ -239,6 +248,9 @@ cdd_c_error_t cdd_cst_extract_leading_trivia(cdd_cst_node_t *node,
  * @brief Extracts and detaches trailing trivia from the last token of a CST
  * node.
  *
+ * @param[in,out] node Target CST node.
+ * @param[out] out_trivia Output pointer receiving the detached trailing trivia
+ * chain.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_extract_trailing_trivia(cdd_cst_node_t *node,
@@ -262,6 +274,8 @@ cdd_c_error_t cdd_cst_extract_trailing_trivia(cdd_cst_node_t *node,
  * @brief Transfers all leading and trailing trivia from `source_node` to
  * `target_node`.
  *
+ * @param[in,out] source_node Source CST node from which trivia is extracted.
+ * @param[in,out] target_node Target CST node receiving the trivia.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
@@ -371,6 +385,9 @@ cdd_c_error_t cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
  * @brief Replaces `target_node` with `replacement_node` while preserving
  * surrounding trivia.
  *
+ * @param[in,out] builder Target CST builder.
+ * @param[in,out] target_node Existing CST node to replace.
+ * @param[in,out] replacement_node Replacement CST node.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t

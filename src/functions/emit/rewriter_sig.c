@@ -317,6 +317,9 @@ static cdd_c_error_t has_meaningful_tokens(const struct TokenList *tokens,
  * @brief Rewrites a C function signature to return an error enum and output
  * pointer.
  *
+ * @param[in] tokens Lexical token list of the function signature.
+ * @param[out] out_code Output pointer receiving the newly allocated rewritten
+ * signature string.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t rewrite_signature(const struct TokenList *tokens,

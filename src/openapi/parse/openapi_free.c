@@ -9,7 +9,10 @@
 /* clang-format on */
 
 /**
- * @brief Free servers array.
+ * @brief Free an array of OpenAPI_Server structures and their nested
+ * allocations.
+ * @param[in] servers Array of server structures to free.
+ * @param[in] n_servers Number of elements in the servers array.
  */
 void openapi_free_servers_array(struct OpenAPI_Server *servers,
                                 size_t n_servers) {
@@ -54,6 +57,8 @@ void openapi_free_servers_array(struct OpenAPI_Server *servers,
 
 /**
  * @brief Frees the memory associated with path item.
+ *
+ * @param[in,out] p The OpenAPI_Path structure to free.
  */
 void free_path_item(struct OpenAPI_Path *p) {
   size_t i;
@@ -97,6 +102,8 @@ void free_path_item(struct OpenAPI_Path *p) {
 
 /**
  * @brief Frees the memory associated with callback.
+ *
+ * @param[in,out] cb The OpenAPI_Callback structure to free.
  */
 void free_callback(struct OpenAPI_Callback *cb) {
   size_t i;
@@ -123,6 +130,8 @@ void free_callback(struct OpenAPI_Callback *cb) {
 
 /**
  * @brief Frees the memory associated with operation.
+ *
+ * @param[in,out] op The OpenAPI_Operation structure to free.
  */
 void free_operation(struct OpenAPI_Operation *op) {
   size_t i;
@@ -213,7 +222,8 @@ void free_operation(struct OpenAPI_Operation *op) {
 }
 
 /**
- * @brief Releases all memory owned by an OpenAPI_Spec structure.
+ * @brief Free a Spec structure and all nested allocations.
+ * @param[in] spec Pointer to spec structure to free.
  */
 void openapi_spec_free(struct OpenAPI_Spec *spec) {
   size_t i;
@@ -603,7 +613,10 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
 }
 
 /**
- * @brief Frees the memory associated with string array.
+ * @brief Frees an array of strings with a known element count.
+ *
+ * @param[in] arr Array of string pointers.
+ * @param[in] n Number of elements in the array.
  */
 void free_string_array(char **arr, size_t n) {
   size_t i;
@@ -617,7 +630,10 @@ void free_string_array(char **arr, size_t n) {
 }
 
 /**
- * @brief Frees the memory associated with name list.
+ * @brief Frees a list of extracted path template parameter names.
+ *
+ * @param[in] names Array of allocated name strings.
+ * @param[in] count Number of elements.
  */
 void free_name_list(char **names, size_t count) {
   size_t i;

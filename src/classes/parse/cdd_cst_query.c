@@ -18,6 +18,9 @@
  * @brief Traverses a CST in pre-order, invoking `visitor` on each node before
  * its children.
  *
+ * @param[in] root Root CST node to traverse.
+ * @param[in] visitor Visitor callback invoked for each node.
+ * @param[in,out] user_data Opaque context pointer passed to `visitor`.
  * @return CDD_C_SUCCESS on success, or the first non-zero error returned by
  * `visitor`.
  */
@@ -51,6 +54,9 @@ cdd_c_error_t cdd_cst_traverse_preorder(cdd_cst_node_t *root,
  * @brief Traverses a CST in post-order, invoking `visitor` on each node after
  * its children.
  *
+ * @param[in] root Root CST node to traverse.
+ * @param[in] visitor Visitor callback invoked for each node.
+ * @param[in,out] user_data Opaque context pointer passed to `visitor`.
  * @return CDD_C_SUCCESS on success, or the first non-zero error returned by
  * `visitor`.
  */
@@ -129,6 +135,10 @@ static cdd_c_error_t type_visitor(cdd_cst_node_t *node, void *user_data) {
 /**
  * @brief Finds all CST nodes of a specific `kind` within a subtree.
  *
+ * @param[in] root Root CST node to search.
+ * @param[in] kind Target CST node kind to match.
+ * @param[out] out_result Output query result container receiving matching
+ * nodes.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_find_nodes_by_type(cdd_cst_node_t *root,
@@ -239,6 +249,10 @@ static cdd_c_error_t call_visitor(cdd_cst_node_t *node, void *user_data) {
  * @brief Finds all CST nodes representing calls to a function named
  * `func_name`.
  *
+ * @param[in] root Root CST node to search.
+ * @param[in] func_name Name of the called function to match.
+ * @param[out] out_result Output query result container receiving matching call
+ * nodes.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t

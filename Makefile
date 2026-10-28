@@ -54,28 +54,24 @@ build_wasm:
 		ARCH_NAME=$$(uname -m); \
 		if [ "$$OS_NAME" = "darwin" ]; then WASI_OS="macos"; elif echo "$$OS_NAME" | grep -qi "mingw\|msys\|cygwin"; then WASI_OS="mingw"; else WASI_OS="linux"; fi; \
 		if [ "$$ARCH_NAME" = "x86_64" ] || [ "$$ARCH_NAME" = "amd64" ]; then WASI_ARCH="x86_64"; else WASI_ARCH="arm64"; fi; \
-		curl -L -O "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-24/wasi-sdk-24.0-$${WASI_ARCH}-$${WASI_OS}.tar.gz"; \
+		curl -fL -O "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-24/wasi-sdk-24.0-$${WASI_ARCH}-$${WASI_OS}.tar.gz"; \
 		tar xf wasi-sdk-24.0-*-$${WASI_OS}.tar.gz; \
 		rm wasi-sdk-24.0-*-$${WASI_OS}.tar.gz; \
 		mv wasi-sdk-24.0* wasi-sdk; \
 	fi
-	@sed -i.bak 's/VERSION 3.4.0/VERSION 3.11/g' wasi-sdk/share/cmake/wasi-sdk.cmake || true
-	rm -rf build_wasm && mkdir -p build_wasm
-	printf '#include <stdio.h>\n#define tmpfile() ((FILE *)0)\n' > build_wasm/wasi_compat.h
-	cd build_wasm && cmake -S .. -B . -DCMAKE_TOOLCHAIN_FILE=../wasi-sdk/share/cmake/wasi-sdk.cmake \
-		-DCMAKE_C_FLAGS="-include sys/types.h -include unistd.h -include $(CURDIR)/build_wasm/wasi_compat.h -D_WASI_EMULATED_GETPID -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_PROCESS_CLOCKS" \
-		-DCMAKE_EXE_LINKER_FLAGS="-lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-process-clocks" \
-		-DC_CDD_USE_LIBCURL=OFF -DHTTP_ONLY=ON -DC_CDD_THREADING="Single-threaded" -DENABLE_THREADED_RESOLVER=OFF -DCURL_DISABLE_LDAP=ON -DCURL_DISABLE_LDAPS=ON -DC_ABSTRACT_HTTP_USE_RAW_SOCKETS=ON \
-		-DBUILD_TESTING=OFF -DFETCHCONTENT_UPDATES_DISCONNECTED=ON -DC_CDD_BUILD_TESTS=OFF -DC_ABSTRACT_HTTP_BUILD_TESTING=OFF -DC_ORM_BUILD_TESTING=OFF -DC_FS_BUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release || true
-	sed -i.bak 's/STREQUAL "DOS"/STREQUAL "WASI" OR CMAKE_SYSTEM_NAME STREQUAL "DOS"/g' build_wasm/_deps/c_rest_framework-src/CMakeLists.txt || true
-	cd build_wasm && cmake -S .. -B . -DCMAKE_TOOLCHAIN_FILE=../wasi-sdk/share/cmake/wasi-sdk.cmake \
-		-DCMAKE_C_FLAGS="-include sys/types.h -include unistd.h -include $(CURDIR)/build_wasm/wasi_compat.h -D_WASI_EMULATED_GETPID -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_PROCESS_CLOCKS" \
-		-DCMAKE_EXE_LINKER_FLAGS="-lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-process-clocks" \
-		-DC_CDD_USE_LIBCURL=OFF -DHTTP_ONLY=ON -DC_CDD_THREADING="Single-threaded" -DENABLE_THREADED_RESOLVER=OFF -DCURL_DISABLE_LDAP=ON -DCURL_DISABLE_LDAPS=ON -DC_ABSTRACT_HTTP_USE_RAW_SOCKETS=ON \
-		-DBUILD_TESTING=OFF -DFETCHCONTENT_UPDATES_DISCONNECTED=ON -DC_CDD_BUILD_TESTS=OFF -DC_ABSTRACT_HTTP_BUILD_TESTING=OFF -DC_ORM_BUILD_TESTING=OFF -DC_FS_BUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release
-	cd build_wasm && $(MAKE) cdd-c
+	@if [ ! -f "build_wasm/Makefile" ]; then \
+		mkdir -p build_wasm && \
+		cmake -S . -B build_wasm \
+			-DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+			-DCMAKE_TOOLCHAIN_FILE="$(CURDIR)/wasi-sdk/share/cmake/wasi-sdk.cmake" \
+			-DCMAKE_BUILD_TYPE=Release \
+			-DBUILD_TESTING=OFF \
+			-DC_CDD_BUILD_TESTS=OFF \
+			-DFETCHCONTENT_UPDATES_DISCONNECTED=ON; \
+	fi
+	cmake --build build_wasm --target cdd-c --config Release
 	mkdir -p $(BIN_DIR)
-	cp build_wasm/bin/cdd-c $(BIN_DIR)/cdd-c.wasm 2>/dev/null || cp build_wasm/cdd-c $(BIN_DIR)/cdd-c.wasm
+	cp build_wasm/bin/cdd-c.wasm $(BIN_DIR)/cdd-c.wasm 2>/dev/null || cp build_wasm/bin/cdd-c $(BIN_DIR)/cdd-c.wasm 2>/dev/null || cp build_wasm/cdd-c.wasm $(BIN_DIR)/cdd-c.wasm 2>/dev/null || cp build_wasm/cdd-c $(BIN_DIR)/cdd-c.wasm
 
 build_docker:
 	docker build -t cdd-c:alpine -f alpine.Dockerfile .

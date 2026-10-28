@@ -27,6 +27,9 @@
 /**
  * @brief Checks whether a byte span equals a null-terminated literal string.
  *
+ * @param[in] span Byte span to compare.
+ * @param[in] str Null-terminated literal string to compare against.
+ * @param[out] _out_val Output pointer receiving 1 if equal, 0 otherwise.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
  * NULL.
  */
@@ -50,6 +53,9 @@ cdd_c_error_t span_equals_str(const az_span span, const char *str,
 /**
  * @brief Classifies an identifier token span as a C keyword or user identifier.
  *
+ * @param[in] start Pointer to the start of the identifier token bytes.
+ * @param[in] len Length of the identifier token in bytes.
+ * @param[out] _out_val Output pointer receiving the classified `TokenKind`.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
  * NULL.
  */

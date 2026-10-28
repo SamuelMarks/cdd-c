@@ -41,6 +41,8 @@ C_CDD_EXPORT int g_cdd_sync_fail_fopen_write = 0;
  * @brief CLI entry point for synchronizing C header declarations with
  * implementation files.
  *
+ * @param[in] argc Argument count.
+ * @param[in] argv Argument vector.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t sync_code_main(int argc, char **argv) {
@@ -266,6 +268,8 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
  * @brief Updates function declarations in a C header to match definitions in a
  * source file.
  *
+ * @param[in] header_path Path to the C header file to update.
+ * @param[in] refactored_source Refactored C implementation source text.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t patch_header_from_source(const char *header_path,

@@ -18,6 +18,14 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Writes the C header preamble for a generated OpenAPI client header.
+ *
+ * @param[in,out] fp Output file stream.
+ * @param[in] guard Include guard macro name.
+ * @param[in] model_decl Optional model header filename to include.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
 cdd_c_error_t write_header_preamble(FILE *fp, const char *guard,
                                     const char *model_decl) {
   CHECK_IO(fprintf(fp, "#ifndef %s\n", guard));
@@ -56,10 +64,12 @@ cdd_c_error_t write_header_preamble(FILE *fp, const char *guard,
 }
 
 /**
- * @brief Write standard includes to the implementation file.
- */
-/**
- * @brief Emits C source code for source preamble.
+ * @brief Writes the C source preamble for a generated OpenAPI client
+ * implementation.
+ *
+ * @param[in,out] fp Output file stream.
+ * @param[in] header_name Header filename to include.
+ * @return CDD_C_SUCCESS on success or error code.
  */
 cdd_c_error_t write_source_preamble(FILE *fp, const char *header_name) {
   CHECK_IO(fprintf(fp, "#include <stdlib.h>\n"));
@@ -93,11 +103,13 @@ cdd_c_error_t write_source_preamble(FILE *fp, const char *header_name) {
 }
 
 /**
- * @brief Write the _init and _cleanup factory functions with macro selection.
- * Also writes ApiError implementation.
- */
-/**
- * @brief Emits C source code for lifecycle funcs.
+ * @brief Writes client lifecycle (`_init`, `_cleanup`, `ApiError`) functions.
+ *
+ * @param[in,out] h Output header file stream.
+ * @param[in,out] c Output source file stream.
+ * @param[in] prefix Function name prefix.
+ * @param[in] spec Parsed OpenAPI specification.
+ * @return CDD_C_SUCCESS on success or error code.
  */
 cdd_c_error_t write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
                                     const struct OpenAPI_Spec *spec) {

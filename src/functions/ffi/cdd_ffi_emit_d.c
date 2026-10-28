@@ -100,6 +100,8 @@ static cdd_c_error_t map_d_type(cdd_ffi_type_t *t, const char **out_type) {
  * @brief Emits D `extern(C)` module bindings and `dub.json` package manifest
  * for the given FFI IR.
  *
+ * @param[in] ir FFI Intermediate Representation to emit.
+ * @param[in] config Binding generation configuration parameters.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t cdd_ffi_emit_d(cdd_ffi_ir_t *ir,

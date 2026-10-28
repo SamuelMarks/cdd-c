@@ -25,6 +25,8 @@
 /**
  * @brief Appends a single tag string to `out->tags`.
  *
+ * @param[in,out] out Target DocMetadata structure.
+ * @param[in] tag Tag string to duplicate and append.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_add_tag(struct DocMetadata *out, const char *tag) {
@@ -52,6 +54,9 @@ cdd_c_error_t doc_add_tag(struct DocMetadata *out, const char *tag) {
 /**
  * @brief Appends a `DocTagMeta` entry to `out->tag_meta`.
  *
+ * @param[in,out] out Target DocMetadata structure.
+ * @param[in,out] meta Tag metadata entry to append (takes ownership of
+ * strings).
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_add_tag_meta(struct DocMetadata *out,
@@ -84,6 +89,9 @@ cdd_c_error_t doc_add_tag_meta(struct DocMetadata *out,
 /**
  * @brief Parses an `@tag` or `@tags` directive line into `out->tags`.
  *
+ * @param[in] line Start of directive argument text.
+ * @param[in] end End of directive line.
+ * @param[in,out] out Target DocMetadata structure.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_tags_line(const char *line, const char *end,
@@ -129,6 +137,9 @@ cdd_c_error_t doc_parse_tags_line(const char *line, const char *end,
 /**
  * @brief Parses an `@tagMeta` directive line into `out->tag_meta`.
  *
+ * @param[in] line Start of directive argument text.
+ * @param[in] end End of directive line.
+ * @param[in,out] out Target DocMetadata structure.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_tag_meta_line(const char *line, const char *end,
@@ -293,6 +304,9 @@ cleanup_meta:
 /**
  * @brief Parses an `@deprecated` directive line into `out`.
  *
+ * @param[in] line Start of directive argument text.
+ * @param[in] end End of directive line.
+ * @param[in,out] out Target DocMetadata structure.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_deprecated_line(const char *line, const char *end,
@@ -318,6 +332,9 @@ cdd_c_error_t doc_parse_deprecated_line(const char *line, const char *end,
 /**
  * @brief Parses an `@externalDocs` directive line into `out`.
  *
+ * @param[in] line Start of directive argument text.
+ * @param[in] end End of directive line.
+ * @param[in,out] out Target DocMetadata structure.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_external_docs_line(const char *line, const char *end,
@@ -348,6 +365,9 @@ cdd_c_error_t doc_parse_external_docs_line(const char *line, const char *end,
 /**
  * @brief Parses an `@contact` directive line into `out`.
  *
+ * @param[in] line Start of directive argument text.
+ * @param[in] end End of directive line.
+ * @param[in,out] out Target DocMetadata structure.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_contact_line(const char *line, const char *end,
@@ -462,6 +482,9 @@ fail_contact:
 /**
  * @brief Parses an `@license` directive line into `out`.
  *
+ * @param[in] line Start of directive argument text.
+ * @param[in] end End of directive line.
+ * @param[in,out] out Target DocMetadata structure.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_license_line(const char *line, const char *end,
@@ -589,6 +612,9 @@ fail_license:
 /**
  * @brief Parses an `@server` directive line into `out->servers`.
  *
+ * @param[in] line Start of directive argument text.
+ * @param[in] end End of directive line.
+ * @param[in,out] out Target DocMetadata structure.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_server_line(const char *line, const char *end,
@@ -721,6 +747,9 @@ cdd_c_error_t doc_parse_server_line(const char *line, const char *end,
  * @brief Parses an `@serverVar` directive line and attaches it to the most
  * recent server in `out->servers`.
  *
+ * @param[in] line Start of directive argument text.
+ * @param[in] end End of directive line.
+ * @param[in,out] out Target DocMetadata structure.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_server_var_line(const char *line, const char *end,
@@ -885,6 +914,11 @@ fail_server_var:
  * @brief Parses an `@encoding`, `@prefixEncoding`, or `@itemEncoding`
  * directive line into `out->encodings`.
  *
+ * @param[in] line Start of directive argument text.
+ * @param[in] end End of directive line.
+ * @param[in,out] out Target DocMetadata structure.
+ * @param[in] kind Encoding kind (`0` = property encoding, `1` = prefixEncoding,
+ * `2` = itemEncoding).
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_encoding_line(const char *line, const char *end,
@@ -1001,6 +1035,9 @@ cdd_c_error_t doc_parse_encoding_line(const char *line, const char *end,
  * @brief Parses an `@route` or `@webhook` directive line into `out->verb` and
  * `out->route`.
  *
+ * @param[in] line Start of directive argument text.
+ * @param[in] end End of directive line.
+ * @param[in,out] out Target DocMetadata structure.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_route_line(const char *line, const char *end,

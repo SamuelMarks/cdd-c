@@ -649,7 +649,12 @@ static cdd_c_error_t parse_schema_ref_inner(const JSON_Object *schema,
 }
 
 /**
- * @brief Parses schema ref from the given input.
+ * @brief Parses a JSON schema object into an OpenAPI_SchemaRef structure.
+ *
+ * @param[in] schema JSON object representing the schema.
+ * @param[out] out Destination OpenAPI_SchemaRef structure.
+ * @param[in] spec Parent OpenAPI specification context.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t parse_schema_ref(const JSON_Object *schema,
                                struct OpenAPI_SchemaRef *out,

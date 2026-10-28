@@ -28,6 +28,8 @@
  * @brief Emits a C forward declaration (`struct <struct_name>;`) to a file
  * stream.
  *
+ * @param[in,out] fp Output file stream.
+ * @param[in] struct_name Name of the C struct.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t write_forward_decl(FILE *fp, const char *struct_name) {
@@ -44,6 +46,10 @@ cdd_c_error_t write_forward_decl(FILE *fp, const char *struct_name) {
  * @brief Emits a C enum declaration and string conversion prototypes to a
  * header file.
  *
+ * @param[in,out] hfile Output header file stream.
+ * @param[in] enum_name Name of the C enum type.
+ * @param[in] sf Struct fields descriptor containing enum members.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t write_enum_declaration_h(FILE *hfile, const char *enum_name,
@@ -88,6 +94,10 @@ cdd_c_error_t write_enum_declaration_h(FILE *hfile, const char *enum_name,
  * @brief Emits a tagged C union declaration and JSON/cleanup prototypes to a
  * header file.
  *
+ * @param[in,out] hfile Output header file stream.
+ * @param[in] union_name Name of the C union type.
+ * @param[in] sf Struct fields descriptor containing union variants.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t write_union_declaration_h(FILE *hfile, const char *union_name,
@@ -180,6 +190,10 @@ cdd_c_error_t write_union_declaration_h(FILE *hfile, const char *union_name,
  * @brief Emits a C struct declaration and JSON/utility prototypes to a header
  * file.
  *
+ * @param[in,out] hfile Output header file stream.
+ * @param[in] struct_name Name of the C struct.
+ * @param[in] sf Struct fields descriptor container.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t write_struct_declaration_h(FILE *hfile, const char *struct_name,

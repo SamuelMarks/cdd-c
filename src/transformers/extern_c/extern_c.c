@@ -150,6 +150,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_check_node_is_cpp_guard(cdd_cst_node_t *dir,
 /**
  * @brief Adds extern "C" wrapping to the parsed syntax tree.
  *
+ * @param[in,out] tree CST tree to transform.
+ * @param[in] config Optional transformation configuration.
  * @return 0 on success, or an error code.
  */
 cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,

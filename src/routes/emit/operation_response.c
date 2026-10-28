@@ -22,7 +22,12 @@
 /* clang-format on */
 
 /**
- * @brief Checks if reserved header name.
+ * @brief Checks if a header name is an HTTP reserved header name.
+ *
+ * @param[in] name The header name to inspect.
+ * @param[out] out_is_reserved Pointer to int receiving 1 if reserved, 0
+ * otherwise.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t is_reserved_header_name(const char *name, int *out_is_reserved) {
   int diff = 0;
@@ -56,7 +61,12 @@ cdd_c_error_t is_reserved_header_name(const char *name, int *out_is_reserved) {
 }
 
 /**
- * @brief Parses link params json from the given input.
+ * @brief Parses a JSON string representation of link parameters.
+ *
+ * @param[in] json JSON string encoding key-value link parameters.
+ * @param[out] out Pointer to array pointer receiving allocated link parameters.
+ * @param[out] out_count Pointer to size_t receiving number of link parameters.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t parse_link_params_json(const char *json,
                                      struct OpenAPI_LinkParam **out,
@@ -133,7 +143,12 @@ cleanup: {
 }
 
 /**
- * @brief Retrieves the response by code.
+ * @brief Finds an existing OpenAPI Response by its HTTP status code.
+ *
+ * @param[in] op Pointer to the OpenAPI Operation.
+ * @param[in] code HTTP status code string (e.g. "200").
+ * @param[out] _out_val Pointer receiving pointer to found response or NULL.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t find_response_by_code(struct OpenAPI_Operation *op,
                                     const char *code,
@@ -161,7 +176,13 @@ cdd_c_error_t find_response_by_code(struct OpenAPI_Operation *op,
 }
 
 /**
- * @brief Applies example to response.
+ * @brief Applies an example value string to an OpenAPI Response.
+ *
+ * @param[in,out] resp Pointer to response structure.
+ * @param[in] example Example value string.
+ * @param[in] content_type Optional media type filter, or NULL for all media
+ * types.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t apply_example_to_response(struct OpenAPI_Response *resp,
                                         const char *example,
@@ -219,8 +240,14 @@ cdd_c_error_t apply_example_to_response(struct OpenAPI_Response *resp,
 }
 
 /**
- * @brief Finds or creates an OpenAPI_Response entry for a given HTTP status
- * code.
+ * @brief Ensures an OpenAPI Response exists for the specified code, creating if
+ * needed.
+ *
+ * @param[in,out] op Pointer to OpenAPI Operation.
+ * @param[in] code HTTP status code string.
+ * @param[out] _out_val Pointer receiving created or existing OpenAPI_Response
+ * pointer.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t ensure_response_for_code(struct OpenAPI_Operation *op,
                                        const char *code,
@@ -316,7 +343,11 @@ static void free_header_fields(struct OpenAPI_Header *hdr) {
 }
 
 /**
- * @brief Adds or sets header to response.
+ * @brief Adds or merges a header into an OpenAPI Response.
+ *
+ * @param[in,out] resp Pointer to OpenAPI Response.
+ * @param[in] dh Pointer to documented response header metadata.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t add_header_to_response(struct OpenAPI_Response *resp,
                                      const struct DocResponseHeader *dh) {
@@ -464,6 +495,9 @@ cdd_c_error_t add_header_to_response(struct OpenAPI_Response *resp,
 
 /**
  * @brief Cleans up dynamically allocated fields of an OpenAPI Link.
+ *
+ * @param[in,out] link Pointer to OpenAPI Link structure.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t cleanup_link_fields(struct OpenAPI_Link *link) {
   if (!link)
@@ -514,7 +548,11 @@ cdd_c_error_t cleanup_link_fields(struct OpenAPI_Link *link) {
 }
 
 /**
- * @brief Adds or sets link to response.
+ * @brief Adds a link to an OpenAPI Response.
+ *
+ * @param[in,out] resp Pointer to OpenAPI Response.
+ * @param[in] dl Pointer to documented link metadata.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t add_link_to_response(struct OpenAPI_Response *resp,
                                    const struct DocLink *dl) {
@@ -633,8 +671,13 @@ cdd_c_error_t add_link_to_response(struct OpenAPI_Response *resp,
 }
 
 /**
- * @brief Checks whether an OpenAPI_Response already contains a given media type
+ * @brief Checks if an OpenAPI Response contains a media type with the specified
  * name.
+ *
+ * @param[in] resp Pointer to OpenAPI Response.
+ * @param[in] name Media type name to check.
+ * @param[out] out_has Pointer receiving 1 if present, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t response_has_media_type(const struct OpenAPI_Response *resp,
                                       const char *name, int *out_has) {
@@ -664,7 +707,13 @@ cdd_c_error_t response_has_media_type(const struct OpenAPI_Response *resp,
 }
 
 /**
- * @brief Initializes a single MediaType entry from legacy Response fields.
+ * @brief Initializes a media type structure from an OpenAPI Response.
+ *
+ * @param[out] mt Pointer to OpenAPI MediaType to initialize.
+ * @param[in] name Name of the media type.
+ * @param[in] resp Pointer to source OpenAPI Response.
+ * @param[in] is_item_schema 1 if mapping to item_schema, 0 for schema.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t init_media_type_from_response(struct OpenAPI_MediaType *mt,
                                             const char *name,
@@ -702,7 +751,12 @@ cdd_c_error_t init_media_type_from_response(struct OpenAPI_MediaType *mt,
 }
 
 /**
- * @brief Adds or sets response media type.
+ * @brief Adds or ensures a media type exists in an OpenAPI Response.
+ *
+ * @param[in,out] resp Pointer to OpenAPI Response.
+ * @param[in] name Media type name.
+ * @param[in] is_item_schema 1 if mapping to item_schema, 0 for schema.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t add_response_media_type(struct OpenAPI_Response *resp,
                                       const char *name, int is_item_schema) {

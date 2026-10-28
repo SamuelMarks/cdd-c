@@ -73,6 +73,9 @@ extern C_CDD_EXPORT int g_crypto_fail_hmac_len;
 /**
  * @brief Computes a 32-byte SHA-256 digest over a data buffer.
  *
+ * @param[in] data Pointer to the input buffer to hash.
+ * @param[in] data_len Length of the input buffer in bytes.
+ * @param[out] out_digest Output buffer receiving the 32-byte SHA-256 digest.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
@@ -120,8 +123,13 @@ cleanup:
 }
 
 /**
- * @brief Computes a 32-byte HMAC-SHA256 digest over a data buffer.
+ * @brief Computes a 32-byte HMAC-SHA256 message authentication code.
  *
+ * @param[in] key Secret key bytes.
+ * @param[in] key_len Length of `key` in bytes.
+ * @param[in] data Message payload bytes to authenticate.
+ * @param[in] data_len Length of `data` in bytes.
+ * @param[out] out_mac Output buffer receiving the 32-byte HMAC-SHA256 tag.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,

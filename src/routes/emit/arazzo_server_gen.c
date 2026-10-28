@@ -22,6 +22,18 @@
 #include "routes/emit/server_gen.h"
 /* clang-format on */
 
+/**
+ * @brief Renders the backend server workflow orchestrator C source and E2E
+ * `greatest.h` test header into in-memory strings.
+ *
+ * @param[in] arazzo_spec Parsed Arazzo v1.1.0 specification.
+ * @param[in] base_name Base filename without directory.
+ * @param[in] prefix Function name prefix (e.g. `"api_"` or `""`).
+ * @param[out] out_server_src Output heap-allocated server C source string.
+ * @param[out] out_test_hdr Output heap-allocated `greatest.h` test header
+ * string.
+ * @return `CDD_C_SUCCESS` on success, or error code on failure.
+ */
 cdd_c_error_t
 arazzo_server_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
                                 const char *base_name, const char *prefix,
@@ -201,6 +213,17 @@ arazzo_server_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Generates the backend server workflow orchestrator
+ * (`<base>_workflow_server.c`) and `greatest.h` E2E workflow test suite
+ * (`<base>_workflow_tests.h`) from an Arazzo v1.1.0 specification.
+ *
+ * @param[in] arazzo_spec Parsed Arazzo v1.1.0 specification.
+ * @param[in] openapi_spec Optional linked OpenAPI specification (may be NULL).
+ * @param[in] config Server/client generation configuration.
+ * @return `CDD_C_SUCCESS` on success, `CDD_C_ERROR_INVALID_ARGUMENT` on NULL,
+ * `CDD_C_ERROR_MEMORY` on OOM, or `CDD_C_ERROR_IO` on file failure.
+ */
 cdd_c_error_t arazzo_server_generate(const struct Arazzo_Spec *arazzo_spec,
                                      const struct OpenAPI_Spec *openapi_spec,
                                      const struct OpenApiClientConfig *config) {

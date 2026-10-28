@@ -17,6 +17,9 @@
 
 /**
  * @brief Emit url_utils.c (part 2) for installable package.
+ *
+ * @param[in,out] uc Output url_utils.c file stream.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
   if (uc) {

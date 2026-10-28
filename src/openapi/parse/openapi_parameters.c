@@ -394,6 +394,12 @@ parse_parameter_object_inner(const JSON_Object *p_obj,
 
 /**
  * @brief Parses parameter object from the given input.
+ *
+ * @param[in] p_obj The source parameter JSON object.
+ * @param[out] out_param Output OpenAPI_Parameter structure.
+ * @param[in,out] spec The parent OpenAPI specification.
+ * @param[in] resolve_refs Non-zero to resolve component references.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
                                      struct OpenAPI_Parameter *out_param,
@@ -408,6 +414,10 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
 
 /**
  * @brief Checks whether two OpenAPI parameters have the same name and location.
+ *
+ * @param[in] a First OpenAPI parameter.
+ * @param[in] b Second OpenAPI parameter.
+ * @return Non-zero if equal, CDD_C_SUCCESS otherwise.
  */
 cdd_c_error_t param_key_equals(const struct OpenAPI_Parameter *a,
                                const struct OpenAPI_Parameter *b) {
@@ -418,6 +428,12 @@ cdd_c_error_t param_key_equals(const struct OpenAPI_Parameter *a,
 
 /**
  * @brief Parses parameters array from the given input.
+ *
+ * @param[in] arr The source parameters JSON array.
+ * @param[out] out_params Output array of OpenAPI_Parameter structures.
+ * @param[out] out_count Output count of parameters.
+ * @param[in,out] spec The parent OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_parameters_array(const JSON_Array *arr,
                                      struct OpenAPI_Parameter **out_params,

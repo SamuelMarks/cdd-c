@@ -25,6 +25,9 @@
 /**
  * @brief Parses a security scheme type string into `enum DocSecurityType`.
  *
+ * @param[in] text Security scheme type string.
+ * @param[out] out_val Output pointer receiving the parsed `DocSecurityType`
+ * enum value.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_security_type_text(const char *text,
@@ -69,6 +72,9 @@ cdd_c_error_t doc_parse_security_type_text(const char *text,
 /**
  * @brief Parses an `apiKey` location string into `enum DocSecurityIn`.
  *
+ * @param[in] text Location string (`"query"`, `"header"`, `"cookie"`).
+ * @param[out] out_val Output pointer receiving the parsed `DocSecurityIn` enum
+ * value.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_security_in_text(const char *text,
@@ -105,6 +111,9 @@ cdd_c_error_t doc_parse_security_in_text(const char *text,
 /**
  * @brief Parses an OAuth2 flow type string into `enum DocOAuthFlowType`.
  *
+ * @param[in] text OAuth2 flow type string.
+ * @param[out] out_val Output pointer receiving the parsed `DocOAuthFlowType`
+ * enum value.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_oauth_flow_type_text(const char *text,
@@ -150,6 +159,9 @@ cdd_c_error_t doc_parse_oauth_flow_type_text(const char *text,
  * @brief Parses a comma-separated list of OAuth2 scope names into an array of
  * `DocOAuthScope` structs.
  *
+ * @param[in] input Comma-separated scope list string.
+ * @param[out] out Output pointer receiving the allocated `DocOAuthScope` array.
+ * @param[out] out_count Output pointer receiving the number of scopes.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_oauth_scopes(const char *input,
@@ -195,6 +207,9 @@ cdd_c_error_t doc_parse_oauth_scopes(const char *input,
 /**
  * @brief Parses an `@security` directive line into `out->security`.
  *
+ * @param[in] line Start of directive argument text.
+ * @param[in] end End of directive line.
+ * @param[in,out] out Target DocMetadata structure.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_security_line(const char *line, const char *end,
@@ -256,6 +271,9 @@ cdd_c_error_t doc_parse_security_line(const char *line, const char *end,
  * @brief Parses an `@securityScheme` directive line into
  * `out->security_schemes`.
  *
+ * @param[in] line Start of directive argument text.
+ * @param[in] end End of directive line.
+ * @param[in,out] out Target DocMetadata structure.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_security_scheme_line(const char *line, const char *end,

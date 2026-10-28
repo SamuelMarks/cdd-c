@@ -18,6 +18,8 @@ C_CDD_EXPORT volatile int g_gnu_find_fail = 0;
 /**
  * @brief Allocates memory for GNU standardizer transformations.
  *
+ * @param[in] sz Number of bytes to allocate.
+ * @param[out] out_ptr Output pointer receiving the allocated memory block.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on failure.
  */
 cdd_c_error_t gnu_malloc(size_t sz, void **out_ptr) {
@@ -38,6 +40,8 @@ cdd_c_error_t gnu_malloc(size_t sz, void **out_ptr) {
 /**
  * @brief Allocates a new CST node with fault-injection support.
  *
+ * @param[in] kind CST node kind to allocate.
+ * @param[out] out_node Output pointer receiving the allocated CST node.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on failure.
  */
 cdd_c_error_t gnu_alloc_node(enum cdd_cst_node_kind_t kind,
@@ -52,6 +56,11 @@ cdd_c_error_t gnu_alloc_node(enum cdd_cst_node_kind_t kind,
 /**
  * @brief Finds the parent CST node and child index for a given token.
  *
+ * @param[in] root Root CST node to search.
+ * @param[in] tok Target token to locate.
+ * @param[out] out_idx Output pointer receiving the child index within the
+ * parent node.
+ * @param[out] out_node Output pointer receiving the parent CST node.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_NOT_FOUND if not found.
  */
 cdd_c_error_t gnu_find_node(cdd_cst_node_t *root, cdd_token_t *tok,

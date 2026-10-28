@@ -140,7 +140,12 @@ cdd_c_error_t map_doc_flow_type(enum DocOAuthFlowType type,
 }
 
 /**
- * @brief Finds a SecurityScheme component by name in an OpenAPI_Spec.
+ * @brief Finds a security scheme by name in an OpenAPI specification.
+ *
+ * @param[in] spec Target OpenAPI specification.
+ * @param[in] name Name of security scheme to find.
+ * @param[out] _out_val Pointer to receive matched scheme pointer.
+ * @return CDD_C_SUCCESS on success or CDD_C_ERROR_UNKNOWN if not found.
  */
 cdd_c_error_t
 spec_find_security_scheme(struct OpenAPI_Spec *spec, const char *name,

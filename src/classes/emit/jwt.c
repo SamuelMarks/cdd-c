@@ -21,6 +21,9 @@
  * @brief Generates a C function that Base64URL-decodes a JWT payload and
  * parses it into a struct.
  *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the C struct.
+ * @param[in] sf Struct fields descriptor container.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t write_struct_from_jwt_func(FILE *fp, const char *struct_name,

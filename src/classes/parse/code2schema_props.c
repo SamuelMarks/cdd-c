@@ -11,6 +11,9 @@
 /**
  * @brief Collects an array of strings from a JSON array.
  *
+ * @param[in] arr Source Parson JSON_Array of strings.
+ * @param[out] out Output pointer receiving the newly allocated string array.
+ * @param[out] out_count Output pointer receiving the number of strings.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_collect_string_array(const JSON_Array *arr, char ***out,
@@ -52,6 +55,10 @@ cdd_c_error_t c2s_collect_string_array(const JSON_Array *arr, char ***out,
 /**
  * @brief Collects property names from a JSON Schema object.
  *
+ * @param[in] schema_obj JSON Schema object containing `properties`.
+ * @param[out] out Output pointer receiving the newly allocated array of
+ * property names.
+ * @param[out] out_count Output pointer receiving the number of property names.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_collect_property_names(const JSON_Object *schema_obj,

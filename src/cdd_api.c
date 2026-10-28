@@ -80,6 +80,7 @@
 /**
  * @brief Generate C code (SDK, CLI, or Server) from an OpenAPI specification.
  *
+ * @param[in] config Configuration parameters for OpenAPI-to-C generation.
  * @return CDD_C_SUCCESS on success, or an error code on failure.
  */
 cdd_c_error_t
@@ -156,6 +157,7 @@ cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
 /**
  * @brief Generate an OpenAPI specification from existing C source code.
  *
+ * @param[in] config Configuration parameters for C-to-OpenAPI extraction.
  * @return CDD_C_SUCCESS on success, or an error code on failure.
  */
 cdd_c_error_t cdd_generate_to_openapi(const cdd_to_openapi_config_t *config) {
@@ -208,6 +210,7 @@ cdd_c_error_t cdd_generate_to_openapi(const cdd_to_openapi_config_t *config) {
  * @brief Generate documentation JSON containing C code snippets for an OpenAPI
  * specification.
  *
+ * @param[in] config Configuration parameters for documentation JSON generation.
  * @return CDD_C_SUCCESS on success, or an error code on failure.
  */
 cdd_c_error_t cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
@@ -333,6 +336,7 @@ cdd_c_error_t cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
 /**
  * @brief Start the JSON-RPC server exposing the CDD functionality.
  *
+ * @param[in] config Configuration parameters for the JSON-RPC server.
  * @return CDD_C_SUCCESS on success, or an error code on failure.
  */
 cdd_c_error_t cdd_serve_json_rpc(const cdd_serve_json_rpc_config_t *config) {
@@ -424,6 +428,8 @@ static const struct FfiEmitterEntry EMITTERS[] = {
 /**
  * @brief Generate FFI bindings directly from an IR DSL string.
  *
+ * @param[in] source Input DSL source text.
+ * @param[in] config Binding generation configuration parameters.
  * @return CDD_C_SUCCESS on success, or an error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
@@ -457,6 +463,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
 /**
  * @brief Generate SWIG-like FFI bindings for multiple target languages.
  *
+ * @param[in] config Binding generation configuration parameters.
  * @return CDD_C_SUCCESS on success, or an error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t
@@ -548,6 +555,7 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
  * @brief Generate C SDK workflows, CLI workflow runner, or Backend Server
  * orchestrator from an Arazzo v1.1.0 specification.
  *
+ * @param[in] config Configuration parameters for Arazzo-to-C generation.
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 cdd_c_error_t cdd_generate_from_arazzo(const cdd_from_arazzo_config_t *config) {
@@ -614,6 +622,7 @@ cdd_c_error_t cdd_generate_from_arazzo(const cdd_from_arazzo_config_t *config) {
  * @brief Extract an Arazzo v1.1.0 specification from annotated C source/header
  * files.
  *
+ * @param[in] config Configuration parameters for C-to-Arazzo extraction.
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 cdd_c_error_t cdd_generate_to_arazzo(const cdd_to_arazzo_config_t *config) {

@@ -31,6 +31,8 @@ extern int g_io_calls;
  * @brief Reconstructs and writes the exact original source text from a token
  * list to `out`.
  *
+ * @param[in] tokens Lexical token list to print.
+ * @param[in,out] out Output file stream.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cst_print_tokens_exact(const struct TokenList *tokens,

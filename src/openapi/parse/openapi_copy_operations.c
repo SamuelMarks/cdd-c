@@ -10,6 +10,10 @@
 
 /**
  * @brief Creates a deep copy of server object.
+ *
+ * @param[out] dst Destination OpenAPI_Server structure.
+ * @param[in] src Source OpenAPI_Server structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t copy_server_object(struct OpenAPI_Server *dst,
                                  const struct OpenAPI_Server *src) {
@@ -86,6 +90,10 @@ cdd_c_error_t copy_server_object(struct OpenAPI_Server *dst,
 
 /**
  * @brief Creates a deep copy of link fields.
+ *
+ * @param[out] dst Destination OpenAPI_Link structure.
+ * @param[in] src Source OpenAPI_Link structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t copy_link_fields(struct OpenAPI_Link *dst,
                                const struct OpenAPI_Link *src) {
@@ -158,6 +166,12 @@ cdd_c_error_t copy_link_fields(struct OpenAPI_Link *dst,
 
 /**
  * @brief Creates a deep copy of security requirement sets.
+ *
+ * @param[out] dst Output array of OpenAPI_SecurityRequirementSet structures.
+ * @param[out] dst_count Output count of security requirement sets.
+ * @param[in] src Source array of OpenAPI_SecurityRequirementSet structures.
+ * @param[in] src_count Number of elements in src.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t copy_security_requirement_sets(
     struct OpenAPI_SecurityRequirementSet **dst, size_t *dst_count,
@@ -221,6 +235,10 @@ cdd_c_error_t copy_security_requirement_sets(
 
 /**
  * @brief Creates a deep copy of callback fields.
+ *
+ * @param[out] dst Destination OpenAPI_Callback structure.
+ * @param[in] src Source OpenAPI_Callback structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t copy_callback_fields(struct OpenAPI_Callback *dst,
                                    const struct OpenAPI_Callback *src) {
@@ -269,6 +287,10 @@ cdd_c_error_t copy_callback_fields(struct OpenAPI_Callback *dst,
 
 /**
  * @brief Creates a deep copy of operation fields.
+ *
+ * @param[out] dst Destination OpenAPI_Operation structure.
+ * @param[in] src Source OpenAPI_Operation structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t copy_operation_fields(struct OpenAPI_Operation *dst,
                                     const struct OpenAPI_Operation *src) {
@@ -421,6 +443,10 @@ cdd_c_error_t copy_operation_fields(struct OpenAPI_Operation *dst,
 
 /**
  * @brief Creates a deep copy of path fields.
+ *
+ * @param[out] dst Destination OpenAPI_Path structure.
+ * @param[in] src Source OpenAPI_Path structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t copy_path_fields(struct OpenAPI_Path *dst,
                                const struct OpenAPI_Path *src) {
@@ -509,6 +535,10 @@ cdd_c_error_t copy_path_fields(struct OpenAPI_Path *dst,
 
 /**
  * @brief Creates a deep copy of request body fields.
+ *
+ * @param[out] dst Destination OpenAPI_RequestBody structure.
+ * @param[in] src Source OpenAPI_RequestBody structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t copy_request_body_fields(struct OpenAPI_RequestBody *dst,
                                        const struct OpenAPI_RequestBody *src) {

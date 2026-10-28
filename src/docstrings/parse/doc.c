@@ -25,6 +25,7 @@
 /**
  * @brief Initializes a `DocMetadata` structure to zero.
  *
+ * @param[out] meta Pointer to the DocMetadata structure to initialize.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t doc_metadata_init(struct DocMetadata *meta) {
@@ -37,6 +38,8 @@ cdd_c_error_t doc_metadata_init(struct DocMetadata *meta) {
 /**
  * @brief Releases all dynamically allocated memory inside a `DocMetadata`
  * structure.
+ *
+ * @param[in,out] meta Pointer to the DocMetadata structure to free.
  */
 void doc_metadata_free(struct DocMetadata *meta) {
   size_t i;
@@ -294,6 +297,8 @@ void doc_metadata_free(struct DocMetadata *meta) {
 /**
  * @brief Parses a C documentation comment block and populates `out`.
  *
+ * @param[in] comment Raw C documentation comment string.
+ * @param[in,out] out Target DocMetadata structure to populate.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_block(const char *comment, struct DocMetadata *out) {

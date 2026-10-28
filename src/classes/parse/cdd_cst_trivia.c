@@ -21,6 +21,9 @@ static const uint8_t s_trivia_newline[2] = {10, 0};
  * @brief Inspects a CST's base tokens to infer its indentation style (tabs vs
  * spaces and width).
  *
+ * @param[in] tree CST tree to inspect.
+ * @param[out] out_config Output structure receiving the detected format
+ * configuration.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t
@@ -93,6 +96,12 @@ cdd_cst_detect_format_config(cdd_cst_tree_t *tree,
  * @brief Generates a newline + indentation trivia chain for a given indentation
  * level.
  *
+ * @param[in,out] tree Optional CST tree to pool indentation whitespace in.
+ * @param[in] config Formatting configuration specifying tabs vs spaces and
+ * width.
+ * @param[in] indent_level Nesting indentation level.
+ * @param[out] out_trivia Output pointer receiving the newly allocated trivia
+ * chain.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t

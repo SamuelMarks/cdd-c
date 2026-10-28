@@ -322,6 +322,18 @@ static cdd_c_error_t emit_workflow_docblock(cdd_code_writer_t *w,
          " */\n");
 }
 
+/**
+ * @brief Renders the C Client SDK workflow header (`_workflows.h`) and source
+ * (`_workflows.c`) into in-memory strings.
+ *
+ * @param[in] arazzo_spec Parsed Arazzo v1.1.0 specification.
+ * @param[in] openapi_spec Optional linked OpenAPI specification (may be NULL).
+ * @param[in] base_name Base filename without directory.
+ * @param[in] prefix Function name prefix (e.g. `"api_"` or `""`).
+ * @param[out] out_hdr Output heap-allocated header content string.
+ * @param[out] out_src Output heap-allocated source content string.
+ * @return `CDD_C_SUCCESS` on success, or error code on failure.
+ */
 cdd_c_error_t
 arazzo_client_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
                                 const struct OpenAPI_Spec *openapi_spec,
@@ -532,6 +544,18 @@ arazzo_client_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Generates C Client SDK workflow header and implementation files
+ * (`<base>_workflows.h` and `<base>_workflows.c`) from an Arazzo v1.1.0
+ * specification.
+ *
+ * @param[in] arazzo_spec Parsed Arazzo v1.1.0 specification.
+ * @param[in] openapi_spec Optional linked OpenAPI specification (may be NULL).
+ * @param[in] config Client generation configuration (`filename_base`,
+ * `func_prefix`, etc.).
+ * @return `CDD_C_SUCCESS` on success, `CDD_C_ERROR_INVALID_ARGUMENT` on NULL,
+ * `CDD_C_ERROR_MEMORY` on OOM, or `CDD_C_ERROR_IO` on file failure.
+ */
 cdd_c_error_t arazzo_client_generate(const struct Arazzo_Spec *arazzo_spec,
                                      const struct OpenAPI_Spec *openapi_spec,
                                      const struct OpenApiClientConfig *config) {

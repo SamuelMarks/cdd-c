@@ -10,7 +10,12 @@
 /* clang-format on */
 
 /**
- * @brief Applies schema ref to param.
+ * @brief Applies type/items information from a SchemaRef to an
+ * OpenAPI_Parameter.
+ *
+ * @param[in,out] out_param Parameter to update.
+ * @param[in] schema_ref Source schema reference.
+ * @return CDD_C_SUCCESS on success, or error code on OOM.
  */
 cdd_c_error_t
 apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
@@ -74,7 +79,11 @@ apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
 }
 
 /**
- * @brief Applies schema ref to header.
+ * @brief Applies type/items information from a SchemaRef to an OpenAPI_Header.
+ *
+ * @param[in,out] out_hdr Header to update.
+ * @param[in] schema_ref Source schema reference.
+ * @return CDD_C_SUCCESS on success, or error code on OOM.
  */
 cdd_c_error_t
 apply_schema_ref_to_header(struct OpenAPI_Header *out_hdr,
@@ -138,7 +147,11 @@ apply_schema_ref_to_header(struct OpenAPI_Header *out_hdr,
 }
 
 /**
- * @brief Checks whether a component schema name is already registered.
+ * @brief Checks if a schema name is already registered in an OpenAPI_Spec.
+ *
+ * @param[in] spec OpenAPI specification to inspect.
+ * @param[in] name Schema name to check.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if in use, CDD_C_SUCCESS (0) if free.
  */
 cdd_c_error_t schema_name_in_use(const struct OpenAPI_Spec *spec,
                                  const char *name) {
@@ -159,7 +172,12 @@ cdd_c_error_t schema_name_in_use(const struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Sanitizes an arbitrary string into a valid OpenAPI component name.
+ * @brief Sanitizes a string into a valid OpenAPI component key
+ * (`[A-Za-z0-9._-]`).
+ *
+ * @param[in] name Raw name string.
+ * @param[out] _out_val Newly allocated sanitized component name.
+ * @return CDD_C_SUCCESS on success, or error code on OOM.
  */
 cdd_c_error_t sanitize_component_name(const char *name, char **_out_val) {
   size_t i, len;
@@ -193,7 +211,12 @@ cdd_c_error_t sanitize_component_name(const char *name, char **_out_val) {
 }
 
 /**
- * @brief Generates a collision-free component schema name from a base name.
+ * @brief Generates a unique schema name in `spec` based on `base`.
+ *
+ * @param[in] spec OpenAPI specification context.
+ * @param[in] base Base schema name.
+ * @param[out] _out_val Newly allocated unique schema name.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t make_unique_schema_name(const struct OpenAPI_Spec *spec,
                                       const char *base, char **_out_val) {
@@ -228,8 +251,12 @@ cdd_c_error_t make_unique_schema_name(const struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Checks whether a JSON Schema type array contains a specific type
- * string.
+ * @brief Checks if a JSON array of type strings contains `type`.
+ *
+ * @param[in] arr JSON array of type strings.
+ * @param[in] type Target type string to find.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if present, CDD_C_SUCCESS (0)
+ * otherwise.
  */
 cdd_c_error_t schema_type_array_includes(const JSON_Array *arr,
                                          const char *type) {
@@ -246,8 +273,11 @@ cdd_c_error_t schema_type_array_includes(const JSON_Array *arr,
 }
 
 /**
- * @brief Determines whether a JSON Schema object represents a struct-like
- * object.
+ * @brief Checks if a JSON schema object represents an object-like structure.
+ *
+ * @param[in] schema_obj JSON object representing the schema.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if object-like, CDD_C_SUCCESS (0)
+ * otherwise.
  */
 cdd_c_error_t schema_object_is_object_like(const JSON_Object *schema_obj) {
   const char *type;
@@ -270,8 +300,14 @@ cdd_c_error_t schema_object_is_object_like(const JSON_Object *schema_obj) {
 }
 
 /**
- * @brief Appends a parsed schema definition to the spec components.schemas
- * table.
+ * @brief Appends a parsed struct schema definition to `spec->defined_schemas`.
+ *
+ * @param[in,out] spec Target OpenAPI specification.
+ * @param[in] schema_name Owned schema name string (ownership transferred on
+ * success).
+ * @param[in] schema_fields Parsed struct fields (ownership transferred on
+ * success).
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t append_defined_schema(struct OpenAPI_Spec *spec,
                                     char *schema_name,
@@ -346,8 +382,12 @@ cdd_c_error_t append_defined_schema(struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Checks whether a raw JSON schema with the given name is already
- * stored.
+ * @brief Checks if a raw JSON schema name already exists in `spec`.
+ *
+ * @param[in] spec OpenAPI specification to inspect.
+ * @param[in] name Schema name to check.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if exists, CDD_C_SUCCESS (0)
+ * otherwise.
  */
 cdd_c_error_t raw_schema_name_exists(const struct OpenAPI_Spec *spec,
                                      const char *name) {
@@ -363,7 +403,13 @@ cdd_c_error_t raw_schema_name_exists(const struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Appends a raw JSON schema object to the spec raw schema collection.
+ * @brief Serializes and appends a raw JSON schema value to
+ * `spec->raw_schema_json`.
+ *
+ * @param[in,out] spec Target OpenAPI specification.
+ * @param[in] name Schema name.
+ * @param[in] schema_val JSON value of the schema.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t append_raw_schema(struct OpenAPI_Spec *spec, const char *name,
                                 const JSON_Value *schema_val) {
@@ -438,7 +484,16 @@ cdd_c_error_t append_raw_schema(struct OpenAPI_Spec *spec, const char *name,
 }
 
 /**
- * @brief Promotes an inline object/enum schema into a named component schema.
+ * @brief Registers an inline object schema into `spec` and outputs its
+ * registered name.
+ *
+ * @param[in,out] spec Target OpenAPI specification.
+ * @param[in] base_name Suggested base name for the inline schema.
+ * @param[in] schema_obj JSON object of the inline schema.
+ * @param[in] schema_val Wrapping JSON value of the inline schema.
+ * @param[out] out_name Borrowed pointer to the registered schema name in
+ * `spec`.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t register_inline_schema(struct OpenAPI_Spec *spec,
                                      const char *base_name,
@@ -497,7 +552,11 @@ cdd_c_error_t register_inline_schema(struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Assigns a generated component name to an inline schema reference.
+ * @brief Replaces `schema_ref->ref_name` with a duplicate of `name`.
+ *
+ * @param[in,out] schema_ref Target schema reference.
+ * @param[in] name Schema reference name to assign.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t assign_schema_ref_name(struct OpenAPI_SchemaRef *schema_ref,
                                      const char *name) {
@@ -523,7 +582,13 @@ cdd_c_error_t assign_schema_ref_name(struct OpenAPI_SchemaRef *schema_ref,
 }
 
 /**
- * @brief Constructs a synthetic schema name for an inline request body.
+ * @brief Builds a synthetic inline request body schema name
+ * (`Inline_<op>_Request`).
+ *
+ * @param[in] op_id Operation identifier.
+ * @param[in] is_item Non-zero if naming an item schema.
+ * @param[out] _out_val Newly allocated inline request schema name.
+ * @return CDD_C_SUCCESS on success, or error code on OOM.
  */
 cdd_c_error_t build_inline_request_name(const char *op_id, int is_item,
                                         char **_out_val) {
@@ -553,7 +618,14 @@ cdd_c_error_t build_inline_request_name(const char *op_id, int is_item,
 }
 
 /**
- * @brief Constructs a synthetic schema name for an inline response body.
+ * @brief Builds a synthetic inline response schema name
+ * (`Inline_<op>_Response_<code>`).
+ *
+ * @param[in] op_id Operation identifier.
+ * @param[in] code HTTP status code string.
+ * @param[in] is_item Non-zero if naming an item schema.
+ * @param[out] _out_val Newly allocated inline response schema name.
+ * @return CDD_C_SUCCESS on success, or error code on OOM.
  */
 cdd_c_error_t build_inline_response_name(const char *op_id, const char *code,
                                          int is_item, char **_out_val) {
@@ -594,7 +666,11 @@ cdd_c_error_t build_inline_response_name(const char *op_id, const char *code,
 }
 
 /**
- * @brief Constructs a synthetic schema name for an inline parameter schema.
+ * @brief Builds a synthetic inline querystring parameter schema name.
+ *
+ * @param[in] param_name Parameter name.
+ * @param[out] _out_val Newly allocated inline parameter schema name.
+ * @return CDD_C_SUCCESS on success, or error code on OOM.
  */
 cdd_c_error_t build_inline_param_name(const char *param_name, char **_out_val) {
   const char *p;

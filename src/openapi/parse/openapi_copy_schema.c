@@ -10,6 +10,10 @@
 
 /**
  * @brief Creates a deep copy of schema ref.
+ *
+ * @param[out] dst Destination OpenAPI_SchemaRef structure.
+ * @param[in] src Source OpenAPI_SchemaRef structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
                               const struct OpenAPI_SchemaRef *src) {
@@ -499,6 +503,10 @@ copy_item_schema_as_array_inner(struct OpenAPI_SchemaRef *dst,
 
 /**
  * @brief Creates a deep copy of item schema as array.
+ *
+ * @param[out] dst Destination array OpenAPI_SchemaRef structure.
+ * @param[in] item Source item OpenAPI_SchemaRef structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t copy_item_schema_as_array(struct OpenAPI_SchemaRef *dst,
                                         const struct OpenAPI_SchemaRef *item) {
@@ -510,6 +518,10 @@ cdd_c_error_t copy_item_schema_as_array(struct OpenAPI_SchemaRef *dst,
 
 /**
  * @brief Creates a deep copy of any value.
+ *
+ * @param[out] dst Destination OpenAPI_Any structure.
+ * @param[in] src Source OpenAPI_Any structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t copy_any_value(struct OpenAPI_Any *dst,
                              const struct OpenAPI_Any *src) {

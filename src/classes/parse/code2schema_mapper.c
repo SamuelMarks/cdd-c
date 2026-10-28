@@ -41,6 +41,15 @@ static const char *k_items_skip_keys[] = {"type", "$ref"};
  * @brief Internal helper to convert a JSON Schema object to
  * StructFields.
  *
+ * @param[in] o JSON Schema object to convert.
+ * @param[in,out] f Target StructFields container to populate.
+ * @param[in] root Read-only root `components.schemas` JSON_Object for `$ref`
+ * resolution.
+ * @param[in,out] root_mut Optional mutable root `components.schemas`
+ * JSON_Object for inline schema registration.
+ * @param[in] schema_name Optional name of the current schema.
+ * @param[in] allow_inline_union Non-zero to permit synthesizing inline union
+ * schemas.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_json_object_to_struct_fields_internal_mut(
@@ -393,6 +402,11 @@ C_CDD_EXPORT int g_json_object_to_struct_fields_fail = 0;
 /**
  * @brief Extended function to convert a JSON Schema object to StructFields.
  *
+ * @param[in] o JSON Schema object to convert.
+ * @param[in,out] f Target StructFields container to populate.
+ * @param[in] root Root `components.schemas` JSON_Object for `$ref` resolution.
+ * @param[in] schema_name Optional name of the current schema.
+ * @param[in] allow_inline_union Non-zero to permit inline union handling.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_json_object_to_struct_fields_internal(
@@ -406,6 +420,11 @@ cdd_c_error_t c2s_json_object_to_struct_fields_internal(
  * @brief Converts a JSON Schema object to `StructFields` with an explicit
  * schema name.
  *
+ * @param[in] schema_obj JSON Schema object to convert.
+ * @param[in,out] fields Target StructFields container to populate.
+ * @param[in] schemas_obj_root Root `components.schemas` JSON_Object for `$ref`
+ * resolution.
+ * @param[in] schema_name Optional name of the current schema.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t json_object_to_struct_fields_ex(
@@ -425,6 +444,11 @@ cdd_c_error_t json_object_to_struct_fields_ex(
  * @brief Extended code generation function to convert JSON Schema to
  * StructFields.
  *
+ * @param[in] schema_obj JSON Schema object to convert.
+ * @param[in,out] fields Target StructFields container to populate.
+ * @param[in,out] schemas_obj_root Mutable root `components.schemas`
+ * JSON_Object.
+ * @param[in] schema_name Optional name of the current schema.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t json_object_to_struct_fields_ex_codegen(
@@ -443,6 +467,10 @@ cdd_c_error_t json_object_to_struct_fields_ex_codegen(
 /**
  * @brief Converts a JSON Schema object to a StructFields structure.
  *
+ * @param[in] schema_obj JSON Schema object to convert.
+ * @param[in,out] fields Target StructFields container to populate.
+ * @param[in] schemas_obj_root Root `components.schemas` JSON_Object for `$ref`
+ * resolution.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t

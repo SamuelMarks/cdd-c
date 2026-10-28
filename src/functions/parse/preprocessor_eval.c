@@ -37,6 +37,9 @@
  * integer literal, `__has_include`, `__has_embed`, `__has_c_attribute`, or
  * macro identifier).
  *
+ * @param[in,out] s Expression state.
+ * @param[out] out_val Output pointer receiving the evaluated `long` integer
+ * value.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_parse_primary(struct ExprState *s, long *out_val) {
@@ -162,6 +165,9 @@ cdd_c_error_t pp_parse_primary(struct ExprState *s, long *out_val) {
  * @brief Parses a unary preprocessor expression (`!`, `~`, `-`, `+`, or
  * `defined`).
  *
+ * @param[in,out] s Expression state.
+ * @param[out] out_val Output pointer receiving the evaluated `long` integer
+ * value.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_parse_unary(struct ExprState *s, long *out_val) {
@@ -286,6 +292,9 @@ cdd_c_error_t pp_parse_unary(struct ExprState *s, long *out_val) {
 /**
  * @brief Parses a multiplicative preprocessor expression (`*`, `/`, `%`).
  *
+ * @param[in,out] s Expression state.
+ * @param[out] out_val Output pointer receiving the evaluated `long` integer
+ * value.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_parse_multiplicative(struct ExprState *s, long *out_val) {
@@ -360,6 +369,9 @@ cdd_c_error_t pp_parse_multiplicative(struct ExprState *s, long *out_val) {
 /**
  * @brief Parses an additive preprocessor expression (`+`, `-`).
  *
+ * @param[in,out] s Expression state.
+ * @param[out] out_val Output pointer receiving the evaluated `long` integer
+ * value.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_parse_additive(struct ExprState *s, long *out_val) {
@@ -416,6 +428,9 @@ cdd_c_error_t pp_parse_additive(struct ExprState *s, long *out_val) {
 /**
  * @brief Parses a bitwise shift preprocessor expression (`<<`, `>>`).
  *
+ * @param[in,out] s Expression state.
+ * @param[out] out_val Output pointer receiving the evaluated `long` integer
+ * value.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_parse_shift(struct ExprState *s, long *out_val) {
@@ -472,6 +487,9 @@ cdd_c_error_t pp_parse_shift(struct ExprState *s, long *out_val) {
 /**
  * @brief Parses a relational preprocessor expression (`<=`, `>=`, `<`, `>`).
  *
+ * @param[in,out] s Expression state.
+ * @param[out] out_val Output pointer receiving the evaluated `long` integer
+ * value.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_parse_relational(struct ExprState *s, long *out_val) {
@@ -547,6 +565,9 @@ cdd_c_error_t pp_parse_relational(struct ExprState *s, long *out_val) {
 /**
  * @brief Parses an equality preprocessor expression (`==`, `!=`).
  *
+ * @param[in,out] s Expression state.
+ * @param[out] out_val Output pointer receiving the evaluated `long` integer
+ * value.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_parse_equality(struct ExprState *s, long *out_val) {
@@ -603,6 +624,9 @@ cdd_c_error_t pp_parse_equality(struct ExprState *s, long *out_val) {
 /**
  * @brief Parses a logical AND preprocessor expression (`&&`).
  *
+ * @param[in,out] s Expression state.
+ * @param[out] out_val Output pointer receiving the evaluated `long` integer
+ * value.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_parse_logic_and(struct ExprState *s, long *out_val) {
@@ -646,6 +670,9 @@ cdd_c_error_t pp_parse_logic_and(struct ExprState *s, long *out_val) {
 /**
  * @brief Parses a logical OR preprocessor expression (`||`).
  *
+ * @param[in,out] s Expression state.
+ * @param[out] out_val Output pointer receiving the evaluated `long` integer
+ * value.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_parse_logic_or(struct ExprState *s, long *out_val) {
@@ -684,6 +711,9 @@ cdd_c_error_t pp_parse_logic_or(struct ExprState *s, long *out_val) {
 /**
  * @brief Parses a top-level preprocessor expression.
  *
+ * @param[in,out] s Expression state.
+ * @param[out] out_val Output pointer receiving the evaluated `long` integer
+ * value.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_parse_expr(struct ExprState *s, long *out_val) {
@@ -696,6 +726,12 @@ cdd_c_error_t pp_parse_expr(struct ExprState *s, long *out_val) {
  * @brief Evaluates a preprocessor conditional expression over `[start_idx,
  * end_idx)`.
  *
+ * @param[in] tokens Lexical token list.
+ * @param[in] start_idx Inclusive start token index of the expression.
+ * @param[in] end_idx Exclusive end token index of the expression.
+ * @param[in] ctx PreprocessorContext containing defined macros.
+ * @param[out] result Output pointer receiving the evaluated `long` integer
+ * value.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` on
  * syntax error.
  */

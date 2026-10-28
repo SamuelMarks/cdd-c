@@ -49,6 +49,8 @@ typedef struct {
  * `__label__` local labels, statement expressions `({...})`, VLAs, and
  * zero-length arrays).
  *
+ * @param[in,out] tree CST tree to transform.
+ * @param[in] config Optional transformation configuration.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t gnu_standardize_unroll(cdd_cst_tree_t *tree,

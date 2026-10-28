@@ -9,8 +9,13 @@
 /* clang-format on */
 
 /**
- * @brief Scans a parameter list for OA_PARAM_IN_QUERYSTRING parameters and
- * conflicts.
+ * @brief Scans a parameter array for `in: querystring` and `in: query` usage.
+ *
+ * @param[in] params Array of parameters.
+ * @param[in] n_params Number of parameters.
+ * @param[in,out] qs_count Incremented for each `in: querystring` parameter.
+ * @param[in,out] has_query Set to 1 if any `in: query` parameter is present.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT.
  */
 cdd_c_error_t scan_querystring_usage(const struct OpenAPI_Parameter *params,
                                      size_t n_params, size_t *qs_count,
@@ -30,8 +35,11 @@ cdd_c_error_t scan_querystring_usage(const struct OpenAPI_Parameter *params,
 }
 
 /**
- * @brief Validates querystring parameter constraints across all operations in a
- * path list.
+ * @brief Validates `in: querystring` parameter constraints across `paths`.
+ *
+ * @param[in] paths Array of path items.
+ * @param[in] n_paths Number of path items.
+ * @return CDD_C_SUCCESS if valid, or CDD_C_ERROR_INVALID_ARGUMENT.
  */
 cdd_c_error_t validate_querystring_usage(const struct OpenAPI_Path *paths,
                                          size_t n_paths) {
@@ -96,8 +104,11 @@ cdd_c_error_t validate_querystring_usage(const struct OpenAPI_Path *paths,
 }
 
 /**
- * @brief Validates querystring parameter constraints across all callback
- * definitions.
+ * @brief Validates `in: querystring` usage inside callback objects.
+ *
+ * @param[in] callbacks Array of callback objects.
+ * @param[in] n_callbacks Number of callback objects.
+ * @return CDD_C_SUCCESS if valid, or CDD_C_ERROR_INVALID_ARGUMENT.
  */
 cdd_c_error_t validate_querystring_usage_in_callbacks(
     const struct OpenAPI_Callback *callbacks, size_t n_callbacks) {
@@ -116,7 +127,11 @@ cdd_c_error_t validate_querystring_usage_in_callbacks(
 }
 
 /**
- * @brief Performs validate querystring usage in operations.
+ * @brief Validates `in: querystring` usage inside operations' callbacks.
+ *
+ * @param[in] ops Array of operations.
+ * @param[in] n_ops Number of operations.
+ * @return CDD_C_SUCCESS if valid, or CDD_C_ERROR_INVALID_ARGUMENT.
  */
 cdd_c_error_t
 validate_querystring_usage_in_operations(const struct OpenAPI_Operation *ops,
@@ -134,7 +149,11 @@ validate_querystring_usage_in_operations(const struct OpenAPI_Operation *ops,
 }
 
 /**
- * @brief Performs validate querystring usage in paths callbacks.
+ * @brief Validates `in: querystring` usage in callbacks nested under `paths`.
+ *
+ * @param[in] paths Array of path items.
+ * @param[in] n_paths Number of path items.
+ * @return CDD_C_SUCCESS if valid, or CDD_C_ERROR_INVALID_ARGUMENT.
  */
 cdd_c_error_t
 validate_querystring_usage_in_paths_callbacks(const struct OpenAPI_Path *paths,
@@ -156,7 +175,10 @@ validate_querystring_usage_in_paths_callbacks(const struct OpenAPI_Path *paths,
 }
 
 /**
- * @brief Performs validate querystring usage in component callbacks.
+ * @brief Validates `in: querystring` usage in `spec->component_callbacks`.
+ *
+ * @param[in] spec OpenAPI specification.
+ * @return CDD_C_SUCCESS if valid, or CDD_C_ERROR_INVALID_ARGUMENT.
  */
 cdd_c_error_t validate_querystring_usage_in_component_callbacks(
     const struct OpenAPI_Spec *spec) {
@@ -175,7 +197,14 @@ cdd_c_error_t validate_querystring_usage_in_component_callbacks(
 }
 
 /**
- * @brief Adds or sets unique operation id.
+ * @brief Adds an `operationId` into a seen list, checking for duplicates.
+ *
+ * @param[in,out] ids Pointer to array of seen operation ID strings.
+ * @param[in,out] count Pointer to count of seen operation IDs.
+ * @param[in,out] cap Pointer to capacity of `ids` array.
+ * @param[in] op_id Operation ID string.
+ * @return CDD_C_SUCCESS if unique, CDD_C_ERROR_INVALID_ARGUMENT if duplicate,
+ * or CDD_C_ERROR_MEMORY on OOM.
  */
 cdd_c_error_t add_unique_operation_id(char ***ids, size_t *count, size_t *cap,
                                       const char *op_id) {
@@ -204,7 +233,14 @@ cdd_c_error_t add_unique_operation_id(char ***ids, size_t *count, size_t *cap,
 }
 
 /**
- * @brief Collects operation ids.
+ * @brief Collects and validates uniqueness of `operationId`s across `paths`.
+ *
+ * @param[in] paths Array of path items.
+ * @param[in] n_paths Number of path items.
+ * @param[in,out] ids Pointer to array of seen operation IDs.
+ * @param[in,out] count Pointer to count of seen operation IDs.
+ * @param[in,out] cap Pointer to capacity of `ids` array.
+ * @return CDD_C_SUCCESS on success, or error code on duplicate/OOM.
  */
 cdd_c_error_t collect_operation_ids(const struct OpenAPI_Path *paths,
                                     size_t n_paths, char ***ids, size_t *count,
@@ -233,8 +269,13 @@ cdd_c_error_t collect_operation_ids(const struct OpenAPI_Path *paths,
 }
 
 /**
- * @brief Checks whether a PathItem $ref points to a specific named component
- * pathItem.
+ * @brief Checks if a `$ref` matches a specific component path item name.
+ *
+ * @param[in] spec OpenAPI specification context.
+ * @param[in] ref Reference string.
+ * @param[in] name Component path item name.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if matches, CDD_C_SUCCESS (0)
+ * otherwise.
  */
 cdd_c_error_t path_item_ref_matches_component(const struct OpenAPI_Spec *spec,
                                               const char *ref,
@@ -256,8 +297,12 @@ cdd_c_error_t path_item_ref_matches_component(const struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Checks whether a component PathItem is referenced anywhere in the
- * spec.
+ * @brief Checks if a component path item is referenced anywhere in `spec`.
+ *
+ * @param[in] spec OpenAPI specification context.
+ * @param[in] name Component path item name.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if referenced, CDD_C_SUCCESS (0)
+ * otherwise.
  */
 cdd_c_error_t component_path_item_is_referenced(const struct OpenAPI_Spec *spec,
                                                 const char *name) {
@@ -278,8 +323,13 @@ cdd_c_error_t component_path_item_is_referenced(const struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Checks whether a Callback $ref points to a specific named component
- * callback.
+ * @brief Checks if a `$ref` matches a specific component callback name.
+ *
+ * @param[in] spec OpenAPI specification context.
+ * @param[in] ref Reference string.
+ * @param[in] name Component callback name.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if matches, CDD_C_SUCCESS (0)
+ * otherwise.
  */
 cdd_c_error_t callback_ref_matches_component(const struct OpenAPI_Spec *spec,
                                              const char *ref,
@@ -301,8 +351,15 @@ cdd_c_error_t callback_ref_matches_component(const struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Checks whether a component Callback is referenced by any operation in
- * a path list.
+ * @brief Checks if a component callback is referenced in an array of
+ * operations.
+ *
+ * @param[in] ops Array of operations.
+ * @param[in] n_ops Number of operations.
+ * @param[in] spec OpenAPI specification context.
+ * @param[in] name Component callback name.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if referenced, CDD_C_SUCCESS (0)
+ * otherwise.
  */
 cdd_c_error_t component_callback_is_referenced_in_ops(
     const struct OpenAPI_Operation *ops, size_t n_ops,
@@ -322,8 +379,12 @@ cdd_c_error_t component_callback_is_referenced_in_ops(
 }
 
 /**
- * @brief Checks whether a component Callback is referenced anywhere in the
- * spec.
+ * @brief Checks if a component callback is referenced anywhere in `spec`.
+ *
+ * @param[in] spec OpenAPI specification context.
+ * @param[in] name Component callback name.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if referenced, CDD_C_SUCCESS (0)
+ * otherwise.
  */
 cdd_c_error_t component_callback_is_referenced(const struct OpenAPI_Spec *spec,
                                                const char *name) {
@@ -372,7 +433,14 @@ cdd_c_error_t component_callback_is_referenced(const struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Collects callback operation ids from callbacks.
+ * @brief Collects and validates uniqueness of `operationId`s across callbacks.
+ *
+ * @param[in] callbacks Array of callback objects.
+ * @param[in] n_callbacks Number of callback objects.
+ * @param[in,out] ids Pointer to array of seen operation IDs.
+ * @param[in,out] count Pointer to count of seen operation IDs.
+ * @param[in,out] cap Pointer to capacity of `ids` array.
+ * @return CDD_C_SUCCESS on success, or error code on duplicate/OOM.
  */
 cdd_c_error_t collect_callback_operation_ids_from_callbacks(
     const struct OpenAPI_Callback *callbacks, size_t n_callbacks, char ***ids,
@@ -393,7 +461,15 @@ cdd_c_error_t collect_callback_operation_ids_from_callbacks(
 }
 
 /**
- * @brief Collects callback operation ids from operations.
+ * @brief Collects and validates uniqueness of `operationId`s across operations'
+ * callbacks.
+ *
+ * @param[in] ops Array of operations.
+ * @param[in] n_ops Number of operations.
+ * @param[in,out] ids Pointer to array of seen operation IDs.
+ * @param[in,out] count Pointer to count of seen operation IDs.
+ * @param[in,out] cap Pointer to capacity of `ids` array.
+ * @return CDD_C_SUCCESS on success, or error code on duplicate/OOM.
  */
 cdd_c_error_t collect_callback_operation_ids_from_operations(
     const struct OpenAPI_Operation *ops, size_t n_ops, char ***ids,
@@ -412,7 +488,15 @@ cdd_c_error_t collect_callback_operation_ids_from_operations(
 }
 
 /**
- * @brief Collects callback operation ids from paths.
+ * @brief Collects and validates uniqueness of `operationId`s across callbacks
+ * nested under `paths`.
+ *
+ * @param[in] paths Array of path items.
+ * @param[in] n_paths Number of path items.
+ * @param[in,out] ids Pointer to array of seen operation IDs.
+ * @param[in,out] count Pointer to count of seen operation IDs.
+ * @param[in,out] cap Pointer to capacity of `ids` array.
+ * @return CDD_C_SUCCESS on success, or error code on duplicate/OOM.
  */
 cdd_c_error_t
 collect_callback_operation_ids_from_paths(const struct OpenAPI_Path *paths,
@@ -436,8 +520,11 @@ collect_callback_operation_ids_from_paths(const struct OpenAPI_Path *paths,
 }
 
 /**
- * @brief Verifies that all operationId values across the OpenAPI spec are
+ * @brief Validates that all `operationId` values across the entire `spec` are
  * unique.
+ *
+ * @param[in] spec OpenAPI specification.
+ * @return CDD_C_SUCCESS if all operationIds are unique, or error code.
  */
 cdd_c_error_t validate_unique_operation_ids(const struct OpenAPI_Spec *spec) {
   char **ids = NULL;

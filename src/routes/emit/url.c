@@ -25,8 +25,10 @@
 #endif
 
 /**
- * @brief Checks if a given OpenAPI type string represents a primitive
- * type.
+ * @brief Checks if an OpenAPI parameter type string is a primitive scalar.
+ *
+ * @param[in] type Parameter type string.
+ * @return Non-zero if primitive, CDD_C_SUCCESS otherwise.
  */
 cdd_c_error_t is_primitive_type_url(const char *type) {
   if (!type)
@@ -36,8 +38,11 @@ cdd_c_error_t is_primitive_type_url(const char *type) {
 }
 
 /**
- * @brief Determines if an OpenAPI parameter represents an object
- * serialized as key-value pairs.
+ * @brief Checks if an OpenAPI parameter is represented as key-value object
+ * pairs.
+ *
+ * @param[in] p The OpenAPI parameter structure.
+ * @return Non-zero if object KV parameter, CDD_C_SUCCESS otherwise.
  */
 cdd_c_error_t param_is_object_kv_url(const struct OpenAPI_Parameter *p) {
   if (!p)
@@ -52,8 +57,11 @@ cdd_c_error_t param_is_object_kv_url(const struct OpenAPI_Parameter *p) {
 }
 
 /**
- * @brief Computes the base length of a media type string, ignoring
- * parameters like charset.
+ * @brief Computes the base essence length (before `;`) of a media type string.
+ *
+ * @param[in] media_type The media type string.
+ * @param[out] _out_val Output length of the base media type.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t media_type_base_len_url(const char *media_type,
                                       size_t *_out_val) {
@@ -71,8 +79,12 @@ cdd_c_error_t media_type_base_len_url(const char *media_type,
 }
 
 /**
- * @brief Performs a case-insensitive comparison of a media type against
- * an expected string.
+ * @brief Compares a media type's base essence case-insensitively against an
+ * expected string.
+ *
+ * @param[in] media_type The media type string to inspect.
+ * @param[in] expected The expected base media type string.
+ * @return Non-zero if equal, CDD_C_SUCCESS otherwise.
  */
 cdd_c_error_t media_type_ieq_url(const char *media_type, const char *expected) {
   size_t i;
@@ -98,7 +110,11 @@ cdd_c_error_t media_type_ieq_url(const char *media_type, const char *expected) {
 }
 
 /**
- * @brief Checks if a given media type string represents JSON.
+ * @brief Checks whether a media type is `application/json` or has a `+json`
+ * suffix.
+ *
+ * @param[in] media_type The media type string.
+ * @return Non-zero if JSON media type, CDD_C_SUCCESS otherwise.
  */
 cdd_c_error_t media_type_is_json_url(const char *media_type) {
   size_t len = 0;
@@ -127,16 +143,21 @@ cdd_c_error_t media_type_is_json_url(const char *media_type) {
 }
 
 /**
- * @brief Checks if a given media type string represents urlencoded form
- * data.
+ * @brief Checks whether a media type is `application/x-www-form-urlencoded`.
+ *
+ * @param[in] media_type The media type string.
+ * @return Non-zero if form-urlencoded media type, CDD_C_SUCCESS otherwise.
  */
 cdd_c_error_t media_type_is_form_url(const char *media_type) {
   return media_type_ieq_url(media_type, "application/x-www-form-urlencoded");
 }
 
 /**
- * @brief Determines if a query parameter represents a form-encoded
- * object.
+ * @brief Checks whether a `querystring` parameter has a form-encoded object
+ * schema.
+ *
+ * @param[in] p The OpenAPI parameter structure.
+ * @return Non-zero if form object querystring, CDD_C_SUCCESS otherwise.
  */
 cdd_c_error_t
 querystring_param_is_form_object(const struct OpenAPI_Parameter *p) {
@@ -157,7 +178,11 @@ querystring_param_is_form_object(const struct OpenAPI_Parameter *p) {
 }
 
 /**
- * @brief Checks if a query parameter schema is a JSON reference.
+ * @brief Checks whether a `querystring` parameter references a JSON object
+ * model.
+ *
+ * @param[in] p The OpenAPI parameter structure.
+ * @return Non-zero if JSON model ref querystring, CDD_C_SUCCESS otherwise.
  */
 cdd_c_error_t querystring_param_is_json_ref(const struct OpenAPI_Parameter *p) {
   if (!p)
@@ -172,7 +197,12 @@ cdd_c_error_t querystring_param_is_json_ref(const struct OpenAPI_Parameter *p) {
 }
 
 /**
- * @brief Retrieves the primitive type of a JSON query parameter.
+ * @brief Gets the primitive type name of a JSON-encoded `querystring`
+ * parameter.
+ *
+ * @param[in] p The OpenAPI parameter structure.
+ * @param[out] _out_val Output primitive type string, or NULL.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t
 querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
@@ -214,8 +244,12 @@ querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
 }
 
 /**
- * @brief Retrieves the primitive type of items within a JSON array query
+ * @brief Gets the array item primitive type of a JSON-encoded `querystring`
  * parameter.
+ *
+ * @param[in] p The OpenAPI parameter structure.
+ * @param[out] _out_val Output item primitive type string, or NULL.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t
 querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
@@ -258,8 +292,12 @@ querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
 }
 
 /**
- * @brief Retrieves the reference target of items within a JSON array
- * query parameter.
+ * @brief Gets the array item model reference of a JSON-encoded `querystring`
+ * parameter.
+ *
+ * @param[in] p The OpenAPI parameter structure.
+ * @param[out] _out_val Output item model reference string, or NULL.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t
 querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
@@ -306,7 +344,11 @@ querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
 }
 
 /**
- * @brief Retrieves the raw primitive type of a query parameter.
+ * @brief Gets the raw primitive type of a non-JSON `querystring` parameter.
+ *
+ * @param[in] p The OpenAPI parameter structure.
+ * @param[out] _out_val Output primitive type string, or NULL.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t querystring_param_raw_primitive_type(
     const struct OpenAPI_Parameter *p, const char **_out_val) {

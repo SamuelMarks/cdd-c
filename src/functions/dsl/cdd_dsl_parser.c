@@ -1090,6 +1090,9 @@ static cdd_c_error_t parse_func_decl(parser_state_t *state, cdd_ffi_ir_t *ir) {
  * @brief Parses a CDD DSL token stream into a newly allocated FFI Intermediate
  * Representation (`cdd_ffi_ir_t`).
  *
+ * @param[in] tokens Tokenized CDD DSL token list.
+ * @param[out] out_ir Output pointer receiving the newly allocated FFI IR
+ * structure.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_dsl_parse(const cdd_dsl_token_list_t *tokens,

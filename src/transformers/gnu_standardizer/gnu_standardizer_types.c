@@ -12,6 +12,7 @@
  * `__int128`, decimal/half floats, `__complex__`, `typeof`, `__auto_type`, and
  * `__attribute__`).
  *
+ * @param[in,out] tree CST tree to transform.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree) {

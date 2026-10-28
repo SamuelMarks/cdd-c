@@ -336,8 +336,8 @@ Scaffolds cross-platform `CMakeLists.txt` build definitions:
 
 ### WebAssembly Engine (`WASM.md`)
 
-The entire compiler compiles cleanly to WebAssembly using Emscripten:
-- **Zero-Dependency CLI**: Run `cdd-c` on any machine via Node.js or browser without native build tools or C compilers.
+The entire compiler compiles cleanly to WebAssembly using WASI SDK (`wasi-sdk`) and Emscripten:
+- **Zero-Dependency CLI**: Run `bin/cdd-c.wasm` on any machine via WASI runtimes (`wasmtime`, Node.js `node:wasi`, or browser WASI shims) without native build tools or C compilers.
 - **In-Browser Demo**: Enables live, instant API generation and code refactoring in web applications.
 
 For build and integration instructions, see [`WASM.md`](WASM.md).

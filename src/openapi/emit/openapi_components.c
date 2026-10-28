@@ -27,7 +27,11 @@
   cdd_json_array_append_value_safe((arr), (val))
 
 /**
- * @brief Write security schemes to components.
+ * @brief Writes security schemes to components JSON object.
+ *
+ * @param[in,out] components Components JSON object.
+ * @param[in] spec Specification structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_security_schemes(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
@@ -162,8 +166,11 @@ C_CDD_EXPORT cdd_c_error_t write_security_schemes(
 }
 
 /**
- * @brief Serializes the OpenAPI component parameters into the target JSON
- * object.
+ * @brief Writes component parameters to components JSON object.
+ *
+ * @param[in,out] components Components JSON object.
+ * @param[in] spec Specification structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_component_parameters(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
@@ -199,8 +206,11 @@ C_CDD_EXPORT cdd_c_error_t write_component_parameters(
 }
 
 /**
- * @brief Serializes the OpenAPI component responses into the target JSON
- * object.
+ * @brief Writes component responses to components JSON object.
+ *
+ * @param[in,out] components Components JSON object.
+ * @param[in] spec Specification structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_component_responses(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
@@ -236,7 +246,11 @@ C_CDD_EXPORT cdd_c_error_t write_component_responses(
 }
 
 /**
- * @brief Serializes the OpenAPI component headers into the target JSON object.
+ * @brief Writes component headers to components JSON object.
+ *
+ * @param[in,out] components Components JSON object.
+ * @param[in] spec Specification structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_component_headers(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
@@ -272,8 +286,11 @@ C_CDD_EXPORT cdd_c_error_t write_component_headers(
 }
 
 /**
- * @brief Serializes the OpenAPI component media types into the target JSON
- * object.
+ * @brief Writes component media types to components JSON object.
+ *
+ * @param[in,out] components Components JSON object.
+ * @param[in] spec Specification structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_component_media_types(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
@@ -315,7 +332,11 @@ C_CDD_EXPORT cdd_c_error_t write_component_media_types(
 }
 
 /**
- * @brief Serializes the OpenAPI component examples into the target JSON object.
+ * @brief Writes component examples to components JSON object.
+ *
+ * @param[in,out] components Components JSON object.
+ * @param[in] spec Specification structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_component_examples(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
@@ -351,7 +372,11 @@ C_CDD_EXPORT cdd_c_error_t write_component_examples(
 }
 
 /**
- * @brief Serializes the OpenAPI component links into the target JSON object.
+ * @brief Writes component links to components JSON object.
+ *
+ * @param[in,out] components Components JSON object.
+ * @param[in] spec Specification structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_component_links(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
@@ -384,8 +409,11 @@ C_CDD_EXPORT cdd_c_error_t write_component_links(
 }
 
 /**
- * @brief Serializes the OpenAPI component callbacks into the target JSON
- * object.
+ * @brief Writes component callbacks to components JSON object.
+ *
+ * @param[in,out] components Components JSON object.
+ * @param[in] spec Specification structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_component_callbacks(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
@@ -418,8 +446,11 @@ C_CDD_EXPORT cdd_c_error_t write_component_callbacks(
 }
 
 /**
- * @brief Serializes the OpenAPI component path items into the target JSON
- * object.
+ * @brief Writes component path items to components JSON object.
+ *
+ * @param[in,out] components Components JSON object.
+ * @param[in] spec Specification structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_component_path_items(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
@@ -466,8 +497,11 @@ C_CDD_EXPORT cdd_c_error_t write_component_path_items(
 }
 
 /**
- * @brief Serializes the OpenAPI component request bodies into the target JSON
- * object.
+ * @brief Writes component request bodies to components JSON object.
+ *
+ * @param[in,out] components Components JSON object.
+ * @param[in] spec Specification structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_component_request_bodies(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
@@ -511,7 +545,11 @@ C_CDD_EXPORT cdd_c_error_t write_component_request_bodies(
 }
 
 /**
- * @brief Serializes the OpenAPI components into the target JSON object.
+ * @brief Writes components object to root JSON object.
+ *
+ * @param[in,out] root_obj Root JSON object.
+ * @param[in] spec Specification structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_components(JSON_Object *root_obj,
                                             const struct OpenAPI_Spec *spec) {

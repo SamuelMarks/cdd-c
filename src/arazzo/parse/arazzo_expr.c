@@ -119,6 +119,9 @@ static cdd_c_error_t parse_two_segments(const char *rest, size_t head_len,
  * @brief Parses an Arazzo v1.1.0 runtime expression string into an
  * `Arazzo_RuntimeExpr`.
  *
+ * @param[in] expr_str Input runtime expression or template string.
+ * @param[out] out_expr Output structure receiving the parsed runtime
+ * expression.
  * @return `CDD_C_SUCCESS` on success, `CDD_C_ERROR_INVALID_ARGUMENT` if
  * malformed, or `CDD_C_ERROR_MEMORY` on OOM.
  */
@@ -295,6 +298,8 @@ cdd_c_error_t arazzo_runtime_expr_parse(const char *expr_str,
  * @brief Formats a parsed `Arazzo_RuntimeExpr` back into its canonical string
  * representation.
  *
+ * @param[in] expr Parsed runtime expression structure to format.
+ * @param[out] out_str Output pointer receiving the newly allocated string.
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 cdd_c_error_t arazzo_runtime_expr_format(const struct Arazzo_RuntimeExpr *expr,

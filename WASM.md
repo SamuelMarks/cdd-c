@@ -1,36 +1,46 @@
 # WebAssembly (WASM) Support
 
-The `cdd-c` project fully supports compilation to WebAssembly using Emscripten.
+The `cdd-c` project supports compilation to WebAssembly using **WASI SDK** (`wasi-sdk`, targeting `wasm32-wasi` / `wasi_snapshot_preview1`) as well as **Emscripten**.
 
 ## Why WebAssembly?
 
 Building `cdd-c` into WASM allows it to be integrated into:
 
-- A unified CLI for all `cdd-*` projects that can run on any system without requiring C compilers, Node.js, PHP, or Python.
-- A unified web interface that runs natively within the browser, providing instant parsing and generation without round-trips to a server.
+- A unified CLI (`cdd-c.wasm`) for all `cdd-*` projects that runs on any system via WASI runtimes (`wasmtime`, `wasmer`, Node.js `node:wasi`, or browser WASI shims) without requiring C compilers, PHP, or Python.
+- A Model Context Protocol (MCP) server over standard input/output (`cdd-c.wasm mcp`) inside sandboxed WebAssembly environments.
+- A unified web interface that runs natively within the browser, providing instant C parsing, OpenAPI/Arazzo codegen, and AST refactoring without server round-trips.
 
-## Building for WASM
+## Building for WASM (`wasi-sdk`)
 
-To build the WASM target, you need the Emscripten SDK (`emsdk`). Assuming it is installed in a directory above the current one (`../emsdk`), you can build it via:
+Running `make build_wasm` automatically downloads `wasi-sdk` (if not already present in `./wasi-sdk`) and configures an incremental CMake build in `build_wasm/`:
 
 ```bash
-# Setup emsdk
-source ../emsdk/emsdk_env.sh
-
-# Run the build command
 make build_wasm
 ```
 
-This will create a `build_wasm` directory containing the `cdd-c.js` and `cdd-c.wasm` artifacts, which can then be embedded into your JS environments.
+This produces `bin/cdd-c.wasm` (and `build_wasm/bin/cdd-c.wasm`).
 
-## Integration
+## Running `bin/cdd-c.wasm`
 
-The emitted `cdd-c.js` module can be loaded in browsers or Node.js via standard Emscripten APIs:
+### Via Node.js (`node:wasi`)
 
 ```javascript
-const cddModule = require("./build_wasm/cdd-c.js");
+const fs = require("fs");
+const { WASI } = require("wasi");
 
-cddModule().then((instance) => {
-  // Use instance to call exported C functions
+const wasi = new WASI({
+  version: "preview1",
+  args: ["cdd-c", "--version"],
+  preopens: { ".": "." },
 });
+
+const wasm = new WebAssembly.Module(fs.readFileSync("./bin/cdd-c.wasm"));
+const instance = new WebAssembly.Instance(wasm, wasi.getImportObject());
+wasi.start(instance);
+```
+
+### Via Wasmtime
+
+```bash
+wasmtime run --dir=. bin/cdd-c.wasm --help
 ```

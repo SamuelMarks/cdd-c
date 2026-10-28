@@ -11,6 +11,8 @@
 /**
  * @brief Merges a source struct field into a destination struct field.
  *
+ * @param[in,out] dest Destination StructField to merge constraints into.
+ * @param[in] src Source StructField to merge from.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t merge_struct_field(struct StructField *dest,
@@ -134,6 +136,8 @@ cdd_c_error_t merge_struct_field(struct StructField *dest,
 /**
  * @brief Merges source struct fields into destination struct fields.
  *
+ * @param[in,out] dest Destination StructFields container.
+ * @param[in] src Source StructFields container to merge from.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t merge_struct_fields(struct StructFields *dest,
@@ -216,6 +220,9 @@ cdd_c_error_t merge_struct_fields(struct StructFields *dest,
 /**
  * @brief Applies an allOf JSON Schema array to a StructFields object.
  *
+ * @param[in] all_of JSON_Array of `allOf` sub-schemas.
+ * @param[in,out] dest Target StructFields container to merge into.
+ * @param[in] root Root `components.schemas` JSON_Object for `$ref` resolution.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t apply_allof_to_struct_fields(const JSON_Array *all_of,

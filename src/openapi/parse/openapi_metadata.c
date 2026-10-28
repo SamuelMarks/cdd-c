@@ -125,6 +125,10 @@ static cdd_c_error_t parse_info_inner(const JSON_Object *root_obj,
 
 /**
  * @brief Parses info from the given input.
+ *
+ * @param[in] root_obj The root OpenAPI JSON object.
+ * @param[in,out] out The target OpenAPI_Spec structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_info(const JSON_Object *root_obj,
                          struct OpenAPI_Spec *out) {
@@ -172,6 +176,10 @@ parse_external_docs_inner(const JSON_Object *obj,
 
 /**
  * @brief Parses external docs from the given input.
+ *
+ * @param[in] obj The source externalDocs JSON object.
+ * @param[out] out Output OpenAPI_ExternalDocs structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_external_docs(const JSON_Object *obj,
                                   struct OpenAPI_ExternalDocs *out) {
@@ -264,6 +272,10 @@ parse_discriminator_object_inner(const JSON_Object *obj,
 
 /**
  * @brief Parses discriminator object from the given input.
+ *
+ * @param[in] obj The source discriminator JSON object.
+ * @param[out] out Output OpenAPI_Discriminator structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_discriminator_object(const JSON_Object *obj,
                                          struct OpenAPI_Discriminator *out) {
@@ -349,6 +361,10 @@ static cdd_c_error_t parse_xml_object_inner(const JSON_Object *obj,
 
 /**
  * @brief Parses xml object from the given input.
+ *
+ * @param[in] obj The source XML JSON object.
+ * @param[out] out Output OpenAPI_Xml structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_xml_object(const JSON_Object *obj,
                                struct OpenAPI_Xml *out) {
@@ -450,6 +466,10 @@ static cdd_c_error_t parse_tags_inner(const JSON_Object *root_obj,
 
 /**
  * @brief Parses tags from the given input.
+ *
+ * @param[in] root_obj The root OpenAPI JSON object.
+ * @param[in,out] out The target OpenAPI_Spec structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_tags(const JSON_Object *root_obj,
                          struct OpenAPI_Spec *out) {
@@ -460,7 +480,12 @@ cdd_c_error_t parse_tags(const JSON_Object *root_obj,
 }
 
 /**
- * @brief Finds the index of a Tag object in an OpenAPI_Spec by name.
+ * @brief Finds the index of a Tag by name in `spec->tags`.
+ *
+ * @param[in] spec OpenAPI specification.
+ * @param[in] name Tag name to search for.
+ * @param[out] out_idx Index of the tag.
+ * @return CDD_C_SUCCESS on success, or error code if not found/invalid arg.
  */
 cdd_c_error_t tag_index_by_name(const struct OpenAPI_Spec *spec,
                                 const char *name, size_t *out_idx) {
@@ -477,7 +502,14 @@ cdd_c_error_t tag_index_by_name(const struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Detects cyclic parent references in OpenAPI 3.2 tag hierarchies.
+ * @brief Detects parent cycles in `spec->tags` starting from `idx`.
+ *
+ * @param[in] spec OpenAPI specification.
+ * @param[in] idx Starting tag index.
+ * @param[in,out] state Visited state array (`0` unvisited, `1` visiting, `2`
+ * done).
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if cycle detected, CDD_C_SUCCESS (0)
+ * otherwise.
  */
 cdd_c_error_t detect_tag_cycle(const struct OpenAPI_Spec *spec, size_t idx,
                                int *state) {
@@ -502,7 +534,10 @@ cdd_c_error_t detect_tag_cycle(const struct OpenAPI_Spec *spec, size_t idx,
 }
 
 /**
- * @brief Validates that all tag parent references exist and form a DAG.
+ * @brief Validates that no tag parent cycles exist in `spec->tags`.
+ *
+ * @param[in] spec OpenAPI specification.
+ * @return CDD_C_SUCCESS if valid, or error code on cycle/OOM.
  */
 cdd_c_error_t validate_tag_parents(const struct OpenAPI_Spec *spec) {
   size_t i;
@@ -524,8 +559,12 @@ cdd_c_error_t validate_tag_parents(const struct OpenAPI_Spec *spec) {
 }
 
 /**
- * @brief Checks whether a server template variable name is defined in a Server
- * object.
+ * @brief Checks if a server variable name is defined in `srv->variables`.
+ *
+ * @param[in] srv Server structure.
+ * @param[in] name Variable name to check.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if defined, CDD_C_SUCCESS (0)
+ * otherwise.
  */
 cdd_c_error_t server_variable_defined(const struct OpenAPI_Server *srv,
                                       const char *name) {
@@ -540,8 +579,12 @@ cdd_c_error_t server_variable_defined(const struct OpenAPI_Server *srv,
 }
 
 /**
- * @brief Checks whether a server template variable name was already
- * encountered.
+ * @brief Checks if a server variable name has already been seen in a list.
+ *
+ * @param[in] seen Array of seen variable names.
+ * @param[in] seen_count Number of elements in `seen`.
+ * @param[in] name Variable name to check.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if seen, CDD_C_SUCCESS (0) otherwise.
  */
 cdd_c_error_t server_variable_seen(char **seen, size_t seen_count,
                                    const char *name) {
@@ -556,7 +599,11 @@ cdd_c_error_t server_variable_seen(char **seen, size_t seen_count,
 }
 
 /**
- * @brief Validates that all template variables in a Server URL are defined.
+ * @brief Validates `{var}` placeholders in a Server URL against its `variables`
+ * map.
+ *
+ * @param[in] srv Server structure to validate.
+ * @return CDD_C_SUCCESS if valid, or error code on mismatch/OOM.
  */
 cdd_c_error_t validate_server_url_variables(const struct OpenAPI_Server *srv) {
   const char *url;
@@ -750,6 +797,10 @@ static cdd_c_error_t parse_server_object_inner(const JSON_Object *srv_obj,
 
 /**
  * @brief Parses server object from the given input.
+ *
+ * @param[in] srv_obj The source server JSON object.
+ * @param[out] out_srv Output OpenAPI_Server structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_server_object(const JSON_Object *srv_obj,
                                   struct OpenAPI_Server *out_srv) {
@@ -846,6 +897,12 @@ parse_servers_array_inner(const JSON_Object *parent, const char *key,
 
 /**
  * @brief Parses servers array from the given input.
+ *
+ * @param[in] parent The parent JSON object.
+ * @param[in] key The servers array key name.
+ * @param[out] out_servers Output array of OpenAPI_Server structures.
+ * @param[out] out_count Output count of servers.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_servers_array(const JSON_Object *parent, const char *key,
                                   struct OpenAPI_Server **out_servers,

@@ -19,6 +19,8 @@
  * @brief Initializes a new CST lexical scope environment with a root file
  * scope.
  *
+ * @param[out] out_env Output pointer receiving the newly allocated scope
+ * environment.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
@@ -83,6 +85,8 @@ static void free_scope(cdd_cst_scope_t *scope) {
 
 /**
  * @brief Frees a CST lexical scope environment and all scopes within it.
+ *
+ * @param[in,out] env Pointer to the scope environment to free.
  */
 void cdd_cst_scope_env_free(cdd_cst_scope_env_t *env) {
   if (!env)
@@ -94,6 +98,8 @@ void cdd_cst_scope_env_free(cdd_cst_scope_env_t *env) {
 /**
  * @brief Enters a new nested lexical scope of the specified kind.
  *
+ * @param[in,out] env Active scope environment.
+ * @param[in] kind Kind of nested lexical scope to enter.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
@@ -136,6 +142,7 @@ cdd_c_error_t cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
 /**
  * @brief Leaves the current lexical scope and returns to its parent scope.
  *
+ * @param[in,out] env Active scope environment.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if at root.
  */
 cdd_c_error_t cdd_cst_scope_leave(cdd_cst_scope_env_t *env) {
@@ -170,6 +177,10 @@ static cdd_c_error_t cdd_strdup(const char *s, char **out_s) {
 /**
  * @brief Adds a symbol entry to the current lexical scope.
  *
+ * @param[in,out] env Active scope environment.
+ * @param[in] name Symbol identifier name.
+ * @param[in] kind Symbol namespace/kind.
+ * @param[in] decl_node CST declaration node associated with the symbol.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env,
@@ -206,6 +217,8 @@ cdd_c_error_t cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env,
  * @brief Checks whether a symbol kind belongs to the C tag namespace
  * (`struct`, `union`, or `enum`).
  *
+ * @param[in] kind Symbol kind to test.
+ * @param[out] out_is_tag Output pointer receiving 1 if tag symbol, 0 otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT.
  */
 cdd_c_error_t cdd_cst_symbol_is_tag(enum cdd_cst_symbol_kind_t kind,
@@ -222,6 +235,10 @@ cdd_c_error_t cdd_cst_symbol_is_tag(enum cdd_cst_symbol_kind_t kind,
  * @brief Looks up a symbol by name and namespace starting from the current
  * scope outward.
  *
+ * @param[in] env Active scope environment.
+ * @param[in] name Symbol identifier name to look up.
+ * @param[in] kind Symbol namespace/kind to match.
+ * @param[out] out_symbol Output pointer receiving the resolved symbol entry.
  * @return CDD_C_SUCCESS on success, CDD_C_ERROR_NOT_FOUND if not found, or
  * error code.
  */

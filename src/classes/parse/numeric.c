@@ -131,6 +131,9 @@ static cdd_c_error_t parse_binary_str(const char *str, const char **endptr,
 /**
  * @brief Parses numeric literal from the given input.
  *
+ * @param[in] str Input C numeric literal string.
+ * @param[out] out Output NumericValue structure receiving the parsed value and
+ * metadata.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t parse_numeric_literal(const char *str, struct NumericValue *out) {

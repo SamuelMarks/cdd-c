@@ -11,7 +11,6 @@
 #include "c_cdd/memory.h"
 #include "serve_json_rpc.h"
 
-#ifndef __wasi__
 #include "../parse/cli.h"
 #include "../../cdd_api.h"
 #include "functions/parse/fs.h"
@@ -192,7 +191,7 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
   } else if (strcmp(method, "resources/read") == 0) {
     JSON_Object *params = json_object_get_object(root_obj, "params");
     char *res_str = NULL;
-    build_stdio_resources_read(params, &res_str);
+    rc = build_stdio_resources_read(params, &res_str);
     rc = send_stdio_rpc_response(id_val, res_str);
     json_free_serialized_string(res_str);
   } else if (strcmp(method, "resources/subscribe") == 0) {
@@ -360,15 +359,3 @@ C_CDD_EXPORT cdd_c_error_t serve_mcp_stdio_main(int argc, char **argv) {
   }
   return rc_rpc;
 }
-
-#else
-C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
-  (void)body;
-  return CDD_C_ERROR_UNKNOWN;
-}
-C_CDD_EXPORT cdd_c_error_t serve_mcp_stdio_main(int argc, char **argv) {
-  (void)argc;
-  (void)argv;
-  return CDD_C_ERROR_UNKNOWN;
-}
-#endif

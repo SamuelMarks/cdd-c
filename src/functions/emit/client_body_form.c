@@ -12,6 +12,9 @@
 /**
  * @brief Emits C source code for form urlencoded body.
  *
+ * @param[in,out] fp Output file stream.
+ * @param[in] op OpenAPI operation descriptor.
+ * @param[in] spec Full OpenAPI specification for schema resolution.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t

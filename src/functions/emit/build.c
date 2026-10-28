@@ -142,6 +142,9 @@ static cdd_c_error_t generate_cmake(FILE *fp,
 /**
  * @brief Emits generated C code for codegen build generate.
  *
+ * @param[in] type Target build system type (e.g., `BUILD_SYS_CMAKE`).
+ * @param[in,out] fp Output file stream.
+ * @param[in] config Build system code generation configuration.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t codegen_build_generate(enum CodegenBuildSystem type, FILE *fp,

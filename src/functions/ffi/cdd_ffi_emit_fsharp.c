@@ -96,6 +96,8 @@ static cdd_c_error_t map_fsharp_type(cdd_ffi_type_t *t, char *out_type,
  * @brief Emits F# P/Invoke `Bindings.fs` and `.fsproj` project files for the
  * given FFI IR.
  *
+ * @param[in] ir FFI Intermediate Representation to emit.
+ * @param[in] config Binding generation configuration parameters.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t

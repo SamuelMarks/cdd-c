@@ -14,6 +14,8 @@
  * @brief Analyzes a CST and populates variable escape information in the scope
  * environment.
  *
+ * @param[in] tree CST tree to analyze.
+ * @param[in,out] env Scope environment to update with escape information.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t cdd_cst_analyze_escapes(cdd_cst_tree_t *tree,
@@ -29,6 +31,9 @@ cdd_c_error_t cdd_cst_analyze_escapes(cdd_cst_tree_t *tree,
 /**
  * @brief Checks whether a scoped symbol escapes its defining scope.
  *
+ * @param[in] symbol Scoped symbol to inspect.
+ * @param[out] out_escapes Output pointer receiving 1 if the symbol escapes, 0
+ * otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t cdd_cst_symbol_escapes(cdd_cst_symbol_t *symbol,

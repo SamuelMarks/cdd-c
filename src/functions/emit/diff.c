@@ -297,6 +297,11 @@ C_CDD_EXPORT cdd_c_error_t cdd_test_split_lines(const char *str, size_t len,
 /**
  * @brief Generates a unified diff string from a list of source patches.
  *
+ * @param[in,out] list Patch list containing replacement spans.
+ * @param[in] tokens Original lexical token list.
+ * @param[in] filename File name displayed in the unified diff header.
+ * @param[out] out_diff Output pointer receiving the newly allocated unified
+ * diff string.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t patch_list_to_diff(struct PatchList *list,

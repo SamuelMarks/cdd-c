@@ -17,6 +17,9 @@
  * @brief Evaluates the byte size and alignment of a C primitive type under a
  * target ABI model.
  *
+ * @param[in] type_name Canonical C primitive type name string.
+ * @param[in] abi Target ABI data model (ILP32, LLP64, LP64).
+ * @param[out] out_info Output structure receiving size and alignment in bytes.
  * @return CDD_C_SUCCESS on success, CDD_C_ERROR_NOT_FOUND if unknown, or
  * CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
@@ -175,6 +178,10 @@ static cdd_c_error_t extract_type_name(cdd_cst_node_t *node, char **out_name,
 /**
  * @brief Evaluates `sizeof` for a CST type node under the specified ABI model.
  *
+ * @param[in] env Active lexical scope environment.
+ * @param[in] type_node CST node representing the type specifier.
+ * @param[in] abi Target ABI data model.
+ * @param[out] out_size Output pointer receiving the evaluated byte size.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env,
@@ -209,6 +216,10 @@ cdd_c_error_t cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env,
 /**
  * @brief Evaluates `alignof` for a CST type node under the specified ABI model.
  *
+ * @param[in] env Active lexical scope environment.
+ * @param[in] type_node CST node representing the type specifier.
+ * @param[in] abi Target ABI data model.
+ * @param[out] out_align Output pointer receiving the evaluated byte alignment.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_eval_alignof(cdd_cst_scope_env_t *env,

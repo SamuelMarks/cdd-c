@@ -21,8 +21,23 @@
 /* clang-format on */
 
 /**
- * @brief Generates C client SDK headers, sources, models, and build files from
- * an OpenAPI spec.
+ * @brief Generate the C Client Library (Header and Source).
+ *
+ * Performs the following steps:
+ * 1. Opens `<basename>.h` and `<basename>.c` for writing.
+ * 2. Writes Preamble (Includes, Type Definitions).
+ *    - Injects `struct ApiError` definition for global error handling.
+ * 3. Iterates through all Paths and Operations in the Spec.
+ * 4. For each operation:
+ *    - Generates a Doxygen-style docblock in the header.
+ *    - Resolves naming convention (Namespace + Tag + Prefix).
+ *    - Generates a function prototype in the header.
+ *    - Generates the function definition and body in the source.
+ * 5. Writes the `_init`, `_cleanup`, and `ApiError` lifecycle functions.
+ *
+ * @param[in] spec The parsed OpenAPI specification.
+ * @param[in] config Configuration options for generation.
+ * @return 0 on success, error code (EINVAL, ENOMEM, EIO) on failure.
  */
 cdd_c_error_t
 openapi_client_generate(const struct OpenAPI_Spec *spec,

@@ -9,7 +9,9 @@
 /* clang-format on */
 
 /**
- * @brief Initializes an OpenAPI_Spec structure to empty defaults.
+ * @brief Initialize a Spec structure to zero.
+ * @param[out] spec Pointer to spec structure to initialize.
+ * @return 0 on success, or an error code.
  */
 cdd_c_error_t openapi_spec_init(struct OpenAPI_Spec *spec) {
   if (!spec)
@@ -81,7 +83,9 @@ cdd_c_error_t openapi_spec_init(struct OpenAPI_Spec *spec) {
 }
 
 /**
- * @brief Initializes a multi-document OpenAPI URI registry.
+ * @brief Initialize a document registry.
+ * @param[out] registry Pointer to registry to initialize.
+ * @return 0 on success, or an error code.
  */
 cdd_c_error_t openapi_doc_registry_init(struct OpenAPI_DocRegistry *registry) {
   if (!registry)
@@ -93,8 +97,11 @@ cdd_c_error_t openapi_doc_registry_init(struct OpenAPI_DocRegistry *registry) {
 }
 
 /**
- * @brief Releases all documents and URIs stored in an OpenAPI document
- * registry.
+ * @brief Free a document registry and its URI entries.
+ *
+ * Does NOT free the OpenAPI_Spec instances referenced by the registry.
+ *
+ * @param[in] registry Pointer to registry to free.
  */
 void openapi_doc_registry_free(struct OpenAPI_DocRegistry *registry) {
   size_t i;
@@ -112,8 +119,13 @@ void openapi_doc_registry_free(struct OpenAPI_DocRegistry *registry) {
 }
 
 /**
- * @brief Registers a parsed JSON document under a canonical URI in the
- * registry.
+ * @brief Register a parsed document with the registry.
+ *
+ * Uses the document's resolved base URI for matching $ref targets.
+ *
+ * @param[in,out] registry Registry to add to.
+ * @param[in] spec Parsed OpenAPI specification.
+ * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
  */
 cdd_c_error_t openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
                                        struct OpenAPI_Spec *spec) {

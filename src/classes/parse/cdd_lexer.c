@@ -150,6 +150,8 @@ static enum cdd_token_kind_t classify_identifier(const uint8_t *start,
  * @brief Tokenizes a C source span into a full-fidelity token list with
  * attached leading and trailing trivia.
  *
+ * @param[in] source Input C source span to tokenize.
+ * @param[out] out_list Output pointer receiving the newly allocated token list.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
@@ -515,6 +517,8 @@ error:
 /**
  * @brief Frees a lexical token list and all attached leading and trailing
  * trivia chains.
+ *
+ * @param[in,out] list Pointer to the token list to free.
  */
 void cdd_lexer_free_token_list(cdd_token_list_t *list) {
   size_t i;

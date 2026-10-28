@@ -47,6 +47,10 @@
 /**
  * @brief Joins a directory and filename into a newly allocated path string.
  *
+ * @param[in] dir Directory path prefix.
+ * @param[in] file Filename or relative path to append.
+ * @param[out] out_val Output pointer receiving the newly allocated joined path
+ * string.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_join_path(const char *dir, const char *file, char **out_val) {
@@ -75,6 +79,9 @@ cdd_c_error_t pp_join_path(const char *dir, const char *file, char **out_val) {
 /**
  * @brief Checks if a file exists and is readable at `path`.
  *
+ * @param[in] path Filesystem path to check.
+ * @param[out] out_exists Output pointer receiving 1 if file exists and is
+ * readable, 0 otherwise.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_file_exists(const char *path, int *out_exists) {
@@ -105,6 +112,8 @@ cdd_c_error_t pp_file_exists(const char *path, int *out_exists) {
 
 /**
  * @brief Releases memory owned by a preprocessor macro definition.
+ *
+ * @param[in,out] def Pointer to the MacroDef structure to free.
  */
 void pp_free_macro_def(struct MacroDef *def) {
   size_t i;
@@ -131,6 +140,9 @@ void pp_free_macro_def(struct MacroDef *def) {
  * @brief Copies a token's byte span into a newly allocated null-terminated
  * string.
  *
+ * @param[in] t Token to copy.
+ * @param[out] out_val Output pointer receiving the newly allocated
+ * null-terminated string.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_token_to_string(const struct Token *t, char **out_val) {
@@ -155,6 +167,8 @@ cdd_c_error_t pp_token_to_string(const struct Token *t, char **out_val) {
  * @brief Registers or updates a macro definition in the preprocessor symbol
  * table.
  *
+ * @param[in,out] ctx PreprocessorContext to update.
+ * @param[in] def MacroDef structure to append.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_add_macro_internal(struct PreprocessorContext *ctx,
@@ -184,6 +198,13 @@ cdd_c_error_t pp_add_macro_internal(struct PreprocessorContext *ctx,
  * @brief Resolves a `#include` path against `current_dir` and registered search
  * paths.
  *
+ * @param[in] ctx PreprocessorContext containing registered search paths.
+ * @param[in] current_dir Directory containing the including file (may be NULL).
+ * @param[in] include_path Raw `#include` target path string.
+ * @param[in] is_system Non-zero if `<...>` system include, 0 if `"..."` local
+ * include.
+ * @param[out] out_val Output pointer receiving the newly allocated resolved
+ * path (or NULL).
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_resolve_path(const struct PreprocessorContext *ctx,
@@ -241,6 +262,11 @@ cdd_c_error_t pp_resolve_path(const struct PreprocessorContext *ctx,
  * @brief Reconstructs a contiguous string from a range of tokens `[start,
  * end)`.
  *
+ * @param[in] tokens Lexical token list.
+ * @param[in] start Inclusive start token index.
+ * @param[in] end Exclusive end token index.
+ * @param[out] out_val Output pointer receiving the newly allocated
+ * reconstructed string.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_reconstruct_path(const struct TokenList *tokens, size_t start,
@@ -281,6 +307,7 @@ cdd_c_error_t pp_reconstruct_path(const struct TokenList *tokens, size_t start,
 /**
  * @brief Initializes a preprocessor context.
  *
+ * @param[out] ctx Pointer to the PreprocessorContext structure to initialize.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_context_init(struct PreprocessorContext *ctx) {
@@ -294,6 +321,8 @@ cdd_c_error_t pp_context_init(struct PreprocessorContext *ctx) {
 /**
  * @brief Frees all search paths and macro definitions in a preprocessor
  * context.
+ *
+ * @param[in,out] ctx Pointer to the PreprocessorContext structure to free.
  */
 void pp_context_free(struct PreprocessorContext *ctx) {
   size_t i;
@@ -321,6 +350,8 @@ void pp_context_free(struct PreprocessorContext *ctx) {
 /**
  * @brief Appends an include search directory path to `ctx`.
  *
+ * @param[in,out] ctx PreprocessorContext to update.
+ * @param[in] path Include directory path string to add.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_add_search_path(struct PreprocessorContext *ctx,
@@ -357,6 +388,9 @@ cdd_c_error_t pp_add_search_path(struct PreprocessorContext *ctx,
 /**
  * @brief Defines an object-like macro in the preprocessor context.
  *
+ * @param[in,out] ctx PreprocessorContext to update.
+ * @param[in] name Macro identifier name.
+ * @param[in] value Replacement text value (may be NULL).
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_add_macro(struct PreprocessorContext *ctx, const char *name,
@@ -395,6 +429,9 @@ cdd_c_error_t pp_add_macro(struct PreprocessorContext *ctx, const char *name,
  * @brief Scans a C/C++ source or header file and indexes all `#define` macros
  * into `ctx`.
  *
+ * @param[in,out] ctx PreprocessorContext to populate with discovered `#define`
+ * macros.
+ * @param[in] filename Path to the C/C++ source or header file to scan.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
@@ -575,6 +612,8 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
 
 /**
  * @brief Frees dynamically allocated parameter strings in `params`.
+ *
+ * @param[in,out] params Pointer to the EmbedParams structure to free.
  */
 void pp_embed_params_free(struct EmbedParams *params) {
   if (!params)
@@ -598,6 +637,12 @@ void pp_embed_params_free(struct EmbedParams *params) {
  * @brief Scans a file for active `#include`, `#include_next`, and `#embed`
  * directives while evaluating `#if`/`#ifdef` conditionals.
  *
+ * @param[in] filename Path to the C/C++ source or header file to scan.
+ * @param[in,out] ctx PreprocessorContext containing search paths and defined
+ * macros.
+ * @param[in] cb Visitor callback invoked for each active include/embed
+ * directive.
+ * @param[in,out] user_data Opaque user context pointer passed to `cb`.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_scan_includes(const char *filename,

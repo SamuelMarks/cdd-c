@@ -17,6 +17,9 @@
 
 /**
  * @brief Emit url_utils.h for installable package.
+ *
+ * @param[in] dir_name Output directory path.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t client_gen_emit_url_utils_h(const char *dir_name) {
   char hpath[512];

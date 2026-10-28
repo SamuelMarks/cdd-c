@@ -30,6 +30,7 @@ C_CDD_EXPORT int g_patcher_test_cap_1 = 0;
 /**
  * @brief Initializes a source code patch list.
  *
+ * @param[out] list Pointer to the PatchList structure to initialize.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t patch_list_init(struct PatchList *list) {
@@ -55,6 +56,8 @@ cdd_c_error_t patch_list_init(struct PatchList *list) {
 
 /**
  * @brief Releases all memory associated with a patch list.
+ *
+ * @param[in,out] list Pointer to the PatchList structure to free.
  */
 void patch_list_free(struct PatchList *list) {
   size_t i;
@@ -76,6 +79,11 @@ void patch_list_free(struct PatchList *list) {
 /**
  * @brief Appends a replacement span patch to a patch list.
  *
+ * @param[in,out] list Target PatchList container.
+ * @param[in] start_idx Inclusive start token index to replace.
+ * @param[in] end_idx Exclusive end token index to replace.
+ * @param[in] text Heap-allocated replacement string (ownership transferred to
+ * `list`).
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t patch_list_add(struct PatchList *list, size_t start_idx,
@@ -154,6 +162,7 @@ static int compare_patches(const void *a, const void *b) {
 /**
  * @brief Sorts patches in ascending order of token start index.
  *
+ * @param[in,out] list PatchList to sort in-place.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t patch_list_sort(struct PatchList *list) {
@@ -172,6 +181,10 @@ cdd_c_error_t patch_list_sort(struct PatchList *list) {
  * @brief Applies a sorted list of patches to a token stream and emits the
  * result.
  *
+ * @param[in,out] list PatchList to sort and apply.
+ * @param[in] tokens Original lexical token list.
+ * @param[out] out_code Output pointer receiving the newly allocated patched C
+ * source string.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t patch_list_apply(struct PatchList *list,

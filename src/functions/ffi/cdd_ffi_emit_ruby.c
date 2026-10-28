@@ -313,6 +313,8 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 /**
  * @brief Emits Ruby Fiddle FFI bindings for the given FFI IR.
  *
+ * @param[in] ir FFI Intermediate Representation to emit.
+ * @param[in] config Binding generation configuration parameters.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t cdd_ffi_emit_ruby(cdd_ffi_ir_t *ir,

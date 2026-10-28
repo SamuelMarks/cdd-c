@@ -22,6 +22,11 @@
  * @brief Generates a CST patch diff string comparing old token spans with patch
  * replacement text.
  *
+ * @param[in] tokens Original lexical token list.
+ * @param[in] list Patch list containing replacement spans.
+ * @param[in] filename File name displayed in the diff header.
+ * @param[out] out_diff Output pointer receiving the newly allocated diff
+ * string.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t patch_list_generate_diff(const struct TokenList *tokens,

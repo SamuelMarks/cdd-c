@@ -32,6 +32,8 @@
 /**
  * @brief Emits a standalone `CMakeLists.txt` build configuration to `fp`.
  *
+ * @param[in,out] fp Output file stream.
+ * @param[in] config Build configuration parameters.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t codegen_make_generate(FILE *fp, const struct MakeConfig *config) {

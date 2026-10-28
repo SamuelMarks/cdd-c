@@ -91,6 +91,8 @@ static cdd_c_error_t map_clojure_jna_type(cdd_ffi_type_t *t,
  * @brief Emits Clojure JNA interop bindings and `deps.edn` for the given FFI
  * IR.
  *
+ * @param[in] ir FFI Intermediate Representation to emit.
+ * @param[in] config Binding generation configuration parameters.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t

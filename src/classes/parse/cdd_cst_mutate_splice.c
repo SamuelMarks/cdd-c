@@ -16,6 +16,13 @@
 
 /**
  * @brief Splice children of a node.
+ *
+ * @param[in,out] tree Owning CST tree.
+ * @param[in,out] node_ptr Pointer to the CST node pointer being spliced.
+ * @param[in] start_idx Starting child index for replacement.
+ * @param[in] consume_count Number of existing children to replace.
+ * @param[in] new_children Array of new child entries to insert.
+ * @param[in] new_children_count Number of entries in `new_children`.
  * @return 0 on success.
  */
 cdd_c_error_t cdd_cst_splice_children(cdd_cst_tree_t *tree,
@@ -116,6 +123,13 @@ cdd_c_error_t cdd_cst_splice_children(cdd_cst_tree_t *tree,
 
 /**
  * @brief Finds a node containing a given token.
+ *
+ * @param[in] root Root CST node to search.
+ * @param[in] tok Target token pointer to locate.
+ * @param[out] out_idx Output pointer receiving the child index within the
+ * parent node.
+ * @param[out] out_node Output pointer receiving the parent CST node containing
+ * `tok`.
  * @return 0 on success.
  */
 cdd_c_error_t cdd_cst_find_node_for_token(cdd_cst_node_t *root,

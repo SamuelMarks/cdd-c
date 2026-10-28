@@ -21,6 +21,11 @@
 
 /**
  * @brief Safely sets a JSON object property and frees the value on failure.
+ *
+ * @param[in,out] obj The target JSON object.
+ * @param[in] name The property key name.
+ * @param[in] val The JSON value to set (transferred or freed).
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_MEMORY on failure.
  */
 cdd_c_error_t cdd_json_object_set_value_safe(JSON_Object *obj, const char *name,
                                              JSON_Value *val) {
@@ -33,6 +38,10 @@ cdd_c_error_t cdd_json_object_set_value_safe(JSON_Object *obj, const char *name,
 
 /**
  * @brief Safely appends a JSON array element and frees the value on failure.
+ *
+ * @param[in,out] arr The target JSON array.
+ * @param[in] val The JSON value to append (transferred or freed).
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_MEMORY on failure.
  */
 cdd_c_error_t cdd_json_array_append_value_safe(JSON_Array *arr,
                                                JSON_Value *val) {
@@ -48,8 +57,18 @@ cdd_c_error_t cdd_json_array_append_value_safe(JSON_Array *arr,
   cdd_json_object_set_value_safe((obj), (name), (val))
 
 /**
- * @brief Serializes an in-memory OpenAPI_Spec structure to a JSON string or
- * file.
+ * @brief Serialize an OpenAPI Spec structure to a JSON string.
+ *
+ * Converts the full specification tree (Paths, Operations, Parameters,
+ * Responses, and Components) into a formatted JSON string.
+ *
+ * The caller is responsible for freeing the output string.
+ *
+ * @param[in] spec The specification structure to serialize.
+ * @param[out] json_out Pointer to a char* where the allocated JSON string will
+ * be stored.
+ * @return 0 on success, EINVAL if inputs are invalid, ENOMEM on allocation
+ * failure.
  */
 cdd_c_error_t openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
                                          char **json_out) {

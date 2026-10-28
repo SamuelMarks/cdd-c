@@ -65,7 +65,7 @@ We aim for 100% test coverage. Update the tests when you add or change features!
 
 ## WebAssembly
 
-For WASM testing, you need `emsdk` installed in `../emsdk`.
+`make build_wasm` automatically downloads `wasi-sdk` (if not already present in `./wasi-sdk`) and builds `bin/cdd-c.wasm`:
 
 ```bash
 make build_wasm

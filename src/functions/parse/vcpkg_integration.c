@@ -47,6 +47,12 @@ static cdd_c_error_t my_strdup(const char *s, char **out_val) {
 /**
  * @brief Initializes a vcpkg manifest builder context.
  *
+ * @param[out] builder Pointer to the VcpkgManifestBuilder structure to
+ * initialize.
+ * @param[in] project_name Package name for `vcpkg.json`.
+ * @param[in] version_string Optional package version string (defaults to
+ * `"0.0.1"` if NULL).
+ * @param[in] description Optional package description string (may be NULL).
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
@@ -104,6 +110,8 @@ cdd_c_error_t vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
 
 /**
  * @brief Releases memory held by a vcpkg manifest builder context.
+ *
+ * @param[in,out] builder Pointer to the VcpkgManifestBuilder structure to free.
  */
 void vcpkg_builder_free(struct VcpkgManifestBuilder *builder) {
   size_t i;
@@ -129,6 +137,8 @@ void vcpkg_builder_free(struct VcpkgManifestBuilder *builder) {
 /**
  * @brief Adds a package dependency to a vcpkg manifest builder.
  *
+ * @param[in,out] builder VcpkgManifestBuilder context to update.
+ * @param[in] dep_name Vcpkg dependency package name to add.
  * @return 0 on success, ENOMEM on failure.
  */
 cdd_c_error_t vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
@@ -171,6 +181,8 @@ cdd_c_error_t vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
 /**
  * @brief Scans C source includes to infer required vcpkg dependencies.
  *
+ * @param[in,out] builder VcpkgManifestBuilder context to update.
+ * @param[in] file_content Raw C source or header file content to scan.
  * @return 0 on success.
  */
 cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
@@ -261,6 +273,9 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
 /**
  * @brief Serializes a vcpkg.json manifest file from collected dependencies.
  *
+ * @param[in] builder VcpkgManifestBuilder context to serialize.
+ * @param[out] out_json Output pointer receiving the newly allocated
+ * `vcpkg.json` string.
  * @return 0 on success, ENOMEM on failure.
  */
 cdd_c_error_t vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,

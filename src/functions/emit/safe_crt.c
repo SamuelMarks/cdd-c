@@ -18,6 +18,7 @@
 /**
  * @brief Initializes a Safe CRT refactoring patch list.
  *
+ * @param[out] list Pointer to the SafeCrtPatchList structure to initialize.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t safe_crt_patch_list_init(struct SafeCrtPatchList *list) {
@@ -32,6 +33,7 @@ cdd_c_error_t safe_crt_patch_list_init(struct SafeCrtPatchList *list) {
 /**
  * @brief Releases memory held by a Safe CRT patch list.
  *
+ * @param[in,out] list Pointer to the SafeCrtPatchList structure to free.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t safe_crt_patch_list_free(struct SafeCrtPatchList *list) {
@@ -56,6 +58,10 @@ cdd_c_error_t safe_crt_patch_list_free(struct SafeCrtPatchList *list) {
 /**
  * @brief Adds a patch to the patch list.
  *
+ * @param[in,out] list Target SafeCrtPatchList container.
+ * @param[in] start Inclusive start token index.
+ * @param[in] end Exclusive end token index.
+ * @param[in] text Replacement C source text string.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t safe_crt_add_patch(struct SafeCrtPatchList *list, size_t start,
@@ -92,6 +98,11 @@ cdd_c_error_t safe_crt_add_patch(struct SafeCrtPatchList *list, size_t start,
 /**
  * @brief Extracts token text.
  *
+ * @param[in] tokens Lexical token list.
+ * @param[in] start Inclusive start token index.
+ * @param[in] end Exclusive end token index.
+ * @param[out] _out_val Output pointer receiving the newly allocated
+ * concatenated text.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t safe_crt_extract_token_text(const struct TokenList *tokens,
@@ -129,6 +140,10 @@ cdd_c_error_t safe_crt_extract_token_text(const struct TokenList *tokens,
 /**
  * @brief Generates strcpy patch.
  *
+ * @param[in] tokens Lexical token list.
+ * @param[in] call_start Start token index of the `strcpy` call.
+ * @param[in] call_end Exclusive end token index of the `strcpy` call statement.
+ * @param[in,out] out Target SafeCrtPatchList container.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t safe_crt_generate_strcpy_patch(const struct TokenList *tokens,
@@ -202,6 +217,10 @@ cdd_c_error_t safe_crt_generate_strcpy_patch(const struct TokenList *tokens,
 /**
  * @brief Generates fopen patch.
  *
+ * @param[in] tokens Lexical token list.
+ * @param[in] call_start Start token index of the `fopen` call.
+ * @param[in] call_end Exclusive end token index of the `fopen` call statement.
+ * @param[in,out] out Target SafeCrtPatchList container.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t safe_crt_generate_fopen_patch(const struct TokenList *tokens,
@@ -310,6 +329,11 @@ cdd_c_error_t safe_crt_generate_fopen_patch(const struct TokenList *tokens,
 /**
  * @brief Generates strncpy patch.
  *
+ * @param[in] tokens Lexical token list.
+ * @param[in] call_start Start token index of the `strncpy` call.
+ * @param[in] call_end Exclusive end token index of the `strncpy` call
+ * statement.
+ * @param[in,out] out Target SafeCrtPatchList container.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t safe_crt_generate_strncpy_patch(const struct TokenList *tokens,
@@ -391,6 +415,11 @@ cdd_c_error_t safe_crt_generate_strncpy_patch(const struct TokenList *tokens,
 /**
  * @brief Generates sprintf patch.
  *
+ * @param[in] tokens Lexical token list.
+ * @param[in] call_start Start token index of the `sprintf` call.
+ * @param[in] call_end Exclusive end token index of the `sprintf` call
+ * statement.
+ * @param[in,out] out Target SafeCrtPatchList container.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t safe_crt_generate_sprintf_patch(const struct TokenList *tokens,
@@ -462,6 +491,10 @@ cdd_c_error_t safe_crt_generate_sprintf_patch(const struct TokenList *tokens,
  * @brief Scans a CST and generates patches replacing unsafe CRT calls with Safe
  * CRT equivalents.
  *
+ * @param[in] cst Parsed CST node list.
+ * @param[in] tokens Lexical token list.
+ * @param[in,out] out_patches Output SafeCrtPatchList container receiving
+ * generated patches.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t

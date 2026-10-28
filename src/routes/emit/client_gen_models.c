@@ -24,6 +24,13 @@
 
 /**
  * @brief Emit OpenAPI models into models header and source.
+ *
+ * @param[in,out] mhfile Output models header file stream.
+ * @param[in,out] mcfile Output models source file stream.
+ * @param[in] model_guard Include guard macro for models header.
+ * @param[in] mh_name Models header filename.
+ * @param[in] spec Parsed OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
                                      const char *model_guard,

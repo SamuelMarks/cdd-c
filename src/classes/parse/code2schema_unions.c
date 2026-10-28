@@ -11,6 +11,9 @@
 /**
  * @brief Fallback method to apply a union (oneOf/anyOf) to StructFields.
  *
+ * @param[in] union_arr JSON_Array of `oneOf` or `anyOf` sub-schemas.
+ * @param[in,out] dest Target StructFields container.
+ * @param[in] root Root `components.schemas` JSON_Object for `$ref` resolution.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
@@ -69,6 +72,11 @@ cdd_c_error_t apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
 /**
  * @brief Checks if array items within a union are supported.
  *
+ * @param[in] schema_obj Array variant JSON Schema object to inspect.
+ * @param[in] root Root `components.schemas` JSON_Object.
+ * @param[in] allow_inline Non-zero if inline item object schemas are permitted.
+ * @param[out] out_supported Output pointer receiving 1 if supported, 0
+ * otherwise.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_union_array_items_supported(const JSON_Object *schema_obj,
@@ -143,6 +151,16 @@ cdd_c_error_t c2s_union_array_items_supported(const JSON_Object *schema_obj,
 /**
  * @brief Extended method to apply a union (oneOf/anyOf) to StructFields.
  *
+ * @param[in] union_arr JSON_Array of `oneOf` or `anyOf` sub-schemas.
+ * @param[in,out] dest Target StructFields container.
+ * @param[in] root Read-only root `components.schemas` JSON_Object.
+ * @param[in,out] root_mut Optional mutable root `components.schemas`
+ * JSON_Object.
+ * @param[in] schema_name Optional name of the enclosing union schema.
+ * @param[in] is_anyof Non-zero if `anyOf`, 0 if `oneOf`.
+ * @param[in] schema_obj Enclosing union JSON_Object (for `discriminator`
+ * lookup).
+ * @param[in] allow_inline Non-zero if inline variant schemas may be registered.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t apply_union_to_struct_fields_ex_mut(
@@ -423,6 +441,13 @@ cdd_c_error_t apply_union_to_struct_fields_ex_mut(
  * @brief Applies a `oneOf`/`anyOf` JSON array to `StructFields` using `root` as
  * both read and mutable root.
  *
+ * @param[in] union_arr JSON_Array of `oneOf` or `anyOf` sub-schemas.
+ * @param[in,out] dest Target StructFields container.
+ * @param[in,out] root Mutable root `components.schemas` JSON_Object.
+ * @param[in] schema_name Optional name of the enclosing union schema.
+ * @param[in] is_anyof Non-zero if `anyOf`, 0 if `oneOf`.
+ * @param[in] schema_obj Enclosing union JSON_Object.
+ * @param[in] allow_inline Non-zero if inline variant schemas may be registered.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t apply_union_to_struct_fields_ex(

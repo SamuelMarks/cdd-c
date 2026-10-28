@@ -35,6 +35,9 @@ extern int g_io_calls;
 /**
  * @brief Join directory and filename into a path.
  *
+ * @param[in] dir Directory path prefix.
+ * @param[in] name File or subdirectory name to append.
+ * @param[out] out_path Output pointer receiving the newly allocated joined path string.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t fs_path_join(const char *dir, const char *name,
@@ -63,6 +66,11 @@ cdd_c_error_t fs_path_join(const char *dir, const char *name,
 /**
  * @brief Format a temporary file path with prefix, number, and suffix.
  *
+ * @param[in] dir Base temporary directory path.
+ * @param[in] prefix Optional filename prefix (may be NULL).
+ * @param[in] num Random numeric token to embed in the filename.
+ * @param[in] suffix Optional filename suffix (may be NULL).
+ * @param[out] out_path Output pointer receiving the newly allocated temporary file path.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t format_tmp_filename(const char *dir, const char *prefix,
@@ -100,6 +108,7 @@ cdd_c_error_t format_tmp_filename(const char *dir, const char *prefix,
 /**
  * @brief Helper to convert internal standard library errno to cdd_c_error_t.
  *
+ * @param[in] err Standard C `errno` integer value.
  * @return Mapped `cdd_c_error_t` value.
  */
 cdd_c_error_t errno_to_cdd_error(int err) {
@@ -287,6 +296,9 @@ cdd_c_error_t wide_to_ascii(const wchar_t *ws, char *s, size_t buf_cap,
 /**
  * @brief Checks whether a filesystem path refers to an existing directory.
  *
+ * @param[in] path Filesystem path to inspect.
+ * @param[out] out_is_dir Output pointer receiving 1 if existing directory, 0
+ * otherwise.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
  * NULL.
  */
@@ -307,6 +319,8 @@ cdd_c_error_t fs_is_directory(const char *path, int *out_is_dir) {
 /**
  * @brief Retrieves the basename component of a filesystem path.
  *
+ * @param[in] path Input filesystem path string.
+ * @param[out] out Output pointer receiving the newly allocated basename string.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t get_basename(const char *path, char **out) {
@@ -360,6 +374,8 @@ cdd_c_error_t get_basename(const char *path, char **out) {
 /**
  * @brief Retrieves the parent directory component of a filesystem path.
  *
+ * @param[in] path Input filesystem path string.
+ * @param[out] out Output pointer receiving the newly allocated dirname string.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t get_dirname(const char *path, char **out) {
@@ -432,6 +448,9 @@ enum { READ_CHUNK_SIZE = 4096 };
 /**
  * @brief Maps a C errno value from fopen into a `FopenError_t` code.
  *
+ * @param[in] fopen_error Standard C `errno` integer value from `fopen`.
+ * @param[out] _out_val Output pointer receiving the mapped `FopenError_t` enum
+ * value.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
  * NULL.
  */
@@ -477,6 +496,8 @@ cdd_c_error_t fopen_error_from(int fopen_error, FopenError_t *_out_val) {
 /**
  * @brief Writes a byte buffer to a file path, overwriting any existing file.
  *
+ * @param[in] path Destination file path.
+ * @param[in] content Null-terminated string content to write.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t fs_write_to_file(const char *path, const char *content) {
@@ -549,6 +570,11 @@ cdd_c_error_t fs_write_to_file(const char *path, const char *content) {
 /**
  * @brief Reads the contents of a file path into a newly allocated buffer.
  *
+ * @param[in] path Source file path to read.
+ * @param[in] mode File open mode string (e.g., `"r"` or `"rb"`).
+ * @param[out] out_data Output pointer receiving the newly allocated file
+ * buffer.
+ * @param[out] out_size Output pointer receiving the number of bytes read.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t read_to_file(const char *path, const char *mode, char **out_data,
@@ -639,6 +665,9 @@ cdd_c_error_t read_to_file(const char *path, const char *mode, char **out_data,
  * @brief Reads all bytes from an open FILE stream into a newly allocated
  * buffer.
  *
+ * @param[in,out] fh Open file handle to read from.
+ * @param[out] out_data Output pointer receiving the newly allocated buffer.
+ * @param[out] out_size Output pointer receiving the number of bytes read.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
@@ -698,6 +727,8 @@ cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
 /**
  * @brief Copies a file from a source path to a destination path.
  *
+ * @param[in] dst Destination file path.
+ * @param[in] src Source file path.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t cp(const char *dst, const char *src) {

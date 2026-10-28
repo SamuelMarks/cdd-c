@@ -130,6 +130,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_append_int(char *p, int v, char **out_p);
 
 /**
  * @brief Allocates memory for GNU standardizer transformations.
+ *
+ * @param[in] sz Number of bytes to allocate.
+ * @param[out] out_ptr Output pointer receiving the allocated memory block.
  * @return CDD_C_SUCCESS on success or CDD_C_ERROR_MEMORY on failure.
  */
 C_CDD_EXPORT cdd_c_error_t gnu_malloc(size_t sz, void **out_ptr);

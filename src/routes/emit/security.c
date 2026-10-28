@@ -220,8 +220,12 @@ scheme_is_active(const struct OpenAPI_SecurityScheme *sch,
 }
 
 /**
- * @brief Determines if the active security schemes for a given operation
- * require parameters in the URL query string.
+ * @brief Determine whether the active security schemes require query params.
+ *
+ * @param[in] op The operation context.
+ * @param[in] spec The full OpenAPI specification.
+ * @return Non-zero if query security params are required, CDD_C_SUCCESS
+ * otherwise.
  */
 cdd_c_error_t
 codegen_security_requires_query(const struct OpenAPI_Operation *op,
@@ -250,8 +254,12 @@ codegen_security_requires_query(const struct OpenAPI_Operation *op,
 }
 
 /**
- * @brief Determines if the active security schemes for a given operation
- * require parameters via HTTP cookies.
+ * @brief Determine whether the active security schemes require cookie params.
+ *
+ * @param[in] op The operation context.
+ * @param[in] spec The full OpenAPI specification.
+ * @return Non-zero if cookie security params are required, CDD_C_SUCCESS
+ * otherwise.
  */
 cdd_c_error_t
 codegen_security_requires_cookie(const struct OpenAPI_Operation *op,
@@ -280,8 +288,23 @@ codegen_security_requires_cookie(const struct OpenAPI_Operation *op,
 }
 
 /**
- * @brief Generates C code to apply active security schemes (e.g., injecting
- * headers or tokens) to an outgoing request.
+ * @brief Generate code to apply authentication headers/params.
+ *
+ * Scans `spec->components.securitySchemes`.
+ * Honors root or operation-level `security` requirements when present,
+ * otherwise falls back to applying all schemes (legacy behavior).
+ *
+ * Generates C logic checking `ctx->security` fields and injecting:
+ * - `Authorization: Bearer ...` (HTTP Bearer, OAuth2, OpenID Connect)
+ * - `Authorization: Basic ...` (HTTP Basic; token is base64 of "user:pass")
+ * - `X-Api-Key: ...` (API Key in Header)
+ * - Query params for `apiKey` in query
+ * - Cookie params for `apiKey` in cookie
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] op The operation context (unused currently, for future scopes).
+ * @param[in] spec The full spec containing security definitions.
+ * @return 0 on success, error code on failure.
  */
 cdd_c_error_t codegen_security_write_apply(FILE *fp,
                                            const struct OpenAPI_Operation *op,
@@ -412,7 +435,12 @@ cdd_c_error_t codegen_security_write_apply(FILE *fp,
 }
 
 /**
- * @brief Emit server middleware hooks
+ * @brief Generate middleware check for servers.
+ *
+ * @param[in,out] fp Output file stream.
+ * @param[in] op The operation context.
+ * @param[in] spec The full OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t
 codegen_security_write_server_apply(FILE *fp,

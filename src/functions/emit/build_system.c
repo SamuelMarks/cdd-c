@@ -448,6 +448,10 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
 /**
  * @brief Generates cmake project.
  *
+ * @param[in] output_path Target output directory path (may be NULL for current
+ * directory).
+ * @param[in] project_name CMake project and target name.
+ * @param[in] has_tests Non-zero to emit test targets and CTest rules.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t generate_cmake_project(const char *output_path,
@@ -616,6 +620,8 @@ cleanup_src:
 /**
  * @brief Generates build system main.
  *
+ * @param[in] argc Argument count.
+ * @param[in] argv Argument vector.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t generate_build_system_main(int argc, char **argv) {

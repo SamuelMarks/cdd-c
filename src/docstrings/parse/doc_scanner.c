@@ -25,6 +25,8 @@
 /**
  * @brief Advances `p` past non-newline horizontal whitespace.
  *
+ * @param[in] p Input character cursor.
+ * @param[out] out_pos Output pointer receiving the advanced cursor position.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_skip_ws(const char *p, const char **out_pos) {
@@ -53,6 +55,11 @@ cdd_c_error_t doc_skip_ws(const char *p, const char **out_pos) {
 /**
  * @brief Extracts a whitespace-delimited word from `[str, end)`.
  *
+ * @param[in] str Start of input range.
+ * @param[in] end Exclusive end of input range.
+ * @param[out] next_out Output pointer receiving the cursor position after the
+ * word.
+ * @param[out] out_val Output pointer receiving the newly allocated word string.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_extract_word(const char *str, const char *end,
@@ -102,6 +109,10 @@ cdd_c_error_t doc_extract_word(const char *str, const char *end,
  * @brief Extracts the trimmed remainder of `[str, end)` as a newly allocated
  * string.
  *
+ * @param[in] str Start of input range.
+ * @param[in] end Exclusive end of input range.
+ * @param[out] out_val Output pointer receiving the newly allocated trimmed
+ * string.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_extract_rest(const char *str, const char *end,
@@ -147,6 +158,9 @@ cdd_c_error_t doc_extract_rest(const char *str, const char *end,
 /**
  * @brief Trims leading and trailing whitespace in-place from a mutable string.
  *
+ * @param[in,out] s Mutable string buffer to trim in-place.
+ * @param[out] out_val Output pointer receiving the trimmed start pointer within
+ * `s`.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_trim_segment(char *s, char **out_val) {
@@ -182,6 +196,8 @@ cdd_c_error_t doc_trim_segment(char *s, char **out_val) {
  * @brief Parses a boolean literal (`"1"`, `"0"`, `"true"`, `"false"`, `"yes"`,
  * `"no"`).
  *
+ * @param[in] s Input boolean literal string.
+ * @param[out] out Output pointer receiving 1 for true or 0 for false.
  * @return CDD_C_SUCCESS on success, or error code if unrecognized.
  */
 cdd_c_error_t doc_parse_bool_text(const char *s, int *out) {
@@ -238,6 +254,9 @@ cdd_c_error_t doc_parse_bool_text(const char *s, int *out) {
 /**
  * @brief Parses a parameter serialization style name into `enum DocParamStyle`.
  *
+ * @param[in] s Style name string.
+ * @param[out] out Output pointer receiving the parsed `DocParamStyle` enum
+ * value.
  * @return CDD_C_SUCCESS on success, or error code if unrecognized.
  */
 cdd_c_error_t doc_parse_style_text(const char *s, enum DocParamStyle *out) {
@@ -318,6 +337,11 @@ cdd_c_error_t doc_parse_style_text(const char *s, enum DocParamStyle *out) {
  * @brief Parses an optional boolean attribute token (`key`, `key:true`,
  * `key=false`).
  *
+ * @param[in,out] attr Mutable attribute token string.
+ * @param[in] key Attribute key name to match.
+ * @param[out] out_set Output pointer receiving 1 if the attribute was matched.
+ * @param[out] out_val Output pointer receiving the parsed boolean value (1 or
+ * 0).
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_optional_bool_attr(char *attr, const char *key,
@@ -362,6 +386,9 @@ cdd_c_error_t doc_parse_optional_bool_attr(char *attr, const char *key,
 /**
  * @brief Parses an optional `example:<val>` or `example=<val>` attribute token.
  *
+ * @param[in,out] attr Mutable attribute token string.
+ * @param[in,out] out_example Output pointer receiving the newly allocated
+ * example string.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_optional_example_attr(char *attr, char **out_example) {
@@ -394,6 +421,11 @@ cdd_c_error_t doc_parse_optional_example_attr(char *attr, char **out_example) {
 /**
  * @brief Locates a `key:` or `key=` token within a string `s`.
  *
+ * @param[in] s Input string to search.
+ * @param[in] key Key identifier to find.
+ * @param[out] key_len Optional output pointer receiving `strlen(key) + 1`.
+ * @param[out] out_val Output pointer receiving the matched token pointer (or
+ * NULL).
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_find_key_token(char *s, const char *key, size_t *key_len,
@@ -434,6 +466,9 @@ cdd_c_error_t doc_find_key_token(char *s, const char *key, size_t *key_len,
  * @brief Splits a comma-separated list of OAuth scopes into an array of
  * strings.
  *
+ * @param[in] input Comma-separated scope list string.
+ * @param[out] out_scopes Output pointer receiving the allocated string array.
+ * @param[out] out_count Output pointer receiving the number of scope strings.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_split_scopes(const char *input, char ***out_scopes,
@@ -520,6 +555,10 @@ cdd_c_error_t doc_split_scopes(const char *input, char ***out_scopes,
  * @brief Splits a comma- or pipe-separated list of enum values into an array of
  * strings.
  *
+ * @param[in] input Comma- or pipe-separated enum value list string.
+ * @param[out] out_vals Output pointer receiving the allocated string array.
+ * @param[out] out_count Output pointer receiving the number of enum value
+ * strings.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_split_enum_values(const char *input, char ***out_vals,

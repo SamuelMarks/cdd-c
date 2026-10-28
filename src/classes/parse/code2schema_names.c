@@ -11,6 +11,9 @@
 /**
  * @brief Sanitizes a string to be used as a valid C identifier.
  *
+ * @param[in] in Input string to sanitize.
+ * @param[out] _out_val Output pointer receiving the newly allocated C
+ * identifier string.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t sanitize_identifier(const char *in, char **_out_val) {
@@ -51,6 +54,11 @@ cdd_c_error_t sanitize_identifier(const char *in, char **_out_val) {
 /**
  * @brief Generates a unique variant name for a union type.
  *
+ * @param[in] dest Existing StructFields container to check for collisions.
+ * @param[in] base Base candidate variant name.
+ * @param[in] index Variant index for numeric suffix disambiguation.
+ * @param[out] _out_val Output pointer receiving the newly allocated unique
+ * variant name.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
@@ -106,6 +114,11 @@ cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
 /**
  * @brief Generates a schema name for an inline anonymous struct/union.
  *
+ * @param[in] schema_name Enclosing parent schema name.
+ * @param[in] variant_name Union variant or field name.
+ * @param[in] suffix Optional additional suffix (e.g., `"Item"`).
+ * @param[out] _out_val Output pointer receiving the newly allocated schema
+ * name.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t make_inline_schema_name(const char *schema_name,
@@ -134,6 +147,12 @@ cdd_c_error_t make_inline_schema_name(const char *schema_name,
 /**
  * @brief Registers an inline schema within the root OpenAPI components.
  *
+ * @param[in,out] root Mutable root `components.schemas` JSON_Object.
+ * @param[in] schema_name Enclosing parent schema name.
+ * @param[in] variant_name Union variant or field name.
+ * @param[in] suffix Optional additional suffix.
+ * @param[in] schema_val JSON_Value of the inline schema to register.
+ * @param[out] out_name Output pointer receiving the registered schema name.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t
@@ -178,6 +197,11 @@ register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
  * @brief Retrieves the discriminator mapping value for a given schema
  * variant.
  *
+ * @param[in] disc_obj Optional `discriminator` JSON_Object.
+ * @param[in] schema_name Schema or variant name.
+ * @param[in] ref Optional `$ref` string for the variant.
+ * @param[out] _out_val Output pointer receiving the newly allocated
+ * discriminator value string.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t discriminator_value_for_variant(const JSON_Object *disc_obj,

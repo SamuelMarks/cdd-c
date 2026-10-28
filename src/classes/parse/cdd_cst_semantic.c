@@ -141,6 +141,8 @@ static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
 /**
  * @brief Builds semantic scope and symbol information for an entire CST tree.
  *
+ * @param[in] tree CST tree to analyze.
+ * @param[out] out_env Output pointer receiving the populated scope environment.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_build_semantic_info(cdd_cst_tree_t *tree,

@@ -10,6 +10,10 @@
 
 /**
  * @brief Creates a deep copy of example fields.
+ *
+ * @param[out] dst Destination OpenAPI_Example structure.
+ * @param[in] src Source OpenAPI_Example structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t copy_example_fields(struct OpenAPI_Example *dst,
                                   const struct OpenAPI_Example *src) {
@@ -67,6 +71,11 @@ cdd_c_error_t copy_example_fields(struct OpenAPI_Example *dst,
 
 /**
  * @brief Retrieves the component example.
+ *
+ * @param[in] spec The OpenAPI specification.
+ * @param[in] ref The component reference string.
+ * @param[out] _out_val Output pointer to the found example.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t find_component_example(const struct OpenAPI_Spec *spec,
                                      const char *ref,
@@ -208,6 +217,13 @@ static cdd_c_error_t parse_example_object_inner(const JSON_Object *ex_obj,
 
 /**
  * @brief Parses example object from the given input.
+ *
+ * @param[in] ex_obj The source JSON example object.
+ * @param[in] name The example key name.
+ * @param[out] out Output OpenAPI_Example structure.
+ * @param[in] spec The parent OpenAPI specification.
+ * @param[in] resolve_refs Non-zero to resolve component references.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_example_object(const JSON_Object *ex_obj, const char *name,
                                    struct OpenAPI_Example *out,
@@ -222,6 +238,13 @@ cdd_c_error_t parse_example_object(const JSON_Object *ex_obj, const char *name,
 
 /**
  * @brief Parses examples object from the given input.
+ *
+ * @param[in] examples The source JSON examples map object.
+ * @param[out] out Output array of OpenAPI_Example structures.
+ * @param[out] out_count Output number of parsed examples.
+ * @param[in] spec The parent OpenAPI specification.
+ * @param[in] resolve_refs Non-zero to resolve component references.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_examples_object(const JSON_Object *examples,
                                     struct OpenAPI_Example **out,
@@ -272,6 +295,15 @@ cdd_c_error_t parse_examples_object(const JSON_Object *examples,
 
 /**
  * @brief Parses media examples from the given input.
+ *
+ * @param[in] media_obj The source media type JSON object.
+ * @param[out] example Output single example value.
+ * @param[out] example_set Output flag set to 1 if single example is present.
+ * @param[out] examples Output array of named examples.
+ * @param[out] n_examples Output count of named examples.
+ * @param[in] spec The parent OpenAPI specification.
+ * @param[in] resolve_refs Non-zero to resolve component references.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t
 parse_media_examples(const JSON_Object *media_obj, struct OpenAPI_Any *example,
@@ -299,6 +331,11 @@ parse_media_examples(const JSON_Object *media_obj, struct OpenAPI_Any *example,
 
 /**
  * @brief Parses oauth scopes from the given input.
+ *
+ * @param[in] scopes_obj The source scopes JSON object.
+ * @param[out] out Output array of OpenAPI_OAuthScope structures.
+ * @param[out] out_count Output count of scopes.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_oauth_scopes(const JSON_Object *scopes_obj,
                                  struct OpenAPI_OAuthScope **out,
@@ -453,6 +490,10 @@ parse_oauth_flows_inner(const JSON_Object *flows_obj,
 
 /**
  * @brief Parses oauth flows from the given input.
+ *
+ * @param[in] flows_obj The source OAuth flows JSON object.
+ * @param[in,out] out The target OpenAPI_SecurityScheme structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_oauth_flows(const JSON_Object *flows_obj,
                                 struct OpenAPI_SecurityScheme *out) {

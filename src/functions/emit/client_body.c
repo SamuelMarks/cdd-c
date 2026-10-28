@@ -12,6 +12,9 @@
 /**
  * @brief Checks if status range code.
  *
+ * @param[in] code Status code string to inspect.
+ * @param[out] out_is_range Output pointer receiving 1 if wildcard range, 0
+ * otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t client_body_is_status_range_code(const char *code,
@@ -31,6 +34,9 @@ cdd_c_error_t client_body_is_status_range_code(const char *code,
  * @brief Checks whether an HTTP status code matches a wildcard range such as
  * 2XX.
  *
+ * @param[in] code Status range code string.
+ * @param[out] out_prefix Output pointer receiving the hundred-class integer
+ * prefix (1-5).
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t client_body_status_range_prefix(const char *code,
@@ -51,6 +57,9 @@ cdd_c_error_t client_body_status_range_prefix(const char *code,
 /**
  * @brief Checks if status code literal.
  *
+ * @param[in] code Status code string to inspect.
+ * @param[out] out_is_lit Output pointer receiving 1 if exact 3-digit literal, 0
+ * otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t client_body_is_status_code_literal(const char *code,
@@ -69,6 +78,11 @@ cdd_c_error_t client_body_is_status_code_literal(const char *code,
 /**
  * @brief Emits generated C code for codegen client write body.
  *
+ * @param[in,out] fp Output file stream.
+ * @param[in] op OpenAPI operation descriptor.
+ * @param[in] spec Full OpenAPI specification for schema resolution.
+ * @param[in] path_template URL path template string.
+ * @param[in] base_url_expr C expression evaluating to the base URL string.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t codegen_client_write_body(FILE *fp,

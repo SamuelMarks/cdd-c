@@ -16,6 +16,7 @@
 /**
  * @brief Initialize a query projection structure.
  *
+ * @param[out] proj Pointer to the query projection structure to initialize.
  * @return CDD_C_SUCCESS on success, error enum on failure.
  */
 C_CDD_EXPORT cdd_c_error_t
@@ -31,6 +32,8 @@ cdd_c_query_projection_init(cdd_c_query_projection_t *proj) {
 /**
  * @brief Add a field to the query projection.
  *
+ * @param[in,out] proj Target query projection structure.
+ * @param[in] field Field descriptor to copy and append.
  * @return CDD_C_SUCCESS on success, error enum on failure.
  */
 C_CDD_EXPORT cdd_c_error_t
@@ -72,6 +75,7 @@ cdd_c_query_projection_add_field(cdd_c_query_projection_t *proj,
 /**
  * @brief Free resources associated with a query projection.
  *
+ * @param[in,out] proj Pointer to the query projection structure to free.
  * @return CDD_C_SUCCESS on success, error enum on failure.
  */
 C_CDD_EXPORT cdd_c_error_t

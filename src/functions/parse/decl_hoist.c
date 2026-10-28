@@ -25,6 +25,7 @@ C_CDD_EXPORT int g_cdd_fail_alloc_decl_hoist = 0;
 /**
  * @brief Initializes a hoist site list.
  *
+ * @param[out] list Pointer to the HoistSiteList structure to initialize.
  * @return `CDD_C_SUCCESS` on success.
  */
 cdd_c_error_t hoist_site_list_init(struct HoistSiteList *list) {
@@ -38,6 +39,8 @@ cdd_c_error_t hoist_site_list_init(struct HoistSiteList *list) {
 
 /**
  * @brief Frees a hoist site list.
+ *
+ * @param[in,out] list Pointer to the HoistSiteList structure to free.
  */
 void hoist_site_list_free(struct HoistSiteList *list) {
   if (!list)
@@ -87,6 +90,9 @@ static cdd_c_error_t is_basic_type_keyword(enum TokenKind k,
  * Mixed declarations are variable declarations that occur after non-declaration
  * statements within the same block (not strictly conforming to C89/C90).
  *
+ * @param[in] tokens Lexical token list to scan.
+ * @param[in,out] list Target HoistSiteList container receiving discovered mixed
+ * declaration sites.
  * @return 0 on success.
  */
 cdd_c_error_t scan_for_mixed_declarations(const struct TokenList *tokens,

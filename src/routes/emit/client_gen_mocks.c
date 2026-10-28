@@ -17,6 +17,10 @@
 
 /**
  * @brief Emit test_sdk.c mocks for testing client.
+ *
+ * @param[in] dir_name Output directory path.
+ * @param[in] spec Parsed OpenAPI specification.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t client_gen_emit_mocks(const char *dir_name,
                                     const struct OpenAPI_Spec *spec) {

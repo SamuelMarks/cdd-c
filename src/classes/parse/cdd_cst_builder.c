@@ -23,6 +23,9 @@
 /**
  * @brief Initializes a CST builder bound to a tree and initial target node.
  *
+ * @param[out] builder Pointer to the CST builder to initialize.
+ * @param[in,out] tree Owning CST tree.
+ * @param[in,out] target_node Initial target CST node for insertions.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t cdd_cst_builder_init(cdd_cst_builder_t *builder,
@@ -42,6 +45,7 @@ cdd_c_error_t cdd_cst_builder_init(cdd_cst_builder_t *builder,
 /**
  * @brief Clears and releases resources associated with a CST builder.
  *
+ * @param[in,out] builder Pointer to the CST builder to reset.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t cdd_cst_builder_free(cdd_cst_builder_t *builder) {
@@ -56,6 +60,9 @@ cdd_c_error_t cdd_cst_builder_free(cdd_cst_builder_t *builder) {
 /**
  * @brief Checks if the CST builder has encountered an error.
  *
+ * @param[in] builder CST builder to query.
+ * @param[out] out_has_error Output pointer receiving 1 if in error state, 0
+ * otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t cdd_cst_builder_has_error(const cdd_cst_builder_t *builder,
@@ -73,6 +80,8 @@ cdd_c_error_t cdd_cst_builder_has_error(const cdd_cst_builder_t *builder,
 /**
  * @brief Sets the current insertion point node for the CST builder.
  *
+ * @param[in,out] builder Target CST builder.
+ * @param[in,out] node New target CST node for subsequent insertions.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_builder_set_insert_point(cdd_cst_builder_t *builder,
@@ -91,6 +100,9 @@ cdd_c_error_t cdd_cst_builder_set_insert_point(cdd_cst_builder_t *builder,
  * @brief Appends a synthetic lexical token to the builder's current target
  * node.
  *
+ * @param[in,out] builder Target CST builder.
+ * @param[in] kind Lexical token kind.
+ * @param[in] text Token text string.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_token(cdd_cst_builder_t *builder,
@@ -121,6 +133,7 @@ cdd_c_error_t cdd_cst_bld_token(cdd_cst_builder_t *builder,
 /**
  * @brief Appends a single space token to the builder's target node.
  *
+ * @param[in,out] builder Target CST builder.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_space(cdd_cst_builder_t *builder) {
@@ -135,6 +148,7 @@ cdd_c_error_t cdd_cst_bld_space(cdd_cst_builder_t *builder) {
 /**
  * @brief Appends a newline token to the builder's target node.
  *
+ * @param[in,out] builder Target CST builder.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_newline(cdd_cst_builder_t *builder) {
@@ -149,6 +163,8 @@ cdd_c_error_t cdd_cst_bld_newline(cdd_cst_builder_t *builder) {
 /**
  * @brief Appends indentation spaces for `depth_level` (2 spaces per level).
  *
+ * @param[in,out] builder Target CST builder.
+ * @param[in] depth_level Nesting depth level.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_indent(cdd_cst_builder_t *builder, int depth_level) {
@@ -170,6 +186,8 @@ cdd_c_error_t cdd_cst_bld_indent(cdd_cst_builder_t *builder, int depth_level) {
 /**
  * @brief Appends an identifier token to the builder's target node.
  *
+ * @param[in,out] builder Target CST builder.
+ * @param[in] text Identifier string.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_ident(cdd_cst_builder_t *builder, const char *text) {
@@ -184,6 +202,8 @@ cdd_c_error_t cdd_cst_bld_ident(cdd_cst_builder_t *builder, const char *text) {
 /**
  * @brief Appends a string literal token to the builder's target node.
  *
+ * @param[in,out] builder Target CST builder.
+ * @param[in] text String literal text.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_string(cdd_cst_builder_t *builder, const char *text) {
@@ -199,6 +219,8 @@ cdd_c_error_t cdd_cst_bld_string(cdd_cst_builder_t *builder, const char *text) {
  * @brief Formats and appends an integer literal token to the builder's target
  * node.
  *
+ * @param[in,out] builder Target CST builder.
+ * @param[in] value Integer value to format and append.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_int(cdd_cst_builder_t *builder, int value) {
@@ -233,6 +255,8 @@ cdd_c_error_t cdd_cst_bld_int(cdd_cst_builder_t *builder, int value) {
  * @brief Classifies and appends a punctuation token to the builder's target
  * node.
  *
+ * @param[in,out] builder Target CST builder.
+ * @param[in] text Punctuation token string.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_punct(cdd_cst_builder_t *builder, const char *text) {
@@ -285,6 +309,10 @@ cdd_c_error_t cdd_cst_bld_punct(cdd_cst_builder_t *builder, const char *text) {
  * @brief Appends an `#include` preprocessor directive to the builder's target
  * node.
  *
+ * @param[in,out] builder Target CST builder.
+ * @param[in] path Header path to include.
+ * @param[in] is_system Non-zero for `<...>` system include, 0 for `"..."` local
+ * include.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_include(cdd_cst_builder_t *builder, const char *path,
@@ -343,6 +371,8 @@ cdd_c_error_t cdd_cst_bld_include(cdd_cst_builder_t *builder, const char *path,
 /**
  * @brief Appends an `#ifndef <macro_name>` preprocessor directive.
  *
+ * @param[in,out] builder Target CST builder.
+ * @param[in] macro_name Macro identifier name.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_ifndef(cdd_cst_builder_t *builder,
@@ -373,6 +403,8 @@ cdd_c_error_t cdd_cst_bld_ifndef(cdd_cst_builder_t *builder,
 /**
  * @brief Appends an `#ifdef <macro_name>` preprocessor directive.
  *
+ * @param[in,out] builder Target CST builder.
+ * @param[in] macro_name Macro identifier name.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_ifdef(cdd_cst_builder_t *builder,
@@ -390,6 +422,7 @@ cdd_c_error_t cdd_cst_bld_ifdef(cdd_cst_builder_t *builder,
 /**
  * @brief Appends an `#else` preprocessor directive.
  *
+ * @param[in,out] builder Target CST builder.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_else(cdd_cst_builder_t *builder) {
@@ -411,6 +444,7 @@ cdd_c_error_t cdd_cst_bld_else(cdd_cst_builder_t *builder) {
 /**
  * @brief Appends an `#endif` preprocessor directive.
  *
+ * @param[in,out] builder Target CST builder.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_endif(cdd_cst_builder_t *builder) {
@@ -432,6 +466,7 @@ cdd_c_error_t cdd_cst_bld_endif(cdd_cst_builder_t *builder) {
 /**
  * @brief Appends an `#ifdef __cplusplus extern "C" { #endif` opening guard.
  *
+ * @param[in,out] builder Target CST builder.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_extern_c_open(cdd_cst_builder_t *builder) {
@@ -442,6 +477,7 @@ cdd_c_error_t cdd_cst_bld_extern_c_open(cdd_cst_builder_t *builder) {
 /**
  * @brief Appends an `#ifdef __cplusplus } #endif` closing guard.
  *
+ * @param[in,out] builder Target CST builder.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_extern_c_close(cdd_cst_builder_t *builder) {
@@ -452,6 +488,7 @@ cdd_c_error_t cdd_cst_bld_extern_c_close(cdd_cst_builder_t *builder) {
  * @brief Appends a `{` token, a newline, and increments
  * `builder->indent_level`.
  *
+ * @param[in,out] builder Target CST builder.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_block_open(cdd_cst_builder_t *builder) {
@@ -475,6 +512,7 @@ cdd_c_error_t cdd_cst_bld_block_open(cdd_cst_builder_t *builder) {
  * @brief Decrements `builder->indent_level` and appends an indented `}` and
  * newline.
  *
+ * @param[in,out] builder Target CST builder.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_block_close(cdd_cst_builder_t *builder) {
@@ -503,6 +541,10 @@ cdd_c_error_t cdd_cst_bld_block_close(cdd_cst_builder_t *builder) {
  * @brief Duplicates a string of explicit length and registers it in the CST
  * tree's string pool.
  *
+ * @param[in,out] tree Target CST tree owning the string pool.
+ * @param[in] str Source string buffer.
+ * @param[in] len Number of bytes to copy from `str`.
+ * @param[out] out_str Output pointer receiving the pooled string.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_pool_string_len(cdd_cst_tree_t *tree, const char *str,
@@ -540,6 +582,9 @@ cdd_c_error_t cdd_cst_pool_string_len(cdd_cst_tree_t *tree, const char *str,
 /**
  * @brief Duplicates a string and registers it in the CST tree's string pool.
  *
+ * @param[in,out] tree Target CST tree owning the string pool.
+ * @param[in] str Null-terminated string to pool.
+ * @param[out] out_str Output pointer receiving the pooled string.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_pool_string(cdd_cst_tree_t *tree, const char *str,
@@ -555,6 +600,8 @@ cdd_c_error_t cdd_cst_pool_string(cdd_cst_tree_t *tree, const char *str,
  * @brief Lexes a C snippet and appends its tokens and trivia to the builder's
  * current target node.
  *
+ * @param[in,out] builder Target CST builder.
+ * @param[in] snippet Null-terminated C source snippet to lex and append.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
@@ -631,6 +678,8 @@ cdd_c_error_t cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
  * @brief Quasi-quotation formatter that parses a format string and appends CST
  * fragments (`%s`, `%d`, `%n`, `%%`) to `builder`.
  *
+ * @param[in,out] builder Target CST builder.
+ * @param[in] format_string Quasi-quotation format string.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_quote(cdd_cst_builder_t *builder,
@@ -726,6 +775,11 @@ cdd_c_error_t cdd_cst_quote(cdd_cst_builder_t *builder,
 /**
  * @brief Splices an array of CST nodes into `parent` starting at `index`.
  *
+ * @param[in,out] builder Target CST builder.
+ * @param[in,out] parent Parent CST node to splice into.
+ * @param[in] index Child index at which to insert `new_nodes`.
+ * @param[in] new_nodes Array of CST node pointers to insert.
+ * @param[in] count Number of nodes in `new_nodes`.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_splice_nodes(cdd_cst_builder_t *builder,

@@ -17,6 +17,9 @@
 /**
  * @brief Allocate a new CST node.
  *
+ * @param[in] kind CST node kind to allocate.
+ * @param[in] parent Optional parent CST node.
+ * @param[out] out_node Output pointer receiving the allocated CST node.
  * @return CDD_C_SUCCESS or error code.
  */
 cdd_c_error_t alloc_node(enum cdd_cst_node_kind_t kind, cdd_cst_node_t *parent,
@@ -35,6 +38,8 @@ cdd_c_error_t alloc_node(enum cdd_cst_node_kind_t kind, cdd_cst_node_t *parent,
 /**
  * @brief Append a child token to a node.
  *
+ * @param[in,out] node Parent CST node.
+ * @param[in] tok Lexical token to append.
  * @return CDD_C_SUCCESS or error code.
  */
 cdd_c_error_t append_child_token(cdd_cst_node_t *node, cdd_token_t *tok) {
@@ -56,6 +61,8 @@ cdd_c_error_t append_child_token(cdd_cst_node_t *node, cdd_token_t *tok) {
 /**
  * @brief Consume the current token from parser state and append it to `node`.
  *
+ * @param[in,out] s Active parser state.
+ * @param[in,out] node Target CST node receiving the consumed token.
  * @return CDD_C_SUCCESS or error code.
  */
 cdd_c_error_t consume_token(parser_state_t *s, cdd_cst_node_t *node) {
@@ -66,6 +73,8 @@ cdd_c_error_t consume_token(parser_state_t *s, cdd_cst_node_t *node) {
 /**
  * @brief Append a child node to a node.
  *
+ * @param[in,out] node Parent CST node.
+ * @param[in,out] child Child CST node to append.
  * @return CDD_C_SUCCESS or error code.
  */
 cdd_c_error_t append_child_node(cdd_cst_node_t *node, cdd_cst_node_t *child) {
@@ -86,6 +95,8 @@ cdd_c_error_t append_child_node(cdd_cst_node_t *node, cdd_cst_node_t *child) {
 
 /**
  * @brief Free a node and all of its descendants recursively.
+ *
+ * @param[in,out] node Root CST node to free.
  */
 void free_node(cdd_cst_node_t *node) {
   size_t i;
@@ -104,6 +115,8 @@ void free_node(cdd_cst_node_t *node) {
 /**
  * @brief Peek next token from parser state without advancing.
  *
+ * @param[in] s Active parser state.
+ * @param[out] out_tok Output pointer receiving the current token.
  * @return CDD_C_SUCCESS or error code.
  */
 C_CDD_EXPORT cdd_c_error_t peek(parser_state_t *s, cdd_token_t **out_tok) {
@@ -120,6 +133,8 @@ C_CDD_EXPORT cdd_c_error_t peek(parser_state_t *s, cdd_token_t **out_tok) {
 /**
  * @brief Advance parser state and return current token.
  *
+ * @param[in,out] s Active parser state.
+ * @param[out] out_tok Output pointer receiving the consumed token.
  * @return CDD_C_SUCCESS or error code.
  */
 C_CDD_EXPORT cdd_c_error_t advance(parser_state_t *s, cdd_token_t **out_tok) {
@@ -194,6 +209,9 @@ static cdd_c_error_t parse_block_internal(parser_state_t *s,
 /**
  * @brief Parse a block delimited by braces.
  *
+ * @param[in,out] s Active parser state.
+ * @param[in] parent Parent CST node.
+ * @param[out] out_node Output pointer receiving the parsed block node.
  * @return CDD_C_SUCCESS or error code.
  */
 cdd_c_error_t parse_block(parser_state_t *s, cdd_cst_node_t *parent,
@@ -211,6 +229,8 @@ cdd_c_error_t parse_block(parser_state_t *s, cdd_cst_node_t *parent,
  * @brief Finds the identifier token of the nearest enclosing class/struct
  * declaration.
  *
+ * @param[in] node Starting CST node to search upward from.
+ * @param[out] out_tok Output pointer receiving the class identifier token.
  * @return CDD_C_SUCCESS if found, CDD_C_ERROR_NOT_FOUND if not in a class, or
  * CDD_C_ERROR_INVALID_ARGUMENT if `out_tok` is `NULL`.
  */
@@ -574,6 +594,8 @@ static cdd_c_error_t parse_declaration_or_statement_internal(
  * @brief Parses a C/C++ source span into a full-fidelity Concrete Syntax Tree
  * (CST).
  *
+ * @param[in] source Input C/C++ source span to parse.
+ * @param[out] out_tree Output pointer receiving the newly allocated CST tree.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
@@ -644,6 +666,8 @@ cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
 /**
  * @brief Frees a CST tree, its root node hierarchy, base tokens, synthesized
  * tokens, and string pool.
+ *
+ * @param[in,out] tree Pointer to the CST tree to free.
  */
 void cdd_cst_tree_free(cdd_cst_tree_t *tree) {
   size_t i;

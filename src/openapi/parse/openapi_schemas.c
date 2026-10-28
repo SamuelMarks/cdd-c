@@ -9,7 +9,13 @@
 /* clang-format on */
 
 /**
- * @brief Parses schema type from the given input.
+ * @brief Parses a schema `type` field (string or union array) and detects
+ * `null`.
+ *
+ * @param[in] schema JSON object representing the schema.
+ * @param[out] out_nullable Set to 1 if `"null"` or `nullable: true` is present.
+ * @param[out] _out_val Primary non-null type string (borrowed from JSON).
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 cdd_c_error_t parse_schema_type(const JSON_Object *schema, int *out_nullable,
                                 const char **_out_val) {
@@ -63,7 +69,12 @@ cdd_c_error_t parse_schema_type(const JSON_Object *schema, int *out_nullable,
 }
 
 /**
- * @brief Parses schema constraints from the given input.
+ * @brief Parses numeric, string, and array validation constraints from a schema
+ * object into a target structure.
+ *
+ * @param[in] schema JSON object representing the schema.
+ * @param[in,out] target Target pointers receiving parsed constraint values.
+ * @return CDD_C_SUCCESS on success, or error code on OOM.
  */
 cdd_c_error_t parse_schema_constraints(const JSON_Object *schema,
                                        struct SchemaConstraintTarget *target) {
@@ -163,7 +174,12 @@ cdd_c_error_t parse_schema_constraints(const JSON_Object *schema,
 }
 
 /**
- * @brief Parses string enum array from the given input.
+ * @brief Parses a JSON array of strings (e.g. `enum` or `type` array).
+ *
+ * @param[in] arr JSON array of strings.
+ * @param[out] out Output array of allocated strings.
+ * @param[out] out_count Output number of strings.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t parse_string_enum_array(const JSON_Array *arr, char ***out,
                                       size_t *out_count) {
@@ -208,7 +224,13 @@ cdd_c_error_t parse_string_enum_array(const JSON_Array *arr, char ***out,
 }
 
 /**
- * @brief Creates a deep copy of string array.
+ * @brief Deep-copies an array of strings.
+ *
+ * @param[out] dst Output allocated string array.
+ * @param[out] dst_count Output number of strings.
+ * @param[in] src Source string array.
+ * @param[in] src_count Number of strings in source.
+ * @return CDD_C_SUCCESS on success, or error code on OOM.
  */
 cdd_c_error_t copy_string_array(char ***dst, size_t *dst_count, char **src,
                                 size_t src_count) {
@@ -241,8 +263,11 @@ cdd_c_error_t copy_string_array(char ***dst, size_t *dst_count, char **src,
 }
 
 /**
- * @brief Checks whether a schema is a pure string enumeration without struct
- * fields.
+ * @brief Checks if a JSON schema object represents a pure string `enum`.
+ *
+ * @param[in] schema_obj JSON object representing the schema.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if string enum only, CDD_C_SUCCESS (0)
+ * otherwise.
  */
 cdd_c_error_t schema_is_string_enum_only(const JSON_Object *schema_obj) {
   const JSON_Array *enum_arr;
@@ -273,7 +298,13 @@ cdd_c_error_t schema_is_string_enum_only(const JSON_Object *schema_obj) {
 }
 
 /**
- * @brief Determines whether a schema should be emitted as a C struct.
+ * @brief Checks if a JSON schema value/object is compatible with C struct
+ * generation.
+ *
+ * @param[in] schema_val JSON value of the schema.
+ * @param[in] schema_obj JSON object of the schema.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if struct-compatible, CDD_C_SUCCESS
+ * (0) otherwise.
  */
 cdd_c_error_t schema_is_struct_compatible(const JSON_Value *schema_val,
                                           const JSON_Object *schema_obj) {
@@ -297,7 +328,12 @@ cdd_c_error_t schema_is_struct_compatible(const JSON_Value *schema_val,
 }
 
 /**
- * @brief Checks whether a schema uses allOf, anyOf, or oneOf composition.
+ * @brief Checks if a JSON schema object uses `allOf`, `anyOf`, or `oneOf`
+ * composition.
+ *
+ * @param[in] schema_obj JSON object representing the schema.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if composition is present,
+ * CDD_C_SUCCESS (0) otherwise.
  */
 cdd_c_error_t schema_has_composition(const JSON_Object *schema_obj) {
   if (!schema_obj)
@@ -308,7 +344,13 @@ cdd_c_error_t schema_has_composition(const JSON_Object *schema_obj) {
 }
 
 /**
- * @brief Parses schema array ref from the given input.
+ * @brief Parses a JSON array of schemas into an array of OpenAPI_SchemaRef.
+ *
+ * @param[in] arr JSON array of schema objects.
+ * @param[out] out Output array of parsed schema references.
+ * @param[out] out_count Output number of parsed schema references.
+ * @param[in] spec Parent OpenAPI specification context.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t parse_schema_array_ref(const JSON_Array *arr,
                                      struct OpenAPI_SchemaRef **out,
@@ -348,7 +390,12 @@ cdd_c_error_t parse_schema_array_ref(const JSON_Array *arr,
 }
 
 /**
- * @brief Parses schema ref ptr from the given input.
+ * @brief Allocates and parses a single heap-allocated OpenAPI_SchemaRef.
+ *
+ * @param[in] obj JSON object representing the schema.
+ * @param[out] out Output pointer to the newly allocated OpenAPI_SchemaRef.
+ * @param[in] spec Parent OpenAPI specification context.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t parse_schema_ref_ptr(const JSON_Object *obj,
                                    struct OpenAPI_SchemaRef **out,

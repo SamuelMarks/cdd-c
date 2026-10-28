@@ -25,6 +25,9 @@
 /**
  * @brief Parses an `@param` directive line into `out->params`.
  *
+ * @param[in] line Start of directive argument text.
+ * @param[in] end End of directive line.
+ * @param[in,out] out Target DocMetadata structure.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_param_line(const char *line, const char *end,
@@ -180,6 +183,9 @@ cdd_c_error_t doc_parse_param_line(const char *line, const char *end,
 /**
  * @brief Parses an `@return` or `@returns` directive line into `out->returns`.
  *
+ * @param[in] line Start of directive argument text.
+ * @param[in] end End of directive line.
+ * @param[in,out] out Target DocMetadata structure.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_return_line(const char *line, const char *end,
@@ -289,6 +295,9 @@ cdd_c_error_t doc_parse_return_line(const char *line, const char *end,
  * @brief Parses an `@responseHeader` directive line into
  * `out->response_headers`.
  *
+ * @param[in] line Start of directive argument text.
+ * @param[in] end End of directive line.
+ * @param[in,out] out Target DocMetadata structure.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_response_header_line(const char *line, const char *end,
@@ -444,6 +453,9 @@ cdd_c_error_t doc_parse_response_header_line(const char *line, const char *end,
 /**
  * @brief Parses an `@link` directive line into `out->links`.
  *
+ * @param[in] line Start of directive argument text.
+ * @param[in] end End of directive line.
+ * @param[in,out] out Target DocMetadata structure.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_link_line(const char *line, const char *end,
@@ -677,6 +689,9 @@ cdd_c_error_t doc_parse_link_line(const char *line, const char *end,
 /**
  * @brief Parses an `@requestBody` directive line into `out->request_bodies`.
  *
+ * @param[in] line Start of directive argument text.
+ * @param[in] end End of directive line.
+ * @param[in,out] out Target DocMetadata structure.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t doc_parse_request_body_line(const char *line, const char *end,

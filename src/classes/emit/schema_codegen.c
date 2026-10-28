@@ -414,6 +414,8 @@ C_CDD_EXPORT cdd_c_error_t generate_source(const char *prefix,
  * @brief CLI entry point for generating C structs and JSON codecs from a JSON
  * Schema.
  *
+ * @param[in] argc Argument count.
+ * @param[in] argv Argument vector.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t schema2code_main(int argc, char **argv) {

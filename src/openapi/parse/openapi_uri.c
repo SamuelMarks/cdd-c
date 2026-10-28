@@ -9,7 +9,11 @@
 /* clang-format on */
 
 /**
- * @brief Unescapes ~1 and ~0 sequences in a JSON Pointer token per RFC 6901.
+ * @brief Unescapes a JSON Pointer token (`~1` -> `/`, `~0` -> `~`).
+ *
+ * @param[in] in Escaped JSON Pointer token string.
+ * @param[out] _out_val Newly allocated unescaped string.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t json_pointer_unescape(const char *in, char **_out_val) {
   size_t len, i, j;
@@ -47,7 +51,13 @@ cdd_c_error_t json_pointer_unescape(const char *in, char **_out_val) {
 }
 
 /**
- * @brief Checks whether a URI string starts with an RFC 3986 scheme prefix.
+ * @brief Checks whether a URI string starts with an RFC 3986 scheme prefix
+ * within `len` bytes.
+ *
+ * @param[in] uri URI string to inspect.
+ * @param[in] len Number of characters to inspect.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if scheme is present, CDD_C_SUCCESS
+ * (0) otherwise.
  */
 cdd_c_error_t uri_has_scheme_prefix(const char *uri, size_t len) {
   size_t i;
@@ -64,7 +74,11 @@ cdd_c_error_t uri_has_scheme_prefix(const char *uri, size_t len) {
 }
 
 /**
- * @brief Computes the length of a URI before any fragment (#) component.
+ * @brief Computes the length of the base URI before any `#` fragment.
+ *
+ * @param[in] uri Input URI string.
+ * @param[out] _out_val Length of the base URI portion.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t uri_base_len(const char *uri, size_t *_out_val) {
   if (!uri) {
@@ -78,7 +92,12 @@ cdd_c_error_t uri_base_len(const char *uri, size_t *_out_val) {
 }
 
 /**
- * @brief Computes the length of the scheme prefix in a URI string.
+ * @brief Computes the length of the scheme prefix in a URI.
+ *
+ * @param[in] uri Input URI string.
+ * @param[in] len Length of URI to inspect.
+ * @param[out] _out_val Length of scheme prefix, or 0 if none.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t uri_scheme_len(const char *uri, size_t len, size_t *_out_val) {
   size_t i;
@@ -101,7 +120,12 @@ cdd_c_error_t uri_scheme_len(const char *uri, size_t len, size_t *_out_val) {
 }
 
 /**
- * @brief Allocates a null-terminated copy of a substring of given length.
+ * @brief Duplicates a substring of length `len`.
+ *
+ * @param[in] src Source string.
+ * @param[in] len Number of bytes to copy.
+ * @param[out] _out_val Newly allocated null-terminated string.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t dup_substr(const char *src, size_t len, char **_out_val) {
   char *out;
@@ -123,7 +147,11 @@ cdd_c_error_t dup_substr(const char *src, size_t len, char **_out_val) {
 }
 
 /**
- * @brief Normalizes . and .. segments in a URI path per RFC 3986.
+ * @brief Normalizes dot-segments (`.` and `..`) in a URI path.
+ *
+ * @param[in] path Input URI path string.
+ * @param[out] _out_val Newly allocated normalized path string.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t normalize_path(const char *path, char **_out_val) {
   size_t i = 0;
@@ -238,6 +266,11 @@ cleanup:
 
 /**
  * @brief Resolves a relative URI reference against a base URI per RFC 3986.
+ *
+ * @param[in] base_uri Base URI string.
+ * @param[in] ref Relative or absolute URI reference.
+ * @param[out] _out_val Newly allocated resolved URI string.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t resolve_uri_reference(const char *base_uri, const char *ref,
                                     char **_out_val) {
@@ -368,8 +401,14 @@ cdd_c_error_t resolve_uri_reference(const char *base_uri, const char *ref,
 }
 
 /**
- * @brief Computes the effective retrieval URI for a child OpenAPI/Schema
- * document.
+ * @brief Computes the canonical document base URI from `$self` or retrieval
+ * URI.
+ *
+ * @param[in] self_uri Optional `$self` URI declared in the document.
+ * @param[in] retrieval_uri Optional retrieval URI where the document was
+ * loaded.
+ * @param[out] _out_val Newly allocated canonical document URI.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t compute_document_uri(const char *self_uri,
                                    const char *retrieval_uri, char **_out_val) {
@@ -411,8 +450,11 @@ cdd_c_error_t compute_document_uri(const char *self_uri,
 }
 
 /**
- * @brief Checks whether a JSON root object contains top-level OpenAPI document
+ * @brief Checks if a root JSON object contains top-level OpenAPI document
  * fields.
+ *
+ * @param[in] root_obj Root JSON object.
+ * @return Non-zero if OpenAPI document fields are present, 0 otherwise.
  */
 cdd_c_error_t root_has_openapi_fields(const JSON_Object *root_obj) {
   if (!root_obj)
@@ -430,8 +472,13 @@ cdd_c_error_t root_has_openapi_fields(const JSON_Object *root_obj) {
 }
 
 /**
- * @brief Checks whether a JSON root object is a standalone JSON Schema
+ * @brief Checks if a root JSON value/object is a standalone JSON Schema
  * document.
+ *
+ * @param[in] root Root JSON value.
+ * @param[in] root_obj Root JSON object (if object).
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if standalone schema document,
+ * CDD_C_SUCCESS (0) otherwise.
  */
 cdd_c_error_t root_is_schema_document(const JSON_Value *root,
                                       const JSON_Object *root_obj) {
@@ -452,7 +499,12 @@ cdd_c_error_t root_is_schema_document(const JSON_Value *root,
 }
 
 /**
- * @brief Serializes and caches the raw JSON of a standalone schema document.
+ * @brief Stores the serialized root JSON of a standalone schema document in
+ * `spec`.
+ *
+ * @param[in,out] spec Target OpenAPI specification.
+ * @param[in] root Root JSON value.
+ * @return CDD_C_SUCCESS on success, or error code on OOM.
  */
 cdd_c_error_t store_schema_root_json(struct OpenAPI_Spec *spec,
                                      const JSON_Value *root) {
@@ -484,8 +536,12 @@ cdd_c_error_t store_schema_root_json(struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Resolves a JSON Pointer or anchor fragment within a target JSON
- * document.
+ * @brief Resolves a `$ref` against a specification and its document registry.
+ *
+ * @param[in] spec Source OpenAPI specification.
+ * @param[in] ref Reference string to resolve.
+ * @param[out] _out_val Resolved target specification and reference structure.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t resolve_ref_target(const struct OpenAPI_Spec *spec,
                                  const char *ref,
@@ -564,8 +620,14 @@ cdd_c_error_t resolve_ref_target(const struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Checks whether the base URI of a $ref matches the current document
- * URI.
+ * @brief Checks if a `$ref`'s base URI matches the specification's `$self` or
+ * `document_uri`.
+ *
+ * @param[in] spec OpenAPI specification context.
+ * @param[in] ref Full reference string.
+ * @param[in] hash Pointer to the `#` character within `ref`.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if base matches self, CDD_C_SUCCESS
+ * (0) otherwise.
  */
 cdd_c_error_t ref_base_matches_self(const struct OpenAPI_Spec *spec,
                                     const char *ref, const char *hash) {
@@ -643,7 +705,14 @@ cdd_c_error_t ref_base_matches_self(const struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Extracts the component name from a #/components/... reference prefix.
+ * @brief Extracts the trailing component name from a `$ref` matching a prefix.
+ *
+ * @param[in] spec OpenAPI specification context.
+ * @param[in] ref Reference string to match.
+ * @param[in] prefix Component path prefix (e.g. `"#/components/schemas/"`).
+ * @param[out] _out_val Pointer into `ref` after the prefix, or NULL if not
+ * matching.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 cdd_c_error_t ref_name_from_prefix(const struct OpenAPI_Spec *spec,
                                    const char *ref, const char *prefix,

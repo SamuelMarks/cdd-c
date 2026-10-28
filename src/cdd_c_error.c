@@ -10,6 +10,9 @@
 /**
  * @brief Converts an error code to a human-readable string.
  *
+ * @param[in] err Error code to describe.
+ * @param[out] out Output pointer receiving the constant error description
+ * string.
  * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT otherwise.
  */
 cdd_c_error_t cdd_c_strerror(cdd_c_error_t err, char **out) {

@@ -202,6 +202,9 @@ get_success_schema(const struct OpenAPI_Operation *op,
 /**
  * @brief Emits generated C code for codegen client write signature.
  *
+ * @param[in,out] fp Output file stream.
+ * @param[in] op OpenAPI operation descriptor.
+ * @param[in] config Optional signature generation configuration.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t

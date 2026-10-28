@@ -138,6 +138,9 @@ static cdd_c_error_t emit_node(emit_ctx_t *ctx, cdd_cst_node_t *node) {
  * @brief Emits a Concrete Syntax Tree (CST) back into a newly allocated C
  * source string.
  *
+ * @param[in] tree Parsed CST tree to serialize.
+ * @param[out] out_str Output pointer receiving the newly allocated C source
+ * string.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {

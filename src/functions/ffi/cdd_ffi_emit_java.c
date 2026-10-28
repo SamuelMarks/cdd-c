@@ -497,6 +497,8 @@ emit_pom_xml(const cdd_generate_bindings_config_t *config) {
  * @brief Emits Java JNA bindings and Maven `pom.xml` project files for the
  * given FFI IR.
  *
+ * @param[in] ir FFI Intermediate Representation to emit.
+ * @param[in] config Binding generation configuration parameters.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t cdd_ffi_emit_java(cdd_ffi_ir_t *ir,

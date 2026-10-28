@@ -10,7 +10,6 @@
 #include "c_cdd/memory.h"
 #include "serve_json_rpc.h"
 
-#ifndef __wasi__
 #include "../parse/cli.h"
 #include "../../cdd_api.h"
 #include "functions/parse/fs.h"
@@ -20,8 +19,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__)
-/* No sockets on DOS/Watcom natively */
+#if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__) ||     \
+    defined(__wasi__)
+/* No sockets on DOS/Watcom/WASI natively */
 #else
 #if defined(_WIN32)
 #include <winsock2.h>
@@ -42,7 +42,8 @@
 #endif
 /* clang-format on */
 
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(__WATCOMC__) || defined(__DOS__) ||             \
+    defined(__EMSCRIPTEN__) || defined(__wasi__)
 /** @brief Cast length argument for send() */
 #define CDD_SEND_LEN_CAST(x) (int)(x)
 /** @brief Signed size type for socket I/O */
@@ -54,7 +55,8 @@ typedef int cdd_ssize_t;
 typedef ssize_t cdd_ssize_t;
 #endif
 
-#if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__)
+#if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__) ||     \
+    defined(__wasi__)
 /** @brief cdd_socket_t */
 typedef int cdd_socket_t;
 /** @brief INVALID_SOCKET */
@@ -72,7 +74,8 @@ typedef int cdd_socket_t;
 #endif
 #endif
 
-#if !defined(__WATCOMC__) && !defined(__DOS__) && !defined(__EMSCRIPTEN__)
+#if !defined(__WATCOMC__) && !defined(__DOS__) && !defined(__EMSCRIPTEN__) &&  \
+    !defined(__wasi__)
 
 /**
  * @brief Creates a socket descriptor with error checking.
@@ -719,7 +722,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
   return rc;
 }
 #endif /* !defined(__WATCOMC__) && !defined(__DOS__) &&                        \
-          !defined(__EMSCRIPTEN__) */
+          !defined(__EMSCRIPTEN__) && !defined(__wasi__) */
 
 /**
  * @brief Performs server json rpc operation from a typed config struct.
@@ -729,7 +732,8 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
  */
 C_CDD_EXPORT cdd_c_error_t
 serve_json_rpc_run(const cdd_serve_json_rpc_config_t *config) {
-#if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__)
+#if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__) ||     \
+    defined(__wasi__)
   (void)config;
   fprintf(stderr, "Server mode is not supported on this platform.\n");
   return CDD_C_ERROR_UNKNOWN;
@@ -850,7 +854,8 @@ serve_json_rpc_run(const cdd_serve_json_rpc_config_t *config) {
  * @return CDD_C_SUCCESS on success, or error code.
  */
 C_CDD_EXPORT cdd_c_error_t serve_json_rpc_main(int argc, char **argv) {
-#if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__)
+#if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__) ||     \
+    defined(__wasi__)
   (void)argc;
   (void)argv;
   fprintf(stderr, "Server mode is not supported on this platform.\n");
@@ -900,17 +905,3 @@ C_CDD_EXPORT cdd_c_error_t serve_json_rpc_main(int argc, char **argv) {
   return serve_json_rpc_run(&cfg);
 #endif
 }
-
-#else
-C_CDD_EXPORT cdd_c_error_t
-serve_json_rpc_run(const cdd_serve_json_rpc_config_t *config) {
-  (void)config;
-  return CDD_C_ERROR_UNKNOWN;
-}
-
-C_CDD_EXPORT cdd_c_error_t serve_json_rpc_main(int argc, char **argv) {
-  (void)argc;
-  (void)argv;
-  return CDD_C_ERROR_UNKNOWN;
-}
-#endif

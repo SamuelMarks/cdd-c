@@ -150,6 +150,7 @@ static cdd_c_error_t maybe_mkdir(const char *path) {
  * @brief Recursively creates a directory path and all missing parent
  * directories.
  *
+ * @param[in] path Directory path to create recursively.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t makedirs(const char *path) {
@@ -211,6 +212,7 @@ cdd_c_error_t makedirs(const char *path) {
 /**
  * @brief Creates a single directory at the specified path.
  *
+ * @param[in] path Directory path to create.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t makedir(const char *path) {
@@ -232,6 +234,8 @@ cdd_c_error_t makedir(const char *path) {
 /**
  * @brief Obtains the system temporary directory path.
  *
+ * @param[out] out_path Output pointer receiving the newly allocated temporary
+ * directory path.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t tempdir(char **out_path) {
@@ -290,6 +294,7 @@ cdd_c_error_t tempdir(char **out_path) {
  * @brief Closes the file handle and frees the filename in a FilenameAndPtr
  * struct.
  *
+ * @param[in,out] file Pointer to the FilenameAndPtr structure to clean up.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
  * NULL.
  */
@@ -311,6 +316,8 @@ cdd_c_error_t FilenameAndPtr_cleanup(struct FilenameAndPtr *file) {
  * @brief Closes the file handle, deletes the file from disk, and frees the
  * filename.
  *
+ * @param[in,out] file Pointer to the FilenameAndPtr structure to delete and
+ * clean up.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
  * NULL.
  */
@@ -328,6 +335,11 @@ cdd_c_error_t FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file) {
  * @brief Creates a unique temporary file and returns both its path and open
  * FILE stream.
  *
+ * @param[in] prefix Optional filename prefix (may be NULL).
+ * @param[in] suffix Optional filename suffix (may be NULL).
+ * @param[in] mode File open mode string (e.g., `"w+b"`).
+ * @param[out] file Output FilenameAndPtr structure receiving the open stream
+ * and path.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t mktmpfilegetnameandfile(const char *prefix, const char *suffix,
@@ -456,6 +468,9 @@ cdd_c_error_t path_is_unc(const char *path, int *out_is_unc) {
  * @brief Recursively traverses a directory tree and invokes a callback for each
  * entry.
  *
+ * @param[in] path Root directory or file path to traverse.
+ * @param[in] cb Visitor callback invoked for each file.
+ * @param[in,out] user_data Opaque user context pointer passed to `cb`.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {

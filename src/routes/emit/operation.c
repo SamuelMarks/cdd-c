@@ -22,8 +22,23 @@
 /* clang-format on */
 
 /**
- * @brief Builds an OpenAPI_Operation structure from a parsed C route function
- * and docstring.
+ * @brief Build an OpenAPI Operation from C source artifacts.
+ *
+ * The core logic flow:
+ * 1. Initialize `out_op` with basic metadata (Summary, ID).
+ * 2. Analyze the Route path to identify Path Parameters.
+ * 3. Iterate signature arguments:
+ *    - Match against `@param` docs for explicit overrides (`in: query`,
+ * `required`).
+ *    - Match against Path Parameters (implicit `in: path`).
+ *    - Distinguish Body candidates (Struct pointers) from Inputs.
+ *    - Identify Output parameters (pointer-to-pointer or non-const pointer
+ * refs).
+ * 4. Configure Responses based on `@return` docs and detected outputs.
+ *
+ * @param[in] ctx Context containing the signature and docs.
+ * @param[out] out_op The operation structure to populate.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
                                         struct OpenAPI_Operation *out_op) {

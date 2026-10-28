@@ -38,6 +38,7 @@ static const char *kStrDupFunc = "strdup";
 /**
  * @brief Initialize an EnumMembers container.
  *
+ * @param[out] em Pointer to the EnumMembers structure to initialize.
  * @return CDD_C_SUCCESS on success, error code on allocation failure.
  */
 cdd_c_error_t enum_members_init(struct EnumMembers *em) {
@@ -56,6 +57,8 @@ cdd_c_error_t enum_members_init(struct EnumMembers *em) {
 
 /**
  * @brief Free the memory associated with an EnumMembers structure.
+ *
+ * @param[in,out] em Pointer to the EnumMembers structure to free.
  */
 void enum_members_free(struct EnumMembers *em) {
   size_t i;
@@ -76,6 +79,8 @@ void enum_members_free(struct EnumMembers *em) {
 /**
  * @brief Add a member name to the EnumMembers list.
  *
+ * @param[in,out] em Target EnumMembers container.
+ * @param[in] name Enumerator identifier string to append.
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t enum_members_add(struct EnumMembers *em, const char *name) {
@@ -104,6 +109,10 @@ cdd_c_error_t enum_members_add(struct EnumMembers *em, const char *name) {
 /**
  * @brief Generate the C code for converting an enum value to a string.
  *
+ * @param[in] fp Output file stream.
+ * @param[in] enum_name Name of the enum type.
+ * @param[in] em Enumerator members container.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t write_enum_to_str_func(FILE *fp, const char *enum_name,
@@ -149,6 +158,10 @@ cdd_c_error_t write_enum_to_str_func(FILE *fp, const char *enum_name,
 /**
  * @brief Generate the C code for parsing a string into an enum value.
  *
+ * @param[in] fp Output file stream.
+ * @param[in] enum_name Name of the enum type.
+ * @param[in] em Enumerator members container.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t write_enum_from_str_func(FILE *fp, const char *enum_name,

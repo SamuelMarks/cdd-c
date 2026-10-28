@@ -34,6 +34,12 @@
 /**
  * @brief Append a node to CST node list.
  *
+ * @param[in,out] list Target CstNodeList container.
+ * @param[in] kind Classification of the CST node.
+ * @param[in] start Pointer to the start of the node bytes in the source buffer.
+ * @param[in] length Byte length of the CST node span.
+ * @param[in] start_tok Inclusive starting token index.
+ * @param[in] end_tok Exclusive ending token index.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
  */
 cdd_c_error_t cst_list_add(struct CstNodeList *list, enum CstNodeKind kind,
@@ -451,6 +457,8 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
 /**
  * @brief Parses tokens from the given input.
  *
+ * @param[in] tokens Lexical token list to parse.
+ * @param[out] out Output CstNodeList structure to populate.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t parse_tokens(const struct TokenList *tokens,
@@ -473,6 +481,8 @@ cdd_c_error_t parse_tokens(const struct TokenList *tokens,
 
 /**
  * @brief Frees the memory associated with cst node list.
+ *
+ * @param[in,out] list Pointer to the CstNodeList structure to free.
  */
 void free_cst_node_list(struct CstNodeList *list) {
   if (!list)
@@ -488,6 +498,9 @@ void free_cst_node_list(struct CstNodeList *list) {
 /**
  * @brief Finds the first CST node matching a specified node kind.
  *
+ * @param[in] list CstNodeList to search.
+ * @param[in] kind Target CstNodeKind to locate.
+ * @param[out] out_node Output pointer receiving the matched CstNode (or NULL).
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
  * `out_node` is NULL.
  */
@@ -514,6 +527,10 @@ cdd_c_error_t cst_find_first(struct CstNodeList *list,
 /**
  * @brief Test wrapper for `parse_recursive`.
  *
+ * @param[in] tokens Lexical token list.
+ * @param[in] start Inclusive start token index.
+ * @param[in] end Exclusive end token index.
+ * @param[in,out] out CstNodeList to populate.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t cdd_test_cst_parse_recursive(const struct TokenList *tokens,

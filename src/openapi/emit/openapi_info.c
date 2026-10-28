@@ -19,8 +19,15 @@
 #include "openapi/emit/openapi.h"
 /* clang-format on */
 
-cdd_c_error_t verb_to_str_openapi(enum OpenAPI_Verb v, char **_out_val) {
-  switch (v) {
+/**
+ * @brief Converts verb to string.
+ *
+ * @param[in] verb The verb.
+ * @param[out] _out_val Pointer to the output string.
+ * @return 0 on success.
+ */
+cdd_c_error_t verb_to_str_openapi(enum OpenAPI_Verb verb, char **_out_val) {
+  switch (verb) {
   case OA_VERB_GET: {
     *_out_val = "get";
     return CDD_C_SUCCESS;
@@ -271,8 +278,10 @@ C_CDD_EXPORT cdd_c_error_t is_schema_primitive_openapi(const char *type) {
 }
 
 /**
- * @brief Checks whether an OpenAPI License object violates mutual-exclusivity
- * rules.
+ * @brief Checks if license fields are invalid.
+ *
+ * @param[in] lic The license structure to check.
+ * @return CDD_C_SUCCESS if valid, error code if invalid.
  */
 C_CDD_EXPORT cdd_c_error_t
 license_fields_invalid(const struct OpenAPI_License *lic) {
@@ -290,8 +299,10 @@ license_fields_invalid(const struct OpenAPI_License *lic) {
 }
 
 /**
- * @brief Checks whether an OpenAPI Server URL contains forbidden query or
- * fragment parts.
+ * @brief Checks if server URL contains query or fragment parts.
+ *
+ * @param[in] url The server URL to validate.
+ * @return CDD_C_SUCCESS if valid, error code if invalid.
  */
 C_CDD_EXPORT cdd_c_error_t server_url_has_query_or_fragment(const char *url) {
   if (!url)
@@ -356,7 +367,11 @@ C_CDD_EXPORT cdd_c_error_t merge_schema_extras_object_openapi(
   cdd_json_array_append_value_safe((arr), (val))
 
 /**
- * @brief Serializes the OpenAPI example object into the target JSON object.
+ * @brief Writes an OpenAPI_Example to a JSON object.
+ *
+ * @param[in,out] ex_obj The JSON object to populate.
+ * @param[in] ex The example structure to write.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_example_object(JSON_Object *ex_obj, const struct OpenAPI_Example *ex) {
@@ -398,7 +413,13 @@ write_example_object(JSON_Object *ex_obj, const struct OpenAPI_Example *ex) {
 }
 
 /**
- * @brief Serializes the OpenAPI examples object into the target JSON object.
+ * @brief Writes an examples dictionary to parent JSON object.
+ *
+ * @param[in,out] parent The parent JSON object.
+ * @param[in] key The property key name.
+ * @param[in] examples Array of example structures.
+ * @param[in] n_examples Number of examples in the array.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_examples_object(
     JSON_Object *parent, const char *key,
@@ -434,7 +455,14 @@ C_CDD_EXPORT cdd_c_error_t write_examples_object(
 }
 
 /**
- * @brief Serializes the OpenAPI example fields into the target JSON object.
+ * @brief Writes example or examples fields to a JSON object.
+ *
+ * @param[in,out] parent The parent JSON object.
+ * @param[in] example Single example structure.
+ * @param[in] example_set Non-zero if single example is set.
+ * @param[in] examples Array of multiple examples.
+ * @param[in] n_examples Count of multiple examples.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t write_example_fields(
     JSON_Object *parent, const struct OpenAPI_Any *example, int example_set,
@@ -458,7 +486,12 @@ C_CDD_EXPORT cdd_c_error_t write_example_fields(
 }
 
 /**
- * @brief Serializes the OpenAPI external docs into the target JSON object.
+ * @brief Writes external documentation object to parent JSON object.
+ *
+ * @param[in,out] parent The parent JSON object.
+ * @param[in] key The property key name.
+ * @param[in] docs The external documentation structure.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_external_docs(JSON_Object *parent, const char *key,
@@ -483,8 +516,12 @@ write_external_docs(JSON_Object *parent, const char *key,
 }
 
 /**
- * @brief Serializes the OpenAPI discriminator object into the target JSON
- * object.
+ * @brief Writes discriminator object to parent JSON object.
+ *
+ * @param[in,out] parent The parent JSON object.
+ * @param[in] disc The discriminator structure.
+ * @param[in] disc_set Non-zero if discriminator is set.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t write_discriminator_object(
     JSON_Object *parent, const struct OpenAPI_Discriminator *disc,
@@ -529,7 +566,12 @@ C_CDD_EXPORT cdd_c_error_t write_discriminator_object(
 }
 
 /**
- * @brief Serializes the OpenAPI xml object into the target JSON object.
+ * @brief Writes XML object to parent JSON object.
+ *
+ * @param[in,out] parent The parent JSON object.
+ * @param[in] xml The XML structure.
+ * @param[in] xml_set Non-zero if XML structure is set.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t write_xml_object(JSON_Object *parent,
                                             const struct OpenAPI_Xml *xml,
@@ -567,7 +609,11 @@ C_CDD_EXPORT cdd_c_error_t write_xml_object(JSON_Object *parent,
 }
 
 /**
- * @brief Serializes the OpenAPI info into the target JSON object.
+ * @brief Writes info metadata object to root specification object.
+ *
+ * @param[in,out] root_obj The root JSON object.
+ * @param[in] spec The OpenAPI specification structure.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t write_info(JSON_Object *root_obj,
                                       const struct OpenAPI_Spec *spec) {
@@ -631,7 +677,11 @@ C_CDD_EXPORT cdd_c_error_t write_info(JSON_Object *root_obj,
 }
 
 /**
- * @brief Serializes the OpenAPI server object into the target JSON object.
+ * @brief Writes server object fields to JSON object.
+ *
+ * @param[in,out] srv_obj The server JSON object.
+ * @param[in] srv The OpenAPI server structure.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_server_object(JSON_Object *srv_obj, const struct OpenAPI_Server *srv) {
@@ -680,7 +730,11 @@ write_server_object(JSON_Object *srv_obj, const struct OpenAPI_Server *srv) {
 }
 
 /**
- * @brief Serializes the OpenAPI servers into the target JSON object.
+ * @brief Writes servers array to root JSON object.
+ *
+ * @param[in,out] root_obj Root JSON object.
+ * @param[in] spec Specification structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_servers(JSON_Object *root_obj,
                                          const struct OpenAPI_Spec *spec) {
@@ -691,7 +745,13 @@ C_CDD_EXPORT cdd_c_error_t write_servers(JSON_Object *root_obj,
 }
 
 /**
- * @brief Serializes the OpenAPI server array into the target JSON object.
+ * @brief Writes server array to parent JSON object.
+ *
+ * @param[in,out] parent Parent JSON object.
+ * @param[in] key Property key name.
+ * @param[in] servers Array of server structures.
+ * @param[in] n_servers Number of servers.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_server_array(JSON_Object *parent, const char *key,
@@ -730,7 +790,11 @@ write_server_array(JSON_Object *parent, const char *key,
 }
 
 /**
- * @brief Serializes the OpenAPI tags into the target JSON object.
+ * @brief Writes tags array to root JSON object.
+ *
+ * @param[in,out] root_obj Root JSON object.
+ * @param[in] spec Specification structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_tags(JSON_Object *root_obj,
                                       const struct OpenAPI_Spec *spec) {

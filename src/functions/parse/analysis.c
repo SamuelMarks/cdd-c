@@ -37,6 +37,7 @@ static const struct AllocatorSpec ALLOCATOR_SPECS[] = {
 /**
  * @brief Initializes a list of tracked memory allocation sites.
  *
+ * @param[out] list Pointer to the AllocationSiteList structure to initialize.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t allocation_site_list_init(struct AllocationSiteList *list) {
@@ -55,6 +56,8 @@ cdd_c_error_t allocation_site_list_init(struct AllocationSiteList *list) {
 
 /**
  * @brief Releases memory held by an allocation site list.
+ *
+ * @param[in,out] list Pointer to the AllocationSiteList structure to free.
  */
 void allocation_site_list_free(struct AllocationSiteList *list) {
   size_t i;
@@ -75,6 +78,13 @@ void allocation_site_list_free(struct AllocationSiteList *list) {
 /**
  * @brief Records a newly discovered memory allocation site.
  *
+ * @param[in,out] list Target AllocationSiteList container.
+ * @param[in] index Token index of the allocation call.
+ * @param[in] var_name Assigned variable identifier name (may be NULL).
+ * @param[in] checked Non-zero if checked for NULL/error.
+ * @param[in] used_before Non-zero if dereferenced before being checked.
+ * @param[in] is_ret Non-zero if directly returned.
+ * @param[in] spec Matching AllocatorSpec descriptor.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t allocation_site_list_add(struct AllocationSiteList *list,
@@ -284,6 +294,14 @@ static cdd_c_error_t is_dereference_use(const struct TokenList *tokens,
  * @brief Determines whether an allocated variable is checked for NULL before
  * being dereferenced.
  *
+ * @param[in] tokens Lexical token list.
+ * @param[in] alloc_idx Token index of the allocation call.
+ * @param[in] var_name Assigned variable identifier name.
+ * @param[in] spec Matching AllocatorSpec descriptor.
+ * @param[out] used_before_check Output pointer receiving 1 if dereferenced
+ * before check, 0 otherwise.
+ * @param[out] out_is_checked Output pointer receiving 1 if checked, 0
+ * otherwise.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t is_checked(const struct TokenList *tokens, size_t alloc_idx,
@@ -369,6 +387,8 @@ cdd_c_error_t is_checked(const struct TokenList *tokens, size_t alloc_idx,
  * @brief Scans a token stream to identify all memory allocation calls and their
  * check status.
  *
+ * @param[in] tokens Lexical token list to scan.
+ * @param[in,out] out Target AllocationSiteList container to populate.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t find_allocations(const struct TokenList *tokens,

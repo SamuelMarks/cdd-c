@@ -22,7 +22,12 @@
 /* clang-format on */
 
 /**
- * @brief Retrieves the doc param.
+ * @brief Finds a documented parameter by name.
+ *
+ * @param[in] doc Pointer to DocMetadata.
+ * @param[in] name Parameter name.
+ * @param[out] _out_val Pointer receiving pointer to found DocParam or NULL.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t find_doc_param(const struct DocMetadata *doc, const char *name,
                              struct DocParam **_out_val) {
@@ -42,7 +47,13 @@ cdd_c_error_t find_doc_param(const struct DocMetadata *doc, const char *name,
 }
 
 /**
- * @brief Checks if path param.
+ * @brief Checks if a parameter name corresponds to a path parameter in route.
+ *
+ * @param[in] route Route string template.
+ * @param[in] name Parameter name.
+ * @param[out] out_is_path Pointer to int receiving 1 if path param, 0
+ * otherwise.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t is_path_param(const char *route, const char *name,
                             int *out_is_path) {
@@ -62,6 +73,9 @@ cdd_c_error_t is_path_param(const char *route, const char *name,
 
 /**
  * @brief Frees dynamically allocated fields of an OpenAPI Encoding.
+ *
+ * @param[in,out] enc Pointer to OpenAPI Encoding structure.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t free_encoding_fields(struct OpenAPI_Encoding *enc) {
   if (!enc)
@@ -78,7 +92,11 @@ cdd_c_error_t free_encoding_fields(struct OpenAPI_Encoding *enc) {
 }
 
 /**
- * @brief Adds or sets param to op.
+ * @brief Adds a parameter to an OpenAPI Operation.
+ *
+ * @param[in,out] op Pointer to OpenAPI Operation.
+ * @param[in] p Pointer to parameter to append.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t add_param_to_op(struct OpenAPI_Operation *op,
                               struct OpenAPI_Parameter *p) {
@@ -104,6 +122,9 @@ cdd_c_error_t add_param_to_op(struct OpenAPI_Operation *op,
 
 /**
  * @brief Frees dynamically allocated fields of an OpenAPI Parameter.
+ *
+ * @param[in,out] p Pointer to OpenAPI Parameter structure.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t free_param_fields(struct OpenAPI_Parameter *p) {
   if (!p)
@@ -180,7 +201,11 @@ cdd_c_error_t free_param_fields(struct OpenAPI_Parameter *p) {
 }
 
 /**
- * @brief Adds or sets querystring schema from type map.
+ * @brief Sets querystring schema on a parameter from a type mapping.
+ *
+ * @param[in,out] param Pointer to OpenAPI Parameter to configure.
+ * @param[in] type_map Pointer to OpenAPI Type Mapping.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t set_querystring_schema_from_type_map(
     struct OpenAPI_Parameter *param,
@@ -241,7 +266,14 @@ cdd_c_error_t oa_type_is_primitive(const char *type, int *out_is_primitive) {
  * Returns: 1 if applied, 0 if not applicable, or ENOMEM on allocation failure.
  */
 /**
- * @brief Applies format to schema ref.
+ * @brief Applies format from type mapping (or override) to a SchemaRef.
+ *
+ * @param[in,out] schema Pointer to OpenAPI SchemaRef to update.
+ * @param[in] map Type mapping containing default format and type.
+ * @param[in] override_format Explicit format override if specified, or NULL.
+ * @param[out] out_applied Pointer to int receiving 1 if format was applied, 0
+ * otherwise.
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_MEMORY on allocation failure.
  */
 cdd_c_error_t apply_format_to_schema_ref(struct OpenAPI_SchemaRef *schema,
                                          const struct OpenApiTypeMapping *map,
@@ -301,11 +333,13 @@ cdd_c_error_t apply_format_to_schema_ref(struct OpenAPI_SchemaRef *schema,
 /* --- Type Analysis --- */
 
 /**
- * @brief Determine if a type is a struct pointer eligible for Body.
- * Heuristic: Contains "struct", ends with "*" or "**".
- */
-/**
- * @brief Checks if struct pointer.
+ * @brief Checks if a C type represents a struct pointer or double pointer.
+ *
+ * @param[in] type C type string.
+ * @param[out] is_double_ptr Pointer receiving 1 if double pointer, 0 otherwise.
+ * @param[out] out_is_struct_ptr Pointer receiving 1 if struct pointer, 0
+ * otherwise.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t is_struct_pointer(const char *type, int *is_double_ptr,
                                 int *out_is_struct_ptr) {
@@ -330,8 +364,11 @@ cdd_c_error_t is_struct_pointer(const char *type, int *is_double_ptr,
 }
 
 /**
- * @brief Maps a docstring parameter style string to an OpenAPI_Style enum
- * value.
+ * @brief Maps documentation parameter style enum to OpenAPI Style enum.
+ *
+ * @param[in] style DocParamStyle value.
+ * @param[out] _out_val Pointer receiving mapped OpenAPI_Style value.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t doc_style_to_openapi(enum DocParamStyle style,
                                    enum OpenAPI_Style *_out_val) {

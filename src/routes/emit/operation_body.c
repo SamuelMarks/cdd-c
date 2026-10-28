@@ -22,7 +22,11 @@
 /* clang-format on */
 
 /**
- * @brief Populates an OpenAPI_Any variant from a Parson JSON_Value.
+ * @brief Converts a JSON_Value into an OpenAPI Any structure.
+ *
+ * @param[in] val Pointer to JSON_Value to convert.
+ * @param[out] out Pointer to destination OpenAPI_Any structure.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t any_from_json_value(const JSON_Value *val,
                                   struct OpenAPI_Any *out) {
@@ -71,7 +75,11 @@ cdd_c_error_t any_from_json_value(const JSON_Value *val,
 }
 
 /**
- * @brief Parses example any from the given input.
+ * @brief Parses an example string into an OpenAPI Any structure.
+ *
+ * @param[in] example The string containing the example value or JSON.
+ * @param[out] out Pointer to OpenAPI_Any destination structure.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t parse_example_any(const char *example, struct OpenAPI_Any *out) {
   JSON_Value *val;
@@ -99,7 +107,9 @@ cdd_c_error_t parse_example_any(const char *example, struct OpenAPI_Any *out) {
 }
 
 /**
- * @brief Frees the memory associated with any value local.
+ * @brief Frees members of an OpenAPI Any value structure.
+ *
+ * @param[in,out] val Pointer to OpenAPI_Any whose contents should be freed.
  */
 void free_any_value_local(struct OpenAPI_Any *val) {
   if (!val)
@@ -115,7 +125,11 @@ void free_any_value_local(struct OpenAPI_Any *val) {
 }
 
 /**
- * @brief Creates a deep copy of any value local.
+ * @brief Copies an OpenAPI Any value structure.
+ *
+ * @param[out] dst Destination OpenAPI_Any.
+ * @param[in] src Source OpenAPI_Any.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t copy_any_value_local(struct OpenAPI_Any *dst,
                                    const struct OpenAPI_Any *src) {
@@ -149,7 +163,9 @@ cdd_c_error_t copy_any_value_local(struct OpenAPI_Any *dst,
 }
 
 /**
- * @brief Frees the memory associated with openapi server variables.
+ * @brief Frees server variable members within an OpenAPI Server structure.
+ *
+ * @param[in,out] srv Pointer to OpenAPI_Server whose variables should be freed.
  */
 void free_openapi_server_variables_op(struct OpenAPI_Server *srv) {
   size_t i;
@@ -177,7 +193,11 @@ void free_openapi_server_variables_op(struct OpenAPI_Server *srv) {
 }
 
 /**
- * @brief Creates a deep copy of doc server variables.
+ * @brief Copies server variable definitions from DocServer to OpenAPI_Server.
+ *
+ * @param[out] dst Destination OpenAPI_Server.
+ * @param[in] src Source DocServer containing variables.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t copy_doc_server_variables_op(struct OpenAPI_Server *dst,
                                            const struct DocServer *src) {
@@ -250,7 +270,13 @@ cdd_c_error_t copy_doc_server_variables_op(struct OpenAPI_Server *dst,
 }
 
 /**
- * @brief Retrieves the media type.
+ * @brief Finds a media type within an array of media types by name.
+ *
+ * @param[in] mts Array of media types.
+ * @param[in] n Number of elements in mts array.
+ * @param[in] name Name of the media type (e.g. "application/json").
+ * @param[out] _out_val Pointer receiving pointer to found media type or NULL.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t find_media_type_op(struct OpenAPI_MediaType *mts, size_t n,
                                  const char *name,
@@ -271,7 +297,11 @@ cdd_c_error_t find_media_type_op(struct OpenAPI_MediaType *mts, size_t n,
 }
 
 /**
- * @brief Applies example to media type.
+ * @brief Applies an example value string to a media type structure.
+ *
+ * @param[in,out] mt Pointer to media type.
+ * @param[in] example Example value string.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t apply_example_to_media_type(struct OpenAPI_MediaType *mt,
                                           const char *example) {
@@ -286,8 +316,12 @@ cdd_c_error_t apply_example_to_media_type(struct OpenAPI_MediaType *mt,
 }
 
 /**
- * @brief Checks whether a basic OpenAPI_SchemaRef has a ref, type, or array
- * items.
+ * @brief Checks if a basic schema reference contains data.
+ *
+ * @param[in] ref Pointer to schema reference to inspect.
+ * @param[out] out_has_data Pointer to int receiving 1 if ref has data, 0
+ * otherwise.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t schema_ref_has_data_basic(const struct OpenAPI_SchemaRef *ref,
                                         int *out_has_data) {
@@ -333,7 +367,11 @@ static void free_schema_ref_fields(struct OpenAPI_SchemaRef *ref) {
 }
 
 /**
- * @brief Creates a deep copy of schema ref basic.
+ * @brief Copies basic schema reference fields from src to dst.
+ *
+ * @param[out] dst Destination OpenAPI_SchemaRef structure.
+ * @param[in] src Source OpenAPI_SchemaRef structure.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t copy_schema_ref_basic(struct OpenAPI_SchemaRef *dst,
                                     const struct OpenAPI_SchemaRef *src) {
@@ -425,7 +463,14 @@ cdd_c_error_t request_body_has_media_type(const struct OpenAPI_Operation *op,
 }
 
 /**
- * @brief Initializes a single MediaType entry from legacy RequestBody fields.
+ * @brief Initializes a media type structure from an OpenAPI Operation request
+ * body.
+ *
+ * @param[out] mt Pointer to OpenAPI MediaType to initialize.
+ * @param[in] name Name of the media type.
+ * @param[in] op Pointer to source OpenAPI Operation.
+ * @param[in] is_item_schema 1 if mapping to item_schema, 0 for schema.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t init_media_type_from_request_body(
     struct OpenAPI_MediaType *mt, const char *name,
@@ -462,7 +507,13 @@ cdd_c_error_t init_media_type_from_request_body(
 }
 
 /**
- * @brief Adds or sets request body media type.
+ * @brief Adds or ensures a media type exists in an OpenAPI Operation request
+ * body.
+ *
+ * @param[in,out] op Pointer to OpenAPI Operation.
+ * @param[in] name Media type name.
+ * @param[in] is_item_schema 1 if mapping to item_schema, 0 for schema.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t add_request_body_media_type(struct OpenAPI_Operation *op,
                                           const char *name,

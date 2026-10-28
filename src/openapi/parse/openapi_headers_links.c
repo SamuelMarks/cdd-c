@@ -10,6 +10,12 @@
 
 /**
  * @brief Parses header object from the given input.
+ *
+ * @param[in] hdr_obj The source header JSON object.
+ * @param[out] out_hdr Output OpenAPI_Header structure.
+ * @param[in] spec The parent OpenAPI specification.
+ * @param[in] resolve_refs Non-zero to resolve component references.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
                                                struct OpenAPI_Header *out_hdr,
@@ -270,6 +276,11 @@ C_CDD_EXPORT cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
 
 /**
  * @brief Parses link parameters from the given input.
+ *
+ * @param[in] params_obj The source link parameters JSON object.
+ * @param[out] out_params Output array of OpenAPI_LinkParam structures.
+ * @param[out] out_count Output count of link parameters.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t parse_link_parameters(
     const JSON_Object *params_obj, struct OpenAPI_LinkParam **out_params,
@@ -307,6 +318,12 @@ C_CDD_EXPORT cdd_c_error_t parse_link_parameters(
 
 /**
  * @brief Parses link object from the given input.
+ *
+ * @param[in] link_obj The source link JSON object.
+ * @param[out] out_link Output OpenAPI_Link structure.
+ * @param[in] spec The parent OpenAPI specification.
+ * @param[in] resolve_refs Non-zero to resolve component references.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t parse_link_object(const JSON_Object *link_obj,
                                              struct OpenAPI_Link *out_link,
@@ -420,6 +437,13 @@ C_CDD_EXPORT cdd_c_error_t parse_link_object(const JSON_Object *link_obj,
 
 /**
  * @brief Parses links object from the given input.
+ *
+ * @param[in] links The source links map JSON object.
+ * @param[out] out_links Output array of OpenAPI_Link structures.
+ * @param[out] out_count Output count of links.
+ * @param[in] spec The parent OpenAPI specification.
+ * @param[in] resolve_refs Non-zero to resolve component references.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t parse_links_object(const JSON_Object *links,
                                               struct OpenAPI_Link **out_links,
@@ -466,6 +490,14 @@ C_CDD_EXPORT cdd_c_error_t parse_links_object(const JSON_Object *links,
 
 /**
  * @brief Parses headers object from the given input.
+ *
+ * @param[in] headers The source headers map JSON object.
+ * @param[out] out_headers Output array of OpenAPI_Header structures.
+ * @param[out] out_count Output count of headers.
+ * @param[in] spec The parent OpenAPI specification.
+ * @param[in] resolve_refs Non-zero to resolve component references.
+ * @param[in] ignore_content_type Non-zero to skip Content-Type headers.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t parse_headers_object(
     const JSON_Object *headers, struct OpenAPI_Header **out_headers,
@@ -529,7 +561,13 @@ C_CDD_EXPORT cdd_c_error_t parse_headers_object(
 }
 
 /**
- * @brief Parses encoding object from the given input.
+ * @brief Parses an OpenAPI Encoding object.
+ *
+ * @param[in] enc_obj JSON object representing the Encoding.
+ * @param[out] out Destination encoding structure.
+ * @param[in] spec Parent OpenAPI specification context.
+ * @param[in] resolve_refs Non-zero to resolve `$ref` against components.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t
 parse_encoding_object(const JSON_Object *enc_obj, struct OpenAPI_Encoding *out,
@@ -627,7 +665,14 @@ parse_encoding_object(const JSON_Object *enc_obj, struct OpenAPI_Encoding *out,
 }
 
 /**
- * @brief Parses encoding map from the given input.
+ * @brief Parses an `encoding` map of Encoding objects.
+ *
+ * @param[in] enc_obj JSON object mapping property names to Encoding objects.
+ * @param[out] out Output array of parsed encodings.
+ * @param[out] out_count Output number of parsed encodings.
+ * @param[in] spec Parent OpenAPI specification context.
+ * @param[in] resolve_refs Non-zero to resolve `$ref` against components.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t parse_encoding_map(const JSON_Object *enc_obj,
                                               struct OpenAPI_Encoding **out,
@@ -684,7 +729,14 @@ C_CDD_EXPORT cdd_c_error_t parse_encoding_map(const JSON_Object *enc_obj,
 }
 
 /**
- * @brief Parses encoding array from the given input.
+ * @brief Parses a `prefixEncoding` array of Encoding objects.
+ *
+ * @param[in] enc_arr JSON array of Encoding objects.
+ * @param[out] out Output array of parsed encodings.
+ * @param[out] out_count Output number of parsed encodings.
+ * @param[in] spec Parent OpenAPI specification context.
+ * @param[in] resolve_refs Non-zero to resolve `$ref` against components.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t parse_encoding_array(const JSON_Array *enc_arr,
                                                 struct OpenAPI_Encoding **out,

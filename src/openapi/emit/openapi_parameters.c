@@ -27,7 +27,11 @@
   cdd_json_array_append_value_safe((arr), (val))
 
 /**
- * @brief Serializes the OpenAPI parameter object into the target JSON object.
+ * @brief Writes an OpenAPI parameter object.
+ *
+ * @param[in,out] p_obj The parameter JSON object.
+ * @param[in] p The parameter structure.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_parameter_object(JSON_Object *p_obj, const struct OpenAPI_Parameter *p) {
@@ -141,7 +145,11 @@ write_parameter_object(JSON_Object *p_obj, const struct OpenAPI_Parameter *p) {
 }
 
 /**
- * @brief Serializes the OpenAPI header object into the target JSON object.
+ * @brief Writes an OpenAPI header object.
+ *
+ * @param[in,out] h_obj The header JSON object.
+ * @param[in] h The header structure.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t write_header_object(JSON_Object *h_obj,
                                                const struct OpenAPI_Header *h) {
@@ -227,7 +235,11 @@ C_CDD_EXPORT cdd_c_error_t write_header_object(JSON_Object *h_obj,
 }
 
 /**
- * @brief Serializes the OpenAPI encoding object into the target JSON object.
+ * @brief Writes an encoding object.
+ *
+ * @param[in,out] enc_obj The encoding JSON object.
+ * @param[in] enc The encoding structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_encoding_object(
     JSON_Object *enc_obj, const struct OpenAPI_Encoding *enc) {
@@ -283,7 +295,12 @@ C_CDD_EXPORT cdd_c_error_t write_encoding_object(
 }
 
 /**
- * @brief Serializes the OpenAPI encoding map into the target JSON object.
+ * @brief Writes encoding map to media type object.
+ *
+ * @param[in,out] media_obj The media type JSON object.
+ * @param[in] encoding Array of encoding structures.
+ * @param[in] n_encoding Number of encodings.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_encoding_map(JSON_Object *media_obj,
@@ -326,7 +343,13 @@ write_encoding_map(JSON_Object *media_obj,
 }
 
 /**
- * @brief Serializes the OpenAPI encoding array into the target JSON object.
+ * @brief Writes encoding array to parent JSON object.
+ *
+ * @param[in,out] parent Parent JSON object.
+ * @param[in] key Property key name.
+ * @param[in] encoding Array of encoding structures.
+ * @param[in] n_encoding Number of encodings.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_encoding_array(
     JSON_Object *parent, const char *key,
@@ -366,7 +389,11 @@ C_CDD_EXPORT cdd_c_error_t write_encoding_array(
 }
 
 /**
- * @brief Serializes the OpenAPI media type object into the target JSON object.
+ * @brief Writes an OpenAPI media type object.
+ *
+ * @param[in,out] media_obj The media type JSON object.
+ * @param[in] mt The media type structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_media_type_object(
     JSON_Object *media_obj, const struct OpenAPI_MediaType *mt) {
@@ -412,7 +439,13 @@ C_CDD_EXPORT cdd_c_error_t write_media_type_object(
 }
 
 /**
- * @brief Serializes the OpenAPI media type map into the target JSON object.
+ * @brief Writes media type map to parent JSON object.
+ *
+ * @param[in,out] parent Parent JSON object.
+ * @param[in] key Property key name.
+ * @param[in] mts Array of media type structures.
+ * @param[in] n_mts Number of media types.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_media_type_map(JSON_Object *parent, const char *key,
@@ -450,7 +483,11 @@ write_media_type_map(JSON_Object *parent, const char *key,
 }
 
 /**
- * @brief Serializes the OpenAPI link object into the target JSON object.
+ * @brief Writes an OpenAPI link object.
+ *
+ * @param[in,out] l_obj The link JSON object.
+ * @param[in] link The link structure.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t write_link_object(JSON_Object *l_obj,
                                              const struct OpenAPI_Link *link) {
@@ -510,7 +547,14 @@ C_CDD_EXPORT cdd_c_error_t write_link_object(JSON_Object *l_obj,
 }
 
 /**
- * @brief Serializes the OpenAPI headers map into the target JSON object.
+ * @brief Writes headers map to parent JSON object.
+ *
+ * @param[in,out] parent Parent JSON object.
+ * @param[in] key Property key name.
+ * @param[in] headers Array of header structures.
+ * @param[in] n_headers Number of headers.
+ * @param[in] ignore_content_type Flag to ignore Content-Type headers.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_headers_map(
     JSON_Object *parent, const char *key, const struct OpenAPI_Header *headers,
@@ -554,7 +598,11 @@ C_CDD_EXPORT cdd_c_error_t write_headers_map(
 }
 
 /**
- * @brief Serializes the OpenAPI headers into the target JSON object.
+ * @brief Writes headers for an OpenAPI response.
+ *
+ * @param[in,out] parent Parent JSON object.
+ * @param[in] resp Response structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_headers(JSON_Object *parent,
                                          const struct OpenAPI_Response *resp) {
@@ -565,7 +613,11 @@ C_CDD_EXPORT cdd_c_error_t write_headers(JSON_Object *parent,
 }
 
 /**
- * @brief Serializes the OpenAPI links into the target JSON object.
+ * @brief Writes links for an OpenAPI response.
+ *
+ * @param[in,out] parent Parent JSON object.
+ * @param[in] resp Response structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_links(JSON_Object *parent,
                                        const struct OpenAPI_Response *resp) {
@@ -598,7 +650,11 @@ C_CDD_EXPORT cdd_c_error_t write_links(JSON_Object *parent,
 }
 
 /**
- * @brief Serializes the OpenAPI response object into the target JSON object.
+ * @brief Writes an OpenAPI response object.
+ *
+ * @param[in,out] r_obj The response JSON object.
+ * @param[in] resp The response structure.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_response_object(JSON_Object *r_obj, const struct OpenAPI_Response *resp) {
@@ -667,7 +723,12 @@ write_response_object(JSON_Object *r_obj, const struct OpenAPI_Response *resp) {
 }
 
 /**
- * @brief Serializes the OpenAPI parameters into the target JSON object.
+ * @brief Writes parameters array to parent JSON object.
+ *
+ * @param[in,out] parent Parent JSON object.
+ * @param[in] params Array of parameters.
+ * @param[in] n_params Number of parameters.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_parameters(JSON_Object *parent, const struct OpenAPI_Parameter *params,
@@ -710,8 +771,11 @@ write_parameters(JSON_Object *parent, const struct OpenAPI_Parameter *params,
 }
 
 /**
- * @brief Serializes the OpenAPI request body object into the target JSON
- * object.
+ * @brief Writes an OpenAPI request body object.
+ *
+ * @param[in,out] rb_obj The request body JSON object.
+ * @param[in] rb The request body structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_request_body_object(
     JSON_Object *rb_obj, const struct OpenAPI_RequestBody *rb) {
@@ -789,7 +853,11 @@ C_CDD_EXPORT cdd_c_error_t write_request_body_object(
 }
 
 /**
- * @brief Serializes the OpenAPI request body into the target JSON object.
+ * @brief Writes request body to operation JSON object.
+ *
+ * @param[in,out] op_obj Operation JSON object.
+ * @param[in] op Operation structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_request_body(JSON_Object *op_obj, const struct OpenAPI_Operation *op) {

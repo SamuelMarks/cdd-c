@@ -34,7 +34,11 @@
 #endif
 
 /**
- * @brief Emits C source code for query json param.
+ * @brief Emits C code to serialize a JSON-encoded query parameter.
+ *
+ * @param[in,out] fp Output file stream.
+ * @param[in] p The OpenAPI parameter structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t write_query_json_param(FILE *fp,
                                      const struct OpenAPI_Parameter *p) {
@@ -299,7 +303,12 @@ cdd_c_error_t write_query_json_param(FILE *fp,
 }
 
 /**
- * @brief Emits C source code for query object param.
+ * @brief Emits C code to serialize an object query parameter (`form` or
+ * `deepObject`).
+ *
+ * @param[in,out] fp Output file stream.
+ * @param[in] p The OpenAPI parameter structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
@@ -673,7 +682,15 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
 }
 
 /**
- * @brief Emits C source code for joined query array.
+ * @brief Emits C code to serialize a joined (non-exploded) query array
+ * parameter.
+ *
+ * @param[in,out] fp Output file stream.
+ * @param[in] p The OpenAPI parameter structure.
+ * @param[in] delim Delimiter character.
+ * @param[in] encode_fn Name of the C URL-encoding helper function.
+ * @param[in] add_encoded Non-zero to add the joined string as pre-encoded.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_joined_query_array(
     FILE *fp, const struct OpenAPI_Parameter *p, const char delim,
@@ -777,7 +794,14 @@ C_CDD_EXPORT cdd_c_error_t write_joined_query_array(
 }
 
 /**
- * @brief Emits C source code for joined query array encoded delim.
+ * @brief Emits C code to serialize a joined query array with a pre-encoded
+ * delimiter.
+ *
+ * @param[in,out] fp Output file stream.
+ * @param[in] p The OpenAPI parameter structure.
+ * @param[in] delim_enc Percent-encoded delimiter string.
+ * @param[in] encode_fn Name of the C URL-encoding helper function.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_joined_query_array_encoded_delim(
     FILE *fp, const struct OpenAPI_Parameter *p, const char *delim_enc,

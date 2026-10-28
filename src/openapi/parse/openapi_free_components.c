@@ -10,6 +10,8 @@
 
 /**
  * @brief Frees the memory associated with schema ref content.
+ *
+ * @param[in,out] ref The OpenAPI_SchemaRef structure to free.
  */
 void free_schema_ref_content(struct OpenAPI_SchemaRef *ref) {
   if (!ref)
@@ -180,6 +182,8 @@ void free_schema_ref_content(struct OpenAPI_SchemaRef *ref) {
 
 /**
  * @brief Frees the memory associated with encoding.
+ *
+ * @param[in,out] enc The OpenAPI_Encoding structure to free.
  */
 void free_encoding(struct OpenAPI_Encoding *enc) {
   size_t i;
@@ -226,6 +230,8 @@ void free_encoding(struct OpenAPI_Encoding *enc) {
 
 /**
  * @brief Frees the memory associated with media type.
+ *
+ * @param[in,out] mt The OpenAPI_MediaType structure to free.
  */
 void free_media_type(struct OpenAPI_MediaType *mt) {
   size_t e;
@@ -275,6 +281,8 @@ void free_media_type(struct OpenAPI_MediaType *mt) {
 
 /**
  * @brief Frees the memory associated with parameter.
+ *
+ * @param[in,out] param The OpenAPI_Parameter structure to free.
  */
 void free_parameter(struct OpenAPI_Parameter *param) {
   if (!param)
@@ -323,6 +331,8 @@ void free_parameter(struct OpenAPI_Parameter *param) {
 
 /**
  * @brief Frees the memory associated with header.
+ *
+ * @param[in,out] hdr The OpenAPI_Header structure to free.
  */
 void free_header(struct OpenAPI_Header *hdr) {
   if (!hdr)
@@ -371,6 +381,8 @@ void free_header(struct OpenAPI_Header *hdr) {
 
 /**
  * @brief Frees the memory associated with response.
+ *
+ * @param[in,out] resp The OpenAPI_Response structure to free.
  */
 void free_response(struct OpenAPI_Response *resp) {
   size_t i;
@@ -430,6 +442,8 @@ void free_response(struct OpenAPI_Response *resp) {
 
 /**
  * @brief Frees the memory associated with request body.
+ *
+ * @param[in,out] rb The OpenAPI_RequestBody structure to free.
  */
 void free_request_body(struct OpenAPI_RequestBody *rb) {
   if (!rb)
@@ -468,6 +482,8 @@ void free_request_body(struct OpenAPI_RequestBody *rb) {
 
 /**
  * @brief Frees the memory associated with any value.
+ *
+ * @param[in,out] val The OpenAPI_Any value to free.
  */
 void free_any_value(struct OpenAPI_Any *val) {
   if (!val)
@@ -484,6 +500,8 @@ void free_any_value(struct OpenAPI_Any *val) {
 
 /**
  * @brief Frees the memory associated with link.
+ *
+ * @param[in,out] link The OpenAPI_Link structure to free.
  */
 void free_link(struct OpenAPI_Link *link) {
   size_t i;
@@ -523,6 +541,8 @@ void free_link(struct OpenAPI_Link *link) {
 
 /**
  * @brief Frees the memory associated with security requirement.
+ *
+ * @param[in,out] req The OpenAPI_SecurityRequirement structure to free.
  */
 void free_security_requirement(struct OpenAPI_SecurityRequirement *req) {
   size_t i;
@@ -542,6 +562,8 @@ void free_security_requirement(struct OpenAPI_SecurityRequirement *req) {
 
 /**
  * @brief Frees the memory associated with security requirement set.
+ *
+ * @param[in,out] set The OpenAPI_SecurityRequirementSet structure to free.
  */
 void free_security_requirement_set(struct OpenAPI_SecurityRequirementSet *set) {
   size_t i;
@@ -560,6 +582,8 @@ void free_security_requirement_set(struct OpenAPI_SecurityRequirementSet *set) {
 
 /**
  * @brief Frees the memory associated with example.
+ *
+ * @param[in,out] ex The OpenAPI_Example structure to free.
  */
 void free_example(struct OpenAPI_Example *ex) {
   if (!ex)

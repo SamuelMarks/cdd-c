@@ -11,6 +11,7 @@
  * @brief Standardizes GNU function-level extensions (inline assembly, magic
  * function name identifiers, and nested function trampolines).
  *
+ * @param[in,out] tree CST tree to transform.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree) {
@@ -89,6 +90,8 @@ cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree) {
 /**
  * @brief Applies GNU extension standardization transformations to the CST.
  *
+ * @param[in,out] tree CST tree to transform.
+ * @param[in] config Optional transformation configuration.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,

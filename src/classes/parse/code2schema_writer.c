@@ -12,6 +12,8 @@
  * @brief Writes the default value of a StructField to a JSON schema
  * object.
  *
+ * @param[in,out] pobj Target property JSON_Object.
+ * @param[in] field Source StructField descriptor.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t c2s_write_default_value(JSON_Object *pobj,
@@ -62,6 +64,8 @@ cdd_c_error_t c2s_write_default_value(JSON_Object *pobj,
  * @brief Writes numeric constraints of a StructField to a JSON schema
  * object.
  *
+ * @param[in,out] pobj Target property JSON_Object.
+ * @param[in] field Source StructField descriptor.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t c2s_write_numeric_constraints(JSON_Object *pobj,
@@ -90,6 +94,8 @@ cdd_c_error_t c2s_write_numeric_constraints(JSON_Object *pobj,
  * @brief Writes string constraints of a StructField to a JSON schema
  * object.
  *
+ * @param[in,out] pobj Target property JSON_Object.
+ * @param[in] field Source StructField descriptor.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t c2s_write_string_constraints(JSON_Object *pobj,
@@ -111,6 +117,8 @@ cdd_c_error_t c2s_write_string_constraints(JSON_Object *pobj,
  * @brief Writes array constraints of a StructField to a JSON schema
  * object.
  *
+ * @param[in,out] pobj Target property JSON_Object.
+ * @param[in] field Source StructField descriptor.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t c2s_write_array_constraints(JSON_Object *pobj,
@@ -131,6 +139,10 @@ cdd_c_error_t c2s_write_array_constraints(JSON_Object *pobj,
 /**
  * @brief Writes a type union array to a JSON schema object.
  *
+ * @param[in,out] obj Target schema or property JSON_Object.
+ * @param[in] type Fallback single type string when `type_union` is NULL.
+ * @param[in] type_union Optional array of type union strings.
+ * @param[in] n_type_union Number of strings in `type_union`.
  * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t c2s_write_type_union(JSON_Object *obj, const char *type,
@@ -164,6 +176,9 @@ cdd_c_error_t c2s_write_type_union(JSON_Object *obj, const char *type,
 /**
  * @brief Writes a StructFields representation to a JSON Schema object.
  *
+ * @param[in,out] schemas_obj Target `components.schemas` JSON_Object.
+ * @param[in] struct_name Name of the schema/struct.
+ * @param[in] sf Source StructFields container to serialize.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,

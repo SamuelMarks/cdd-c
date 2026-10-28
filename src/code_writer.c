@@ -100,6 +100,8 @@ static cdd_c_error_t writer_emit_indent_if_needed(cdd_code_writer_t *writer) {
 /**
  * @brief Initializes a code writer backed by an open `FILE *` stream.
  *
+ * @param[out] writer Pointer to the code writer structure to initialize.
+ * @param[in,out] fp Open file stream to write output to.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t cdd_code_writer_init_stream(cdd_code_writer_t *writer, FILE *fp) {
@@ -116,6 +118,7 @@ cdd_c_error_t cdd_code_writer_init_stream(cdd_code_writer_t *writer, FILE *fp) {
 /**
  * @brief Initializes a code writer backed by a dynamically growing heap buffer.
  *
+ * @param[out] writer Pointer to the code writer structure to initialize.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t cdd_code_writer_init_buffer(cdd_code_writer_t *writer) {
@@ -131,6 +134,7 @@ cdd_c_error_t cdd_code_writer_init_buffer(cdd_code_writer_t *writer) {
 /**
  * @brief Releases any heap buffer owned by the code writer.
  *
+ * @param[in,out] writer Pointer to the code writer structure to free.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t cdd_code_writer_free(cdd_code_writer_t *writer) {
@@ -148,6 +152,7 @@ cdd_c_error_t cdd_code_writer_free(cdd_code_writer_t *writer) {
 /**
  * @brief Increases the current indentation level by one step.
  *
+ * @param[in,out] writer Target code writer.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t cdd_code_writer_indent(cdd_code_writer_t *writer) {
@@ -160,6 +165,7 @@ cdd_c_error_t cdd_code_writer_indent(cdd_code_writer_t *writer) {
 /**
  * @brief Decreases the current indentation level by one step (clamped to 0).
  *
+ * @param[in,out] writer Target code writer.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t cdd_code_writer_dedent(cdd_code_writer_t *writer) {
@@ -174,6 +180,8 @@ cdd_c_error_t cdd_code_writer_dedent(cdd_code_writer_t *writer) {
  * @brief Writes a raw string, automatically applying indentation at line
  * starts.
  *
+ * @param[in,out] writer Target code writer.
+ * @param[in] text Null-terminated string to write.
  * @return CDD_C_SUCCESS on success, or error code on I/O or OOM failure.
  */
 cdd_c_error_t cdd_code_writer_write(cdd_code_writer_t *writer,
@@ -222,6 +230,8 @@ cdd_c_error_t cdd_code_writer_write(cdd_code_writer_t *writer,
 /**
  * @brief Writes a string followed by a newline character (`\n`).
  *
+ * @param[in,out] writer Target code writer.
+ * @param[in] line Null-terminated line string to write.
  * @return CDD_C_SUCCESS on success, or error code on I/O or OOM failure.
  */
 cdd_c_error_t cdd_code_writer_writeln(cdd_code_writer_t *writer,
@@ -238,6 +248,8 @@ cdd_c_error_t cdd_code_writer_writeln(cdd_code_writer_t *writer,
 /**
  * @brief Formats and writes a `printf`-style string to the code writer.
  *
+ * @param[in,out] writer Target code writer.
+ * @param[in] fmt Printf-style format string.
  * @return CDD_C_SUCCESS on success, or error code on I/O or OOM failure.
  */
 cdd_c_error_t cdd_code_writer_printf(cdd_code_writer_t *writer, const char *fmt,
@@ -291,6 +303,8 @@ cdd_c_error_t cdd_code_writer_printf(cdd_code_writer_t *writer, const char *fmt,
 /**
  * @brief Checks if any sticky error occurred on the code writer.
  *
+ * @param[in] writer Code writer to inspect.
+ * @param[out] out_err Output pointer receiving the sticky error code.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t cdd_code_writer_check_error(const cdd_code_writer_t *writer,
@@ -305,6 +319,8 @@ cdd_c_error_t cdd_code_writer_check_error(const cdd_code_writer_t *writer,
  * @brief Transfers ownership of the dynamically allocated string buffer to the
  * caller.
  *
+ * @param[in,out] writer Buffer-backed code writer.
+ * @param[out] out_str Output pointer receiving the null-terminated string.
  * @return CDD_C_SUCCESS on success, or error code if the writer encountered an
  * error.
  */

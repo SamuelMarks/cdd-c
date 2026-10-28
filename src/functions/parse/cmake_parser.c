@@ -53,6 +53,9 @@ static cdd_c_error_t my_strdup(const char *s, char **out_val) {
 /**
  * @brief Initializes a CMakeLists.txt modification context.
  *
+ * @param[out] mod Pointer to the CMakeModifier structure to initialize.
+ * @param[in] filepath Path to the target `CMakeLists.txt` file.
+ * @param[in] target_name Optional CMake target name (may be NULL).
  * @return 0 on success, ENOMEM on failure.
  */
 cdd_c_error_t cmake_modifier_init(struct CMakeModifier *mod,
@@ -83,6 +86,8 @@ cdd_c_error_t cmake_modifier_init(struct CMakeModifier *mod,
 /**
  * @brief Registers a compiler option to inject into a CMake target.
  *
+ * @param[in,out] mod CMakeModifier context to update.
+ * @param[in] opt Compiler option string to append.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t cmake_modifier_add_compile_opt(struct CMakeModifier *mod,
@@ -122,6 +127,8 @@ cdd_c_error_t cmake_modifier_add_compile_opt(struct CMakeModifier *mod,
 /**
  * @brief Registers a link library to inject into a CMake target.
  *
+ * @param[in,out] mod CMakeModifier context to update.
+ * @param[in] lib Library name string to append.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t cmake_modifier_add_link_lib(struct CMakeModifier *mod,
@@ -159,6 +166,8 @@ cdd_c_error_t cmake_modifier_add_link_lib(struct CMakeModifier *mod,
 
 /**
  * @brief Releases memory held by a CMake modifier context.
+ *
+ * @param[in,out] mod Pointer to the CMakeModifier context to free.
  */
 void cmake_modifier_free(struct CMakeModifier *mod) {
   size_t i;
@@ -262,6 +271,9 @@ static cdd_c_error_t read_file_to_string(const char *filename, size_t *out_len,
  * @brief Applies registered compile options and libraries to a CMakeLists.txt
  * file.
  *
+ * @param[in] mod Configured CMakeModifier context.
+ * @param[out] out_diff Output pointer receiving the newly allocated unified
+ * diff string.
  * @return 0 on success.
  */
 cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,

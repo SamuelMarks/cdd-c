@@ -192,6 +192,8 @@ C_CDD_EXPORT cdd_c_error_t print_help(const char *program_name) {
  * correct sub-command: `to_sdk`, `to_sdk_cli`, or `to_server`.
  * Generates C bindings, structs, and implementations.
  *
+ * @param[in] argc Number of command-line arguments.
+ * @param[in] argv Array of command-line argument strings.
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
@@ -294,6 +296,8 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
  * Invokes the internal C-to-OpenAPI translation logic and writes the
  * result.
  *
+ * @param[in] argc Number of command-line arguments.
+ * @param[in] argv Array of command-line argument strings.
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
@@ -336,6 +340,8 @@ C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
  * @brief Handles the `from_arazzo` command generating C SDK workflows, CLI, or
  * Server orchestrator from an Arazzo v1.1.0 specification.
  *
+ * @param[in] argc Number of command-line arguments.
+ * @param[in] argv Array of command-line argument strings.
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t from_arazzo_cli_main(int argc, char **argv) {
@@ -386,6 +392,8 @@ C_CDD_EXPORT cdd_c_error_t from_arazzo_cli_main(int argc, char **argv) {
  * @brief Handles the `to_arazzo` command extracting an Arazzo v1.1.0
  * specification from C source/header files.
  *
+ * @param[in] argc Number of command-line arguments.
+ * @param[in] argv Array of command-line argument strings.
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t to_arazzo_cli_main(int argc, char **argv) {
@@ -405,6 +413,8 @@ C_CDD_EXPORT cdd_c_error_t to_arazzo_cli_main(int argc, char **argv) {
  *
  * Implements the command routing and prints help or error outputs as needed.
  *
+ * @param[in] argc Number of command-line arguments.
+ * @param[in] argv Array of command-line argument strings.
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {

@@ -35,7 +35,10 @@ write_multipart_schema(JSON_Object *parent, const char *key,
                        const struct OpenAPI_SchemaRef *ref);
 
 /**
- * @brief Checks whether an OpenAPI_SchemaRef contains any serializable fields.
+ * @brief Checks if a schema reference structure contains any data.
+ *
+ * @param[in] ref The schema reference to check.
+ * @return CDD_C_SUCCESS if empty, non-zero error/status if populated.
  */
 C_CDD_EXPORT cdd_c_error_t
 schema_ref_has_data(const struct OpenAPI_SchemaRef *ref) {
@@ -65,7 +68,12 @@ schema_ref_has_data(const struct OpenAPI_SchemaRef *ref) {
 }
 
 /**
- * @brief Serializes the OpenAPI schema type into the target JSON object.
+ * @brief Writes schema type field to JSON object.
+ *
+ * @param[in,out] obj The JSON object to populate.
+ * @param[in] type The type name string.
+ * @param[in] nullable Non-zero if the type is nullable.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t write_schema_type(JSON_Object *obj, const char *type,
                                              int nullable) {
@@ -88,8 +96,12 @@ C_CDD_EXPORT cdd_c_error_t write_schema_type(JSON_Object *obj, const char *type,
 }
 
 /**
- * @brief Checks whether a JSON Schema type union array includes a specific type
- * name.
+ * @brief Checks if a type union contains a specific string value.
+ *
+ * @param[in] types Array of type strings.
+ * @param[in] n_types Number of elements in types array.
+ * @param[in] value The string value to search for.
+ * @return CDD_C_ERROR_UNKNOWN if found, CDD_C_SUCCESS if not found.
  */
 C_CDD_EXPORT cdd_c_error_t type_union_contains(char **types, size_t n_types,
                                                const char *value) {
@@ -104,7 +116,14 @@ C_CDD_EXPORT cdd_c_error_t type_union_contains(char **types, size_t n_types,
 }
 
 /**
- * @brief Serializes the OpenAPI schema type union into the target JSON object.
+ * @brief Writes schema type union field to JSON object.
+ *
+ * @param[in,out] obj The JSON object to populate.
+ * @param[in] type The default type name string.
+ * @param[in] nullable Non-zero if the type is nullable.
+ * @param[in] type_union Array of union type strings.
+ * @param[in] n_type_union Number of elements in type_union array.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t write_schema_type_union(JSON_Object *obj,
                                                    const char *type,
@@ -136,7 +155,13 @@ C_CDD_EXPORT cdd_c_error_t write_schema_type_union(JSON_Object *obj,
 }
 
 /**
- * @brief Serializes an array of OpenAPI_Any enum values into a JSON object.
+ * @brief Writes enum any values array to JSON object.
+ *
+ * @param[in,out] obj The JSON object to populate.
+ * @param[in] key The JSON key name.
+ * @param[in] values Array of any values.
+ * @param[in] n_values Number of values.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_enum_any_values(JSON_Object *obj, const char *key,
@@ -167,7 +192,13 @@ write_enum_any_values(JSON_Object *obj, const char *key,
 }
 
 /**
- * @brief Serializes the OpenAPI any array values into the target JSON object.
+ * @brief Writes any array values to JSON object.
+ *
+ * @param[in,out] obj The JSON object to populate.
+ * @param[in] key The JSON key name.
+ * @param[in] values Array of any values.
+ * @param[in] n_values Number of values.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_any_array_values(JSON_Object *obj, const char *key,
@@ -176,7 +207,11 @@ write_any_array_values(JSON_Object *obj, const char *key,
 }
 
 /**
- * @brief Converts a variant OpenAPI_Any value into a Parson JSON_Value.
+ * @brief Converts an OpenAPI_Any value to a Parson JSON_Value.
+ *
+ * @param[in] val The OpenAPI_Any value.
+ * @param[out] _out_val Pointer to the allocated JSON_Value.
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_MEMORY on allocation failure.
  */
 C_CDD_EXPORT cdd_c_error_t any_to_json_value(const struct OpenAPI_Any *val,
                                              JSON_Value **_out_val) {
@@ -284,8 +319,16 @@ static cdd_c_error_t write_schema_example(JSON_Object *obj,
 }
 
 /**
- * @brief Serializes the OpenAPI numeric constraints into the target JSON
- * object.
+ * @brief Writes numeric constraint fields to a JSON schema object.
+ *
+ * @param[in,out] obj The JSON schema object.
+ * @param[in] has_min Non-zero if minimum is set.
+ * @param[in] min_val Minimum numeric value.
+ * @param[in] exclusive_min Non-zero if minimum is exclusive.
+ * @param[in] has_max Non-zero if maximum is set.
+ * @param[in] max_val Maximum numeric value.
+ * @param[in] exclusive_max Non-zero if maximum is exclusive.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t write_numeric_constraints(
     JSON_Object *obj, int has_min, double min_val, int exclusive_min,
@@ -312,7 +355,15 @@ C_CDD_EXPORT cdd_c_error_t write_numeric_constraints(
 }
 
 /**
- * @brief Serializes the OpenAPI string constraints into the target JSON object.
+ * @brief Writes string constraint fields to a JSON schema object.
+ *
+ * @param[in,out] obj The JSON schema object.
+ * @param[in] has_min_len Non-zero if minLength is set.
+ * @param[in] min_len Minimum string length.
+ * @param[in] has_max_len Non-zero if maxLength is set.
+ * @param[in] max_len Maximum string length.
+ * @param[in] pattern Optional regex pattern string.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_string_constraints(JSON_Object *obj, int has_min_len, size_t min_len,
@@ -329,7 +380,15 @@ write_string_constraints(JSON_Object *obj, int has_min_len, size_t min_len,
 }
 
 /**
- * @brief Serializes the OpenAPI array constraints into the target JSON object.
+ * @brief Writes array constraint fields to a JSON schema object.
+ *
+ * @param[in,out] obj The JSON schema object.
+ * @param[in] has_min_items Non-zero if minItems is set.
+ * @param[in] min_items Minimum item count.
+ * @param[in] has_max_items Non-zero if maxItems is set.
+ * @param[in] max_items Maximum item count.
+ * @param[in] unique_items Non-zero if uniqueItems is true.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_array_constraints(JSON_Object *obj, int has_min_items, size_t min_items,
@@ -346,8 +405,11 @@ write_array_constraints(JSON_Object *obj, int has_min_items, size_t min_items,
 }
 
 /**
- * @brief Serializes the OpenAPI items schema fields into the target JSON
- * object.
+ * @brief Writes items schema fields for an array schema.
+ *
+ * @param[in,out] item_obj The items JSON schema object.
+ * @param[in] ref The OpenAPI schema reference holding item constraints.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t write_items_schema_fields(
     JSON_Object *item_obj, const struct OpenAPI_SchemaRef *ref) {
@@ -403,7 +465,11 @@ C_CDD_EXPORT cdd_c_error_t write_items_schema_fields(
 }
 
 /**
- * @brief Determines whether to emit $ref or $dynamicRef for a schema reference.
+ * @brief Resolves the schema ref keyword string ($ref or $dynamicRef).
+ *
+ * @param[in] is_dynamic Flag indicating if dynamic ref is used.
+ * @param[out] _out_val Pointer to the keyword string output.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t schema_ref_keyword(int is_dynamic, char **_out_val) {
   {
@@ -413,10 +479,12 @@ C_CDD_EXPORT cdd_c_error_t schema_ref_keyword(int is_dynamic, char **_out_val) {
 }
 
 /**
- * @brief Write a Schema Reference object (or inline Type).
+ * @brief Writes schema reference or inline definition to parent object.
  *
- * Handles `$ref`, `type: array`, and basic types.
- * Populates `parent` at `key` (e.g. key="schema").
+ * @param[in,out] parent The parent JSON object.
+ * @param[in] key Property key name.
+ * @param[in] ref The schema reference structure.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t write_schema_ref(
     JSON_Object *parent, const char *key, const struct OpenAPI_SchemaRef *ref) {
@@ -657,8 +725,14 @@ C_CDD_EXPORT cdd_c_error_t write_schema_ref(
 }
 
 /**
- * @brief Serializes the OpenAPI schema from type fields into the target JSON
- * object.
+ * @brief Constructs and writes schema from simple type and items type strings.
+ *
+ * @param[in,out] parent The parent JSON object.
+ * @param[in] key Property key name.
+ * @param[in] type Type name string.
+ * @param[in] is_array Non-zero if array type.
+ * @param[in] items_type Items type string for arrays.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t write_schema_from_type_fields(
     JSON_Object *parent, const char *key, const char *type, int is_array,

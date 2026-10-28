@@ -25,8 +25,12 @@
 #endif
 
 /**
- * @brief Generates a C HTTP server implementation and test stub from an OpenAPI
+ * @brief Generates a standalone C HTTP server implementation from an OpenAPI
  * specification.
+ *
+ * @param[in] spec The parsed OpenAPI specification.
+ * @param[in] config Client/Server generator configuration.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t
 openapi_server_generate(const struct OpenAPI_Spec *spec,

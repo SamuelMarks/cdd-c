@@ -13,6 +13,7 @@
 /**
  * @brief Logs a debug message to stderr when DEBUG is enabled.
  *
+ * @param[in] fmt Printf-style format string.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if fmt is
  * NULL.
  */

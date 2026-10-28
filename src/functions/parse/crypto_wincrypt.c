@@ -276,6 +276,9 @@ cleanup:
  * @brief Computes a 32-byte SHA-256 digest over a data buffer (non-Windows
  * stub).
  *
+ * @param[in] data Pointer to the input buffer to hash.
+ * @param[in] data_len Length of the input buffer in bytes.
+ * @param[out] out_digest Output buffer receiving the 32-byte SHA-256 digest.
  * @return `CDD_C_ERROR_SYSTEM` when compiled without Windows CAPI.
  */
 cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
@@ -289,6 +292,11 @@ cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
  * @brief Computes a 32-byte HMAC-SHA256 digest over a data buffer (non-Windows
  * stub).
  *
+ * @param[in] key Secret key bytes.
+ * @param[in] key_len Length of `key` in bytes.
+ * @param[in] data Message payload bytes to authenticate.
+ * @param[in] data_len Length of `data` in bytes.
+ * @param[out] out_mac Output buffer receiving the 32-byte HMAC-SHA256 tag.
  * @return `CDD_C_ERROR_SYSTEM` when compiled without Windows CAPI.
  */
 cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,

@@ -876,6 +876,10 @@ static cdd_c_error_t parse_primary(parser_t *p, cdd_macro_eval_result_t *out) {
  * @brief Evaluates a C macro value expression into an integer, float, or string
  * constant.
  *
+ * @param[in] ctx Preprocessor context containing defined macros.
+ * @param[in] expression C macro value expression string to evaluate.
+ * @param[out] out_result Output structure receiving the evaluated constant
+ * value.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` on
  * parse/evaluation failure.
  */
@@ -917,6 +921,9 @@ cdd_c_error_t cdd_macro_evaluate(struct PreprocessorContext *ctx,
 
 /**
  * @brief Frees any dynamically allocated string payload in `result`.
+ *
+ * @param[in,out] result Pointer to the evaluated macro result structure to
+ * free.
  */
 void cdd_macro_eval_result_free(cdd_macro_eval_result_t *result) {
   if (result->str_val) {

@@ -13,6 +13,10 @@
 
 /**
  * @brief Parses HTTP verb string to enum.
+ *
+ * @param[in] v The HTTP verb string.
+ * @param[out] _out_val Output verb enum value.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t parse_verb(const char *v, enum OpenAPI_Verb *_out_val) {
   if (!_out_val)
@@ -63,6 +67,9 @@ cdd_c_error_t parse_verb(const char *v, enum OpenAPI_Verb *_out_val) {
 
 /**
  * @brief Checks if fixed operation method.
+ *
+ * @param[in] method The HTTP method string to check.
+ * @return Non-zero if fixed operation method, CDD_C_SUCCESS otherwise.
  */
 cdd_c_error_t is_fixed_operation_method(const char *method) {
   size_t i;
@@ -85,6 +92,10 @@ cdd_c_error_t is_fixed_operation_method(const char *method) {
 
 /**
  * @brief Parses param in from the given input.
+ *
+ * @param[in] in The parameter location string.
+ * @param[out] _out_val Output parameter location enum value.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t parse_param_in(const char *in, enum OpenAPI_ParamIn *_out_val) {
   if (!_out_val)
@@ -127,6 +138,10 @@ cdd_c_error_t parse_param_in(const char *in, enum OpenAPI_ParamIn *_out_val) {
 
 /**
  * @brief Parses param style from the given input.
+ *
+ * @param[in] s The parameter style string.
+ * @param[out] _out_val Output parameter style enum value.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t parse_param_style(const char *s, enum OpenAPI_Style *_out_val) {
   if (!_out_val)
@@ -173,6 +188,9 @@ cdd_c_error_t parse_param_style(const char *s, enum OpenAPI_Style *_out_val) {
 
 /**
  * @brief Checks whether an OpenAPI parameter type name is a scalar primitive.
+ *
+ * @param[in] type The parameter type string.
+ * @return Non-zero if primitive, CDD_C_SUCCESS otherwise.
  */
 cdd_c_error_t param_type_is_primitive(const char *type) {
   if (!type)
@@ -184,6 +202,9 @@ cdd_c_error_t param_type_is_primitive(const char *type) {
 /**
  * @brief Checks whether an OpenAPI parameter represents an object or map
  * structure.
+ *
+ * @param[in] p The OpenAPI parameter structure.
+ * @return Non-zero if object-like, CDD_C_SUCCESS otherwise.
  */
 cdd_c_error_t param_type_is_object_like(const struct OpenAPI_Parameter *p) {
   if (!p || !p->type)
@@ -194,8 +215,12 @@ cdd_c_error_t param_type_is_object_like(const struct OpenAPI_Parameter *p) {
 }
 
 /**
- * @brief Validates that an OpenAPI parameter style is compatible with its
- * location and type.
+ * @brief Validates that a parameter's style and type combination is legal.
+ *
+ * @param[in] p Parameter to validate.
+ * @param[in] has_content Non-zero if parameter uses `content` instead of
+ * `schema`.
+ * @return CDD_C_SUCCESS on valid style, or CDD_C_ERROR_INVALID_ARGUMENT.
  */
 cdd_c_error_t validate_parameter_style(const struct OpenAPI_Parameter *p,
                                        int has_content) {
@@ -245,8 +270,11 @@ cdd_c_error_t validate_parameter_style(const struct OpenAPI_Parameter *p,
 }
 
 /**
- * @brief Checks whether a component map key conforms to OpenAPI identifier
- * regex rules.
+ * @brief Checks if a component map key matches `^[a-zA-Z0-9._-]+$`.
+ *
+ * @param[in] name Component key string.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if valid, CDD_C_SUCCESS (0) if
+ * invalid.
  */
 cdd_c_error_t component_key_is_valid(const char *name) {
   size_t i;
@@ -261,7 +289,11 @@ cdd_c_error_t component_key_is_valid(const char *name) {
 }
 
 /**
- * @brief media type key is valid.
+ * @brief Checks if a media type component key is valid.
+ *
+ * @param[in] name Media type key string.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if valid, CDD_C_SUCCESS (0) if
+ * invalid.
  */
 cdd_c_error_t media_type_key_is_valid(const char *name) {
   size_t i;
@@ -277,8 +309,10 @@ cdd_c_error_t media_type_key_is_valid(const char *name) {
 }
 
 /**
- * @brief Validates all keys in a components sub-object against OpenAPI naming
- * rules.
+ * @brief Validates all keys in a components sub-map.
+ *
+ * @param[in] obj JSON object representing a component map.
+ * @return CDD_C_SUCCESS if all keys are valid, or CDD_C_ERROR_INVALID_ARGUMENT.
  */
 cdd_c_error_t validate_component_key_map(const JSON_Object *obj) {
   size_t i, count;
@@ -294,7 +328,10 @@ cdd_c_error_t validate_component_key_map(const JSON_Object *obj) {
 }
 
 /**
- * @brief validate media type key map.
+ * @brief Validates all keys in `components.mediaTypes`.
+ *
+ * @param[in] obj JSON object representing the `mediaTypes` map.
+ * @return CDD_C_SUCCESS if all keys are valid, or CDD_C_ERROR_INVALID_ARGUMENT.
  */
 cdd_c_error_t validate_media_type_key_map(const JSON_Object *obj) {
   size_t i, count;
@@ -311,6 +348,9 @@ cdd_c_error_t validate_media_type_key_map(const JSON_Object *obj) {
 
 /**
  * @brief Checks case-insensitively whether a header name is Content-Type.
+ *
+ * @param[in] name The header name string.
+ * @return Non-zero if Content-Type, CDD_C_SUCCESS otherwise.
  */
 cdd_c_error_t header_name_is_content_type(const char *name) {
   int eq = 0;
@@ -328,6 +368,9 @@ cdd_c_error_t header_name_is_content_type(const char *name) {
 /**
  * @brief Checks whether an HTTP header name is reserved by OpenAPI (Accept,
  * Content-Type, Authorization).
+ *
+ * @param[in] param The OpenAPI parameter structure.
+ * @return Non-zero if reserved header, CDD_C_SUCCESS otherwise.
  */
 cdd_c_error_t header_param_is_reserved(const struct OpenAPI_Parameter *param) {
   size_t i;
@@ -349,6 +392,10 @@ cdd_c_error_t header_param_is_reserved(const struct OpenAPI_Parameter *param) {
 
 /**
  * @brief Parses security type from the given input.
+ *
+ * @param[in] type The security type string.
+ * @param[out] _out_val Output security type enum value.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t parse_security_type(const char *type,
                                   enum OpenAPI_SecurityType *_out_val) {
@@ -384,6 +431,10 @@ cdd_c_error_t parse_security_type(const char *type,
 
 /**
  * @brief Parses security in from the given input.
+ *
+ * @param[in] in The security location string.
+ * @param[out] _out_val Output security location enum value.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t parse_security_in(const char *in,
                                 enum OpenAPI_SecurityIn *_out_val) {
@@ -411,6 +462,10 @@ cdd_c_error_t parse_security_in(const char *in,
 
 /**
  * @brief Parses oauth flow type from the given input.
+ *
+ * @param[in] flow The OAuth flow type string.
+ * @param[out] _out_val Output OAuth flow type enum value.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t parse_oauth_flow_type(const char *flow,
                                     enum OpenAPI_OAuthFlowType *_out_val) {
@@ -446,6 +501,10 @@ cdd_c_error_t parse_oauth_flow_type(const char *flow,
 
 /**
  * @brief Parses xml node type from the given input.
+ *
+ * @param[in] node_type The XML node type string.
+ * @param[out] _out_val Output XML node type enum value.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t parse_xml_node_type(const char *node_type,
                                   enum OpenAPI_XmlNodeType *_out_val) {
@@ -481,6 +540,10 @@ cdd_c_error_t parse_xml_node_type(const char *node_type,
 
 /**
  * @brief Parses any value from the given input.
+ *
+ * @param[in] val The source JSON value.
+ * @param[out] out Output OpenAPI_Any structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_any_value(const JSON_Value *val, struct OpenAPI_Any *out) {
   JSON_Value_Type t;
@@ -534,6 +597,12 @@ cdd_c_error_t parse_any_value(const JSON_Value *val, struct OpenAPI_Any *out) {
 
 /**
  * @brief Parses any field from the given input.
+ *
+ * @param[in] obj The source JSON object.
+ * @param[in] key The field key name.
+ * @param[out] out Output OpenAPI_Any structure.
+ * @param[out] out_set Output flag set to 1 if field was present.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_any_field(const JSON_Object *obj, const char *key,
                               struct OpenAPI_Any *out, int *out_set) {
@@ -554,6 +623,11 @@ cdd_c_error_t parse_any_field(const JSON_Object *obj, const char *key,
 
 /**
  * @brief Parses any array from the given input.
+ *
+ * @param[in] arr The source JSON array.
+ * @param[out] out Output array of OpenAPI_Any structures.
+ * @param[out] out_count Output count of parsed elements.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_any_array(const JSON_Array *arr, struct OpenAPI_Any **out,
                               size_t *out_count) {
@@ -593,6 +667,11 @@ cdd_c_error_t parse_any_array(const JSON_Array *arr, struct OpenAPI_Any **out,
 
 /**
  * @brief Checks whether a string key already exists in a list of strings.
+ *
+ * @param[in] key The key string to search for.
+ * @param[in] list Array of string keys.
+ * @param[in] count Number of elements in list.
+ * @return Non-zero if found, CDD_C_SUCCESS otherwise.
  */
 cdd_c_error_t key_in_list(const char *key, const char **list, size_t count) {
   size_t i;
@@ -607,6 +686,9 @@ cdd_c_error_t key_in_list(const char *key, const char **list, size_t count) {
 
 /**
  * @brief Checks if extension key.
+ *
+ * @param[in] key The property key name.
+ * @return Non-zero if key starts with x-, CDD_C_SUCCESS otherwise.
  */
 cdd_c_error_t is_extension_key(const char *key) {
   return (key && key[0] == 'x' && key[1] == '-') ? CDD_C_ERROR_UNKNOWN
@@ -615,6 +697,10 @@ cdd_c_error_t is_extension_key(const char *key) {
 
 /**
  * @brief Deep-copies a Parson JSON_Value via serialization round-trip.
+ *
+ * @param[in] val The source JSON value to clone.
+ * @param[out] _out_val Pointer to the cloned JSON value output.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
   char *serialized;
@@ -665,6 +751,12 @@ cdd_c_error_t clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
 
 /**
  * @brief Collects schema extras.
+ *
+ * @param[in] obj The source JSON object.
+ * @param[in] skip_keys Array of known keys to skip.
+ * @param[in] skip_count Number of keys in skip_keys.
+ * @param[out] out_json Output serialized JSON string of extra properties.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t collect_schema_extras(const JSON_Object *obj,
                                     const char **skip_keys, size_t skip_count,
@@ -750,6 +842,10 @@ cdd_c_error_t collect_schema_extras(const JSON_Object *obj,
 
 /**
  * @brief Collects extensions.
+ *
+ * @param[in] obj The source JSON object.
+ * @param[out] out_json Output serialized JSON string of x- extensions.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t collect_extensions(const JSON_Object *obj, char **out_json) {
   JSON_Value *extras_val;
@@ -832,8 +928,11 @@ cdd_c_error_t collect_extensions(const JSON_Object *obj, char **out_json) {
 }
 
 /**
- * @brief Checks whether a URL string contains a query (?) or fragment (#)
- * component.
+ * @brief Checks if a URL string contains a query (`?`) or fragment (`#`).
+ *
+ * @param[in] url URL string to inspect.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if query or fragment is present,
+ * CDD_C_SUCCESS (0) otherwise.
  */
 cdd_c_error_t url_has_query_or_fragment(const char *url) {
   if (!url)
@@ -844,7 +943,12 @@ cdd_c_error_t url_has_query_or_fragment(const char *url) {
 }
 
 /**
- * @brief Checks whether an openapi version string is a supported 3.x version.
+ * @brief Checks if an OpenAPI version string (`3.0.x`, `3.1.x`, `3.2.x`) is
+ * supported.
+ *
+ * @param[in] version Version string.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if supported, CDD_C_SUCCESS (0)
+ * otherwise.
  */
 cdd_c_error_t openapi_version_supported(const char *version) {
   if (!version || !*version)
@@ -856,8 +960,11 @@ cdd_c_error_t openapi_version_supported(const char *version) {
 }
 
 /**
- * @brief Validates mutual exclusivity of value, dataValue, serializedValue, and
- * externalValue in an Example.
+ * @brief Checks if an Example object's mutual exclusion rules are satisfied.
+ *
+ * @param[in] ex Example structure to check.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if valid, CDD_C_SUCCESS (0) if
+ * invalid.
  */
 cdd_c_error_t example_fields_valid(const struct OpenAPI_Example *ex) {
   if (!ex)
@@ -872,8 +979,11 @@ cdd_c_error_t example_fields_valid(const struct OpenAPI_Example *ex) {
 }
 
 /**
- * @brief Checks whether a JSON object illegally specifies both example and
- * examples.
+ * @brief Checks if a JSON object contains both `example` and `examples`.
+ *
+ * @param[in] obj JSON object to inspect.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if both are present, CDD_C_SUCCESS (0)
+ * otherwise.
  */
 cdd_c_error_t object_has_example_and_examples(const JSON_Object *obj) {
   if (!obj)

@@ -19,7 +19,12 @@
 /* clang-format on */
 
 /**
- * @brief Retrieves the server variable.
+ * @brief Finds a server variable by name in an OpenAPI Server object.
+ *
+ * @param[in] srv The OpenAPI Server structure.
+ * @param[in] name The variable name to find.
+ * @param[out] _out_val Output pointer to the found variable, or NULL.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t
 find_server_variable(const struct OpenAPI_Server *srv, const char *name,
@@ -43,8 +48,12 @@ find_server_variable(const struct OpenAPI_Server *srv, const char *name,
 }
 
 /**
- * @brief Expands a Server URL template substituting each variable with its
- * default value.
+ * @brief Renders a Server URL substituting default values for template
+ * variables.
+ *
+ * @param[in] srv The OpenAPI Server structure.
+ * @param[out] _out_val Newly allocated rendered URL string.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
                                         char **_out_val) {
@@ -137,8 +146,12 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
 }
 
 /**
- * @brief Escapes special characters in a string for safe embedding in a C
- * string literal.
+ * @brief Escapes backslashes and quotes in a string for C string literal
+ * emission.
+ *
+ * @param[in] s Input string.
+ * @param[out] _out_val Newly allocated escaped string.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t escape_c_string_literal(const char *s, char **_out_val) {
   size_t i;
@@ -207,7 +220,13 @@ cdd_c_error_t escape_c_string_literal(const char *s, char **_out_val) {
 }
 
 /**
- * @brief Selects the most specific Server override for an operation or path.
+ * @brief Selects the effective OpenAPI Server for an operation (operation-level
+ * or path-level).
+ *
+ * @param[in] path Enclosing OpenAPI Path item.
+ * @param[in] op OpenAPI Operation structure.
+ * @param[out] _out_val Output pointer to the selected Server, or NULL.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t select_operation_server(const struct OpenAPI_Path *path,
                                       const struct OpenAPI_Operation *op,
@@ -227,8 +246,11 @@ cdd_c_error_t select_operation_server(const struct OpenAPI_Path *path,
 }
 
 /**
- * @brief Builds a C string literal expression for an operation base URL
- * override.
+ * @brief Builds a C string literal expression for a base URL.
+ *
+ * @param[in] url Raw URL string.
+ * @param[out] _out_val Newly allocated C string literal expression.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t build_base_url_literal(const char *url, char **_out_val) {
   char *escaped = NULL;
@@ -268,10 +290,11 @@ cdd_c_error_t build_base_url_literal(const char *url, char **_out_val) {
 }
 
 /**
- * @brief Generate a sanitized uppercase Include Guard macro.
- */
-/**
- * @brief Generates guard.
+ * @brief Generates an uppercase C header include guard from a base name.
+ *
+ * @param[in] base Base filename string.
+ * @param[out] _out_val Newly allocated include guard string.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t generate_guard(const char *base, char **_out_val) {
   char *g;
@@ -301,10 +324,11 @@ cdd_c_error_t generate_guard(const char *base, char **_out_val) {
 }
 
 /**
- * @brief Derive the model header name if not provided.
- */
-/**
- * @brief Derives the model header filename from a client base filename.
+ * @brief Derives the default model header filename from a base name.
+ *
+ * @param[in] base Base filename string.
+ * @param[out] _out_val Newly allocated model header filename.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t derive_model_header(const char *base, char **_out_val) {
   char *m;
@@ -327,14 +351,11 @@ cdd_c_error_t derive_model_header(const char *base, char **_out_val) {
 }
 
 /**
- * @brief Sanitize a tag string to be a valid C identifier part.
- * Converts non-alphanumeric characters to underscores.
- * Capitalizes the first letter for style matching (e.g. "pet" -> "Pet").
+ * @brief Sanitizes an OpenAPI tag name into a valid C identifier segment.
  *
- */
-/**
- * @brief Sanitizes an OpenAPI tag name into a C-safe identifier prefix.
- *
+ * @param[in] tag Raw tag string.
+ * @param[out] _out_val Newly allocated sanitized tag string.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t sanitize_tag(const char *tag, char **_out_val) {
   char *s;
@@ -365,8 +386,11 @@ cdd_c_error_t sanitize_tag(const char *tag, char **_out_val) {
 }
 
 /**
- * @brief Checks whether two OpenAPI parameters share the same name and
- * location.
+ * @brief Checks if two OpenAPI parameters share the same name and location.
+ *
+ * @param[in] a First OpenAPI parameter.
+ * @param[in] b Second OpenAPI parameter.
+ * @return Non-zero if matching, CDD_C_SUCCESS otherwise.
  */
 cdd_c_error_t param_keys_match(const struct OpenAPI_Parameter *a,
                                const struct OpenAPI_Parameter *b) {
@@ -376,8 +400,14 @@ cdd_c_error_t param_keys_match(const struct OpenAPI_Parameter *a,
 }
 
 /**
- * @brief Merges path-level and operation-level parameters with operation
- * overrides.
+ * @brief Merges path-level and operation-level parameters into an effective
+ * parameter list.
+ *
+ * @param[in] path Enclosing OpenAPI Path item.
+ * @param[in] op OpenAPI Operation structure.
+ * @param[out] out_params Output array of merged parameters.
+ * @param[out] out_count Output count of merged parameters.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t build_effective_parameters(const struct OpenAPI_Path *path,
                                          const struct OpenAPI_Operation *op,

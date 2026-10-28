@@ -235,6 +235,10 @@ extern C_CDD_EXPORT cdd_c_error_t is_extension_key(const char *key);
 
 /**
  * @brief Deep-copies a Parson JSON_Value via serialization round-trip.
+ *
+ * @param[in] val The source JSON value to clone.
+ * @param[out] _out_val Pointer to the cloned JSON value output.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t clone_json_value(const JSON_Value *val,
                                                    JSON_Value **_out_val);

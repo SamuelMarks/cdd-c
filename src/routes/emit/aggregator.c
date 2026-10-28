@@ -111,7 +111,22 @@ static cdd_c_error_t append_operation(struct OpenAPI_Operation **ops,
 }
 
 /**
- * @brief Adds a parsed route operation into the aggregated OpenAPI_Spec.
+ * @brief Add an operation to the OpenAPI Spec, organizing by Path.
+ *
+ * Locates an existing Path Item in `spec` that matches `route`.
+ * If found, adds the operation to that Path's list.
+ * If not found, creates a new Path Item.
+ *
+ * It copies the operation data (shallow assignment where ownership transfers
+ * to the spec container, or deep copy if implemented defensively).
+ * The current implementation assumes OWNERSHIP TRANSFER: The inputs inside
+ * `op` are now owned by `spec`, so the caller should NOT free `op` contents
+ * afterward if this returns success.
+ *
+ * @param[in,out] spec The main specification object.
+ * @param[in] route The route string (e.g. "/users").
+ * @param[in] op The operation to add.
+ * @return 0 on success, ENOMEM on allocation failure, EINVAL on bad args.
  */
 cdd_c_error_t openapi_aggregator_add_operation(struct OpenAPI_Spec *spec,
                                                const char *route,
@@ -155,7 +170,14 @@ cdd_c_error_t openapi_aggregator_add_operation(struct OpenAPI_Spec *spec,
 }
 
 /**
- * @brief Adds a parsed webhook operation into the aggregated OpenAPI_Spec.
+ * @brief Add a webhook operation to the OpenAPI Spec, organizing by Path.
+ *
+ * Mirrors openapi_aggregator_add_operation but targets spec->webhooks.
+ *
+ * @param[in,out] spec The main specification object.
+ * @param[in] route The webhook route string (e.g. "/events").
+ * @param[in] op The operation to add.
+ * @return 0 on success, ENOMEM on allocation failure, EINVAL on bad args.
  */
 cdd_c_error_t
 openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,

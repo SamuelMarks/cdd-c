@@ -1139,6 +1139,11 @@ static cdd_c_error_t include_visitor(const struct IncludeInfo *info,
  * `filename` (and optionally its recursive includes) into a newly allocated
  * `cdd_ffi_ir_t`.
  *
+ * @param[in] filename Header filename being analyzed.
+ * @param[in] content Raw C/C++ header source text.
+ * @param[in] config Optional binding generation configuration parameters.
+ * @param[out] out_ir Output pointer receiving the newly allocated FFI IR
+ * structure.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t

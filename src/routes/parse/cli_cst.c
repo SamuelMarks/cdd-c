@@ -135,7 +135,11 @@ process_file(const char *filepath,
 }
 
 /**
- * @brief CLI entry point for CST transformer subcommands.
+ * @brief Subcommand handler for cdd-c transformer.
+ *
+ * @param[in] argc Argument count.
+ * @param[out] argv Argument values.
+ * @return 0 on success.
  */
 cdd_c_error_t cli_cst_transformer_main(int argc, char **argv) {
   int i;
@@ -217,7 +221,11 @@ cdd_c_error_t cli_cst_transformer_main(int argc, char **argv) {
 }
 
 /**
- * @brief CLI entry point for standardizing GNU C extensions into ISO C89/C99.
+ * @brief Subcommand handler for standardize-gnu.
+ *
+ * @param[in] argc Argument count.
+ * @param[out] argv Argument values.
+ * @return 0 on success.
  */
 cdd_c_error_t cli_standardize_gnu_main(int argc, char **argv) {
   int i;

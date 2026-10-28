@@ -25,19 +25,19 @@ extern "C" {
  *
  * @param[in] ex_obj The source JSON example object.
  * @param[in] name The example key name.
- * @param[out] out_ex Output OpenAPI_Example structure.
+ * @param[out] out Output OpenAPI_Example structure.
  * @param[in] spec The parent OpenAPI specification.
  * @param[in] resolve_refs Non-zero to resolve component references.
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t parse_example_object(
-    const JSON_Object *ex_obj, const char *name, struct OpenAPI_Example *out_ex,
+    const JSON_Object *ex_obj, const char *name, struct OpenAPI_Example *out,
     const struct OpenAPI_Spec *spec, int resolve_refs);
 
 /**
  * @brief Parses examples object from the given input.
  *
- * @param[in] examples_obj The source JSON examples map object.
+ * @param[in] examples The source JSON examples map object.
  * @param[out] out Output array of OpenAPI_Example structures.
  * @param[out] out_count Output number of parsed examples.
  * @param[in] spec The parent OpenAPI specification.
@@ -45,7 +45,7 @@ extern C_CDD_EXPORT cdd_c_error_t parse_example_object(
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t parse_examples_object(
-    const JSON_Object *examples_obj, struct OpenAPI_Example **out,
+    const JSON_Object *examples, struct OpenAPI_Example **out,
     size_t *out_count, const struct OpenAPI_Spec *spec, int resolve_refs);
 
 /**
@@ -68,31 +68,31 @@ extern C_CDD_EXPORT cdd_c_error_t parse_media_examples(
 /**
  * @brief Parses external docs from the given input.
  *
- * @param[in] ext_obj The source externalDocs JSON object.
+ * @param[in] obj The source externalDocs JSON object.
  * @param[out] out Output OpenAPI_ExternalDocs structure.
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
-extern C_CDD_EXPORT cdd_c_error_t parse_external_docs(
-    const JSON_Object *ext_obj, struct OpenAPI_ExternalDocs *out);
+extern C_CDD_EXPORT cdd_c_error_t
+parse_external_docs(const JSON_Object *obj, struct OpenAPI_ExternalDocs *out);
 
 /**
  * @brief Parses discriminator object from the given input.
  *
- * @param[in] disc_obj The source discriminator JSON object.
+ * @param[in] obj The source discriminator JSON object.
  * @param[out] out Output OpenAPI_Discriminator structure.
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t parse_discriminator_object(
-    const JSON_Object *disc_obj, struct OpenAPI_Discriminator *out);
+    const JSON_Object *obj, struct OpenAPI_Discriminator *out);
 
 /**
  * @brief Parses xml object from the given input.
  *
- * @param[in] xml_obj The source XML JSON object.
+ * @param[in] obj The source XML JSON object.
  * @param[out] out Output OpenAPI_Xml structure.
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
-extern C_CDD_EXPORT cdd_c_error_t parse_xml_object(const JSON_Object *xml_obj,
+extern C_CDD_EXPORT cdd_c_error_t parse_xml_object(const JSON_Object *obj,
                                                    struct OpenAPI_Xml *out);
 
 /**
@@ -195,7 +195,7 @@ extern C_CDD_EXPORT cdd_c_error_t parse_security_requirements(
 /**
  * @brief Parses security field from the given input.
  *
- * @param[in] parent The parent JSON object.
+ * @param[in] obj The parent JSON object.
  * @param[in] key The security property key name.
  * @param[out] out Output array of OpenAPI_SecurityRequirementSet structures.
  * @param[out] out_count Output count of requirement sets.
@@ -203,7 +203,7 @@ extern C_CDD_EXPORT cdd_c_error_t parse_security_requirements(
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-parse_security_field(const JSON_Object *parent, const char *key,
+parse_security_field(const JSON_Object *obj, const char *key,
                      struct OpenAPI_SecurityRequirementSet **out,
                      size_t *out_count, int *out_set);
 

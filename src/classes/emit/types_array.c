@@ -28,6 +28,11 @@
 /**
  * @brief Emits C source code for root array cleanup func.
  *
+ * @param[in] fp Output file stream.
+ * @param[in] name Root array schema name.
+ * @param[in] item_type JSON Schema type of array items.
+ * @param[in] item_ref Optional `$ref` target for array items.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
@@ -88,6 +93,11 @@ write_root_array_cleanup_func(FILE *fp, const char *name, const char *item_type,
 /**
  * @brief Emits C source code for root array to json func.
  *
+ * @param[in] fp Output file stream.
+ * @param[in] name Root array schema name.
+ * @param[in] item_type JSON Schema type of array items.
+ * @param[in] item_ref Optional `$ref` target for array items.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
@@ -172,6 +182,11 @@ write_root_array_to_json_func(FILE *fp, const char *name, const char *item_type,
 /**
  * @brief Emits C source code for root array from json func.
  *
+ * @param[in] fp Output file stream.
+ * @param[in] name Root array schema name.
+ * @param[in] item_type JSON Schema type of array items.
+ * @param[in] item_ref Optional `$ref` target for array items.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t

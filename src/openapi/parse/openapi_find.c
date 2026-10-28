@@ -10,6 +10,11 @@
 
 /**
  * @brief Retrieves the component parameter.
+ *
+ * @param[in] spec The OpenAPI specification.
+ * @param[in] ref The component reference string.
+ * @param[out] _out_val Output pointer to the found parameter.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t find_component_parameter(const struct OpenAPI_Spec *spec,
                                        const char *ref,
@@ -44,6 +49,11 @@ cdd_c_error_t find_component_parameter(const struct OpenAPI_Spec *spec,
 
 /**
  * @brief Retrieves the component response.
+ *
+ * @param[in] spec The OpenAPI specification.
+ * @param[in] ref The component reference string.
+ * @param[out] _out_val Output pointer to the found response.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t find_component_response(const struct OpenAPI_Spec *spec,
                                       const char *ref,
@@ -78,6 +88,11 @@ cdd_c_error_t find_component_response(const struct OpenAPI_Spec *spec,
 
 /**
  * @brief Retrieves the component header.
+ *
+ * @param[in] spec The OpenAPI specification.
+ * @param[in] ref The component reference string.
+ * @param[out] _out_val Output pointer to the found header.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t find_component_header(const struct OpenAPI_Spec *spec,
                                     const char *ref,
@@ -112,6 +127,11 @@ cdd_c_error_t find_component_header(const struct OpenAPI_Spec *spec,
 
 /**
  * @brief Retrieves the component request body.
+ *
+ * @param[in] spec The OpenAPI specification.
+ * @param[in] ref The component reference string.
+ * @param[out] _out_val Output pointer to the found request body.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t
 find_component_request_body(const struct OpenAPI_Spec *spec, const char *ref,
@@ -147,6 +167,11 @@ find_component_request_body(const struct OpenAPI_Spec *spec, const char *ref,
 
 /**
  * @brief Retrieves the component media type.
+ *
+ * @param[in] spec The OpenAPI specification.
+ * @param[in] ref The component reference string.
+ * @param[out] _out_val Output pointer to the found media type.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t find_component_media_type(const struct OpenAPI_Spec *spec,
                                         const char *ref,
@@ -192,6 +217,11 @@ cdd_c_error_t find_component_media_type(const struct OpenAPI_Spec *spec,
 
 /**
  * @brief Retrieves the component link.
+ *
+ * @param[in] spec The OpenAPI specification.
+ * @param[in] ref The component reference string.
+ * @param[out] _out_val Output pointer to the found link.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t find_component_link(const struct OpenAPI_Spec *spec,
                                   const char *ref,
@@ -226,6 +256,11 @@ cdd_c_error_t find_component_link(const struct OpenAPI_Spec *spec,
 
 /**
  * @brief Retrieves the component callback.
+ *
+ * @param[in] spec The OpenAPI specification.
+ * @param[in] ref The component reference string.
+ * @param[out] _out_val Output pointer to the found callback.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t find_component_callback(const struct OpenAPI_Spec *spec,
                                       const char *ref,
@@ -260,6 +295,11 @@ cdd_c_error_t find_component_callback(const struct OpenAPI_Spec *spec,
 
 /**
  * @brief Retrieves the component path item.
+ *
+ * @param[in] spec The OpenAPI specification.
+ * @param[in] ref The component reference string.
+ * @param[out] _out_val Output pointer to the found path item.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t find_component_path_item(const struct OpenAPI_Spec *spec,
                                        const char *ref,

@@ -152,6 +152,8 @@ static cdd_c_error_t emit_field(FILE *f, const cdd_ffi_field_t *field) {
  * @brief Emits an FFI Intermediate Representation (`cdd_ffi_ir_t`) in CDD DSL
  * format.
  *
+ * @param[in] ir FFI Intermediate Representation to emit.
+ * @param[in] config Binding generation configuration parameters.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_emit_dsl(

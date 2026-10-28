@@ -33,6 +33,10 @@
 /**
  * @brief Emits C source code for struct to json func.
  *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the C struct.
+ * @param[in] sf Struct fields descriptor container.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
@@ -221,6 +225,9 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
 /**
  * @brief Emits C source code for struct from json func.
  *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the C struct.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
@@ -254,6 +261,9 @@ write_struct_from_json_func(FILE *fp, const char *struct_name,
 /**
  * @brief Emits C source code for struct array from json func.
  *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the C struct.
+ * @param[in] config Optional code generation configuration.
  * @return 0 on success, or an error code.
  */
 cdd_c_error_t
@@ -324,6 +334,10 @@ write_struct_array_from_json_func(FILE *fp, const char *struct_name,
 /**
  * @brief Generate `_from_jsonObject` implementation (Core Logic).
  *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the C struct.
+ * @param[in] sf Struct fields descriptor container.
+ * @param[in] config Optional code generation configuration.
  * @return 0 on success.
  */
 cdd_c_error_t

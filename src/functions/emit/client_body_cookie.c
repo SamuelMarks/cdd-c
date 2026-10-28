@@ -12,6 +12,8 @@
 /**
  * @brief Emits C source code for cookie param logic.
  *
+ * @param[in,out] fp Output file stream.
+ * @param[in] op OpenAPI operation descriptor.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t

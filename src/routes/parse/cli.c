@@ -885,6 +885,9 @@ cdd_c_error_t load_base_spec(const char *path, struct OpenAPI_Spec *spec) {
 /**
  * @brief Generates an OpenAPI specification from C source code using a typed
  * configuration struct.
+ *
+ * @param[in] config Configuration struct.
+ * @return CDD_C_SUCCESS on success, or error code.
  */
 C_CDD_EXPORT cdd_c_error_t
 c2openapi_generate(const cdd_to_openapi_config_t *config) {
@@ -983,8 +986,11 @@ c2openapi_generate(const cdd_to_openapi_config_t *config) {
 }
 
 /**
- * @brief CLI entry point for extracting an OpenAPI specification from C source
- * code.
+ * @brief Main CLI entry point for c2openapi command.
+ *
+ * @param[in] argc Argument count.
+ * @param[in] argv Argument vector.
+ * @return CDD_C_SUCCESS on success, or error code.
  */
 C_CDD_EXPORT cdd_c_error_t c2openapi_cli_main(int argc, char **argv) {
   cdd_to_openapi_config_t cfg;
@@ -1047,8 +1053,11 @@ C_CDD_EXPORT cdd_c_error_t c2openapi_cli_main(int argc, char **argv) {
 }
 
 /**
- * @brief CLI entry point for generating documentation JSON snippets from an
- * OpenAPI spec.
+ * @brief Main CLI entry point for to_docs_json command.
+ *
+ * @param[in] argc Argument count.
+ * @param[in] argv Argument vector.
+ * @return CDD_C_SUCCESS on success, or error code.
  */
 C_CDD_EXPORT cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
   cdd_docs_json_config_t cfg;
@@ -1090,8 +1099,11 @@ C_CDD_EXPORT cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
 }
 
 /**
- * @brief CLI entry point for binding generation (e.g., `cdd-c
- * bind`).
+ * @brief Main CLI entry point for generate_bindings command.
+ *
+ * @param[in] argc Argument count.
+ * @param[in] argv Argument vector.
+ * @return CDD_C_SUCCESS on success, or error code.
  */
 C_CDD_EXPORT cdd_c_error_t generate_bindings_cli_main(int argc, char **argv) {
   cdd_generate_bindings_config_t config = {0};
@@ -1169,6 +1181,10 @@ C_CDD_EXPORT cdd_c_error_t generate_bindings_cli_main(int argc, char **argv) {
 
 /**
  * @brief Registers parsed C types into an OpenAPI specification schemas list.
+ *
+ * @param[in,out] spec OpenAPI specification to populate.
+ * @param[in] types List of parsed C type definitions.
+ * @return CDD_C_SUCCESS on success, or error code.
  */
 C_CDD_EXPORT cdd_c_error_t c2openapi_register_types(
     struct OpenAPI_Spec *spec, const struct TypeDefList *types) {

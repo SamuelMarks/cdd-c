@@ -17,6 +17,9 @@ extern C_CDD_EXPORT int g_cdd_fail_is_primitive_type;
 /**
  * @brief Maps an OpenAPI HTTP verb enum to its C HTTP method constant name.
  *
+ * @param[in] v OpenAPI HTTP verb enum value.
+ * @param[out] _out_val Output pointer receiving the C HTTP method constant
+ * string.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t client_body_verb_to_enum_str(enum OpenAPI_Verb v,
@@ -70,6 +73,9 @@ cdd_c_error_t client_body_verb_to_enum_str(enum OpenAPI_Verb v,
 /**
  * @brief Maps an HTTP method string to its C HTTP method constant name.
  *
+ * @param[in] method HTTP method name string.
+ * @param[out] _out_val Output pointer receiving the C HTTP method constant
+ * string (or NULL).
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t client_body_method_str_to_enum_str(const char *method,
@@ -168,6 +174,11 @@ cdd_c_error_t mapped_err_code(int status, const char **_out_val) {
 /**
  * @brief Retrieves the media type.
  *
+ * @param[in] mts Array of OpenAPI media type descriptors.
+ * @param[in] n Number of entries in `mts`.
+ * @param[in] name Media type name string to look up.
+ * @param[out] _out_val Output pointer receiving the matching media type
+ * descriptor (or NULL).
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
@@ -223,6 +234,8 @@ cdd_c_error_t find_encoding(const struct OpenAPI_MediaType *mt,
 /**
  * @brief Checks if primitive type.
  *
+ * @param[in] oa_type OpenAPI type name string.
+ * @param[out] out Output pointer receiving 1 if primitive, 0 otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t is_primitive_type(const char *oa_type, int *out) {
@@ -310,6 +323,9 @@ cdd_c_error_t struct_fields_all_primitive(const struct StructFields *sf,
  * @brief Checks whether an OpenAPI schema reference defines an inline type or
  * enum.
  *
+ * @param[in] schema OpenAPI schema reference descriptor.
+ * @param[out] out Output pointer receiving 1 if inline type is defined, 0
+ * otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t schema_has_inline(const struct OpenAPI_SchemaRef *schema,
@@ -327,6 +343,8 @@ cdd_c_error_t schema_has_inline(const struct OpenAPI_SchemaRef *schema,
  * @brief Computes the length of the essence (type/subtype) portion of a media
  * type string.
  *
+ * @param[in] media_type Media type string to inspect.
+ * @param[out] _out_val Output pointer receiving the base media type length.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t client_body_media_type_base_len(const char *media_type,
@@ -348,6 +366,9 @@ cdd_c_error_t client_body_media_type_base_len(const char *media_type,
  * @brief Checks case-insensitively whether a media type starts with a given
  * prefix.
  *
+ * @param[in] media_type Media type string to inspect.
+ * @param[in] prefix Prefix string to match.
+ * @param[out] out Output pointer receiving 1 if prefix matches, 0 otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t media_type_has_prefix(const char *media_type, const char *prefix,
@@ -386,6 +407,9 @@ cdd_c_error_t media_type_has_prefix(const char *media_type, const char *prefix,
  * @brief Checks case-insensitively whether a media type base ends with a given
  * suffix.
  *
+ * @param[in] media_type Media type string to inspect.
+ * @param[in] suffix Suffix string to match.
+ * @param[out] out Output pointer receiving 1 if suffix matches, 0 otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t media_type_has_suffix(const char *media_type, const char *suffix,
@@ -426,6 +450,9 @@ cdd_c_error_t media_type_has_suffix(const char *media_type, const char *suffix,
  * @brief Compares the base essence of a media type case-insensitively against
  * `expected`.
  *
+ * @param[in] media_type Media type string to inspect.
+ * @param[in] expected Expected base media type string.
+ * @param[out] out Output pointer receiving 1 if equal, 0 otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t media_type_ieq(const char *media_type, const char *expected,
@@ -463,6 +490,8 @@ cdd_c_error_t media_type_ieq(const char *media_type, const char *expected,
 /**
  * @brief Checks if a media type is JSON (`application/json` or `*+json`).
  *
+ * @param[in] media_type Media type string to inspect.
+ * @param[out] out Output pointer receiving 1 if JSON media type, 0 otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t media_type_is_json(const char *media_type, int *out) {
@@ -489,6 +518,8 @@ cdd_c_error_t media_type_is_json(const char *media_type, int *out) {
 /**
  * @brief Checks if a media type is `application/x-www-form-urlencoded`.
  *
+ * @param[in] media_type Media type string to inspect.
+ * @param[out] out Output pointer receiving 1 if form-urlencoded, 0 otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t media_type_is_form(const char *media_type, int *out) {
@@ -503,6 +534,8 @@ cdd_c_error_t media_type_is_form(const char *media_type, int *out) {
 /**
  * @brief Checks if a media type is `text/plain`.
  *
+ * @param[in] media_type Media type string to inspect.
+ * @param[out] out Output pointer receiving 1 if `text/plain`, 0 otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t media_type_is_text_plain(const char *media_type, int *out) {
@@ -517,6 +550,9 @@ cdd_c_error_t media_type_is_text_plain(const char *media_type, int *out) {
 /**
  * @brief Checks if a media type starts with `multipart/`.
  *
+ * @param[in] media_type Media type string to inspect.
+ * @param[out] out Output pointer receiving 1 if multipart media type, 0
+ * otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t media_type_is_multipart(const char *media_type, int *out) {
@@ -531,6 +567,9 @@ cdd_c_error_t media_type_is_multipart(const char *media_type, int *out) {
 /**
  * @brief Checks if a media type is `multipart/form-data`.
  *
+ * @param[in] media_type Media type string to inspect.
+ * @param[out] out Output pointer receiving 1 if `multipart/form-data`, 0
+ * otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t media_type_is_multipart_form(const char *media_type, int *out) {
@@ -572,6 +611,9 @@ cdd_c_error_t first_content_type_entry(const char *content_type, char *buf,
 /**
  * @brief Sanitizes an arbitrary string into a valid C identifier.
  *
+ * @param[out] out Destination character buffer.
+ * @param[in] outsz Capacity of `out` in bytes.
+ * @param[in] in Input string to sanitize.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t sanitize_ident(char *out, size_t outsz, const char *in) {
@@ -596,6 +638,10 @@ cdd_c_error_t sanitize_ident(char *out, size_t outsz, const char *in) {
 /**
  * @brief Builds the C parameter name for a multipart part header.
  *
+ * @param[out] out Destination character buffer.
+ * @param[in] outsz Capacity of `out` in bytes.
+ * @param[in] field Multipart field name.
+ * @param[in] header Multipart part header name.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t multipart_header_param_name(char *out, size_t outsz,
@@ -613,6 +659,8 @@ cdd_c_error_t multipart_header_param_name(char *out, size_t outsz,
 /**
  * @brief Checks case-insensitively whether a header name is Content-Type.
  *
+ * @param[in] name Header name string to test.
+ * @param[out] out Output pointer receiving 1 if `"Content-Type"`, 0 otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t header_name_is_content_type(const char *name, int *out) {
@@ -630,6 +678,9 @@ cdd_c_error_t header_name_is_content_type(const char *name, int *out) {
 /**
  * @brief Determines whether a media type represents textual payload content.
  *
+ * @param[in] media_type Media type string to inspect.
+ * @param[out] out Output pointer receiving 1 if textual media type, 0
+ * otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t media_type_is_textual(const char *media_type, int *out) {
@@ -667,6 +718,8 @@ cdd_c_error_t media_type_is_textual(const char *media_type, int *out) {
 /**
  * @brief Determines whether a media type represents raw binary payload content.
  *
+ * @param[in] media_type Media type string to inspect.
+ * @param[out] out Output pointer receiving 1 if binary media type, 0 otherwise.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t media_type_is_binary(const char *media_type, int *out) {

@@ -185,6 +185,8 @@ static cdd_c_error_t map_xs_type(cdd_ffi_type_t *t, char *out_type,
  * @brief Emits Perl `FFI::Platypus` `.pm` modules, `.xs` extensions,
  * `Makefile.PL`, and `typemap` files for the given FFI IR.
  *
+ * @param[in] ir FFI Intermediate Representation to emit.
+ * @param[in] config Binding generation configuration parameters.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,

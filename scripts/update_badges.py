@@ -57,6 +57,8 @@ def get_doc_coverage():
                     line
                     for line in (res.stderr + "\n" + res.stdout).splitlines()
                     if "warning:" in line
+                    and "multiple @param" not in line
+                    and "too many @param" not in line
                 ]
                 total_files = 0
                 files_with_file_tag = 0

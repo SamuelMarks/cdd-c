@@ -36,6 +36,7 @@
 /**
  * @brief Initializes a list of discovered C type definitions.
  *
+ * @param[out] list Pointer to the TypeDefList structure to initialize.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t type_def_list_init(struct TypeDefList *list) {
@@ -54,6 +55,8 @@ cdd_c_error_t type_def_list_init(struct TypeDefList *list) {
 
 /**
  * @brief Releases memory held by a C type definition list.
+ *
+ * @param[in,out] list Pointer to the TypeDefList structure to free.
  */
 void type_def_list_free(struct TypeDefList *list) {
   size_t i;
@@ -129,6 +132,8 @@ static cdd_c_error_t add_type_def(struct TypeDefList *list,
  * @brief Scans a C source or header file for struct, enum, and typedef
  * declarations.
  *
+ * @param[in] filename Path to the C source or header file to scan.
+ * @param[in,out] out Target TypeDefList to populate with discovered types.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c_inspector_scan_file_types(const char *filename,
@@ -435,6 +440,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
 /**
  * @brief Initializes a list of extracted C function signatures.
  *
+ * @param[out] list Pointer to the FuncSigList structure to initialize.
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t func_sig_list_init(struct FuncSigList *list) {
@@ -448,6 +454,8 @@ cdd_c_error_t func_sig_list_init(struct FuncSigList *list) {
 
 /**
  * @brief Releases memory held by a C function signature list.
+ *
+ * @param[in,out] list Pointer to the FuncSigList structure to free.
  */
 void func_sig_list_free(struct FuncSigList *list) {
   size_t i;
@@ -507,6 +515,9 @@ static cdd_c_error_t extract_span_text(const struct TokenList *tokens,
 /**
  * @brief Extracts C function signatures and docstrings from a source file.
  *
+ * @param[in] source_code Null-terminated C source code string.
+ * @param[in,out] out Target FuncSigList to populate with extracted function
+ * signatures.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c_inspector_extract_signatures(const char *source_code,

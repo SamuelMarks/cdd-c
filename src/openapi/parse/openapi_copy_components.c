@@ -10,6 +10,10 @@
 
 /**
  * @brief Creates a deep copy of parameter fields.
+ *
+ * @param[out] dst Destination OpenAPI_Parameter structure.
+ * @param[in] src Source OpenAPI_Parameter structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t copy_parameter_fields(struct OpenAPI_Parameter *dst,
                                     const struct OpenAPI_Parameter *src) {
@@ -102,6 +106,10 @@ cdd_c_error_t copy_parameter_fields(struct OpenAPI_Parameter *dst,
 
 /**
  * @brief Creates a deep copy of header fields.
+ *
+ * @param[out] dst Destination OpenAPI_Header structure.
+ * @param[in] src Source OpenAPI_Header structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t copy_header_fields(struct OpenAPI_Header *dst,
                                  const struct OpenAPI_Header *src) {
@@ -185,6 +193,10 @@ cdd_c_error_t copy_header_fields(struct OpenAPI_Header *dst,
 
 /**
  * @brief Creates a deep copy of encoding fields.
+ *
+ * @param[out] dst Destination OpenAPI_Encoding structure.
+ * @param[in] src Source OpenAPI_Encoding structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t copy_encoding_fields(struct OpenAPI_Encoding *dst,
                                    const struct OpenAPI_Encoding *src) {
@@ -269,6 +281,10 @@ cdd_c_error_t copy_encoding_fields(struct OpenAPI_Encoding *dst,
 
 /**
  * @brief Creates a deep copy of media type fields.
+ *
+ * @param[out] dst Destination OpenAPI_MediaType structure.
+ * @param[in] src Source OpenAPI_MediaType structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t copy_media_type_fields(struct OpenAPI_MediaType *dst,
                                      const struct OpenAPI_MediaType *src) {
@@ -361,6 +377,12 @@ cdd_c_error_t copy_media_type_fields(struct OpenAPI_MediaType *dst,
 
 /**
  * @brief Creates a deep copy of media type array.
+ *
+ * @param[out] dst Output array of OpenAPI_MediaType structures.
+ * @param[out] dst_count Output count of copied media types.
+ * @param[in] src Source array of OpenAPI_MediaType structures.
+ * @param[in] src_count Number of elements in src.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t copy_media_type_array(struct OpenAPI_MediaType **dst,
                                     size_t *dst_count,
@@ -387,6 +409,10 @@ cdd_c_error_t copy_media_type_array(struct OpenAPI_MediaType **dst,
 
 /**
  * @brief Creates a deep copy of response fields.
+ *
+ * @param[out] dst Destination OpenAPI_Response structure.
+ * @param[in] src Source OpenAPI_Response structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t copy_response_fields(struct OpenAPI_Response *dst,
                                    const struct OpenAPI_Response *src) {

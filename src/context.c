@@ -331,6 +331,8 @@ static const cdd_context_t *g_active_context = &g_default_context;
 /**
  * @brief Allocates `sz` bytes through the active allocator context.
  *
+ * @param[in] sz Number of bytes to allocate.
+ * @param[out] out_ptr Output pointer receiving the allocated memory block.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` /
  * `CDD_C_ERROR_INVALID_ARGUMENT`.
  */
@@ -341,6 +343,9 @@ cdd_c_error_t c_cdd_do_malloc(size_t sz, void **out_ptr) {
 /**
  * @brief Zero-allocates `n * sz` bytes through the active allocator context.
  *
+ * @param[in] n Number of elements.
+ * @param[in] sz Size of each element in bytes.
+ * @param[out] out_ptr Output pointer receiving the zeroed memory block.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` /
  * `CDD_C_ERROR_INVALID_ARGUMENT`.
  */
@@ -351,6 +356,9 @@ cdd_c_error_t c_cdd_do_calloc(size_t n, size_t sz, void **out_ptr) {
 /**
  * @brief Reallocates `p` to `sz` bytes through the active allocator context.
  *
+ * @param[in,out] p Existing pointer to resize (or NULL).
+ * @param[in] sz New size in bytes.
+ * @param[out] out_ptr Output pointer receiving the resized memory block.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` /
  * `CDD_C_ERROR_INVALID_ARGUMENT`.
  */
@@ -362,6 +370,8 @@ cdd_c_error_t c_cdd_do_realloc(void *p, size_t sz, void **out_ptr) {
  * @brief Duplicates a null-terminated string through the active allocator
  * context.
  *
+ * @param[in] s Null-terminated source string.
+ * @param[out] out_str Output pointer receiving the duplicated string.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` /
  * `CDD_C_ERROR_INVALID_ARGUMENT`.
  */
@@ -384,6 +394,7 @@ void c_cdd_do_free(void *p) { g_active_context->allocator.free_fn(p); }
  * @brief Initializes `ctx` with the default standard C allocator, VFS, and
  * socket VTables.
  *
+ * @param[out] ctx Pointer to the context structure to initialize.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
  * `ctx` is `NULL`.
  */
@@ -398,6 +409,8 @@ cdd_c_error_t cdd_context_init_default(cdd_context_t *ctx) {
  * @brief Sets the active process/thread-local `cdd_context_t` override (or
  * resets to the built-in default when `ctx == NULL`).
  *
+ * @param[in] ctx Pointer to the context to activate (or NULL to restore
+ * default).
  * @return `CDD_C_SUCCESS`.
  */
 cdd_c_error_t cdd_context_set_global(const cdd_context_t *ctx) {
@@ -423,6 +436,7 @@ cdd_c_error_t cdd_vfs_fopen(const char *path, const char *mode, FILE **out_fp) {
 /**
  * @brief Retrieves the currently active `cdd_context_t` (never `NULL`).
  *
+ * @param[out] out_ctx Output pointer receiving the active context pointer.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
  * `out_ctx` is `NULL`.
  */

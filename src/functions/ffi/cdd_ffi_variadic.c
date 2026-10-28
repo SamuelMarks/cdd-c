@@ -17,6 +17,12 @@
  * @brief Parses a `printf`-style format string to infer variadic argument
  * types.
  *
+ * @param[in] fmt Printf-style format string to inspect.
+ * @param[out] out_types Caller-allocated array receiving inferred
+ * `cdd_ffi_type_t` entries.
+ * @param[in] max_types Maximum capacity of `out_types`.
+ * @param[out] out_count Output pointer receiving the number of inferred
+ * arguments.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if any
  * argument is NULL.
  */
@@ -114,6 +120,11 @@ cdd_c_error_t cdd_ffi_parse_printf_format(const char *fmt,
  * @brief Formats a `printf`-style string one specifier at a time into
  * `out_buf` using the exact C type for each `cdd_ffi_var_arg_t` argument.
  *
+ * @param[out] out_buf Destination character buffer.
+ * @param[in] out_cap Capacity of `out_buf` in bytes.
+ * @param[in] fmt Printf-style format string.
+ * @param[in] args Array of variadic argument union values.
+ * @param[in] argc Number of arguments in `args`.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` on
  * invalid arguments.
  */
@@ -240,6 +251,10 @@ cdd_c_error_t cdd_ffi_format_variadic(char *out_buf, size_t out_cap,
 /**
  * @brief Invokes a C variadic function with up to 8 unpacked arguments.
  *
+ * @param[in] fn Target C variadic function pointer.
+ * @param[in] fmt Format string passed as the first fixed argument.
+ * @param[in] args Array of variadic argument union values.
+ * @param[in] argc Number of arguments in `args` (0 to 8).
  * @return Error code returned by `fn`, or `CDD_C_ERROR_INVALID_ARGUMENT` if
  * `argc > 8`.
  */

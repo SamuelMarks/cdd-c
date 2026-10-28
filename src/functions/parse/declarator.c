@@ -230,6 +230,7 @@ static cdd_c_error_t skip_group(const struct TokenList *tokens, size_t start,
 /**
  * @brief Initializes a DeclInfo structure.
  *
+ * @param[out] info Pointer to the DeclInfo structure to initialize.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
  * NULL.
  */
@@ -273,6 +274,8 @@ static void free_decl_type(struct DeclType *t) {
 
 /**
  * @brief Frees resources in a DeclInfo structure.
+ *
+ * @param[in,out] info Pointer to the DeclInfo structure to free.
  */
 void decl_info_free(struct DeclInfo *info) {
   if (!info)
@@ -566,6 +569,11 @@ static cdd_c_error_t find_pivot(const struct TokenList *tokens, size_t start,
 /**
  * @brief Parses a C declaration token range into a DeclInfo structure.
  *
+ * @param[in] tokens Lexical token list.
+ * @param[in] start Inclusive start token index of the declaration.
+ * @param[in] end Exclusive end token index of the declaration.
+ * @param[out] out_info Output DeclInfo structure receiving the parsed
+ * declaration.
  * @return 0 on success, EINVAL on syntax error, ENOMEM on alloc failure.
  */
 cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,

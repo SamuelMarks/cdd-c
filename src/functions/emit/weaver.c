@@ -21,6 +21,13 @@
 /**
  * @brief Wraps a region of C code in a preprocessor conditional guard.
  *
+ * @param[in,out] patches Target PatchList container.
+ * @param[in] tokens Lexical token list.
+ * @param[in] start_idx Inclusive start token index to wrap.
+ * @param[in] end_idx Exclusive end token index to wrap.
+ * @param[in] condition Preprocessor macro condition name.
+ * @param[in] false_code Optional fallback C code for the `#else` branch (may be
+ * NULL).
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t weaver_wrap_ifdef(struct PatchList *patches,
@@ -104,6 +111,11 @@ cdd_c_error_t weaver_wrap_ifdef(struct PatchList *patches,
 /**
  * @brief Injects MSVC compatibility headers into a C source file.
  *
+ * @param[in,out] patches Target PatchList container.
+ * @param[in] tokens Lexical token list.
+ * @param[in] include_windows_h Non-zero to emit `WIN32_LEAN_AND_MEAN` /
+ * `NOMINMAX` guards.
+ * @param[in] include_winsock2_h Non-zero to emit `#include <winsock2.h>`.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t weaver_inject_msvc_headers(struct PatchList *patches,
@@ -221,6 +233,14 @@ cdd_c_error_t weaver_inject_msvc_headers(struct PatchList *patches,
  * @brief Rewrites C99 variable-length arrays into portable heap/alloca
  * allocations.
  *
+ * @param[in,out] patches Target PatchList container.
+ * @param[in] tokens Lexical token list.
+ * @param[in] start_idx Inclusive start token index of the VLA declaration.
+ * @param[in] end_idx Exclusive end token index of the VLA declaration.
+ * @param[in] type_str Element C type string.
+ * @param[in] var_name VLA variable identifier name.
+ * @param[in] size_expr Array length expression string.
+ * @param[in] interactive Non-zero to prompt on `stdin` before applying.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t weaver_vla_to_alloca(struct PatchList *patches,

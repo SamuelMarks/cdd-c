@@ -12,6 +12,8 @@
 /**
  * @brief Emits C source code for multipart part headers.
  *
+ * @param[in,out] fp Output file stream.
+ * @param[in] enc OpenAPI multipart property encoding descriptor.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t
@@ -316,6 +318,9 @@ client_body_write_multipart_part_headers(FILE *fp,
 /**
  * @brief Emits C source code for multipart body.
  *
+ * @param[in,out] fp Output file stream.
+ * @param[in] op OpenAPI operation descriptor.
+ * @param[in] spec Full OpenAPI specification for schema resolution.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t

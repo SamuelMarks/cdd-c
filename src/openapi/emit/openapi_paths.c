@@ -27,7 +27,11 @@
   cdd_json_array_append_value_safe((arr), (val))
 
 /**
- * @brief Serializes the OpenAPI callback object into the target JSON object.
+ * @brief Writes an OpenAPI callback object.
+ *
+ * @param[in,out] cb_obj The callback JSON object.
+ * @param[in] cb The callback structure.
+ * @return CDD_C_SUCCESS on success.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_callback_object(JSON_Object *cb_obj, const struct OpenAPI_Callback *cb) {
@@ -69,7 +73,11 @@ write_callback_object(JSON_Object *cb_obj, const struct OpenAPI_Callback *cb) {
 }
 
 /**
- * @brief Serializes the OpenAPI callbacks into the target JSON object.
+ * @brief Writes callbacks map to operation JSON object.
+ *
+ * @param[in,out] op_obj Operation JSON object.
+ * @param[in] op Operation structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_callbacks(JSON_Object *op_obj,
                                            const struct OpenAPI_Operation *op) {
@@ -102,7 +110,11 @@ C_CDD_EXPORT cdd_c_error_t write_callbacks(JSON_Object *op_obj,
 }
 
 /**
- * @brief Serializes the OpenAPI responses into the target JSON object.
+ * @brief Writes responses map to operation JSON object.
+ *
+ * @param[in,out] op_obj Operation JSON object.
+ * @param[in] op Operation structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_responses(JSON_Object *op_obj,
                                            const struct OpenAPI_Operation *op) {
@@ -143,7 +155,11 @@ C_CDD_EXPORT cdd_c_error_t write_responses(JSON_Object *op_obj,
 }
 
 /**
- * @brief Serializes the OpenAPI operation object into the target JSON object.
+ * @brief Writes operation object fields.
+ *
+ * @param[in,out] op_obj Operation JSON object.
+ * @param[in] op Operation structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_operation_object(
     JSON_Object *op_obj, const struct OpenAPI_Operation *op) {
@@ -217,7 +233,11 @@ C_CDD_EXPORT cdd_c_error_t write_operation_object(
 }
 
 /**
- * @brief Serializes the OpenAPI operations into the target JSON object.
+ * @brief Writes operations to path item JSON object.
+ *
+ * @param[in,out] path_item Path item JSON object.
+ * @param[in] path Path structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_operations(JSON_Object *path_item,
                                             const struct OpenAPI_Path *path) {
@@ -249,8 +269,11 @@ C_CDD_EXPORT cdd_c_error_t write_operations(JSON_Object *path_item,
 }
 
 /**
- * @brief Serializes the OpenAPI additional operations into the target JSON
- * object.
+ * @brief Writes additional operations to path item JSON object.
+ *
+ * @param[in,out] path_item Path item JSON object.
+ * @param[in] path Path structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_additional_operations(
     JSON_Object *path_item, const struct OpenAPI_Path *path) {
@@ -302,7 +325,11 @@ C_CDD_EXPORT cdd_c_error_t write_additional_operations(
 }
 
 /**
- * @brief Serializes the OpenAPI path item object into the target JSON object.
+ * @brief Writes path item object.
+ *
+ * @param[in,out] item_obj Path item JSON object.
+ * @param[in] path Path structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_path_item_object(JSON_Object *item_obj, const struct OpenAPI_Path *path) {
@@ -344,7 +371,11 @@ write_path_item_object(JSON_Object *item_obj, const struct OpenAPI_Path *path) {
 }
 
 /**
- * @brief Serializes the OpenAPI paths into the target JSON object.
+ * @brief Writes paths object to root JSON object.
+ *
+ * @param[in,out] root_obj Root JSON object.
+ * @param[in] spec Specification structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_paths(JSON_Object *root_obj,
                                        const struct OpenAPI_Spec *spec) {
@@ -397,7 +428,11 @@ C_CDD_EXPORT cdd_c_error_t write_paths(JSON_Object *root_obj,
 }
 
 /**
- * @brief Serializes the OpenAPI webhooks into the target JSON object.
+ * @brief Writes webhooks object to root JSON object.
+ *
+ * @param[in,out] root_obj Root JSON object.
+ * @param[in] spec Specification structure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t write_webhooks(JSON_Object *root_obj,
                                           const struct OpenAPI_Spec *spec) {
@@ -448,8 +483,14 @@ C_CDD_EXPORT cdd_c_error_t write_webhooks(JSON_Object *root_obj,
 }
 
 /**
- * @brief Serializes the OpenAPI security requirements into the target JSON
- * object.
+ * @brief Writes security requirements array to parent JSON object.
+ *
+ * @param[in,out] parent Parent JSON object.
+ * @param[in] key Property key name.
+ * @param[in] sets Array of security requirement sets.
+ * @param[in] count Number of sets.
+ * @param[in] set_flag Flag indicating if security requirements are set.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t
 write_security_requirements(JSON_Object *parent, const char *key,

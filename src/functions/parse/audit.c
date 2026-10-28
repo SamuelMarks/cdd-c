@@ -30,6 +30,7 @@
 /**
  * @brief Initializes codebase audit statistics counters.
  *
+ * @param[out] stats Pointer to the AuditStats structure to initialize.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t audit_stats_init(struct AuditStats *stats) {
@@ -47,6 +48,8 @@ cdd_c_error_t audit_stats_init(struct AuditStats *stats) {
 
 /**
  * @brief Releases memory held by codebase audit statistics.
+ *
+ * @param[in,out] stats Pointer to the AuditStats structure to free.
  */
 void audit_stats_free(struct AuditStats *stats) {
   size_t i;
@@ -116,6 +119,10 @@ static cdd_c_error_t add_violation(struct AuditStats *stats,
 /**
  * @brief Calculate line and column number from a pointer into the buffer.
  *
+ * @param[in] content Start of source buffer.
+ * @param[in] token_ptr Pointer to token start within `content`.
+ * @param[out] line Output pointer receiving 1-based line number.
+ * @param[out] col Output pointer receiving 1-based column number.
  * @return `CDD_C_SUCCESS` on success.
  */
 cdd_c_error_t audit_get_line_col(const char *content, const uint8_t *token_ptr,
@@ -163,6 +170,9 @@ static cdd_c_error_t is_c_source(const char *path, int *out_is_source) {
 /**
  * @brief Helper to detect functions returning allocations directly.
  *
+ * @param[in] tokens Lexical token list to scan.
+ * @param[out] out_count Output pointer receiving the count of directly returned
+ * allocations.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t count_returning_allocs(const struct TokenList *tokens,
@@ -297,6 +307,8 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
  * @brief Scans a project directory to collect safety, allocation, and macro
  * audit metrics.
  *
+ * @param[in] root_path Root directory or file path to audit.
+ * @param[in,out] stats Target AuditStats structure to populate.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t audit_project(const char *root_path, struct AuditStats *stats) {
@@ -357,6 +369,9 @@ static cdd_c_error_t audit_append_val(JSON_Array *arr, JSON_Value *val,
 /**
  * @brief Serializes collected audit statistics as a JSON report.
  *
+ * @param[in] stats AuditStats structure to serialize.
+ * @param[out] out_json Output pointer receiving the newly allocated JSON report
+ * string.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t audit_print_json(const struct AuditStats *stats,

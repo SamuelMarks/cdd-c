@@ -36,8 +36,10 @@ extern C_CDD_EXPORT int g_crypto_fail_hmac_len;
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#endif
 /* clang-format on */
 
+#ifdef __EMSCRIPTEN__
 /* Synchronous SHA-256 for Node/Deno/Bun using EM_JS */
 EM_JS(int, js_crypto_sha256, (const uint8_t *data, size_t len, uint8_t *out), {
   if (typeof process != 'undefined' && process.versions &&
@@ -274,6 +276,9 @@ static cdd_c_error_t cdd_sha256_final(struct cdd_sha256_ctx *ctx,
  * @brief Computes a 32-byte SHA-256 digest in WebAssembly or pure-C fallback
  * mode.
  *
+ * @param[in] data Input message buffer.
+ * @param[in] data_len Length of input message in bytes.
+ * @param[out] out_digest 32-byte output buffer receiving the SHA-256 digest.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
@@ -325,6 +330,11 @@ cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
 /**
  * @brief Computes HMAC-SHA-256 in WebAssembly / fallback environment.
  *
+ * @param[in] key Secret key buffer.
+ * @param[in] key_len Length of secret key in bytes.
+ * @param[in] data Input message buffer.
+ * @param[in] data_len Length of input message in bytes.
+ * @param[out] out_mac 32-byte output buffer receiving the HMAC-SHA-256 digest.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,

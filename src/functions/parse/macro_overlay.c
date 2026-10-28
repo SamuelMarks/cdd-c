@@ -28,6 +28,7 @@ C_CDD_EXPORT int g_cdd_macro_overlay_fail_inner_realloc = 0;
 /**
  * @brief Initializes a macro overlay list.
  *
+ * @param[out] list Pointer to the MacroOverlayList structure to initialize.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
  * NULL.
  */
@@ -42,6 +43,8 @@ cdd_c_error_t macro_overlay_list_init(struct MacroOverlayList *list) {
 
 /**
  * @brief Frees a macro overlay list.
+ *
+ * @param[in,out] list Pointer to the MacroOverlayList structure to free.
  */
 void macro_overlay_list_free(struct MacroOverlayList *list) {
   size_t i;
@@ -112,6 +115,9 @@ static cdd_c_error_t list_add(struct MacroOverlayList *list,
 /**
  * @brief Builds the macro overlay mapping from a given CST.
  *
+ * @param[in] cst Concrete syntax tree node list.
+ * @param[in] tokens Lexical token list corresponding to `cst`.
+ * @param[in,out] overlays Target MacroOverlayList container to populate.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t cst_build_macro_overlay(const struct CstNodeList *cst,

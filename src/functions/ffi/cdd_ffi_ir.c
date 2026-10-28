@@ -136,6 +136,8 @@ C_CDD_EXPORT int g_cdd_ffi_ir_toposort_fail = 0;
  * @brief Topologically sorts the nodes in `ir` so dependencies precede
  * dependents.
  *
+ * @param[in,out] ir FFI IR structure whose nodes will be topologically sorted
+ * in-place.
  * @return `CDD_C_SUCCESS` on success, `CDD_C_ERROR_INVALID_ARGUMENT` if `ir` is
  * NULL, or `CDD_C_ERROR_MEMORY` on allocation failure.
  */
@@ -240,6 +242,8 @@ static void free_type_recursive(cdd_ffi_type_t *type) {
 
 /**
  * @brief Frees all memory associated with the FFI IR to guarantee zero-leaks.
+ *
+ * @param[in,out] ir Pointer to the FFI IR structure to free.
  */
 void cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
   size_t i, j;

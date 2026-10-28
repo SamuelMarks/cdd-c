@@ -100,6 +100,11 @@ static cdd_c_error_t range_to_string(const struct TokenList *tokens,
  * @brief Rewrites unchecked realloc calls into safe temporary-pointer
  * assignments.
  *
+ * @param[in] tokens Lexical token list.
+ * @param[in] site AllocationSite describing the `realloc` call.
+ * @param[in] semi_idx Token index of the terminating semicolon.
+ * @param[in,out] patches PatchList container receiving generated replacement
+ * patches.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
@@ -286,6 +291,10 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
 /**
  * @brief Injects null-pointer and error-return checks after fallible calls.
  *
+ * @param[in] tokens Lexical token list.
+ * @param[in] allocs AllocationSiteList containing discovered allocation sites.
+ * @param[in,out] patches PatchList container receiving generated safety check
+ * patches.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t

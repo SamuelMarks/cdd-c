@@ -133,7 +133,13 @@ static cdd_c_error_t parse_media_type_object_inner(
 }
 
 /**
- * @brief Parses media type object from the given input.
+ * @brief Parses an OpenAPI Media Type object.
+ *
+ * @param[in] media_obj JSON object representing the Media Type.
+ * @param[out] out Destination media type structure.
+ * @param[in] spec Parent OpenAPI specification context.
+ * @param[in] resolve_refs Non-zero to resolve `$ref` against components.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t parse_media_type_object(const JSON_Object *media_obj,
                                       struct OpenAPI_MediaType *out,
@@ -147,8 +153,12 @@ cdd_c_error_t parse_media_type_object(const JSON_Object *media_obj,
 }
 
 /**
- * @brief Computes the length of the essence (type/subtype) portion of a media
- * type string.
+ * @brief Computes the length of the media type essence (`type/subtype`) before
+ * any `;` parameters.
+ *
+ * @param[in] media_type Media type string.
+ * @param[out] _out_val Base length in bytes.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t openapi_media_type_base_len(const char *media_type,
                                           size_t *_out_val) {
@@ -165,8 +175,11 @@ cdd_c_error_t openapi_media_type_base_len(const char *media_type,
 }
 
 /**
- * @brief Compares the essence (type/subtype) of two media type strings for
- * equality.
+ * @brief Compares two media type strings ignoring `;` parameters.
+ *
+ * @param[in] a First media type string.
+ * @param[in] b Second media type string.
+ * @return Non-zero if base essences match, 0 otherwise.
  */
 cdd_c_error_t media_type_base_equal(const char *a, const char *b) {
   size_t alen = 0;
@@ -181,7 +194,12 @@ cdd_c_error_t media_type_base_equal(const char *a, const char *b) {
 }
 
 /**
- * @brief Checks whether a media type is application/json or has a +json suffix.
+ * @brief Checks if a media type string represents a JSON media type
+ * (`application/json` or `+json`).
+ *
+ * @param[in] name Media type string.
+ * @return CDD_C_ERROR_UNKNOWN (non-zero) if JSON media type, CDD_C_SUCCESS (0)
+ * otherwise.
  */
 cdd_c_error_t openapi_media_type_is_json(const char *name) {
   size_t len = 0;
@@ -197,7 +215,12 @@ cdd_c_error_t openapi_media_type_is_json(const char *name) {
 }
 
 /**
- * @brief Computes a specificity score (0..2) for a media type pattern.
+ * @brief Computes media type specificity (`0` for wildcard, `1` for type
+ * wildcard, `2` for exact `type/subtype`).
+ *
+ * @param[in] name Media type string.
+ * @param[out] out_spec Specificity score.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t media_type_specificity(const char *name, int *out_spec) {
   const char *slash;
@@ -237,8 +260,12 @@ cdd_c_error_t media_type_specificity(const char *name, int *out_spec) {
 }
 
 /**
- * @brief Computes a preference rank for selecting a default request/response
- * media type.
+ * @brief Computes media type preference rank (`3` JSON, `2` form-urlencoded,
+ * `1` multipart, `0` other).
+ *
+ * @param[in] name Media type string.
+ * @param[out] out_rank Preference rank.
+ * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t media_type_preference_rank(const char *name, int *out_rank) {
   if (out_rank)
@@ -264,8 +291,13 @@ cdd_c_error_t media_type_preference_rank(const char *name, int *out_rank) {
 }
 
 /**
- * @brief Selects the index of the preferred media type from an array of media
+ * @brief Selects the preferred primary media type index from an array of media
  * types.
+ *
+ * @param[in] mts Array of media types.
+ * @param[in] n Number of media types.
+ * @param[out] out_idx Selected index, or -1 if none.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 cdd_c_error_t
 select_primary_media_type_index(const struct OpenAPI_MediaType *mts, size_t n,
@@ -300,7 +332,12 @@ select_primary_media_type_index(const struct OpenAPI_MediaType *mts, size_t n,
 }
 
 /**
- * @brief Retrieves the media object by name.
+ * @brief Finds a media type JSON object in a `content` map by media type name.
+ *
+ * @param[in] content JSON object representing the `content` map.
+ * @param[in] media_name Media type key to look up.
+ * @param[out] _out_val Matching JSON_Object pointer, or NULL if not found.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 cdd_c_error_t find_media_object_by_name(const JSON_Object *content,
                                         const char *media_name,
@@ -330,7 +367,15 @@ cdd_c_error_t find_media_object_by_name(const JSON_Object *content,
 }
 
 /**
- * @brief Parses content object from the given input.
+ * @brief Parses a `content` map of media type objects.
+ *
+ * @param[in] content JSON object mapping media type ranges to Media Type
+ * objects.
+ * @param[out] out Output array of parsed media types.
+ * @param[out] out_count Output number of parsed media types.
+ * @param[in] spec Parent OpenAPI specification context.
+ * @param[in] resolve_refs Non-zero to resolve `$ref` against components.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t parse_content_object(const JSON_Object *content,
                                    struct OpenAPI_MediaType **out,

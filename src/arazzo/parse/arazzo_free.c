@@ -235,6 +235,8 @@ static void free_arazzo_workflow(struct Arazzo_Workflow *wf) {
 
 /**
  * @brief Frees all dynamic strings inside an `Arazzo_RuntimeExpr` structure.
+ *
+ * @param[in,out] expr Pointer to the runtime expression structure to free.
  */
 void arazzo_runtime_expr_free(struct Arazzo_RuntimeExpr *expr) {
   if (!expr)
@@ -250,6 +252,8 @@ void arazzo_runtime_expr_free(struct Arazzo_RuntimeExpr *expr) {
 /**
  * @brief Deep-copies an `Arazzo_RuntimeExpr` structure.
  *
+ * @param[out] dst Destination runtime expression structure.
+ * @param[in] src Source runtime expression structure to copy.
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 cdd_c_error_t arazzo_runtime_expr_copy(struct Arazzo_RuntimeExpr *dst,
@@ -297,6 +301,8 @@ cdd_c_error_t arazzo_runtime_expr_copy(struct Arazzo_RuntimeExpr *dst,
 
 /**
  * @brief Frees an `Arazzo_ExtensionList` and all its contained key/value pairs.
+ *
+ * @param[in,out] list Pointer to the extension list to free.
  */
 void arazzo_extension_list_free(struct Arazzo_ExtensionList *list) {
   size_t i;
@@ -315,6 +321,9 @@ void arazzo_extension_list_free(struct Arazzo_ExtensionList *list) {
  * @brief Appends a specification extension (`x-*`) to an
  * `Arazzo_ExtensionList`.
  *
+ * @param[in,out] list Target extension list.
+ * @param[in] key Extension property key (must start with `x-`).
+ * @param[in] val Arbitrary JSON value to store for the extension.
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 cdd_c_error_t arazzo_extension_list_append(struct Arazzo_ExtensionList *list,
@@ -355,6 +364,7 @@ cdd_c_error_t arazzo_extension_list_append(struct Arazzo_ExtensionList *list,
 /**
  * @brief Initializes an `Arazzo_Spec` structure with default values (`1.1.0`).
  *
+ * @param[out] spec Pointer to the Arazzo specification structure to initialize.
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 cdd_c_error_t arazzo_spec_init(struct Arazzo_Spec *spec) {
@@ -370,6 +380,8 @@ cdd_c_error_t arazzo_spec_init(struct Arazzo_Spec *spec) {
 
 /**
  * @brief Frees all heap-allocated memory inside an `Arazzo_Spec` structure.
+ *
+ * @param[in,out] spec Pointer to the Arazzo specification structure to free.
  */
 void arazzo_spec_free(struct Arazzo_Spec *spec) {
   size_t i;
@@ -433,6 +445,8 @@ void arazzo_spec_free(struct Arazzo_Spec *spec) {
 /**
  * @brief Converts an `Arazzo_SourceType` enum to its canonical string.
  *
+ * @param[in] type Source description type enum value.
+ * @param[out] out_str Output pointer receiving the canonical string.
  * @return `CDD_C_SUCCESS` on success, `CDD_C_ERROR_INVALID_ARGUMENT` if
  * unknown.
  */
@@ -459,6 +473,8 @@ cdd_c_error_t arazzo_source_type_to_str(enum Arazzo_SourceType type,
 /**
  * @brief Parses an `Arazzo_SourceType` enum from a string.
  *
+ * @param[in] str Input source type string.
+ * @param[out] out_type Output pointer receiving the parsed enum value.
  * @return `CDD_C_SUCCESS` on success, `CDD_C_ERROR_INVALID_ARGUMENT` if
  * unrecognized/NULL.
  */
@@ -485,6 +501,8 @@ cdd_c_error_t arazzo_source_type_from_str(const char *str,
 /**
  * @brief Converts an `Arazzo_ParamIn` enum to its canonical string.
  *
+ * @param[in] in_loc Parameter location enum value.
+ * @param[out] out_str Output pointer receiving the canonical location string.
  * @return `CDD_C_SUCCESS` on success, `CDD_C_ERROR_INVALID_ARGUMENT` if
  * unknown.
  */
@@ -517,6 +535,8 @@ cdd_c_error_t arazzo_param_in_to_str(enum Arazzo_ParamIn in_loc,
 /**
  * @brief Parses an `Arazzo_ParamIn` enum from a string.
  *
+ * @param[in] str Input parameter location string.
+ * @param[out] out_in Output pointer receiving the parsed enum value.
  * @return `CDD_C_SUCCESS` on success, `CDD_C_ERROR_INVALID_ARGUMENT` if
  * unrecognized/NULL.
  */
@@ -551,6 +571,8 @@ cdd_c_error_t arazzo_param_in_from_str(const char *str,
 /**
  * @brief Converts an `Arazzo_ActionType` enum to its canonical string.
  *
+ * @param[in] action Action type enum value.
+ * @param[out] out_str Output pointer receiving the canonical action string.
  * @return `CDD_C_SUCCESS` on success, `CDD_C_ERROR_INVALID_ARGUMENT` if
  * unknown.
  */
@@ -577,6 +599,8 @@ cdd_c_error_t arazzo_action_type_to_str(enum Arazzo_ActionType action,
 /**
  * @brief Parses an `Arazzo_ActionType` enum from a string.
  *
+ * @param[in] str Input action type string.
+ * @param[out] out_action Output pointer receiving the parsed enum value.
  * @return `CDD_C_SUCCESS` on success, `CDD_C_ERROR_INVALID_ARGUMENT` if
  * unrecognized/NULL.
  */

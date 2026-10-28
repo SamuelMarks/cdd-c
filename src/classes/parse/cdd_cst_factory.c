@@ -19,6 +19,8 @@
 /**
  * @brief Allocates a new empty CST node of the given kind.
  *
+ * @param[in] kind CST node kind to allocate.
+ * @param[out] out_node Output pointer receiving the allocated CST node.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_alloc_node(enum cdd_cst_node_kind_t kind,
@@ -64,6 +66,11 @@ static cdd_c_error_t track_synthesized(cdd_cst_tree_t *tree, cdd_token_t *tok) {
 /**
  * @brief Creates a synthetic token from a buffer and explicit byte length.
  *
+ * @param[in,out] tree Owning CST tree to register the synthesized token in.
+ * @param[in] kind Lexical token kind.
+ * @param[in] text Pointer to token text bytes.
+ * @param[in] length Length of token text in bytes.
+ * @param[out] out_token Output pointer receiving the newly allocated token.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_create_token_len(cdd_cst_tree_t *tree,
@@ -97,6 +104,10 @@ cdd_c_error_t cdd_cst_create_token_len(cdd_cst_tree_t *tree,
 /**
  * @brief Creates a synthetic token from a null-terminated string.
  *
+ * @param[in,out] tree Owning CST tree to register the synthesized token in.
+ * @param[in] kind Lexical token kind.
+ * @param[in] text Null-terminated token text string.
+ * @param[out] out_token Output pointer receiving the newly allocated token.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_create_token(cdd_cst_tree_t *tree,
@@ -109,6 +120,8 @@ cdd_c_error_t cdd_cst_create_token(cdd_cst_tree_t *tree,
 /**
  * @brief Appends a child CST node to a parent CST node.
  *
+ * @param[in,out] parent Parent CST node.
+ * @param[in,out] child Child CST node to append.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_append_child_node(cdd_cst_node_t *parent,
@@ -138,6 +151,8 @@ cdd_c_error_t cdd_cst_append_child_node(cdd_cst_node_t *parent,
 /**
  * @brief Appends a child lexical token to a parent CST node.
  *
+ * @param[in,out] parent Parent CST node.
+ * @param[in] token Lexical token to append.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t cdd_cst_append_child_token(cdd_cst_node_t *parent,
@@ -165,6 +180,8 @@ cdd_c_error_t cdd_cst_append_child_token(cdd_cst_node_t *parent,
 
 /**
  * @brief Frees a node structure, but not its children.
+ *
+ * @param[in,out] node CST node structure to free.
  */
 void cdd_cst_free_node_only(cdd_cst_node_t *node) {
   if (!node)
@@ -176,6 +193,8 @@ void cdd_cst_free_node_only(cdd_cst_node_t *node) {
 
 /**
  * @brief Recursively frees a CST node and all of its descendant child nodes.
+ *
+ * @param[in,out] node Root CST node to recursively free.
  */
 void cdd_cst_free_node(cdd_cst_node_t *node) {
   size_t i;

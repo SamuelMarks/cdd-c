@@ -47,6 +47,7 @@ static cdd_c_error_t my_strdup(const char *s, char **out_val) {
 /**
  * @brief Initializes a scraped build-system metadata structure.
  *
+ * @param[out] info Pointer to the ExtractedBuildInfo structure to initialize.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
  * NULL.
  */
@@ -64,6 +65,8 @@ cdd_c_error_t build_info_init(struct ExtractedBuildInfo *info) {
 
 /**
  * @brief Releases memory held by a scraped build-system metadata structure.
+ *
+ * @param[in,out] info Pointer to the ExtractedBuildInfo structure to free.
  */
 void build_info_free(struct ExtractedBuildInfo *info) {
   size_t i;
@@ -167,6 +170,8 @@ static cdd_c_error_t process_token(struct ExtractedBuildInfo *info,
 /**
  * @brief Extracts source files, include paths, and flags from a Makefile.
  *
+ * @param[in,out] info ExtractedBuildInfo structure to populate.
+ * @param[in] makefile_content Raw `Makefile` text content.
  * @return 0 on success.
  */
 cdd_c_error_t scrape_makefile(struct ExtractedBuildInfo *info,
@@ -211,6 +216,8 @@ cdd_c_error_t scrape_makefile(struct ExtractedBuildInfo *info,
  * @brief Extracts package metadata and checks from an Autoconf configure.ac
  * file.
  *
+ * @param[in,out] info ExtractedBuildInfo structure to populate.
+ * @param[in] configure_ac_content Raw `configure.ac` text content.
  * @return 0 on success.
  */
 cdd_c_error_t scrape_configure_ac(
@@ -258,6 +265,10 @@ cdd_c_error_t scrape_configure_ac(
  * @brief Generates a CMakeLists.txt file from scraped Makefile/Autoconf
  * metadata.
  *
+ * @param[in] info Scraped ExtractedBuildInfo metadata.
+ * @param[in] project_name CMake project and target name.
+ * @param[out] out_cmake Output pointer receiving the newly allocated
+ * `CMakeLists.txt` string.
  * @return 0 on success.
  */
 cdd_c_error_t build_info_to_cmake(const struct ExtractedBuildInfo *info,

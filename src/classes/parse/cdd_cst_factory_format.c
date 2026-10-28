@@ -21,6 +21,11 @@
 
 /**
  * @brief Parses a format string into a CST node.
+ *
+ * @param[in,out] dest_tree Destination CST tree to clone synthesized tokens
+ * into.
+ * @param[out] out_node Output pointer receiving the newly created CST node.
+ * @param[in] fmt Printf-style C source format string.
  * @return 0 on success.
  */
 cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,

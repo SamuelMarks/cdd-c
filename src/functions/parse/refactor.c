@@ -22,6 +22,7 @@
 /**
  * @brief Initializes a refactor context.
  *
+ * @param[out] ctx Pointer to the RefactorContext structure to initialize.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if
  * NULL.
  */
@@ -35,6 +36,8 @@ cdd_c_error_t refactor_context_init(struct RefactorContext *ctx) {
 
 /**
  * @brief Frees a refactor context.
+ *
+ * @param[in,out] ctx Pointer to the RefactorContext structure to free.
  */
 void refactor_context_free(struct RefactorContext *ctx) {
   /* Note: func names and return types are shallow copies/refs in this design,
@@ -51,6 +54,10 @@ void refactor_context_free(struct RefactorContext *ctx) {
 /**
  * @brief Adds a function to the refactor context.
  *
+ * @param[in,out] ctx RefactorContext to update.
+ * @param[in] name Function identifier name.
+ * @param[in] type Target RefactorType transformation classification.
+ * @param[in] return_type Original return type string of the function.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` if allocation
  * fails.
  */
@@ -81,6 +88,11 @@ cdd_c_error_t refactor_context_add_function(struct RefactorContext *ctx,
 /**
  * @brief Applies refactoring to a string of source code.
  *
+ * @param[in] ctx RefactorContext containing registered function
+ * transformations.
+ * @param[in] source_code Input C source code string.
+ * @param[out] out_code Output pointer receiving the newly allocated refactored
+ * C code string.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t apply_refactoring_to_string(const struct RefactorContext *ctx,

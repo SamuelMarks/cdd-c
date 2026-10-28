@@ -64,6 +64,9 @@ static void free_string_array(char **arr, size_t n) {
 /**
  * @brief Extracts the type name from a JSON Schema `$ref` path.
  *
+ * @param[in] ref JSON Schema `$ref` string (e.g.,
+ * `"#/components/schemas/Foo"`).
+ * @param[out] _out_val Output pointer receiving the extracted type name suffix.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t get_type_from_ref(const char *ref, const char **_out_val) {
@@ -87,6 +90,7 @@ cdd_c_error_t get_type_from_ref(const char *ref, const char **_out_val) {
 /**
  * @brief Initializes a dynamic array of struct field descriptors.
  *
+ * @param[out] sf Pointer to the StructFields structure to initialize.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t struct_fields_init(struct StructFields *sf) {
@@ -106,6 +110,8 @@ cdd_c_error_t struct_fields_init(struct StructFields *sf) {
 
 /**
  * @brief Releases all memory owned by a StructFields container.
+ *
+ * @param[in,out] sf Pointer to the StructFields structure to free.
  */
 void struct_fields_free(struct StructFields *sf) {
   if (sf && sf->fields) {
@@ -176,6 +182,12 @@ void struct_fields_free(struct StructFields *sf) {
 /**
  * @brief Appends a new field descriptor to a StructFields container.
  *
+ * @param[in,out] sf Target StructFields container.
+ * @param[in] name Field identifier name.
+ * @param[in] type Field JSON Schema type string.
+ * @param[in] ref Optional `$ref` target or array item type.
+ * @param[in] default_val Optional default value literal string.
+ * @param[in] bit_width Optional C bit-field width string.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t struct_fields_add(struct StructFields *sf, const char *name,
@@ -240,6 +252,10 @@ cdd_c_error_t struct_fields_add(struct StructFields *sf, const char *name,
 /**
  * @brief Finds a struct field descriptor by name.
  *
+ * @param[in] sf StructFields container to search.
+ * @param[in] name Field identifier name to look up.
+ * @param[out] _out_val Output pointer receiving the matching StructField or
+ * NULL.
  * @return CDD_C_SUCCESS on success.
  */
 cdd_c_error_t struct_fields_get(const struct StructFields *sf, const char *name,
@@ -266,6 +282,10 @@ cdd_c_error_t struct_fields_get(const struct StructFields *sf, const char *name,
 /**
  * @brief Emits C source code for struct cleanup func.
  *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the C struct.
+ * @param[in] sf Struct fields descriptor container.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
@@ -348,6 +368,10 @@ write_struct_cleanup_func(FILE *fp, const char *struct_name,
 /**
  * @brief Emits C source code for struct deepcopy func.
  *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the C struct.
+ * @param[in] sf Struct fields descriptor container.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
@@ -401,6 +425,10 @@ write_struct_deepcopy_func(FILE *fp, const char *struct_name,
 /**
  * @brief Emits C source code for struct eq func.
  *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the C struct.
+ * @param[in] sf Struct fields descriptor container.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t write_struct_eq_func(FILE *fp, const char *struct_name,
@@ -499,6 +527,10 @@ cdd_c_error_t write_struct_eq_func(FILE *fp, const char *struct_name,
 /**
  * @brief Emits C source code for struct default func.
  *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the C struct.
+ * @param[in] sf Struct fields descriptor container.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
@@ -602,6 +634,10 @@ write_struct_default_func(FILE *fp, const char *struct_name,
 /**
  * @brief Emits C source code for struct debug func.
  *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the C struct.
+ * @param[in] sf Struct fields descriptor container.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
@@ -733,6 +769,10 @@ write_struct_debug_func(FILE *fp, const char *struct_name,
 /**
  * @brief Emits C source code for struct display func.
  *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the C struct.
+ * @param[in] sf Struct fields descriptor container.
+ * @param[in] config Optional code generation configuration.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
