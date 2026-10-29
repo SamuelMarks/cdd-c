@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches: ["main", "master"]
-    tags: ["*"]
+    tags: ["v*"]
   pull_request:
     branches: ["main", "master"]
 
@@ -62,21 +62,10 @@ jobs:
               wasm-opt -O3 "$f" -o "$f" || true
             fi
           done
-      - name: Update latest tag
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git tag -f latest
       - name: Release Versioned WASM Artifact
         uses: softprops/action-gh-release@master
         with:
           tag_name: ${{ github.ref_name }}
-          files: "*.wasm"
-          prerelease: false
-      - name: Release Latest WASM Artifact
-        uses: softprops/action-gh-release@master
-        with:
-          tag_name: latest
           files: "*.wasm"
           prerelease: false
           make_latest: true

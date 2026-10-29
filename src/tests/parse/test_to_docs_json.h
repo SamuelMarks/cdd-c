@@ -118,7 +118,11 @@ TEST test_to_docs_json_basic(void) {
   JSON_Object *root_obj = NULL;
   JSON_Object *endpoints_obj = NULL;
   JSON_Object *pet_obj = NULL;
-  const char *code_str = NULL;
+  JSON_Object *get_obj = NULL;
+  const char *imports_str = NULL;
+  const char *wrapper_start_str = NULL;
+  const char *snippet_str = NULL;
+  const char *wrapper_end_str = NULL;
   fpos_t pos;
 
   argv[0] = cdd_test_mut_str("to_docs_json");
@@ -173,14 +177,160 @@ TEST test_to_docs_json_basic(void) {
   pet_obj = json_object_get_object(endpoints_obj, "/pet");
   ASSERT(pet_obj != NULL);
 
-  code_str = json_object_get_string(pet_obj, "get");
-  ASSERT(code_str != NULL);
+  get_obj = json_object_get_object(pet_obj, "get");
+  ASSERT(get_obj != NULL);
 
-  ASSERT(strstr(code_str, "#include \"generated_client.h\"") != NULL);
-  ASSERT(strstr(code_str, "int main(void)") != NULL);
-  ASSERT(strstr(code_str, "api_getPet") != NULL);
+  imports_str = json_object_get_string(get_obj, "imports");
+  wrapper_start_str = json_object_get_string(get_obj, "wrapper_start");
+  snippet_str = json_object_get_string(get_obj, "snippet");
+  wrapper_end_str = json_object_get_string(get_obj, "wrapper_end");
+
+  ASSERT(imports_str != NULL);
+  ASSERT(wrapper_start_str != NULL);
+  ASSERT(snippet_str != NULL);
+  ASSERT(wrapper_end_str != NULL);
+
+  ASSERT(strstr(imports_str, "#include \"generated_client.h\"") != NULL);
+  ASSERT(strstr(wrapper_start_str, "int main(void)") != NULL);
+  ASSERT(strstr(snippet_str, "api_getPet(&client, &err)") != NULL);
+  ASSERT(strstr(wrapper_end_str, "api_cleanup(&client);") != NULL);
 
   json_value_free(val);
+
+  /* Test parameters, requestBody, webhooks, and directory -o output */
+  {
+    const char *rich_p1 =
+        "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"R\",\"version\":\"1\"},"
+        "\"paths\":{\"/pets\":{\"post\":{\"operationId\":\"createPet\","
+        "\"parameters\":[{\"name\":\"petId\",\"in\":\"query\",\"required\":true"
+        ",\"schema\":{\"type\":\"integer\"}},{\"name\":\"weight\",\"in\":"
+        "\"query\",\"schema\":{\"type\":\"number\"}},{\"name\":\"name\","
+        "\"in\":\"query\",\"schema\":{\"type\":\"string\"}},{\"name\":\"tags\","
+        "\"in\":\"query\",\"schema\":{\"type\":\"array\",\"items\":{\"type\":"
+        "\"string\"}}}],";
+    const char *rich_p2 =
+        "\"requestBody\":{\"content\":{\"application/json\":{\"schema\":"
+        "{\"$ref\":\"#/components/schemas/Pet\"}}}},\"responses\":{\"200\":"
+        "{\"description\":\"OK\"}}},\"put\":{\"operationId\":\"rawPet\","
+        "\"requestBody\":{\"content\":{\"application/json\":{\"schema\":"
+        "{\"type\":\"string\"}}}},\"responses\":{\"200\":{\"description\":"
+        "\"OK\"}}}}},\"webhooks\":{\"newPet\":{\"post\":{\"operationId\":"
+        "\"onNewPet\",\"responses\":{\"200\":{\"description\":\"OK\"}}}}},"
+        "\"components\":{\"schemas\":{\"Pet\":{\"type\":\"object\"}}}}";
+    char rich_spec[2048];
+    cdd_docs_json_config_t cfg;
+    JSON_Value *rval = NULL;
+    JSON_Object *robj = NULL;
+    JSON_Object *ep_obj = NULL;
+    JSON_Object *wh_obj = NULL;
+    JSON_Object *p_obj = NULL;
+    JSON_Object *post_obj = NULL;
+    JSON_Object *put_obj = NULL;
+    JSON_Object *wh_pet_obj = NULL;
+    JSON_Object *wh_post_obj = NULL;
+    const char *post_snip = NULL;
+    const char *put_snip = NULL;
+
+    rich_spec[0] = '\0';
+    CDD_STRCAT(rich_spec, sizeof(rich_spec), rich_p1);
+    CDD_STRCAT(rich_spec, sizeof(rich_spec), rich_p2);
+    ASSERT_EQ(CDD_C_SUCCESS, fs_write_to_file(TEMP_SPEC_FILE, rich_spec));
+
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.input = TEMP_SPEC_FILE;
+    cfg.output = ".";
+#ifdef CDD_BUILD_TESTS
+    {
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      int step;
+      for (step = 1; step <= 40; ++step) {
+        g_cdd_alloc_fail = step;
+        cdd_generate_docs_json(&cfg);
+        g_cdd_alloc_fail = 0;
+      }
+    }
+#endif
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_docs_json(&cfg));
+
+    rval = json_parse_file("docs.json");
+    ASSERT(rval != NULL);
+    robj = json_value_get_object(rval);
+    ep_obj = json_object_get_object(robj, "endpoints");
+    wh_obj = json_object_get_object(robj, "webhooks");
+    ASSERT(ep_obj != NULL);
+    ASSERT(wh_obj != NULL);
+
+    p_obj = json_object_get_object(ep_obj, "/pets");
+    ASSERT(p_obj != NULL);
+    post_obj = json_object_get_object(p_obj, "post");
+    put_obj = json_object_get_object(p_obj, "put");
+    ASSERT(post_obj != NULL);
+    ASSERT(put_obj != NULL);
+
+    post_snip = json_object_get_string(post_obj, "snippet");
+    put_snip = json_object_get_string(put_obj, "snippet");
+    ASSERT(post_snip != NULL);
+    ASSERT(put_snip != NULL);
+    ASSERT(strstr(post_snip, "int petId = 1;") != NULL);
+    ASSERT(strstr(post_snip, "double weight = 1.0;") != NULL);
+    ASSERT(strstr(post_snip, "const char *name = \"example\";") != NULL);
+    ASSERT(strstr(post_snip, "const char *tags[] = {\"example\"};") != NULL);
+    ASSERT(strstr(post_snip, "struct Pet req_body = {0};") != NULL);
+    ASSERT(strstr(post_snip,
+                  "api_createPet(&client, petId, weight, name, tags, 1, "
+                  "&req_body, &err)") != NULL);
+    ASSERT(strstr(put_snip, "const char *req_body = \"{}\";") != NULL);
+    ASSERT(strstr(put_snip, "api_rawPet(&client, req_body, &err)") != NULL);
+
+    wh_pet_obj = json_object_get_object(wh_obj, "newPet");
+    ASSERT(wh_pet_obj != NULL);
+    wh_post_obj = json_object_get_object(wh_pet_obj, "post");
+    ASSERT(wh_post_obj != NULL);
+    ASSERT(strstr(json_object_get_string(wh_post_obj, "snippet"),
+                  "api_onNewPet(&client, &err)") != NULL);
+
+    json_value_free(rval);
+    remove("docs.json");
+  }
+
+  /* Test Arazzo workflows in cdd_generate_docs_json */
+  {
+    const char *az_spec_json =
+        "{\n"
+        "  \"arazzo\": \"1.1.0\",\n"
+        "  \"info\": {\"title\": \"Flow\", \"version\": \"1.0.0\"},\n"
+        "  \"sourceDescriptions\": [{\"name\": \"pet\", \"url\": "
+        "\"openapi.json\", \"type\": \"openapi\"}],\n"
+        "  \"workflows\": [\n"
+        "    {\n"
+        "      \"workflowId\": \"loginFlow\",\n"
+        "      \"steps\": [{\"stepId\": \"s1\", \"operationId\": \"login\"}]\n"
+        "    }\n"
+        "  ]\n"
+        "}\n";
+    cdd_docs_json_config_t az_cfg;
+    JSON_Value *az_val = NULL;
+    JSON_Object *az_robj = NULL;
+    JSON_Object *wf_obj = NULL;
+    JSON_Object *login_obj = NULL;
+
+    ASSERT_EQ(CDD_C_SUCCESS, fs_write_to_file(TEMP_SPEC_FILE, az_spec_json));
+    memset(&az_cfg, 0, sizeof(az_cfg));
+    az_cfg.input = TEMP_SPEC_FILE;
+    az_cfg.output = TEMP_OUT_FILE;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_docs_json(&az_cfg));
+
+    az_val = json_parse_file(TEMP_OUT_FILE);
+    ASSERT(az_val != NULL);
+    az_robj = json_value_get_object(az_val);
+    wf_obj = json_object_get_object(az_robj, "workflows");
+    ASSERT(wf_obj != NULL);
+    login_obj = json_object_get_object(wf_obj, "loginFlow");
+    ASSERT(login_obj != NULL);
+    ASSERT(strstr(json_object_get_string(login_obj, "snippet"),
+                  "arazzo_run_workflow_loginFlow") != NULL);
+    json_value_free(az_val);
+  }
 
   remove(TEMP_SPEC_FILE);
   remove(TEMP_OUT_FILE);
@@ -200,7 +350,8 @@ TEST test_to_docs_json_no_imports_no_wrapping(void) {
   JSON_Object *root_obj = NULL;
   JSON_Object *endpoints_obj = NULL;
   JSON_Object *pet_obj = NULL;
-  const char *code_str = NULL;
+  JSON_Object *get_obj = NULL;
+  const char *snippet_str = NULL;
   fpos_t pos;
 
   argv[0] = cdd_test_mut_str("to_docs_json");
@@ -257,12 +408,16 @@ TEST test_to_docs_json_no_imports_no_wrapping(void) {
   pet_obj = json_object_get_object(endpoints_obj, "/pet");
   ASSERT(pet_obj != NULL);
 
-  code_str = json_object_get_string(pet_obj, "get");
-  ASSERT(code_str != NULL);
+  get_obj = json_object_get_object(pet_obj, "get");
+  ASSERT(get_obj != NULL);
 
-  ASSERT(strstr(code_str, "#include") == NULL);
-  ASSERT(strstr(code_str, "int main(void)") == NULL);
-  ASSERT(strstr(code_str, "api_getPet") != NULL);
+  ASSERT(json_object_get_string(get_obj, "imports") == NULL);
+  ASSERT(json_object_get_string(get_obj, "wrapper_start") == NULL);
+  ASSERT(json_object_get_string(get_obj, "wrapper_end") == NULL);
+
+  snippet_str = json_object_get_string(get_obj, "snippet");
+  ASSERT(snippet_str != NULL);
+  ASSERT(strstr(snippet_str, "api_getPet(&client, &err)") != NULL);
 
   json_value_free(val);
 

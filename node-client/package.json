@@ -1,6 +1,6 @@
 {
   "name": "client",
-  "version": "0.0.4",
+  "version": "0.0.3",
   "description": "TypeScript client and integration test suite for cdd-c",
   "main": "src/client.ts",
   "scripts": {

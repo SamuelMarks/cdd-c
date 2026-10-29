@@ -33,7 +33,7 @@ def get_doc_coverage():
                 doxy = f.read()
             with tempfile.TemporaryDirectory() as tmpdir:
                 doxy = doxy.replace("@PROJECT_NAME@", "c_cdd")
-                doxy = doxy.replace("@PROJECT_VERSION@", "0.0.4")
+                doxy = doxy.replace("@PROJECT_VERSION@", "0.0.3")
                 doxy = doxy.replace("@CMAKE_SOURCE_DIR@", repo_root)
                 doxy = doxy.replace(
                     "OUTPUT_DIRECTORY       = docs",

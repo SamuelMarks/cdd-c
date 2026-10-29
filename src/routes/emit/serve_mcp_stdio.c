@@ -98,7 +98,7 @@ static cdd_c_error_t build_stdio_resources_read(const JSON_Object *params,
     json_object_set_string(
         item_obj, "text",
         "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"cdd-c\",\"version\":"
-        "\"0.0.4\"},\"paths\":{}}");
+        "\"0.0.3\"},\"paths\":{}}");
   }
   json_array_append_value(arr, item_val);
   json_object_set_value(res_obj, "contents", arr_val);
@@ -140,7 +140,7 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
   }
 
   if (strcmp(method, "version") == 0) {
-    rc = send_stdio_rpc_response(id_val, "\"0.0.4\"");
+    rc = send_stdio_rpc_response(id_val, "\"0.0.3\"");
   } else if (strcmp(method, "initialize") == 0) {
     rc = send_stdio_rpc_response(
         id_val,
@@ -148,7 +148,7 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
         "\"tools\":{\"listChanged\":true},\"resources\":{\"subscribe\":"
         "true,\"listChanged\":true},\"prompts\":{\"listChanged\":true},"
         "\"logging\":{}},\"serverInfo\":{\"name\":\"cdd-c\",\"version\":"
-        "\"0.0.4\"}}");
+        "\"0.0.3\"}}");
   } else if (strcmp(method, "notifications/initialized") == 0) {
   } else if (strcmp(method, "notifications/progress") == 0) {
   } else if (strcmp(method, "notifications/message") == 0) {

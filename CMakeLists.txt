@@ -10,7 +10,7 @@ endif()
 if(POLICY CMP0092)
     cmake_policy(SET CMP0092 NEW)
 endif()
-project(c_cdd VERSION 0.0.4 LANGUAGES C CXX)
+project(c_cdd VERSION 0.0.3 LANGUAGES C CXX)
 
 string(TOUPPER "${PROJECT_NAME}" PROJECT_PREFIX)
 string(REPLACE "-" "_" PROJECT_PREFIX "${PROJECT_PREFIX}")
