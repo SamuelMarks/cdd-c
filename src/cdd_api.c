@@ -246,14 +246,16 @@ static cdd_c_error_t cdd_docs_build_code_val(const char *snippet,
  * @brief Format the C SDK invocation snippet for an OpenAPI operation.
  *
  * @param[in] op OpenAPI operation structure.
+ * @param[in] no_wrapping Non-zero to omit the 2-space leading indentation.
  * @param[out] snippet Output buffer for the formatted C code snippet.
  * @param[in] snippet_sz Size of the snippet buffer in bytes.
  * @return CDD_C_SUCCESS on success.
  */
 static cdd_c_error_t
-cdd_docs_format_op_snippet(const struct OpenAPI_Operation *op, char *snippet,
-                           size_t snippet_sz) {
+cdd_docs_format_op_snippet(const struct OpenAPI_Operation *op, int no_wrapping,
+                           char *snippet, size_t snippet_sz) {
   const char *op_id = op->operation_id ? op->operation_id : "unknown";
+  const char *ind = no_wrapping ? "" : "  ";
   char decls[2048];
   char call_args[1024];
   size_t k;
@@ -270,17 +272,18 @@ cdd_docs_format_op_snippet(const struct OpenAPI_Operation *op, char *snippet,
 
     if (param->is_array) {
       CDD_SNPRINTF(decl_line, sizeof(decl_line),
-                   "  const char *%s[] = {\"example\"};\n", pname);
+                   "%sconst char *%s[] = {\"example\"};\n", ind, pname);
       CDD_SNPRINTF(arg_item, sizeof(arg_item), ", %s, 1", pname);
     } else if (strcmp(ptype, "integer") == 0) {
-      CDD_SNPRINTF(decl_line, sizeof(decl_line), "  int %s = 1;\n", pname);
+      CDD_SNPRINTF(decl_line, sizeof(decl_line), "%sint %s = 1;\n", ind, pname);
       CDD_SNPRINTF(arg_item, sizeof(arg_item), ", %s", pname);
     } else if (strcmp(ptype, "number") == 0) {
-      CDD_SNPRINTF(decl_line, sizeof(decl_line), "  double %s = 1.0;\n", pname);
+      CDD_SNPRINTF(decl_line, sizeof(decl_line), "%sdouble %s = 1.0;\n", ind,
+                   pname);
       CDD_SNPRINTF(arg_item, sizeof(arg_item), ", %s", pname);
     } else {
       CDD_SNPRINTF(decl_line, sizeof(decl_line),
-                   "  const char *%s = \"example\";\n", pname);
+                   "%sconst char *%s = \"example\";\n", ind, pname);
       CDD_SNPRINTF(arg_item, sizeof(arg_item), ", %s", pname);
     }
     CDD_STRCAT(decls, sizeof(decls), decl_line);
@@ -289,20 +292,23 @@ cdd_docs_format_op_snippet(const struct OpenAPI_Operation *op, char *snippet,
 
   if (op->req_body.ref_name) {
     char decl_line[256];
-    CDD_SNPRINTF(decl_line, sizeof(decl_line), "  struct %s req_body = {0};\n",
-                 op->req_body.ref_name);
+    CDD_SNPRINTF(decl_line, sizeof(decl_line), "%sstruct %s req_body = {0};\n",
+                 ind, op->req_body.ref_name);
     CDD_STRCAT(decls, sizeof(decls), decl_line);
     CDD_STRCAT(call_args, sizeof(call_args), ", &req_body");
   } else if (op->req_body.content_type) {
-    CDD_STRCAT(decls, sizeof(decls), "  const char *req_body = \"{}\";\n");
+    char decl_line[256];
+    CDD_SNPRINTF(decl_line, sizeof(decl_line),
+                 "%sconst char *req_body = \"{}\";\n", ind);
+    CDD_STRCAT(decls, sizeof(decls), decl_line);
     CDD_STRCAT(call_args, sizeof(call_args), ", req_body");
   }
 
   CDD_SNPRINTF(snippet, snippet_sz,
-               "%s  /* Call the %s API */\n  cdd_c_error_t rc = "
-               "api_%s(&client%s, &err);\n  if (rc != CDD_C_SUCCESS) {\n    "
-               "fprintf(stderr, \"Error: %%d\\n\", rc);\n  }",
-               decls, op_id, op_id, call_args);
+               "%s%s/* Call the %s API */\n%scdd_c_error_t rc = "
+               "api_%s(&client%s, &err);\n%sif (rc != CDD_C_SUCCESS) {\n%s  "
+               "fprintf(stderr, \"Error: %%d\\n\", rc);\n%s}",
+               decls, ind, op_id, ind, op_id, call_args, ind, ind, ind);
   return CDD_C_SUCCESS;
 }
 
@@ -366,7 +372,8 @@ cdd_docs_populate_path_map(JSON_Object *target_obj,
         break;
       }
 
-      rc = cdd_docs_format_op_snippet(op, snippet, sizeof(snippet));
+      rc =
+          cdd_docs_format_op_snippet(op, no_wrapping, snippet, sizeof(snippet));
       rc = cdd_docs_build_code_val(snippet, no_imports, no_wrapping, &code_val);
       json_object_set_value(path_obj, method, code_val);
     }
@@ -408,6 +415,7 @@ cdd_c_error_t cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
   memset(&az_spec, 0, sizeof(az_spec));
   if (arazzo_load_from_json_value(parsed_root, &az_spec) == CDD_C_SUCCESS) {
     size_t w;
+    const char *ind = no_wrapping ? "" : "  ";
     JSON_Value *workflows_val = json_value_init_object();
     JSON_Object *workflows_obj = json_value_get_object(workflows_val);
 
@@ -424,15 +432,15 @@ cdd_c_error_t cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
 
       CDD_SNPRINTF(
           snippet, sizeof(snippet),
-          "  struct arazzo_%s_inputs inputs = {0};\n"
-          "  struct arazzo_%s_outputs outputs = {0};\n"
-          "  cdd_c_error_t rc = arazzo_run_workflow_%s(&clients, &inputs, "
+          "%sstruct arazzo_%s_inputs inputs = {0};\n"
+          "%sstruct arazzo_%s_outputs outputs = {0};\n"
+          "%scdd_c_error_t rc = arazzo_run_workflow_%s(&clients, &inputs, "
           "&outputs);\n"
-          "  if (rc != CDD_C_SUCCESS) {\n"
-          "    fprintf(stderr, \"Error: %%d\\n\", rc);\n"
-          "  }\n"
-          "  arazzo_%s_outputs_free(&outputs);",
-          wf_id, wf_id, wf_id, wf_id);
+          "%sif (rc != CDD_C_SUCCESS) {\n"
+          "%s  fprintf(stderr, \"Error: %%d\\n\", rc);\n"
+          "%s}\n"
+          "%sarazzo_%s_outputs_free(&outputs);",
+          ind, wf_id, ind, wf_id, ind, wf_id, ind, ind, ind, ind, wf_id);
       rc = cdd_docs_build_code_val(snippet, no_imports, no_wrapping, &code_val);
       json_object_set_value(workflows_obj, wf_id, code_val);
     }

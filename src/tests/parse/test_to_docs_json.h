@@ -327,8 +327,21 @@ TEST test_to_docs_json_basic(void) {
     ASSERT(wf_obj != NULL);
     login_obj = json_object_get_object(wf_obj, "loginFlow");
     ASSERT(login_obj != NULL);
+    ASSERT(strncmp(json_object_get_string(login_obj, "snippet"),
+                   "  struct arazzo_loginFlow_inputs", 32) == 0);
     ASSERT(strstr(json_object_get_string(login_obj, "snippet"),
                   "arazzo_run_workflow_loginFlow") != NULL);
+    json_value_free(az_val);
+
+    az_cfg.no_wrapping = 1;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_docs_json(&az_cfg));
+    az_val = json_parse_file(TEMP_OUT_FILE);
+    ASSERT(az_val != NULL);
+    az_robj = json_value_get_object(az_val);
+    wf_obj = json_object_get_object(az_robj, "workflows");
+    login_obj = json_object_get_object(wf_obj, "loginFlow");
+    ASSERT(strncmp(json_object_get_string(login_obj, "snippet"),
+                   "struct arazzo_loginFlow_inputs", 30) == 0);
     json_value_free(az_val);
   }
 
@@ -417,6 +430,7 @@ TEST test_to_docs_json_no_imports_no_wrapping(void) {
 
   snippet_str = json_object_get_string(get_obj, "snippet");
   ASSERT(snippet_str != NULL);
+  ASSERT(strncmp(snippet_str, "/* Call the getPet API */", 25) == 0);
   ASSERT(strstr(snippet_str, "api_getPet(&client, &err)") != NULL);
 
   json_value_free(val);
