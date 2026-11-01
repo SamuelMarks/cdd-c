@@ -19,7 +19,7 @@
 #include <string.h>
 /* clang-format on */
 
-/**
+/*
  * @brief Initializes a refactor context.
  *
  * @param[out] ctx Pointer to the RefactorContext structure to initialize.
@@ -34,7 +34,7 @@ cdd_c_error_t refactor_context_init(struct RefactorContext *ctx) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Frees a refactor context.
  *
  * @param[in,out] ctx Pointer to the RefactorContext structure to free.
@@ -51,7 +51,7 @@ void refactor_context_free(struct RefactorContext *ctx) {
   ctx->func_count = 0;
 }
 
-/**
+/*
  * @brief Adds a function to the refactor context.
  *
  * @param[in,out] ctx RefactorContext to update.
@@ -85,7 +85,7 @@ cdd_c_error_t refactor_context_add_function(struct RefactorContext *ctx,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Applies refactoring to a string of source code.
  *
  * @param[in] ctx RefactorContext containing registered function

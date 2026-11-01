@@ -294,7 +294,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_test_split_lines(const char *str, size_t len,
 }
 #endif
 
-/**
+/*
  * @brief Generates a unified diff string from a list of source patches.
  *
  * @param[in,out] list Patch list containing replacement spans.

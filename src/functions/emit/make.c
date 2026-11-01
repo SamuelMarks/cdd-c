@@ -29,7 +29,7 @@
 #define FPRINTF_HOOK fprintf
 #endif
 
-/**
+/*
  * @brief Emits a standalone `CMakeLists.txt` build configuration to `fp`.
  *
  * @param[in,out] fp Output file stream.
@@ -46,7 +46,7 @@ cdd_c_error_t codegen_make_generate(FILE *fp, const struct MakeConfig *config) {
   CHECK_IO(FPRINTF_HOOK(fp, "cmake_minimum_required(VERSION %s)\n",
                         config->min_cmake_version ? config->min_cmake_version
                                                   : "3.10"));
-  CHECK_IO(FPRINTF_HOOK(fp, "project(%s VERSION 0.0.3 LANGUAGES C)\n\n",
+  CHECK_IO(FPRINTF_HOOK(fp, "project(%s VERSION 0.0.5 LANGUAGES C)\n\n",
                         config->project_name));
 
   /* Core Sources */

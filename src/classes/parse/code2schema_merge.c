@@ -8,7 +8,7 @@
 #include "code2schema_internal.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Merges a source struct field into a destination struct field.
  *
  * @param[in,out] dest Destination StructField to merge constraints into.
@@ -133,7 +133,7 @@ cdd_c_error_t merge_struct_field(struct StructField *dest,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Merges source struct fields into destination struct fields.
  *
  * @param[in,out] dest Destination StructFields container.
@@ -217,7 +217,7 @@ cdd_c_error_t merge_struct_fields(struct StructFields *dest,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Applies an allOf JSON Schema array to a StructFields object.
  *
  * @param[in] all_of JSON_Array of `allOf` sub-schemas.

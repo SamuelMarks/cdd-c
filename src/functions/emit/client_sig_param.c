@@ -29,7 +29,7 @@ extern C_CDD_EXPORT int g_cdd_fail_qs_json_array_item_ref;
 extern C_CDD_EXPORT int g_cdd_fail_qs_raw;
 #endif
 
-/**
+/*
  * @brief Checks if a parameter represents an object Key-Value structure.
  *
  * @param[in] p OpenAPI parameter descriptor.
@@ -59,7 +59,7 @@ cdd_c_error_t param_is_object_kv(const struct OpenAPI_Parameter *p, int *out) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if a querystring parameter is a form object for client
  * signatures.
  *
@@ -99,7 +99,7 @@ sig_querystring_param_is_form_object(const struct OpenAPI_Parameter *p,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if a querystring parameter is a JSON schema reference for
  * client signatures.
  *
@@ -131,7 +131,7 @@ sig_querystring_param_is_json_ref(const struct OpenAPI_Parameter *p, int *out) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Determines the JSON primitive type of a querystring parameter for
  * client signatures.
  *
@@ -195,7 +195,7 @@ sig_querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Determines the JSON array item type of a querystring parameter for
  * client signatures.
  *
@@ -260,7 +260,7 @@ sig_querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Determines the JSON array item reference of a querystring parameter
  * for client signatures.
  *
@@ -330,7 +330,7 @@ sig_querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Determines raw primitive type for non-JSON/form querystring
  * parameters for client signatures.
  *

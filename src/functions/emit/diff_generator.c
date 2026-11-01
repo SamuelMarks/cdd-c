@@ -18,7 +18,7 @@
 #include "functions/emit/diff_generator.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Generates a CST patch diff string comparing old token spans with patch
  * replacement text.
  *

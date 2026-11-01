@@ -227,7 +227,7 @@ static cdd_c_error_t skip_group(const struct TokenList *tokens, size_t start,
 
 /* --- Type Chain Management --- */
 
-/**
+/*
  * @brief Initializes a DeclInfo structure.
  *
  * @param[out] info Pointer to the DeclInfo structure to initialize.
@@ -272,7 +272,7 @@ static void free_decl_type(struct DeclType *t) {
   C_CDD_FREE(t);
 }
 
-/**
+/*
  * @brief Frees resources in a DeclInfo structure.
  *
  * @param[in,out] info Pointer to the DeclInfo structure to free.
@@ -566,7 +566,7 @@ static cdd_c_error_t find_pivot(const struct TokenList *tokens, size_t start,
   return find_abstract_pivot(tokens, start, end, _out_val);
 }
 
-/**
+/*
  * @brief Parses a C declaration token range into a DeclInfo structure.
  *
  * @param[in] tokens Lexical token list.

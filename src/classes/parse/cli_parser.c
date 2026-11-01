@@ -43,7 +43,7 @@ static cdd_c_error_t cdd_strndup2(const char *s, size_t n, char **_out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Initializes a parsed CLI command descriptor.
  *
  * @param[out] cmd Pointer to the CliCommand structure to initialize.
@@ -58,7 +58,7 @@ cdd_c_error_t cli_command_init(struct CliCommand *cmd) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Releases memory associated with a parsed CLI command descriptor.
  *
  * @param[in,out] cmd Pointer to the CliCommand structure to free.
@@ -109,7 +109,7 @@ static cdd_c_error_t add_option(struct CliCommand *cmd,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Extracts CLI option and subcommand metadata from a C CST.
  *
  * @param[in] nodes Parsed CST node list.

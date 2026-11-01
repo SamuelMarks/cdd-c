@@ -8,7 +8,7 @@
 #include "code2schema_internal.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Writes the default value of a StructField to a JSON schema
  * object.
  *
@@ -60,7 +60,7 @@ cdd_c_error_t c2s_write_default_value(JSON_Object *pobj,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Writes numeric constraints of a StructField to a JSON schema
  * object.
  *
@@ -90,7 +90,7 @@ cdd_c_error_t c2s_write_numeric_constraints(JSON_Object *pobj,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Writes string constraints of a StructField to a JSON schema
  * object.
  *
@@ -113,7 +113,7 @@ cdd_c_error_t c2s_write_string_constraints(JSON_Object *pobj,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Writes array constraints of a StructField to a JSON schema
  * object.
  *
@@ -136,7 +136,7 @@ cdd_c_error_t c2s_write_array_constraints(JSON_Object *pobj,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Writes a type union array to a JSON schema object.
  *
  * @param[in,out] obj Target schema or property JSON_Object.
@@ -173,7 +173,7 @@ cdd_c_error_t c2s_write_type_union(JSON_Object *obj, const char *type,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Writes a StructFields representation to a JSON Schema object.
  *
  * @param[in,out] schemas_obj Target `components.schemas` JSON_Object.

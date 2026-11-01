@@ -477,7 +477,7 @@ static cdd_c_error_t maybe_mkdir(const char *path) {
   return rc;
 }
 
-/**
+/*
  * @brief Emits a complete Rust Cargo crate (`Cargo.toml`, `src/sys.rs`,
  * `src/lib.rs`, and optional integration tests) for the given FFI IR.
  *

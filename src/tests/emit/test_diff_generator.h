@@ -42,8 +42,6 @@ TEST test_diff_generation_basic(void) {
   char *diff3 = NULL;
   struct TokenList *tokens2 = NULL;
   struct PatchList patch_list3;
-#ifdef CDD_BUILD_TESTS
-#endif
   az_span span;
 
   patch_list_init(&patch_list);

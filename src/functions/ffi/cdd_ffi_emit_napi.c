@@ -423,7 +423,7 @@ emit_binding_gyp(const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits Node.js N-API C addon bindings and `binding.gyp` manifest for
  * the given FFI IR.
  *

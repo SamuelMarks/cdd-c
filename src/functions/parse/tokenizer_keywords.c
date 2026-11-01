@@ -24,7 +24,7 @@
 #include "functions/parse/tokenizer_keywords.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Checks whether a byte span equals a null-terminated literal string.
  *
  * @param[in] span Byte span to compare.
@@ -50,7 +50,7 @@ cdd_c_error_t span_equals_str(const az_span span, const char *str,
   }
 }
 
-/**
+/*
  * @brief Classifies an identifier token span as a C keyword or user identifier.
  *
  * @param[in] start Pointer to the start of the identifier token bytes.

@@ -100,7 +100,7 @@ static cdd_c_error_t json_val_to_str(const JSON_Value *val, char **out_str) {
   }
 }
 
-/**
+/*
  * @brief Evaluates an RFC 6901 JSON Pointer against a Parson `JSON_Value`.
  *
  * @param[in] root Root Parson JSON value to traverse.
@@ -167,7 +167,7 @@ cdd_c_error_t arazzo_eval_json_pointer(const JSON_Value *root,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Evaluates an RFC 9535 JSONPath expression against a Parson
  * `JSON_Value`.
  *
@@ -307,7 +307,7 @@ cdd_c_error_t arazzo_eval_jsonpath(const JSON_Value *root, const char *jsonpath,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Evaluates a hierarchical XPath query against an XML string.
  *
  * Walks each `/segment` in hierarchy order, supporting both double- and
@@ -553,7 +553,7 @@ eval_single_expr_to_str(const struct Arazzo_RuntimeExpr *expr,
   }
 }
 
-/**
+/*
  * @brief Evaluates an Arazzo runtime expression or embedded template string to
  * a newly allocated string.
  *
@@ -1139,7 +1139,7 @@ static cdd_c_error_t match_simple_regex(const char *text, const char *pattern,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Evaluates a single `Arazzo_Criterion` against an execution context.
  *
  * @param[in] criterion Criterion structure defining the condition and dialect.
@@ -1217,7 +1217,7 @@ cdd_c_error_t arazzo_eval_criterion(const struct Arazzo_Criterion *criterion,
   return CDD_C_ERROR_INVALID_ARGUMENT;
 }
 
-/**
+/*
  * @brief Evaluates an `Arazzo_Selector` (`context` + `selector`) to extract a
  * value from the execution context.
  *
@@ -1275,7 +1275,7 @@ cdd_c_error_t arazzo_eval_selector(const struct Arazzo_Selector *selector,
   return CDD_C_ERROR_INVALID_ARGUMENT;
 }
 
-/**
+/*
  * @brief Applies an array of `Arazzo_PayloadReplacement` rules to a mutable
  * JSON request body object or array.
  *

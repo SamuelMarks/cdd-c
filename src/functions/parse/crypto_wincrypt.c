@@ -23,8 +23,6 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 /* windef.h must precede winbase.h to prevent DWORD redefinition errors */
-#ifdef _MSC_VER
-#endif
 #include "win_compat_sym.h"
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -32,8 +30,6 @@
 #include <winsock2.h>
 
 #include <wincrypt.h>
-#ifdef _MSC_VER
-#endif
 #endif
 
 #include "c_cdd/memory.h"
@@ -272,7 +268,7 @@ cleanup:
 
 #else /* Non-Windows Support Stub */
 
-/**
+/*
  * @brief Computes a 32-byte SHA-256 digest over a data buffer (non-Windows
  * stub).
  *
@@ -288,7 +284,7 @@ cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
   return CDD_C_ERROR_SYSTEM;
 }
 
-/**
+/*
  * @brief Computes a 32-byte HMAC-SHA256 digest over a data buffer (non-Windows
  * stub).
  *

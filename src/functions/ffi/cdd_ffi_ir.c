@@ -132,7 +132,7 @@ C_CDD_EXPORT int g_cdd_ffi_ir_malloc_fail = 0;
 C_CDD_EXPORT int g_cdd_ffi_ir_toposort_fail = 0;
 #endif
 
-/**
+/*
  * @brief Topologically sorts the nodes in `ir` so dependencies precede
  * dependents.
  *
@@ -240,7 +240,7 @@ static void free_type_recursive(cdd_ffi_type_t *type) {
   }
 }
 
-/**
+/*
  * @brief Frees all memory associated with the FFI IR to guarantee zero-leaks.
  *
  * @param[in,out] ir Pointer to the FFI IR structure to free.

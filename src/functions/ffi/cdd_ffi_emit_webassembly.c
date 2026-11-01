@@ -152,7 +152,7 @@ static cdd_c_error_t map_ts_type(cdd_ffi_type_t *t, char *out_type,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits Emscripten WebIDL (`.idl`), C++ glue (`*_glue.cpp`), and
  * TypeScript ambient declarations (`.d.ts`) for the given FFI IR.
  *

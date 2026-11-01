@@ -22,7 +22,7 @@
 #include "functions/parse/str.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Initializes a `DocMetadata` structure to zero.
  *
  * @param[out] meta Pointer to the DocMetadata structure to initialize.
@@ -35,7 +35,7 @@ cdd_c_error_t doc_metadata_init(struct DocMetadata *meta) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Releases all dynamically allocated memory inside a `DocMetadata`
  * structure.
  *
@@ -294,7 +294,7 @@ void doc_metadata_free(struct DocMetadata *meta) {
   memset(meta, 0, sizeof(*meta));
 }
 
-/**
+/*
  * @brief Parses a C documentation comment block and populates `out`.
  *
  * @param[in] comment Raw C documentation comment string.

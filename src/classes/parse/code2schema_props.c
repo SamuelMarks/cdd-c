@@ -8,7 +8,7 @@
 #include "code2schema_internal.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Collects an array of strings from a JSON array.
  *
  * @param[in] arr Source Parson JSON_Array of strings.
@@ -52,7 +52,7 @@ cdd_c_error_t c2s_collect_string_array(const JSON_Array *arr, char ***out,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Collects property names from a JSON Schema object.
  *
  * @param[in] schema_obj JSON Schema object containing `properties`.

@@ -146,7 +146,7 @@ static cdd_c_error_t maybe_mkdir(const char *path) {
   return errno_to_cdd_error(errno);
 }
 
-/**
+/*
  * @brief Recursively creates a directory path and all missing parent
  * directories.
  *
@@ -209,7 +209,7 @@ cdd_c_error_t makedirs(const char *path) {
   return rc;
 }
 
-/**
+/*
  * @brief Creates a single directory at the specified path.
  *
  * @param[in] path Directory path to create.
@@ -231,7 +231,7 @@ cdd_c_error_t makedir(const char *path) {
   return errno_to_cdd_error(errno);
 }
 
-/**
+/*
  * @brief Obtains the system temporary directory path.
  *
  * @param[out] out_path Output pointer receiving the newly allocated temporary
@@ -290,7 +290,7 @@ cdd_c_error_t tempdir(char **out_path) {
 #endif
 }
 
-/**
+/*
  * @brief Closes the file handle and frees the filename in a FilenameAndPtr
  * struct.
  *
@@ -312,7 +312,7 @@ cdd_c_error_t FilenameAndPtr_cleanup(struct FilenameAndPtr *file) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Closes the file handle, deletes the file from disk, and frees the
  * filename.
  *
@@ -331,7 +331,7 @@ cdd_c_error_t FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file) {
   return FilenameAndPtr_cleanup(file);
 }
 
-/**
+/*
  * @brief Creates a unique temporary file and returns both its path and open
  * FILE stream.
  *
@@ -464,7 +464,7 @@ cdd_c_error_t path_is_unc(const char *path, int *out_is_unc) {
 
 /* --- Directory Walking Implementation --- */
 
-/**
+/*
  * @brief Recursively traverses a directory tree and invokes a callback for each
  * entry.
  *

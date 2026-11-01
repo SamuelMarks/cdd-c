@@ -328,7 +328,7 @@ static const cdd_context_t g_default_context = {
 /** @brief Active global dependency-injection context pointer. */
 static const cdd_context_t *g_active_context = &g_default_context;
 
-/**
+/*
  * @brief Allocates `sz` bytes through the active allocator context.
  *
  * @param[in] sz Number of bytes to allocate.
@@ -340,7 +340,7 @@ cdd_c_error_t c_cdd_do_malloc(size_t sz, void **out_ptr) {
   return g_active_context->allocator.malloc_fn(sz, out_ptr);
 }
 
-/**
+/*
  * @brief Zero-allocates `n * sz` bytes through the active allocator context.
  *
  * @param[in] n Number of elements.
@@ -353,7 +353,7 @@ cdd_c_error_t c_cdd_do_calloc(size_t n, size_t sz, void **out_ptr) {
   return g_active_context->allocator.calloc_fn(n, sz, out_ptr);
 }
 
-/**
+/*
  * @brief Reallocates `p` to `sz` bytes through the active allocator context.
  *
  * @param[in,out] p Existing pointer to resize (or NULL).
@@ -366,7 +366,7 @@ cdd_c_error_t c_cdd_do_realloc(void *p, size_t sz, void **out_ptr) {
   return g_active_context->allocator.realloc_fn(p, sz, out_ptr);
 }
 
-/**
+/*
  * @brief Duplicates a null-terminated string through the active allocator
  * context.
  *
@@ -390,7 +390,7 @@ cdd_c_error_t c_cdd_do_strdup(const char *s, char **out_str) {
  */
 void c_cdd_do_free(void *p) { g_active_context->allocator.free_fn(p); }
 
-/**
+/*
  * @brief Initializes `ctx` with the default standard C allocator, VFS, and
  * socket VTables.
  *
@@ -405,7 +405,7 @@ cdd_c_error_t cdd_context_init_default(cdd_context_t *ctx) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Sets the active process/thread-local `cdd_context_t` override (or
  * resets to the built-in default when `ctx == NULL`).
  *
@@ -433,7 +433,7 @@ cdd_c_error_t cdd_vfs_fopen(const char *path, const char *mode, FILE **out_fp) {
   return g_active_context->vfs.fopen_fn(path, mode, out_fp);
 }
 
-/**
+/*
  * @brief Retrieves the currently active `cdd_context_t` (never `NULL`).
  *
  * @param[out] out_ctx Output pointer receiving the active context pointer.

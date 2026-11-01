@@ -664,9 +664,6 @@ TEST test_types_io_fail(void) {
  * @return Test or helper result.
  */
 
-#ifdef CDD_BUILD_TESTS
-#endif
-
 TEST test_types_edge_cases_no_io(void) {
   struct StructFields sf;
   struct CodegenTypesConfig config = {0};

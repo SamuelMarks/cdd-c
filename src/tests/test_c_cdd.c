@@ -160,8 +160,6 @@ static FILE *mock_tmpfile_fuzzer(void) {
 #include "emit/test_codegen_validation.h"
 #include "emit/test_generate_build_system.h"
 #include "emit/test_standalone_json.h"
-#ifdef C_CDD_USE_LIBCURL
-#endif
 #include "emit/test_cdd_cst_emit_unit.h"
 #include "emit/test_diff_generator.h"
 #include "emit/test_openapi_client_gen.h"
@@ -521,9 +519,6 @@ SUITE(ffi_extractor_suite) {
   RUN_TEST(test_ffi_ir_extract_mock_failures);
 }
 
-#ifdef CDD_BUILD_TESTS
-#endif
-
 /** @brief Test definition g_accept_fail. */
 extern CDD_TEST_HELPERS_EXPORT int g_accept_fail;
 /** @brief Test definition g_bind_fail. */
@@ -760,9 +755,6 @@ int main(int argc, char **argv) {
 #if defined(_MSC_VER) && _MSC_VER <= 1400
   /* skipped */
 #else
-
-#ifdef C_CDD_USE_LIBCURL
-#endif
 
   /* New Runners */
   RUN_SUITE_RESET(cdd_cst_trivia_suite);

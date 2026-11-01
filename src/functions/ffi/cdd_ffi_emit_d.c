@@ -96,7 +96,7 @@ static cdd_c_error_t map_d_type(cdd_ffi_type_t *t, const char **out_type) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits D `extern(C)` module bindings and `dub.json` package manifest
  * for the given FFI IR.
  *

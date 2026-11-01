@@ -164,7 +164,7 @@ static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits R FFI bindings for the given FFI IR.
  *
  * @param[in] ir FFI Intermediate Representation to emit.

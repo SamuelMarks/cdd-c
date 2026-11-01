@@ -27,7 +27,7 @@
 
 /* --- Union Implementation --- */
 
-/**
+/*
  * @brief Emits C source code for union to json func.
  *
  * @param[in] fp Output file stream.
@@ -203,7 +203,7 @@ write_union_to_json_func(FILE *fp, const char *union_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits C source code for union from jsonObject func.
  *
  * @param[in] fp Output file stream.
@@ -377,7 +377,7 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits C source code for union from json func.
  *
  * @param[in] fp Output file stream.
@@ -791,7 +791,7 @@ write_union_from_json_func(FILE *fp, const char *union_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits C source code for union cleanup func.
  *
  * @param[in] fp Output file stream.

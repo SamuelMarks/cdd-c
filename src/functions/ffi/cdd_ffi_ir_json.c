@@ -432,7 +432,7 @@ static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Serializes an entire `cdd_ffi_ir_t` into a pretty-printed JSON string.
  *
  * @param[in] ir FFI IR structure to serialize.
@@ -853,7 +853,7 @@ static cdd_c_error_t parse_node(JSON_Object *obj, cdd_ffi_ir_node_t *node) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Deserializes a JSON string into a newly allocated `cdd_ffi_ir_t`
  * structure.
  *

@@ -653,8 +653,6 @@ TEST test_standalone_json_func(void) {
 /**
  * @brief codegen_json_suite
  */
-#ifdef CDD_BUILD_TESTS
-#endif
 
 SUITE(codegen_json_suite) {
   RUN_TEST(test_json_to_plain);

@@ -10,7 +10,7 @@
 #include <string.h>
 /* clang-format on */
 
-/**
+/*
  * @brief Analyzes a CST and populates variable escape information in the scope
  * environment.
  *
@@ -28,7 +28,7 @@ cdd_c_error_t cdd_cst_analyze_escapes(cdd_cst_tree_t *tree,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks whether a scoped symbol escapes its defining scope.
  *
  * @param[in] symbol Scoped symbol to inspect.

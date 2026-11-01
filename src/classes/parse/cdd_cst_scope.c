@@ -15,7 +15,7 @@
 #include "c_cdd/memory.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Initializes a new CST lexical scope environment with a root file
  * scope.
  *
@@ -83,7 +83,7 @@ static void free_scope(cdd_cst_scope_t *scope) {
   C_CDD_FREE(scope);
 }
 
-/**
+/*
  * @brief Frees a CST lexical scope environment and all scopes within it.
  *
  * @param[in,out] env Pointer to the scope environment to free.
@@ -95,7 +95,7 @@ void cdd_cst_scope_env_free(cdd_cst_scope_env_t *env) {
   C_CDD_FREE(env);
 }
 
-/**
+/*
  * @brief Enters a new nested lexical scope of the specified kind.
  *
  * @param[in,out] env Active scope environment.
@@ -139,7 +139,7 @@ cdd_c_error_t cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Leaves the current lexical scope and returns to its parent scope.
  *
  * @param[in,out] env Active scope environment.
@@ -174,7 +174,7 @@ static cdd_c_error_t cdd_strdup(const char *s, char **out_s) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Adds a symbol entry to the current lexical scope.
  *
  * @param[in,out] env Active scope environment.
@@ -213,7 +213,7 @@ cdd_c_error_t cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks whether a symbol kind belongs to the C tag namespace
  * (`struct`, `union`, or `enum`).
  *
@@ -231,7 +231,7 @@ cdd_c_error_t cdd_cst_symbol_is_tag(enum cdd_cst_symbol_kind_t kind,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Looks up a symbol by name and namespace starting from the current
  * scope outward.
  *

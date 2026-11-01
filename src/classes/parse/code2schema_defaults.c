@@ -8,7 +8,7 @@
 #include "code2schema_internal.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Strips enclosing quotes from a string.
  *
  * @param[in] in Input string possibly enclosed in double quotes.
@@ -42,7 +42,7 @@ cdd_c_error_t c2s_strip_quotes(const char *in, char *buf, size_t bufsz,
   }
 }
 
-/**
+/*
  * @brief Parses a boolean default value from a string.
  *
  * @param[in] in Input default literal string (`"1"`, `"0"`, `"true"`,
@@ -73,7 +73,7 @@ cdd_c_error_t c2s_parse_bool_default(const char *in, int *out,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses a numeric default value from a string.
  *
  * @param[in] in Input numeric literal string.
@@ -106,7 +106,7 @@ cdd_c_error_t c2s_parse_number_default(const char *in, double *out,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Detects the underlying JSON type of a union schema object.
  *
  * @param[in] schema_obj JSON Schema object to inspect.

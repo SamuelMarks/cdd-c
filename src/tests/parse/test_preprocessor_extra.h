@@ -3,6 +3,9 @@
  * @brief Unit tests and mocks in test_preprocessor_extra.h.
  */
 
+#ifndef TEST_PREPROCESSOR_EXTRA_H
+#define TEST_PREPROCESSOR_EXTRA_H
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -55,3 +58,5 @@ TEST test_preprocessor_abort(void) {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+#endif /* TEST_PREPROCESSOR_EXTRA_H */

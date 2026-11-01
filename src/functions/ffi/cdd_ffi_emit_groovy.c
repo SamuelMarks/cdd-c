@@ -85,7 +85,7 @@ static cdd_c_error_t map_groovy_jna_type(cdd_ffi_type_t *t,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits Groovy JNA bindings and Spock specification tests for the given
  * FFI IR.
  *

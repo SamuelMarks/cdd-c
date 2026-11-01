@@ -25,7 +25,7 @@ C_CDD_EXPORT int g_cdd_macro_overlay_fail_calloc = 0;
 C_CDD_EXPORT int g_cdd_macro_overlay_fail_inner_realloc = 0;
 #endif
 
-/**
+/*
  * @brief Initializes a macro overlay list.
  *
  * @param[out] list Pointer to the MacroOverlayList structure to initialize.
@@ -41,7 +41,7 @@ cdd_c_error_t macro_overlay_list_init(struct MacroOverlayList *list) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Frees a macro overlay list.
  *
  * @param[in,out] list Pointer to the MacroOverlayList structure to free.
@@ -112,7 +112,7 @@ static cdd_c_error_t list_add(struct MacroOverlayList *list,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Builds the macro overlay mapping from a given CST.
  *
  * @param[in] cst Concrete syntax tree node list.

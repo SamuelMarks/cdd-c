@@ -901,8 +901,6 @@ SUITE(ffi_emitters_suite) {
   RUN_TEST(test_elixir_internals);
   RUN_TEST(test_ffi_emit_erlang);
   RUN_TEST(test_erlang_internals);
-#ifdef CDD_BUILD_TESTS
-#endif
   RUN_TEST(test_ffi_emit_fortran);
   RUN_TEST(test_ffi_emit_fsharp);
   RUN_TEST(test_ffi_emit_go);

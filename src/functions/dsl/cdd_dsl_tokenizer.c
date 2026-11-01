@@ -174,7 +174,7 @@ static cdd_dsl_token_kind_t match_keyword(const char *text, size_t length) {
   return CDD_DSL_TOKEN_IDENTIFIER;
 }
 
-/**
+/*
  * @brief Frees all tokens and text copies within a CDD DSL token list.
  *
  * @param[in,out] list Pointer to the DSL token list to free.
@@ -195,7 +195,7 @@ C_CDD_EXPORT void cdd_dsl_token_list_free(cdd_dsl_token_list_t *list) {
   }
 }
 
-/**
+/*
  * @brief Tokenizes a null-terminated CDD DSL source string into `out_tokens`.
  *
  * @param[in] source Null-terminated CDD DSL source string.

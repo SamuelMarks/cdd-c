@@ -181,7 +181,7 @@ static cdd_c_error_t map_xs_type(cdd_ffi_type_t *t, char *out_type,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits Perl `FFI::Platypus` `.pm` modules, `.xs` extensions,
  * `Makefile.PL`, and `typemap` files for the given FFI IR.
  *

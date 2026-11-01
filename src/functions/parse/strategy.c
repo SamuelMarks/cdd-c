@@ -96,7 +96,7 @@ static cdd_c_error_t range_to_string(const struct TokenList *tokens,
 
 /* --- Realloc Strategy --- */
 
-/**
+/*
  * @brief Rewrites unchecked realloc calls into safe temporary-pointer
  * assignments.
  *
@@ -288,7 +288,7 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
 
 /* --- General Safety Injection --- */
 
-/**
+/*
  * @brief Injects null-pointer and error-return checks after fallible calls.
  *
  * @param[in] tokens Lexical token list.

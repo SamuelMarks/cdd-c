@@ -3,6 +3,9 @@
  * @brief Unit tests and mocks in test_cdd_cst_builder_extra2.h.
  */
 
+#ifndef TEST_CDD_CST_BUILDER_EXTRA2_H
+#define TEST_CDD_CST_BUILDER_EXTRA2_H
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -16,6 +19,9 @@ extern "C" {
  */
 TEST test_cdd_cst_builder_all_errors(void) {
   cdd_cst_builder_t b;
+  cdd_cst_tree_t *tree = NULL;
+  cdd_cst_node_t *root = NULL;
+  cdd_cst_builder_t valid_b;
   b.error_state = CDD_C_ERROR_INVALID_ARGUMENT;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_bld_token(NULL, CDD_TOKEN_IDENTIFIER, "test"));
@@ -74,9 +80,6 @@ TEST test_cdd_cst_builder_all_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_macro(NULL, "A"));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_macro(&b, "A"));
 
-  cdd_cst_tree_t *tree = NULL;
-  cdd_cst_node_t *root = NULL;
-  cdd_cst_builder_t valid_b;
   tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   cdd_cst_builder_init(&valid_b, tree, root);
@@ -110,3 +113,5 @@ TEST test_cdd_cst_builder_all_errors(void) {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+#endif /* TEST_CDD_CST_BUILDER_EXTRA2_H */

@@ -754,8 +754,6 @@ TEST test_cdd_transform_extern_c_already_exists(void) {
 /**
  * @brief Extern C transformer test suite.
  */
-#ifdef CDD_BUILD_TESTS
-#endif
 
 SUITE(transformer_extern_c_suite) {
   RUN_TEST(test_cdd_transform_extern_c_target_parent_no_eof);

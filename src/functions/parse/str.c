@@ -29,7 +29,7 @@
 #include "functions/parse/str.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Allocates a duplicate of a null-terminated string.
  *
  * @param[in] s Source null-terminated string to duplicate.
@@ -46,7 +46,7 @@ cdd_c_error_t c_cdd_strdup(const char *s, char **out_s) {
   return ctx->allocator.strdup_fn(s, out_s);
 }
 
-/**
+/*
  * @brief Checks whether a string begins with a specified prefix.
  *
  * @param[in] str Input string to inspect.
@@ -77,7 +77,7 @@ cdd_c_error_t c_cdd_str_starts_with(const char *str, const char *prefix,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Compares two null-terminated strings for exact equality.
  *
  * @param[in] a First string to compare (may be NULL).
@@ -98,7 +98,7 @@ cdd_c_error_t c_cdd_str_equal(const char *a, const char *b, int *out_b) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Compares two null-terminated strings for case-insensitive equality.
  *
  * @param[in] a First string to compare (may be NULL).
@@ -135,7 +135,7 @@ cdd_c_error_t c_cdd_str_iequal(const char *a, const char *b, int *out_b) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Returns a pointer to the substring following the last occurrence of a
  * delimiter.
  *
@@ -162,7 +162,7 @@ cdd_c_error_t c_cdd_str_after_last(const char *str, int delimiter,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks whether a JSON reference points to a named schema component.
  *
  * @param[in] ref JSON `$ref` URI string.
@@ -185,7 +185,7 @@ cdd_c_error_t c_cdd_ref_is_type(const char *ref, const char *type, int *out_b) {
   return c_cdd_str_equal(extracted, type, out_b);
 }
 
-/**
+/*
  * @brief Trims trailing ASCII whitespace characters from a string in place.
  *
  * @param[in,out] str Mutable null-terminated string to trim in place.
@@ -209,7 +209,7 @@ cdd_c_error_t c_cdd_str_trim_trailing_whitespace(char *str) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Unescapes a C string literal token into its raw character sequence.
  *
  * @param[in] quoted Quoted C string literal token text.
@@ -274,7 +274,7 @@ cdd_c_error_t c_cdd_destringize(const char *quoted, char **out_s) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Performs a case-insensitive comparison of two strings.
  *
  * @param[in] a First string to compare.

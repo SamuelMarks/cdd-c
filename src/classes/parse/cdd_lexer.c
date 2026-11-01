@@ -146,7 +146,7 @@ static enum cdd_token_kind_t classify_identifier(const uint8_t *start,
   return CDD_TOKEN_IDENTIFIER;
 }
 
-/**
+/*
  * @brief Tokenizes a C source span into a full-fidelity token list with
  * attached leading and trailing trivia.
  *
@@ -514,7 +514,7 @@ error:
   return CDD_C_ERROR_MEMORY;
 }
 
-/**
+/*
  * @brief Frees a lexical token list and all attached leading and trailing
  * trivia chains.
  *

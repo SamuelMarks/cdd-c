@@ -13,7 +13,7 @@
 #include <string.h>
 /* clang-format on */
 
-/**
+/*
  * @brief Parses a `printf`-style format string to infer variadic argument
  * types.
  *
@@ -116,7 +116,7 @@ cdd_c_error_t cdd_ffi_parse_printf_format(const char *fmt,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Formats a `printf`-style string one specifier at a time into
  * `out_buf` using the exact C type for each `cdd_ffi_var_arg_t` argument.
  *
@@ -248,7 +248,7 @@ cdd_c_error_t cdd_ffi_format_variadic(char *out_buf, size_t out_cap,
    "fallback", we do our best.
 */
 
-/**
+/*
  * @brief Invokes a C variadic function with up to 8 unpacked arguments.
  *
  * @param[in] fn Target C variadic function pointer.

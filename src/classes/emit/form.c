@@ -17,7 +17,7 @@
 #include "win_compat_sym.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Generates a C function to serialize a struct into an
  * `application/x-www-form-urlencoded` string.
  *

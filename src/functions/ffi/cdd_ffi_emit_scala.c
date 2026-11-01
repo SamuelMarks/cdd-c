@@ -48,7 +48,7 @@ static cdd_c_error_t map_scala_type(cdd_ffi_type_t *t, const char **out_type) {
   return cdd_ffi_map_type_from_table(&k_scala_types, *t, out_type);
 }
 
-/**
+/*
  * @brief Emits Scala Native `.scala` `@extern` bindings for the given FFI IR.
  *
  * @param[in] ir FFI Intermediate Representation to emit.

@@ -475,7 +475,7 @@ static cdd_c_error_t emit_csproj(const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits C# P/Invoke bindings, project files, and optional unit tests for
  * the given FFI IR.
  *

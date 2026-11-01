@@ -35,7 +35,7 @@ static const char *kStrDupFunc = "_strdup";
 static const char *kStrDupFunc = "strdup";
 #endif
 
-/**
+/*
  * @brief Initialize an EnumMembers container.
  *
  * @param[out] em Pointer to the EnumMembers structure to initialize.
@@ -55,7 +55,7 @@ cdd_c_error_t enum_members_init(struct EnumMembers *em) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Free the memory associated with an EnumMembers structure.
  *
  * @param[in,out] em Pointer to the EnumMembers structure to free.
@@ -76,7 +76,7 @@ void enum_members_free(struct EnumMembers *em) {
   em->capacity = 0;
 }
 
-/**
+/*
  * @brief Add a member name to the EnumMembers list.
  *
  * @param[in,out] em Target EnumMembers container.
@@ -106,7 +106,7 @@ cdd_c_error_t enum_members_add(struct EnumMembers *em, const char *name) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Generate the C code for converting an enum value to a string.
  *
  * @param[in] fp Output file stream.
@@ -155,7 +155,7 @@ cdd_c_error_t write_enum_to_str_func(FILE *fp, const char *enum_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Generate the C code for parsing a string into an enum value.
  *
  * @param[in] fp Output file stream.

@@ -128,7 +128,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_pool_string_safe_len(cdd_cst_tree_t *tree,
  */
 C_CDD_EXPORT cdd_c_error_t cdd_append_int(char *p, int v, char **out_p);
 
-/**
+/*
  * @brief Allocates memory for GNU standardizer transformations.
  *
  * @param[in] sz Number of bytes to allocate.

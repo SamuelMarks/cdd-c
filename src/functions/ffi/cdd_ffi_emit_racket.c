@@ -127,7 +127,7 @@ static cdd_c_error_t map_racket_type(cdd_ffi_type_t *t, char *out_type,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits Racket `.rkt` `ffi/unsafe` bindings for the given FFI IR.
  *
  * @param[in] ir FFI Intermediate Representation to emit.

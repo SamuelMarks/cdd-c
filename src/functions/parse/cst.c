@@ -31,7 +31,7 @@
 #include "functions/parse/cst_match.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Append a node to CST node list.
  *
  * @param[in,out] list Target CstNodeList container.
@@ -454,7 +454,7 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses tokens from the given input.
  *
  * @param[in] tokens Lexical token list to parse.
@@ -479,7 +479,7 @@ cdd_c_error_t parse_tokens(const struct TokenList *tokens,
   return rc;
 }
 
-/**
+/*
  * @brief Frees the memory associated with cst node list.
  *
  * @param[in,out] list Pointer to the CstNodeList structure to free.
@@ -495,7 +495,7 @@ void free_cst_node_list(struct CstNodeList *list) {
   list->capacity = 0;
 }
 
-/**
+/*
  * @brief Finds the first CST node matching a specified node kind.
  *
  * @param[in] list CstNodeList to search.
@@ -524,7 +524,7 @@ cdd_c_error_t cst_find_first(struct CstNodeList *list,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Test wrapper for `parse_recursive`.
  *
  * @param[in] tokens Lexical token list.

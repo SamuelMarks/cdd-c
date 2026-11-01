@@ -19,7 +19,7 @@
 #include <string.h>
 /* clang-format on */
 
-/**
+/*
  * @brief Parses a format string into a CST node.
  *
  * @param[in,out] dest_tree Destination CST tree to clone synthesized tokens

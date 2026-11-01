@@ -128,7 +128,7 @@ static cdd_c_error_t parse_binary_str(const char *str, const char **endptr,
   }
 }
 
-/**
+/*
  * @brief Parses numeric literal from the given input.
  *
  * @param[in] str Input C numeric literal string.

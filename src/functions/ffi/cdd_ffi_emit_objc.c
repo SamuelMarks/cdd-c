@@ -117,7 +117,7 @@ static cdd_c_error_t capitalize_first(char *str) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits Objective-C `.h` header and `.m` implementation wrappers for the
  * given FFI IR.
  *

@@ -14,7 +14,7 @@
 #include <string.h>
 /* clang-format on */
 
-/**
+/*
  * @brief Finds the index of a child node within its parent's children array.
  *
  * @param[in] parent Parent CST node to search.
@@ -36,7 +36,7 @@ cdd_c_error_t find_child_index_mutate(cdd_cst_node_t *parent,
   return CDD_C_ERROR_NOT_FOUND;
 }
 
-/**
+/*
  * @brief Finds the first lexical token within a CST subtree.
  *
  * @param[in] node Root CST node of subtree.
@@ -102,7 +102,7 @@ static void free_trivia_list_mutate(cdd_trivia_t *t) {
   }
 }
 
-/**
+/*
  * @brief Deep-clones a linked list of lexical trivia.
  *
  * @param[in] head Head of the trivia list to clone.
@@ -143,7 +143,7 @@ C_CDD_EXPORT cdd_c_error_t clone_trivia_list_mutate(cdd_trivia_t *head,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Tracks a synthesized token in the CST tree's `synthesized_tokens`
  * array.
  *
@@ -169,7 +169,7 @@ cdd_c_error_t track_synthesized_token_mutate(cdd_cst_tree_t *tree,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Replaces `old_node` with `new_node` in its parent's children array,
  * preserving boundary trivia.
  *
@@ -223,7 +223,7 @@ cdd_c_error_t cdd_cst_replace_node(cdd_cst_tree_t *tree,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Inserts a child CST node at a specific index in a parent node.
  *
  * @param[in,out] parent Parent CST node.
@@ -261,7 +261,7 @@ cdd_c_error_t cdd_cst_insert_child_node_at(cdd_cst_node_t *parent, size_t idx,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Inserts `new_node` into its parent's children array immediately before
  * `target_node`.
  *
@@ -283,7 +283,7 @@ cdd_c_error_t cdd_cst_insert_node_before(cdd_cst_node_t *target_node,
   return cdd_cst_insert_child_node_at(target_node->parent, idx, new_node);
 }
 
-/**
+/*
  * @brief Inserts `new_node` into its parent's children array immediately after
  * `target_node`.
  *
@@ -305,7 +305,7 @@ cdd_c_error_t cdd_cst_insert_node_after(cdd_cst_node_t *target_node,
   return cdd_cst_insert_child_node_at(target_node->parent, idx + 1, new_node);
 }
 
-/**
+/*
  * @brief Detaches `node` from its parent CST node and clears its boundary
  * trivia.
  *
@@ -350,7 +350,7 @@ cdd_c_error_t cdd_cst_detach_node(cdd_cst_tree_t *tree, cdd_cst_node_t *node) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Deep-clones a CST subtree (including tokens and trivia) and registers
  * synthesized tokens in `tree`.
  *
@@ -442,7 +442,7 @@ err:
   return rc;
 }
 
-/**
+/*
  * @brief Removes a child entry at index `idx` from a CST node's children array
  * in-place.
  *
@@ -462,7 +462,7 @@ cdd_c_error_t cdd_cst_remove_child(cdd_cst_node_t *node, size_t idx) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Replaces a token child at index `idx` with `new_tok` in-place.
  *
  * @param[in,out] node Target CST node.

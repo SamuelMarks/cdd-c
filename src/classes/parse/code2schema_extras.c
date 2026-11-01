@@ -8,7 +8,7 @@
 #include "code2schema_internal.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Collects non-standard/extra JSON Schema keys not present in
  * `skip_keys` and serializes them to a JSON string.
  *
@@ -87,7 +87,7 @@ cdd_c_error_t c2s_collect_schema_extras(const JSON_Object *obj,
   return *out_json ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
-/**
+/*
  * @brief Merges extra attributes described by a JSON string into a
  * target parson JSON Object.
  *
@@ -152,7 +152,7 @@ cdd_c_error_t c2s_merge_schema_extras_object(JSON_Object *target,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Merges two serialized JSON objects containing extra schemas
  * together.
  *
@@ -264,7 +264,7 @@ cdd_c_error_t c2s_merge_schema_extras_strings(char **dest_json,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if an OpenAPI type is a primitive type.
  *
  * @param[in] type OpenAPI type name string.

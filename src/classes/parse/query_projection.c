@@ -13,7 +13,7 @@
 #include <string.h>
 /* clang-format on */
 
-/**
+/*
  * @brief Initialize a query projection structure.
  *
  * @param[out] proj Pointer to the query projection structure to initialize.
@@ -29,7 +29,7 @@ cdd_c_query_projection_init(cdd_c_query_projection_t *proj) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Add a field to the query projection.
  *
  * @param[in,out] proj Target query projection structure.
@@ -72,7 +72,7 @@ cdd_c_query_projection_add_field(cdd_c_query_projection_t *proj,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Free resources associated with a query projection.
  *
  * @param[in,out] proj Pointer to the query projection structure to free.

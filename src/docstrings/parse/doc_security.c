@@ -22,7 +22,7 @@
 #include "functions/parse/str.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Parses a security scheme type string into `enum DocSecurityType`.
  *
  * @param[in] text Security scheme type string.
@@ -69,7 +69,7 @@ cdd_c_error_t doc_parse_security_type_text(const char *text,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses an `apiKey` location string into `enum DocSecurityIn`.
  *
  * @param[in] text Location string (`"query"`, `"header"`, `"cookie"`).
@@ -108,7 +108,7 @@ cdd_c_error_t doc_parse_security_in_text(const char *text,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses an OAuth2 flow type string into `enum DocOAuthFlowType`.
  *
  * @param[in] text OAuth2 flow type string.
@@ -155,7 +155,7 @@ cdd_c_error_t doc_parse_oauth_flow_type_text(const char *text,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses a comma-separated list of OAuth2 scope names into an array of
  * `DocOAuthScope` structs.
  *
@@ -204,7 +204,7 @@ cdd_c_error_t doc_parse_oauth_scopes(const char *input,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses an `@security` directive line into `out->security`.
  *
  * @param[in] line Start of directive argument text.
@@ -267,7 +267,7 @@ cdd_c_error_t doc_parse_security_line(const char *line, const char *end,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses an `@securityScheme` directive line into
  * `out->security_schemes`.
  *

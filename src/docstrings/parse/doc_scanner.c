@@ -22,7 +22,7 @@
 #include "functions/parse/str.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Advances `p` past non-newline horizontal whitespace.
  *
  * @param[in] p Input character cursor.
@@ -52,7 +52,7 @@ cdd_c_error_t doc_skip_ws(const char *p, const char **out_pos) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Extracts a whitespace-delimited word from `[str, end)`.
  *
  * @param[in] str Start of input range.
@@ -105,7 +105,7 @@ cdd_c_error_t doc_extract_word(const char *str, const char *end,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Extracts the trimmed remainder of `[str, end)` as a newly allocated
  * string.
  *
@@ -155,7 +155,7 @@ cdd_c_error_t doc_extract_rest(const char *str, const char *end,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Trims leading and trailing whitespace in-place from a mutable string.
  *
  * @param[in,out] s Mutable string buffer to trim in-place.
@@ -192,7 +192,7 @@ cdd_c_error_t doc_trim_segment(char *s, char **out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses a boolean literal (`"1"`, `"0"`, `"true"`, `"false"`, `"yes"`,
  * `"no"`).
  *
@@ -251,7 +251,7 @@ cdd_c_error_t doc_parse_bool_text(const char *s, int *out) {
   return CDD_C_ERROR_UNKNOWN;
 }
 
-/**
+/*
  * @brief Parses a parameter serialization style name into `enum DocParamStyle`.
  *
  * @param[in] s Style name string.
@@ -333,7 +333,7 @@ cdd_c_error_t doc_parse_style_text(const char *s, enum DocParamStyle *out) {
   return CDD_C_ERROR_UNKNOWN;
 }
 
-/**
+/*
  * @brief Parses an optional boolean attribute token (`key`, `key:true`,
  * `key=false`).
  *
@@ -383,7 +383,7 @@ cdd_c_error_t doc_parse_optional_bool_attr(char *attr, const char *key,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses an optional `example:<val>` or `example=<val>` attribute token.
  *
  * @param[in,out] attr Mutable attribute token string.
@@ -418,7 +418,7 @@ cdd_c_error_t doc_parse_optional_example_attr(char *attr, char **out_example) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Locates a `key:` or `key=` token within a string `s`.
  *
  * @param[in] s Input string to search.
@@ -462,7 +462,7 @@ cdd_c_error_t doc_find_key_token(char *s, const char *key, size_t *key_len,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Splits a comma-separated list of OAuth scopes into an array of
  * strings.
  *
@@ -551,7 +551,7 @@ cdd_c_error_t doc_split_scopes(const char *input, char ***out_scopes,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Splits a comma- or pipe-separated list of enum values into an array of
  * strings.
  *

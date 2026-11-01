@@ -16,7 +16,7 @@
 #include <string.h>
 /* clang-format on */
 
-/**
+/*
  * @brief Initializes a `SchemaConstraints` structure.
  *
  * @param[out] sc Pointer to the SchemaConstraints structure to initialize.
@@ -33,7 +33,7 @@ cdd_c_error_t schema_constraints_init(struct SchemaConstraints *sc) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Adds a required field name to a `SchemaConstraints` structure.
  *
  * @param[in,out] sc Target SchemaConstraints structure.
@@ -70,7 +70,7 @@ cdd_c_error_t schema_constraints_add_required(struct SchemaConstraints *sc,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Frees all dynamically allocated memory inside a `SchemaConstraints`
  * structure.
  *

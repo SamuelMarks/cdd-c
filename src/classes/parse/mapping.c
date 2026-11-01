@@ -19,7 +19,7 @@
 #include "functions/parse/str.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Initializes a C-to-OpenAPI type mapping table.
  *
  * @param[out] out Pointer to the OpenApiTypeMapping structure to initialize.
@@ -40,7 +40,7 @@ cdd_c_error_t c_mapping_init(struct OpenApiTypeMapping *out) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Releases memory held by a C-to-OpenAPI type mapping table.
  *
  * @param[in,out] out Pointer to the OpenApiTypeMapping structure to free.
@@ -159,7 +159,7 @@ static cdd_c_error_t clean_type_str(const char *in, char **_out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Maps a C type declaration string to its corresponding OpenAPI type and
  * format.
  *

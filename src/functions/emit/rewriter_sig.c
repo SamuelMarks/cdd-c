@@ -313,7 +313,7 @@ static cdd_c_error_t has_meaningful_tokens(const struct TokenList *tokens,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Rewrites a C function signature to return an error enum and output
  * pointer.
  *

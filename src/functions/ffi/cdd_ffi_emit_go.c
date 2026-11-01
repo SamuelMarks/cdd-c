@@ -294,7 +294,7 @@ static cdd_c_error_t emit_go_mod(const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits Go (cgo) bindings and `go.mod` manifest for the given FFI IR.
  *
  * @param[in] ir FFI Intermediate Representation to emit.

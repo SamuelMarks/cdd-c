@@ -24,7 +24,7 @@
 static cdd_c_error_t get_first_token(cdd_cst_node_t *node,
                                      cdd_token_t **out_tok);
 
-/**
+/*
  * @brief Appends a line comment (mapped to a C89 block comment) to the builder
  * target node.
  *
@@ -82,7 +82,7 @@ static cdd_c_error_t create_trivia(cdd_cst_tree_t *tree, const char *text,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Appends a C89 block comment as trivia on the builder's current target
  * node.
  *
@@ -186,7 +186,7 @@ static cdd_c_error_t get_first_token(cdd_cst_node_t *node,
   return CDD_C_ERROR_NOT_FOUND;
 }
 
-/**
+/*
  * @brief Finds the last lexical token in a CST subtree.
  *
  * @param[in] node Root CST node to search.
@@ -218,7 +218,7 @@ cdd_c_error_t cdd_cst_get_last_token(cdd_cst_node_t *node,
   return CDD_C_ERROR_NOT_FOUND;
 }
 
-/**
+/*
  * @brief Extracts and detaches leading trivia from the first token of a CST
  * node.
  *
@@ -244,7 +244,7 @@ cdd_c_error_t cdd_cst_extract_leading_trivia(cdd_cst_node_t *node,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Extracts and detaches trailing trivia from the last token of a CST
  * node.
  *
@@ -270,7 +270,7 @@ cdd_c_error_t cdd_cst_extract_trailing_trivia(cdd_cst_node_t *node,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Transfers all leading and trailing trivia from `source_node` to
  * `target_node`.
  *
@@ -381,7 +381,7 @@ cdd_c_error_t cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Replaces `target_node` with `replacement_node` while preserving
  * surrounding trivia.
  *

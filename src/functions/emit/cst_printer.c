@@ -27,7 +27,7 @@ extern int g_io_calls;
 #define FWRITE_HOOK fwrite
 #endif
 
-/**
+/*
  * @brief Reconstructs and writes the exact original source text from a token
  * list to `out`.
  *

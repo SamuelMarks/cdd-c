@@ -126,7 +126,7 @@ static cdd_c_error_t map_scheme_type(cdd_ffi_type_t *t, char *out_type,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits Chez Scheme `.ss` `foreign-procedure` bindings for the given FFI
  * IR.
  *

@@ -1,8 +1,6 @@
 #ifdef _MSC_VER
 #define chdir _chdir
 #endif
-#if defined(__clang__) || defined(__GNUC__)
-#endif
 /**
  * @file test_generate_build_system.h
  * @brief Unit tests for build system generation logic.
@@ -526,6 +524,3 @@ SUITE(generate_build_system_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_GENERATE_BUILD_SYSTEM_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#endif

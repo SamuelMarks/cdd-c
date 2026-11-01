@@ -33,7 +33,7 @@
 
 /* --- Type Definitions Logic --- */
 
-/**
+/*
  * @brief Initializes a list of discovered C type definitions.
  *
  * @param[out] list Pointer to the TypeDefList structure to initialize.
@@ -53,7 +53,7 @@ cdd_c_error_t type_def_list_init(struct TypeDefList *list) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Releases memory held by a C type definition list.
  *
  * @param[in,out] list Pointer to the TypeDefList structure to free.
@@ -128,7 +128,7 @@ static cdd_c_error_t add_type_def(struct TypeDefList *list,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Scans a C source or header file for struct, enum, and typedef
  * declarations.
  *
@@ -437,7 +437,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
 
 /* --- Function Signature Logic --- */
 
-/**
+/*
  * @brief Initializes a list of extracted C function signatures.
  *
  * @param[out] list Pointer to the FuncSigList structure to initialize.
@@ -452,7 +452,7 @@ cdd_c_error_t func_sig_list_init(struct FuncSigList *list) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Releases memory held by a C function signature list.
  *
  * @param[in,out] list Pointer to the FuncSigList structure to free.
@@ -512,7 +512,7 @@ static cdd_c_error_t extract_span_text(const struct TokenList *tokens,
   }
 }
 
-/**
+/*
  * @brief Extracts C function signatures and docstrings from a source file.
  *
  * @param[in] source_code Null-terminated C source code string.

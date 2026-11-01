@@ -33,7 +33,7 @@ extern C_CDD_EXPORT int g_cdd_fail_media_type_is_multipart_form;
 extern C_CDD_EXPORT int g_cdd_fail_find_media_type;
 #endif
 
-/**
+/*
  * @brief Computes length of media type up to optional semicolon parameter.
  *
  * @param[in] media_type Media type string.
@@ -63,7 +63,7 @@ cdd_c_error_t media_type_base_len(const char *media_type, size_t *_out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if media type starts with a specified prefix.
  *
  * @param[in] media_type Media type string to inspect.
@@ -101,7 +101,7 @@ cdd_c_error_t media_type_has_prefix(const char *media_type, const char *prefix,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if base media type ends with a specified suffix.
  *
  * @param[in] media_type Media type string to inspect.
@@ -151,7 +151,7 @@ cdd_c_error_t media_type_has_suffix(const char *media_type, const char *suffix,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Compares media type base portion with an expected string.
  *
  * @param[in] media_type Media type string to inspect.
@@ -200,7 +200,7 @@ cdd_c_error_t media_type_ieq(const char *media_type, const char *expected,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if a media type represents JSON.
  *
  * @param[in] media_type Media type string to inspect.
@@ -240,7 +240,7 @@ cdd_c_error_t media_type_is_json(const char *media_type, int *out) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if a media type represents URL-encoded form data.
  *
  * @param[in] media_type Media type string to inspect.
@@ -257,7 +257,7 @@ cdd_c_error_t media_type_is_form(const char *media_type, int *out) {
   return media_type_ieq(media_type, "application/x-www-form-urlencoded", out);
 }
 
-/**
+/*
  * @brief Checks if a media type is text/plain.
  *
  * @param[in] media_type Media type string to inspect.
@@ -274,7 +274,7 @@ cdd_c_error_t media_type_is_text_plain(const char *media_type, int *out) {
   return media_type_ieq(media_type, "text/plain", out);
 }
 
-/**
+/*
  * @brief Checks if a media type is multipart.
  *
  * @param[in] media_type Media type string to inspect.
@@ -292,7 +292,7 @@ cdd_c_error_t media_type_is_multipart(const char *media_type, int *out) {
   return media_type_has_prefix(media_type, "multipart/", out);
 }
 
-/**
+/*
  * @brief Checks if a media type is multipart/form-data.
  *
  * @param[in] media_type Media type string to inspect.
@@ -311,7 +311,7 @@ cdd_c_error_t media_type_is_multipart_form(const char *media_type, int *out) {
   return media_type_ieq(media_type, "multipart/form-data", out);
 }
 
-/**
+/*
  * @brief Finds a media type definition by name in an array.
  *
  * @param[in] mts Array of OpenAPI media type descriptors.
@@ -347,7 +347,7 @@ cdd_c_error_t find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if a media type represents textual content.
  *
  * @param[in] media_type Media type string to inspect.
@@ -403,7 +403,7 @@ cdd_c_error_t media_type_is_textual(const char *media_type, int *out) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if a media type represents binary content.
  *
  * @param[in] media_type Media type string to inspect.
@@ -459,7 +459,7 @@ cdd_c_error_t media_type_is_binary(const char *media_type, int *out) {
 }
 
 #ifdef CDD_BUILD_TESTS
-/**
+/*
  * @brief Test helper to compute base length of media type.
  *
  * @param[in] media_type Media type string.

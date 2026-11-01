@@ -75,7 +75,7 @@ static cdd_c_error_t join_tokens_skipping_ws(const struct TokenList *tokens,
 
 /* --- List Management --- */
 
-/**
+/*
  * @brief Initializes a C initializer list container.
  *
  * @param[out] list Pointer to the InitList structure to initialize.
@@ -97,7 +97,7 @@ cdd_c_error_t init_list_init(struct InitList *list) {
  */
 static void init_value_free(struct InitValue *val);
 
-/**
+/*
  * @brief Releases all elements in an initializer list container.
  *
  * @param[in,out] list Pointer to the InitList structure to free.
@@ -307,7 +307,7 @@ static cdd_c_error_t parse_expression_str(const struct TokenList *tokens,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses initializer from the given input.
  *
  * @param[in] tokens Lexical token list containing the initializer expression.

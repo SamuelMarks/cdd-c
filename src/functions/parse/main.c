@@ -185,7 +185,7 @@ C_CDD_EXPORT cdd_c_error_t print_help(const char *program_name) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses and handles the `from_openapi` command.
  *
  * Loads the provided OpenAPI specification and acts as a router to the
@@ -289,7 +289,7 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
   return cdd_generate_from_openapi(&api_cfg);
 }
 
-/**
+/*
  * @brief Handles the `to_openapi` command parsing C code to an OpenAPI
  * spec.
  *
@@ -336,7 +336,7 @@ C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
   return cdd_generate_to_openapi(&api_cfg);
 }
 
-/**
+/*
  * @brief Handles the `from_arazzo` command generating C SDK workflows, CLI, or
  * Server orchestrator from an Arazzo v1.1.0 specification.
  *
@@ -388,7 +388,7 @@ C_CDD_EXPORT cdd_c_error_t from_arazzo_cli_main(int argc, char **argv) {
   return cdd_generate_from_arazzo(&cfg);
 }
 
-/**
+/*
  * @brief Handles the `to_arazzo` command extracting an Arazzo v1.1.0
  * specification from C source/header files.
  *
@@ -408,7 +408,7 @@ C_CDD_EXPORT cdd_c_error_t to_arazzo_cli_main(int argc, char **argv) {
   return c2arazzo_cli_main(argc, argv);
 }
 
-/**
+/*
  * @brief Main entry point dispatcher execution logic.
  *
  * Implements the command routing and prints help or error outputs as needed.

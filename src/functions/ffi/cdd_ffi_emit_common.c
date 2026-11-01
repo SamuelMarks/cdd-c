@@ -20,7 +20,7 @@
 extern C_CDD_EXPORT int g_fail_io_after;
 #endif
 
-/**
+/*
  * @brief Emits a linked list of FFI trivia tokens to an open file stream.
  *
  * @param[in,out] f Output file stream.
@@ -41,7 +41,7 @@ cdd_c_error_t cdd_ffi_emit_trivia(FILE *f, const cdd_ffi_trivia_t *trivia) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Maps a `cdd_ffi_type_t` to a target-language type string using a
  * lookup table.
  *
@@ -138,7 +138,7 @@ cdd_c_error_t cdd_ffi_map_type_from_table(const cdd_ffi_type_map_table_t *table,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Opens an output file inside `output_dir` for FFI code emission.
  *
  * @param[in] output_dir Target output directory path.

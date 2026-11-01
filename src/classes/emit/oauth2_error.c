@@ -17,7 +17,7 @@
 #include "win_compat_sym.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Generates an RFC 6749 OAuth2 error enum and parser function for a
  * struct.
  *

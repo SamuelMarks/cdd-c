@@ -272,7 +272,7 @@ static cdd_c_error_t cdd_sha256_final(struct cdd_sha256_ctx *ctx,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Computes a 32-byte SHA-256 digest in WebAssembly or pure-C fallback
  * mode.
  *
@@ -327,7 +327,7 @@ cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
   }
 }
 
-/**
+/*
  * @brief Computes HMAC-SHA-256 in WebAssembly / fallback environment.
  *
  * @param[in] key Secret key buffer.

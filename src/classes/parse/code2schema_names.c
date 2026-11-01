@@ -8,7 +8,7 @@
 #include "code2schema_internal.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Sanitizes a string to be used as a valid C identifier.
  *
  * @param[in] in Input string to sanitize.
@@ -51,7 +51,7 @@ cdd_c_error_t sanitize_identifier(const char *in, char **_out_val) {
   }
 }
 
-/**
+/*
  * @brief Generates a unique variant name for a union type.
  *
  * @param[in] dest Existing StructFields container to check for collisions.
@@ -111,7 +111,7 @@ cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
   }
 }
 
-/**
+/*
  * @brief Generates a schema name for an inline anonymous struct/union.
  *
  * @param[in] schema_name Enclosing parent schema name.
@@ -144,7 +144,7 @@ cdd_c_error_t make_inline_schema_name(const char *schema_name,
   }
 }
 
-/**
+/*
  * @brief Registers an inline schema within the root OpenAPI components.
  *
  * @param[in,out] root Mutable root `components.schemas` JSON_Object.
@@ -193,7 +193,7 @@ register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Retrieves the discriminator mapping value for a given schema
  * variant.
  *

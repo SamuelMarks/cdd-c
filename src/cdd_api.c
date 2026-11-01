@@ -77,7 +77,7 @@
 #include <string.h>
 /* clang-format on */
 
-/**
+/*
  * @brief Generate C code (SDK, CLI, or Server) from an OpenAPI specification.
  *
  * @param[in] config Configuration parameters for OpenAPI-to-C generation.
@@ -154,7 +154,7 @@ cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
   return rc;
 }
 
-/**
+/*
  * @brief Generate an OpenAPI specification from existing C source code.
  *
  * @param[in] config Configuration parameters for C-to-OpenAPI extraction.
@@ -230,13 +230,13 @@ static cdd_c_error_t cdd_docs_build_code_val(const char *snippet,
     json_object_set_string(
         code_obj, "wrapper_start",
         "int main(void) {\n  struct HttpClient client;\n  struct ApiError *err "
-        "= NULL;\n  api_init(&client, \"https://api.example.com\");");
+        "= NULL;\n  cdd_c_error_t rc;");
   }
   json_object_set_string(code_obj, "snippet", snippet);
   if (!no_wrapping) {
     json_object_set_string(
         code_obj, "wrapper_end",
-        "  api_cleanup(&client);\n  return CDD_C_SUCCESS;\n}");
+        "  api_cleanup(&client);\n  return (int)CDD_C_SUCCESS;\n}");
   }
   *out_val = code_val;
   return CDD_C_SUCCESS;
@@ -262,6 +262,10 @@ cdd_docs_format_op_snippet(const struct OpenAPI_Operation *op, int no_wrapping,
 
   decls[0] = '\0';
   call_args[0] = '\0';
+
+  if (no_wrapping) {
+    CDD_STRCAT(decls, sizeof(decls), "cdd_c_error_t rc;\n");
+  }
 
   for (k = 0; k < op->n_parameters; k++) {
     const struct OpenAPI_Parameter *param = &op->parameters[k];
@@ -304,11 +308,20 @@ cdd_docs_format_op_snippet(const struct OpenAPI_Operation *op, int no_wrapping,
     CDD_STRCAT(call_args, sizeof(call_args), ", req_body");
   }
 
-  CDD_SNPRINTF(snippet, snippet_sz,
-               "%s%s/* Call the %s API */\n%scdd_c_error_t rc = "
-               "api_%s(&client%s, &err);\n%sif (rc != CDD_C_SUCCESS) {\n%s  "
-               "fprintf(stderr, \"Error: %%d\\n\", rc);\n%s}",
-               decls, ind, op_id, ind, op_id, call_args, ind, ind, ind);
+  if (no_wrapping) {
+    CDD_SNPRINTF(snippet, snippet_sz,
+                 "%s/* Call the %s API */\nrc = "
+                 "api_%s(&client%s, &err);\nif (rc != CDD_C_SUCCESS) {\n  "
+                 "fprintf(stderr, \"Error: %%d\\n\", rc);\n}",
+                 decls, op_id, op_id, call_args);
+  } else {
+    CDD_SNPRINTF(snippet, snippet_sz,
+                 "%s%sapi_init(&client, \"https://api.example.com\");\n"
+                 "%s/* Call the %s API */\n%src = "
+                 "api_%s(&client%s, &err);\n%sif (rc != CDD_C_SUCCESS) {\n%s  "
+                 "fprintf(stderr, \"Error: %%d\\n\", rc);\n%s}",
+                 decls, ind, ind, op_id, ind, op_id, call_args, ind, ind, ind);
+  }
   return CDD_C_SUCCESS;
 }
 
@@ -381,7 +394,7 @@ cdd_docs_populate_path_map(JSON_Object *target_obj,
   return rc;
 }
 
-/**
+/*
  * @brief Generate documentation JSON containing C code snippets for an OpenAPI
  * or Arazzo specification.
  *
@@ -430,17 +443,32 @@ cdd_c_error_t cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
       char snippet[1024];
       JSON_Value *code_val = NULL;
 
-      CDD_SNPRINTF(
-          snippet, sizeof(snippet),
-          "%sstruct arazzo_%s_inputs inputs = {0};\n"
-          "%sstruct arazzo_%s_outputs outputs = {0};\n"
-          "%scdd_c_error_t rc = arazzo_run_workflow_%s(&clients, &inputs, "
-          "&outputs);\n"
-          "%sif (rc != CDD_C_SUCCESS) {\n"
-          "%s  fprintf(stderr, \"Error: %%d\\n\", rc);\n"
-          "%s}\n"
-          "%sarazzo_%s_outputs_free(&outputs);",
-          ind, wf_id, ind, wf_id, ind, wf_id, ind, ind, ind, ind, wf_id);
+      if (no_wrapping) {
+        CDD_SNPRINTF(snippet, sizeof(snippet),
+                     "cdd_c_error_t rc;\n"
+                     "struct arazzo_%s_inputs inputs = {0};\n"
+                     "struct arazzo_%s_outputs outputs = {0};\n"
+                     "rc = arazzo_run_workflow_%s(&clients, &inputs, "
+                     "&outputs);\n"
+                     "if (rc != CDD_C_SUCCESS) {\n"
+                     "  fprintf(stderr, \"Error: %%d\\n\", rc);\n"
+                     "}\n"
+                     "arazzo_%s_outputs_free(&outputs);",
+                     wf_id, wf_id, wf_id, wf_id);
+      } else {
+        CDD_SNPRINTF(snippet, sizeof(snippet),
+                     "%sstruct arazzo_%s_inputs inputs = {0};\n"
+                     "%sstruct arazzo_%s_outputs outputs = {0};\n"
+                     "%sapi_init(&client, \"https://api.example.com\");\n"
+                     "%src = arazzo_run_workflow_%s(&clients, &inputs, "
+                     "&outputs);\n"
+                     "%sif (rc != CDD_C_SUCCESS) {\n"
+                     "%s  fprintf(stderr, \"Error: %%d\\n\", rc);\n"
+                     "%s}\n"
+                     "%sarazzo_%s_outputs_free(&outputs);",
+                     ind, wf_id, ind, wf_id, ind, ind, wf_id, ind, ind, ind,
+                     ind, wf_id);
+      }
       rc = cdd_docs_build_code_val(snippet, no_imports, no_wrapping, &code_val);
       json_object_set_value(workflows_obj, wf_id, code_val);
     }
@@ -497,7 +525,7 @@ cdd_c_error_t cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
   return rc;
 }
 
-/**
+/*
  * @brief Start the JSON-RPC server exposing the CDD functionality.
  *
  * @param[in] config Configuration parameters for the JSON-RPC server.
@@ -589,7 +617,7 @@ static const struct FfiEmitterEntry EMITTERS[] = {
     {"crystal", NULL, cdd_ffi_emit_crystal},
     {"ir", "json", cdd_ffi_emit_ir_json}};
 
-/**
+/*
  * @brief Generate FFI bindings directly from an IR DSL string.
  *
  * @param[in] source Input DSL source text.
@@ -624,7 +652,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
   return rc;
 }
 
-/**
+/*
  * @brief Generate SWIG-like FFI bindings for multiple target languages.
  *
  * @param[in] config Binding generation configuration parameters.
@@ -715,7 +743,7 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Generate C SDK workflows, CLI workflow runner, or Backend Server
  * orchestrator from an Arazzo v1.1.0 specification.
  *
@@ -782,7 +810,7 @@ cdd_c_error_t cdd_generate_from_arazzo(const cdd_from_arazzo_config_t *config) {
   return rc;
 }
 
-/**
+/*
  * @brief Extract an Arazzo v1.1.0 specification from annotated C source/header
  * files.
  *

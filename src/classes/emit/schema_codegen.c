@@ -410,7 +410,7 @@ C_CDD_EXPORT cdd_c_error_t generate_source(const char *prefix,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief CLI entry point for generating C structs and JSON codecs from a JSON
  * Schema.
  *

@@ -1134,7 +1134,7 @@ static cdd_c_error_t include_visitor(const struct IncludeInfo *info,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Extracts all exported C/C++ types, functions, and macros from
  * `filename` (and optionally its recursive includes) into a newly allocated
  * `cdd_ffi_ir_t`.

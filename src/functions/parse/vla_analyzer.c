@@ -58,7 +58,7 @@ static cdd_c_error_t c_cdd_strndup(const char *s, size_t n, char **_out_val) {
   }
 }
 
-/**
+/*
  * @brief Initializes a VLA site list.
  *
  * @param[out] list Pointer to the VLASiteList structure to initialize.
@@ -74,7 +74,7 @@ cdd_c_error_t vla_site_list_init(struct VLASiteList *list) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Frees a VLA site list.
  *
  * @param[in,out] list Pointer to the VLASiteList structure to free.
@@ -132,7 +132,7 @@ static cdd_c_error_t is_basic_type_keyword(enum TokenKind k,
   }
 }
 
-/**
+/*
  * @brief Scans for VLA (Variable Length Array) sites in a token list.
  *
  * @param[in] tokens Lexical token list to scan.

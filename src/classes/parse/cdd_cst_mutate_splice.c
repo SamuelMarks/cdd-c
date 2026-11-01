@@ -14,7 +14,7 @@
 #include <string.h>
 /* clang-format on */
 
-/**
+/*
  * @brief Splice children of a node.
  *
  * @param[in,out] tree Owning CST tree.
@@ -121,7 +121,7 @@ cdd_c_error_t cdd_cst_splice_children(cdd_cst_tree_t *tree,
   return rc;
 }
 
-/**
+/*
  * @brief Finds a node containing a given token.
  *
  * @param[in] root Root CST node to search.

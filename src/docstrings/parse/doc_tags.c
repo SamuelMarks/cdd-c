@@ -22,7 +22,7 @@
 #include "functions/parse/str.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Appends a single tag string to `out->tags`.
  *
  * @param[in,out] out Target DocMetadata structure.
@@ -51,7 +51,7 @@ cdd_c_error_t doc_add_tag(struct DocMetadata *out, const char *tag) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Appends a `DocTagMeta` entry to `out->tag_meta`.
  *
  * @param[in,out] out Target DocMetadata structure.
@@ -86,7 +86,7 @@ cdd_c_error_t doc_add_tag_meta(struct DocMetadata *out,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses an `@tag` or `@tags` directive line into `out->tags`.
  *
  * @param[in] line Start of directive argument text.
@@ -134,7 +134,7 @@ cdd_c_error_t doc_parse_tags_line(const char *line, const char *end,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses an `@tagMeta` directive line into `out->tag_meta`.
  *
  * @param[in] line Start of directive argument text.
@@ -301,7 +301,7 @@ cleanup_meta:
   return rc;
 }
 
-/**
+/*
  * @brief Parses an `@deprecated` directive line into `out`.
  *
  * @param[in] line Start of directive argument text.
@@ -329,7 +329,7 @@ cdd_c_error_t doc_parse_deprecated_line(const char *line, const char *end,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses an `@externalDocs` directive line into `out`.
  *
  * @param[in] line Start of directive argument text.
@@ -362,7 +362,7 @@ cdd_c_error_t doc_parse_external_docs_line(const char *line, const char *end,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses an `@contact` directive line into `out`.
  *
  * @param[in] line Start of directive argument text.
@@ -479,7 +479,7 @@ fail_contact:
   return rc;
 }
 
-/**
+/*
  * @brief Parses an `@license` directive line into `out`.
  *
  * @param[in] line Start of directive argument text.
@@ -609,7 +609,7 @@ fail_license:
   return rc;
 }
 
-/**
+/*
  * @brief Parses an `@server` directive line into `out->servers`.
  *
  * @param[in] line Start of directive argument text.
@@ -743,7 +743,7 @@ cdd_c_error_t doc_parse_server_line(const char *line, const char *end,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses an `@serverVar` directive line and attaches it to the most
  * recent server in `out->servers`.
  *
@@ -910,7 +910,7 @@ fail_server_var:
   return rc;
 }
 
-/**
+/*
  * @brief Parses an `@encoding`, `@prefixEncoding`, or `@itemEncoding`
  * directive line into `out->encodings`.
  *
@@ -1031,7 +1031,7 @@ cdd_c_error_t doc_parse_encoding_line(const char *line, const char *end,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses an `@route` or `@webhook` directive line into `out->verb` and
  * `out->route`.
  *

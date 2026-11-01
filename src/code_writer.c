@@ -97,7 +97,7 @@ static cdd_c_error_t writer_emit_indent_if_needed(cdd_code_writer_t *writer) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Initializes a code writer backed by an open `FILE *` stream.
  *
  * @param[out] writer Pointer to the code writer structure to initialize.
@@ -115,7 +115,7 @@ cdd_c_error_t cdd_code_writer_init_stream(cdd_code_writer_t *writer, FILE *fp) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Initializes a code writer backed by a dynamically growing heap buffer.
  *
  * @param[out] writer Pointer to the code writer structure to initialize.
@@ -131,7 +131,7 @@ cdd_c_error_t cdd_code_writer_init_buffer(cdd_code_writer_t *writer) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Releases any heap buffer owned by the code writer.
  *
  * @param[in,out] writer Pointer to the code writer structure to free.
@@ -149,7 +149,7 @@ cdd_c_error_t cdd_code_writer_free(cdd_code_writer_t *writer) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Increases the current indentation level by one step.
  *
  * @param[in,out] writer Target code writer.
@@ -162,7 +162,7 @@ cdd_c_error_t cdd_code_writer_indent(cdd_code_writer_t *writer) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Decreases the current indentation level by one step (clamped to 0).
  *
  * @param[in,out] writer Target code writer.
@@ -176,7 +176,7 @@ cdd_c_error_t cdd_code_writer_dedent(cdd_code_writer_t *writer) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Writes a raw string, automatically applying indentation at line
  * starts.
  *
@@ -227,7 +227,7 @@ cdd_c_error_t cdd_code_writer_write(cdd_code_writer_t *writer,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Writes a string followed by a newline character (`\n`).
  *
  * @param[in,out] writer Target code writer.
@@ -245,7 +245,7 @@ cdd_c_error_t cdd_code_writer_writeln(cdd_code_writer_t *writer,
   return cdd_code_writer_write(writer, "\n");
 }
 
-/**
+/*
  * @brief Formats and writes a `printf`-style string to the code writer.
  *
  * @param[in,out] writer Target code writer.
@@ -300,7 +300,7 @@ cdd_c_error_t cdd_code_writer_printf(cdd_code_writer_t *writer, const char *fmt,
   }
 }
 
-/**
+/*
  * @brief Checks if any sticky error occurred on the code writer.
  *
  * @param[in] writer Code writer to inspect.
@@ -315,7 +315,7 @@ cdd_c_error_t cdd_code_writer_check_error(const cdd_code_writer_t *writer,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Transfers ownership of the dynamically allocated string buffer to the
  * caller.
  *

@@ -130,7 +130,7 @@ cdd_c_error_t parse_template_type(const char *c_type,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Maps a C/C++ type spelling to its `cdd_ffi_primitive_kind_t` enum
  * value.
  *
@@ -230,7 +230,7 @@ cdd_c_error_t map_c_type_to_ffi_kind(const char *c_type,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Mangles a C++ namespace, class name, and method name into a flat C ABI
  * identifier (`ns_class_method`).
  *
@@ -295,7 +295,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_mangle_cpp_name(const char *ns_name,
 extern C_CDD_EXPORT int g_ffi_extractor_alloc_fail;
 #endif
 
-/**
+/*
  * @brief Allocates memory for FFI IR with test fault injection.
  *
  * @param[in] sz Number of bytes to allocate.
@@ -313,7 +313,7 @@ cdd_c_error_t cdd_ffi_do_malloc(size_t sz, void **out_ptr) {
   return *out_ptr ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
-/**
+/*
  * @brief Zero-allocates memory for FFI IR with test fault injection.
  *
  * @param[in] n Number of elements.
@@ -332,7 +332,7 @@ cdd_c_error_t cdd_ffi_do_calloc(size_t n, size_t sz, void **out_ptr) {
   return *out_ptr ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
-/**
+/*
  * @brief Reallocates memory for FFI IR with test fault injection.
  *
  * @param[in,out] ptr Existing pointer to reallocate (or NULL).
@@ -351,7 +351,7 @@ cdd_c_error_t cdd_ffi_do_realloc(void *ptr, size_t sz, void **out_ptr) {
   return *out_ptr ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
-/**
+/*
  * @brief Duplicates a string for FFI IR with test fault injection.
  *
  * @param[in] s Source null-terminated string to duplicate.

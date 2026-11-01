@@ -25,7 +25,7 @@
 #include "functions/parse/tokenizer_punct.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Tokenizes punctuators and comments starting with character c.
  *
  * @param[in] base Base pointer of the source byte buffer.

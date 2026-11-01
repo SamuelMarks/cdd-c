@@ -299,7 +299,7 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits Dart FFI bindings for the given FFI IR.
  *
  * @param[in] ir FFI Intermediate Representation to emit.

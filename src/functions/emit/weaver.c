@@ -18,7 +18,7 @@
 #include "c_cdd/memory.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Wraps a region of C code in a preprocessor conditional guard.
  *
  * @param[in,out] patches Target PatchList container.
@@ -108,7 +108,7 @@ cdd_c_error_t weaver_wrap_ifdef(struct PatchList *patches,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Injects MSVC compatibility headers into a C source file.
  *
  * @param[in,out] patches Target PatchList container.
@@ -229,7 +229,7 @@ cdd_c_error_t weaver_inject_msvc_headers(struct PatchList *patches,
   return res;
 }
 
-/**
+/*
  * @brief Rewrites C99 variable-length arrays into portable heap/alloca
  * allocations.
  *

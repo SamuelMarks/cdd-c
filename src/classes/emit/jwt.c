@@ -17,7 +17,7 @@
 #include "win_compat_sym.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Generates a C function that Base64URL-decodes a JWT payload and
  * parses it into a struct.
  *

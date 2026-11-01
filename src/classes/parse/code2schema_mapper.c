@@ -37,7 +37,7 @@ static const char *k_property_skip_keys[] = {"type",
 /** @brief Keys skipped when collecting extra array items schema fields */
 static const char *k_items_skip_keys[] = {"type", "$ref"};
 
-/**
+/*
  * @brief Internal helper to convert a JSON Schema object to
  * StructFields.
  *
@@ -399,7 +399,7 @@ cdd_c_error_t c2s_json_object_to_struct_fields_internal_mut(
 C_CDD_EXPORT int g_json_object_to_struct_fields_fail = 0;
 #endif
 
-/**
+/*
  * @brief Extended function to convert a JSON Schema object to StructFields.
  *
  * @param[in] o JSON Schema object to convert.
@@ -416,7 +416,7 @@ cdd_c_error_t c2s_json_object_to_struct_fields_internal(
       o, f, root, NULL, schema_name, allow_inline_union);
 }
 
-/**
+/*
  * @brief Converts a JSON Schema object to `StructFields` with an explicit
  * schema name.
  *
@@ -440,7 +440,7 @@ cdd_c_error_t json_object_to_struct_fields_ex(
       schema_obj, fields, schemas_obj_root, schema_name, 0);
 }
 
-/**
+/*
  * @brief Extended code generation function to convert JSON Schema to
  * StructFields.
  *
@@ -464,7 +464,7 @@ cdd_c_error_t json_object_to_struct_fields_ex_codegen(
       schema_obj, fields, schemas_obj_root, schemas_obj_root, schema_name, 1);
 }
 
-/**
+/*
  * @brief Converts a JSON Schema object to a StructFields structure.
  *
  * @param[in] schema_obj JSON Schema object to convert.

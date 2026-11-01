@@ -236,7 +236,7 @@ emit_matlab_m(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits MATLAB MEX C gateway and `.m` classdef bindings for the given
  * FFI IR.
  *

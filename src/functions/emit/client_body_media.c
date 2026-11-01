@@ -14,7 +14,7 @@
 extern C_CDD_EXPORT int g_cdd_fail_is_primitive_type;
 #endif
 
-/**
+/*
  * @brief Maps an OpenAPI HTTP verb enum to its C HTTP method constant name.
  *
  * @param[in] v OpenAPI HTTP verb enum value.
@@ -70,7 +70,7 @@ cdd_c_error_t client_body_verb_to_enum_str(enum OpenAPI_Verb v,
   }
 }
 
-/**
+/*
  * @brief Maps an HTTP method string to its C HTTP method constant name.
  *
  * @param[in] method HTTP method name string.
@@ -171,7 +171,7 @@ cdd_c_error_t mapped_err_code(int status, const char **_out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Retrieves the media type.
  *
  * @param[in] mts Array of OpenAPI media type descriptors.
@@ -231,7 +231,7 @@ cdd_c_error_t find_encoding(const struct OpenAPI_MediaType *mt,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if primitive type.
  *
  * @param[in] oa_type OpenAPI type name string.
@@ -319,7 +319,7 @@ cdd_c_error_t struct_fields_all_primitive(const struct StructFields *sf,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks whether an OpenAPI schema reference defines an inline type or
  * enum.
  *
@@ -339,7 +339,7 @@ cdd_c_error_t schema_has_inline(const struct OpenAPI_SchemaRef *schema,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Computes the length of the essence (type/subtype) portion of a media
  * type string.
  *
@@ -362,7 +362,7 @@ cdd_c_error_t client_body_media_type_base_len(const char *media_type,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks case-insensitively whether a media type starts with a given
  * prefix.
  *
@@ -403,7 +403,7 @@ cdd_c_error_t media_type_has_prefix(const char *media_type, const char *prefix,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks case-insensitively whether a media type base ends with a given
  * suffix.
  *
@@ -446,7 +446,7 @@ cdd_c_error_t media_type_has_suffix(const char *media_type, const char *suffix,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Compares the base essence of a media type case-insensitively against
  * `expected`.
  *
@@ -487,7 +487,7 @@ cdd_c_error_t media_type_ieq(const char *media_type, const char *expected,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if a media type is JSON (`application/json` or `*+json`).
  *
  * @param[in] media_type Media type string to inspect.
@@ -515,7 +515,7 @@ cdd_c_error_t media_type_is_json(const char *media_type, int *out) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if a media type is `application/x-www-form-urlencoded`.
  *
  * @param[in] media_type Media type string to inspect.
@@ -531,7 +531,7 @@ cdd_c_error_t media_type_is_form(const char *media_type, int *out) {
   return media_type_ieq(media_type, "application/x-www-form-urlencoded", out);
 }
 
-/**
+/*
  * @brief Checks if a media type is `text/plain`.
  *
  * @param[in] media_type Media type string to inspect.
@@ -547,7 +547,7 @@ cdd_c_error_t media_type_is_text_plain(const char *media_type, int *out) {
   return media_type_ieq(media_type, "text/plain", out);
 }
 
-/**
+/*
  * @brief Checks if a media type starts with `multipart/`.
  *
  * @param[in] media_type Media type string to inspect.
@@ -564,7 +564,7 @@ cdd_c_error_t media_type_is_multipart(const char *media_type, int *out) {
   return media_type_has_prefix(media_type, "multipart/", out);
 }
 
-/**
+/*
  * @brief Checks if a media type is `multipart/form-data`.
  *
  * @param[in] media_type Media type string to inspect.
@@ -608,7 +608,7 @@ cdd_c_error_t first_content_type_entry(const char *content_type, char *buf,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Sanitizes an arbitrary string into a valid C identifier.
  *
  * @param[out] out Destination character buffer.
@@ -635,7 +635,7 @@ cdd_c_error_t sanitize_ident(char *out, size_t outsz, const char *in) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Builds the C parameter name for a multipart part header.
  *
  * @param[out] out Destination character buffer.
@@ -656,7 +656,7 @@ cdd_c_error_t multipart_header_param_name(char *out, size_t outsz,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks case-insensitively whether a header name is Content-Type.
  *
  * @param[in] name Header name string to test.
@@ -675,7 +675,7 @@ cdd_c_error_t header_name_is_content_type(const char *name, int *out) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Determines whether a media type represents textual payload content.
  *
  * @param[in] media_type Media type string to inspect.
@@ -715,7 +715,7 @@ cdd_c_error_t media_type_is_textual(const char *media_type, int *out) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Determines whether a media type represents raw binary payload content.
  *
  * @param[in] media_type Media type string to inspect.

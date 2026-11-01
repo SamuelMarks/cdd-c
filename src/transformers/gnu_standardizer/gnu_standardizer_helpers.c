@@ -15,7 +15,7 @@ C_CDD_EXPORT volatile int g_gnu_malloc_fail = 0;
 C_CDD_EXPORT volatile int g_gnu_find_fail = 0;
 #endif
 
-/**
+/*
  * @brief Allocates memory for GNU standardizer transformations.
  *
  * @param[in] sz Number of bytes to allocate.
@@ -37,7 +37,7 @@ cdd_c_error_t gnu_malloc(size_t sz, void **out_ptr) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Allocates a new CST node with fault-injection support.
  *
  * @param[in] kind CST node kind to allocate.
@@ -53,7 +53,7 @@ cdd_c_error_t gnu_alloc_node(enum cdd_cst_node_kind_t kind,
   return cdd_cst_alloc_node(kind, out_node);
 }
 
-/**
+/*
  * @brief Finds the parent CST node and child index for a given token.
  *
  * @param[in] root Root CST node to search.

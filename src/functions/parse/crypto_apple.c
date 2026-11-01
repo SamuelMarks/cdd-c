@@ -97,7 +97,7 @@ cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
 
 /* Non-Apple stub implementation */
 
-/**
+/*
  * @brief Performs crypto sha256 operation (non-Apple stub).
  *
  * @param[in] data Pointer to the input buffer to hash.
@@ -112,7 +112,7 @@ cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
   return CDD_C_ERROR_SYSTEM;
 }
 
-/**
+/*
  * @brief Performs crypto hmac sha256 operation (non-Apple stub).
  *
  * @param[in] key Secret key bytes.

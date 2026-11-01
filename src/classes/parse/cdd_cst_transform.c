@@ -17,7 +17,7 @@
 #include <string.h>
 /* clang-format on */
 
-/**
+/*
  * @brief Wraps a CST header tree in `#ifdef __cplusplus extern "C" { #endif`
  * guards if not already present.
  *
@@ -141,7 +141,7 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Transforms POSIX headers and identifiers in a CST for MSVC
  * compatibility.
  *
@@ -257,7 +257,7 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Transforms GNU C extensions in a CST into portable standard C
  * constructs.
  *

@@ -10,9 +10,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#if defined(__GNUC__) || defined(__clang__)
-#endif
-
 /* clang-format off */
 #include "c_cdd_export.h"
 #include <greatest.h>
@@ -640,9 +637,6 @@ SUITE(integration_c2openapi_suite) {
   RUN_TEST(test_c2openapi_with_self_uri);
   RUN_TEST(test_c2openapi_global_meta_security_schemes);
 }
-
-#if defined(__GNUC__) || defined(__clang__)
-#endif
 
 #ifdef __cplusplus
 }

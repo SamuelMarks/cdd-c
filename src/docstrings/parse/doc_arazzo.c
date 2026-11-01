@@ -74,7 +74,7 @@ static void free_doc_arazzo_actions(struct DocArazzoAction *actions,
   C_CDD_FREE(actions);
 }
 
-/**
+/*
  * @brief Frees all Arazzo-specific fields inside a `DocMetadata` structure.
  *
  * @param[in,out] meta Pointer to the DocMetadata structure whose Arazzo fields
@@ -861,7 +861,7 @@ static cdd_c_error_t parse_arazzo_component_line(const char *line,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Dispatches an `@arazzo*`, `@workflow*`, `@step*`, or `@x-*` directive
  * line.
  *

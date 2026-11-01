@@ -41,7 +41,7 @@ static cdd_c_error_t c_cdd_strndup(const char *s, size_t n, char **_out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Initializes a designated initializer list.
  *
  * @param[out] list Pointer to the DesigInitList structure to initialize.
@@ -57,7 +57,7 @@ cdd_c_error_t desig_init_list_init(struct DesigInitList *list) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Frees a designated initializer list.
  *
  * @param[in,out] list Pointer to the DesigInitList structure to free.
@@ -78,7 +78,7 @@ void desig_init_list_free(struct DesigInitList *list) {
   desig_init_list_init(list);
 }
 
-/**
+/*
  * @brief Scans a token stream for C99 designated initializers.
  *
  * @param[in] tokens Lexical token list to scan.

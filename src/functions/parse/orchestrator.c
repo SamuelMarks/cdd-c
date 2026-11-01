@@ -59,7 +59,7 @@ extern C_CDD_EXPORT int g_cdd_fail_propagate;
 
 /* --- Helpers --- */
 
-/**
+/*
  * @brief Extract a slice of tokens into a temporary view.
  * Does not copy token data, just pointers.
  *
@@ -89,7 +89,7 @@ C_CDD_EXPORT cdd_c_error_t get_token_slice(const struct TokenList *src,
 }
 
 /* Helper to find specific token type within range */
-/**
+/*
  * @brief Retrieves the first token of `kind` within `[start, end)`.
  *
  * @param[in] tokens Lexical token list.
@@ -123,7 +123,7 @@ C_CDD_EXPORT cdd_c_error_t find_token_in_range(const struct TokenList *tokens,
 }
 
 /* Helper for token string comparison */
-/**
+/*
  * @brief Checks whether a token slice exactly matches a null-terminated string.
  *
  * @param[in] tok Token to compare.
@@ -151,7 +151,7 @@ C_CDD_EXPORT cdd_c_error_t token_eq_str(const struct Token *tok, const char *s,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Extract function name from tokens.
  * Finds the identifier immediately preceding the argument list LPAREN.
  *
@@ -205,7 +205,7 @@ C_CDD_EXPORT cdd_c_error_t extract_func_name(const struct TokenList *tokens,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Join tokens into a single string.
  *
  * @param[in] tokens Lexical token list.
@@ -309,7 +309,7 @@ C_CDD_EXPORT cdd_c_error_t concat_strings(const char *s1, const char *delim,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Analyze return type tokens to determine void/int/pointer status.
  *
  * @param[in] tokens Lexical token list.
@@ -382,7 +382,7 @@ C_CDD_EXPORT cdd_c_error_t analyze_signature_tokens(
 
 /* --- Graph Management --- */
 
-/**
+/*
  * @brief Adds or retrieves a function node in the call dependency graph.
  *
  * @param[in,out] g DependencyGraph structure to update.
@@ -411,7 +411,7 @@ C_CDD_EXPORT cdd_c_error_t graph_add_node(struct DependencyGraph *g, size_t idx,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Adds a directed caller-to-callee edge in the call dependency graph.
  *
  * @param[in,out] g DependencyGraph structure to update.
@@ -450,7 +450,7 @@ C_CDD_EXPORT cdd_c_error_t graph_add_edge(struct DependencyGraph *g,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Releases all nodes and edges in a call dependency graph.
  *
  * @param[in,out] g DependencyGraph structure to free.
@@ -473,7 +473,7 @@ C_CDD_EXPORT cdd_c_error_t graph_free_contents(struct DependencyGraph *g) {
 
 /* --- Propagation Logic --- */
 
-/**
+/*
  * @brief Propagates error-percolation refactoring marks transitively through
  * callers.
  *
@@ -518,7 +518,7 @@ C_CDD_EXPORT cdd_c_error_t propagate_refactor_mark(struct DependencyGraph *g,
 
 /* --- Main Orchestrator --- */
 
-/**
+/*
  * @brief Runs multi-file error-percolation refactoring across a set of C
  * sources.
  *
@@ -901,7 +901,7 @@ cleanup:
 
 /* --- CLI Integration --- */
 
-/**
+/*
  * @brief Checks if `path` ends with a `.c` source extension.
  *
  * @param[in] path Filesystem path string to check.
@@ -927,7 +927,7 @@ C_CDD_EXPORT cdd_c_error_t is_c_source(const char *path, int *out_is_src) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Directory-walker callback that refactors a single C source file.
  *
  * @param[in] path Path to the visited file.
@@ -998,7 +998,7 @@ C_CDD_EXPORT cdd_c_error_t fix_file_callback(const char *path,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief CLI entry point for automated C code refactoring.
  *
  * @param[in] argc Number of command-line arguments.

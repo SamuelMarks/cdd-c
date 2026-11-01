@@ -5,8 +5,6 @@
 #ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
 #endif
-#ifdef CDD_BUILD_TESTS
-#endif
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -130,7 +128,7 @@ static cdd_c_error_t map_lisp_type(cdd_ffi_type_t *t, char *out_type,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits Common Lisp (CFFI) bindings and ASDF system definitions for the
  * given FFI IR.
  *

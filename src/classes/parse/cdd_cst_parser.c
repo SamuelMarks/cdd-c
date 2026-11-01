@@ -14,7 +14,7 @@
 #include <string.h>
 /* clang-format on */
 
-/**
+/*
  * @brief Allocate a new CST node.
  *
  * @param[in] kind CST node kind to allocate.
@@ -35,7 +35,7 @@ cdd_c_error_t alloc_node(enum cdd_cst_node_kind_t kind, cdd_cst_node_t *parent,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Append a child token to a node.
  *
  * @param[in,out] node Parent CST node.
@@ -58,7 +58,7 @@ cdd_c_error_t append_child_token(cdd_cst_node_t *node, cdd_token_t *tok) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Consume the current token from parser state and append it to `node`.
  *
  * @param[in,out] s Active parser state.
@@ -70,7 +70,7 @@ cdd_c_error_t consume_token(parser_state_t *s, cdd_cst_node_t *node) {
   return append_child_token(node, t);
 }
 
-/**
+/*
  * @brief Append a child node to a node.
  *
  * @param[in,out] node Parent CST node.
@@ -93,7 +93,7 @@ cdd_c_error_t append_child_node(cdd_cst_node_t *node, cdd_cst_node_t *child) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Free a node and all of its descendants recursively.
  *
  * @param[in,out] node Root CST node to free.
@@ -112,7 +112,7 @@ void free_node(cdd_cst_node_t *node) {
   C_CDD_FREE(node);
 }
 
-/**
+/*
  * @brief Peek next token from parser state without advancing.
  *
  * @param[in] s Active parser state.
@@ -130,7 +130,7 @@ C_CDD_EXPORT cdd_c_error_t peek(parser_state_t *s, cdd_token_t **out_tok) {
   return CDD_C_ERROR_NOT_FOUND;
 }
 
-/**
+/*
  * @brief Advance parser state and return current token.
  *
  * @param[in,out] s Active parser state.
@@ -206,7 +206,7 @@ static cdd_c_error_t parse_block_internal(parser_state_t *s,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parse a block delimited by braces.
  *
  * @param[in,out] s Active parser state.
@@ -225,7 +225,7 @@ cdd_c_error_t parse_block(parser_state_t *s, cdd_cst_node_t *parent,
   return rc;
 }
 
-/**
+/*
  * @brief Finds the identifier token of the nearest enclosing class/struct
  * declaration.
  *
@@ -590,7 +590,7 @@ static cdd_c_error_t parse_declaration_or_statement_internal(
   return parse_class_or_statement(s, parent, t, out_node);
 }
 
-/**
+/*
  * @brief Parses a C/C++ source span into a full-fidelity Concrete Syntax Tree
  * (CST).
  *
@@ -663,7 +663,7 @@ cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Frees a CST tree, its root node hierarchy, base tokens, synthesized
  * tokens, and string pool.
  *

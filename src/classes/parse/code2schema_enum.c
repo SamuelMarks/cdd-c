@@ -8,7 +8,7 @@
 #include "code2schema_internal.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Converts a JSON array of strings to an EnumMembers structure.
  *
  * @param[in] enum_arr Parson JSON_Array of enum member strings.
@@ -32,7 +32,7 @@ cdd_c_error_t json_array_to_enum_members(const JSON_Array *enum_arr,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Determines if a JSON Schema object represents a string enum.
  *
  * @param[in] schema_obj JSON Schema object to inspect.
@@ -81,7 +81,7 @@ cdd_c_error_t schema_object_is_string_enum(const JSON_Object *schema_obj,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if a JSON Schema $ref points to a string enum.
  *
  * @param[in] root Root `components.schemas` JSON_Object.
@@ -114,7 +114,7 @@ cdd_c_error_t ref_points_to_string_enum(const JSON_Object *root,
   return schema_object_is_string_enum(schema_obj, NULL, out_points_to_enum);
 }
 
-/**
+/*
  * @brief Checks if a given property name is present in a required
  * properties list.
  *
@@ -143,7 +143,7 @@ cdd_c_error_t required_name_in_list(const JSON_Array *required,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Resolves a JSON Schema $ref to its corresponding object.
  *
  * @param[in] root Root `components.schemas` JSON_Object.

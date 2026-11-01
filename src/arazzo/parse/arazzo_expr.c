@@ -115,7 +115,7 @@ static cdd_c_error_t parse_two_segments(const char *rest, size_t head_len,
   return rc;
 }
 
-/**
+/*
  * @brief Parses an Arazzo v1.1.0 runtime expression string into an
  * `Arazzo_RuntimeExpr`.
  *
@@ -294,7 +294,7 @@ cdd_c_error_t arazzo_runtime_expr_parse(const char *expr_str,
   return CDD_C_ERROR_INVALID_ARGUMENT;
 }
 
-/**
+/*
  * @brief Formats a parsed `Arazzo_RuntimeExpr` back into its canonical string
  * representation.
  *

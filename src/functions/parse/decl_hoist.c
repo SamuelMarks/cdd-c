@@ -22,7 +22,7 @@
 C_CDD_EXPORT int g_cdd_fail_alloc_decl_hoist = 0;
 #endif
 
-/**
+/*
  * @brief Initializes a hoist site list.
  *
  * @param[out] list Pointer to the HoistSiteList structure to initialize.
@@ -37,7 +37,7 @@ cdd_c_error_t hoist_site_list_init(struct HoistSiteList *list) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Frees a hoist site list.
  *
  * @param[in,out] list Pointer to the HoistSiteList structure to free.
@@ -84,7 +84,7 @@ static cdd_c_error_t is_basic_type_keyword(enum TokenKind k,
   }
 }
 
-/**
+/*
  * @brief Scans for mixed declarations in a token list.
  *
  * Mixed declarations are variable declarations that occur after non-declaration

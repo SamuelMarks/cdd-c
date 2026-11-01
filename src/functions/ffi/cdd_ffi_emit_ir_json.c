@@ -14,7 +14,7 @@
 #include "cdd_ffi_emit_ir_json.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Emits the FFI IR as a serialized JSON file (`ir_dump.json`).
  *
  * @param[in] ir FFI Intermediate Representation to emit.

@@ -7,7 +7,7 @@
 #include <stddef.h>
 /* clang-format on */
 
-/**
+/*
  * @brief Converts an error code to a human-readable string.
  *
  * @param[in] err Error code to describe.

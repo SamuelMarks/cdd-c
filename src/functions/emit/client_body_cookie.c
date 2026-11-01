@@ -9,7 +9,7 @@
 #include "functions/emit/client_body_internal.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Emits C source code for cookie param logic.
  *
  * @param[in,out] fp Output file stream.

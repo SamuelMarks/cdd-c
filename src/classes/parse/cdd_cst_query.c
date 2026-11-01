@@ -14,7 +14,7 @@
 #include <string.h>
 /* clang-format on */
 
-/**
+/*
  * @brief Traverses a CST in pre-order, invoking `visitor` on each node before
  * its children.
  *
@@ -50,7 +50,7 @@ cdd_c_error_t cdd_cst_traverse_preorder(cdd_cst_node_t *root,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Traverses a CST in post-order, invoking `visitor` on each node after
  * its children.
  *
@@ -132,7 +132,7 @@ static cdd_c_error_t type_visitor(cdd_cst_node_t *node, void *user_data) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Finds all CST nodes of a specific `kind` within a subtree.
  *
  * @param[in] root Root CST node to search.
@@ -245,7 +245,7 @@ static cdd_c_error_t call_visitor(cdd_cst_node_t *node, void *user_data) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Finds all CST nodes representing calls to a function named
  * `func_name`.
  *

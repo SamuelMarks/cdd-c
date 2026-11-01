@@ -8,7 +8,7 @@
 #include "code2schema_internal.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Parses a struct member line and populates a StructFields object.
  *
  * @param[in] line Raw C struct member declaration line.
@@ -257,7 +257,7 @@ cdd_c_error_t parse_struct_member_line(const char *line,
   return rc;
 }
 
-/**
+/*
  * @brief Parses union member tokens from a TokenList starting after '{' and
  * writes the resulting oneOf schema to schemas_obj.
  *
@@ -363,7 +363,7 @@ cdd_c_error_t c2s_parse_union_tokens_and_write(const struct TokenList *tl,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses a union definition and writes it to a JSON Schema
  * object.
  *

@@ -1,5 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#endif
 /**
  * @file build_system.h
  * @brief Utilities for scaffolding build configurations (CMake).
@@ -54,12 +52,8 @@ extern C_CDD_EXPORT cdd_c_error_t generate_cmake_project(
 extern C_CDD_EXPORT cdd_c_error_t test_build_system_mock_io_negative(void);
 #endif
 
-#endif /* C_CDD_GENERATE_BUILD_SYSTEM_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif
+#endif /* C_CDD_GENERATE_BUILD_SYSTEM_H */

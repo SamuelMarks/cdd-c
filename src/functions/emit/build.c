@@ -139,7 +139,7 @@ static cdd_c_error_t generate_cmake(FILE *fp,
 
 /* --- Public Dispatcher --- */
 
-/**
+/*
  * @brief Emits generated C code for codegen build generate.
  *
  * @param[in] type Target build system type (e.g., `BUILD_SYS_CMAKE`).

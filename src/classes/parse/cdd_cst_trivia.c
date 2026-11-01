@@ -17,7 +17,7 @@
 /** @brief Static newline string for trivia nodes */
 static const uint8_t s_trivia_newline[2] = {10, 0};
 
-/**
+/*
  * @brief Inspects a CST's base tokens to infer its indentation style (tabs vs
  * spaces and width).
  *
@@ -92,7 +92,7 @@ cdd_cst_detect_format_config(cdd_cst_tree_t *tree,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Generates a newline + indentation trivia chain for a given indentation
  * level.
  *

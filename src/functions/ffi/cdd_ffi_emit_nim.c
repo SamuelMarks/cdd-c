@@ -35,7 +35,7 @@ static cdd_c_error_t map_nim_type(cdd_ffi_type_t *t, const char **out_type) {
   return cdd_ffi_map_type_from_table(&k_nim_types, *t, out_type);
 }
 
-/**
+/*
  * @brief Emits Nim `.nim` FFI bindings and `.nimble` package metadata for the
  * given FFI IR.
  *

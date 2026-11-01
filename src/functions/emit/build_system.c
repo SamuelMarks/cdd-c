@@ -1,5 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#endif
 /**
  * @file build_system.c
  * @brief Implementation of build system scaffolding.
@@ -445,7 +443,7 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Generates cmake project.
  *
  * @param[in] output_path Target output directory path (may be NULL for current
@@ -617,7 +615,7 @@ cleanup_src:
   return rc;
 }
 
-/**
+/*
  * @brief Generates build system main.
  *
  * @param[in] argc Argument count.
@@ -656,6 +654,3 @@ cdd_c_error_t generate_build_system_main(int argc, char **argv) {
 
   return CDD_C_SUCCESS;
 }
-
-#if defined(__clang__) || defined(__GNUC__)
-#endif

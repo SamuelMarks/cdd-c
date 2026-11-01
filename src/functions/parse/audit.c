@@ -27,7 +27,7 @@
 #include <string.h>
 /* clang-format on */
 
-/**
+/*
  * @brief Initializes codebase audit statistics counters.
  *
  * @param[out] stats Pointer to the AuditStats structure to initialize.
@@ -46,7 +46,7 @@ cdd_c_error_t audit_stats_init(struct AuditStats *stats) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Releases memory held by codebase audit statistics.
  *
  * @param[in,out] stats Pointer to the AuditStats structure to free.
@@ -116,7 +116,7 @@ static cdd_c_error_t add_violation(struct AuditStats *stats,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Calculate line and column number from a pointer into the buffer.
  *
  * @param[in] content Start of source buffer.
@@ -167,7 +167,7 @@ static cdd_c_error_t is_c_source(const char *path, int *out_is_source) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Helper to detect functions returning allocations directly.
  *
  * @param[in] tokens Lexical token list to scan.
@@ -303,7 +303,7 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Scans a project directory to collect safety, allocation, and macro
  * audit metrics.
  *
@@ -366,7 +366,7 @@ static cdd_c_error_t audit_append_val(JSON_Array *arr, JSON_Value *val,
   return *rc;
 }
 
-/**
+/*
  * @brief Serializes collected audit statistics as a JSON report.
  *
  * @param[in] stats AuditStats structure to serialize.

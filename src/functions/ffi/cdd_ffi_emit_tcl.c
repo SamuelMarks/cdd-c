@@ -21,7 +21,7 @@ extern volatile int g_fail_io_after;
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Emits a Tcl C extension (`*_tcl.c`) and `pkgIndex.tcl` package index
  * for the given FFI IR.
  *

@@ -5,8 +5,6 @@
 #ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
 #endif
-#ifdef CDD_BUILD_TESTS
-#endif
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -87,7 +85,7 @@ static cdd_c_error_t map_clojure_jna_type(cdd_ffi_type_t *t,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits Clojure JNA interop bindings and `deps.edn` for the given FFI
  * IR.
  *

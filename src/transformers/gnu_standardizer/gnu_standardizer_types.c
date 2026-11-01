@@ -7,7 +7,7 @@
 #include "gnu_standardizer_internal.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Standardizes GNU type and macro extensions (named variadic macros,
  * `__int128`, decimal/half floats, `__complex__`, `typeof`, `__auto_type`, and
  * `__attribute__`).

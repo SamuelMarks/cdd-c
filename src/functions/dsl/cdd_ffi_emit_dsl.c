@@ -148,7 +148,7 @@ static cdd_c_error_t emit_field(FILE *f, const cdd_ffi_field_t *field) {
   return rc;
 }
 
-/**
+/*
  * @brief Emits an FFI Intermediate Representation (`cdd_ffi_ir_t`) in CDD DSL
  * format.
  *

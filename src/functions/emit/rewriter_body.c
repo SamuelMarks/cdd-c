@@ -195,7 +195,7 @@ static cdd_c_error_t join_tokens_range(const struct TokenList *tokens,
 
 /* --- Core Logic --- */
 
-/**
+/*
  * @brief Rewrites a C function body to propagate error return codes.
  *
  * @param[in] tokens Lexical token list of the function body.

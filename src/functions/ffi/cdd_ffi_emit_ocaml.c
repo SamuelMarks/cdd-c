@@ -162,7 +162,7 @@ emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits OCaml Ctypes FFI bindings for the given FFI IR.
  *
  * @param[in] ir FFI Intermediate Representation to emit.

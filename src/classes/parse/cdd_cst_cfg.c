@@ -283,7 +283,7 @@ static cdd_c_error_t walk_function_body(cdd_cst_cfg_t *cfg,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Constructs a Control Flow Graph (CFG) for a CST function definition
  * node.
  *
@@ -326,7 +326,7 @@ cdd_c_error_t cdd_cst_cfg_build(cdd_cst_node_t *function_node,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Frees a Control Flow Graph (CFG) and all of its blocks and edges.
  *
  * @param[in,out] cfg Pointer to the CFG to free.

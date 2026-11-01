@@ -9,7 +9,7 @@
 #include "functions/emit/client_body_internal.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Checks if status range code.
  *
  * @param[in] code Status code string to inspect.
@@ -30,7 +30,7 @@ cdd_c_error_t client_body_is_status_range_code(const char *code,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks whether an HTTP status code matches a wildcard range such as
  * 2XX.
  *
@@ -54,7 +54,7 @@ cdd_c_error_t client_body_status_range_prefix(const char *code,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if status code literal.
  *
  * @param[in] code Status code string to inspect.
@@ -75,7 +75,7 @@ cdd_c_error_t client_body_is_status_code_literal(const char *code,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits generated C code for codegen client write body.
  *
  * @param[in,out] fp Output file stream.

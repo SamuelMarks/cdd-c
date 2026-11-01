@@ -7,7 +7,7 @@
 #include "gnu_standardizer_internal.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Standardizes GNU case ranges (`case A ... B:`), array range
  * designators (`[A ... B] = V`), empty braces (`{}`), and `__builtin_expect`.
  *

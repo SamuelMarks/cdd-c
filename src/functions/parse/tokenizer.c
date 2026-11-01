@@ -6,8 +6,6 @@
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
-#if defined(__clang__)
-#endif
 
 #include <ctype.h>
 
@@ -133,7 +131,7 @@ cdd_c_error_t peek_logical(const uint8_t *base, size_t len, size_t pos,
 
 /* --- Token List Setup --- */
 
-/**
+/*
  * @brief Appends a token to a dynamic token list.
  *
  * @param[in,out] tl Target TokenList container.
@@ -182,7 +180,7 @@ cdd_c_error_t token_list_add(struct TokenList *tl, const enum TokenKind kind,
 
 /* --- Main Public API --- */
 
-/**
+/*
  * @brief Searches forward in a token list for the next token of a given kind.
  *
  * @param[in] list Lexical token list to search.
@@ -222,7 +220,7 @@ cdd_c_error_t token_find_next(const struct TokenList *list, size_t start_idx,
   }
 }
 
-/**
+/*
  * @brief Frees the memory associated with token list.
  *
  * @param[in,out] tl Pointer to the TokenList structure to free.
@@ -243,7 +241,7 @@ void free_token_list(struct TokenList *tl) {
   C_CDD_FREE(tl);
 }
 
-/**
+/*
  * @brief Checks whether a token at a given index matches a literal string.
  *
  * @param[in] tok Token to compare.
@@ -298,7 +296,7 @@ cdd_c_error_t token_matches_string(const struct Token *tok, const char *match,
   }
 }
 
-/**
+/*
  * @brief Lexes a C source string into a list of tokens including trivia.
  *
  * @param[in] source Source code byte span to tokenize.
@@ -650,5 +648,3 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
   return CDD_C_SUCCESS;
 }
-#if defined(__clang__)
-#endif

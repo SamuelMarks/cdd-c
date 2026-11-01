@@ -1086,7 +1086,7 @@ static cdd_c_error_t parse_func_decl(parser_state_t *state, cdd_ffi_ir_t *ir) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses a CDD DSL token stream into a newly allocated FFI Intermediate
  * Representation (`cdd_ffi_ir_t`).
  *

@@ -25,7 +25,7 @@
   for (; (x) < 0;)                                                             \
   return CDD_C_ERROR_IO
 
-/**
+/*
  * @brief Emits C source code for root array cleanup func.
  *
  * @param[in] fp Output file stream.
@@ -90,7 +90,7 @@ write_root_array_cleanup_func(FILE *fp, const char *name, const char *item_type,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits C source code for root array to json func.
  *
  * @param[in] fp Output file stream.
@@ -179,7 +179,7 @@ write_root_array_to_json_func(FILE *fp, const char *name, const char *item_type,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits C source code for root array from json func.
  *
  * @param[in] fp Output file stream.

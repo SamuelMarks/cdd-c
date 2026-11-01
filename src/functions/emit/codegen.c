@@ -24,7 +24,7 @@
   return CDD_C_ERROR_IO
 #endif
 
-/**
+/*
  * @brief Emits a C forward declaration (`struct <struct_name>;`) to a file
  * stream.
  *
@@ -42,7 +42,7 @@ cdd_c_error_t write_forward_decl(FILE *fp, const char *struct_name) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits a C enum declaration and string conversion prototypes to a
  * header file.
  *
@@ -90,7 +90,7 @@ cdd_c_error_t write_enum_declaration_h(FILE *hfile, const char *enum_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits a tagged C union declaration and JSON/cleanup prototypes to a
  * header file.
  *
@@ -186,7 +186,7 @@ cdd_c_error_t write_union_declaration_h(FILE *hfile, const char *union_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits a C struct declaration and JSON/utility prototypes to a header
  * file.
  *

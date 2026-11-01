@@ -15,7 +15,7 @@
 #include "functions/emit/safe_crt.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Initializes a Safe CRT refactoring patch list.
  *
  * @param[out] list Pointer to the SafeCrtPatchList structure to initialize.
@@ -30,7 +30,7 @@ cdd_c_error_t safe_crt_patch_list_init(struct SafeCrtPatchList *list) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Releases memory held by a Safe CRT patch list.
  *
  * @param[in,out] list Pointer to the SafeCrtPatchList structure to free.
@@ -55,7 +55,7 @@ cdd_c_error_t safe_crt_patch_list_free(struct SafeCrtPatchList *list) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Adds a patch to the patch list.
  *
  * @param[in,out] list Target SafeCrtPatchList container.
@@ -95,7 +95,7 @@ cdd_c_error_t safe_crt_add_patch(struct SafeCrtPatchList *list, size_t start,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Extracts token text.
  *
  * @param[in] tokens Lexical token list.
@@ -137,7 +137,7 @@ cdd_c_error_t safe_crt_extract_token_text(const struct TokenList *tokens,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Generates strcpy patch.
  *
  * @param[in] tokens Lexical token list.
@@ -214,7 +214,7 @@ cdd_c_error_t safe_crt_generate_strcpy_patch(const struct TokenList *tokens,
   return rc_crt;
 }
 
-/**
+/*
  * @brief Generates fopen patch.
  *
  * @param[in] tokens Lexical token list.
@@ -326,7 +326,7 @@ cdd_c_error_t safe_crt_generate_fopen_patch(const struct TokenList *tokens,
   return rc_crt;
 }
 
-/**
+/*
  * @brief Generates strncpy patch.
  *
  * @param[in] tokens Lexical token list.
@@ -412,7 +412,7 @@ cdd_c_error_t safe_crt_generate_strncpy_patch(const struct TokenList *tokens,
   return rc_crt;
 }
 
-/**
+/*
  * @brief Generates sprintf patch.
  *
  * @param[in] tokens Lexical token list.
@@ -487,7 +487,7 @@ cdd_c_error_t safe_crt_generate_sprintf_patch(const struct TokenList *tokens,
   return rc_crt;
 }
 
-/**
+/*
  * @brief Scans a CST and generates patches replacing unsafe CRT calls with Safe
  * CRT equivalents.
  *

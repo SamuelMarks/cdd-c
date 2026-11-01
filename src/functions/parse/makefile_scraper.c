@@ -44,7 +44,7 @@ static cdd_c_error_t my_strdup(const char *s, char **out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Initializes a scraped build-system metadata structure.
  *
  * @param[out] info Pointer to the ExtractedBuildInfo structure to initialize.
@@ -63,7 +63,7 @@ cdd_c_error_t build_info_init(struct ExtractedBuildInfo *info) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Releases memory held by a scraped build-system metadata structure.
  *
  * @param[in,out] info Pointer to the ExtractedBuildInfo structure to free.
@@ -167,7 +167,7 @@ static cdd_c_error_t process_token(struct ExtractedBuildInfo *info,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Extracts source files, include paths, and flags from a Makefile.
  *
  * @param[in,out] info ExtractedBuildInfo structure to populate.
@@ -212,7 +212,7 @@ cdd_c_error_t scrape_makefile(struct ExtractedBuildInfo *info,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Extracts package metadata and checks from an Autoconf configure.ac
  * file.
  *
@@ -261,7 +261,7 @@ cdd_c_error_t scrape_configure_ac(
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Generates a CMakeLists.txt file from scraped Makefile/Autoconf
  * metadata.
  *

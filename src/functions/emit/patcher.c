@@ -27,7 +27,7 @@
 C_CDD_EXPORT int g_patcher_test_cap_1 = 0;
 #endif
 
-/**
+/*
  * @brief Initializes a source code patch list.
  *
  * @param[out] list Pointer to the PatchList structure to initialize.
@@ -54,7 +54,7 @@ cdd_c_error_t patch_list_init(struct PatchList *list) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Releases all memory associated with a patch list.
  *
  * @param[in,out] list Pointer to the PatchList structure to free.
@@ -76,7 +76,7 @@ void patch_list_free(struct PatchList *list) {
   list->capacity = 0;
 }
 
-/**
+/*
  * @brief Appends a replacement span patch to a patch list.
  *
  * @param[in,out] list Target PatchList container.
@@ -159,7 +159,7 @@ static int compare_patches(const void *a, const void *b) {
   return 0;
 }
 
-/**
+/*
  * @brief Sorts patches in ascending order of token start index.
  *
  * @param[in,out] list PatchList to sort in-place.
@@ -177,7 +177,7 @@ cdd_c_error_t patch_list_sort(struct PatchList *list) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Applies a sorted list of patches to a token stream and emits the
  * result.
  *

@@ -105,7 +105,7 @@ static cdd_c_error_t map_fortran_type(cdd_ffi_type_t *t, char *out_type,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits Fortran 2003 `ISO_C_BINDING` `.f90` module bindings for the
  * given FFI IR.
  *

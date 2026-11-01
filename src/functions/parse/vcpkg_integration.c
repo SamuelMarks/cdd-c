@@ -44,7 +44,7 @@ static cdd_c_error_t my_strdup(const char *s, char **out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Initializes a vcpkg manifest builder context.
  *
  * @param[out] builder Pointer to the VcpkgManifestBuilder structure to
@@ -108,7 +108,7 @@ cdd_c_error_t vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Releases memory held by a vcpkg manifest builder context.
  *
  * @param[in,out] builder Pointer to the VcpkgManifestBuilder structure to free.
@@ -134,7 +134,7 @@ void vcpkg_builder_free(struct VcpkgManifestBuilder *builder) {
   }
 }
 
-/**
+/*
  * @brief Adds a package dependency to a vcpkg manifest builder.
  *
  * @param[in,out] builder VcpkgManifestBuilder context to update.
@@ -178,7 +178,7 @@ cdd_c_error_t vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Scans C source includes to infer required vcpkg dependencies.
  *
  * @param[in,out] builder VcpkgManifestBuilder context to update.
@@ -270,7 +270,7 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Serializes a vcpkg.json manifest file from collected dependencies.
  *
  * @param[in] builder VcpkgManifestBuilder context to serialize.

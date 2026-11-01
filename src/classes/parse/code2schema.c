@@ -8,7 +8,7 @@
 #include "code2schema_internal.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Retrieves token kind at index or TOKEN_UNKNOWN if out of bounds.
  *
  * @param[in] tl Token list to inspect.
@@ -38,7 +38,7 @@ static cdd_c_error_t c2s_skip_ws(const struct TokenList *tl, size_t *idx) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Copies up to 63 characters from a token into a 64-byte buffer.
  *
  * @param[out] dst Destination 64-byte character buffer.
@@ -132,7 +132,7 @@ static cdd_c_error_t c2s_skip_brace_block(const struct TokenList *tl,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief CLI entry point for code2schema command.
  *
  * @param[in] argc Argument count.

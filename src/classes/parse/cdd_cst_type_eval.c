@@ -13,7 +13,7 @@
 #include <string.h>
 /* clang-format on */
 
-/**
+/*
  * @brief Evaluates the byte size and alignment of a C primitive type under a
  * target ABI model.
  *
@@ -175,7 +175,7 @@ static cdd_c_error_t extract_type_name(cdd_cst_node_t *node, char **out_name,
   return CDD_C_ERROR_NOT_FOUND;
 }
 
-/**
+/*
  * @brief Evaluates `sizeof` for a CST type node under the specified ABI model.
  *
  * @param[in] env Active lexical scope environment.
@@ -213,7 +213,7 @@ cdd_c_error_t cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Evaluates `alignof` for a CST type node under the specified ABI model.
  *
  * @param[in] env Active lexical scope environment.

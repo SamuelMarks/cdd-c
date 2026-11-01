@@ -32,7 +32,7 @@
 #endif
 #endif
 
-/**
+/*
  * @brief Parses a primary preprocessor expression (parenthesized expression,
  * integer literal, `__has_include`, `__has_embed`, `__has_c_attribute`, or
  * macro identifier).
@@ -161,7 +161,7 @@ cdd_c_error_t pp_parse_primary(struct ExprState *s, long *out_val) {
   return CDD_C_ERROR_INVALID_ARGUMENT;
 }
 
-/**
+/*
  * @brief Parses a unary preprocessor expression (`!`, `~`, `-`, `+`, or
  * `defined`).
  *
@@ -289,7 +289,7 @@ cdd_c_error_t pp_parse_unary(struct ExprState *s, long *out_val) {
   return parse_primary(s, out_val);
 }
 
-/**
+/*
  * @brief Parses a multiplicative preprocessor expression (`*`, `/`, `%`).
  *
  * @param[in,out] s Expression state.
@@ -366,7 +366,7 @@ cdd_c_error_t pp_parse_multiplicative(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses an additive preprocessor expression (`+`, `-`).
  *
  * @param[in,out] s Expression state.
@@ -425,7 +425,7 @@ cdd_c_error_t pp_parse_additive(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses a bitwise shift preprocessor expression (`<<`, `>>`).
  *
  * @param[in,out] s Expression state.
@@ -484,7 +484,7 @@ cdd_c_error_t pp_parse_shift(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses a relational preprocessor expression (`<=`, `>=`, `<`, `>`).
  *
  * @param[in,out] s Expression state.
@@ -562,7 +562,7 @@ cdd_c_error_t pp_parse_relational(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses an equality preprocessor expression (`==`, `!=`).
  *
  * @param[in,out] s Expression state.
@@ -621,7 +621,7 @@ cdd_c_error_t pp_parse_equality(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses a logical AND preprocessor expression (`&&`).
  *
  * @param[in,out] s Expression state.
@@ -667,7 +667,7 @@ cdd_c_error_t pp_parse_logic_and(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses a logical OR preprocessor expression (`||`).
  *
  * @param[in,out] s Expression state.
@@ -708,7 +708,7 @@ cdd_c_error_t pp_parse_logic_or(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses a top-level preprocessor expression.
  *
  * @param[in,out] s Expression state.
@@ -722,7 +722,7 @@ cdd_c_error_t pp_parse_expr(struct ExprState *s, long *out_val) {
   return parse_logic_or(s, out_val);
 }
 
-/**
+/*
  * @brief Evaluates a preprocessor conditional expression over `[start_idx,
  * end_idx)`.
  *

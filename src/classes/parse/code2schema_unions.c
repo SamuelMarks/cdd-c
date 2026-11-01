@@ -8,7 +8,7 @@
 #include "code2schema_internal.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Fallback method to apply a union (oneOf/anyOf) to StructFields.
  *
  * @param[in] union_arr JSON_Array of `oneOf` or `anyOf` sub-schemas.
@@ -69,7 +69,7 @@ cdd_c_error_t apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if array items within a union are supported.
  *
  * @param[in] schema_obj Array variant JSON Schema object to inspect.
@@ -148,7 +148,7 @@ cdd_c_error_t c2s_union_array_items_supported(const JSON_Object *schema_obj,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Extended method to apply a union (oneOf/anyOf) to StructFields.
  *
  * @param[in] union_arr JSON_Array of `oneOf` or `anyOf` sub-schemas.
@@ -437,7 +437,7 @@ cdd_c_error_t apply_union_to_struct_fields_ex_mut(
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Applies a `oneOf`/`anyOf` JSON array to `StructFields` using `root` as
  * both read and mutable root.
  *

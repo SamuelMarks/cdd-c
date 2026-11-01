@@ -30,7 +30,7 @@
   for (; (x) < 0;)                                                             \
   return CDD_C_ERROR_IO
 
-/**
+/*
  * @brief Emits C source code for struct to json func.
  *
  * @param[in] fp Output file stream.
@@ -222,7 +222,7 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits C source code for struct from json func.
  *
  * @param[in] fp Output file stream.
@@ -258,7 +258,7 @@ write_struct_from_json_func(FILE *fp, const char *struct_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits C source code for struct array from json func.
  *
  * @param[in] fp Output file stream.
@@ -331,7 +331,7 @@ write_struct_array_from_json_func(FILE *fp, const char *struct_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Generate `_from_jsonObject` implementation (Core Logic).
  *
  * @param[in] fp Output file stream.

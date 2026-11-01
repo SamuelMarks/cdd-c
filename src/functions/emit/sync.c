@@ -37,7 +37,7 @@ C_CDD_EXPORT int g_cdd_sync_fail_patch_list_apply = 0;
 C_CDD_EXPORT int g_cdd_sync_fail_fopen_write = 0;
 #endif
 
-/**
+/*
  * @brief CLI entry point for synchronizing C header declarations with
  * implementation files.
  *
@@ -264,7 +264,7 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Updates function declarations in a C header to match definitions in a
  * source file.
  *

@@ -556,7 +556,7 @@ cdd_c_error_t openapi_load_from_json_with_context(
   return openapi_load_from_json_internal(root, out, retrieval_uri, registry);
 }
 
-/**
+/*
  * @param[out] _out_val Pointer to store the result
  * @brief Look up a schema definition by name in the loaded spec.
  *
@@ -713,7 +713,7 @@ openapi_spec_find_schema_by_anchor(const struct OpenAPI_Spec *spec,
   }
 }
 
-/**
+/*
  * @param[out] _out_val Pointer to store the result
  * @brief Find a schema definition by following a SchemaRef.
  *

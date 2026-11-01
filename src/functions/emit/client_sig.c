@@ -199,7 +199,7 @@ get_success_schema(const struct OpenAPI_Operation *op,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits generated C code for codegen client write signature.
  *
  * @param[in,out] fp Output file stream.

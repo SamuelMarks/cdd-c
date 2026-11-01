@@ -87,7 +87,7 @@ static cdd_c_error_t map_crystal_type(cdd_ffi_type_t *t,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits Crystal `lib` bindings for the given FFI IR.
  *
  * @param[in] ir FFI Intermediate Representation to emit.

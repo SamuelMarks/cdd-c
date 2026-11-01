@@ -80,7 +80,7 @@ cdd_c_error_t pp_expr_match(struct ExprState *s, enum TokenKind kind,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Peeks at the next non-whitespace token kind.
  *
  * @param[in] s Expression state.
@@ -111,7 +111,7 @@ cdd_c_error_t pp_preprocessor_peek(struct ExprState *s,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if an identifier token matches a macro defined in `ctx`.
  *
  * @param[in] ctx PreprocessorContext containing defined macros.
@@ -378,7 +378,7 @@ cdd_c_error_t pp_handle_has_c_attribute(struct ExprState *s, long *out_val) {
 
 /* --- Embed Directive Parsing --- */
 
-/**
+/*
  * @brief Parses C23 `#embed` directive parameters (`limit`, `prefix`, `suffix`,
  * `if_empty`).
  *
@@ -536,7 +536,7 @@ cdd_c_error_t pp_parse_embed_params(const struct TokenList *tokens,
 
 /* --- Include Scanning & Conditional Logic --- */
 
-/**
+/*
  * @brief Pushes a new conditional compilation state onto `st`.
  *
  * @param[in,out] st ConditionalStack to push onto.
@@ -554,7 +554,7 @@ cdd_c_error_t pp_stack_push(struct ConditionalStack *st, enum CondState s) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Pops the top conditional compilation state from `st`.
  *
  * @param[in,out] st ConditionalStack to pop from.
@@ -571,7 +571,7 @@ cdd_c_error_t pp_stack_pop(struct ConditionalStack *st) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Peeks at the top conditional compilation state on `st`.
  *
  * @param[in] st ConditionalStack to inspect.
@@ -592,7 +592,7 @@ cdd_c_error_t pp_stack_peek(const struct ConditionalStack *st,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Determines whether all enclosing `#if`/`#ifdef` blocks on `st` are
  * active.
  *

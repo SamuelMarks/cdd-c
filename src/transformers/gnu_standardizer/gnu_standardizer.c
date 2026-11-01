@@ -7,7 +7,7 @@
 #include "gnu_standardizer_internal.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Standardizes GNU function-level extensions (inline assembly, magic
  * function name identifiers, and nested function trampolines).
  *
@@ -87,7 +87,7 @@ cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Applies GNU extension standardization transformations to the CST.
  *
  * @param[in,out] tree CST tree to transform.

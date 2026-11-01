@@ -8,7 +8,7 @@
 #include "gnu_standardizer_internal.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Standardizes GNU expression extensions (`__extension__`,
  * `__builtin_shuffle`, `__alignof__`, anonymous structs/unions, cast-as-lvalue,
  * omitted ternary middle operands, and `return (void)expr;`).

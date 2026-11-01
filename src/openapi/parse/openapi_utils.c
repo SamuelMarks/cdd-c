@@ -695,7 +695,7 @@ cdd_c_error_t is_extension_key(const char *key) {
                                                  : CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Deep-copies a Parson JSON_Value via serialization round-trip.
  *
  * @param[in] val The source JSON value to clone.

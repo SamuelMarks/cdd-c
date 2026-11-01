@@ -933,7 +933,7 @@ static cdd_c_error_t validate_component_ref(const char *ref, const char *prefix,
   return CDD_C_ERROR_INVALID_ARGUMENT;
 }
 
-/**
+/*
  * @brief Validates structural and semantic invariants of an `Arazzo_Spec`.
  *
  * @param[in] spec Parsed Arazzo specification to validate.
@@ -1033,7 +1033,7 @@ cdd_c_error_t arazzo_validate_spec(const struct Arazzo_Spec *spec) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses an Arazzo v1.1.0 specification from a Parson `JSON_Value`.
  *
  * @param[in] root Root Parson JSON value representing the Arazzo document.
@@ -1151,7 +1151,7 @@ cdd_c_error_t arazzo_load_from_json_value(const JSON_Value *root,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses an Arazzo v1.1.0 specification from a JSON string.
  *
  * @param[in] json_str Raw JSON string containing the Arazzo specification.

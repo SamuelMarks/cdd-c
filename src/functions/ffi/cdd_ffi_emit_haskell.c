@@ -150,7 +150,7 @@ emit_haskell_file(cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits Haskell FFI bindings for the given FFI IR.
  *
  * @param[in] ir FFI Intermediate Representation to emit.

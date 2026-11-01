@@ -46,7 +46,7 @@ static cdd_c_error_t snake_case_name(const char *c_name, char *out_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits Erlang NIF C89 glue code and `.erl` module wrappers for the
  * given FFI IR.
  *

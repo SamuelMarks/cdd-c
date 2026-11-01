@@ -87,7 +87,7 @@ static cdd_c_error_t check_lib(const char *win_name, const char *posix_name,
 #endif
 }
 
-/**
+/*
  * @brief Checks if the PostgreSQL client library (`libpq`) is available at
  * runtime.
  *
@@ -99,7 +99,7 @@ cdd_c_error_t check_libpq_available(int *out_avail) {
   return check_lib("libpq.dll", "libpq.so", "libpq.dylib", out_avail);
 }
 
-/**
+/*
  * @brief Checks if the SQLite3 client library (`libsqlite3`) is available at
  * runtime.
  *
@@ -112,7 +112,7 @@ cdd_c_error_t check_sqlite3_available(int *out_avail) {
                    out_avail);
 }
 
-/**
+/*
  * @brief Checks if the MySQL/MariaDB client library (`libmysqlclient`) is
  * available at runtime.
  *

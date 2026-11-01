@@ -493,7 +493,7 @@ emit_pom_xml(const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits Java JNA bindings and Maven `pom.xml` project files for the
  * given FFI IR.
  *

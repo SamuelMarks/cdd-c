@@ -70,7 +70,7 @@ extern C_CDD_EXPORT int g_crypto_fail_hmac_len;
 
 #endif
 
-/**
+/*
  * @brief Computes a 32-byte SHA-256 digest over a data buffer.
  *
  * @param[in] data Pointer to the input buffer to hash.
@@ -122,7 +122,7 @@ cleanup:
   return rc;
 }
 
-/**
+/*
  * @brief Computes a 32-byte HMAC-SHA256 message authentication code.
  *
  * @param[in] key Secret key bytes.

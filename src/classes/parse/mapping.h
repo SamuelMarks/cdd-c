@@ -45,6 +45,7 @@ struct OpenApiTypeMapping {
 /**
  * @brief Initialize a mapping result structure.
  * @param[out] out The structure to zero.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t
 c_mapping_init(struct OpenApiTypeMapping *out);

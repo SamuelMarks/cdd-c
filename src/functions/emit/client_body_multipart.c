@@ -9,7 +9,7 @@
 #include "functions/emit/client_body_internal.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Emits C source code for multipart part headers.
  *
  * @param[in,out] fp Output file stream.
@@ -315,7 +315,7 @@ client_body_write_multipart_part_headers(FILE *fp,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits C source code for multipart body.
  *
  * @param[in,out] fp Output file stream.

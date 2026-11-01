@@ -92,7 +92,7 @@ static cdd_c_error_t map_fsharp_type(cdd_ffi_type_t *t, char *out_type,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits F# P/Invoke `Bindings.fs` and `.fsproj` project files for the
  * given FFI IR.
  *

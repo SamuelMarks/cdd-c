@@ -90,7 +90,7 @@ cdd_c_error_t map_c_type_to_ffi_kind(const char *c_type,
  */
 cdd_c_error_t parse_template_type(const char *c_type, cdd_ffi_type_t *out_type);
 
-/**
+/*
  * @brief Generate a flattened C-compatible FFI symbol from C++ namespace,
  * class, and method names.
  *

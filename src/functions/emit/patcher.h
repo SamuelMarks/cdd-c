@@ -105,6 +105,7 @@ extern C_CDD_EXPORT cdd_c_error_t patch_list_apply(
  * calls this internally.
  *
  * @param[in] list The list to sort.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t patch_list_sort(struct PatchList *list);
 

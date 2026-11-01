@@ -520,7 +520,7 @@ static cdd_c_error_t convert_doc_step(const struct DocArazzoStep *src,
                              &dst->n_outputs);
 }
 
-/**
+/*
  * @brief Applies parsed `@arazzo*` and `@workflow*` docstring metadata onto an
  * `Arazzo_Spec`.
  *
@@ -895,7 +895,7 @@ static cdd_c_error_t ensure_spec_defaults(struct Arazzo_Spec *spec) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses an in-memory C source or header string and merges discovered
  * Arazzo workflows and metadata into `spec`.
  *
@@ -966,7 +966,7 @@ cleanup:
   return rc;
 }
 
-/**
+/*
  * @brief Parses a single C source or header file and merges discovered Arazzo
  * workflows into `spec`.
  *
@@ -1010,7 +1010,7 @@ static cdd_c_error_t c2arazzo_walker_cb(const char *path, void *user_data) {
   return c2arazzo_parse_file(path, spec);
 }
 
-/**
+/*
  * @brief Recursively scans a directory (or single file) of C code to build an
  * `Arazzo_Spec`.
  *
@@ -1043,7 +1043,7 @@ cdd_c_error_t c2arazzo_parse_dir(const char *dir_path,
   return ensure_spec_defaults(spec);
 }
 
-/**
+/*
  * @brief CLI entry point for `c2arazzo` / `to_arazzo`.
  *
  * @param[in] argc Argument count.

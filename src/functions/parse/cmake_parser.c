@@ -50,7 +50,7 @@ static cdd_c_error_t my_strdup(const char *s, char **out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Initializes a CMakeLists.txt modification context.
  *
  * @param[out] mod Pointer to the CMakeModifier structure to initialize.
@@ -83,7 +83,7 @@ cdd_c_error_t cmake_modifier_init(struct CMakeModifier *mod,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Registers a compiler option to inject into a CMake target.
  *
  * @param[in,out] mod CMakeModifier context to update.
@@ -124,7 +124,7 @@ cdd_c_error_t cmake_modifier_add_compile_opt(struct CMakeModifier *mod,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Registers a link library to inject into a CMake target.
  *
  * @param[in,out] mod CMakeModifier context to update.
@@ -164,7 +164,7 @@ cdd_c_error_t cmake_modifier_add_link_lib(struct CMakeModifier *mod,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Releases memory held by a CMake modifier context.
  *
  * @param[in,out] mod Pointer to the CMakeModifier context to free.
@@ -267,7 +267,7 @@ static cdd_c_error_t read_file_to_string(const char *filename, size_t *out_len,
 }
 
 /* Simple append implementation ignoring sophisticated replacement for now */
-/**
+/*
  * @brief Applies registered compile options and libraries to a CMakeLists.txt
  * file.
  *

@@ -198,7 +198,7 @@ static cdd_c_error_t replace_msvc_identifiers(
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Ports POSIX/GNU specific syntax to MSVC equivalents.
  *
  * @param[in,out] tree CST tree to transform.

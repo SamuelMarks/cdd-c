@@ -22,7 +22,7 @@
 #include "functions/parse/str.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Parses an `@param` directive line into `out->params`.
  *
  * @param[in] line Start of directive argument text.
@@ -180,7 +180,7 @@ cdd_c_error_t doc_parse_param_line(const char *line, const char *end,
   return rc;
 }
 
-/**
+/*
  * @brief Parses an `@return` or `@returns` directive line into `out->returns`.
  *
  * @param[in] line Start of directive argument text.
@@ -291,7 +291,7 @@ cdd_c_error_t doc_parse_return_line(const char *line, const char *end,
   return rc;
 }
 
-/**
+/*
  * @brief Parses an `@responseHeader` directive line into
  * `out->response_headers`.
  *
@@ -450,7 +450,7 @@ cdd_c_error_t doc_parse_response_header_line(const char *line, const char *end,
   return rc;
 }
 
-/**
+/*
  * @brief Parses an `@link` directive line into `out->links`.
  *
  * @param[in] line Start of directive argument text.
@@ -686,7 +686,7 @@ cdd_c_error_t doc_parse_link_line(const char *line, const char *end,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses an `@requestBody` directive line into `out->request_bodies`.
  *
  * @param[in] line Start of directive argument text.

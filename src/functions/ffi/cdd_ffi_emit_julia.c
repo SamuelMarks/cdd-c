@@ -205,7 +205,7 @@ emit_julia_file(cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits Julia FFI bindings for the given FFI IR.
  *
  * @param[in] ir FFI Intermediate Representation to emit.

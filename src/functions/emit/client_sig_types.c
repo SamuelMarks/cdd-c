@@ -34,7 +34,7 @@ extern C_CDD_EXPORT int g_cdd_fail_map_array_item_type_out;
 extern C_CDD_EXPORT int g_cdd_fail_schema_has_inline;
 #endif
 
-/**
+/*
  * @brief Maps an OpenAPI type string to a C function argument type.
  *
  * @param[in] oa_type OpenAPI primitive type string.
@@ -75,7 +75,7 @@ cdd_c_error_t map_type_to_c_arg(const char *oa_type, const char **_out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if an OpenAPI type is a primitive type.
  *
  * @param[in] oa_type OpenAPI type name string.
@@ -101,7 +101,7 @@ cdd_c_error_t is_primitive_type(const char *oa_type, int *out) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Maps an OpenAPI array item type to a C pointer type.
  *
  * @param[in] oa_type OpenAPI array item primitive type string.
@@ -142,7 +142,7 @@ cdd_c_error_t map_array_item_type(const char *oa_type, const char **_out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Sanitizes an identifier to be a valid C identifier.
  *
  * @param[out] out Destination character buffer.
@@ -187,7 +187,7 @@ cdd_c_error_t sanitize_ident(char *out, size_t outsz, const char *in) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Generates a sanitized multipart header parameter name.
  *
  * @param[out] out Destination character buffer.
@@ -219,7 +219,7 @@ cdd_c_error_t multipart_header_param_name(char *out, size_t outsz,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if a header name is Content-Type (case-insensitive).
  *
  * @param[in] name Header name string to test.
@@ -256,7 +256,7 @@ cdd_c_error_t header_name_is_content_type(const char *name, int *out) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Maps an OpenAPI type to a C output pointer parameter type.
  *
  * @param[in] oa_type OpenAPI primitive type string.
@@ -298,7 +298,7 @@ cdd_c_error_t map_type_to_c_out(const char *oa_type, const char **_out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Maps an OpenAPI array item type to a C array output pointer parameter
  * type.
  *
@@ -342,7 +342,7 @@ cdd_c_error_t map_array_item_type_out(const char *oa_type,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if a schema reference contains an inline type definition.
  *
  * @param[in] schema OpenAPI schema reference descriptor.
@@ -371,7 +371,7 @@ cdd_c_error_t schema_has_inline(const struct OpenAPI_SchemaRef *schema,
 }
 
 #ifdef CDD_BUILD_TESTS
-/**
+/*
  * @brief Test helper to map OpenAPI type to C argument string.
  *
  * @param[in] oa_type OpenAPI type string.

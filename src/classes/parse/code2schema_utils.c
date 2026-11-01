@@ -8,7 +8,7 @@
 #include "code2schema_internal.h"
 /* clang-format on */
 
-/**
+/*
  * @brief Reads a line from a file pointer and strips trailing newlines.
  *
  * Reads up to `bufsz - 1` characters from the file into the buffer
@@ -78,7 +78,7 @@ cdd_c_error_t str_starts_with(const char *str, const char *prefix,
   }
 }
 
-/**
+/*
  * @brief Checks if a given key exists in an array of strings.
  *
  * Iterates linearly over a null-safe list to find a string-matched key.
@@ -108,7 +108,7 @@ cdd_c_error_t c2s_key_in_list(const char *key, const char **list, size_t count,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Clones a parson JSON_Value safely via serialization roundtrip.
  *
  * Provides deep cloning of JSON values. Will fail (set _out_val to NULL)
@@ -146,7 +146,7 @@ cdd_c_error_t c2s_clone_json_value(const JSON_Value *val,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Safely frees an array of dynamically allocated string pointers.
  *
  * Loops over the first `n` elements of `arr` and frees them before
@@ -168,7 +168,7 @@ void free_string_array_code2schema(char **arr, size_t n) {
   C_CDD_FREE(arr);
 }
 
-/**
+/*
  * @brief Deep copies an array of string pointers into a new dynamically
  * allocated array.
  *
@@ -215,7 +215,7 @@ cdd_c_error_t copy_string_array_code2schema(char ***dst, size_t *dst_count,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Extracts valid C types from an array of JSON types.
  *
  * In OpenAPI/JSON schema, `type` can be an array like `["string",

@@ -10,7 +10,7 @@
 #include <stdio.h>
 /* clang-format on */
 
-/**
+/*
  * @brief Logs a debug message to stderr when DEBUG is enabled.
  *
  * @param[in] fmt Printf-style format string.

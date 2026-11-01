@@ -613,10 +613,6 @@ TEST test_ffi_emit_swift_io_fail(void) {
   PASS();
 }
 
-#ifdef CDD_BUILD_TESTS
-
-#endif
-
 /**
  * @brief Executes the ffi_emitters_edge_suite test suite.
  */
@@ -624,8 +620,6 @@ SUITE(ffi_emitters_edge_suite) {
   RUN_TEST(test_ffi_emit_clojure_io_fail);
   RUN_TEST(test_ffi_emit_cpp_trampoline_edge_cases);
   RUN_TEST(test_ffi_emit_csharp_makedir);
-#ifdef CDD_BUILD_TESTS
-#endif
   RUN_TEST(test_ffi_emit_java_pom_dir);
   RUN_TEST(test_ffi_emit_matlab_m_dir);
   RUN_TEST(test_ffi_emit_napi_dir);

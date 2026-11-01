@@ -5,8 +5,6 @@
 #include "cdd_test_helpers_export.h"
 CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 
-#ifdef CDD_BUILD_TESTS
-#endif
 #ifndef TEST_CODEGEN_ENUM_H
 #define TEST_CODEGEN_ENUM_H
 

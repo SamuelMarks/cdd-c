@@ -43,7 +43,7 @@ typedef struct {
   int depth;
 } cleanup_t;
 
-/**
+/*
  * @brief Standardizes GNU scope/statement extensions
  * (`__attribute__((cleanup))`,
  * `__label__` local labels, statement expressions `({...})`, VLAs, and

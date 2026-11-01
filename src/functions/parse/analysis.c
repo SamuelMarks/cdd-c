@@ -34,7 +34,7 @@ static const struct AllocatorSpec ALLOCATOR_SPECS[] = {
     {"_mkdir", ALLOC_STYLE_RETURN_PTR, CHECK_INT_NONZERO, 0},
     {NULL, ALLOC_STYLE_RETURN_PTR, CHECK_PTR_NULL, 0}};
 
-/**
+/*
  * @brief Initializes a list of tracked memory allocation sites.
  *
  * @param[out] list Pointer to the AllocationSiteList structure to initialize.
@@ -54,7 +54,7 @@ cdd_c_error_t allocation_site_list_init(struct AllocationSiteList *list) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Releases memory held by an allocation site list.
  *
  * @param[in,out] list Pointer to the AllocationSiteList structure to free.
@@ -75,7 +75,7 @@ void allocation_site_list_free(struct AllocationSiteList *list) {
   list->capacity = 0;
 }
 
-/**
+/*
  * @brief Records a newly discovered memory allocation site.
  *
  * @param[in,out] list Target AllocationSiteList container.
@@ -290,7 +290,7 @@ static cdd_c_error_t is_dereference_use(const struct TokenList *tokens,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Determines whether an allocated variable is checked for NULL before
  * being dereferenced.
  *
@@ -383,7 +383,7 @@ cdd_c_error_t is_checked(const struct TokenList *tokens, size_t alloc_idx,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Scans a token stream to identify all memory allocation calls and their
  * check status.
  *

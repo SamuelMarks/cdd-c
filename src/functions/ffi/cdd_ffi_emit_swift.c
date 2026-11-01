@@ -276,7 +276,7 @@ emit_module_map(const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits Swift `.swift` bindings and `module.modulemap` files for the
  * given FFI IR.
  *

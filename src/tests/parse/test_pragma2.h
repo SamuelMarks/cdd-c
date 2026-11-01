@@ -3,6 +3,9 @@
  * @brief Unit tests and mocks in test_pragma2.h.
  */
 
+#ifndef TEST_PRAGMA2_H
+#define TEST_PRAGMA2_H
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -14,3 +17,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+#endif /* TEST_PRAGMA2_H */

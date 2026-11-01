@@ -61,7 +61,7 @@ static void free_string_array(char **arr, size_t n) {
   C_CDD_FREE(arr);
 }
 
-/**
+/*
  * @brief Extracts the type name from a JSON Schema `$ref` path.
  *
  * @param[in] ref JSON Schema `$ref` string (e.g.,
@@ -87,7 +87,7 @@ cdd_c_error_t get_type_from_ref(const char *ref, const char **_out_val) {
   }
 }
 
-/**
+/*
  * @brief Initializes a dynamic array of struct field descriptors.
  *
  * @param[out] sf Pointer to the StructFields structure to initialize.
@@ -108,7 +108,7 @@ cdd_c_error_t struct_fields_init(struct StructFields *sf) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Releases all memory owned by a StructFields container.
  *
  * @param[in,out] sf Pointer to the StructFields structure to free.
@@ -179,7 +179,7 @@ void struct_fields_free(struct StructFields *sf) {
   }
 }
 
-/**
+/*
  * @brief Appends a new field descriptor to a StructFields container.
  *
  * @param[in,out] sf Target StructFields container.
@@ -249,7 +249,7 @@ cdd_c_error_t struct_fields_add(struct StructFields *sf, const char *name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Finds a struct field descriptor by name.
  *
  * @param[in] sf StructFields container to search.
@@ -279,7 +279,7 @@ cdd_c_error_t struct_fields_get(const struct StructFields *sf, const char *name,
 
 /* --- Generation Implementing --- */
 
-/**
+/*
  * @brief Emits C source code for struct cleanup func.
  *
  * @param[in] fp Output file stream.
@@ -365,7 +365,7 @@ write_struct_cleanup_func(FILE *fp, const char *struct_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits C source code for struct deepcopy func.
  *
  * @param[in] fp Output file stream.
@@ -422,7 +422,7 @@ write_struct_deepcopy_func(FILE *fp, const char *struct_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits C source code for struct eq func.
  *
  * @param[in] fp Output file stream.
@@ -524,7 +524,7 @@ cdd_c_error_t write_struct_eq_func(FILE *fp, const char *struct_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits C source code for struct default func.
  *
  * @param[in] fp Output file stream.
@@ -631,7 +631,7 @@ write_struct_default_func(FILE *fp, const char *struct_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits C source code for struct debug func.
  *
  * @param[in] fp Output file stream.
@@ -766,7 +766,7 @@ write_struct_debug_func(FILE *fp, const char *struct_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits C source code for struct display func.
  *
  * @param[in] fp Output file stream.
