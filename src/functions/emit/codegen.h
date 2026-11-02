@@ -17,6 +17,7 @@ extern "C" {
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
+#include "classes/emit/cli_struct.h"
 #include "classes/emit/enum.h"
 #include "classes/emit/json.h"
 #include "classes/emit/struct.h"
@@ -32,6 +33,8 @@ struct CodegenConfig {
   const char *enum_guard;  /**< Guard for enum functions */
   const char *json_guard;  /**< Guard for JSON functions */
   const char *utils_guard; /**< Guard for utility functions (cleanup, etc) */
+  const char *cli_guard;   /**< Guard for CLI functions */
+  int emit_cli;            /**< Force CLI function declarations if non-zero */
 };
 
 /**

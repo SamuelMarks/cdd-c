@@ -38,6 +38,41 @@ static cdd_c_error_t c2s_skip_ws(const struct TokenList *tl, size_t *idx) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Advances token index past whitespace and comments while collecting
+ * any comment text into `comment_buf`.
+ *
+ * @param[in] tl Token list.
+ * @param[in,out] idx Pointer to current token index.
+ * @param[out] comment_buf Buffer receiving concatenated comment text.
+ * @param[in] buf_sz Capacity of `comment_buf`.
+ * @return CDD_C_SUCCESS on success.
+ */
+static cdd_c_error_t c2s_skip_ws_collect_comments(const struct TokenList *tl,
+                                                  size_t *idx,
+                                                  char *comment_buf,
+                                                  size_t buf_sz) {
+  enum TokenKind k;
+  size_t pos = 0;
+  if (comment_buf && buf_sz > 0)
+    comment_buf[0] = '\0';
+  while ((c2s_tok_kind(tl, *idx, &k),
+          k == TOKEN_WHITESPACE || k == TOKEN_COMMENT)) {
+    if (k == TOKEN_COMMENT && comment_buf && buf_sz > 0) {
+      const struct Token *t = &tl->tokens[*idx];
+      size_t c_idx;
+      for (c_idx = 0; c_idx < t->length && pos + 1 < buf_sz; ++c_idx) {
+        comment_buf[pos++] = (char)t->start[c_idx];
+      }
+      if (pos + 1 < buf_sz)
+        comment_buf[pos++] = '\n';
+      comment_buf[pos] = '\0';
+    }
+    (*idx)++;
+  }
+  return CDD_C_SUCCESS;
+}
+
 /*
  * @brief Copies up to 63 characters from a token into a 64-byte buffer.
  *
@@ -201,7 +236,8 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
 
   while (i < tl->size) {
     enum TokenKind k;
-    c2s_skip_ws(tl, &i);
+    char top_comments[MAX_LINE_LENGTH];
+    c2s_skip_ws_collect_comments(tl, &i, top_comments, sizeof(top_comments));
     if (i >= tl->size)
       break;
 
@@ -241,8 +277,17 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
             ret_rc = CDD_C_ERROR_MEMORY;
             goto cleanup;
           }
+          if (top_comments[0] != '\0') {
+            ret_rc = cdd_serde_parse_container_comment(top_comments, &sf);
+            if (ret_rc != CDD_C_SUCCESS) {
+              struct_fields_free(&sf);
+              goto cleanup;
+            }
+          }
           while (1) {
-            c2s_skip_ws(tl, &i);
+            char field_comments[MAX_LINE_LENGTH];
+            c2s_skip_ws_collect_comments(tl, &i, field_comments,
+                                         sizeof(field_comments));
             c2s_tok_kind(tl, i, &k);
             if (k == TOKEN_UNKNOWN)
               break;
@@ -271,7 +316,10 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
                 i = look + 1;
                 while (1) {
                   char member_line[MAX_LINE_LENGTH];
-                  c2s_skip_ws(tl, &i);
+                  char nested_f_comments[MAX_LINE_LENGTH];
+                  size_t prev_nested_sz;
+                  c2s_skip_ws_collect_comments(tl, &i, nested_f_comments,
+                                               sizeof(nested_f_comments));
                   c2s_tok_kind(tl, i, &k);
                   if (k == TOKEN_UNKNOWN)
                     break;
@@ -295,12 +343,25 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
                     continue;
                   }
                   c2s_extract_member_decl(tl, &i, member_line);
+                  prev_nested_sz = nested_sf.size;
                   rc_c2s = parse_struct_member_line(member_line, &nested_sf);
                   if (rc_c2s != CDD_C_SUCCESS) {
                     struct_fields_free(&nested_sf);
                     struct_fields_free(&sf);
                     ret_rc = rc_c2s;
                     goto cleanup;
+                  }
+                  if (nested_sf.size > prev_nested_sz &&
+                      nested_f_comments[0] != '\0') {
+                    rc_c2s = cdd_serde_parse_field_comment(
+                        nested_f_comments,
+                        &nested_sf.fields[nested_sf.size - 1]);
+                    if (rc_c2s != CDD_C_SUCCESS) {
+                      struct_fields_free(&nested_sf);
+                      struct_fields_free(&sf);
+                      ret_rc = rc_c2s;
+                      goto cleanup;
+                    }
                   }
                 }
                 CDD_SNPRINTF(nested_name, sizeof(nested_name), "%s_%s",
@@ -310,12 +371,23 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
                                             &nested_sf);
                 struct_fields_add(&sf, nested_prop_name, "object", nested_name,
                                   NULL, NULL);
+                if (field_comments[0] != '\0' && sf.size > 0) {
+                  rc_c2s = cdd_serde_parse_field_comment(
+                      field_comments, &sf.fields[sf.size - 1]);
+                  if (rc_c2s != CDD_C_SUCCESS) {
+                    struct_fields_free(&nested_sf);
+                    struct_fields_free(&sf);
+                    ret_rc = rc_c2s;
+                    goto cleanup;
+                  }
+                }
                 struct_fields_free(&nested_sf);
                 continue;
               }
             }
             {
               char member_line[MAX_LINE_LENGTH];
+              size_t prev_sz = sf.size;
               cdd_c_error_t rc_c2s;
               c2s_extract_member_decl(tl, &i, member_line);
               rc_c2s = parse_struct_member_line(member_line, &sf);
@@ -323,6 +395,15 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
                 struct_fields_free(&sf);
                 ret_rc = rc_c2s;
                 goto cleanup;
+              }
+              if (sf.size > prev_sz && field_comments[0] != '\0') {
+                rc_c2s = cdd_serde_parse_field_comment(field_comments,
+                                                       &sf.fields[sf.size - 1]);
+                if (rc_c2s != CDD_C_SUCCESS) {
+                  struct_fields_free(&sf);
+                  ret_rc = rc_c2s;
+                  goto cleanup;
+                }
               }
             }
           }
@@ -353,13 +434,38 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
         c2s_skip_ws(tl, &i);
         c2s_tok_kind(tl, i, &k);
         if (k == TOKEN_LBRACE) {
-          JSON_Value *eval = json_value_init_object();
-          JSON_Object *eobj = json_value_get_object(eval);
-          JSON_Value *arrval = json_value_init_array();
-          JSON_Array *earr = json_value_get_array(arrval);
+          struct StructFields enum_sf;
+          size_t ename_len = strlen(enum_name);
           i++;
+          if (struct_fields_init(&enum_sf) != CDD_C_SUCCESS) {
+            ret_rc = CDD_C_ERROR_MEMORY;
+            goto cleanup;
+          }
+          enum_sf.is_enum = 1;
+          if (enum_members_init(&enum_sf.enum_members) != CDD_C_SUCCESS) {
+            struct_fields_free(&enum_sf);
+            ret_rc = CDD_C_ERROR_MEMORY;
+            goto cleanup;
+          }
+          if (top_comments[0] != '\0') {
+            ret_rc = cdd_serde_parse_container_comment(top_comments, &enum_sf);
+            if (ret_rc != CDD_C_SUCCESS) {
+              struct_fields_free(&enum_sf);
+              goto cleanup;
+            }
+            ret_rc = cdd_serde_parse_enum_comment(top_comments,
+                                                  &enum_sf.enum_members);
+            if (ret_rc != CDD_C_SUCCESS) {
+              struct_fields_free(&enum_sf);
+              goto cleanup;
+            }
+          }
           while ((c2s_tok_kind(tl, i, &k), k != TOKEN_UNKNOWN)) {
-            c2s_skip_ws(tl, &i);
+            char var_comments[MAX_LINE_LENGTH];
+            size_t vc_pos = 0;
+            c2s_skip_ws_collect_comments(tl, &i, var_comments,
+                                         sizeof(var_comments));
+            vc_pos = strlen(var_comments);
             c2s_tok_kind(tl, i, &k);
             if (k == TOKEN_UNKNOWN)
               break;
@@ -373,21 +479,109 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
             }
             if (k == TOKEN_IDENTIFIER) {
               char ev_name[64] = {0};
+              const char *member_tok;
+              char var_rename[64] = {0};
+              int var_skip = 0;
+              int var_other = 0;
+              enum CddSerdeCaseRule var_case = CDD_SERDE_CASE_NONE;
+              char var_rep_from[32] = {0};
+              char var_rep_to[32] = {0};
+              char effective_rename[128] = {0};
+
               c2s_copy_token_ident(ev_name, &tl->tokens[i]);
-              json_array_append_string(earr, ev_name);
+              member_tok = ev_name;
+              if (ename_len > 0 &&
+                  strncmp(ev_name, enum_name, ename_len) == 0 &&
+                  ev_name[ename_len] == '_' && ev_name[ename_len + 1] != '\0') {
+                member_tok = ev_name + ename_len + 1;
+              }
               i++;
               while ((c2s_tok_kind(tl, i, &k), k != TOKEN_UNKNOWN &&
                                                    k != TOKEN_COMMA &&
                                                    k != TOKEN_RBRACE)) {
+                if (k == TOKEN_COMMENT) {
+                  const struct Token *ct = &tl->tokens[i];
+                  size_t c_k;
+                  for (c_k = 0;
+                       c_k < ct->length && vc_pos + 1 < sizeof(var_comments);
+                       ++c_k) {
+                    var_comments[vc_pos++] = (char)ct->start[c_k];
+                  }
+                  var_comments[vc_pos] = '\0';
+                }
                 i++;
+              }
+              if (k == TOKEN_COMMA) {
+                size_t look = i + 1;
+                enum TokenKind k_look;
+                int has_nl = 0;
+                c2s_tok_kind(tl, look, &k_look);
+                if (k_look == TOKEN_WHITESPACE) {
+                  if (memchr(tl->tokens[look].start, '\n',
+                             tl->tokens[look].length) != NULL)
+                    has_nl = 1;
+                  else
+                    look++;
+                }
+                c2s_tok_kind(tl, look, &k_look);
+                if (!has_nl && k_look == TOKEN_COMMENT) {
+                  const struct Token *ct = &tl->tokens[look];
+                  size_t c_k;
+                  for (c_k = 0;
+                       c_k < ct->length && vc_pos + 1 < sizeof(var_comments);
+                       ++c_k) {
+                    var_comments[vc_pos++] = (char)ct->start[c_k];
+                  }
+                  var_comments[vc_pos] = '\0';
+                  i = look + 1;
+                } else {
+                  i++;
+                }
+              }
+              if (var_comments[0] != '\0') {
+                cdd_serde_parse_enum_variant_comment_ex(
+                    var_comments, var_rename, sizeof(var_rename), &var_skip,
+                    &var_case, var_rep_from, sizeof(var_rep_from), var_rep_to,
+                    sizeof(var_rep_to), &var_other, NULL, 0);
+              }
+              if (var_rename[0] != '\0') {
+                CDD_STRCPY(effective_rename, sizeof(effective_rename),
+                           var_rename);
+              } else if (var_case != CDD_SERDE_CASE_NONE ||
+                         var_rep_from[0] != '\0') {
+                char tmp_v[128];
+                CDD_STRCPY(tmp_v, sizeof(tmp_v), member_tok);
+                if (var_case != CDD_SERDE_CASE_NONE) {
+                  cdd_serde_transform_case(tmp_v, var_case, effective_rename,
+                                           sizeof(effective_rename));
+                  CDD_STRCPY(tmp_v, sizeof(tmp_v), effective_rename);
+                }
+                if (var_rep_from[0] != '\0') {
+                  cdd_serde_replace_str(tmp_v, var_rep_from, var_rep_to,
+                                        effective_rename,
+                                        sizeof(effective_rename));
+                }
+              }
+              enum_members_add_ex(&enum_sf.enum_members, member_tok,
+                                  effective_rename[0] ? effective_rename : NULL,
+                                  var_skip);
+              if (var_other && enum_sf.enum_members.size > 0) {
+                enum_sf.enum_members.serde_other_idx =
+                    (int)(enum_sf.enum_members.size - 1);
+              }
+              if (var_comments[0] != '\0' && enum_sf.enum_members.size > 0) {
+                cdd_serde_parse_enum_variant_comment_ex(
+                    var_comments, var_rename, sizeof(var_rename), &var_skip,
+                    &var_case, var_rep_from, sizeof(var_rep_from), var_rep_to,
+                    sizeof(var_rep_to), NULL, &enum_sf.enum_members,
+                    enum_sf.enum_members.size - 1);
               }
             } else {
               i++;
             }
           }
-          json_object_set_string(eobj, "type", "string");
-          json_object_set_value(eobj, "enum", arrval);
-          json_object_set_value(schemas_obj, enum_name, eval);
+          write_struct_to_json_schema(schemas_obj, enum_name, &enum_sf);
+          struct_fields_free(&enum_sf);
         }
       } else if (k == TOKEN_LBRACE) {
         i++;

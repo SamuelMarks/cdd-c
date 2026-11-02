@@ -42,6 +42,7 @@ This document provides a deep dive into the specialized capabilities and archite
    - [Material 3 Client GUI Generator (`client_gui_gen`)](#material-3-client-gui-generator-client_gui_gen)
    - [Database Migration Suite & `c-orm`](#database-migration-suite--c-orm)
 8. [Cross-Platform Build Scaffolding & WebAssembly Runtime](#8-cross-platform-build-scaffolding--webassembly-runtime)
+9. [Serde-Style C89 Reflection & Declarative CLI (`structopt` / `clap`) Codegen](#9-serde-style-c89-reflection--declarative-cli-structopt--clap-codegen)
 
 ---
 
@@ -344,12 +345,30 @@ For build and integration instructions, see [`WASM.md`](WASM.md).
 
 ---
 
+## 9. Serde-Style C89 Reflection & Declarative CLI (`structopt` / `clap`) Codegen
+
+`cdd-c` brings Rust `serde` and `clap`/`structopt` declarative ergonomics to strict ISO C90 (C89) via structured C89 comment directives (`/* @cdd ... */`, `/* @serde ... */`, `/* @cli ... */`, `/* #[serde(...)] */`, `/* #[command(...)] */`, `/* #[arg(...)] */`) parsed by `src/classes/parse/cdd_serde.c` and emitted by `src/classes/emit/json.c`, `enum.c`, `types.c`, `form.c`, and `cli_struct.c`.
+
+### Serde Reflection & Rewriting Capabilities
+- **Container-Level Directives**: `rename`, `rename_all` / `rename_all_serialize` / `rename_all_deserialize` (`lowercase`, `UPPERCASE`, `PascalCase`, `camelCase`, `snake_case`, `SCREAMING_SNAKE_CASE`, `kebab-case`, `SCREAMING-KEBAB-CASE`, `Train-Case`), `replace_all = ("_" -> "-")`, `prefix`, `suffix`, `deny_unknown_fields`, `default`, `tag`, `content`, and `untagged`.
+- **Field-Level Directives**: `rename`, `rename_serialize`, `rename_deserialize`, per-field case overrides, `replace`, repeatable `alias`, `skip`, `skip_serializing`, `skip_deserializing`, `skip_serializing_if` (`"null"`, `"empty"`, `"zero"`, or custom C predicate function), `flatten`, `default` / `default_fn`, and custom `with` / `serialize_with` / `deserialize_with` codec hooks.
+- **Enum & Union Reflection**: Per-variant `rename`, `alias`, `skip`, and `@cdd other` catch-all fallback variant in `_from_str`, plus internal (`tag`), adjacent (`tag` + `content`), external, and `untagged` sum-type union representations.
+- **Hostile Identifier Sanitization**: Automatically sanitizes OpenAPI property/schema/enum names with leading digits (`"123"` -> `"_123"`), punctuation/spaces (`"content-type"` -> `"content_type"`), UTF-8 multi-byte sequences (`_xHH`), and C89/C99/C23/C++ keywords (`"default"` -> `"default_"`) while emitting `/* @cdd rename("...") */` and `x-cdd-*` JSON Schema extensions for 100% lossless roundtrips.
+
+### Declarative C89 CLI (`structopt` / `clap`) Capabilities
+- **Generated Functions**: `<Struct>_from_cli`, `<Struct>_parse_cli_into`, `<Struct>_to_cli_argv`, `<Struct>_print_help`, `<Struct>_print_version`, and `<Struct>_print_completions` (`bash`, `zsh`, `fish`, `powershell`).
+- **3-Stage Precedence**: `Default` (`@cdd default`) < `Environment Variable` (`env = "VAR"` or `env_prefix`) < `CLI argv`.
+- **Lexical & Structural Parsing**: Pure ISO C89 state machine (zero `<getopt.h>` or `<unistd.h>` dependency) supporting `--long val`, `--long=val`, `--no-<long>` (`negatable`), combined short flag clusters (`-abc`, `-vvv` `count`, `-p8080`), positional arguments (`--` sentinel, single `"-"` stdin/stdout token, `last = true`, `trailing_var_arg`), `value_delimiter` array splitting, Windows `/flag` and `/?` syntax (`allow_windows_slash_flags`), `@args.rsp` response-file expansion (`allow_response_files`), `/* @cdd flatten */` option composition, `/* @cdd cli(subcommand) */` tagged-union subcommand trees, Levenshtein `"did you mean"` typo suggestions, and post-parse constraint/conflict/group validation (`conflicts_with`, `requires`, `required_unless_present`, `required_if_eq`, `exclusive`, `group`).
+
+---
+
 ## Summary of Specialized Tooling
 
 | Subsystem | Primary Command | Key Architectural Features |
 | :--- | :--- | :--- |
 | **AST Transformers** | `cdd-c transformer`, `standardize-gnu` | 8-phase GNU lowering, Safe CRT rewriting, MSVC porting, `extern "C"` injection, Error percolator. |
 | **Universal FFI** | `cdd-c bind` | Normalized IR, 42 languages, printf variadic trampolines, lossless DSL (`DSL.md`). |
+| **Serde & CLI Reflection** | `code2schema`, `schema2code`, `sync` | C89 `@cdd` / `@serde` / `@cli` reflection, 9 case rules, `flatten`, `structopt`/`clap` CLI codegen. |
 | **Model Context Protocol** | `cdd-c mcp` | AI code scaffolding via stdio; client SDKs emitted as native MCP tools. |
 | **Security Auditing** | `cdd-c audit` | Static analysis for unchecked allocations, missing NULL guards, and unsafe CRT calls. |
 | **Schema Interop** | `code2schema`, `schema2code` | Symmetric C struct $\leftrightarrow$ JSON Schema conversion with validation logic. |

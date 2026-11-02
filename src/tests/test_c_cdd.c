@@ -135,6 +135,7 @@ static FILE *mock_tmpfile_fuzzer(void) {
 #include "emit/test_codegen_client_sig_params.h"
 #include "emit/test_codegen_client_sig_ultra.h"
 #include "emit/test_codegen_defaults.h"
+#include "emit/test_codegen_cli.h"
 #include "emit/test_codegen_enum.h"
 #include "emit/test_codegen_eq.h"
 #include "emit/test_codegen_form.h"
@@ -831,6 +832,7 @@ int main(int argc, char **argv) {
   RUN_SUITE_RESET(ffi_emitters_suite);
   RUN_SUITE_RESET(ffi_emitters_edge_suite);
   RUN_SUITE_RESET(cli_gen_suite);
+  RUN_SUITE_RESET(codegen_cli_suite);
   RUN_SUITE_RESET(codegen_json_suite);
   RUN_SUITE_RESET(codegen_json_comprehensive_suite);
   RUN_SUITE_RESET(text_patcher_suite);

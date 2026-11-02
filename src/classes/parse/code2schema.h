@@ -166,6 +166,18 @@ extern C_CDD_EXPORT cdd_c_error_t sanitize_identifier(const char *in,
                                                       char **_out_val);
 
 /**
+ * @brief Checks if a string requires sanitization to be a valid, unreserved C
+ * identifier.
+ *
+ * @param[in] in Candidate identifier string.
+ * @param[out] out_needs Set to 1 if sanitization is required, 0 if `in` is
+ * already a clean C identifier.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+c2s_needs_identifier_sanitization(const char *in, int *out_needs);
+
+/**
  * @brief Generates a unique variant name for a union type.
  *
  * @param[in] dest Destination struct fields container.

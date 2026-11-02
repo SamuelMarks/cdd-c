@@ -66,6 +66,7 @@ set(Header_Files
         "emit/test_codegen_client_sig_coverage.h"
         "emit/test_codegen_client_sig_ultra.h"
         "emit/test_codegen_defaults.h"
+        "emit/test_codegen_cli.h"
         "emit/test_codegen_eq.h"
         "emit/test_codegen_json.h"
         "emit/test_codegen_make.h"

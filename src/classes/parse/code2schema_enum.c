@@ -23,9 +23,55 @@ cdd_c_error_t json_array_to_enum_members(const JSON_Array *enum_arr,
   count = json_array_get_count(enum_arr);
   for (i = 0; i < count; i++) {
     const char *s = json_array_get_string(enum_arr, i);
+    char *clean = NULL;
+    char final_name[64];
+    size_t k;
+    int dup = 0;
+    int needs_san = 0;
+    const char *wire_override = NULL;
     if (!s)
       continue;
-    if (enum_members_add(em, s) != 0)
+    if (c2s_needs_identifier_sanitization(s, &needs_san) == CDD_C_SUCCESS &&
+        needs_san) {
+      if (sanitize_identifier(s, &clean) != CDD_C_SUCCESS || !clean) {
+        return CDD_C_ERROR_MEMORY;
+      }
+      CDD_STRCPY(final_name, sizeof(final_name), clean);
+      C_CDD_FREE(clean);
+    } else if (strcmp(s, "UNKNOWN") == 0) {
+      CDD_STRCPY(final_name, sizeof(final_name), "UNKNOWN_VAL");
+    } else {
+      CDD_STRCPY(final_name, sizeof(final_name), s);
+    }
+
+    for (k = 0; k < em->size; ++k) {
+      if (em->members[k] && strcmp(em->members[k], final_name) == 0) {
+        dup = 1;
+        break;
+      }
+    }
+    if (dup) {
+      char base_nm[52];
+      unsigned int sfx = 2;
+      CDD_STRCPY(base_nm, sizeof(base_nm), final_name);
+      for (sfx = 2; sfx < 10000; ++sfx) {
+        int dup_cand = 0;
+        CDD_SNPRINTF(final_name, sizeof(final_name), "%s_%u", base_nm, sfx);
+        for (k = 0; k < em->size; ++k) {
+          if (em->members[k] && strcmp(em->members[k], final_name) == 0) {
+            dup_cand = 1;
+            break;
+          }
+        }
+        if (!dup_cand)
+          break;
+      }
+    }
+
+    if (strcmp(final_name, s) != 0) {
+      wire_override = s;
+    }
+    if (enum_members_add_ex(em, final_name, wire_override, 0) != 0)
       return CDD_C_ERROR_MEMORY;
   }
 

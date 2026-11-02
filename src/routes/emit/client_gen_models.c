@@ -12,6 +12,7 @@
 #include "classes/emit/json.h"
 #include "classes/emit/struct.h"
 #include "classes/emit/types.h"
+#include "classes/parse/code2schema.h"
 #include "functions/emit/codegen.h"
 #include "functions/parse/fs.h"
 #include "functions/parse/str.h"
@@ -135,9 +136,22 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
     base_cfg.utils_guard = NULL;
 
     for (i = 0; i < spec->n_defined_schemas; ++i) {
-      const char *name = spec->defined_schema_names[i];
-      if (!name)
+      const char *raw_name = spec->defined_schema_names[i];
+      char name[64];
+      char *san_name = NULL;
+      int needs_san = 0;
+      if (!raw_name)
         continue;
+      if (c2s_needs_identifier_sanitization(raw_name, &needs_san) ==
+              CDD_C_SUCCESS &&
+          needs_san &&
+          sanitize_identifier(raw_name, &san_name) == CDD_C_SUCCESS &&
+          san_name) {
+        CDD_STRCPY(name, sizeof(name), san_name);
+        C_CDD_FREE(san_name);
+      } else {
+        CDD_STRCPY(name, sizeof(name), raw_name);
+      }
 
       rc = write_forward_decl(mhfile, name);
       if (rc != CDD_C_SUCCESS) {
@@ -158,9 +172,25 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
 
     for (i = 0; i < spec->n_defined_schemas; ++i) {
       struct StructFields *sf = &spec->defined_schemas[i];
-      const char *name = spec->defined_schema_names[i];
-      if (!name)
+      const char *raw_name = spec->defined_schema_names[i];
+      char name[64];
+      char *san_name = NULL;
+      int needs_san = 0;
+      if (!raw_name)
         continue;
+      if (c2s_needs_identifier_sanitization(raw_name, &needs_san) ==
+              CDD_C_SUCCESS &&
+          needs_san &&
+          sanitize_identifier(raw_name, &san_name) == CDD_C_SUCCESS &&
+          san_name) {
+        CDD_STRCPY(name, sizeof(name), san_name);
+        C_CDD_FREE(san_name);
+      } else {
+        CDD_STRCPY(name, sizeof(name), raw_name);
+      }
+      if (strcmp(name, raw_name) != 0 && sf->serde_rename[0] == '\0') {
+        CDD_STRCPY(sf->serde_rename, sizeof(sf->serde_rename), raw_name);
+      }
 
       if (sf->is_enum) {
         rc = write_enum_declaration_h(mhfile, name, sf, &base_cfg);

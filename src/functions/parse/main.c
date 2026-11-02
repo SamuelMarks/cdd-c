@@ -199,17 +199,18 @@ C_CDD_EXPORT cdd_c_error_t print_help(const char *program_name) {
 C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
   cdd_from_openapi_config_t api_cfg;
   const char *subcmd_str = "to_sdk";
+  const char *env_val;
   int has_subcommand = 0;
   int i;
 
   memset(&api_cfg, 0, sizeof(api_cfg));
   api_cfg.subcommand = CDD_OPENAPI_SUBCOMMAND_TO_SDK;
-  api_cfg.input =
-      getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_FILE");
-  api_cfg.input_dir =
-      getenv("CDD_INPUT_DIR") ? getenv("CDD_INPUT_DIR") : getenv("INPUT_DIR");
-  api_cfg.output =
-      getenv("CDD_OUTPUT") ? getenv("CDD_OUTPUT") : getenv("OUT_DIR");
+  env_val = getenv("CDD_INPUT");
+  api_cfg.input = env_val ? env_val : getenv("INPUT_FILE");
+  env_val = getenv("CDD_INPUT_DIR");
+  api_cfg.input_dir = env_val ? env_val : getenv("INPUT_DIR");
+  env_val = getenv("CDD_OUTPUT");
+  api_cfg.output = env_val ? env_val : getenv("OUT_DIR");
 
   if (argc > 1) {
     if (strcmp(argv[1], "to_sdk") == 0) {
@@ -302,15 +303,16 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
  */
 C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
   cdd_to_openapi_config_t api_cfg;
+  const char *env_val;
   int i;
 
   memset(&api_cfg, 0, sizeof(api_cfg));
-  api_cfg.input =
-      getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_DIR");
-  api_cfg.output =
-      getenv("CDD_OUTPUT")
-          ? getenv("CDD_OUTPUT")
-          : (getenv("OUT_FILE") ? getenv("OUT_FILE") : "openapi.json");
+  env_val = getenv("CDD_INPUT");
+  api_cfg.input = env_val ? env_val : getenv("INPUT_DIR");
+  env_val = getenv("CDD_OUTPUT");
+  if (!env_val)
+    env_val = getenv("OUT_FILE");
+  api_cfg.output = env_val ? env_val : "openapi.json";
 
   for (i = 0; i < argc; i++) {
     if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {

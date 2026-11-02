@@ -19,6 +19,8 @@
 cdd_c_error_t parse_struct_member_line(const char *line,
                                        struct StructFields *sf) {
   char buf[MAX_LINE_LENGTH];
+  char serde_comments[MAX_LINE_LENGTH];
+  size_t serde_pos = 0;
   char *last_space;
   char name[64] = {0};
   char type_raw[64] = {0};
@@ -40,6 +42,8 @@ cdd_c_error_t parse_struct_member_line(const char *line,
   if (!line || !sf)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
+  serde_comments[0] = '\0';
+
 /* Basic heuristic parsing: "Type name;" or "Type name : width;" */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   strncpy_s(buf, sizeof(buf), line, sizeof(buf) - 1);
@@ -49,12 +53,52 @@ cdd_c_error_t parse_struct_member_line(const char *line,
   buf[sizeof(buf) - 1] = '\0';
   trim_trailing(buf);
 
+  /* Extract any C89 block comments (leading, inline, or trailing) */
+  {
+    char *c_start;
+    while ((c_start = strstr(buf, "/*")) != NULL) {
+      char *c_end = strstr(c_start + 2, "*/");
+      size_t clen;
+      size_t k;
+      if (c_end) {
+        clen = (size_t)((c_end + 2) - c_start);
+      } else {
+        clen = strlen(c_start);
+      }
+
+      if (strstr(c_start, "@shard_key"))
+        is_shard_key = 1;
+      if (strstr(c_start, "@shard_hash"))
+        is_shard_hash = 1;
+      if (strstr(c_start, "@track_telemetry"))
+        is_track_telemetry = 1;
+      if (strstr(c_start, "@slow_query_warn")) {
+        char *sqw = strstr(c_start, "@slow_query_warn(");
+        is_slow_query = 1;
+        if (sqw)
+          slow_query_ms = atoi(sqw + 17);
+      }
+
+      for (k = 0; k < clen && serde_pos + 1 < sizeof(serde_comments); ++k) {
+        serde_comments[serde_pos++] = c_start[k];
+      }
+      if (serde_pos + 1 < sizeof(serde_comments))
+        serde_comments[serde_pos++] = '\n';
+      serde_comments[serde_pos] = '\0';
+
+      if (c_end) {
+        memmove(c_start, c_end + 2, strlen(c_end + 2) + 1);
+      } else {
+        *c_start = '\0';
+      }
+    }
+  }
+
   {
     char *cmt = strstr(buf, "//");
-    if (!cmt)
-      cmt = strstr(buf, "/*");
     if (cmt) {
       char *sqw;
+      size_t k;
       if (strstr(cmt, "@shard_key"))
         is_shard_key = 1;
       if (strstr(cmt, "@shard_hash"))
@@ -70,8 +114,29 @@ cdd_c_error_t parse_struct_member_line(const char *line,
         slow_query_ms = atoi(sqw + 17);
       }
 
+      for (k = 0; cmt[k] != '\0' && serde_pos + 1 < sizeof(serde_comments);
+           ++k) {
+        serde_comments[serde_pos++] = cmt[k];
+      }
+      serde_comments[serde_pos] = '\0';
+
       *cmt = '\0';
-      trim_trailing(buf);
+    }
+    trim_trailing(buf);
+    {
+      size_t blen = strlen(buf);
+      while (blen > 0 && buf[blen - 1] == ';') {
+        buf[blen - 1] = '\0';
+        blen--;
+      }
+    }
+    trim_trailing(buf);
+    {
+      char *lead = buf;
+      while (*lead && isspace((unsigned char)*lead))
+        lead++;
+      if (lead != buf)
+        memmove(buf, lead, strlen(lead) + 1);
     }
   }
 
@@ -206,6 +271,15 @@ cdd_c_error_t parse_struct_member_line(const char *line,
       struct StructField *field = &sf->fields[sf->size - 1];
       if (is_fam) {
         field->is_flexible_array = 1;
+      }
+
+      if (serde_comments[0] != '\0') {
+        cdd_c_error_t rc_serde =
+            cdd_serde_parse_field_comment(serde_comments, field);
+        if (rc_serde != CDD_C_SUCCESS) {
+          c_mapping_free(&mapping);
+          return rc_serde;
+        }
       }
 
       /* Inject cdd-c specific ORM annotations */
@@ -433,6 +507,187 @@ cdd_c_error_t c2s_collapse_arrays(struct StructFields *sf) {
               CDD_STRCPY(sf->fields[j].type, sizeof(sf->fields[j].type),
                          "array");
             }
+          }
+          /* Propagate any serde attributes placed on n_<field> onto <field> */
+          {
+            struct StructField *nf = &sf->fields[i];
+            struct StructField *af = &sf->fields[j];
+            size_t a_idx;
+            if (nf->serde_rename[0] && !af->serde_rename[0])
+              CDD_STRCPY(af->serde_rename, sizeof(af->serde_rename),
+                         nf->serde_rename);
+            if (nf->serde_rename_ser[0] && !af->serde_rename_ser[0])
+              CDD_STRCPY(af->serde_rename_ser, sizeof(af->serde_rename_ser),
+                         nf->serde_rename_ser);
+            if (nf->serde_rename_de[0] && !af->serde_rename_de[0])
+              CDD_STRCPY(af->serde_rename_de, sizeof(af->serde_rename_de),
+                         nf->serde_rename_de);
+            if (nf->serde_case != CDD_SERDE_CASE_NONE &&
+                af->serde_case == CDD_SERDE_CASE_NONE)
+              af->serde_case = nf->serde_case;
+            if (nf->serde_replace_from[0] && !af->serde_replace_from[0]) {
+              CDD_STRCPY(af->serde_replace_from, sizeof(af->serde_replace_from),
+                         nf->serde_replace_from);
+              CDD_STRCPY(af->serde_replace_to, sizeof(af->serde_replace_to),
+                         nf->serde_replace_to);
+            }
+            if (nf->serde_skip)
+              af->serde_skip = 1;
+            if (nf->serde_skip_serializing)
+              af->serde_skip_serializing = 1;
+            if (nf->serde_skip_deserializing)
+              af->serde_skip_deserializing = 1;
+            if (nf->serde_skip_if_kind != CDD_SERDE_SKIP_IF_NONE &&
+                af->serde_skip_if_kind == CDD_SERDE_SKIP_IF_NONE) {
+              af->serde_skip_if_kind = nf->serde_skip_if_kind;
+              CDD_STRCPY(af->serde_skip_if_fn, sizeof(af->serde_skip_if_fn),
+                         nf->serde_skip_if_fn);
+            }
+            if (nf->serde_flatten)
+              af->serde_flatten = 1;
+            if (nf->serde_has_default)
+              af->serde_has_default = 1;
+            if (nf->serde_default_fn[0] && !af->serde_default_fn[0])
+              CDD_STRCPY(af->serde_default_fn, sizeof(af->serde_default_fn),
+                         nf->serde_default_fn);
+            if (nf->serde_with[0] && !af->serde_with[0])
+              CDD_STRCPY(af->serde_with, sizeof(af->serde_with),
+                         nf->serde_with);
+            if (nf->serde_serialize_with[0] && !af->serde_serialize_with[0])
+              CDD_STRCPY(af->serde_serialize_with,
+                         sizeof(af->serde_serialize_with),
+                         nf->serde_serialize_with);
+            if (nf->serde_deserialize_with[0] && !af->serde_deserialize_with[0])
+              CDD_STRCPY(af->serde_deserialize_with,
+                         sizeof(af->serde_deserialize_with),
+                         nf->serde_deserialize_with);
+            for (a_idx = 0; a_idx < nf->n_serde_aliases; ++a_idx) {
+              if (nf->serde_aliases[a_idx]) {
+                cdd_c_error_t rc_al =
+                    struct_field_add_alias(af, nf->serde_aliases[a_idx]);
+                if (rc_al != CDD_C_SUCCESS)
+                  return rc_al;
+                C_CDD_FREE(nf->serde_aliases[a_idx]);
+              }
+            }
+            if (nf->serde_aliases)
+              C_CDD_FREE(nf->serde_aliases);
+            if (nf->cli_short && !af->cli_short)
+              af->cli_short = nf->cli_short;
+            if (nf->cli_short_aliases[0] && !af->cli_short_aliases[0])
+              CDD_STRCPY(af->cli_short_aliases, sizeof(af->cli_short_aliases),
+                         nf->cli_short_aliases);
+            if (nf->cli_long[0] && !af->cli_long[0])
+              CDD_STRCPY(af->cli_long, sizeof(af->cli_long), nf->cli_long);
+            if (nf->cli_has_long && !af->cli_has_long)
+              af->cli_has_long = nf->cli_has_long;
+            if (nf->cli_negatable)
+              af->cli_negatable = 1;
+            if (nf->cli_positional)
+              af->cli_positional = 1;
+            if (nf->cli_index >= 0 && af->cli_index < 0)
+              af->cli_index = nf->cli_index;
+            if (nf->cli_last)
+              af->cli_last = 1;
+            if (nf->cli_trailing_var_arg)
+              af->cli_trailing_var_arg = 1;
+            if (nf->cli_value_name[0] && !af->cli_value_name[0])
+              CDD_STRCPY(af->cli_value_name, sizeof(af->cli_value_name),
+                         nf->cli_value_name);
+            if (nf->cli_help[0] && !af->cli_help[0])
+              CDD_STRCPY(af->cli_help, sizeof(af->cli_help), nf->cli_help);
+            if (nf->cli_long_help) {
+              if (!af->cli_long_help) {
+                af->cli_long_help = nf->cli_long_help;
+                nf->cli_long_help = NULL;
+              } else {
+                C_CDD_FREE(nf->cli_long_help);
+                nf->cli_long_help = NULL;
+              }
+            }
+            if (nf->cli_help_heading[0] && !af->cli_help_heading[0])
+              CDD_STRCPY(af->cli_help_heading, sizeof(af->cli_help_heading),
+                         nf->cli_help_heading);
+            if (nf->cli_env[0] && !af->cli_env[0])
+              CDD_STRCPY(af->cli_env, sizeof(af->cli_env), nf->cli_env);
+            if (nf->cli_hide_env)
+              af->cli_hide_env = 1;
+            if (nf->cli_hide_env_values)
+              af->cli_hide_env_values = 1;
+            if (nf->cli_default_missing_val[0] &&
+                !af->cli_default_missing_val[0])
+              CDD_STRCPY(af->cli_default_missing_val,
+                         sizeof(af->cli_default_missing_val),
+                         nf->cli_default_missing_val);
+            if (nf->cli_hide_default_value)
+              af->cli_hide_default_value = 1;
+            if (nf->cli_action != CDD_CLI_ACTION_AUTO &&
+                af->cli_action == CDD_CLI_ACTION_AUTO)
+              af->cli_action = nf->cli_action;
+            if (nf->cli_value_hint != CDD_CLI_HINT_NONE &&
+                af->cli_value_hint == CDD_CLI_HINT_NONE)
+              af->cli_value_hint = nf->cli_value_hint;
+            if (nf->cli_value_delimiter && !af->cli_value_delimiter)
+              af->cli_value_delimiter = nf->cli_value_delimiter;
+            if (nf->cli_num_args_min && !af->cli_num_args_min)
+              af->cli_num_args_min = nf->cli_num_args_min;
+            if (nf->cli_num_args_max && !af->cli_num_args_max)
+              af->cli_num_args_max = nf->cli_num_args_max;
+            if (nf->cli_require_equals)
+              af->cli_require_equals = 1;
+            if (nf->cli_allow_hyphen_values)
+              af->cli_allow_hyphen_values = 1;
+            if (nf->cli_global)
+              af->cli_global = 1;
+            if (nf->cli_hidden)
+              af->cli_hidden = 1;
+            if (nf->cli_exclusive)
+              af->cli_exclusive = 1;
+            if (nf->cli_subcommand)
+              af->cli_subcommand = 1;
+            if (nf->cli_value_parser[0] && !af->cli_value_parser[0])
+              CDD_STRCPY(af->cli_value_parser, sizeof(af->cli_value_parser),
+                         nf->cli_value_parser);
+            if (nf->cli_group[0] && !af->cli_group[0])
+              CDD_STRCPY(af->cli_group, sizeof(af->cli_group), nf->cli_group);
+            if (nf->cli_required_if_field[0] && !af->cli_required_if_field[0]) {
+              CDD_STRCPY(af->cli_required_if_field,
+                         sizeof(af->cli_required_if_field),
+                         nf->cli_required_if_field);
+              CDD_STRCPY(af->cli_required_if_val,
+                         sizeof(af->cli_required_if_val),
+                         nf->cli_required_if_val);
+            }
+            for (a_idx = 0; a_idx < nf->n_cli_conflicts_with; ++a_idx) {
+              if (nf->cli_conflicts_with[a_idx]) {
+                struct_field_add_cli_conflict(af,
+                                              nf->cli_conflicts_with[a_idx]);
+                C_CDD_FREE(nf->cli_conflicts_with[a_idx]);
+              }
+            }
+            if (nf->cli_conflicts_with)
+              C_CDD_FREE(nf->cli_conflicts_with);
+            for (a_idx = 0; a_idx < nf->n_cli_requires; ++a_idx) {
+              if (nf->cli_requires[a_idx]) {
+                struct_field_add_cli_requires(af, nf->cli_requires[a_idx]);
+                C_CDD_FREE(nf->cli_requires[a_idx]);
+              }
+            }
+            if (nf->cli_requires)
+              C_CDD_FREE(nf->cli_requires);
+            for (a_idx = 0; a_idx < nf->n_cli_required_unless; ++a_idx) {
+              if (nf->cli_required_unless[a_idx]) {
+                struct_field_add_cli_required_unless(
+                    af, nf->cli_required_unless[a_idx]);
+                C_CDD_FREE(nf->cli_required_unless[a_idx]);
+              }
+            }
+            if (nf->cli_required_unless)
+              C_CDD_FREE(nf->cli_required_unless);
+            if (nf->schema_extra_json)
+              C_CDD_FREE(nf->schema_extra_json);
+            if (nf->items_extra_json)
+              C_CDD_FREE(nf->items_extra_json);
           }
           /* Remove the n_ field */
           memmove(&sf->fields[i], &sf->fields[i + 1],

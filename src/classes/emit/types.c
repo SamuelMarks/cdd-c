@@ -12,6 +12,7 @@
 #include "c_cdd/code_writer.h"
 #include "c_cdd/log.h"
 #include "classes/emit/struct.h" /* for get_type_from_ref */
+#include "classes/parse/cdd_serde.h"
 #include "functions/parse/str.h"
 #include "win_compat_sym.h"
 #include <errno.h>
@@ -75,12 +76,36 @@ write_union_to_json_func(FILE *fp, const char *union_name,
                             "  switch (obj->tag) {\n"));
 
   for (i = 0; i < sf->size; ++i) {
-    const char *name = sf->fields[i].name;
-    const char *type = sf->fields[i].type;
-    const char *ref = sf->fields[i].ref;
+    const struct StructField *vf = &sf->fields[i];
+    const char *name = vf->name;
+    const char *type = vf->type;
+    const char *ref = vf->ref;
     const char *ref_type = NULL;
+    const char *disc_tag =
+        (sf->serde_tag[0] != '\0') ? sf->serde_tag : sf->union_discriminator;
+    const char *disc_val = NULL;
+    if (vf->serde_rename[0] != '\0') {
+      disc_val = vf->serde_rename;
+    } else if (sf->union_variants && i < sf->n_union_variants &&
+               sf->union_variants[i].disc_value) {
+      disc_val = sf->union_variants[i].disc_value;
+    } else {
+      disc_val = name;
+    }
 
     CHECK_IO(FPRINTF_HOOK(fp, "    case %s_%s:\n", union_name, name));
+    if (disc_tag && disc_tag[0] != '\0' && sf->serde_content[0] != '\0' &&
+        !sf->serde_untagged) {
+      char esc_tag[128], esc_val[128], esc_cnt[128];
+      cdd_escape_json_c_str(disc_tag, esc_tag, sizeof(esc_tag));
+      cdd_escape_json_c_str(disc_val, esc_val, sizeof(esc_val));
+      cdd_escape_json_c_str(sf->serde_content, esc_cnt, sizeof(esc_cnt));
+      CHECK_IO(FPRINTF_HOOK(fp,
+                            "      c89stringutils_jasprintf(json, "
+                            "\"{\\\"%s\\\":\\\"%s\\\",\\\"%s\\\":\");\n"
+                            "      if (!*json) return CDD_C_ERROR_MEMORY;\n",
+                            esc_tag, esc_val, esc_cnt));
+    }
     if (strcmp(type, "integer") == 0) {
       CHECK_IO(FPRINTF_HOOK(fp,
                             "      c89stringutils_jasprintf(json, "
@@ -117,16 +142,47 @@ write_union_to_json_func(FILE *fp, const char *union_name,
                                 "}\n"));
     } else if (strcmp(type, "object") == 0) {
       get_type_from_ref(ref, &ref_type);
-      CHECK_IO(FPRINTF_HOOK(
-          fp,
-          "      {\n"
-          "        char *sub = NULL;\n"
-          "        rc = %s_to_json(obj->data.%s, &sub);\n"
-          "        if (rc != CDD_C_SUCCESS) { free(sub); return rc; }\n"
-          "        c89stringutils_jasprintf(json, \"%%s\", sub);\n"
-          "        free(sub);\n"
-          "      }\n",
-          ref_type, name));
+      if (sf->serde_tag[0] != '\0' && sf->serde_content[0] == '\0' &&
+          !sf->serde_untagged) {
+        char esc_tag[128], esc_val[128];
+        cdd_escape_json_c_str(sf->serde_tag, esc_tag, sizeof(esc_tag));
+        cdd_escape_json_c_str(disc_val, esc_val, sizeof(esc_val));
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "      {\n"
+            "        char *sub = NULL;\n"
+            "        rc = %s_to_json(obj->data.%s, &sub);\n"
+            "        if (rc != CDD_C_SUCCESS) { free(sub); return rc; }\n",
+            ref_type, name));
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "        if (sub && sub[0] == '{' && strstr(sub, "
+            "\"\\\"%s\\\":\") == NULL) {\n"
+            "          if (sub[1] == '}') {\n"
+            "            c89stringutils_jasprintf(json, "
+            "\"{\\\"%s\\\":\\\"%s\\\"}\");\n"
+            "          } else {\n"
+            "            c89stringutils_jasprintf(json, "
+            "\"{\\\"%s\\\":\\\"%s\\\",%%s\", sub + 1);\n"
+            "          }\n"
+            "        } else {\n"
+            "          c89stringutils_jasprintf(json, \"%%s\", sub);\n"
+            "        }\n"
+            "        free(sub);\n"
+            "      }\n",
+            esc_tag, esc_tag, esc_val, esc_tag, esc_val));
+      } else {
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "      {\n"
+            "        char *sub = NULL;\n"
+            "        rc = %s_to_json(obj->data.%s, &sub);\n"
+            "        if (rc != CDD_C_SUCCESS) { free(sub); return rc; }\n"
+            "        c89stringutils_jasprintf(json, \"%%s\", sub);\n"
+            "        free(sub);\n"
+            "      }\n",
+            ref_type, name));
+      }
     } else if (strcmp(type, "array") == 0) {
       CHECK_IO(
           FPRINTF_HOOK(fp,
@@ -186,6 +242,11 @@ write_union_to_json_func(FILE *fp, const char *union_name,
       CHECK_IO(FPRINTF_HOOK(
           fp, "      c89stringutils_jasprintf(json, \"null\");\n"));
     }
+    if (disc_tag && disc_tag[0] != '\0' && sf->serde_content[0] != '\0' &&
+        !sf->serde_untagged) {
+      CHECK_IO(
+          FPRINTF_HOOK(fp, "      c89stringutils_jasprintf(json, \"}\");\n"));
+    }
     CHECK_IO(FPRINTF_HOOK(fp, "      break;\n"));
   }
 
@@ -218,9 +279,13 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
                                  const struct CodegenTypesConfig *config) {
   size_t i;
   int needs_nested_rc = 0;
+  const char *disc_tag;
 
   if (!fp || !union_name || !sf)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  disc_tag =
+      (sf->serde_tag[0] != '\0') ? sf->serde_tag : sf->union_discriminator;
 
   for (i = 0; i < sf->size; ++i) {
     if (strcmp(sf->fields[i].type, "object") == 0)
@@ -246,41 +311,129 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
                         "CDD_C_ERROR_INVALID_ARGUMENT; }\n\n",
                         union_name, union_name));
 
-  if (sf->union_discriminator && sf->union_discriminator[0]) {
+  if (!sf->serde_untagged && disc_tag && disc_tag[0]) {
+    char esc_tag[128];
+    cdd_escape_json_c_str(disc_tag, esc_tag, sizeof(esc_tag));
     CHECK_IO(FPRINTF_HOOK(
         fp,
         "  {\n"
         "    const char *disc = json_object_get_string(jsonObject, \"%s\");\n"
         "    if (disc) {\n",
-        sf->union_discriminator));
+        esc_tag));
+    for (i = 0; i < sf->size; ++i) {
+      const struct StructField *vf = &sf->fields[i];
+      const char *name = vf->name;
+      const char *type = vf->type;
+      const char *ref = vf->ref;
+      const char *disc_val = NULL;
+      const char *ref_type = NULL;
+      char esc_dval[128];
+      size_t a_idx;
+      if (vf->serde_rename[0] != '\0')
+        disc_val = vf->serde_rename;
+      else if (sf->union_variants && i < sf->n_union_variants &&
+               sf->union_variants[i].disc_value)
+        disc_val = sf->union_variants[i].disc_value;
+      else if (sf->serde_tag[0] != '\0')
+        disc_val = name;
+      if (!disc_val)
+        continue;
+      if (strcmp(type, "object") != 0 && sf->serde_content[0] == '\0')
+        continue;
+      cdd_escape_json_c_str(disc_val, esc_dval, sizeof(esc_dval));
+      CHECK_IO(
+          FPRINTF_HOOK(fp, "      if (strcmp(disc, \"%s\") == 0", esc_dval));
+      for (a_idx = 0; a_idx < vf->n_serde_aliases; ++a_idx) {
+        if (vf->serde_aliases[a_idx]) {
+          char esc_al[128];
+          cdd_escape_json_c_str(vf->serde_aliases[a_idx], esc_al,
+                                sizeof(esc_al));
+          CHECK_IO(FPRINTF_HOOK(fp, " || strcmp(disc, \"%s\") == 0", esc_al));
+        }
+      }
+      CHECK_IO(FPRINTF_HOOK(fp, ") {\n"));
+      CHECK_IO(
+          FPRINTF_HOOK(fp, "        ret->tag = %s_%s;\n", union_name, name));
+      if (sf->serde_content[0] != '\0') {
+        char esc_cnt[128];
+        cdd_escape_json_c_str(sf->serde_content, esc_cnt, sizeof(esc_cnt));
+        if (strcmp(type, "object") == 0) {
+          get_type_from_ref(ref, &ref_type);
+          CHECK_IO(FPRINTF_HOOK(
+              fp,
+              "        rc = %s_from_jsonObject(json_object_get_object("
+              "jsonObject, \"%s\"), &ret->data.%s);\n"
+              "        if (rc != CDD_C_SUCCESS) { free(ret); return rc; }\n",
+              ref_type, esc_cnt, name));
+        } else if (strcmp(type, "integer") == 0) {
+          CHECK_IO(
+              FPRINTF_HOOK(fp,
+                           "        ret->data.%s = (int)json_object_get_number("
+                           "jsonObject, \"%s\");\n",
+                           name, esc_cnt));
+        } else if (strcmp(type, "number") == 0) {
+          CHECK_IO(FPRINTF_HOOK(fp,
+                                "        ret->data.%s = json_object_get_number("
+                                "jsonObject, \"%s\");\n",
+                                name, esc_cnt));
+        } else if (strcmp(type, "boolean") == 0) {
+          CHECK_IO(
+              FPRINTF_HOOK(fp,
+                           "        ret->data.%s = json_object_get_boolean("
+                           "jsonObject, \"%s\");\n",
+                           name, esc_cnt));
+        } else if (strcmp(type, "string") == 0) {
+          CHECK_IO(FPRINTF_HOOK(
+              fp,
+              "        { const char *_cs = json_object_get_string("
+              "jsonObject, \"%s\");\n"
+              "          if (_cs) { ret->data.%s = strdup(_cs); if "
+              "(!ret->data.%s) { free(ret); return CDD_C_ERROR_MEMORY; } } }\n",
+              esc_cnt, name, name));
+        }
+        CHECK_IO(FPRINTF_HOOK(fp, "        *out = ret;\n"
+                                  "        return CDD_C_SUCCESS;\n"
+                                  "      }\n"));
+      } else {
+        get_type_from_ref(ref, &ref_type);
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "        rc = %s_from_jsonObject(jsonObject, "
+            "&ret->data.%s);\n"
+            "        if (rc != CDD_C_SUCCESS) { free(ret); return rc; }\n"
+            "        *out = ret;\n"
+            "        return CDD_C_SUCCESS;\n"
+            "      }\n",
+            ref_type, name));
+      }
+    }
+    CHECK_IO(FPRINTF_HOOK(fp, "    }\n  }\n"));
+  }
+
+  if (sf->serde_untagged) {
     for (i = 0; i < sf->size; ++i) {
       const char *name = sf->fields[i].name;
       const char *type = sf->fields[i].type;
       const char *ref = sf->fields[i].ref;
-      const char *disc_val = NULL;
       const char *ref_type = NULL;
-      if (sf->union_variants && i < sf->n_union_variants)
-        disc_val = sf->union_variants[i].disc_value;
-      if (!disc_val)
-        continue;
       if (strcmp(type, "object") != 0)
         continue;
       get_type_from_ref(ref, &ref_type);
-      CHECK_IO(FPRINTF_HOOK(fp, "      if (strcmp(disc, \"%s\") == 0) {\n",
-                            disc_val));
       CHECK_IO(
-          FPRINTF_HOOK(fp, "        ret->tag = %s_%s;\n", union_name, name));
-      CHECK_IO(FPRINTF_HOOK(
-          fp,
-          "        rc = %s_from_jsonObject(jsonObject, "
-          "&ret->data.%s);\n"
-          "        if (rc != CDD_C_SUCCESS) { free(ret); return rc; }\n"
-          "        *out = ret;\n"
-          "        return CDD_C_SUCCESS;\n"
-          "      }\n",
-          ref_type, name));
+          FPRINTF_HOOK(fp,
+                       "  if (%s_from_jsonObject(jsonObject, &ret->data.%s) == "
+                       "CDD_C_SUCCESS) {\n"
+                       "    ret->tag = %s_%s;\n"
+                       "    *out = ret;\n"
+                       "    return CDD_C_SUCCESS;\n"
+                       "  }\n",
+                       ref_type, name, union_name, name));
     }
-    CHECK_IO(FPRINTF_HOOK(fp, "    }\n  }\n"));
+    CHECK_IO(FPRINTF_HOOK(fp, "  free(ret);\n"
+                              "  return CDD_C_ERROR_INVALID_ARGUMENT;\n}\n"));
+    if (config && config->json_guard)
+      CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->json_guard));
+    return CDD_C_SUCCESS;
   }
 
   CHECK_IO(FPRINTF_HOOK(fp, "  {\n    int match_count = 0;\n"

@@ -9,6 +9,7 @@
 #include "cli_gen.h"
 #include "c_cdd/memory.h"
 #include "c_cdd/safe_crt.h"
+#include "classes/parse/cdd_serde.h"
 #include "functions/parse/fs.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -140,6 +141,25 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
 
   fprintf(fp, "  printf(\"Usage: cli [options] <command> [args]\\n\\n\");\n");
   fprintf(fp, "  printf(\"Options:\\n\");\n");
+  fprintf(fp,
+          "  printf(\"  --server <url>             Target server URL\\n\");\n");
+  fprintf(fp, "  printf(\"  --bearer-token <token>     Bearer auth token [env: "
+              "BEARER_TOKEN]\\n\");\n");
+  fprintf(fp, "  printf(\"  --api-key <key>            API key [env: "
+              "API_KEY]\\n\");\n");
+  fprintf(
+      fp,
+      "  printf(\"  --basic-user <user>        Basic auth username\\n\");\n");
+  fprintf(
+      fp,
+      "  printf(\"  --basic-pass <pass>        Basic auth password\\n\");\n");
+  fprintf(fp, "  printf(\"  --format <json|text>       Output format (default "
+              "json)\\n\");\n");
+  fprintf(
+      fp,
+      "  printf(\"  -v, --verbose              Enable verbose output\\n\");\n");
+  fprintf(fp, "  printf(\"  -h, --help                 Print help\\n\");\n");
+  fprintf(fp, "  printf(\"  -V, --version              Print version\\n\");\n");
   fprintf(fp, "  printf(\"  --db-path <path>           Database path (default "
               "oauth.db)\\n\");\n");
   fprintf(
@@ -188,6 +208,15 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
               " */\n"
               "int main(int argc, char **argv) {\n");
   fprintf(fp, "  int i;\n");
+  fprintf(fp, "  const char *server_url = \"%s\";\n",
+          (spec->n_servers > 0 && spec->servers[0].url) ? spec->servers[0].url
+                                                        : "http://localhost");
+  fprintf(fp, "  const char *bearer_token = getenv(\"BEARER_TOKEN\");\n");
+  fprintf(fp, "  const char *api_key = getenv(\"API_KEY\");\n");
+  fprintf(fp, "  const char *basic_user = NULL;\n");
+  fprintf(fp, "  const char *basic_pass = NULL;\n");
+  fprintf(fp, "  const char *out_format = \"json\";\n");
+  fprintf(fp, "  int verbose = 0;\n");
   fprintf(fp, "  const char *db_path = \"oauth.db\";\n");
   fprintf(fp, "  const char *cert_path = NULL;\n");
   fprintf(fp, "  const char *key_path = NULL;\n");
@@ -195,8 +224,37 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "  int threads = 4;\n");
   fprintf(fp, "  int cmd_idx = 1;\n\n");
   fprintf(fp, "  for (i = 1; i < argc; i++) {\n");
-  fprintf(fp,
-          "    if (strcmp(argv[i], \"--db-path\") == 0 && i + 1 < argc) {\n");
+  fprintf(fp, "    if (strcmp(argv[i], \"--version\") == 0 || strcmp(argv[i], "
+              "\"-V\") == 0) {\n");
+  fprintf(fp, "      printf(\"%%s v%%s\\n\", \"%s\", \"%s\");\n",
+          spec->info.title ? spec->info.title : "CLI Tool",
+          spec->info.version ? spec->info.version : "1.0.0");
+  fprintf(fp, "      return CDD_C_SUCCESS;\n");
+  fprintf(
+      fp,
+      "    } else if (strcmp(argv[i], \"--server\") == 0 && i + 1 < argc) {\n");
+  fprintf(fp, "      server_url = argv[++i];\n");
+  fprintf(fp, "    } else if (strcmp(argv[i], \"--bearer-token\") == 0 && i + "
+              "1 < argc) {\n");
+  fprintf(fp, "      bearer_token = argv[++i];\n");
+  fprintf(fp, "    } else if (strcmp(argv[i], \"--api-key\") == 0 && i + 1 < "
+              "argc) {\n");
+  fprintf(fp, "      api_key = argv[++i];\n");
+  fprintf(fp, "    } else if (strcmp(argv[i], \"--basic-user\") == 0 && i + 1 "
+              "< argc) {\n");
+  fprintf(fp, "      basic_user = argv[++i];\n");
+  fprintf(fp, "    } else if (strcmp(argv[i], \"--basic-pass\") == 0 && i + 1 "
+              "< argc) {\n");
+  fprintf(fp, "      basic_pass = argv[++i];\n");
+  fprintf(
+      fp,
+      "    } else if (strcmp(argv[i], \"--format\") == 0 && i + 1 < argc) {\n");
+  fprintf(fp, "      out_format = argv[++i];\n");
+  fprintf(fp, "    } else if (strcmp(argv[i], \"--verbose\") == 0 || "
+              "strcmp(argv[i], \"-v\") == 0) {\n");
+  fprintf(fp, "      verbose++;\n");
+  fprintf(fp, "    } else if (strcmp(argv[i], \"--db-path\") == 0 && i + 1 < "
+              "argc) {\n");
   fprintf(fp, "      db_path = argv[++i];\n");
   fprintf(fp, "    } else if (strcmp(argv[i], \"--cert\") == 0 && "
               "i + 1 < argc) {\n");
@@ -206,10 +264,10 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "      key_path = argv[++i];\n");
   fprintf(fp, "    } else if (strcmp(argv[i], \"--port\") == 0 && "
               "i + 1 < argc) {\n");
-  fprintf(fp, "      port = atoi(argv[++i]);\n");
+  fprintf(fp, "      port = (int)strtol(argv[++i], NULL, 10);\n");
   fprintf(fp, "    } else if (strcmp(argv[i], \"--threads\") == 0 && "
               "i + 1 < argc) {\n");
-  fprintf(fp, "      threads = atoi(argv[++i]);\n");
+  fprintf(fp, "      threads = (int)strtol(argv[++i], NULL, 10);\n");
   fprintf(fp, "    } else if (argv[i][0] != '-') {\n");
   fprintf(fp, "      cmd_idx = i;\n");
   fprintf(fp, "      break;\n");
@@ -222,11 +280,10 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
               "CDD_C_SUCCESS) return rc;\n");
   fprintf(fp, "    return CDD_C_SUCCESS;\n");
   fprintf(fp, "  }\n\n");
-  fprintf(fp, "  (void)db_path;\n");
-  fprintf(fp, "  (void)cert_path;\n");
-  fprintf(fp, "  (void)key_path;\n");
-  fprintf(fp, "  (void)port;\n");
-  fprintf(fp, "  (void)threads;\n\n");
+  fprintf(fp, "  if (verbose > 1 && server_url && db_path && out_format) {\n"
+              "    if (bearer_token || api_key || basic_user || basic_pass || "
+              "cert_path || key_path || port || threads) {}\n"
+              "  }\n\n");
 
   /* MCP Subcommand handling */
   fprintf(fp, "  if (strcmp(argv[cmd_idx], \"mcp\") == 0) {\n");
@@ -377,11 +434,88 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
       const struct OpenAPI_Operation *op = &spec->paths[i].operations[j];
       const char *opId = op->operation_id;
       if (opId) {
+        char kebab_op[64];
+        cdd_serde_transform_case(opId, CDD_SERDE_CASE_KEBABCASE, kebab_op,
+                                 sizeof(kebab_op));
         fprintf(fp, "  /* \n");
         fprintf(fp, "   * @brief %s CLI handler\n",
                 op->summary ? op->summary : opId);
         fprintf(fp, "   */\n");
-        fprintf(fp, "  if (strcmp(argv[1], \"%s\") == 0) {\n", opId);
+        fprintf(fp,
+                "  if (strcmp(argv[cmd_idx], \"%s\") == 0 || "
+                "strcmp(argv[cmd_idx], \"%s\") == 0) {\n",
+                opId, kebab_op);
+        fprintf(fp, "    int _arg_i;\n");
+        fprintf(fp, "    const char *_req_data = NULL;\n");
+        fprintf(fp, "    const char *_req_data_file = NULL;\n");
+        for (k = 0; k < op->n_parameters; k++) {
+          fprintf(fp, "    const char *_param_%lu = NULL;\n", (unsigned long)k);
+        }
+        fprintf(fp,
+                "    for (_arg_i = cmd_idx + 1; _arg_i < argc; ++_arg_i) {\n");
+        fprintf(fp,
+                "      if (strcmp(argv[_arg_i], \"--help\") == 0 || "
+                "strcmp(argv[_arg_i], \"-h\") == 0) {\n"
+                "        printf(\"Usage: cli %s [OPTIONS]\\n\");\n",
+                kebab_op);
+        if (op->summary) {
+          fprintf(fp, "        printf(\"%%s\\n\", \"%s\");\n", op->summary);
+        }
+        if (op->deprecated) {
+          fprintf(fp, "        printf(\"WARNING: This operation is "
+                      "deprecated.\\n\");\n");
+        }
+        for (k = 0; k < op->n_parameters; k++) {
+          char kp_name[64];
+          const char *pname =
+              op->parameters[k].name ? op->parameters[k].name : "param";
+          cdd_serde_transform_case(pname, CDD_SERDE_CASE_KEBABCASE, kp_name,
+                                   sizeof(kp_name));
+          fprintf(fp, "        printf(\"  --%s <VAL>  %s\\n\");\n", kp_name,
+                  op->parameters[k].description ? op->parameters[k].description
+                                                : "");
+        }
+        if (op->req_body.content_schema) {
+          fprintf(fp, "        printf(\"  -d, --data <JSON>       Request body "
+                      "JSON\\n\");\n");
+          fprintf(fp, "        printf(\"  --data-file <PATH>      Request body "
+                      "JSON file\\n\");\n");
+        }
+        fprintf(fp, "        return CDD_C_SUCCESS;\n"
+                    "      }\n");
+        if (op->req_body.content_schema) {
+          fprintf(fp,
+                  "      if ((strcmp(argv[_arg_i], \"--data\") == 0 || "
+                  "strcmp(argv[_arg_i], \"-d\") == 0) && _arg_i + 1 < argc) {\n"
+                  "        _req_data = argv[++_arg_i];\n"
+                  "        continue;\n"
+                  "      }\n"
+                  "      if (strcmp(argv[_arg_i], \"--data-file\") == 0 && "
+                  "_arg_i + 1 < argc) {\n"
+                  "        _req_data_file = argv[++_arg_i];\n"
+                  "        continue;\n"
+                  "      }\n");
+        }
+        for (k = 0; k < op->n_parameters; k++) {
+          char kp_name[64];
+          const char *pname =
+              op->parameters[k].name ? op->parameters[k].name : "param";
+          cdd_serde_transform_case(pname, CDD_SERDE_CASE_KEBABCASE, kp_name,
+                                   sizeof(kp_name));
+          fprintf(
+              fp,
+              "      if ((strcmp(argv[_arg_i], \"--%s\") == 0 || "
+              "strcmp(argv[_arg_i], \"--%s\") == 0) && _arg_i + 1 < argc) {\n"
+              "        _param_%lu = argv[++_arg_i];\n"
+              "        continue;\n"
+              "      }\n",
+              kp_name, pname, (unsigned long)k);
+        }
+        fprintf(fp, "    }\n");
+        fprintf(fp, "    if (_req_data || _req_data_file) {}\n");
+        for (k = 0; k < op->n_parameters; k++) {
+          fprintf(fp, "    if (_param_%lu) {}\n", (unsigned long)k);
+        }
         fprintf(fp, "    printf(\"Calling %s...\\n\");\n", opId);
 
         /* Parameters parsing */
@@ -463,7 +597,7 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
     }
   }
 
-  fprintf(fp, "  printf(\"Unknown command: %%s\\n\", argv[1]);\n");
+  fprintf(fp, "  printf(\"Unknown command: %%s\\n\", argv[cmd_idx]);\n");
   fprintf(fp, "  return CDD_C_ERROR_UNKNOWN;\n");
   fprintf(fp, "}\n");
 

@@ -8,6 +8,187 @@
 #include "code2schema_internal.h"
 /* clang-format on */
 
+/** @brief Sorted list of C89, C99, C11, C23, and C++ reserved keywords */
+static const char *const k_c_reserved_keywords[] = {"_Alignas",
+                                                    "_Alignof",
+                                                    "_Atomic",
+                                                    "_BitInt",
+                                                    "_Bool",
+                                                    "_Complex",
+                                                    "_Decimal128",
+                                                    "_Decimal32",
+                                                    "_Decimal64",
+                                                    "_Generic",
+                                                    "_Imaginary",
+                                                    "_Noreturn",
+                                                    "_Static_assert",
+                                                    "_Thread_local",
+                                                    "alignas",
+                                                    "alignof",
+                                                    "and",
+                                                    "and_eq",
+                                                    "asm",
+                                                    "atomic",
+                                                    "auto",
+                                                    "bitand",
+                                                    "bitor",
+                                                    "bool",
+                                                    "break",
+                                                    "case",
+                                                    "catch",
+                                                    "char",
+                                                    "char16_t",
+                                                    "char32_t",
+                                                    "char8_t",
+                                                    "class",
+                                                    "co_await",
+                                                    "co_return",
+                                                    "co_yield",
+                                                    "compl",
+                                                    "complex",
+                                                    "concept",
+                                                    "const",
+                                                    "const_cast",
+                                                    "consteval",
+                                                    "constexpr",
+                                                    "constinit",
+                                                    "continue",
+                                                    "decltype",
+                                                    "default",
+                                                    "delete",
+                                                    "do",
+                                                    "double",
+                                                    "dynamic_cast",
+                                                    "else",
+                                                    "enum",
+                                                    "explicit",
+                                                    "export",
+                                                    "extern",
+                                                    "false",
+                                                    "float",
+                                                    "for",
+                                                    "friend",
+                                                    "goto",
+                                                    "if",
+                                                    "imaginary",
+                                                    "inline",
+                                                    "int",
+                                                    "long",
+                                                    "mutable",
+                                                    "namespace",
+                                                    "new",
+                                                    "noexcept",
+                                                    "not",
+                                                    "not_eq",
+                                                    "nullptr",
+                                                    "operator",
+                                                    "or",
+                                                    "or_eq",
+                                                    "private",
+                                                    "protected",
+                                                    "public",
+                                                    "register",
+                                                    "reinterpret_cast",
+                                                    "requires",
+                                                    "restrict",
+                                                    "return",
+                                                    "short",
+                                                    "signed",
+                                                    "sizeof",
+                                                    "static",
+                                                    "static_assert",
+                                                    "static_cast",
+                                                    "struct",
+                                                    "switch",
+                                                    "template",
+                                                    "this",
+                                                    "thread_local",
+                                                    "throw",
+                                                    "true",
+                                                    "try",
+                                                    "typedef",
+                                                    "typeid",
+                                                    "typename",
+                                                    "typeof",
+                                                    "typeof_unqual",
+                                                    "union",
+                                                    "unsigned",
+                                                    "using",
+                                                    "virtual",
+                                                    "void",
+                                                    "volatile",
+                                                    "wchar_t",
+                                                    "while",
+                                                    "xor",
+                                                    "xor_eq"};
+
+/**
+ * @brief Checks if an identifier matches a C/C++ reserved keyword.
+ *
+ * @param[in] ident Candidate identifier string.
+ * @param[out] out_is_reserved Set to 1 if reserved keyword, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
+static cdd_c_error_t c2s_is_reserved_keyword(const char *ident,
+                                             int *out_is_reserved) {
+  size_t k;
+  const size_t n_kw =
+      sizeof(k_c_reserved_keywords) / sizeof(k_c_reserved_keywords[0]);
+  *out_is_reserved = 0;
+  for (k = 0; k < n_kw; ++k) {
+    if (strcmp(ident, k_c_reserved_keywords[k]) == 0) {
+      *out_is_reserved = 1;
+      return CDD_C_SUCCESS;
+    }
+  }
+  return CDD_C_SUCCESS;
+}
+
+/*
+ * @brief Checks if a string requires sanitization to be a valid, unreserved C
+ * identifier.
+ *
+ * @param[in] in Candidate identifier string.
+ * @param[out] out_needs Set to 1 if sanitization is required, 0 if `in` is
+ * already a clean C identifier.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
+cdd_c_error_t c2s_needs_identifier_sanitization(const char *in,
+                                                int *out_needs) {
+  size_t i;
+  if (!out_needs)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!in || !in[0]) {
+    *out_needs = 1;
+    return CDD_C_SUCCESS;
+  }
+  if (in[0] >= '0' && in[0] <= '9') {
+    *out_needs = 1;
+    return CDD_C_SUCCESS;
+  }
+  if (in[0] == '_' && (in[1] == '_' || (in[1] >= 'A' && in[1] <= 'Z'))) {
+    *out_needs = 1;
+    return CDD_C_SUCCESS;
+  }
+  for (i = 0; in[i] != '\0'; ++i) {
+    unsigned char uc = (unsigned char)in[i];
+    if (!((uc >= 'a' && uc <= 'z') || (uc >= 'A' && uc <= 'Z') ||
+          (uc >= '0' && uc <= '9') || uc == '_')) {
+      *out_needs = 1;
+      return CDD_C_SUCCESS;
+    }
+    if (uc == '_' && in[i + 1] == '_') {
+      *out_needs = 1;
+      return CDD_C_SUCCESS;
+    }
+  }
+  if (i > 59) {
+    *out_needs = 1;
+    return CDD_C_SUCCESS;
+  }
+  return c2s_is_reserved_keyword(in, out_needs);
+}
+
 /*
  * @brief Sanitizes a string to be used as a valid C identifier.
  *
@@ -17,8 +198,10 @@
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t sanitize_identifier(const char *in, char **_out_val) {
-  size_t i, len;
+  size_t i, len, pos = 0, cap;
   char *out;
+  int has_alnum = 0;
+  int only_ws = 1;
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!in || !*in) {
@@ -30,19 +213,72 @@ cdd_c_error_t sanitize_identifier(const char *in, char **_out_val) {
     return CDD_C_SUCCESS;
   }
   len = strlen(in);
-  out = (char *)C_CDD_CALLOC(len + 1, sizeof(char));
+  for (i = 0; i < len; ++i) {
+    unsigned char uc = (unsigned char)in[i];
+    if (!isspace(uc))
+      only_ws = 0;
+    if ((uc >= 'a' && uc <= 'z') || (uc >= 'A' && uc <= 'Z') ||
+        (uc >= '0' && uc <= '9')) {
+      has_alnum = 1;
+    }
+  }
+  if (only_ws) {
+    return c_cdd_strdup("field_", _out_val);
+  }
+  cap = len * 5 + 32;
+  out = (char *)C_CDD_CALLOC(cap, sizeof(char));
   if (!out) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;
   }
-  for (i = 0; i < len; ++i) {
-    const char c = in[i];
-    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
-        (c >= '0' && c <= '9') || c == '_') {
-      out[i] = c;
+  for (i = 0; i < len && pos + 8 < cap; ++i) {
+    const unsigned char uc = (unsigned char)in[i];
+    if ((uc >= 'a' && uc <= 'z') || (uc >= 'A' && uc <= 'Z') ||
+        (uc >= '0' && uc <= '9')) {
+      out[pos++] = (char)uc;
+    } else if (uc == '_') {
+      if (pos == 0 || out[pos - 1] != '_')
+        out[pos++] = '_';
+    } else if (uc >= 0x80 || !has_alnum) {
+      static const char hex_digits[] = "0123456789abcdef";
+      out[pos++] = '_';
+      out[pos++] = 'x';
+      out[pos++] = hex_digits[(uc >> 4) & 0x0F];
+      out[pos++] = hex_digits[uc & 0x0F];
     } else {
-      out[i] = '_';
+      if (pos == 0 || out[pos - 1] != '_')
+        out[pos++] = '_';
     }
+  }
+  out[pos] = '\0';
+
+  /* Prepend '_' if first character is a digit */
+  if (pos > 0 && out[0] >= '0' && out[0] <= '9') {
+    memmove(out + 1, out, pos + 1);
+    out[0] = '_';
+    pos++;
+  }
+
+  /* Avoid ISO C90 7.1.3 reserved leading __ or _[A-Z] */
+  if (pos >= 2 && out[0] == '_' &&
+      (out[1] == '_' || (out[1] >= 'A' && out[1] <= 'Z'))) {
+    memmove(out + 1, out, pos + 1);
+    out[0] = 'f';
+    pos++;
+  }
+
+  /* Escape C89/C99/C11/C23/C++ reserved keywords */
+  {
+    int is_res = 0;
+    if (c2s_is_reserved_keyword(out, &is_res) == CDD_C_SUCCESS && is_res) {
+      out[pos++] = '_';
+      out[pos] = '\0';
+    }
+  }
+
+  /* Truncate safely to fit within sizeof(field->name) - 4 (59 chars) */
+  if (pos > 59) {
+    out[59] = '\0';
   }
 
   {
@@ -77,8 +313,7 @@ cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
     if (rc_c2s != CDD_C_SUCCESS)
       return rc_c2s;
 
-    struct_fields_get(dest, sanitized, &tmp4);
-    if (!tmp4) {
+    if (struct_fields_get(dest, sanitized, &tmp4) == CDD_C_SUCCESS && !tmp4) {
       *_out_val = sanitized;
       return CDD_C_SUCCESS;
     }
@@ -93,8 +328,7 @@ cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
   }
   {
     struct StructField *tmp5 = NULL;
-    struct_fields_get(dest, out, &tmp5);
-    if (!tmp5) {
+    if (struct_fields_get(dest, out, &tmp5) == CDD_C_SUCCESS && !tmp5) {
       *_out_val = out;
       return CDD_C_SUCCESS;
     }

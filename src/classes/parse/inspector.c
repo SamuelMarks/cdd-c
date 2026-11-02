@@ -24,6 +24,7 @@
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
 #include "classes/parse/cdd_lexer.h"
+#include "classes/parse/cdd_serde.h"
 #include "classes/parse/code2schema.h" /* For parse_struct_member_line */
 #include "classes/parse/inspector.h"
 #include "functions/parse/cst.h" /* For CST analysis */
@@ -140,9 +141,13 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                                           struct TypeDefList *out) {
   FILE *fp = NULL;
   char line[2048];
+  char pending_comment[2048];
+  size_t pending_len = 0;
   /* Simple State Machine */
   enum { ST_NONE, ST_ENUM, ST_STRUCT } state = ST_NONE;
   char current_name[64] = {0};
+  int in_union_sub = 0;
+  int in_block_comment = 0;
 
   struct EnumMembers *curr_em = NULL;
   struct StructFields *curr_sf = NULL;
@@ -151,20 +156,13 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
   if (!filename || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-#if defined(_MSC_VER)
-  if (fopen_s(&fp, filename, "r") != 0)
-    fp = NULL;
-#else
-#if defined(_MSC_VER)
-  fopen_s(&fp, filename, "r");
-#else
+  pending_comment[0] = '\0';
+
 #if defined(_MSC_VER)
   if (fopen_s(&fp, filename, "r") != 0)
     fp = NULL;
 #else
   fp = fopen(filename, "r");
-#endif
-#endif
 #endif
   if (!fp) {
     if (errno == ENOENT)
@@ -186,6 +184,30 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
 
       if (state == ST_NONE) {
         int starts1 = false, starts2 = false;
+        /* Collect standalone or leading comment lines before struct/enum */
+        if (in_block_comment || (p[0] == '/' && (p[1] == '*' || p[1] == '/'))) {
+          int is_blk = in_block_comment || (p[1] == '*');
+          char *c_end =
+              is_blk ? strstr(in_block_comment ? p : (p + 2), "*/") : NULL;
+          size_t clen = c_end ? (size_t)((c_end + 2) - p) : strlen(p);
+          size_t k;
+          for (k = 0; k < clen && pending_len + 1 < sizeof(pending_comment);
+               ++k) {
+            pending_comment[pending_len++] = p[k];
+          }
+          if (pending_len + 1 < sizeof(pending_comment))
+            pending_comment[pending_len++] = '\n';
+          pending_comment[pending_len] = '\0';
+          if (c_end) {
+            in_block_comment = 0;
+            p = c_end + 2;
+            continue;
+          } else {
+            if (is_blk)
+              in_block_comment = 1;
+            break;
+          }
+        }
         {
           cdd_c_error_t rc_str = c_cdd_str_starts_with(p, "enum ", &starts1);
           if (rc_str != CDD_C_SUCCESS) {
@@ -251,6 +273,13 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                 rc = CDD_C_ERROR_MEMORY;
                 break;
               }
+              if (pending_comment[0] != '\0') {
+                rc = cdd_serde_parse_enum_comment(pending_comment, curr_em);
+                pending_comment[0] = '\0';
+                pending_len = 0;
+                if (rc != CDD_C_SUCCESS)
+                  break;
+              }
               state = ST_ENUM;
             } else {
               curr_sf =
@@ -258,6 +287,14 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
               if (!curr_sf || struct_fields_init(curr_sf) != 0) {
                 rc = CDD_C_ERROR_MEMORY;
                 break;
+              }
+              if (pending_comment[0] != '\0') {
+                rc =
+                    cdd_serde_parse_container_comment(pending_comment, curr_sf);
+                pending_comment[0] = '\0';
+                pending_len = 0;
+                if (rc != CDD_C_SUCCESS)
+                  break;
               }
               state = ST_STRUCT;
             }
@@ -268,14 +305,34 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
           } else {
             /* No brace found, possibly forward decl or split line. Skip line.
              */
+            pending_comment[0] = '\0';
+            pending_len = 0;
             break;
           }
         }
         /* Skip unknown content in ST_NONE */
+        if (*p == ';') {
+          pending_comment[0] = '\0';
+          pending_len = 0;
+        }
         p++;
       } else {
         /* Inside a definition block */
         close_brace = strchr(p, '}');
+
+        if (close_brace && state == ST_STRUCT && in_union_sub) {
+          /* Closing `}` of nested `union { ... } data;` inside a tagged union
+           * struct */
+          in_union_sub = 0;
+          pending_comment[0] = '\0';
+          pending_len = 0;
+          p = close_brace + 1;
+          while (*p && (*p != ';' && *p != '}'))
+            p++;
+          if (*p == ';')
+            p++;
+          continue;
+        }
 
         if (close_brace) {
           *close_brace =
@@ -285,53 +342,18 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
         /* Parse Member string in p (up to terminator) */
         /* For enums on one line: "A, B" */
         if (state == ST_ENUM && *p) {
-          char *copy = NULL;
-          {
-            cdd_c_error_t rc_str = c_cdd_strdup(p, &copy);
-            if (rc_str != CDD_C_SUCCESS) {
-              rc = rc_str;
-              break;
+          if (p[0] == '/' && (p[1] == '*' || p[1] == '/') &&
+              strchr(p, ',') == NULL) {
+            size_t clen = strlen(p);
+            size_t k;
+            for (k = 0; k < clen && pending_len + 1 < sizeof(pending_comment);
+                 ++k) {
+              pending_comment[pending_len++] = p[k];
             }
-          }
-          {
-            char *ctx = NULL;
-#ifdef _WIN32
-            char *tok = strtok_s(copy, ",", &ctx);
-#else
-            char *tok = strtok_r(copy, ",", &ctx);
-#endif
-            while (tok) {
-              char *eq = strchr(tok, '=');
-              if (eq)
-                *eq = 0;
-              c_cdd_str_trim_trailing_whitespace(tok);
-              while (*tok && isspace((unsigned char)*tok))
-                tok++;
-              if (*tok) {
-                cdd_c_error_t rc_str = enum_members_add(curr_em, tok);
-                if (rc_str != CDD_C_SUCCESS) {
-                  rc = rc_str;
-                  C_CDD_FREE(copy);
-                  copy = NULL;
-                  break;
-                }
-              }
-#ifdef _WIN32
-              tok = strtok_s(NULL, ",", &ctx);
-#else
-              tok = strtok_r(NULL, ",", &ctx);
-#endif
-            }
-            if (copy) {
-              C_CDD_FREE(copy);
-              copy = NULL;
-            }
-            if (rc != CDD_C_SUCCESS)
-              break;
-          }
-        } else if (state == ST_STRUCT) {
-          if (*p) {
-            /* Support multiple fields on same line separated by semicolon */
+            if (pending_len + 1 < sizeof(pending_comment))
+              pending_comment[pending_len++] = '\n';
+            pending_comment[pending_len] = '\0';
+          } else {
             char *copy = NULL;
             {
               cdd_c_error_t rc_str = c_cdd_strdup(p, &copy);
@@ -343,28 +365,136 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
             {
               char *ctx = NULL;
 #ifdef _WIN32
-              char *tok = strtok_s(copy, ";", &ctx);
+              char *tok = strtok_s(copy, ",", &ctx);
 #else
-              char *tok = strtok_r(copy, ";", &ctx);
+              char *tok = strtok_r(copy, ",", &ctx);
 #endif
               while (tok) {
-                /* Ensure not just whitespace */
-                char *chk = tok;
-                while (*chk && isspace((unsigned char)*chk))
-                  chk++;
-                if (*chk) {
-                  cdd_c_error_t rc_str = parse_struct_member_line(tok, curr_sf);
+                char var_cmt[512];
+                size_t vc_pos = 0;
+                char var_rename[64] = {0};
+                int var_skip = 0;
+                int var_other = 0;
+                enum CddSerdeCaseRule var_case = CDD_SERDE_CASE_NONE;
+                char var_rep_from[32] = {0};
+                char var_rep_to[32] = {0};
+                char *c_start;
+                char *eq;
+
+                var_cmt[0] = '\0';
+                if (pending_comment[0] != '\0') {
+                  size_t k;
+                  for (k = 0; pending_comment[k] != '\0' &&
+                              vc_pos + 1 < sizeof(var_cmt);
+                       ++k) {
+                    var_cmt[vc_pos++] = pending_comment[k];
+                  }
+                  var_cmt[vc_pos] = '\0';
+                  pending_comment[0] = '\0';
+                  pending_len = 0;
+                }
+                while ((c_start = strstr(tok, "/*")) != NULL) {
+                  char *c_end = strstr(c_start + 2, "*/");
+                  size_t clen =
+                      c_end ? (size_t)((c_end + 2) - c_start) : strlen(c_start);
+                  size_t k;
+                  for (k = 0; k < clen && vc_pos + 1 < sizeof(var_cmt); ++k)
+                    var_cmt[vc_pos++] = c_start[k];
+                  var_cmt[vc_pos] = '\0';
+                  if (c_end)
+                    memmove(c_start, c_end + 2, strlen(c_end + 2) + 1);
+                  else
+                    *c_start = '\0';
+                }
+                eq = strchr(tok, '=');
+                if (eq)
+                  *eq = 0;
+                c_cdd_str_trim_trailing_whitespace(tok);
+                while (*tok && isspace((unsigned char)*tok))
+                  tok++;
+                if (*tok) {
+                  char effective_rename[128] = {0};
+                  const char *member_tok = tok;
+                  size_t ename_len = strlen(current_name);
+                  cdd_c_error_t rc_str;
+                  if (ename_len > 0 &&
+                      strncmp(tok, current_name, ename_len) == 0 &&
+                      tok[ename_len] == '_' && tok[ename_len + 1] != '\0') {
+                    member_tok = tok + ename_len + 1;
+                  }
+                  if (var_cmt[0] != '\0') {
+                    rc_str = cdd_serde_parse_enum_variant_comment_ex(
+                        var_cmt, var_rename, sizeof(var_rename), &var_skip,
+                        &var_case, var_rep_from, sizeof(var_rep_from),
+                        var_rep_to, sizeof(var_rep_to), &var_other, NULL, 0);
+                    if (rc_str != CDD_C_SUCCESS) {
+                      rc = rc_str;
+                      C_CDD_FREE(copy);
+                      copy = NULL;
+                      break;
+                    }
+                  }
+                  if (var_rename[0] != '\0') {
+                    CDD_STRCPY(effective_rename, sizeof(effective_rename),
+                               var_rename);
+                  } else if (var_case != CDD_SERDE_CASE_NONE ||
+                             var_rep_from[0] != '\0') {
+                    char tmp_v[128];
+                    CDD_STRCPY(tmp_v, sizeof(tmp_v), member_tok);
+                    if (var_case != CDD_SERDE_CASE_NONE) {
+                      rc_str = cdd_serde_transform_case(
+                          tmp_v, var_case, effective_rename,
+                          sizeof(effective_rename));
+                      if (rc_str != CDD_C_SUCCESS) {
+                        rc = rc_str;
+                        C_CDD_FREE(copy);
+                        copy = NULL;
+                        break;
+                      }
+                      CDD_STRCPY(tmp_v, sizeof(tmp_v), effective_rename);
+                    }
+                    if (var_rep_from[0] != '\0') {
+                      rc_str = cdd_serde_replace_str(
+                          tmp_v, var_rep_from, var_rep_to, effective_rename,
+                          sizeof(effective_rename));
+                      if (rc_str != CDD_C_SUCCESS) {
+                        rc = rc_str;
+                        C_CDD_FREE(copy);
+                        copy = NULL;
+                        break;
+                      }
+                    }
+                  }
+                  rc_str = enum_members_add_ex(
+                      curr_em, member_tok,
+                      effective_rename[0] ? effective_rename : NULL, var_skip);
                   if (rc_str != CDD_C_SUCCESS) {
                     rc = rc_str;
                     C_CDD_FREE(copy);
                     copy = NULL;
                     break;
                   }
+                  if (var_other) {
+                    curr_em->serde_other_idx = (int)(curr_em->size - 1);
+                  }
+                  if (var_cmt[0] != '\0') {
+                    rc_str = cdd_serde_parse_enum_variant_comment_ex(
+                        var_cmt, var_rename, sizeof(var_rename), &var_skip,
+                        &var_case, var_rep_from, sizeof(var_rep_from),
+                        var_rep_to, sizeof(var_rep_to), NULL, curr_em,
+                        curr_em->size - 1);
+                    if (rc_str != CDD_C_SUCCESS) {
+                      rc = rc_str;
+                      C_CDD_FREE(copy);
+                      copy = NULL;
+                      break;
+                    }
+                  }
                 }
 #ifdef _WIN32
-                tok = strtok_s(NULL, ";", &ctx);
+                tok = strtok_s(NULL, ",", &ctx);
 #else
-                tok = strtok_r(NULL, ";", &ctx);
+                tok = strtok_r(NULL, ",", &ctx);
 #endif
               }
               if (copy) {
@@ -375,9 +505,125 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                 break;
             }
           }
+        } else if (state == ST_STRUCT) {
+          if (*p) {
+            /* Check for nested `union {` inside tagged union struct */
+            if (strncmp(p, "union", 5) == 0 &&
+                (isspace((unsigned char)p[5]) || p[5] == '{') &&
+                strchr(p, '{') != NULL) {
+              char *ubrace = strchr(p, '{');
+              in_union_sub = 1;
+              curr_sf->is_union = 1;
+              /* Remove preceding `enum <Name>_tag tag;` field if present */
+              if (curr_sf->size > 0 &&
+                  strcmp(curr_sf->fields[curr_sf->size - 1].name, "tag") == 0) {
+                curr_sf->size--;
+              }
+              p = ubrace + 1;
+              if (close_brace) {
+                *close_brace = '}';
+                close_brace = NULL;
+              }
+              continue;
+            }
+            /* If the line is purely a comment without ';', accumulate into
+             * pending_comment for the next field */
+            if (p[0] == '/' && (p[1] == '*' || p[1] == '/') &&
+                strchr(p, ';') == NULL) {
+              size_t clen = strlen(p);
+              size_t k;
+              for (k = 0; k < clen && pending_len + 1 < sizeof(pending_comment);
+                   ++k) {
+                pending_comment[pending_len++] = p[k];
+              }
+              if (pending_len + 1 < sizeof(pending_comment))
+                pending_comment[pending_len++] = '\n';
+              pending_comment[pending_len] = '\0';
+            } else {
+              /* Support multiple fields on same line separated by semicolon,
+               * while attaching trailing comments on the same line to the
+               * preceding field */
+              char *copy = NULL;
+              {
+                cdd_c_error_t rc_str = c_cdd_strdup(p, &copy);
+                if (rc_str != CDD_C_SUCCESS) {
+                  rc = rc_str;
+                  break;
+                }
+              }
+              {
+                char *ctx = NULL;
+#ifdef _WIN32
+                char *tok = strtok_s(copy, ";", &ctx);
+#else
+                char *tok = strtok_r(copy, ";", &ctx);
+#endif
+                while (tok) {
+                  /* Ensure not just whitespace */
+                  char *chk = tok;
+                  while (*chk && isspace((unsigned char)*chk))
+                    chk++;
+                  if (*chk) {
+                    if (chk[0] == '/' && (chk[1] == '*' || chk[1] == '/')) {
+                      /* Trailing comment after ';' on same line -> apply to
+                       * most recently added field if any */
+                      if (curr_sf->size > 0) {
+                        cdd_c_error_t rc_sc = cdd_serde_parse_field_comment(
+                            chk, &curr_sf->fields[curr_sf->size - 1]);
+                        if (rc_sc != CDD_C_SUCCESS) {
+                          rc = rc_sc;
+                          C_CDD_FREE(copy);
+                          copy = NULL;
+                          break;
+                        }
+                      }
+                    } else {
+                      size_t prev_sz = curr_sf->size;
+                      cdd_c_error_t rc_str =
+                          parse_struct_member_line(tok, curr_sf);
+                      if (rc_str != CDD_C_SUCCESS) {
+                        rc = rc_str;
+                        C_CDD_FREE(copy);
+                        copy = NULL;
+                        break;
+                      }
+                      if (curr_sf->size > prev_sz &&
+                          pending_comment[0] != '\0') {
+                        rc_str = cdd_serde_parse_field_comment(
+                            pending_comment,
+                            &curr_sf->fields[curr_sf->size - 1]);
+                        pending_comment[0] = '\0';
+                        pending_len = 0;
+                        if (rc_str != CDD_C_SUCCESS) {
+                          rc = rc_str;
+                          C_CDD_FREE(copy);
+                          copy = NULL;
+                          break;
+                        }
+                      }
+                    }
+                  }
+#ifdef _WIN32
+                  tok = strtok_s(NULL, ";", &ctx);
+#else
+                  tok = strtok_r(NULL, ";", &ctx);
+#endif
+                }
+                if (copy) {
+                  C_CDD_FREE(copy);
+                  copy = NULL;
+                }
+                if (rc != CDD_C_SUCCESS)
+                  break;
+              }
+            }
+          }
         }
 
         if (close_brace) {
+          pending_comment[0] = '\0';
+          pending_len = 0;
+          in_union_sub = 0;
           /* Definition Ended */
           if (current_name[0] != '\0') {
             if (state == ST_ENUM) {
@@ -388,6 +634,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
               }
               curr_em = NULL;
             } else {
+              c2s_collapse_arrays(curr_sf);
               if (add_type_def(out, KIND_STRUCT, current_name, curr_sf) != 0) {
                 struct_fields_free(curr_sf);
                 C_CDD_FREE(curr_sf);

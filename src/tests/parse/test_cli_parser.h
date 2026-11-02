@@ -212,10 +212,67 @@ TEST test_cli_parser_getopt(void) {
 }
 
 /**
- * @brief Placeholder test for CLI mappings.
+ * @brief Tests `getopt_long` `struct option` extraction, `strcmp(argv[i], ...)`
+ * extraction, `getenv("...")` fallback association, and
+ * `cli_command_to_struct_fields`.
  * @return Test or helper result.
  */
 TEST test_cli_parser_mappings(void) {
+  const char src[] =
+      "static struct option long_opts[] = {\n"
+      "  { \"input\", required_argument, 0, 'i' },\n"
+      "  { \"verbose\", no_argument, 0, 'v' },\n"
+      "  { 0, 0, 0, 0 }\n"
+      "};\n"
+      "int main(int argc, char **argv) {\n"
+      "  const char *input = getenv(\"CDD_INPUT\");\n"
+      "  int port = 8080;\n"
+      "  int i;\n"
+      "  for (i = 1; i < argc; ++i) {\n"
+      "    if (strcmp(argv[i], \"--input\") == 0 && i + 1 < argc) {\n"
+      "      input = argv[++i];\n"
+      "    } else if (strcmp(argv[i], \"--port\") == 0 && i + 1 < argc) {\n"
+      "      port = atoi(argv[++i]);\n"
+      "    }\n"
+      "  }\n"
+      "  return 0;\n"
+      "}\n";
+  struct TokenList *tokens = NULL;
+  struct CstNodeList *nodes =
+      (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
+  struct CliCommand cmd;
+  struct StructFields sf;
+  az_span span = az_span_create((uint8_t *)(size_t)src, strlen(src));
+
+  ASSERT_EQ(0, tokenize(span, &tokens));
+  ASSERT_EQ(0, parse_tokens(tokens, nodes));
+  ASSERT_EQ(CDD_C_SUCCESS, cst_extract_cli_command(nodes, tokens, &cmd));
+
+  ASSERT(cmd.n_options >= 3);
+  ASSERT_EQ('i', cmd.options[0].short_flag);
+  ASSERT_STR_EQ("input", cmd.options[0].long_flag);
+  ASSERT_EQ(1, cmd.options[0].has_arg);
+  ASSERT_STR_EQ("input", cmd.options[0].mapped_struct_field);
+  ASSERT_STR_EQ("CDD_INPUT", cmd.options[0].env_var);
+
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cli_command_to_struct_fields(NULL, &sf));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cli_command_to_struct_fields(&cmd, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cli_command_to_struct_fields(&cmd, &sf));
+  ASSERT_EQ(1, sf.is_cli_command);
+  ASSERT(sf.size >= 3);
+  ASSERT_STR_EQ("input", sf.fields[0].name);
+  ASSERT_EQ('i', sf.fields[0].cli_short);
+  ASSERT_STR_EQ("input", sf.fields[0].cli_long);
+  ASSERT_STR_EQ("CDD_INPUT", sf.fields[0].cli_env);
+
+  struct_fields_free(&sf);
+  cli_command_free(&cmd);
+  free_cst_node_list(nodes);
+  free(nodes);
+  free_token_list(tokens);
   g_fail_io_after = -1;
   PASS();
 }

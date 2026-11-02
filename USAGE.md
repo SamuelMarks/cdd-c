@@ -36,6 +36,45 @@ cdd-c serve_json_rpc --port 8080 --listen 127.0.0.1
 
 ---
 
+## Serde-Style C89 Reflection & Declarative CLI (`structopt` / `clap`) Codegen
+
+Annotate any C89 `struct`, `enum`, or tagged `union` in a header file with `/* @cdd ... */` or `/* @cdd cli(...) */` directives and run `sync_code` (or `code2schema` / `schema2code`) to generate JSON, form, schema, and command-line parsers:
+
+```c
+/**
+ * @brief Deployment CLI & JSON configuration
+ * @cdd rename_all = "camelCase", deny_unknown_fields
+ * @cdd cli(name = "deploy-ctl", version = "1.0.0", env_prefix = "DEPLOY_")
+ */
+struct DeployConfig {
+  /* @cdd rename = "target-host", alias = "host" */
+  /* @cdd cli(short = 'H', long = "host", env, required, help = "Target hostname") */
+  char *target_host;
+
+  /* @cdd skip_serializing_if = "zero" */
+  /* @cdd cli(short = 'v', long = "verbose", action = "count", help = "Verbosity level") */
+  int verbose;
+
+  /* @cdd cli(long = "color", negatable, default = "1", help = "Enable colored output") */
+  int color;
+
+  /* @cdd cli(short = 't', long = "tag", value_delimiter = ',', help = "Deployment tags") */
+  size_t n_tags;
+  char **tags;
+
+  /* @cdd flatten */
+  struct AuthOpts *auth;
+};
+```
+
+Running `sync_code deploy.h deploy.c` generates:
+- `DeployConfig_to_json` / `DeployConfig_from_json` / `DeployConfig_from_jsonObject`
+- `DeployConfig_from_cli` / `DeployConfig_parse_cli_into` / `DeployConfig_to_cli_argv`
+- `DeployConfig_print_help` / `DeployConfig_print_version` / `DeployConfig_print_completions`
+- `DeployConfig_default` / `DeployConfig_deepcopy` / `DeployConfig_eq` / `DeployConfig_cleanup`
+
+---
+
 ## Database Migration Management & `c-orm` Integration
 
 `cdd-c` provides a complete database migration management system out of the box to securely prepare target development schemas prior to `c-orm` code generation.

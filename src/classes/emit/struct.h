@@ -84,6 +84,69 @@ struct StructField {
                             name[]`, 0 otherwise */
   char bit_width[16]; /**< Bit-field width literal (e.g. "3", "8"), or empty if
                          not a bit-field */
+
+  /* Serde Reflection & Rewriting Metadata */
+  char serde_rename[64];     /**< Explicit wire name override for ser & de */
+  char serde_rename_ser[64]; /**< Explicit wire name override for serialize */
+  char serde_rename_de[64];  /**< Explicit wire name override for deserialize */
+  enum CddSerdeCaseRule serde_case; /**< Field-level case transformation rule */
+  char serde_replace_from[32];      /**< Field-level substring replace source */
+  char serde_replace_to[32];        /**< Field-level substring replace target */
+  char **serde_aliases;   /**< Alternative JSON keys accepted on deserialize */
+  size_t n_serde_aliases; /**< Count of serde_aliases */
+  int serde_skip;         /**< 1 if skipped in both serialize and deserialize */
+  int serde_skip_serializing;   /**< 1 if omitted during serialization */
+  int serde_skip_deserializing; /**< 1 if ignored during deserialization */
+  enum CddSerdeSkipIfKind
+      serde_skip_if_kind;    /**< Conditional skip predicate kind */
+  char serde_skip_if_fn[64]; /**< Custom C predicate function for skip_if */
+  int serde_flatten; /**< 1 if nested object keys are flattened into parent */
+  int serde_has_default;         /**< 1 if \@cdd default is set on this field */
+  char serde_default_fn[64];     /**< Optional custom default initializer fn */
+  char serde_with[64];           /**< Custom codec module prefix */
+  char serde_serialize_with[64]; /**< Custom serializer function name */
+  char serde_deserialize_with[64]; /**< Custom deserializer function name */
+
+  /* CLI Argument Reflection Metadata (clap / structopt parity) */
+  char cli_short; /**< Single-char short option (e.g. 'f'), 0 if none */
+  char cli_short_aliases[8]; /**< Extra short option characters */
+  char cli_long[64];         /**< Explicit long option name override */
+  int cli_has_long; /**< 1 if long flag is enabled, -1 if explicitly disabled */
+  int cli_negatable;  /**< 1 if `--no-<long>` boolean negation is enabled */
+  int cli_positional; /**< 1 if argument is positional */
+  int cli_index;      /**< 0-based explicit positional index, or -1 */
+  int cli_last;       /**< 1 if positional only matched after `--` */
+  int cli_trailing_var_arg;  /**< 1 if captures all remaining arguments */
+  char cli_value_name[64];   /**< Placeholder shown in usage/help */
+  char cli_help[256];        /**< Short one-line help text */
+  char *cli_long_help;       /**< Heap-allocated multi-line help text */
+  char cli_help_heading[64]; /**< Custom help section heading */
+  char cli_env[64];          /**< Environment variable fallback name */
+  int cli_hide_env;          /**< 1 to hide [env: ...] from --help */
+  int cli_hide_env_values;   /**< 1 to hide env value from --help */
+  char cli_default_missing_val[64]; /**< Value used when flag has no =val */
+  int cli_hide_default_value;       /**< 1 to omit [default: ...] in --help */
+  enum CddCliAction cli_action;     /**< CLI argument action behavior */
+  enum CddCliValueHint cli_value_hint; /**< Shell completion value hint */
+  char cli_value_delimiter; /**< Delimiter char to split array values, or 0 */
+  int cli_num_args_min;     /**< Min values per occurrence (0 = default) */
+  int cli_num_args_max;     /**< Max values per occurrence (-1 = unbounded) */
+  int cli_require_equals;   /**< 1 to require --opt=val syntax */
+  int cli_allow_hyphen_values;  /**< 1 to allow values starting with '-' */
+  int cli_global;               /**< 1 if option propagates to subcommands */
+  int cli_hidden;               /**< 1 to omit option from --help */
+  int cli_exclusive;            /**< 1 if cannot be combined with other args */
+  int cli_subcommand;           /**< 1 if field is the subcommand target */
+  char cli_value_parser[64];    /**< Custom C validator/parser function name */
+  char cli_group[64];           /**< ArgGroup name for mutual exclusion */
+  char **cli_conflicts_with;    /**< Array of conflicting field names */
+  size_t n_cli_conflicts_with;  /**< Count of cli_conflicts_with */
+  char **cli_requires;          /**< Array of required companion field names */
+  size_t n_cli_requires;        /**< Count of cli_requires */
+  char **cli_required_unless;   /**< Array of alternative satisfying fields */
+  size_t n_cli_required_unless; /**< Count of cli_required_unless */
+  char cli_required_if_field[64]; /**< Conditional requirement target field */
+  char cli_required_if_val[64];   /**< Conditional requirement trigger value */
 };
 
 /**
@@ -127,6 +190,48 @@ struct StructFields {
   char *union_discriminator; /**< Discriminator property name, if any */
   struct UnionVariantMeta *union_variants; /**< Per-variant metadata */
   size_t n_union_variants;                 /**< Count of union variants */
+
+  /* Container-level Serde Reflection & Rewriting Metadata */
+  char serde_rename[64]; /**< Container-level explicit schema name override */
+  enum CddSerdeCaseRule serde_rename_all;     /**< Container-wide case rule */
+  enum CddSerdeCaseRule serde_rename_all_ser; /**< Serialize-only case rule */
+  enum CddSerdeCaseRule serde_rename_all_de;  /**< Deserialize-only case rule */
+  char serde_replace_from[32];   /**< Container-wide substring replace source */
+  char serde_replace_to[32];     /**< Container-wide substring replace target */
+  char serde_prefix[64];         /**< Container-wide field prefix rule */
+  char serde_suffix[64];         /**< Container-wide field suffix rule */
+  int serde_deny_unknown_fields; /**< 1 if unknown JSON fields are rejected */
+  int serde_default;             /**< 1 if missing fields use struct defaults */
+  char serde_tag[64];            /**< Sum-type tag property name */
+  char serde_content[64];        /**< Sum-type adjacent content property name */
+  int serde_untagged;            /**< 1 if sum-type is untagged */
+
+  /* Container-level CLI Reflection Metadata (clap / structopt Command) */
+  int is_cli_command;           /**< 1 if \@cdd cli / \@cli is active */
+  char cli_name[64];            /**< Binary or subcommand name override */
+  char cli_bin_name[64];        /**< Usage display binary name override */
+  char cli_version[64];         /**< Version string override */
+  char cli_author[128];         /**< Author string override */
+  char cli_about[256];          /**< Short one-line command summary */
+  char *cli_long_about;         /**< Heap-allocated multi-line description */
+  char *cli_before_help;        /**< Heap-allocated banner before --help */
+  char *cli_after_help;         /**< Heap-allocated footer after --help */
+  char cli_usage_override[256]; /**< Custom Usage: string override */
+  enum CddSerdeCaseRule cli_rename_all;     /**< Case rule for long flags */
+  enum CddSerdeCaseRule cli_rename_all_env; /**< Case rule for env vars */
+  char cli_env_prefix[64];            /**< Prefix for inferred env variables */
+  int cli_arg_required_else_help;     /**< 1 if argc==1 prints help and exits */
+  int cli_subcommand_required;        /**< 1 if subcommand is mandatory */
+  int cli_allow_external_subcommands; /**< 1 to allow catch-all subcommands */
+  int cli_disable_help_flag;          /**< 1 to omit built-in -h/--help */
+  int cli_disable_version_flag;       /**< 1 to omit built-in -V/--version */
+  int cli_disable_help_subcommand;    /**< 1 to omit built-in help subcommand */
+  int cli_propagate_version; /**< 1 to propagate version to subcommands */
+  int cli_allow_windows_slash_flags; /**< 1 to accept /flag and /? on _WIN32 */
+  int cli_allow_response_files;      /**< 1 to expand `@file.rsp` arguments */
+  int cli_case_insensitive_flags;    /**< 1 to match flags case-insensitively */
+  char **cli_aliases;                /**< Subcommand aliases array */
+  size_t n_cli_aliases;              /**< Count of cli_aliases */
 };
 
 /**
@@ -181,6 +286,58 @@ extern C_CDD_EXPORT cdd_c_error_t struct_fields_add(
 extern C_CDD_EXPORT cdd_c_error_t
 struct_fields_get(const struct StructFields *sf, const char *name,
                   struct StructField **_out_val);
+
+/**
+ * @brief Appends a deserialization alias key to a StructField.
+ *
+ * @param[in,out] f Pointer to the target StructField.
+ * @param[in] alias Alternative JSON key string to accept during
+ * deserialization.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t struct_field_add_alias(struct StructField *f,
+                                                         const char *alias);
+
+/**
+ * @brief Appends a CLI subcommand alias to a StructFields container.
+ *
+ * @param[in,out] sf Pointer to the target StructFields container.
+ * @param[in] alias Subcommand alias string to accept.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+struct_fields_add_cli_alias(struct StructFields *sf, const char *alias);
+
+/**
+ * @brief Appends a conflicting CLI field name to a StructField.
+ *
+ * @param[in,out] f Pointer to the target StructField.
+ * @param[in] conflict Name of the conflicting field.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+struct_field_add_cli_conflict(struct StructField *f, const char *conflict);
+
+/**
+ * @brief Appends a required companion CLI field name to a StructField.
+ *
+ * @param[in,out] f Pointer to the target StructField.
+ * @param[in] req Name of the required field.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+struct_field_add_cli_requires(struct StructField *f, const char *req);
+
+/**
+ * @brief Appends an alternative satisfying CLI field name (`required_unless`)
+ * to a StructField.
+ *
+ * @param[in,out] f Pointer to the target StructField.
+ * @param[in] req Name of the alternative field.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+struct_field_add_cli_required_unless(struct StructField *f, const char *req);
 
 /* --- Generator Functions --- */
 

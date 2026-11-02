@@ -1061,11 +1061,14 @@ C_CDD_EXPORT cdd_c_error_t c2openapi_cli_main(int argc, char **argv) {
  */
 C_CDD_EXPORT cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
   cdd_docs_json_config_t cfg;
+  const char *env_val;
   int i;
 
   memset(&cfg, 0, sizeof(cfg));
-  cfg.input = getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_FILE");
-  cfg.output = getenv("CDD_OUTPUT") ? getenv("CDD_OUTPUT") : getenv("OUT_FILE");
+  env_val = getenv("CDD_INPUT");
+  cfg.input = env_val ? env_val : getenv("INPUT_FILE");
+  env_val = getenv("CDD_OUTPUT");
+  cfg.output = env_val ? env_val : getenv("OUT_FILE");
   cfg.no_imports = getenv("CDD_NO_IMPORTS") ? 1 : 0;
   cfg.no_wrapping = getenv("CDD_NO_WRAPPING") ? 1 : 0;
 

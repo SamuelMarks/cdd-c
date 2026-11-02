@@ -16,3 +16,4 @@ QUIET                  = YES
 NUM_PROC_THREADS       = 1
 GENERATE_HTML          = YES
 GENERATE_LATEX         = NO
+ALIASES                = "cdd=@par cdd:" "serde=@par serde:" "cli=@par cli:"

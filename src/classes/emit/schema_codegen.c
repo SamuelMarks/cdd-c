@@ -202,20 +202,37 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
 
   /* Pass 1: Forward Decls */
   for (i = 0; i < json_object_get_count(schemas_obj); i++) {
-    const char *name = json_object_get_name(schemas_obj, i);
+    const char *raw_name = json_object_get_name(schemas_obj, i);
     const JSON_Object *s =
         json_value_get_object(json_object_get_value_at(schemas_obj, i));
     struct StructFields sf;
     int is_object_schema = 0;
     const char *type = json_object_get_string(s, "type");
     const JSON_Object *props = json_object_get_object(s, "properties");
+    const char *c_name_ext = json_object_get_string(s, "x-cdd-c-name");
+    char c_name[64];
+    char *san_name = NULL;
+    int needs_san = 0;
+
+    if (c_name_ext && c_name_ext[0] != '\0') {
+      CDD_STRCPY(c_name, sizeof(c_name), c_name_ext);
+    } else if (c2s_needs_identifier_sanitization(raw_name, &needs_san) ==
+                   CDD_C_SUCCESS &&
+               needs_san &&
+               sanitize_identifier(raw_name, &san_name) == CDD_C_SUCCESS &&
+               san_name) {
+      CDD_STRCPY(c_name, sizeof(c_name), san_name);
+      C_CDD_FREE(san_name);
+    } else {
+      CDD_STRCPY(c_name, sizeof(c_name), raw_name);
+    }
 
     if (struct_fields_init(&sf) != 0) {
       fclose(fp);
       return CDD_C_ERROR_MEMORY;
     }
-    if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj, name) !=
-        0) {
+    if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj,
+                                                raw_name) != 0) {
       struct_fields_free(&sf);
       fclose(fp);
       return CDD_C_ERROR_MEMORY;
@@ -225,7 +242,7 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
         (type && strcmp(type, "object") == 0) || props != NULL || sf.size > 0;
 
     if (sf.is_union || is_object_schema) {
-      F_CHECK_RC_TESTABLE_SF(write_forward_decl(fp, name));
+      F_CHECK_RC_TESTABLE_SF(write_forward_decl(fp, c_name));
     }
     struct_fields_free(&sf);
   }
@@ -233,34 +250,57 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
 
   /* Pass 2: Definitions */
   for (i = 0; i < json_object_get_count(schemas_obj); i++) {
-    const char *name = json_object_get_name(schemas_obj, i);
+    const char *raw_name = json_object_get_name(schemas_obj, i);
     const JSON_Object *s =
         json_value_get_object(json_object_get_value_at(schemas_obj, i));
     struct StructFields sf;
     int is_object_schema = 0;
     const char *type = json_object_get_string(s, "type");
     const JSON_Object *props = json_object_get_object(s, "properties");
+    const char *c_name_ext = json_object_get_string(s, "x-cdd-c-name");
+    char c_name[64];
+    char *san_name = NULL;
+    int needs_san = 0;
+
+    if (c_name_ext && c_name_ext[0] != '\0') {
+      CDD_STRCPY(c_name, sizeof(c_name), c_name_ext);
+    } else if (c2s_needs_identifier_sanitization(raw_name, &needs_san) ==
+                   CDD_C_SUCCESS &&
+               needs_san &&
+               sanitize_identifier(raw_name, &san_name) == CDD_C_SUCCESS &&
+               san_name) {
+      CDD_STRCPY(c_name, sizeof(c_name), san_name);
+      C_CDD_FREE(san_name);
+    } else {
+      CDD_STRCPY(c_name, sizeof(c_name), raw_name);
+    }
 
     if (struct_fields_init(&sf) != 0) {
       fclose(fp);
       return CDD_C_ERROR_MEMORY;
     }
-    if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj, name) !=
-        0) {
+    if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj,
+                                                raw_name) != 0) {
       struct_fields_free(&sf);
       fclose(fp);
       return CDD_C_ERROR_MEMORY;
+    }
+
+    if (strcmp(c_name, raw_name) != 0 && sf.serde_rename[0] == '\0') {
+      CDD_STRCPY(sf.serde_rename, sizeof(sf.serde_rename), raw_name);
     }
 
     is_object_schema =
         (type && strcmp(type, "object") == 0) || props != NULL || sf.size > 0;
 
     if (sf.is_enum) {
-      F_CHECK_RC_TESTABLE_SF(write_enum_declaration_h(fp, name, &sf, config));
+      F_CHECK_RC_TESTABLE_SF(write_enum_declaration_h(fp, c_name, &sf, config));
     } else if (sf.is_union) {
-      F_CHECK_RC_TESTABLE_SF(write_union_declaration_h(fp, name, &sf, config));
+      F_CHECK_RC_TESTABLE_SF(
+          write_union_declaration_h(fp, c_name, &sf, config));
     } else if (is_object_schema) {
-      F_CHECK_RC_TESTABLE_SF(write_struct_declaration_h(fp, name, &sf, config));
+      F_CHECK_RC_TESTABLE_SF(
+          write_struct_declaration_h(fp, c_name, &sf, config));
     }
 
     struct_fields_free(&sf);
@@ -339,20 +379,37 @@ C_CDD_EXPORT cdd_c_error_t generate_source(const char *prefix,
                    basename));
 
   for (i = 0; i < json_object_get_count(schemas_obj); i++) {
-    const char *name = json_object_get_name(schemas_obj, i);
+    const char *raw_name = json_object_get_name(schemas_obj, i);
     const JSON_Object *s =
         json_value_get_object(json_object_get_value_at(schemas_obj, i));
     const char *type = json_object_get_string(s, "type");
     const JSON_Object *props = json_object_get_object(s, "properties");
+    const char *c_name_ext = json_object_get_string(s, "x-cdd-c-name");
+    char name[64];
+    char *san_name = NULL;
     struct StructFields sf;
     int is_object_schema = 0;
+    int needs_san = 0;
+
+    if (c_name_ext && c_name_ext[0] != '\0') {
+      CDD_STRCPY(name, sizeof(name), c_name_ext);
+    } else if (c2s_needs_identifier_sanitization(raw_name, &needs_san) ==
+                   CDD_C_SUCCESS &&
+               needs_san &&
+               sanitize_identifier(raw_name, &san_name) == CDD_C_SUCCESS &&
+               san_name) {
+      CDD_STRCPY(name, sizeof(name), san_name);
+      C_CDD_FREE(san_name);
+    } else {
+      CDD_STRCPY(name, sizeof(name), raw_name);
+    }
 
     if (struct_fields_init(&sf) != 0) {
       fclose(fp);
       return CDD_C_ERROR_MEMORY;
     }
-    if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj, name) !=
-        0) {
+    if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj,
+                                                raw_name) != 0) {
       struct_fields_free(&sf);
       fclose(fp);
       return CDD_C_ERROR_MEMORY; /* Parse error */

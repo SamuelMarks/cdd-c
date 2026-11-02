@@ -832,6 +832,259 @@ TEST test_codegen_struct_null_args(void) {
 }
 
 /**
+ * @brief Tests hostile OpenAPI property names, keywords, UTF-8, collisions,
+ * enums, and full roundtrip through codegen -> inspector -> sync_code ->
+ * code2schema.
+ *
+ * @return Greatest test result.
+ */
+TEST test_hostile_openapi_property_and_schema_names(void) {
+  char *out = NULL;
+  JSON_Value *root_val = NULL;
+  JSON_Object *schemas_obj = NULL;
+  JSON_Object *hostile_obj = NULL;
+  JSON_Object *enum_obj = NULL;
+  struct StructFields sf;
+  struct StructFields enum_sf;
+  struct StructField *f = NULL;
+  const char *hdr_file = "test_hostile_roundtrip.h";
+  const char *impl_file = "test_hostile_roundtrip.c";
+  const char *out_schema_file = "test_hostile_roundtrip.json";
+  FILE *hf = NULL;
+  char *sync_argv[2];
+  char *c2s_argv[2];
+  JSON_Value *rt_val = NULL;
+  JSON_Object *rt_schemas = NULL;
+  JSON_Object *rt_hostile = NULL;
+  JSON_Object *rt_props = NULL;
+  JSON_Object *rt_enum = NULL;
+  JSON_Array *rt_enum_arr = NULL;
+
+  /* 1. Direct sanitize_identifier edge cases */
+  ASSERT_EQ(CDD_C_SUCCESS, sanitize_identifier("", &out));
+  ASSERT_STR_EQ("Variant", out);
+  C_CDD_FREE(out);
+
+  ASSERT_EQ(CDD_C_SUCCESS, sanitize_identifier("   \t\n ", &out));
+  ASSERT_STR_EQ("field_", out);
+  C_CDD_FREE(out);
+
+  ASSERT_EQ(CDD_C_SUCCESS, sanitize_identifier("123-abc", &out));
+  ASSERT_STR_EQ("_123_abc", out);
+  C_CDD_FREE(out);
+
+  ASSERT_EQ(CDD_C_SUCCESS, sanitize_identifier("__reserved", &out));
+  ASSERT(out[0] != '_' || out[1] != '_');
+  C_CDD_FREE(out);
+
+  ASSERT_EQ(CDD_C_SUCCESS, sanitize_identifier("_Upper", &out));
+  ASSERT(out[0] != '_' || !(out[1] >= 'A' && out[1] <= 'Z'));
+  C_CDD_FREE(out);
+
+  ASSERT_EQ(CDD_C_SUCCESS, sanitize_identifier("default", &out));
+  ASSERT_STR_EQ("default_", out);
+  C_CDD_FREE(out);
+
+  ASSERT_EQ(CDD_C_SUCCESS, sanitize_identifier("class", &out));
+  ASSERT_STR_EQ("class_", out);
+  C_CDD_FREE(out);
+
+  ASSERT_EQ(CDD_C_SUCCESS, sanitize_identifier("nullptr", &out));
+  ASSERT_STR_EQ("nullptr_", out);
+  C_CDD_FREE(out);
+
+  ASSERT_EQ(CDD_C_SUCCESS, sanitize_identifier("caf\xc3\xa9", &out));
+  ASSERT_STR_EQ("caf_xc3_xa9", out);
+  C_CDD_FREE(out);
+
+  ASSERT_EQ(CDD_C_SUCCESS, sanitize_identifier("---", &out));
+  ASSERT(out != NULL && out[0] != '\0');
+  C_CDD_FREE(out);
+
+  {
+    int needs = 0;
+    const char *long_id =
+        "abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz012345";
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              c2s_needs_identifier_sanitization("ok", NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, c2s_needs_identifier_sanitization(NULL, &needs));
+    ASSERT_EQ(1, needs);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              c2s_needs_identifier_sanitization("_Reserved", &needs));
+    ASSERT_EQ(1, needs);
+    ASSERT_EQ(CDD_C_SUCCESS, c2s_needs_identifier_sanitization("a__b", &needs));
+    ASSERT_EQ(1, needs);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              c2s_needs_identifier_sanitization(long_id, &needs));
+    ASSERT_EQ(1, needs);
+    ASSERT_EQ(CDD_C_SUCCESS, sanitize_identifier(long_id, &out));
+    ASSERT(strlen(out) <= 59);
+    C_CDD_FREE(out);
+  }
+
+  /* 2. Hostile schema & enum JSON mapping */
+  {
+    char json_buf[2048];
+    const char *p1 =
+        "{\"Hostile-Schema\":{\"type\":\"object\",\"properties\":{"
+        "\"0\":{\"type\":\"integer\"},\"123-abc\":{\"type\":\"string\"},"
+        "\"first name\":{\"type\":\"string\"},\"   \":{\"type\":\"string\"},"
+        "\"content-type\":{\"type\":\"string\"},\"io.k8s.pod\":{\"type\":"
+        "\"string\"},"
+        "\"application/"
+        "json\":{\"type\":\"string\"},\"$ref_prop\":{\"type\":\"string\"},";
+    const char *p2 =
+        "\"@id\":{\"type\":\"string\"},\"xml:lang\":{\"type\":\"string\"},"
+        "\"caf\\u00e9\":{\"type\":\"string\"},\"foo-bar\":{\"type\":\"string\"}"
+        ","
+        "\"foo_bar\":{\"type\":\"string\"},\"foo bar\":{\"type\":\"string\"},"
+        "\"foo.bar\":{\"type\":\"string\"},\"default\":{\"type\":\"integer\"},";
+    const char *p3 =
+        "\"struct\":{\"type\":\"integer\"},\"class\":{\"type\":\"integer\"},"
+        "\"operator\":{\"type\":\"integer\"},"
+        "\"items\":{\"type\":\"array\",\"items\":{\"type\":\"integer\"}},"
+        "\"n_items\":{\"type\":\"integer\"},\"a*/b\":{\"type\":\"string\"}}},"
+        "\"Hostile-Enum\":{\"type\":\"string\",\"enum\":[\"in-progress\","
+        "\"1st\","
+        "\"true\",\"foo bar\",\"\",\"a-b\",\"a_b\",\"a.b\",\"UNKNOWN\"]}}";
+    CDD_SNPRINTF(json_buf, sizeof(json_buf), "%s%s%s", p1, p2, p3);
+    root_val = json_parse_string(json_buf);
+  }
+  ASSERT(root_val != NULL);
+  schemas_obj = json_value_get_object(root_val);
+  hostile_obj = json_object_get_object(schemas_obj, "Hostile-Schema");
+  enum_obj = json_object_get_object(schemas_obj, "Hostile-Enum");
+  ASSERT(hostile_obj != NULL);
+  ASSERT(enum_obj != NULL);
+
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            json_object_to_struct_fields_ex(hostile_obj, &sf, schemas_obj,
+                                            "Hostile-Schema"));
+  ASSERT_STR_EQ("Hostile-Schema", sf.serde_rename);
+
+  /* Verify collision deduplication: foo_bar, foo_bar_2, foo_bar_3, foo_bar_4 */
+  f = NULL;
+  struct_fields_get(&sf, "foo_bar", &f);
+  ASSERT(f != NULL);
+  ASSERT_STR_EQ("foo-bar", f->serde_rename);
+
+  f = NULL;
+  struct_fields_get(&sf, "foo_bar_2", &f);
+  ASSERT(f != NULL);
+  ASSERT_STR_EQ("foo_bar", f->serde_rename);
+
+  f = NULL;
+  struct_fields_get(&sf, "foo_bar_3", &f);
+  ASSERT(f != NULL);
+  ASSERT_STR_EQ("foo bar", f->serde_rename);
+
+  f = NULL;
+  struct_fields_get(&sf, "foo_bar_4", &f);
+  ASSERT(f != NULL);
+  ASSERT_STR_EQ("foo.bar", f->serde_rename);
+
+  /* Verify array n_items counter collision resolution */
+  f = NULL;
+  struct_fields_get(&sf, "n_items_2", &f);
+  ASSERT(f != NULL);
+  ASSERT_STR_EQ("n_items", f->serde_rename);
+
+  /* Verify enum sanitization and deduplication */
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&enum_sf));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            json_object_to_struct_fields_ex(enum_obj, &enum_sf, schemas_obj,
+                                            "Hostile-Enum"));
+  ASSERT_EQ(1, enum_sf.is_enum);
+  ASSERT_EQ(9, enum_sf.enum_members.size);
+  ASSERT_STR_EQ("in_progress", enum_sf.enum_members.members[0]);
+  ASSERT_STR_EQ("in-progress", enum_sf.enum_members.serde_names[0]);
+  ASSERT_STR_EQ("_1st", enum_sf.enum_members.members[1]);
+  ASSERT_STR_EQ("1st", enum_sf.enum_members.serde_names[1]);
+  ASSERT_STR_EQ("true_", enum_sf.enum_members.members[2]);
+  ASSERT_STR_EQ("true", enum_sf.enum_members.serde_names[2]);
+  ASSERT_STR_EQ("Variant", enum_sf.enum_members.members[4]);
+  ASSERT_STR_EQ("a_b", enum_sf.enum_members.members[5]);
+  ASSERT_STR_EQ("a-b", enum_sf.enum_members.serde_names[5]);
+  ASSERT_STR_EQ("a_b_2", enum_sf.enum_members.members[6]);
+  ASSERT_STR_EQ("a_b", enum_sf.enum_members.serde_names[6]);
+  ASSERT_STR_EQ("a_b_3", enum_sf.enum_members.members[7]);
+  ASSERT_STR_EQ("a.b", enum_sf.enum_members.serde_names[7]);
+  ASSERT_STR_EQ("UNKNOWN_VAL", enum_sf.enum_members.members[8]);
+  ASSERT_STR_EQ("UNKNOWN", enum_sf.enum_members.serde_names[8]);
+
+  /* 3. Emit header with write_struct_declaration_h and write_enum_declaration_h
+   */
+#if defined(_MSC_VER)
+  if (fopen_s(&hf, hdr_file, "w") != 0)
+    hf = NULL;
+#else
+  hf = fopen(hdr_file, "w");
+#endif
+  ASSERT(hf != NULL);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            write_enum_declaration_h(hf, "Hostile_Enum", &enum_sf, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            write_struct_declaration_h(hf, "Hostile_Schema", &sf, NULL));
+  fclose(hf);
+
+  /* 4. Run sync_code_main on the generated header */
+  sync_argv[0] = (char *)(size_t)hdr_file;
+  sync_argv[1] = (char *)(size_t)impl_file;
+  ASSERT_EQ(CDD_C_SUCCESS, sync_code_main(2, sync_argv));
+
+  /* 5. Run code2schema_main on the generated header and verify 1:1 roundtrip */
+  c2s_argv[0] = (char *)(size_t)hdr_file;
+  c2s_argv[1] = (char *)(size_t)out_schema_file;
+  ASSERT_EQ(CDD_C_SUCCESS, code2schema_main(2, c2s_argv));
+
+  rt_val = json_parse_file(out_schema_file);
+  ASSERT(rt_val != NULL);
+  rt_schemas = json_object_get_object(
+      json_object_get_object(json_value_get_object(rt_val), "components"),
+      "schemas");
+  ASSERT(rt_schemas != NULL);
+  rt_hostile = json_object_get_object(rt_schemas, "Hostile-Schema");
+  ASSERT(rt_hostile != NULL);
+  rt_props = json_object_get_object(rt_hostile, "properties");
+  ASSERT(rt_props != NULL);
+  ASSERT(json_object_get_object(rt_props, "0") != NULL);
+  ASSERT(json_object_get_object(rt_props, "123-abc") != NULL);
+  ASSERT(json_object_get_object(rt_props, "first name") != NULL);
+  ASSERT(json_object_get_object(rt_props, "content-type") != NULL);
+  ASSERT(json_object_get_object(rt_props, "io.k8s.pod") != NULL);
+  ASSERT(json_object_get_object(rt_props, "application/json") != NULL);
+  ASSERT(json_object_get_object(rt_props, "foo-bar") != NULL);
+  ASSERT(json_object_get_object(rt_props, "foo_bar") != NULL);
+  ASSERT(json_object_get_object(rt_props, "foo bar") != NULL);
+  ASSERT(json_object_get_object(rt_props, "foo.bar") != NULL);
+  ASSERT(json_object_get_object(rt_props, "default") != NULL);
+  ASSERT(json_object_get_object(rt_props, "class") != NULL);
+  ASSERT(json_object_get_object(rt_props, "items") != NULL);
+  ASSERT(json_object_get_object(rt_props, "n_items") != NULL);
+  ASSERT(json_object_get_object(rt_props, "a*/b") != NULL);
+
+  rt_enum = json_object_get_object(rt_schemas, "Hostile-Enum");
+  ASSERT(rt_enum != NULL);
+  rt_enum_arr = json_object_get_array(rt_enum, "enum");
+  ASSERT(rt_enum_arr != NULL);
+  ASSERT_STR_EQ("in-progress", json_array_get_string(rt_enum_arr, 0));
+  ASSERT_STR_EQ("1st", json_array_get_string(rt_enum_arr, 1));
+  ASSERT_STR_EQ("true", json_array_get_string(rt_enum_arr, 2));
+  ASSERT_STR_EQ("foo bar", json_array_get_string(rt_enum_arr, 3));
+
+  json_value_free(rt_val);
+  struct_fields_free(&sf);
+  struct_fields_free(&enum_sf);
+  json_value_free(root_val);
+  remove(hdr_file);
+  remove(impl_file);
+  remove(out_schema_file);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+/**
  * @brief Executes the code2schema_suite test suite.
  */
 SUITE(code2schema_suite) {
@@ -857,6 +1110,7 @@ SUITE(code2schema_suite) {
   RUN_TEST(test_codegen_all_field_types);
   RUN_TEST(test_codegen_empty_struct_and_enum);
   RUN_TEST(test_codegen_struct_null_args);
+  RUN_TEST(test_hostile_openapi_property_and_schema_names);
 }
 
 #ifdef __cplusplus

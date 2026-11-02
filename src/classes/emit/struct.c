@@ -18,6 +18,7 @@
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
 #include "c_cdd_export.h"
+#include "classes/parse/code2schema.h"
 #include "classes/parse/numeric.h"
 #include "functions/parse/str.h"
 #include "functions/str_includes.h" /* For NUM_LONG_FMT macros if needed, here mostly standard */
@@ -70,19 +71,43 @@ static void free_string_array(char **arr, size_t n) {
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t get_type_from_ref(const char *ref, const char **_out_val) {
+  static char s_ref_buf[4][64];
+  static size_t s_ref_idx = 0;
   if (ref == NULL) {
     *_out_val = "";
     return CDD_C_SUCCESS;
   }
   {
-    {
-      const char *after = NULL;
-      cdd_c_error_t rc_after = c_cdd_str_after_last(ref, '/', &after);
-      if (rc_after != CDD_C_SUCCESS) {
-        return rc_after;
-      }
-      *_out_val = after;
+    const char *after = NULL;
+    size_t k;
+    int needs_san = 0;
+    cdd_c_error_t rc_after = c_cdd_str_after_last(ref, '/', &after);
+    if (rc_after != CDD_C_SUCCESS) {
+      return rc_after;
     }
+    if (after && after[0] != '\0') {
+      for (k = 0; after[k] != '\0'; ++k) {
+        unsigned char uc = (unsigned char)after[k];
+        if (!((uc >= 'a' && uc <= 'z') || (uc >= 'A' && uc <= 'Z') ||
+              (uc >= '0' && uc <= '9') || uc == '_') ||
+            (k == 0 && uc >= '0' && uc <= '9')) {
+          needs_san = 1;
+          break;
+        }
+      }
+      if (needs_san) {
+        char *san = NULL;
+        if (sanitize_identifier(after, &san) == CDD_C_SUCCESS && san) {
+          size_t slot = s_ref_idx % 4;
+          s_ref_idx++;
+          CDD_STRCPY(s_ref_buf[slot], sizeof(s_ref_buf[slot]), san);
+          C_CDD_FREE(san);
+          *_out_val = s_ref_buf[slot];
+          return CDD_C_SUCCESS;
+        }
+      }
+    }
+    *_out_val = after;
     return CDD_C_SUCCESS;
   }
 }
@@ -136,6 +161,34 @@ void struct_fields_free(struct StructFields *sf) {
         sf->fields[i].items_type_union = NULL;
         sf->fields[i].n_items_type_union = 0;
       }
+      if (sf->fields[i].serde_aliases) {
+        free_string_array(sf->fields[i].serde_aliases,
+                          sf->fields[i].n_serde_aliases);
+        sf->fields[i].serde_aliases = NULL;
+        sf->fields[i].n_serde_aliases = 0;
+      }
+      if (sf->fields[i].cli_long_help) {
+        C_CDD_FREE(sf->fields[i].cli_long_help);
+        sf->fields[i].cli_long_help = NULL;
+      }
+      if (sf->fields[i].cli_conflicts_with) {
+        free_string_array(sf->fields[i].cli_conflicts_with,
+                          sf->fields[i].n_cli_conflicts_with);
+        sf->fields[i].cli_conflicts_with = NULL;
+        sf->fields[i].n_cli_conflicts_with = 0;
+      }
+      if (sf->fields[i].cli_requires) {
+        free_string_array(sf->fields[i].cli_requires,
+                          sf->fields[i].n_cli_requires);
+        sf->fields[i].cli_requires = NULL;
+        sf->fields[i].n_cli_requires = 0;
+      }
+      if (sf->fields[i].cli_required_unless) {
+        free_string_array(sf->fields[i].cli_required_unless,
+                          sf->fields[i].n_cli_required_unless);
+        sf->fields[i].cli_required_unless = NULL;
+        sf->fields[i].n_cli_required_unless = 0;
+      }
     }
     C_CDD_FREE(sf->fields);
     sf->fields = NULL;
@@ -144,6 +197,23 @@ void struct_fields_free(struct StructFields *sf) {
     if (sf->schema_extra_json) {
       C_CDD_FREE(sf->schema_extra_json);
       sf->schema_extra_json = NULL;
+    }
+    if (sf->cli_long_about) {
+      C_CDD_FREE(sf->cli_long_about);
+      sf->cli_long_about = NULL;
+    }
+    if (sf->cli_before_help) {
+      C_CDD_FREE(sf->cli_before_help);
+      sf->cli_before_help = NULL;
+    }
+    if (sf->cli_after_help) {
+      C_CDD_FREE(sf->cli_after_help);
+      sf->cli_after_help = NULL;
+    }
+    if (sf->cli_aliases) {
+      free_string_array(sf->cli_aliases, sf->n_cli_aliases);
+      sf->cli_aliases = NULL;
+      sf->n_cli_aliases = 0;
     }
     if (sf->union_discriminator) {
       C_CDD_FREE(sf->union_discriminator);
@@ -214,6 +284,7 @@ cdd_c_error_t struct_fields_add(struct StructFields *sf, const char *name,
   f = &sf->fields[sf->size];
   /* Zero out new slot to clear constraints/flags */
   memset(f, 0, sizeof(struct StructField));
+  f->cli_index = -1;
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   strncpy_s(f->name, sizeof(f->name), name, _TRUNCATE);
@@ -275,6 +346,116 @@ cdd_c_error_t struct_fields_get(const struct StructFields *sf, const char *name,
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
+}
+
+/**
+ * @brief Appends a unique heap-duplicated string to a dynamic `char **` array.
+ *
+ * @param[in,out] arr_ptr Pointer to the dynamic string array.
+ * @param[in,out] count_ptr Pointer to the element count.
+ * @param[in] val Non-empty string to append.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+static cdd_c_error_t append_unique_str_to_array(char ***arr_ptr,
+                                                size_t *count_ptr,
+                                                const char *val) {
+  char **new_arr;
+  char *dup_str = NULL;
+  size_t i;
+  cdd_c_error_t rc;
+  if (!val || !val[0])
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  for (i = 0; i < *count_ptr; ++i) {
+    if ((*arr_ptr)[i] && strcmp((*arr_ptr)[i], val) == 0)
+      return CDD_C_SUCCESS;
+  }
+  rc = c_cdd_strdup(val, &dup_str);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  new_arr = (char **)C_CDD_REALLOC(*arr_ptr, (*count_ptr + 1) * sizeof(char *));
+  if (!new_arr) {
+    C_CDD_FREE(dup_str);
+    return CDD_C_ERROR_MEMORY;
+  }
+  *arr_ptr = new_arr;
+  (*arr_ptr)[*count_ptr] = dup_str;
+  (*count_ptr)++;
+  return CDD_C_SUCCESS;
+}
+
+/*
+ * @brief Appends a deserialization alias to a StructField.
+ *
+ * @param[in,out] f Pointer to the target StructField.
+ * @param[in] alias Alternative JSON key string to accept during
+ * deserialization.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+cdd_c_error_t struct_field_add_alias(struct StructField *f, const char *alias) {
+  if (!f)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  return append_unique_str_to_array(&f->serde_aliases, &f->n_serde_aliases,
+                                    alias);
+}
+
+/*
+ * @brief Appends a CLI subcommand alias to a StructFields container.
+ *
+ * @param[in,out] sf Pointer to the target StructFields container.
+ * @param[in] alias Subcommand alias string to accept.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+cdd_c_error_t struct_fields_add_cli_alias(struct StructFields *sf,
+                                          const char *alias) {
+  if (!sf)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  return append_unique_str_to_array(&sf->cli_aliases, &sf->n_cli_aliases,
+                                    alias);
+}
+
+/*
+ * @brief Appends a conflicting CLI field name to a StructField.
+ *
+ * @param[in,out] f Pointer to the target StructField.
+ * @param[in] conflict Name of the conflicting field.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+cdd_c_error_t struct_field_add_cli_conflict(struct StructField *f,
+                                            const char *conflict) {
+  if (!f)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  return append_unique_str_to_array(&f->cli_conflicts_with,
+                                    &f->n_cli_conflicts_with, conflict);
+}
+
+/*
+ * @brief Appends a required companion CLI field name to a StructField.
+ *
+ * @param[in,out] f Pointer to the target StructField.
+ * @param[in] req Name of the required field.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+cdd_c_error_t struct_field_add_cli_requires(struct StructField *f,
+                                            const char *req) {
+  if (!f)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  return append_unique_str_to_array(&f->cli_requires, &f->n_cli_requires, req);
+}
+
+/*
+ * @brief Appends an alternative satisfying CLI field name (`required_unless`)
+ * to a StructField.
+ *
+ * @param[in,out] f Pointer to the target StructField.
+ * @param[in] req Name of the alternative field.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+cdd_c_error_t struct_field_add_cli_required_unless(struct StructField *f,
+                                                   const char *req) {
+  if (!f)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  return append_unique_str_to_array(&f->cli_required_unless,
+                                    &f->n_cli_required_unless, req);
 }
 
 /* --- Generation Implementing --- */
@@ -378,8 +559,19 @@ cdd_c_error_t
 write_struct_deepcopy_func(FILE *fp, const char *struct_name,
                            const struct StructFields *sf,
                            const struct CodegenStructConfig *config) {
+  size_t i;
+  int has_ptr_fields = 0;
   if (!fp || !struct_name || !sf)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  for (i = 0; i < sf->size; ++i) {
+    const char *t = sf->fields[i].type;
+    if (strcmp(t, "string") == 0 || strcmp(t, "object") == 0 ||
+        strcmp(t, "array") == 0) {
+      has_ptr_fields = 1;
+      break;
+    }
+  }
 
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
@@ -396,11 +588,24 @@ write_struct_deepcopy_func(FILE *fp, const char *struct_name,
                         "  memcpy(*dest, src, sizeof(struct %s));\n\n",
                         struct_name, struct_name));
 
-  {
-    size_t i;
+  if (has_ptr_fields) {
+    /* Zero pointer fields first so early cleanup on OOM never frees src's
+     * pointers */
     for (i = 0; i < sf->size; ++i) {
       const char *n = sf->fields[i].name;
       const char *t = sf->fields[i].type;
+      if (strcmp(t, "string") == 0 || strcmp(t, "object") == 0) {
+        CHECK_IO(FPRINTF_HOOK(fp, "  (*dest)->%s = NULL;\n", n));
+      } else if (strcmp(t, "array") == 0) {
+        CHECK_IO(FPRINTF_HOOK(fp, "  (*dest)->%s = NULL; (*dest)->n_%s = 0;\n",
+                              n, n));
+      }
+    }
+
+    for (i = 0; i < sf->size; ++i) {
+      const char *n = sf->fields[i].name;
+      const char *t = sf->fields[i].type;
+      const char *r = sf->fields[i].ref;
 
       if (strcmp(t, "string") == 0) {
         CHECK_IO(FPRINTF_HOOK(fp,
@@ -410,6 +615,85 @@ write_struct_deepcopy_func(FILE *fp, const char *struct_name,
                               "*dest=NULL; return CDD_C_ERROR_MEMORY; }\n"
                               "  }\n",
                               n, n, kStrDupFunc, n, n, struct_name));
+      } else if (strcmp(t, "object") == 0) {
+        const char *tn = NULL;
+        get_type_from_ref(r, &tn);
+        if (tn && tn[0] != '\0') {
+          CHECK_IO(FPRINTF_HOOK(
+              fp,
+              "  if (src->%s) {\n"
+              "    if (%s_deepcopy(src->%s, &(*dest)->%s) != 0) { "
+              "%s_cleanup(*dest); *dest=NULL; return CDD_C_ERROR_MEMORY; }\n"
+              "  }\n",
+              n, tn, n, n, struct_name));
+        }
+      } else if (strcmp(t, "array") == 0) {
+        if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0) {
+          CHECK_IO(FPRINTF_HOOK(
+              fp,
+              "  if (src->%s && src->n_%s > 0) {\n"
+              "    (*dest)->%s = malloc(src->n_%s * sizeof(int));\n"
+              "    if (!(*dest)->%s) { %s_cleanup(*dest); *dest=NULL; return "
+              "CDD_C_ERROR_MEMORY; }\n"
+              "    memcpy((*dest)->%s, src->%s, src->n_%s * sizeof(int));\n"
+              "    (*dest)->n_%s = src->n_%s;\n"
+              "  }\n",
+              n, n, n, n, n, struct_name, n, n, n, n, n));
+        } else if (strcmp(r, "number") == 0) {
+          CHECK_IO(FPRINTF_HOOK(
+              fp,
+              "  if (src->%s && src->n_%s > 0) {\n"
+              "    (*dest)->%s = malloc(src->n_%s * sizeof(double));\n"
+              "    if (!(*dest)->%s) { %s_cleanup(*dest); *dest=NULL; return "
+              "CDD_C_ERROR_MEMORY; }\n"
+              "    memcpy((*dest)->%s, src->%s, src->n_%s * sizeof(double));\n"
+              "    (*dest)->n_%s = src->n_%s;\n"
+              "  }\n",
+              n, n, n, n, n, struct_name, n, n, n, n, n));
+        } else if (strcmp(r, "string") == 0) {
+          CHECK_IO(FPRINTF_HOOK(
+              fp,
+              "  if (src->%s && src->n_%s > 0) {\n"
+              "    size_t _i;\n"
+              "    (*dest)->%s = calloc(src->n_%s, sizeof(char *));\n"
+              "    if (!(*dest)->%s) { %s_cleanup(*dest); *dest=NULL; return "
+              "CDD_C_ERROR_MEMORY; }\n"
+              "    (*dest)->n_%s = src->n_%s;\n"
+              "    for (_i = 0; _i < src->n_%s; ++_i) {\n"
+              "      if (src->%s[_i]) {\n"
+              "        (*dest)->%s[_i] = %s(src->%s[_i]);\n"
+              "        if (!(*dest)->%s[_i]) { %s_cleanup(*dest); *dest=NULL; "
+              "return CDD_C_ERROR_MEMORY; }\n"
+              "      }\n"
+              "    }\n"
+              "  }\n",
+              n, n, n, n, n, struct_name, n, n, n, n, n, kStrDupFunc, n, n,
+              struct_name));
+        } else if (strcmp(r, "object") != 0 && strcmp(r, "unknown") != 0 &&
+                   r[0] != '\0') {
+          const char *tn = NULL;
+          get_type_from_ref(r, &tn);
+          if (tn && tn[0] != '\0') {
+            CHECK_IO(FPRINTF_HOOK(
+                fp,
+                "  if (src->%s && src->n_%s > 0) {\n"
+                "    size_t _i;\n"
+                "    (*dest)->%s = calloc(src->n_%s, sizeof(struct %s *));\n"
+                "    if (!(*dest)->%s) { %s_cleanup(*dest); *dest=NULL; return "
+                "CDD_C_ERROR_MEMORY; }\n"
+                "    (*dest)->n_%s = src->n_%s;\n"
+                "    for (_i = 0; _i < src->n_%s; ++_i) {\n"
+                "      if (src->%s[_i]) {\n"
+                "        if (%s_deepcopy(src->%s[_i], &(*dest)->%s[_i]) != 0) "
+                "{ %s_cleanup(*dest); *dest=NULL; return CDD_C_ERROR_MEMORY; "
+                "}\n"
+                "      }\n"
+                "    }\n"
+                "  }\n",
+                n, n, n, n, tn, n, struct_name, n, n, n, n, tn, n, n,
+                struct_name));
+          }
+        }
       }
     }
   }

@@ -14,6 +14,7 @@
 #include "c_cdd/code_writer.h"
 #include "classes/emit/json.h"
 #include "classes/emit/struct.h"
+#include "classes/parse/cdd_serde.h"
 /* clang-format on */
 
 /**
@@ -36,6 +37,9 @@ write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
 
   /* Check for string vs primitive types to structure if/else correctly */
   for (i = 0; i < sf->size; ++i) {
+    if (sf->fields[i].read_only || sf->fields[i].serde_skip ||
+        sf->fields[i].serde_skip_deserializing)
+      continue;
     if (strcmp(sf->fields[i].type, "string") == 0) {
       has_string = 1;
     } else if (strcmp(sf->fields[i].type, "integer") == 0 ||
@@ -64,6 +68,9 @@ write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
 
   /* Missing/Required handling variables */
   for (i = 0; i < sf->size; ++i) {
+    if (sf->fields[i].read_only || sf->fields[i].serde_skip ||
+        sf->fields[i].serde_skip_deserializing)
+      continue;
     if (sf->fields[i].required) {
       fprintf(fp, "  int has_%s = 0;\n", sf->fields[i].name);
     }
@@ -106,9 +113,20 @@ write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
     int string_idx = 0;
     for (i = 0; i < sf->size; ++i) {
       const struct StructField *f = &sf->fields[i];
-      if (strcmp(f->type, "string") == 0) {
-        fprintf(fp, "      %s (strcmp(key, \"%s\") == 0) {\n",
-                (string_idx == 0) ? "if" : "else if", f->name);
+      char kn[128];
+      if (f->read_only || f->serde_skip || f->serde_skip_deserializing)
+        continue;
+      if (strcmp(f->type, "string") == 0 &&
+          cdd_serde_resolve_field_names(sf, i, NULL, 0, kn, sizeof(kn)) ==
+              CDD_C_SUCCESS) {
+        size_t a;
+        fprintf(fp, "      %s (strcmp(key, \"%s\") == 0",
+                (string_idx == 0) ? "if" : "else if", kn);
+        for (a = 0; a < f->n_serde_aliases; ++a) {
+          if (f->serde_aliases[a])
+            fprintf(fp, " || strcmp(key, \"%s\") == 0", f->serde_aliases[a]);
+        }
+        fprintf(fp, ") {\n");
         if (f->has_max_len) {
           fprintf(fp, "        if (strlen(val) > %lu) goto err;\n",
                   (unsigned long)f->max_len);
@@ -139,24 +157,30 @@ write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
     int primitive_idx = 0;
     for (i = 0; i < sf->size; ++i) {
       const struct StructField *f = &sf->fields[i];
-      if (strcmp(f->type, "integer") == 0 || strcmp(f->type, "number") == 0) {
-        fprintf(fp, "      %s (strcmp(key, \"%s\") == 0) {\n",
-                (primitive_idx == 0) ? "if" : "else if", f->name);
+      char kn[128];
+      size_t a;
+      if (f->read_only || f->serde_skip || f->serde_skip_deserializing)
+        continue;
+      if ((strcmp(f->type, "integer") == 0 || strcmp(f->type, "number") == 0 ||
+           strcmp(f->type, "boolean") == 0) &&
+          cdd_serde_resolve_field_names(sf, i, NULL, 0, kn, sizeof(kn)) ==
+              CDD_C_SUCCESS) {
+        fprintf(fp, "      %s (strcmp(key, \"%s\") == 0",
+                (primitive_idx == 0) ? "if" : "else if", kn);
+        for (a = 0; a < f->n_serde_aliases; ++a) {
+          if (f->serde_aliases[a])
+            fprintf(fp, " || strcmp(key, \"%s\") == 0", f->serde_aliases[a]);
+        }
+        fprintf(fp, ") {\n");
         if (strcmp(f->type, "integer") == 0) {
           fprintf(fp, "        ret->%s = atoi(val);\n", f->name);
-        } else {
+        } else if (strcmp(f->type, "number") == 0) {
           fprintf(fp, "        ret->%s = atof(val);\n", f->name);
+        } else {
+          fprintf(fp,
+                  "        ret->%s = (strcmp(val, \"true\") == 0) ? 1 : 0;\n",
+                  f->name);
         }
-        if (f->required) {
-          fprintf(fp, "        has_%s = 1;\n", f->name);
-        }
-        fprintf(fp, "      }\n");
-        primitive_idx++;
-      } else if (strcmp(f->type, "boolean") == 0) {
-        fprintf(fp, "      %s (strcmp(key, \"%s\") == 0) {\n",
-                (primitive_idx == 0) ? "if" : "else if", f->name);
-        fprintf(fp, "        ret->%s = (strcmp(val, \"true\") == 0) ? 1 : 0;\n",
-                f->name);
         if (f->required) {
           fprintf(fp, "        has_%s = 1;\n", f->name);
         }
@@ -171,6 +195,9 @@ write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
 
   /* Check required fields */
   for (i = 0; i < sf->size; ++i) {
+    if (sf->fields[i].read_only || sf->fields[i].serde_skip ||
+        sf->fields[i].serde_skip_deserializing)
+      continue;
     if (sf->fields[i].required) {
       fprintf(fp, "  if (!has_%s) goto err;\n", sf->fields[i].name);
     }
