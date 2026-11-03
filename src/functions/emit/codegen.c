@@ -197,12 +197,15 @@ cdd_c_error_t write_union_declaration_h(FILE *hfile, const char *union_name,
                                         const struct StructFields *sf,
                                         const struct CodegenConfig *config) {
   size_t i;
-  const char *disc_tag;
+  const char *disc_tag = NULL;
   if (!hfile || !union_name || !sf)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  disc_tag =
-      (sf->serde_tag[0] != '\0') ? sf->serde_tag : sf->union_discriminator;
+  if (sf->serde_tag[0] != '\0') {
+    disc_tag = sf->serde_tag;
+  } else if (sf->union_discriminator && sf->union_discriminator[0] != '\0') {
+    disc_tag = sf->union_discriminator;
+  }
 
   CHECK_IO(fprintf(hfile, "enum %s_tag {\n", union_name));
   CHECK_IO(fprintf(hfile, "  %s_UNKNOWN = 0,\n", union_name));
@@ -211,7 +214,7 @@ cdd_c_error_t write_union_declaration_h(FILE *hfile, const char *union_name,
   }
   CHECK_IO(fprintf(hfile, "%s", "};\n\n"));
 
-  if (sf->serde_rename[0] != '\0' || (disc_tag && disc_tag[0] != '\0') ||
+  if (sf->serde_rename[0] != '\0' || disc_tag != NULL ||
       sf->serde_content[0] != '\0' || sf->serde_untagged) {
     int first_attr = 1;
     char esc[256];
@@ -221,7 +224,7 @@ cdd_c_error_t write_union_declaration_h(FILE *hfile, const char *union_name,
       CHECK_IO(fprintf(hfile, "rename = \"%s\"", esc));
       first_attr = 0;
     }
-    if (disc_tag && disc_tag[0] != '\0') {
+    if (disc_tag != NULL) {
       cdd_escape_comment_str(disc_tag, esc, sizeof(esc));
       CHECK_IO(fprintf(hfile, "%stag = \"%s\"", first_attr ? "" : ", ", esc));
       first_attr = 0;

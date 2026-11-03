@@ -9,13 +9,13 @@
 #ifndef C_CDD_WASI_COMPAT_H
 #define C_CDD_WASI_COMPAT_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* clang-format off */
 #include <stdio.h>
 /* clang-format on */
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 #if defined(__wasi__)
 #ifndef tmpfile

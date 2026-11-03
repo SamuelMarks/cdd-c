@@ -447,12 +447,16 @@ TEST test_cli_parser_mappings(void) {
 #ifdef CDD_BUILD_TESTS
       for (k = 1; k <= 25; ++k) {
         g_cdd_alloc_fail = k;
-        cst_extract_cli_command(nodes_c, tok_c, &cmd_c);
+        if (cst_extract_cli_command(nodes_c, tok_c, &cmd_c) == CDD_C_SUCCESS) {
+          cli_command_free(&cmd_c);
+        }
         g_cdd_alloc_fail = 0;
       }
       for (k = 1; k <= 25; ++k) {
         g_cdd_strdup_fail = k;
-        cst_extract_cli_command(nodes_c, tok_c, &cmd_c);
+        if (cst_extract_cli_command(nodes_c, tok_c, &cmd_c) == CDD_C_SUCCESS) {
+          cli_command_free(&cmd_c);
+        }
         g_cdd_strdup_fail = 0;
       }
 #endif

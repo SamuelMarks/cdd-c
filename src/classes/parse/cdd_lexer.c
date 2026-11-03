@@ -57,93 +57,96 @@ static cdd_c_error_t alloc_trivia(enum cdd_trivia_kind_t kind,
  *
  * @param[in] start Pointer to the identifier bytes.
  * @param[in] len Length of the identifier in bytes.
- * @return The classified `cdd_token_kind_t`.
+ * @param[out] out_kind Receives the classified `cdd_token_kind_t`.
+ * @return `CDD_C_SUCCESS`.
  */
-static enum cdd_token_kind_t classify_identifier(const uint8_t *start,
-                                                 size_t len) {
+static cdd_c_error_t classify_identifier(const uint8_t *start, size_t len,
+                                         enum cdd_token_kind_t *out_kind) {
   if (len == 3 && memcmp(start, "int", 3) == 0)
-    return CDD_TOKEN_KEYWORD_INT;
-  if (len == 8 && memcmp(start, "__int128", 8) == 0)
-    return CDD_TOKEN_KEYWORD___INT128;
-  if (len == 6 && memcmp(start, "typeof", 6) == 0)
-    return CDD_TOKEN_KEYWORD_TYPEOF;
-  if (len == 10 && memcmp(start, "__typeof__", 10) == 0)
-    return CDD_TOKEN_KEYWORD_TYPEOF;
-  if (len == 13 && memcmp(start, "typeof_unqual", 13) == 0)
-    return CDD_TOKEN_KEYWORD_TYPEOF;
-  if (len == 17 && memcmp(start, "__typeof_unqual__", 17) == 0)
-    return CDD_TOKEN_KEYWORD_TYPEOF;
-  if (len == 11 && memcmp(start, "__auto_type", 11) == 0)
-    return CDD_TOKEN_KEYWORD___AUTO_TYPE;
-  if (len == 11 && memcmp(start, "__complex__", 11) == 0)
-    return CDD_TOKEN_KEYWORD___COMPLEX__;
-  if (len == 8 && memcmp(start, "__real__", 8) == 0)
-    return CDD_TOKEN_KEYWORD___REAL__;
-  if (len == 8 && memcmp(start, "__imag__", 8) == 0)
-    return CDD_TOKEN_KEYWORD___IMAG__;
-  if (len == 9 && memcmp(start, "__label__", 9) == 0)
-    return CDD_TOKEN_KEYWORD___LABEL__;
-  if (len == 10 && memcmp(start, "_Decimal32", 10) == 0)
-    return CDD_TOKEN_KEYWORD__DECIMAL32;
-  if (len == 10 && memcmp(start, "_Decimal64", 10) == 0)
-    return CDD_TOKEN_KEYWORD__DECIMAL64;
-  if (len == 11 && memcmp(start, "_Decimal128", 11) == 0)
-    return CDD_TOKEN_KEYWORD__DECIMAL128;
-  if (len == 6 && memcmp(start, "__fp16", 6) == 0)
-    return CDD_TOKEN_KEYWORD___FP16;
-  if (len == 8 && memcmp(start, "_Float16", 8) == 0)
-    return CDD_TOKEN_KEYWORD__FLOAT16;
-  if (len == 6 && memcmp(start, "__bf16", 6) == 0)
-    return CDD_TOKEN_KEYWORD___BF16;
-  if (len == 6 && memcmp(start, "_Fract", 6) == 0)
-    return CDD_TOKEN_KEYWORD__FRACT;
-  if (len == 6 && memcmp(start, "_Accum", 6) == 0)
-    return CDD_TOKEN_KEYWORD__ACCUM;
-  if (len == 6 && memcmp(start, "struct", 6) == 0)
-    return CDD_TOKEN_KEYWORD_STRUCT;
-  if (len == 2 && memcmp(start, "if", 2) == 0)
-    return CDD_TOKEN_KEYWORD_IF;
-  if (len == 4 && memcmp(start, "else", 4) == 0)
-    return CDD_TOKEN_KEYWORD_ELSE;
-  if (len == 6 && memcmp(start, "return", 6) == 0)
-    return CDD_TOKEN_KEYWORD_RETURN;
-  if (len == 4 && memcmp(start, "goto", 4) == 0)
-    return CDD_TOKEN_KEYWORD_GOTO;
-  if (len == 5 && memcmp(start, "class", 5) == 0)
-    return CDD_TOKEN_KEYWORD_CLASS;
-  if (len == 6 && memcmp(start, "public", 6) == 0)
-    return CDD_TOKEN_KEYWORD_PUBLIC;
-  if (len == 7 && memcmp(start, "private", 7) == 0)
-    return CDD_TOKEN_KEYWORD_PRIVATE;
-  if (len == 9 && memcmp(start, "protected", 9) == 0)
-    return CDD_TOKEN_KEYWORD_PROTECTED;
-  if (len == 7 && memcmp(start, "virtual", 7) == 0)
-    return CDD_TOKEN_KEYWORD_VIRTUAL;
-  if (len == 8 && memcmp(start, "template", 8) == 0)
-    return CDD_TOKEN_KEYWORD_TEMPLATE;
-  if (len == 8 && memcmp(start, "typename", 8) == 0)
-    return CDD_TOKEN_KEYWORD_TYPENAME;
-  if (len == 3 && memcmp(start, "new", 3) == 0)
-    return CDD_TOKEN_KEYWORD_NEW;
-  if (len == 6 && memcmp(start, "delete", 6) == 0)
-    return CDD_TOKEN_KEYWORD_DELETE;
-  if (len == 9 && memcmp(start, "namespace", 9) == 0)
-    return CDD_TOKEN_KEYWORD_NAMESPACE;
-  if (len == 5 && memcmp(start, "using", 5) == 0)
-    return CDD_TOKEN_KEYWORD_USING;
-  if (len == 9 && memcmp(start, "constexpr", 9) == 0)
-    return CDD_TOKEN_KEYWORD_CONSTEXPR;
-  if (len == 8 && memcmp(start, "operator", 8) == 0)
-    return CDD_TOKEN_KEYWORD_OPERATOR;
-  if (len == 3 && memcmp(start, "try", 3) == 0)
-    return CDD_TOKEN_KEYWORD_TRY;
-  if (len == 5 && memcmp(start, "catch", 5) == 0)
-    return CDD_TOKEN_KEYWORD_CATCH;
-  if (len == 5 && memcmp(start, "throw", 5) == 0)
-    return CDD_TOKEN_KEYWORD_THROW;
-  if (len == 8 && memcmp(start, "noexcept", 8) == 0)
-    return CDD_TOKEN_KEYWORD_NOEXCEPT;
-  return CDD_TOKEN_IDENTIFIER;
+    *out_kind = CDD_TOKEN_KEYWORD_INT;
+  else if (len == 8 && memcmp(start, "__int128", 8) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD___INT128;
+  else if (len == 6 && memcmp(start, "typeof", 6) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_TYPEOF;
+  else if (len == 10 && memcmp(start, "__typeof__", 10) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_TYPEOF;
+  else if (len == 13 && memcmp(start, "typeof_unqual", 13) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_TYPEOF;
+  else if (len == 17 && memcmp(start, "__typeof_unqual__", 17) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_TYPEOF;
+  else if (len == 11 && memcmp(start, "__auto_type", 11) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD___AUTO_TYPE;
+  else if (len == 11 && memcmp(start, "__complex__", 11) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD___COMPLEX__;
+  else if (len == 8 && memcmp(start, "__real__", 8) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD___REAL__;
+  else if (len == 8 && memcmp(start, "__imag__", 8) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD___IMAG__;
+  else if (len == 9 && memcmp(start, "__label__", 9) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD___LABEL__;
+  else if (len == 10 && memcmp(start, "_Decimal32", 10) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD__DECIMAL32;
+  else if (len == 10 && memcmp(start, "_Decimal64", 10) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD__DECIMAL64;
+  else if (len == 11 && memcmp(start, "_Decimal128", 11) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD__DECIMAL128;
+  else if (len == 6 && memcmp(start, "__fp16", 6) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD___FP16;
+  else if (len == 8 && memcmp(start, "_Float16", 8) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD__FLOAT16;
+  else if (len == 6 && memcmp(start, "__bf16", 6) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD___BF16;
+  else if (len == 6 && memcmp(start, "_Fract", 6) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD__FRACT;
+  else if (len == 6 && memcmp(start, "_Accum", 6) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD__ACCUM;
+  else if (len == 6 && memcmp(start, "struct", 6) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_STRUCT;
+  else if (len == 2 && memcmp(start, "if", 2) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_IF;
+  else if (len == 4 && memcmp(start, "else", 4) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_ELSE;
+  else if (len == 6 && memcmp(start, "return", 6) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_RETURN;
+  else if (len == 4 && memcmp(start, "goto", 4) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_GOTO;
+  else if (len == 5 && memcmp(start, "class", 5) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_CLASS;
+  else if (len == 6 && memcmp(start, "public", 6) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_PUBLIC;
+  else if (len == 7 && memcmp(start, "private", 7) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_PRIVATE;
+  else if (len == 9 && memcmp(start, "protected", 9) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_PROTECTED;
+  else if (len == 7 && memcmp(start, "virtual", 7) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_VIRTUAL;
+  else if (len == 8 && memcmp(start, "template", 8) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_TEMPLATE;
+  else if (len == 8 && memcmp(start, "typename", 8) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_TYPENAME;
+  else if (len == 3 && memcmp(start, "new", 3) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_NEW;
+  else if (len == 6 && memcmp(start, "delete", 6) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_DELETE;
+  else if (len == 9 && memcmp(start, "namespace", 9) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_NAMESPACE;
+  else if (len == 5 && memcmp(start, "using", 5) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_USING;
+  else if (len == 9 && memcmp(start, "constexpr", 9) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_CONSTEXPR;
+  else if (len == 8 && memcmp(start, "operator", 8) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_OPERATOR;
+  else if (len == 3 && memcmp(start, "try", 3) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_TRY;
+  else if (len == 5 && memcmp(start, "catch", 5) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_CATCH;
+  else if (len == 5 && memcmp(start, "throw", 5) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_THROW;
+  else if (len == 8 && memcmp(start, "noexcept", 8) == 0)
+    *out_kind = CDD_TOKEN_KEYWORD_NOEXCEPT;
+  else
+    *out_kind = CDD_TOKEN_IDENTIFIER;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -280,7 +283,7 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
           column++;
         }
         tok->length = pos - tok->offset;
-        tok->kind = classify_identifier(tok->start, tok->length);
+        rc = classify_identifier(tok->start, tok->length, &tok->kind);
       } else if (isdigit(c)) {
         while (pos < len && (isalnum(base[pos]) || base[pos] == '.')) {
           pos++;

@@ -102,76 +102,79 @@ static cdd_c_error_t add_token(cdd_dsl_token_list_t *list,
  *
  * @param[in] text Pointer to the identifier characters.
  * @param[in] length Length of the identifier in bytes.
- * @return The classified `cdd_dsl_token_kind_t`.
+ * @param[out] out_kind Receives the classified `cdd_dsl_token_kind_t`.
+ * @return `CDD_C_SUCCESS`.
  */
-static cdd_dsl_token_kind_t match_keyword(const char *text, size_t length) {
+static cdd_c_error_t match_keyword(const char *text, size_t length,
+                                   cdd_dsl_token_kind_t *out_kind) {
   if (length == 4 && strncmp(text, "func", 4) == 0)
-    return CDD_DSL_TOKEN_KW_FUNC;
-  if (length == 6 && strncmp(text, "struct", 6) == 0)
-    return CDD_DSL_TOKEN_KW_STRUCT;
-  if (length == 4 && strncmp(text, "enum", 4) == 0)
-    return CDD_DSL_TOKEN_KW_ENUM;
-  if (length == 5 && strncmp(text, "union", 5) == 0)
-    return CDD_DSL_TOKEN_KW_UNION;
-  if (length == 7 && strncmp(text, "typedef", 7) == 0)
-    return CDD_DSL_TOKEN_KW_TYPEDEF;
-  if (length == 9 && strncmp(text, "namespace", 9) == 0)
-    return CDD_DSL_TOKEN_KW_NAMESPACE;
-  if (length == 11 && strncmp(text, "macro_const", 11) == 0)
-    return CDD_DSL_TOKEN_KW_MACRO_CONST;
-  if (length == 10 && strncmp(text, "macro_expr", 10) == 0)
-    return CDD_DSL_TOKEN_KW_MACRO_EXPR;
-  if (length == 10 && strncmp(text, "macro_stmt", 10) == 0)
-    return CDD_DSL_TOKEN_KW_MACRO_STMT;
-  if (length == 4 && strncmp(text, "body", 4) == 0)
-    return CDD_DSL_TOKEN_KW_BODY;
-  if (length == 7 && strncmp(text, "virtual", 7) == 0)
-    return CDD_DSL_TOKEN_KW_VIRTUAL;
-  if (length == 4 && strncmp(text, "pure", 4) == 0)
-    return CDD_DSL_TOKEN_KW_PURE;
-  if (length == 2 && strncmp(text, "in", 2) == 0)
-    return CDD_DSL_TOKEN_KW_IN;
-  if (length == 3 && strncmp(text, "out", 3) == 0)
-    return CDD_DSL_TOKEN_KW_OUT;
-  if (length == 5 && strncmp(text, "inout", 5) == 0)
-    return CDD_DSL_TOKEN_KW_INOUT;
-  if (length == 3 && strncmp(text, "len", 3) == 0)
-    return CDD_DSL_TOKEN_KW_LEN;
+    *out_kind = CDD_DSL_TOKEN_KW_FUNC;
+  else if (length == 6 && strncmp(text, "struct", 6) == 0)
+    *out_kind = CDD_DSL_TOKEN_KW_STRUCT;
+  else if (length == 4 && strncmp(text, "enum", 4) == 0)
+    *out_kind = CDD_DSL_TOKEN_KW_ENUM;
+  else if (length == 5 && strncmp(text, "union", 5) == 0)
+    *out_kind = CDD_DSL_TOKEN_KW_UNION;
+  else if (length == 7 && strncmp(text, "typedef", 7) == 0)
+    *out_kind = CDD_DSL_TOKEN_KW_TYPEDEF;
+  else if (length == 9 && strncmp(text, "namespace", 9) == 0)
+    *out_kind = CDD_DSL_TOKEN_KW_NAMESPACE;
+  else if (length == 11 && strncmp(text, "macro_const", 11) == 0)
+    *out_kind = CDD_DSL_TOKEN_KW_MACRO_CONST;
+  else if (length == 10 && strncmp(text, "macro_expr", 10) == 0)
+    *out_kind = CDD_DSL_TOKEN_KW_MACRO_EXPR;
+  else if (length == 10 && strncmp(text, "macro_stmt", 10) == 0)
+    *out_kind = CDD_DSL_TOKEN_KW_MACRO_STMT;
+  else if (length == 4 && strncmp(text, "body", 4) == 0)
+    *out_kind = CDD_DSL_TOKEN_KW_BODY;
+  else if (length == 7 && strncmp(text, "virtual", 7) == 0)
+    *out_kind = CDD_DSL_TOKEN_KW_VIRTUAL;
+  else if (length == 4 && strncmp(text, "pure", 4) == 0)
+    *out_kind = CDD_DSL_TOKEN_KW_PURE;
+  else if (length == 2 && strncmp(text, "in", 2) == 0)
+    *out_kind = CDD_DSL_TOKEN_KW_IN;
+  else if (length == 3 && strncmp(text, "out", 3) == 0)
+    *out_kind = CDD_DSL_TOKEN_KW_OUT;
+  else if (length == 5 && strncmp(text, "inout", 5) == 0)
+    *out_kind = CDD_DSL_TOKEN_KW_INOUT;
+  else if (length == 3 && strncmp(text, "len", 3) == 0)
+    *out_kind = CDD_DSL_TOKEN_KW_LEN;
+  else if (length == 4 && strncmp(text, "void", 4) == 0)
+    *out_kind = CDD_DSL_TOKEN_TYPE_VOID;
+  else if (length == 2 && strncmp(text, "i8", 2) == 0)
+    *out_kind = CDD_DSL_TOKEN_TYPE_I8;
+  else if (length == 2 && strncmp(text, "u8", 2) == 0)
+    *out_kind = CDD_DSL_TOKEN_TYPE_U8;
+  else if (length == 3 && strncmp(text, "i16", 3) == 0)
+    *out_kind = CDD_DSL_TOKEN_TYPE_I16;
+  else if (length == 3 && strncmp(text, "u16", 3) == 0)
+    *out_kind = CDD_DSL_TOKEN_TYPE_U16;
+  else if (length == 3 && strncmp(text, "i32", 3) == 0)
+    *out_kind = CDD_DSL_TOKEN_TYPE_I32;
+  else if (length == 3 && strncmp(text, "u32", 3) == 0)
+    *out_kind = CDD_DSL_TOKEN_TYPE_U32;
+  else if (length == 3 && strncmp(text, "i64", 3) == 0)
+    *out_kind = CDD_DSL_TOKEN_TYPE_I64;
+  else if (length == 3 && strncmp(text, "u64", 3) == 0)
+    *out_kind = CDD_DSL_TOKEN_TYPE_U64;
+  else if (length == 3 && strncmp(text, "f32", 3) == 0)
+    *out_kind = CDD_DSL_TOKEN_TYPE_F32;
+  else if (length == 3 && strncmp(text, "f64", 3) == 0)
+    *out_kind = CDD_DSL_TOKEN_TYPE_F64;
+  else if (length == 4 && strncmp(text, "bool", 4) == 0)
+    *out_kind = CDD_DSL_TOKEN_TYPE_BOOL;
+  else if (length == 6 && strncmp(text, "size_t", 6) == 0)
+    *out_kind = CDD_DSL_TOKEN_TYPE_SIZE_T;
+  else if (length == 5 && strncmp(text, "usize", 5) == 0)
+    *out_kind = CDD_DSL_TOKEN_TYPE_USIZE;
+  else if (length == 5 && strncmp(text, "isize", 5) == 0)
+    *out_kind = CDD_DSL_TOKEN_TYPE_ISIZE;
+  else if (length == 4 && strncmp(text, "char", 4) == 0)
+    *out_kind = CDD_DSL_TOKEN_TYPE_CHAR;
+  else
+    *out_kind = CDD_DSL_TOKEN_IDENTIFIER;
 
-  if (length == 4 && strncmp(text, "void", 4) == 0)
-    return CDD_DSL_TOKEN_TYPE_VOID;
-  if (length == 2 && strncmp(text, "i8", 2) == 0)
-    return CDD_DSL_TOKEN_TYPE_I8;
-  if (length == 2 && strncmp(text, "u8", 2) == 0)
-    return CDD_DSL_TOKEN_TYPE_U8;
-  if (length == 3 && strncmp(text, "i16", 3) == 0)
-    return CDD_DSL_TOKEN_TYPE_I16;
-  if (length == 3 && strncmp(text, "u16", 3) == 0)
-    return CDD_DSL_TOKEN_TYPE_U16;
-  if (length == 3 && strncmp(text, "i32", 3) == 0)
-    return CDD_DSL_TOKEN_TYPE_I32;
-  if (length == 3 && strncmp(text, "u32", 3) == 0)
-    return CDD_DSL_TOKEN_TYPE_U32;
-  if (length == 3 && strncmp(text, "i64", 3) == 0)
-    return CDD_DSL_TOKEN_TYPE_I64;
-  if (length == 3 && strncmp(text, "u64", 3) == 0)
-    return CDD_DSL_TOKEN_TYPE_U64;
-  if (length == 3 && strncmp(text, "f32", 3) == 0)
-    return CDD_DSL_TOKEN_TYPE_F32;
-  if (length == 3 && strncmp(text, "f64", 3) == 0)
-    return CDD_DSL_TOKEN_TYPE_F64;
-  if (length == 4 && strncmp(text, "bool", 4) == 0)
-    return CDD_DSL_TOKEN_TYPE_BOOL;
-  if (length == 6 && strncmp(text, "size_t", 6) == 0)
-    return CDD_DSL_TOKEN_TYPE_SIZE_T;
-  if (length == 5 && strncmp(text, "usize", 5) == 0)
-    return CDD_DSL_TOKEN_TYPE_USIZE;
-  if (length == 5 && strncmp(text, "isize", 5) == 0)
-    return CDD_DSL_TOKEN_TYPE_ISIZE;
-  if (length == 4 && strncmp(text, "char", 4) == 0)
-    return CDD_DSL_TOKEN_TYPE_CHAR;
-
-  return CDD_DSL_TOKEN_IDENTIFIER;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -592,10 +595,13 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
             goto cleanup;
         }
       }
-      rc = add_token(out_tokens,
-                     match_keyword(state.source + start_pos,
-                                   state.current_pos - start_pos),
-                     &state, start_pos, state.current_pos - start_pos);
+      {
+        cdd_dsl_token_kind_t kw_kind;
+        rc = match_keyword(state.source + start_pos,
+                           state.current_pos - start_pos, &kw_kind);
+        rc = add_token(out_tokens, kw_kind, &state, start_pos,
+                       state.current_pos - start_pos);
+      }
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
       continue;

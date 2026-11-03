@@ -1291,10 +1291,12 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
         g_cdd_alloc_fail = 1;
         ASSERT_EQ(CDD_C_ERROR_MEMORY,
                   json_object_to_struct_fields(mo, &msf, NULL));
+        struct_fields_free(&msf);
         memset(&msf, 0, sizeof(msf));
         g_cdd_alloc_fail = 2;
         ASSERT_EQ(CDD_C_ERROR_MEMORY,
                   json_object_to_struct_fields(mo, &msf, NULL));
+        struct_fields_free(&msf);
         g_cdd_alloc_fail = 0;
         struct_fields_init(&msf);
         g_cdd_strdup_fail = 2;
@@ -1340,10 +1342,12 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
         g_cdd_alloc_fail = 1;
         ASSERT_EQ(CDD_C_ERROR_MEMORY,
                   json_object_to_struct_fields(mo, &msf, NULL));
+        struct_fields_free(&msf);
         memset(&msf, 0, sizeof(msf));
         g_cdd_alloc_fail = 2;
         ASSERT_EQ(CDD_C_ERROR_MEMORY,
                   json_object_to_struct_fields(mo, &msf, NULL));
+        struct_fields_free(&msf);
         g_cdd_alloc_fail = 0;
         struct_fields_init(&msf);
         ASSERT_EQ(CDD_C_SUCCESS, json_object_to_struct_fields(mo, &msf, NULL));

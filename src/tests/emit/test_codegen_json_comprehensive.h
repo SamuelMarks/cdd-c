@@ -705,6 +705,7 @@ TEST test_codegen_json_comprehensive(void) {
 
 /**
  * @brief Exhaustively tests Serde reflection branches in json.c.
+ * @return greatest_test_res
  */
 TEST test_json_serde_exhaustive(void) {
   struct StructFields sf;

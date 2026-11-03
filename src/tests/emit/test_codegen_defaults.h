@@ -567,6 +567,7 @@ TEST test_def_errors(void) {
 
 /**
  * @brief Exhaustive test for Serde and CLI comment emission in codegen.c.
+ * @return greatest_test_res
  */
 TEST test_codegen_serde_cli_exhaustive(void) {
   FILE *tmp = TMPFILE();

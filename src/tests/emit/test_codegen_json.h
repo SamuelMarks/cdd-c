@@ -1167,6 +1167,7 @@ TEST test_serde_sum_types_enum_other_and_deepcopy(void) {
 
 /**
  * @brief Exhaustive tests for all functions and branches in cdd_serde.c.
+ * @return greatest_test_res
  */
 TEST test_cdd_serde_exhaustive(void) {
   enum CddSerdeCaseRule rule;

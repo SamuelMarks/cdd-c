@@ -53,16 +53,20 @@ static cdd_c_error_t cli_copy_str(char *dst, size_t dst_sz, const char *src) {
  * @brief Determines the effective `enum CddCliAction` for a field.
  *
  * @param[in] f Field descriptor.
- * @return Effective `enum CddCliAction`.
+ * @param[out] out_action Receives the effective `enum CddCliAction`.
+ * @return `CDD_C_SUCCESS`.
  */
-static enum CddCliAction cli_effective_action(const struct StructField *f) {
+static cdd_c_error_t cli_effective_action(const struct StructField *f,
+                                          enum CddCliAction *out_action) {
   if (f->cli_action != CDD_CLI_ACTION_AUTO)
-    return f->cli_action;
-  if (strcmp(f->type, "boolean") == 0 && !f->cli_positional)
-    return CDD_CLI_ACTION_SET_TRUE;
-  if (strcmp(f->type, "array") == 0)
-    return CDD_CLI_ACTION_APPEND;
-  return CDD_CLI_ACTION_SET;
+    *out_action = f->cli_action;
+  else if (strcmp(f->type, "boolean") == 0 && !f->cli_positional)
+    *out_action = CDD_CLI_ACTION_SET_TRUE;
+  else if (strcmp(f->type, "array") == 0)
+    *out_action = CDD_CLI_ACTION_APPEND;
+  else
+    *out_action = CDD_CLI_ACTION_SET;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -128,6 +132,7 @@ cdd_c_error_t cdd_cli_resolve_field_env(const struct StructFields *sf,
                                         char *out_env, size_t out_sz) {
   char base_env[64];
   enum CddSerdeCaseRule env_rule = CDD_SERDE_CASE_SCREAMING_SNAKECASE;
+  cdd_c_error_t rc;
 
   if (!f || !out_env || out_sz == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -139,9 +144,10 @@ cdd_c_error_t cdd_cli_resolve_field_env(const struct StructFields *sf,
     env_rule = sf->cli_rename_all_env;
 
   if (strcmp(f->cli_env, "1") == 0 || strcmp(f->cli_env, "true") == 0) {
-    cdd_serde_transform_case(f->name, env_rule, base_env, sizeof(base_env));
+    rc =
+        cdd_serde_transform_case(f->name, env_rule, base_env, sizeof(base_env));
   } else {
-    cli_copy_str(base_env, sizeof(base_env), f->cli_env);
+    rc = cli_copy_str(base_env, sizeof(base_env), f->cli_env);
   }
 
   if (sf && sf->cli_env_prefix[0] != '\0') {
@@ -152,7 +158,7 @@ cdd_c_error_t cdd_cli_resolve_field_env(const struct StructFields *sf,
         return CDD_C_ERROR_INVALID_ARGUMENT;
       memcpy(out_env, sf->cli_env_prefix, p_len);
       memcpy(out_env + p_len, base_env, b_len + 1);
-      return CDD_C_SUCCESS;
+      return rc;
     }
   }
   return cli_copy_str(out_env, out_sz, base_env);
@@ -600,11 +606,13 @@ static cdd_c_error_t cli_format_option_spec(const struct StructFields *sf,
                                             char *out_spec) {
   char long_name[64];
   char val_name[64];
-  enum CddCliAction act = cli_effective_action(f);
-  int takes_val = (act == CDD_CLI_ACTION_SET || act == CDD_CLI_ACTION_APPEND);
+  enum CddCliAction act = CDD_CLI_ACTION_SET;
+  int takes_val;
   size_t pos = 0;
   cdd_c_error_t rc;
 
+  rc = cli_effective_action(f, &act);
+  takes_val = (act == CDD_CLI_ACTION_SET || act == CDD_CLI_ACTION_APPEND);
   rc = cdd_cli_resolve_field_long(sf, f, long_name, sizeof(long_name));
   rc = cdd_cli_resolve_value_name(f, val_name, sizeof(val_name));
 
@@ -1808,9 +1816,11 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
   /* Stage 1: SetFalse defaults & Flattened child struct allocation */
   for (i = 0; i < sf->size; ++i) {
     const struct StructField *f = &sf->fields[i];
+    enum CddCliAction act = CDD_CLI_ACTION_SET;
     if (f->serde_skip)
       continue;
-    if (cli_effective_action(f) == CDD_CLI_ACTION_SET_FALSE) {
+    rc = cli_effective_action(f, &act);
+    if (act == CDD_CLI_ACTION_SET_FALSE) {
       CHECK_IO(FPRINTF_HOOK(fp, "  ret->%s = 1;\n", f->name));
     }
     if (f->serde_flatten) {
@@ -1886,11 +1896,12 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
     for (i = 0; i < sf->size; ++i) {
       const struct StructField *f = &sf->fields[i];
       char lname[64];
-      enum CddCliAction act = cli_effective_action(f);
+      enum CddCliAction act = CDD_CLI_ACTION_SET;
+      rc = cli_effective_action(f, &act);
       if (f->serde_skip || f->cli_positional || f->cli_subcommand ||
           f->serde_flatten)
         continue;
-      cdd_cli_resolve_field_long(sf, f, lname, sizeof(lname));
+      rc = cdd_cli_resolve_field_long(sf, f, lname, sizeof(lname));
       if (lname[0] == '\0')
         continue;
       CHECK_IO(FPRINTF_HOOK(
@@ -1984,10 +1995,11 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
     const struct StructField *f = &sf->fields[i];
     char lname[64];
     char esc_l[128];
-    enum CddCliAction act = cli_effective_action(f);
+    enum CddCliAction act = CDD_CLI_ACTION_SET;
     const char *cmp_fn =
         sf->cli_case_insensitive_flags ? "_cdd_cli_str_ieq" : "0 == strcmp";
 
+    rc = cli_effective_action(f, &act);
     if (f->serde_skip || f->cli_positional || f->cli_subcommand)
       continue;
 
@@ -2186,7 +2198,8 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
 
   for (i = 0; i < sf->size; ++i) {
     const struct StructField *f = &sf->fields[i];
-    enum CddCliAction act = cli_effective_action(f);
+    enum CddCliAction act = CDD_CLI_ACTION_SET;
+    rc = cli_effective_action(f, &act);
     if (f->serde_skip || f->cli_positional || f->cli_subcommand ||
         f->serde_flatten)
       continue;
@@ -2469,7 +2482,8 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
       }
       if (tf) {
         char esc_rv[128];
-        cdd_escape_json_c_str(f->cli_required_if_val, esc_rv, sizeof(esc_rv));
+        rc = cdd_escape_json_c_str(f->cli_required_if_val, esc_rv,
+                                   sizeof(esc_rv));
         CHECK_IO(FPRINTF_HOOK(
             fp,
             "  if (_seen_%s && ret->%s && strcmp(ret->%s, \"%s\") == 0 && "
@@ -2655,8 +2669,9 @@ write_struct_to_cli_argv_func(FILE *fp, const char *struct_name,
     const struct StructField *f = &sf->fields[i];
     char lname[64];
     char flag_tok[80];
-    enum CddCliAction act = cli_effective_action(f);
+    enum CddCliAction act = CDD_CLI_ACTION_SET;
 
+    rc = cli_effective_action(f, &act);
     if (f->serde_skip || f->cli_positional || f->cli_subcommand ||
         f->serde_flatten)
       continue;

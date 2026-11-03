@@ -297,6 +297,8 @@ TEST test_enum_generation_oom(void) {
   em.members = (char **)C_CDD_CALLOC(1, sizeof(char *));
   ASSERT_EQ(CDD_C_SUCCESS, enum_member_set_cli_meta(&em, 0, "d", 1));
   ASSERT_EQ(CDD_C_SUCCESS, enum_member_add_alias(&em, 0, "a"));
+  C_CDD_FREE(em.serde_aliases[0][0]);
+  em.serde_aliases[0][0] = NULL;
   C_CDD_FREE(em.n_serde_aliases);
   em.n_serde_aliases = NULL;
   enum_members_free(&em);

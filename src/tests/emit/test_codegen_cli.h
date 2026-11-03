@@ -917,13 +917,22 @@ TEST test_cli_struct_exhaustive(void) {
 #ifdef CDD_BUILD_TESTS
     for (k = 1; k <= 6; ++k) {
       g_cdd_alloc_fail = k;
-      cdd_cli_expand_response_files(4, in_argv, &out_argc, &out_argv);
+      if (cdd_cli_expand_response_files(4, in_argv, &out_argc, &out_argv) ==
+          CDD_C_SUCCESS) {
+        cdd_cli_free_argv(out_argc, out_argv);
+      }
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = k;
-      cdd_cli_expand_response_files(4, in_argv, &out_argc, &out_argv);
+      if (cdd_cli_expand_response_files(4, in_argv, &out_argc, &out_argv) ==
+          CDD_C_SUCCESS) {
+        cdd_cli_free_argv(out_argc, out_argv);
+      }
       g_cdd_strdup_fail = 0;
       g_cdd_cst_realloc_fail = k;
-      cdd_cli_expand_response_files(4, in_argv, &out_argc, &out_argv);
+      if (cdd_cli_expand_response_files(4, in_argv, &out_argc, &out_argv) ==
+          CDD_C_SUCCESS) {
+        cdd_cli_free_argv(out_argc, out_argv);
+      }
       g_cdd_cst_realloc_fail = 0;
     }
 #endif

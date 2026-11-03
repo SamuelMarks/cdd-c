@@ -161,6 +161,9 @@ cdd_c_error_t token_list_add(struct TokenList *tl, const enum TokenKind kind,
       return CDD_C_ERROR_MEMORY;
     }
 
+    memset(&new_arr[tl->capacity], 0,
+           (new_cap - tl->capacity) * sizeof(struct Token));
+
     tl->tokens = new_arr;
 
     tl->capacity = new_cap;

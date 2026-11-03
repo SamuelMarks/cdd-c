@@ -657,8 +657,10 @@ static cdd_c_error_t serde_resolve_single_name(const struct StructFields *sf,
   }
 
   /* 3. Start with C identifier */
-  if (f->name[0] == '\0')
+  if (f->name[0] == '\0') {
+    out_name[0] = '\0';
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
   serde_copy_str(buf1, sizeof(buf1), f->name);
 
   /* 4. Apply container prefix / suffix if present */
@@ -755,8 +757,10 @@ cdd_c_error_t cdd_serde_resolve_enum_member_name(const struct EnumMembers *em,
     return serde_copy_str(out_name, out_sz, em->serde_names[member_idx]);
   }
 
-  if (em->members[member_idx][0] == '\0')
+  if (em->members[member_idx][0] == '\0') {
+    out_name[0] = '\0';
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
   serde_copy_str(buf1, sizeof(buf1), em->members[member_idx]);
 
   if (em->serde_rename_all != CDD_SERDE_CASE_NONE) {

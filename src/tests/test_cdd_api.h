@@ -188,7 +188,10 @@ TEST test_bin_cdd(void) {
   candidates[n_cands++] = ".\\build\\cdd-c.exe";
 #else
   candidates[n_cands++] = "./bin/nonexistent_dummy";
+  candidates[n_cands++] = "./cdd-c";
   candidates[n_cands++] = "./bin/cdd-c";
+  candidates[n_cands++] = "./build_asan/cdd-c";
+  candidates[n_cands++] = "./build_gcc/cdd-c";
   candidates[n_cands++] = "./build_gcc/bin/cdd-c";
   candidates[n_cands++] = "./build_clang/bin/cdd-c";
   candidates[n_cands++] = "./build/bin/cdd-c";
