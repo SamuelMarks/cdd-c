@@ -1638,6 +1638,12 @@ TEST test_cdd_serde_exhaustive(void) {
           "cli, short\n * @cdd (\"\n * @cdd rename = (\n * @cdd rename = \n"
           " * @cdd replace = \n */",
           &sf.fields[0]));
+  ASSERT_EQ(
+      CDD_C_SUCCESS,
+      cdd_serde_parse_field_comment(
+          "/* @cdd to_cli(short_alias = 'a'), from_cli(short_alias = 'a'), "
+          "to_json(rename = \"tj\"), from_json(rename = \"fj\") */",
+          &sf.fields[0]));
   /* Test long = true when cli_long is already populated */
   CDD_STRCPY(sf.fields[0].cli_long, sizeof(sf.fields[0].cli_long), "already");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_field_comment(
@@ -1706,12 +1712,15 @@ TEST test_cdd_serde_exhaustive(void) {
             cdd_serde_parse_container_comment("/** @cdd ) */", &sf));
   ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_container_comment(
                                "/** @cdd a = 1 @cdd b = 2 */", &sf));
-  ASSERT_EQ(CDD_C_SUCCESS,
-            cdd_serde_parse_container_comment(
-                "/** @brief\n * #[serde(replace = (\"a\" -> \"b\")\n"
-                " * @cdd cli, command, clap, structopt, rename = \n"
-                " * @cdd replace = \"a\" -> \"b\" */",
-                &sf));
+  ASSERT_EQ(
+      CDD_C_SUCCESS,
+      cdd_serde_parse_container_comment(
+          "/** @brief\n * #[serde(replace = (\"a\" -> \"b\")\n"
+          " * @cdd cli, to_cli(name = \"tc\"), from_cli(version = \"1\"), "
+          "to_json(camelCase), from_json(snake_case), command, clap, "
+          "structopt, rename = \n"
+          " * @cdd replace = \"a\" -> \"b\" */",
+          &sf));
   ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_container_comment("/**   ", &sf));
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_serde_parse_container_comment("/** @cdd x = 1", &sf));

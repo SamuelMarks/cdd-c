@@ -259,46 +259,42 @@ enum cdd_c_error HazE_eq(const struct HazE *haz_e0, const struct HazE *haz_e1) {
 enum cdd_c_error HazE_to_json(const struct HazE *haz_e, char **json) {
   char *tank_str = NULL;
   cdd_c_error_t rc = CDD_C_SUCCESS;
-  int need_comma = 0;
+  int jrc;
 
   if (json == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (haz_e == NULL) {
-    c89stringutils_jasprintf(json, "null");
-    return *json == NULL ? ENOMEM : 0;
+    jrc = c89stringutils_jasprintf(json, "null");
+    return (jrc < 0 || *json == NULL) ? ENOMEM : 0;
   }
 
-  c89stringutils_jasprintf(json, "{");
-  if (*json == NULL)
+  jrc = c89stringutils_jasprintf(json, "{");
+  if (jrc < 0 || *json == NULL)
     return CDD_C_ERROR_MEMORY;
 
   if (haz_e->bzr) {
-    c89stringutils_jasprintf(json, "\"bzr\": \"%s\"", haz_e->bzr);
-    need_comma = 1;
+    jrc = c89stringutils_jasprintf(json, "\"bzr\": \"%s\"", haz_e->bzr);
   } else {
-    c89stringutils_jasprintf(json, "\"bzr\": null");
-    need_comma = 1;
+    jrc = c89stringutils_jasprintf(json, "\"bzr\": null");
   }
-  if (*json == NULL)
+  if (jrc < 0 || *json == NULL)
     return CDD_C_ERROR_MEMORY;
 
-  if (need_comma) {
-    c89stringutils_jasprintf(json, ",");
-    if (*json == NULL)
-      return CDD_C_ERROR_MEMORY;
-  }
+  jrc = c89stringutils_jasprintf(json, ",");
+  if (jrc < 0 || *json == NULL)
+    return CDD_C_ERROR_MEMORY;
   if (Tank_to_str(haz_e->tank, &tank_str) != 0) {
     rc = ENOMEM;
     goto cleanup;
   }
-  c89stringutils_jasprintf(json, "\"tank\": \"%s\"", tank_str);
-  if (*json == NULL) {
+  jrc = c89stringutils_jasprintf(json, "\"tank\": \"%s\"", tank_str);
+  if (jrc < 0 || *json == NULL) {
     rc = ENOMEM;
     goto cleanup;
   }
 
-  c89stringutils_jasprintf(json, "}");
-  if (*json == NULL) {
+  jrc = c89stringutils_jasprintf(json, "}");
+  if (jrc < 0 || *json == NULL) {
     rc = ENOMEM;
   }
 
@@ -526,28 +522,29 @@ enum cdd_c_error FooE_eq(const struct FooE *foo_e0, const struct FooE *foo_e1) {
 enum cdd_c_error FooE_to_json(const struct FooE *foo_e, char **const json) {
   char *haz_e_json = NULL;
   cdd_c_error_t rc = CDD_C_SUCCESS;
+  int jrc;
 
   if (json == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (foo_e == NULL) {
-    c89stringutils_jasprintf(json, "null");
-    return *json == NULL ? ENOMEM : 0;
+    jrc = c89stringutils_jasprintf(json, "null");
+    return (jrc < 0 || *json == NULL) ? ENOMEM : 0;
   }
 
-  c89stringutils_jasprintf(json, "{");
-  if (*json == NULL)
+  jrc = c89stringutils_jasprintf(json, "{");
+  if (jrc < 0 || *json == NULL)
     return CDD_C_ERROR_MEMORY;
 
   if (foo_e->bar) {
-    c89stringutils_jasprintf(json, "\"bar\": \"%s\",", foo_e->bar);
+    jrc = c89stringutils_jasprintf(json, "\"bar\": \"%s\",", foo_e->bar);
   } else {
-    c89stringutils_jasprintf(json, "\"bar\": null,");
+    jrc = c89stringutils_jasprintf(json, "\"bar\": null,");
   }
-  if (*json == NULL)
+  if (jrc < 0 || *json == NULL)
     return CDD_C_ERROR_MEMORY;
 
-  c89stringutils_jasprintf(json, "\"can\": %d,", foo_e->can);
-  if (*json == NULL)
+  jrc = c89stringutils_jasprintf(json, "\"can\": %d,", foo_e->can);
+  if (jrc < 0 || *json == NULL)
     return CDD_C_ERROR_MEMORY;
 
   if (HazE_to_json(foo_e->haz, &haz_e_json) != 0) {
@@ -555,14 +552,14 @@ enum cdd_c_error FooE_to_json(const struct FooE *foo_e, char **const json) {
     goto cleanup;
   }
 
-  c89stringutils_jasprintf(json, "\"haz\":%s", haz_e_json);
-  if (*json == NULL) {
+  jrc = c89stringutils_jasprintf(json, "\"haz\":%s", haz_e_json);
+  if (jrc < 0 || *json == NULL) {
     rc = ENOMEM;
     goto cleanup;
   }
 
-  c89stringutils_jasprintf(json, "}");
-  if (*json == NULL) {
+  jrc = c89stringutils_jasprintf(json, "}");
+  if (jrc < 0 || *json == NULL) {
     rc = ENOMEM;
   }
 

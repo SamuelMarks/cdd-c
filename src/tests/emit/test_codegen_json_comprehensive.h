@@ -928,6 +928,21 @@ TEST test_json_serde_exhaustive(void) {
     struct_fields_add(&sf_rc, "flat", "object", "#/definitions/Sub", NULL,
                       NULL);
     sf_rc.fields[0].serde_flatten = 1;
+    struct_fields_add(&sf_rc, "flat2", "object", "#/definitions/Sub2", NULL,
+                      NULL);
+    sf_rc.fields[1].serde_flatten = 1;
+    for (i = 0; i < 40; ++i) {
+      cdd_c_error_t rc_io;
+      g_fail_io_after = i;
+      g_io_calls = 0;
+      rc_io = write_struct_to_json_func(tmp, "TwoFlats", &sf_rc, NULL);
+      if (rc_io == CDD_C_SUCCESS) {
+        g_fail_io_after = -1;
+        break;
+      }
+      ASSERT_EQ(CDD_C_ERROR_IO, rc_io);
+    }
+    g_fail_io_after = -1;
     g_cdd_fail_str_after_last = 1;
     ASSERT_NEQ(CDD_C_SUCCESS,
                write_struct_to_json_func(tmp, "FailFlat", &sf_rc, NULL));

@@ -42,34 +42,18 @@ write_union_to_json_func(FILE *fp, const char *union_name,
                          const struct StructFields *sf,
                          const struct CodegenTypesConfig *config) {
   size_t i;
-  int needs_nested_rc = 0;
 
   if (!fp || !union_name || !sf)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-
-  /* Check if recursive call requires return code var */
-  for (i = 0; i < sf->size; ++i) {
-    const char *t = sf->fields[i].type;
-    if (strcmp(t, "object") == 0) {
-      needs_nested_rc = 1;
-    } else if (strcmp(t, "array") == 0) {
-      const char *item = sf->fields[i].ref;
-      if ((strcmp(item, "integer") != 0 && strcmp(item, "number") != 0 &&
-           strcmp(item, "string") != 0 && strcmp(item, "boolean") != 0))
-        needs_nested_rc = 1;
-    }
-  }
 
   if (config && config->json_guard)
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->json_guard));
 
   CHECK_IO(FPRINTF_HOOK(fp,
                         "cdd_c_error_t %s_to_json(const struct %s *obj, "
-                        "char **const json) {\n",
+                        "char **const json) {\n"
+                        "  int rc;\n",
                         union_name, union_name));
-
-  if (needs_nested_rc)
-    CHECK_IO(FPRINTF_HOOK(fp, "  int rc;\n"));
 
   CHECK_IO(FPRINTF_HOOK(fp, "  if (obj == NULL || json == NULL) return "
                             "CDD_C_ERROR_INVALID_ARGUMENT;\n"
@@ -101,34 +85,35 @@ write_union_to_json_func(FILE *fp, const char *union_name,
       cdd_escape_json_c_str(disc_val, esc_val, sizeof(esc_val));
       cdd_escape_json_c_str(sf->serde_content, esc_cnt, sizeof(esc_cnt));
       CHECK_IO(FPRINTF_HOOK(fp,
-                            "      c89stringutils_jasprintf(json, "
+                            "      rc = c89stringutils_jasprintf(json, "
                             "\"{\\\"%s\\\":\\\"%s\\\",\\\"%s\\\":\");\n"
-                            "      if (!*json) return CDD_C_ERROR_MEMORY;\n",
+                            "      if (rc < 0 || !*json) return "
+                            "CDD_C_ERROR_MEMORY;\n",
                             esc_tag, esc_val, esc_cnt));
     }
     if (strcmp(type, "integer") == 0) {
       CHECK_IO(FPRINTF_HOOK(fp,
-                            "      c89stringutils_jasprintf(json, "
+                            "      rc = c89stringutils_jasprintf(json, "
                             "\"%%d\", obj->data.%s);\n",
                             name));
     } else if (strcmp(type, "number") == 0) {
       CHECK_IO(FPRINTF_HOOK(fp,
-                            "      c89stringutils_jasprintf(json, "
+                            "      rc = c89stringutils_jasprintf(json, "
                             "\"%%g\", obj->data.%s);\n",
                             name));
     } else if (strcmp(type, "boolean") == 0) {
       CHECK_IO(FPRINTF_HOOK(
           fp,
-          "      c89stringutils_jasprintf(json, \"%s\", obj->data.%s ? "
+          "      rc = c89stringutils_jasprintf(json, \"%s\", obj->data.%s ? "
           "\"true\" : \"false\");\n",
           "%s", name));
     } else if (strcmp(type, "string") == 0) {
       CHECK_IO(FPRINTF_HOOK(fp, "      if (obj->data.%s) {\n", name));
       CHECK_IO(FPRINTF_HOOK(fp,
-                            "        c89stringutils_jasprintf(json, "
+                            "        rc = c89stringutils_jasprintf(json, "
                             "\"\\\"%%s\\\"\", obj->data.%s);\n",
                             name));
-      CHECK_IO(FPRINTF_HOOK(fp, "      } else { c89stringutils_jasprintf("
+      CHECK_IO(FPRINTF_HOOK(fp, "      } else { rc = c89stringutils_jasprintf("
                                 "json, \"null\"); }\n"));
     } else if (strcmp(type, "enum") == 0) {
       get_type_from_ref(ref, &ref_type);
@@ -137,7 +122,7 @@ write_union_to_json_func(FILE *fp, const char *union_name,
           "      { char *s = NULL; rc = %s_to_str(obj->data.%s, "
           "&s); if (rc != CDD_C_SUCCESS) { free(s); return rc; }\n",
           ref_type, name));
-      CHECK_IO(FPRINTF_HOOK(fp, "        c89stringutils_jasprintf(json, "
+      CHECK_IO(FPRINTF_HOOK(fp, "        rc = c89stringutils_jasprintf(json, "
                                 "\"\\\"%%s\\\"\", s); free(s); "
                                 "}\n"));
     } else if (strcmp(type, "object") == 0) {
@@ -159,14 +144,14 @@ write_union_to_json_func(FILE *fp, const char *union_name,
             "        if (sub && sub[0] == '{' && strstr(sub, "
             "\"\\\"%s\\\":\") == NULL) {\n"
             "          if (sub[1] == '}') {\n"
-            "            c89stringutils_jasprintf(json, "
+            "            rc = c89stringutils_jasprintf(json, "
             "\"{\\\"%s\\\":\\\"%s\\\"}\");\n"
             "          } else {\n"
-            "            c89stringutils_jasprintf(json, "
+            "            rc = c89stringutils_jasprintf(json, "
             "\"{\\\"%s\\\":\\\"%s\\\",%%s\", sub + 1);\n"
             "          }\n"
             "        } else {\n"
-            "          c89stringutils_jasprintf(json, \"%%s\", sub);\n"
+            "          rc = c89stringutils_jasprintf(json, \"%%s\", sub);\n"
             "        }\n"
             "        free(sub);\n"
             "      }\n",
@@ -178,7 +163,7 @@ write_union_to_json_func(FILE *fp, const char *union_name,
             "        char *sub = NULL;\n"
             "        rc = %s_to_json(obj->data.%s, &sub);\n"
             "        if (rc != CDD_C_SUCCESS) { free(sub); return rc; }\n"
-            "        c89stringutils_jasprintf(json, \"%%s\", sub);\n"
+            "        rc = c89stringutils_jasprintf(json, \"%%s\", sub);\n"
             "        free(sub);\n"
             "      }\n",
             ref_type, name));
@@ -188,35 +173,36 @@ write_union_to_json_func(FILE *fp, const char *union_name,
           FPRINTF_HOOK(fp,
                        "      {\n"
                        "        size_t i;\n"
-                       "        c89stringutils_jasprintf(json, \"[\");\n"
-                       "        if (!*json) return CDD_C_ERROR_MEMORY;\n"
+                       "        rc = c89stringutils_jasprintf(json, \"[\");\n"
+                       "        if (rc < 0 || !*json) return "
+                       "CDD_C_ERROR_MEMORY;\n"
                        "        for (i = 0; i < obj->data.%s.n_%s; ++i) {\n"
-                       "          if (i > 0) { c89stringutils_jasprintf("
+                       "          if (i > 0) { rc = c89stringutils_jasprintf("
                        "json, \",\"); if "
-                       "(!*json) return CDD_C_ERROR_MEMORY; }\n",
+                       "(rc < 0 || !*json) return CDD_C_ERROR_MEMORY; }\n",
                        name, name));
       if (strcmp(ref, "integer") == 0) {
-        CHECK_IO(
-            FPRINTF_HOOK(fp,
-                         "          c89stringutils_jasprintf(json, \"%%d\", "
-                         "obj->data.%s.%s[i]);\n",
-                         name, name));
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "          rc = c89stringutils_jasprintf(json, \"%%d\", "
+            "obj->data.%s.%s[i]);\n",
+            name, name));
       } else if (strcmp(ref, "number") == 0) {
-        CHECK_IO(
-            FPRINTF_HOOK(fp,
-                         "          c89stringutils_jasprintf(json, \"%%g\", "
-                         "obj->data.%s.%s[i]);\n",
-                         name, name));
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "          rc = c89stringutils_jasprintf(json, \"%%g\", "
+            "obj->data.%s.%s[i]);\n",
+            name, name));
       } else if (strcmp(ref, "boolean") == 0) {
-        CHECK_IO(
-            FPRINTF_HOOK(fp,
-                         "          c89stringutils_jasprintf(json, \"%%s\", "
-                         "obj->data.%s.%s[i] ? \"true\" : \"false\");\n",
-                         name, name));
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "          rc = c89stringutils_jasprintf(json, \"%%s\", "
+            "obj->data.%s.%s[i] ? \"true\" : \"false\");\n",
+            name, name));
       } else if (strcmp(ref, "string") == 0) {
         CHECK_IO(FPRINTF_HOOK(
             fp,
-            "          c89stringutils_jasprintf(json, \"\\\"%%s\\\"\", "
+            "          rc = c89stringutils_jasprintf(json, \"\\\"%%s\\\"\", "
             "obj->data.%s.%s[i]);\n",
             name, name));
       } else {
@@ -227,36 +213,37 @@ write_union_to_json_func(FILE *fp, const char *union_name,
             "            char *sub = NULL;\n"
             "            rc = %s_to_json(obj->data.%s.%s[i], &sub);\n"
             "            if (rc != CDD_C_SUCCESS) { free(sub); return rc; }\n"
-            "            c89stringutils_jasprintf(json, \"%%s\", sub);\n"
+            "            rc = c89stringutils_jasprintf(json, \"%%s\", sub);\n"
             "            free(sub);\n"
             "          }\n",
             ref_type, name, name));
       }
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "          if (!*json) return CDD_C_ERROR_MEMORY;\n"
-                            "        }\n"
-                            "        c89stringutils_jasprintf(json, \"]\");\n"
-                            "        if (!*json) return CDD_C_ERROR_MEMORY;\n"
-                            "      }\n"));
+      CHECK_IO(FPRINTF_HOOK(
+          fp, "          if (rc < 0 || !*json) return CDD_C_ERROR_MEMORY;\n"
+              "        }\n"
+              "        rc = c89stringutils_jasprintf(json, \"]\");\n"
+              "      }\n"));
     } else if (strcmp(type, "null") == 0) {
       CHECK_IO(FPRINTF_HOOK(
-          fp, "      c89stringutils_jasprintf(json, \"null\");\n"));
+          fp, "      rc = c89stringutils_jasprintf(json, \"null\");\n"));
     }
     if (disc_tag && disc_tag[0] != '\0' && sf->serde_content[0] != '\0' &&
         !sf->serde_untagged) {
-      CHECK_IO(
-          FPRINTF_HOOK(fp, "      c89stringutils_jasprintf(json, \"}\");\n"));
+      CHECK_IO(FPRINTF_HOOK(
+          fp, "      if (rc < 0 || !*json) return CDD_C_ERROR_MEMORY;\n"
+              "      rc = c89stringutils_jasprintf(json, \"}\");\n"));
     }
     CHECK_IO(FPRINTF_HOOK(fp, "      break;\n"));
   }
 
-  CHECK_IO(FPRINTF_HOOK(fp, "    default:\n"
-                            "      c89stringutils_jasprintf(json, \"null\");\n"
-                            "      break;\n"
-                            "  }\n"
-                            "  if (*json == NULL) return CDD_C_ERROR_MEMORY;\n"
-                            "  return CDD_C_SUCCESS;\n"
-                            "}\n"));
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "    default:\n"
+          "      rc = c89stringutils_jasprintf(json, \"null\");\n"
+          "      break;\n"
+          "  }\n"
+          "  if (rc < 0 || *json == NULL) return CDD_C_ERROR_MEMORY;\n"
+          "  return CDD_C_SUCCESS;\n"
+          "}\n"));
 
   if (config && config->json_guard)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->json_guard));

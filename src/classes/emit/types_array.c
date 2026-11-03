@@ -139,19 +139,20 @@ write_root_array_to_json_func(FILE *fp, const char *name, const char *item_type,
 
   CHECK_IO(FPRINTF_HOOK(
       fp, "  size_t i;\n"
+          "  int rc;\n"
           "  if (!in && len > 0) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
           "  if (!json_out) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
-          "  c89stringutils_jasprintf(json_out, \"[\");\n"
-          "  if (!*json_out) return CDD_C_ERROR_MEMORY;\n"
+          "  rc = c89stringutils_jasprintf(json_out, \"[\");\n"
+          "  if (rc < 0 || !*json_out) return CDD_C_ERROR_MEMORY;\n"
           "  for (i = 0; i < len; ++i) {\n"
-          "    if (i > 0) { c89stringutils_jasprintf(json_out, \",\"); "
-          "if(!*json_out) return CDD_C_ERROR_MEMORY; }\n"));
+          "    if (i > 0) { rc = c89stringutils_jasprintf(json_out, \",\"); "
+          "if (rc < 0 || !*json_out) return CDD_C_ERROR_MEMORY; }\n"));
 
   if (strcmp(item_type, "integer") == 0) {
     CHECK_IO(FPRINTF_HOOK(
-        fp, "    c89stringutils_jasprintf(json_out, \"%%d\", in[i]);\n"));
+        fp, "    rc = c89stringutils_jasprintf(json_out, \"%%d\", in[i]);\n"));
   } else if (strcmp(item_type, "string") == 0) {
-    CHECK_IO(FPRINTF_HOOK(fp, "    c89stringutils_jasprintf(json_out, "
+    CHECK_IO(FPRINTF_HOOK(fp, "    rc = c89stringutils_jasprintf(json_out, "
                               "\"\\\"%%s\\\"\", in[i]);\n"));
   } else if (strcmp(item_type, "object") == 0) {
     const char *tn = NULL;
@@ -160,18 +161,19 @@ write_root_array_to_json_func(FILE *fp, const char *name, const char *item_type,
         fp,
         "    {\n"
         "      char *tmp = NULL;\n"
-        "      int rc = %s_to_json(in[i], &tmp);\n"
+        "      rc = %s_to_json(in[i], &tmp);\n"
         "      if (rc != CDD_C_SUCCESS) { free(tmp); return rc; }\n"
-        "      c89stringutils_jasprintf(json_out, \"%%s\", tmp);\n"
+        "      rc = c89stringutils_jasprintf(json_out, \"%%s\", tmp);\n"
         "      free(tmp);\n"
         "    }\n",
         tn));
   }
   CHECK_IO(FPRINTF_HOOK(
-      fp, "    if (!*json_out) return CDD_C_ERROR_MEMORY;\n  }\n"));
+      fp, "    if (rc < 0 || !*json_out) return CDD_C_ERROR_MEMORY;\n  }\n"));
   CHECK_IO(FPRINTF_HOOK(
-      fp, "  c89stringutils_jasprintf(json_out, \"]\");\n  if(!*json_out) "
-          "return CDD_C_ERROR_MEMORY;\n  return CDD_C_SUCCESS;\n}\n"));
+      fp, "  rc = c89stringutils_jasprintf(json_out, \"]\");\n  if (rc < 0 || "
+          "!*json_out) return CDD_C_ERROR_MEMORY;\n  return "
+          "CDD_C_SUCCESS;\n}\n"));
 
   if (config && config->json_guard)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->json_guard));

@@ -1309,10 +1309,16 @@ cdd_c_error_t cdd_serde_parse_container_comment(const char *comment_text,
       while (p < end && isspace((unsigned char)*p))
         p++;
 
-      if (strcmp(key, "cli") == 0 || strcmp(key, "command") == 0 ||
+      if (strcmp(key, "cli") == 0 || strcmp(key, "to_cli") == 0 ||
+          strcmp(key, "from_cli") == 0 || strcmp(key, "to_json") == 0 ||
+          strcmp(key, "from_json") == 0 || strcmp(key, "command") == 0 ||
           strcmp(key, "clap") == 0 || strcmp(key, "structopt") == 0) {
-        sf->is_cli_command = 1;
-        in_cli_ctx = 1;
+        if (strcmp(key, "to_json") != 0 && strcmp(key, "from_json") != 0) {
+          sf->is_cli_command = 1;
+          in_cli_ctx = 1;
+        } else {
+          in_cli_ctx = 0;
+        }
         if (p < end && *p == '(')
           p++;
         continue;
@@ -1658,7 +1664,9 @@ cdd_c_error_t cdd_serde_parse_field_comment(const char *comment_text,
       while (p < end && isspace((unsigned char)*p))
         p++;
 
-      if (strcmp(key, "cli") == 0 || strcmp(key, "arg") == 0 ||
+      if (strcmp(key, "cli") == 0 || strcmp(key, "to_cli") == 0 ||
+          strcmp(key, "from_cli") == 0 || strcmp(key, "to_json") == 0 ||
+          strcmp(key, "from_json") == 0 || strcmp(key, "arg") == 0 ||
           strcmp(key, "clap") == 0 || strcmp(key, "structopt") == 0 ||
           strcmp(key, "command") == 0) {
         if (*p == '(')

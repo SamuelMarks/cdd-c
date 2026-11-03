@@ -110,10 +110,10 @@ static int test_jasprintf(char **unto, const char *fmt, ...) {
   }
 
   va_start(args, fmt);
-  c89stringutils_vasprintf(&new_part, fmt, args);
+  rc = c89stringutils_vasprintf(&new_part, fmt, args);
   va_end(args);
 
-  rc = c89stringutils_jasprintf(unto, "%s", new_part);
+  rc = (rc < 0) ? -1 : c89stringutils_jasprintf(unto, "%s", new_part);
   free(new_part);
   return rc;
 }
@@ -309,32 +309,33 @@ cdd_c_error_t HazE_eq(const struct HazE *haz_e0, const struct HazE *haz_e1) {
 cdd_c_error_t HazE_to_json(const struct HazE *haz_e, char **json) {
   char *tank_str = NULL;
   int rc = 0;
+  int jrc;
 
   if (json == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (haz_e == NULL) {
-    c89stringutils_jasprintf(json, "null");
-    return *json == NULL ? CDD_C_ERROR_MEMORY : 0;
+    jrc = c89stringutils_jasprintf(json, "null");
+    return (jrc < 0 || *json == NULL) ? CDD_C_ERROR_MEMORY : 0;
   }
 
-  c89stringutils_jasprintf(json, "{");
-  if (*json == NULL) {
+  jrc = c89stringutils_jasprintf(json, "{");
+  if (jrc < 0 || *json == NULL) {
     rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
   }
 
   if (haz_e->bzr) {
-    c89stringutils_jasprintf(json, "\"bzr\": \"%s\"", haz_e->bzr);
+    jrc = c89stringutils_jasprintf(json, "\"bzr\": \"%s\"", haz_e->bzr);
   } else {
-    c89stringutils_jasprintf(json, "\"bzr\": null");
+    jrc = c89stringutils_jasprintf(json, "\"bzr\": null");
   }
-  if (*json == NULL) {
+  if (jrc < 0 || *json == NULL) {
     rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
   }
 
-  c89stringutils_jasprintf(json, ",");
-  if (*json == NULL) {
+  jrc = c89stringutils_jasprintf(json, ",");
+  if (jrc < 0 || *json == NULL) {
     rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
   }
@@ -345,14 +346,14 @@ cdd_c_error_t HazE_to_json(const struct HazE *haz_e, char **json) {
       goto cleanup;
     }
   }
-  c89stringutils_jasprintf(json, "\"tank\": \"%s\"", tank_str);
-  if (*json == NULL) {
+  jrc = c89stringutils_jasprintf(json, "\"tank\": \"%s\"", tank_str);
+  if (jrc < 0 || *json == NULL) {
     rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
   }
 
-  c89stringutils_jasprintf(json, "}");
-  if (*json == NULL) {
+  jrc = c89stringutils_jasprintf(json, "}");
+  if (jrc < 0 || *json == NULL) {
     rc = CDD_C_ERROR_MEMORY;
   }
 
@@ -545,32 +546,33 @@ cdd_c_error_t FooE_eq(const struct FooE *foo_e0, const struct FooE *foo_e1) {
 cdd_c_error_t FooE_to_json(const struct FooE *foo_e, char **json) {
   char *haz_e_json = NULL;
   int rc = 0;
+  int jrc;
 
   if (json == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (foo_e == NULL) {
-    c89stringutils_jasprintf(json, "null");
-    return *json == NULL ? CDD_C_ERROR_MEMORY : 0;
+    jrc = c89stringutils_jasprintf(json, "null");
+    return (jrc < 0 || *json == NULL) ? CDD_C_ERROR_MEMORY : 0;
   }
 
-  c89stringutils_jasprintf(json, "{");
-  if (*json == NULL) {
+  jrc = c89stringutils_jasprintf(json, "{");
+  if (jrc < 0 || *json == NULL) {
     rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
   }
 
   if (foo_e->bar) {
-    c89stringutils_jasprintf(json, "\"bar\": \"%s\",", foo_e->bar);
+    jrc = c89stringutils_jasprintf(json, "\"bar\": \"%s\",", foo_e->bar);
   } else {
-    c89stringutils_jasprintf(json, "\"bar\": null,");
+    jrc = c89stringutils_jasprintf(json, "\"bar\": null,");
   }
-  if (*json == NULL) {
+  if (jrc < 0 || *json == NULL) {
     rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
   }
 
-  c89stringutils_jasprintf(json, "\"can\": %d,", foo_e->can);
-  if (*json == NULL) {
+  jrc = c89stringutils_jasprintf(json, "\"can\": %d,", foo_e->can);
+  if (jrc < 0 || *json == NULL) {
     rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
   }
@@ -580,14 +582,14 @@ cdd_c_error_t FooE_to_json(const struct FooE *foo_e, char **json) {
     goto cleanup;
   }
 
-  c89stringutils_jasprintf(json, "\"haz\":%s", haz_e_json);
-  if (*json == NULL) {
+  jrc = c89stringutils_jasprintf(json, "\"haz\":%s", haz_e_json);
+  if (jrc < 0 || *json == NULL) {
     rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
   }
 
-  c89stringutils_jasprintf(json, "}");
-  if (*json == NULL) {
+  jrc = c89stringutils_jasprintf(json, "}");
+  if (jrc < 0 || *json == NULL) {
     rc = CDD_C_ERROR_MEMORY;
   }
 
