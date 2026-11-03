@@ -100,11 +100,13 @@ write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
   for (i = 0; i < sf->size; ++i) {
     const struct StructField *f = &sf->fields[i];
     char kn[128];
+    cdd_c_error_t rc;
     if (f->write_only || f->serde_skip || f->serde_skip_serializing)
       continue;
-    if (cdd_serde_resolve_field_names(sf, i, kn, sizeof(kn), NULL, 0) ==
-            CDD_C_SUCCESS &&
-        strcmp(f->type, "string") == 0) {
+    rc = cdd_serde_resolve_field_names(sf, i, kn, sizeof(kn), NULL, 0);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (strcmp(f->type, "string") == 0) {
       fprintf(fp, "  if (obj->%s) {\n", f->name);
       fprintf(fp, "    char *encoded = NULL;\n");
       fprintf(fp, "    if (%s_url_encode_form(obj->%s, &encoded) == 0) {\n",

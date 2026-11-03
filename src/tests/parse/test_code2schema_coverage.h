@@ -268,6 +268,7 @@ TEST test_code2schema_cdd_alloc_fail_comprehensive(void) {
   int i;
 
   /* 1. c2s_json_object_to_struct_fields with OOM */
+  json_set_allocation_functions(malloc, free);
   for (i = 1; i <= 40; ++i) {
     struct StructFields sf;
     JSON_Value *val = json_parse_string(

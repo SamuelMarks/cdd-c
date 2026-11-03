@@ -66,8 +66,25 @@ TEST test_arazzo_cli_gen_basic(void) {
   {
     struct Arazzo_Spec min_spec;
     struct Arazzo_Workflow min_wf;
+    char *deps[2];
+    struct Arazzo_Parameter params[2];
+    struct Arazzo_OutputMapEntry outs[2];
     memset(&min_spec, 0, sizeof(min_spec));
     memset(&min_wf, 0, sizeof(min_wf));
+    memset(params, 0, sizeof(params));
+    memset(outs, 0, sizeof(outs));
+    deps[0] = cdd_test_mut_str("dep1");
+    deps[1] = NULL;
+    params[0].name = cdd_test_mut_str("param1");
+    params[1].name = NULL;
+    outs[0].key = cdd_test_mut_str("out1");
+    outs[1].key = NULL;
+    min_wf.depends_on = deps;
+    min_wf.n_depends_on = 2;
+    min_wf.parameters = params;
+    min_wf.n_parameters = 2;
+    min_wf.outputs = outs;
+    min_wf.n_outputs = 2;
     min_spec.workflows = &min_wf;
     min_spec.n_workflows = 1;
     ASSERT_EQ(CDD_C_SUCCESS,

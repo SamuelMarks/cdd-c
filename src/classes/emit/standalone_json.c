@@ -116,10 +116,12 @@ write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
       char kn[128];
       if (f->read_only || f->serde_skip || f->serde_skip_deserializing)
         continue;
-      if (strcmp(f->type, "string") == 0 &&
-          cdd_serde_resolve_field_names(sf, i, NULL, 0, kn, sizeof(kn)) ==
-              CDD_C_SUCCESS) {
+      if (strcmp(f->type, "string") == 0) {
         size_t a;
+        cdd_c_error_t rc =
+            cdd_serde_resolve_field_names(sf, i, NULL, 0, kn, sizeof(kn));
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         fprintf(fp, "      %s (strcmp(key, \"%s\") == 0",
                 (string_idx == 0) ? "if" : "else if", kn);
         for (a = 0; a < f->n_serde_aliases; ++a) {
@@ -161,10 +163,12 @@ write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
       size_t a;
       if (f->read_only || f->serde_skip || f->serde_skip_deserializing)
         continue;
-      if ((strcmp(f->type, "integer") == 0 || strcmp(f->type, "number") == 0 ||
-           strcmp(f->type, "boolean") == 0) &&
-          cdd_serde_resolve_field_names(sf, i, NULL, 0, kn, sizeof(kn)) ==
-              CDD_C_SUCCESS) {
+      if (strcmp(f->type, "integer") == 0 || strcmp(f->type, "number") == 0 ||
+          strcmp(f->type, "boolean") == 0) {
+        cdd_c_error_t rc =
+            cdd_serde_resolve_field_names(sf, i, NULL, 0, kn, sizeof(kn));
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         fprintf(fp, "      %s (strcmp(key, \"%s\") == 0",
                 (primitive_idx == 0) ? "if" : "else if", kn);
         for (a = 0; a < f->n_serde_aliases; ++a) {

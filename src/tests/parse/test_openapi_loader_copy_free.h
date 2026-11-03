@@ -635,7 +635,10 @@ TEST test_openapi_loader_copy_oom_branches(void) {
     free_response(&r_dst);
   }
 
-  for (k = 1; k <= 8; ++k) {
+  for (k = 1; k <= 16; ++k) {
+    char *op_tag = cdd_test_mut_str("tag1");
+    memset(&p_src, 0, sizeof(p_src));
+    p_src.name = cdd_test_mut_str("p");
     memset(&op_src, 0, sizeof(op_src));
     memset(&op_dst, 0, sizeof(op_dst));
     op_src.operation_id = cdd_test_mut_str("o");
@@ -644,6 +647,10 @@ TEST test_openapi_loader_copy_oom_branches(void) {
     op_src.req_body_ref = cdd_test_mut_str("r");
     op_src.req_body_extensions_json = cdd_test_mut_str("e");
     op_src.external_docs.extensions_json = cdd_test_mut_str("x");
+    op_src.parameters = &p_src;
+    op_src.n_parameters = 1;
+    op_src.tags = &op_tag;
+    op_src.n_tags = 1;
     g_cdd_alloc_fail = k;
     copy_operation_fields(&op_dst, &op_src);
     g_cdd_alloc_fail = 0;

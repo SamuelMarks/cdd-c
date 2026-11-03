@@ -827,6 +827,121 @@ TEST test_inspector_branch_coverage(void) {
     func_sig_list_free(&zout);
   }
 
+  /* 7. Comprehensive comment, union, enum, and OOM coverage in inspector.c */
+  {
+    FILE *fp = fopen(filename, "w");
+    int k;
+    fprintf(fp, "/* ");
+    for (k = 0; k < 2040; ++k)
+      fputc('c', fp);
+    fprintf(fp, " */\n/* second */\n");
+    fputs("/not_a_comment;\n"
+          "// single line comment\n"
+          "/* multi line\n"
+          "   block comment */\n"
+          "/** @details Enum details\n * @cdd(alias = \"e_alias\", rename_all "
+          "= \"snake_case\") */\n"
+          "enum RichInspEnum {\n"
+          "  /not_enum_cmt,\n"
+          "  // single line enum cmt\n"
+          "  RichInspEnum /* closed inline */ ,\n"
+          "  RichInspEnum_ /* unclosed inline,\n"
+          "  RichInspEnum_,\n"
+          "  RichInspEnum_V1 = 1,\n",
+          fp);
+    fputs("  /** @details V2 details */\n"
+          "  /** @cdd(rename = \"v2_explicit\") */\n"
+          "  /** @cdd(other) */\n"
+          "  RichInspEnum_V2 = 2,\n"
+          "  /** @cdd(case = \"lowercase\") */\n"
+          "  /** @cdd(replace(\"_\" \"-\")) */\n"
+          "  RichInspEnum_V3,\n"
+          "  /** @cdd(replace(\"_\" \"-\")) */\n"
+          "  /** @cdd(alias = \"v4_alias\") */\n"
+          "  RichInspEnum_V4,\n"
+          "  /** @cdd(case = \"UPPERCASE\") */\n"
+          "  OTHER_V5\n"
+          "};\n",
+          fp);
+    fputs("/** @details Container details\n * @cdd(alias = \"s_alias\") */\n"
+          "struct RichInspStruct {\n"
+          "  ; /** @brief trailing on empty struct */\n"
+          "  // single line struct cmt\n"
+          "  /** @details Field 1 details\n * @cdd(alias = \"f1_alias\") */\n"
+          "  int f1; // trailing single line cmt\n"
+          "  int f1b; /** @details Trailing f1\n * @cdd(alias = \"f1_tr\") */\n"
+          "  ; /** @brief trailing on empty field */\n",
+          fp);
+    fputs("  /** @details Ignored singleword cmt */\n"
+          "  singleword;\n"
+          "  int no_cmt_field;\n"
+          "  union { int u1; } data;\n"
+          "  union{\n    int u2;\n  }\n"
+          "  union{\n    int u3;\n  }}\n"
+          "struct TaggedU {\n"
+          "  int not_tag;\n"
+          "  union { int a; } u;\n"
+          "  union not_brace;\n"
+          "  unionx;\n"
+          "  /not_cmt;\n"
+          "  int z; /not_cmt_tr\n"
+          "};\n"
+          "struct UnclosedUnion {\n"
+          "  union { int a;\n",
+          fp);
+    fclose(fp);
+
+    type_def_list_init(&types);
+    ASSERT_EQ(CDD_C_SUCCESS, c_inspector_scan_file_types(filename, &types));
+    type_def_list_free(&types);
+
+    for (k = 1; k <= 60; ++k) {
+      g_cdd_strdup_fail = k;
+      type_def_list_init(&types);
+      c_inspector_scan_file_types(filename, &types);
+      g_cdd_strdup_fail = 0;
+      type_def_list_free(&types);
+    }
+    for (k = 1; k <= 60; ++k) {
+      g_cdd_alloc_fail = k;
+      type_def_list_init(&types);
+      c_inspector_scan_file_types(filename, &types);
+      g_cdd_alloc_fail = 0;
+      type_def_list_free(&types);
+    }
+
+    /* Function with callback parameter (multiple parens) */
+    {
+      struct FuncSigList sigs = {0};
+      ASSERT_EQ(CDD_C_SUCCESS, c_inspector_extract_signatures(
+                                   "void with_cb(int (*cb)(void)) {}", &sigs));
+      func_sig_list_free(&sigs);
+    }
+
+    /* Long comments inside enum and struct (>2048 chars and >512 chars) */
+    fp = fopen(filename, "w");
+    fprintf(fp, "enum LongEnumCmt {\n  /* ");
+    for (k = 0; k < 600; ++k)
+      fputc('e', fp);
+    fprintf(fp, " */\n  /* ");
+    for (k = 0; k < 1600; ++k)
+      fputc('f', fp);
+    fprintf(fp, " */\n  V1 /* ");
+    for (k = 0; k < 600; ++k)
+      fputc('g', fp);
+    fprintf(fp, " */\n};\nstruct LongStructCmt {\n  /* ");
+    for (k = 0; k < 1200; ++k)
+      fputc('s', fp);
+    fprintf(fp, " */\n  /* ");
+    for (k = 0; k < 1200; ++k)
+      fputc('t', fp);
+    fprintf(fp, " */\n  int x;\n};\n");
+    fclose(fp);
+    type_def_list_init(&types);
+    ASSERT_EQ(CDD_C_SUCCESS, c_inspector_scan_file_types(filename, &types));
+    type_def_list_free(&types);
+  }
+
   remove(filename);
   PASS();
 }

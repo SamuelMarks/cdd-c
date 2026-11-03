@@ -231,7 +231,7 @@ cdd_c_error_t sanitize_identifier(const char *in, char **_out_val) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;
   }
-  for (i = 0; i < len && pos + 8 < cap; ++i) {
+  for (i = 0; i < len; ++i) {
     const unsigned char uc = (unsigned char)in[i];
     if ((uc >= 'a' && uc <= 'z') || (uc >= 'A' && uc <= 'Z') ||
         (uc >= '0' && uc <= '9')) {
@@ -253,15 +253,14 @@ cdd_c_error_t sanitize_identifier(const char *in, char **_out_val) {
   out[pos] = '\0';
 
   /* Prepend '_' if first character is a digit */
-  if (pos > 0 && out[0] >= '0' && out[0] <= '9') {
+  if (isdigit((unsigned char)out[0])) {
     memmove(out + 1, out, pos + 1);
     out[0] = '_';
     pos++;
   }
 
-  /* Avoid ISO C90 7.1.3 reserved leading __ or _[A-Z] */
-  if (pos >= 2 && out[0] == '_' &&
-      (out[1] == '_' || (out[1] >= 'A' && out[1] <= 'Z'))) {
+  /* Avoid ISO C90 7.1.3 reserved leading _[A-Z] */
+  if (out[0] == '_' && isupper((unsigned char)out[1])) {
     memmove(out + 1, out, pos + 1);
     out[0] = 'f';
     pos++;
@@ -270,7 +269,8 @@ cdd_c_error_t sanitize_identifier(const char *in, char **_out_val) {
   /* Escape C89/C99/C11/C23/C++ reserved keywords */
   {
     int is_res = 0;
-    if (c2s_is_reserved_keyword(out, &is_res) == CDD_C_SUCCESS && is_res) {
+    c2s_is_reserved_keyword(out, &is_res);
+    if (is_res) {
       out[pos++] = '_';
       out[pos] = '\0';
     }
@@ -313,7 +313,8 @@ cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
     if (rc_c2s != CDD_C_SUCCESS)
       return rc_c2s;
 
-    if (struct_fields_get(dest, sanitized, &tmp4) == CDD_C_SUCCESS && !tmp4) {
+    struct_fields_get(dest, sanitized, &tmp4);
+    if (!tmp4) {
       *_out_val = sanitized;
       return CDD_C_SUCCESS;
     }
@@ -328,7 +329,8 @@ cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
   }
   {
     struct StructField *tmp5 = NULL;
-    if (struct_fields_get(dest, out, &tmp5) == CDD_C_SUCCESS && !tmp5) {
+    struct_fields_get(dest, out, &tmp5);
+    if (!tmp5) {
       *_out_val = out;
       return CDD_C_SUCCESS;
     }

@@ -461,6 +461,126 @@ TEST test_types_exhaustive_io(void) {
   }
 
   g_fail_io_after = -1;
+
+  /* Test internally tagged, adjacently tagged, and untagged union variants */
+  {
+    struct StructFields sf_tag;
+    char *al_arr[2];
+    struct_fields_init(&sf_tag);
+    struct_fields_add(&sf_tag, "v_obj", "object", "SubObj", NULL, NULL);
+    struct_fields_add(&sf_tag, "v_int", "integer", NULL, NULL, NULL);
+    struct_fields_add(&sf_tag, "v_num", "number", NULL, NULL, NULL);
+    struct_fields_add(&sf_tag, "v_bool", "boolean", NULL, NULL, NULL);
+    struct_fields_add(&sf_tag, "v_str", "string", NULL, NULL, NULL);
+    struct_fields_add(&sf_tag, "v_null", "null", NULL, NULL, NULL);
+
+    al_arr[0] = cdd_test_mut_str("alias_obj");
+    al_arr[1] = NULL;
+    sf_tag.fields[0].serde_aliases = al_arr;
+    sf_tag.fields[0].n_serde_aliases = 2;
+
+    sf_tag.union_variants =
+        (struct UnionVariantMeta *)calloc(1, sizeof(struct UnionVariantMeta));
+    sf_tag.n_union_variants = 1;
+
+    /* 1. Empty union_discriminator in write_union_to_json_func */
+    sf_tag.union_discriminator = (char *)calloc(1, 1);
+    {
+      FILE *tmp = cdd_test_tmpfile_global();
+      write_union_to_json_func(tmp, "TagU", &sf_tag, &config);
+      if (tmp)
+        fclose(tmp);
+    }
+
+    /* 2. Internally tagged (serde_tag set, serde_content empty) */
+#if defined(_MSC_VER)
+    strcpy_s(sf_tag.serde_tag, sizeof(sf_tag.serde_tag), "kind");
+#else
+    strcpy(sf_tag.serde_tag, "kind");
+#endif
+    sf_tag.serde_content[0] = '\0';
+    sf_tag.serde_untagged = 0;
+    for (i = 0; i < 60; ++i) {
+      FILE *tmp = cdd_test_tmpfile_global();
+      g_fail_io_after = i;
+      g_io_calls = 0;
+      rc = write_union_to_json_func(tmp, "TagU", &sf_tag, &config);
+      if (tmp)
+        fclose(tmp);
+      if (rc == 0)
+        break;
+    }
+    sf_tag.serde_untagged = 1;
+    {
+      FILE *tmp = cdd_test_tmpfile_global();
+      g_fail_io_after = -1;
+      write_union_to_json_func(tmp, "TagU", &sf_tag, &config);
+      if (tmp)
+        fclose(tmp);
+    }
+
+    /* 3. Adjacently tagged (serde_tag + serde_content) */
+#if defined(_MSC_VER)
+    strcpy_s(sf_tag.serde_content, sizeof(sf_tag.serde_content), "val");
+#else
+    strcpy(sf_tag.serde_content, "val");
+#endif
+    sf_tag.serde_untagged = 0;
+    for (i = 0; i < 80; ++i) {
+      FILE *tmp = cdd_test_tmpfile_global();
+      g_fail_io_after = i;
+      g_io_calls = 0;
+      rc = write_union_to_json_func(tmp, "TagU", &sf_tag, &config);
+      if (tmp)
+        fclose(tmp);
+      if (rc == 0)
+        break;
+    }
+    for (i = 0; i < 80; ++i) {
+      FILE *tmp = cdd_test_tmpfile_global();
+      g_fail_io_after = i;
+      g_io_calls = 0;
+      rc = write_union_from_jsonObject_func(tmp, "TagU", &sf_tag, &config);
+      if (tmp)
+        fclose(tmp);
+      if (rc == 0)
+        break;
+    }
+
+    /* 4. Untagged union with and without config->json_guard */
+    sf_tag.serde_untagged = 1;
+    {
+      FILE *tmp = cdd_test_tmpfile_global();
+      g_fail_io_after = -1;
+      write_union_to_json_func(tmp, "TagU", &sf_tag, &config);
+      if (tmp)
+        fclose(tmp);
+    }
+    for (i = 0; i < 40; ++i) {
+      FILE *tmp = cdd_test_tmpfile_global();
+      g_fail_io_after = i;
+      g_io_calls = 0;
+      rc = write_union_from_jsonObject_func(tmp, "TagU", &sf_tag, &config);
+      if (tmp)
+        fclose(tmp);
+      if (rc == 0)
+        break;
+    }
+    {
+      struct CodegenTypesConfig no_guard_cfg = {0};
+      FILE *tmp = cdd_test_tmpfile_global();
+      g_fail_io_after = -1;
+      write_union_from_jsonObject_func(tmp, "TagU", &sf_tag, &no_guard_cfg);
+      if (tmp)
+        fclose(tmp);
+    }
+
+    sf_tag.fields[0].serde_aliases = NULL;
+    sf_tag.fields[0].n_serde_aliases = 0;
+    struct_fields_free(&sf_tag);
+    g_fail_io_after = -1;
+    g_io_calls = 0;
+  }
 #endif
   struct_fields_free(&sf);
   g_fail_io_after = -1;

@@ -273,6 +273,224 @@ TEST test_cli_parser_mappings(void) {
   free_cst_node_list(nodes);
   free(nodes);
   free_token_list(tokens);
+
+  /* Exhaustive coverage of cli_parser.c branches */
+  {
+    struct CliCommand c;
+    struct StructFields sf2;
+    cli_command_init(&c);
+    c.version = strdup("1.0.0");
+    c.about = strdup("About CLI");
+    c.author = strdup("Author");
+    c.subcommands = (struct CliCommand *)calloc(1, sizeof(struct CliCommand));
+    c.n_subcommands = 1;
+    c.subcommands[0].name = strdup("sub");
+    c.options = (struct CliOption *)calloc(5, sizeof(struct CliOption));
+    c.n_options = 5;
+    c.options[0].default_value = strdup("def");
+    c.options[0].value_name = strdup("VAL");
+    c.options[0].long_flag = strdup("opt-zero");
+    c.options[0].type_str = strdup("integer");
+    c.options[0].description = strdup("");
+    c.options[0].env_var = strdup("");
+
+    c.options[1].short_flag = 's';
+    c.options[1].has_arg = 1;
+    c.options[1].value_name = strdup("");
+
+    c.options[2].short_flag = 'b';
+    c.options[2].has_arg = 0;
+
+    c.options[3].mapped_struct_field = strdup("");
+    c.options[3].long_flag = strdup("");
+    c.options[3].short_flag = '\0';
+
+    c.options[4].mapped_struct_field = strdup("valid_field");
+    c.options[4].value_name = strdup(" MY_VAL ");
+
+    struct_fields_init(&sf2);
+    ASSERT_EQ(CDD_C_SUCCESS, cli_command_to_struct_fields(&c, &sf2));
+    struct_fields_free(&sf2);
+
+#ifdef CDD_BUILD_TESTS
+    {
+      int k;
+      for (k = 1; k <= 10; ++k) {
+        g_cdd_alloc_fail = k;
+        struct_fields_init(&sf2);
+        cli_command_to_struct_fields(&c, &sf2);
+        g_cdd_alloc_fail = 0;
+        struct_fields_free(&sf2);
+      }
+      for (k = 1; k <= 10; ++k) {
+        g_cdd_strdup_fail = k;
+        struct_fields_init(&sf2);
+        cli_command_to_struct_fields(&c, &sf2);
+        g_cdd_strdup_fail = 0;
+        struct_fields_free(&sf2);
+      }
+    }
+#endif
+    cli_command_free(&c);
+
+    cli_command_init(&c);
+    c.options = (struct CliOption *)calloc(2, sizeof(struct CliOption));
+    c.n_options = 2;
+    c.options[0].short_flag = 'x';
+    c.options[1].short_flag = 'y';
+    c.options[1].long_flag = strdup("");
+#ifdef CDD_BUILD_TESTS
+    memset(&sf2, 0, sizeof(sf2));
+    g_cdd_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cli_command_to_struct_fields(&c, &sf2));
+    g_cdd_alloc_fail = 2;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cli_command_to_struct_fields(&c, &sf2));
+    g_cdd_alloc_fail = 0;
+    struct_fields_init(&sf2);
+    ASSERT_EQ(CDD_C_SUCCESS, cli_command_to_struct_fields(&c, &sf2));
+    struct_fields_free(&sf2);
+#endif
+    cli_command_free(&c);
+
+    cli_command_init(&c);
+    c.name = strdup("");
+    c.version = strdup("");
+    c.about = strdup("");
+    struct_fields_init(&sf2);
+    ASSERT_EQ(CDD_C_SUCCESS, cli_command_to_struct_fields(&c, &sf2));
+    struct_fields_free(&sf2);
+    cli_command_free(&c);
+  }
+
+  /* Complex C source with all getopt_long, struct option, strcmp, and getenv
+   * edge cases */
+  {
+    const char *complex_parts[] = {
+        "struct { int a; int b; int c; };\n"
+        "struct opt123 { int a; int b; int c; };\n"
+        "struct not_opt { int x; };\n"
+        "struct option fwd_decl;\n"
+        "struct /* comment */ option opts[] = {\n"
+        "  { 0 },\n"
+        "  { \"\", 0, 0, 0 },\n"
+        "  { "
+        "\"verylongoptionnamethatexceedssixtythreecharacterslimit12345678901234"
+        "5\", optional_argument, 0, 'L' },\n"
+        "  { \"optarg\", seventeen_char_id, 0, 0 },\n"
+        "  { \"reqarg\", required_argument, 0, 'r' },\n"
+        "  { \"reqarg\", required_argument, 0, 'r' }\n"
+        "};\n",
+        "int main(int argc, char **argv) {\n"
+        "  int c = getopt_long(argc, argv, \"o::r:\");\n"
+        "  if (strcmp(argv[i], \"--help\") == 0) {}\n"
+        "  if (strcmp(argv[i], \"--version\") == 0) {}\n"
+        "  if (strcmp(argv[i], \"-h\") == 0) {}\n"
+        "  if (strcmp(argv[i], \"-V\") == 0) {}\n"
+        "  if (strcmp(argv[i], \"-\") == 0) {}\n"
+        "  if (strcmp(argv[i], \"--\") == 0) {}\n"
+        "  if (strcmp(argv[i], \"-abc\") == 0) {}\n"
+        "  if (strcmp(argv[i], \"--a-b\") == 0) {}\n"
+        "  if (strcmp(argv[i], \"pos\") == 0) {}\n"
+        "  if (strcmp(other, \"--x\") == 0) {}\n"
+        "  if (strcmp(argv[i], \"\") == 0) {}\n"
+        "}\n",
+        "int main2(int argc, char **argv) {\n"
+        "  if (strcmp(argx[i], \"--x\") == 0) {}\n"
+        "  if (strcmp(argv[i], \"--a\", 123) == 0) {\n"
+        "    x = four(1) + sixchr(2);\n"
+        "  }\n"
+        "  if (strcmp(argv[i], "
+        "\"--verylongstrcmpflagnamethatexceedssixtythreecharacterslimit12345678"
+        "90\") == 0) {\n"
+        "    i = 1;\n"
+        "    123 = 456;\n"
+        "    "
+        "verylongfieldnamethatexceedssixtythreecharacterslimit123456789012345 "
+        "= strtol(argv[++i], 0, 10);\n"
+        "  }\n"
+        "  verylongfieldnamethatexceedssixtythreecharacterslimit123456789012345"
+        " = getenv(\"LONG_F_ENV\");\n"
+        "}\n",
+        "int main3(int argc, char **argv) {\n"
+        "  if (strcmp(argv[i], \"-s\") == 0) { short_f = 1; }\n"
+        "  if (strcmp(argv[i], \"--short-long\") == 0) { short_f = 1; }\n"
+        "  if (strcmp(argv[i], \"-s\") == 0) { short_f = 1; }\n"
+        "  if (strcmp(argv[i], \"-r\") == 0) { req_f = argv[++i]; }\n"
+        "  short_f = getenv(\"SHORT_ENV\");\n"
+        "  short_f = getenv(\"SHORT_ENV_DUP\");\n"
+        "}\n",
+        "int main4(int argc, char **argv) {\n"
+        "  unmapped_f = getenv("
+        "\"VERYLONGENVVARNAMETHATEXCEEDSSIXTYTHREECHARACTERSLIMIT12345678901234"
+        "5\");\n"
+        "  123 = getenv(\"BAD_LHS\");\n"
+        "  ; getenv(\"NO_ASSIGN\");\n"
+        "  { getenv(\"BRACE_NO_ASSIGN\"); }\n"
+        "  getenv(123); getenv(\"\"); getenv;\n"
+        "}\n"};
+    size_t p_idx;
+    for (p_idx = 0; p_idx < sizeof(complex_parts) / sizeof(complex_parts[0]);
+         ++p_idx) {
+      struct TokenList *tok_c = NULL;
+      struct CstNodeList *nodes_c =
+          (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
+      struct CliCommand cmd_c;
+      az_span sp_c = az_span_create((uint8_t *)(size_t)complex_parts[p_idx],
+                                    strlen(complex_parts[p_idx]));
+      int k;
+
+      ASSERT_EQ(0, tokenize(sp_c, &tok_c));
+      ASSERT_EQ(0, parse_tokens(tok_c, nodes_c));
+      ASSERT_EQ(CDD_C_SUCCESS, cst_extract_cli_command(nodes_c, tok_c, &cmd_c));
+      cli_command_free(&cmd_c);
+
+#ifdef CDD_BUILD_TESTS
+      for (k = 1; k <= 25; ++k) {
+        g_cdd_alloc_fail = k;
+        cst_extract_cli_command(nodes_c, tok_c, &cmd_c);
+        g_cdd_alloc_fail = 0;
+      }
+      for (k = 1; k <= 25; ++k) {
+        g_cdd_strdup_fail = k;
+        cst_extract_cli_command(nodes_c, tok_c, &cmd_c);
+        g_cdd_strdup_fail = 0;
+      }
+#endif
+      free_cst_node_list(nodes_c);
+      free(nodes_c);
+      free_token_list(tok_c);
+    }
+  }
+
+  /* Unclosed EOF edge cases for struct option, strcmp, and getenv */
+  {
+    const char *eof_cases[] = {
+        "int a; int b; int c; int d; struct",
+        "struct option x = 1 + 2 + 3 + 4 + 5",
+        "int a; int b; int c; int d; struct option x = { {",
+        "int a; int b; int c; int d; struct option x = { { \"a\", 0",
+        "strcmp(argv[i], \"--x\"",
+        "getenv(\"X\")",
+        "getenv(",
+        "getenv",
+        "a = 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + getenv(\"X\")",
+        "= getenv(\"X\")",
+        "   = getenv(\"X\")",
+        "= 1; if (strcmp(argv[i], \"--x\") == 0) { = 2; }"};
+    size_t idx;
+    for (idx = 0; idx < sizeof(eof_cases) / sizeof(eof_cases[0]); ++idx) {
+      struct TokenList *tl = NULL;
+      struct CstNodeList nl = {0};
+      struct CliCommand cmd_e;
+      az_span sp = az_span_create((uint8_t *)(size_t)eof_cases[idx],
+                                  strlen(eof_cases[idx]));
+      ASSERT_EQ(0, tokenize(sp, &tl));
+      ASSERT_EQ(CDD_C_SUCCESS, cst_extract_cli_command(&nl, tl, &cmd_e));
+      cli_command_free(&cmd_e);
+      free_token_list(tl);
+    }
+  }
+
   g_fail_io_after = -1;
   PASS();
 }

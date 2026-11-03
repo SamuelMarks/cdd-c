@@ -81,54 +81,6 @@ static __inline FILE *cdd_fopen(const char *path, const char *mode) {
 
 #endif /* defined(_MSC_VER) */
 
-/**
- * @brief Cross-platform leak-free environment variable lookup that duplicates
- * the environment variable into an owned heap string (`*out_val`), or sets
- * `*out_val = NULL` if the variable is not set.
- *
- * @param[in] name Environment variable name.
- * @param[out] out_val Output pointer receiving a newly allocated string (caller
- * frees with `free`) or NULL if unset.
- * @return CDD_C_SUCCESS on success (including when variable is unset), or an
- * error code.
- */
-#if defined(_MSC_VER)
-static __inline cdd_c_error_t cdd_env_dup(const char *name, char **out_val) {
-  char *buf = 0;
-  size_t sz = 0;
-  if (!name || !out_val)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  *out_val = 0;
-  if (_dupenv_s(&buf, &sz, name) != 0)
-    return CDD_C_ERROR_MEMORY;
-  *out_val = buf;
-  return CDD_C_SUCCESS;
-}
-#else
-#if defined(__GNUC__) || defined(__clang__)
-__attribute__((unused))
-#endif
-static cdd_c_error_t
-cdd_env_dup(const char *name, char **out_val) {
-  const char *v;
-  size_t len;
-  char *copy;
-  if (!name || !out_val)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  *out_val = 0;
-  v = getenv(name);
-  if (!v)
-    return CDD_C_SUCCESS;
-  len = strlen(v);
-  copy = (char *)malloc(len + 1);
-  if (!copy)
-    return CDD_C_ERROR_MEMORY;
-  memcpy(copy, v, len + 1);
-  *out_val = copy;
-  return CDD_C_SUCCESS;
-}
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

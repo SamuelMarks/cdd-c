@@ -129,6 +129,19 @@ static cdd_c_error_t add_type_def(struct TypeDefList *list,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Checks if `s` starts with a C block or line comment delimiter.
+ *
+ * @param[in] s String to inspect.
+ * @param[out] out_is_cmt Set to 1 if `s` starts with a comment delimiter, 0
+ * otherwise.
+ * @return CDD_C_SUCCESS on success.
+ */
+static cdd_c_error_t is_comment_start(const char *s, int *out_is_cmt) {
+  *out_is_cmt = (s[0] == '/' && (s[1] == '*' || s[1] == '/')) ? 1 : 0;
+  return CDD_C_SUCCESS;
+}
+
 /*
  * @brief Scans a C source or header file for struct, enum, and typedef
  * declarations.
@@ -184,8 +197,10 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
 
       if (state == ST_NONE) {
         int starts1 = false, starts2 = false;
+        int is_cmt = 0;
+        is_comment_start(p, &is_cmt);
         /* Collect standalone or leading comment lines before struct/enum */
-        if (in_block_comment || (p[0] == '/' && (p[1] == '*' || p[1] == '/'))) {
+        if (in_block_comment || is_cmt) {
           int is_blk = in_block_comment || (p[1] == '*');
           char *c_end =
               is_blk ? strstr(in_block_comment ? p : (p + 2), "*/") : NULL;
@@ -342,8 +357,9 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
         /* Parse Member string in p (up to terminator) */
         /* For enums on one line: "A, B" */
         if (state == ST_ENUM && *p) {
-          if (p[0] == '/' && (p[1] == '*' || p[1] == '/') &&
-              strchr(p, ',') == NULL) {
+          int is_cmt = 0;
+          is_comment_start(p, &is_cmt);
+          if (is_cmt) {
             size_t clen = strlen(p);
             size_t k;
             for (k = 0; k < clen && pending_len + 1 < sizeof(pending_comment);
@@ -417,8 +433,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                   const char *member_tok = tok;
                   size_t ename_len = strlen(current_name);
                   cdd_c_error_t rc_str;
-                  if (ename_len > 0 &&
-                      strncmp(tok, current_name, ename_len) == 0 &&
+                  if (strncmp(tok, current_name, ename_len) == 0 &&
                       tok[ename_len] == '_' && tok[ename_len + 1] != '\0') {
                     member_tok = tok + ename_len + 1;
                   }
@@ -442,27 +457,15 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                     char tmp_v[128];
                     CDD_STRCPY(tmp_v, sizeof(tmp_v), member_tok);
                     if (var_case != CDD_SERDE_CASE_NONE) {
-                      rc_str = cdd_serde_transform_case(
-                          tmp_v, var_case, effective_rename,
-                          sizeof(effective_rename));
-                      if (rc_str != CDD_C_SUCCESS) {
-                        rc = rc_str;
-                        C_CDD_FREE(copy);
-                        copy = NULL;
-                        break;
-                      }
+                      cdd_serde_transform_case(tmp_v, var_case,
+                                               effective_rename,
+                                               sizeof(effective_rename));
                       CDD_STRCPY(tmp_v, sizeof(tmp_v), effective_rename);
                     }
                     if (var_rep_from[0] != '\0') {
-                      rc_str = cdd_serde_replace_str(
-                          tmp_v, var_rep_from, var_rep_to, effective_rename,
-                          sizeof(effective_rename));
-                      if (rc_str != CDD_C_SUCCESS) {
-                        rc = rc_str;
-                        C_CDD_FREE(copy);
-                        copy = NULL;
-                        break;
-                      }
+                      cdd_serde_replace_str(tmp_v, var_rep_from, var_rep_to,
+                                            effective_rename,
+                                            sizeof(effective_rename));
                     }
                   }
                   rc_str = enum_members_add_ex(
@@ -507,6 +510,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
           }
         } else if (state == ST_STRUCT) {
           if (*p) {
+            int is_cmt = 0;
             /* Check for nested `union {` inside tagged union struct */
             if (strncmp(p, "union", 5) == 0 &&
                 (isspace((unsigned char)p[5]) || p[5] == '{') &&
@@ -526,10 +530,10 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
               }
               continue;
             }
-            /* If the line is purely a comment without ';', accumulate into
+            /* If the line is purely a comment, accumulate into
              * pending_comment for the next field */
-            if (p[0] == '/' && (p[1] == '*' || p[1] == '/') &&
-                strchr(p, ';') == NULL) {
+            is_comment_start(p, &is_cmt);
+            if (is_cmt) {
               size_t clen = strlen(p);
               size_t k;
               for (k = 0; k < clen && pending_len + 1 < sizeof(pending_comment);

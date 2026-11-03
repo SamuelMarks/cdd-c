@@ -107,28 +107,19 @@ cdd_c_error_t merge_struct_field(struct StructField *dest,
     dest->bit_width[sizeof(dest->bit_width) - 1] = '\0';
   }
 
-  if (c2s_merge_schema_extras_strings(&dest->schema_extra_json,
-                                      src->schema_extra_json) != 0) {
-    /* Best-effort: ignore merge failures */
-  }
-  if (c2s_merge_schema_extras_strings(&dest->items_extra_json,
-                                      src->items_extra_json) != 0) {
-    /* Best-effort: ignore merge failures */
-  }
+  c2s_merge_schema_extras_strings(&dest->schema_extra_json,
+                                  src->schema_extra_json);
+  c2s_merge_schema_extras_strings(&dest->items_extra_json,
+                                  src->items_extra_json);
 
   if (!dest->type_union && src->type_union) {
-    if (copy_string_array_code2schema(&dest->type_union, &dest->n_type_union,
-                                      src->type_union,
-                                      src->n_type_union) != 0) {
-      /* Best-effort: ignore copy failures */
-    }
+    copy_string_array_code2schema(&dest->type_union, &dest->n_type_union,
+                                  src->type_union, src->n_type_union);
   }
   if (!dest->items_type_union && src->items_type_union) {
-    if (copy_string_array_code2schema(
-            &dest->items_type_union, &dest->n_items_type_union,
-            src->items_type_union, src->n_items_type_union) != 0) {
-      /* Best-effort: ignore copy failures */
-    }
+    copy_string_array_code2schema(
+        &dest->items_type_union, &dest->n_items_type_union,
+        src->items_type_union, src->n_items_type_union);
   }
 
   /* Propagate Serde field reflection attributes */

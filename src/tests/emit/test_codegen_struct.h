@@ -470,6 +470,46 @@ TEST test_struct_fields_init_oom(void) {
   /* Test get_type_from_ref null */
   ASSERT_EQ(0, get_type_from_ref(NULL, &val));
   ASSERT_STR_EQ("", val);
+  ASSERT_EQ(0, get_type_from_ref("#/components/schemas/My-Type", &val));
+  ASSERT_STR_EQ("My_Type", val);
+#ifdef CDD_BUILD_TESTS
+  g_cdd_alloc_fail = 1;
+  ASSERT_EQ(0, get_type_from_ref("#/components/schemas/My-Type", &val));
+  ASSERT_STR_EQ("My-Type", val);
+  g_cdd_alloc_fail = 0;
+#endif
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, struct_field_add_alias(NULL, "a"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            struct_fields_add_cli_alias(NULL, "a"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            struct_field_add_cli_conflict(NULL, "a"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            struct_field_add_cli_requires(NULL, "a"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            struct_field_add_cli_required_unless(NULL, "a"));
+  ASSERT_EQ(0, struct_fields_add(&sf, "f0", "string", NULL, NULL, NULL));
+  sf.fields[0].cli_long_help = (char *)C_CDD_MALLOC(4);
+  if (sf.fields[0].cli_long_help) {
+    sf.fields[0].cli_long_help[0] = 'h';
+    sf.fields[0].cli_long_help[1] = '\0';
+  }
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            struct_field_add_alias(&sf.fields[0], NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            struct_field_add_alias(&sf.fields[0], ""));
+  ASSERT_EQ(CDD_C_SUCCESS, struct_field_add_alias(&sf.fields[0], "al1"));
+#ifdef CDD_BUILD_TESTS
+  g_cdd_strdup_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, struct_field_add_alias(&sf.fields[0], "al2"));
+  g_cdd_strdup_fail = 0;
+  g_cdd_alloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, struct_field_add_alias(&sf.fields[0], "al2"));
+  g_cdd_alloc_fail = 0;
+#endif
+  C_CDD_FREE(sf.fields[0].serde_aliases[0]);
+  sf.fields[0].serde_aliases[0] = NULL;
+  ASSERT_EQ(CDD_C_SUCCESS, struct_field_add_alias(&sf.fields[0], "al3"));
 
   /* Free string array null */
   sf.is_union = 1;
@@ -528,6 +568,7 @@ TEST test_struct_fields_init_oom(void) {
       struct_fields_init(&sf_arr_prim);
       struct_fields_add(&sf_arr_prim, "arr_int", "array", "integer", NULL,
                         NULL);
+      struct_fields_add(&sf_arr_prim, "arr_enum", "array", "enum", NULL, NULL);
       struct_fields_add(&sf_arr_prim, "arr_str", "array", "string", NULL, NULL);
 
       struct_fields_init(&sf_empty);
@@ -680,6 +721,17 @@ TEST test_struct_fields_init_oom(void) {
       }
       g_fail_io_after = -1;
       g_io_calls = 0;
+
+      {
+        struct StructFields sf_dc;
+        struct_fields_init(&sf_dc);
+        struct_fields_add(&sf_dc, "obj_empty", "object", NULL, NULL, NULL);
+        struct_fields_add(&sf_dc, "arr_empty", "array", NULL, NULL, NULL);
+        struct_fields_add(&sf_dc, "arr_slash", "array", "#/", NULL, NULL);
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  write_struct_deepcopy_func(tmp, "TestDcEdge", &sf_dc, NULL));
+        struct_fields_free(&sf_dc);
+      }
 
       struct_fields_free(&sf_ref);
       struct_fields_free(&sf_arr);

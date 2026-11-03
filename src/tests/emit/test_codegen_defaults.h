@@ -566,6 +566,477 @@ TEST test_def_errors(void) {
 }
 
 /**
+ * @brief Exhaustive test for Serde and CLI comment emission in codegen.c.
+ */
+TEST test_codegen_serde_cli_exhaustive(void) {
+  FILE *tmp = TMPFILE();
+  struct StructFields sf;
+  struct CodegenConfig cfg;
+  int j, rc;
+
+  ASSERT(tmp);
+  memset(&cfg, 0, sizeof(cfg));
+
+  /* 1. Enum with all container and variant attributes */
+  struct_fields_init(&sf);
+  enum_members_add(&sf.enum_members, "M1");
+  enum_members_add(&sf.enum_members, "M2");
+  enum_members_add(&sf.enum_members, "M3");
+  enum_members_add(&sf.enum_members, "M4");
+
+  CDD_STRCPY(sf.serde_rename, sizeof(sf.serde_rename), "EnumRen");
+  sf.enum_members.serde_rename_all = CDD_SERDE_CASE_SNAKECASE;
+  CDD_STRCPY(sf.enum_members.serde_replace_from,
+             sizeof(sf.enum_members.serde_replace_from), "A");
+  CDD_STRCPY(sf.enum_members.serde_replace_to,
+             sizeof(sf.enum_members.serde_replace_to), "B");
+  CDD_STRCPY(sf.enum_members.serde_tag, sizeof(sf.enum_members.serde_tag), "t");
+  CDD_STRCPY(sf.enum_members.serde_content,
+             sizeof(sf.enum_members.serde_content), "c");
+  sf.enum_members.serde_untagged = 1;
+
+  sf.enum_members.serde_names[0] = strdup("m1_ren");
+  enum_member_add_alias(&sf.enum_members, 0, "m1_al");
+  sf.enum_members.serde_skip[0] = 1;
+  sf.enum_members.serde_other_idx = 0;
+
+  /* M2: alias first, then skip */
+  enum_member_add_alias(&sf.enum_members, 1, "m2_al");
+  sf.enum_members.serde_skip[1] = 1;
+
+  /* M3: skip first */
+  sf.enum_members.serde_skip[2] = 1;
+
+  /* M4: other first (need another enum where serde_other_idx == 3) */
+  for (j = 0; j < 60; ++j) {
+    g_fail_io_after = j;
+    g_io_calls = 0;
+    rc = write_enum_declaration_h(tmp, "RichEnum", &sf, &cfg);
+    if (rc == 0)
+      break;
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
+  }
+  g_fail_io_after = -1;
+
+  /* Enum where first_attr is false/true for each attribute and other is first
+   */
+  sf.serde_rename[0] = '\0';
+  sf.enum_members.serde_other_idx = 3;
+  ASSERT_EQ(0, write_enum_declaration_h(tmp, "RichEnum2", &sf, &cfg));
+  sf.enum_members.serde_rename_all = CDD_SERDE_CASE_NONE;
+  ASSERT_EQ(0, write_enum_declaration_h(tmp, "RichEnum3", &sf, &cfg));
+  sf.enum_members.serde_replace_from[0] = '\0';
+  ASSERT_EQ(0, write_enum_declaration_h(tmp, "RichEnum4", &sf, &cfg));
+  sf.enum_members.serde_tag[0] = '\0';
+  ASSERT_EQ(0, write_enum_declaration_h(tmp, "RichEnum5", &sf, &cfg));
+  sf.enum_members.serde_content[0] = '\0';
+  ASSERT_EQ(0, write_enum_declaration_h(tmp, "RichEnum6", &sf, &cfg));
+
+  /* Also test sf-level fallbacks for enum */
+  sf.enum_members.serde_untagged = 0;
+  sf.serde_rename_all = CDD_SERDE_CASE_CAMELCASE;
+  CDD_STRCPY(sf.serde_replace_from, sizeof(sf.serde_replace_from), "X");
+  CDD_STRCPY(sf.serde_replace_to, sizeof(sf.serde_replace_to), "Y");
+  CDD_STRCPY(sf.serde_tag, sizeof(sf.serde_tag), "st");
+  CDD_STRCPY(sf.serde_content, sizeof(sf.serde_content), "sc");
+  sf.serde_untagged = 1;
+  /* Test NULL serde_names / serde_skip / n_serde_aliases pointers */
+  {
+    char **saved_names = sf.enum_members.serde_names;
+    int *saved_skip = sf.enum_members.serde_skip;
+    size_t *saved_nal = sf.enum_members.n_serde_aliases;
+    sf.enum_members.serde_names = NULL;
+    sf.enum_members.serde_skip = NULL;
+    sf.enum_members.n_serde_aliases = NULL;
+    ASSERT_EQ(0, write_enum_declaration_h(tmp, "RichEnumFallback", &sf, &cfg));
+    sf.enum_members.serde_names = saved_names;
+    sf.enum_members.serde_skip = saved_skip;
+    sf.enum_members.n_serde_aliases = saved_nal;
+  }
+  struct_fields_free(&sf);
+
+  /* 2. Union with all attributes and failure paths */
+  struct_fields_init(&sf);
+  struct_fields_add(&sf, "u_s", "string", NULL, NULL, NULL);
+  struct_fields_add(&sf, "u_e", "enum", "#/definitions/UE", NULL, NULL);
+  struct_fields_add(&sf, "u_o", "object", "#/definitions/UO", NULL, NULL);
+  struct_fields_add(&sf, "u_ar", "array", "#/definitions/UA", NULL, NULL);
+  CDD_STRCPY(sf.serde_rename, sizeof(sf.serde_rename), "UnionRen");
+  CDD_STRCPY(sf.serde_tag, sizeof(sf.serde_tag), "utag");
+  CDD_STRCPY(sf.serde_content, sizeof(sf.serde_content), "ucontent");
+  sf.serde_untagged = 1;
+
+  for (j = 0; j < 60; ++j) {
+    g_fail_io_after = j;
+    g_io_calls = 0;
+    rc = write_union_declaration_h(tmp, "RichUnion", &sf, NULL);
+    if (rc == 0)
+      break;
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
+  }
+  g_fail_io_after = -1;
+
+  /* Union first_attr permutations */
+  sf.serde_rename[0] = '\0';
+  ASSERT_EQ(0, write_union_declaration_h(tmp, "RichUnion2", &sf, &cfg));
+  sf.serde_tag[0] = '\0';
+  sf.union_discriminator = strdup("udisc");
+  ASSERT_EQ(0, write_union_declaration_h(tmp, "RichUnion3", &sf, &cfg));
+  sf.union_discriminator[0] = '\0';
+  ASSERT_EQ(0, write_union_declaration_h(tmp, "RichUnion4", &sf, &cfg));
+  C_CDD_FREE(sf.union_discriminator);
+  sf.union_discriminator = NULL;
+  sf.serde_content[0] = '\0';
+  ASSERT_EQ(0, write_union_declaration_h(tmp, "RichUnion5", &sf, &cfg));
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_str_after_last;
+    g_cdd_fail_str_after_last = 1;
+    ASSERT_NEQ(0, write_union_declaration_h(tmp, "FailU1", &sf, NULL));
+    g_cdd_fail_str_after_last = 2;
+    ASSERT_NEQ(0, write_union_declaration_h(tmp, "FailU2", &sf, NULL));
+    g_cdd_fail_str_after_last = 3;
+    ASSERT_NEQ(0, write_union_declaration_h(tmp, "FailU3", &sf, NULL));
+    g_cdd_fail_str_after_last = 0;
+  }
+#endif
+  struct_fields_free(&sf);
+
+  /* 3. Struct with all container and field Serde + CLI attributes */
+  struct_fields_init(&sf);
+  CDD_STRCPY(sf.serde_rename, sizeof(sf.serde_rename), "StructRen");
+  sf.serde_rename_all = CDD_SERDE_CASE_SNAKECASE;
+  sf.serde_rename_all_ser = CDD_SERDE_CASE_CAMELCASE;
+  sf.serde_rename_all_de = CDD_SERDE_CASE_PASCALCASE;
+  CDD_STRCPY(sf.serde_replace_from, sizeof(sf.serde_replace_from), "old");
+  CDD_STRCPY(sf.serde_replace_to, sizeof(sf.serde_replace_to), "new");
+  CDD_STRCPY(sf.serde_prefix, sizeof(sf.serde_prefix), "pre_");
+  CDD_STRCPY(sf.serde_suffix, sizeof(sf.serde_suffix), "_suf");
+  sf.serde_deny_unknown_fields = 1;
+  sf.serde_default = 1;
+  CDD_STRCPY(sf.serde_tag, sizeof(sf.serde_tag), "stag");
+  CDD_STRCPY(sf.serde_content, sizeof(sf.serde_content), "scont");
+  sf.serde_untagged = 1;
+  sf.is_cli_command = 1;
+  CDD_STRCPY(sf.cli_name, sizeof(sf.cli_name), "mycli");
+  CDD_STRCPY(sf.cli_version, sizeof(sf.cli_version), "1.0");
+  CDD_STRCPY(sf.cli_author, sizeof(sf.cli_author), "Auth");
+  CDD_STRCPY(sf.cli_about, sizeof(sf.cli_about), "About");
+  sf.cli_rename_all = CDD_SERDE_CASE_KEBABCASE;
+  CDD_STRCPY(sf.cli_env_prefix, sizeof(sf.cli_env_prefix), "APP_");
+
+  /* Field 0: array with rich serde + cli attributes */
+  struct_fields_add(&sf, "f_arr", "array", "#/definitions/SubItem", NULL, NULL);
+  CDD_STRCPY(sf.fields[0].serde_rename, sizeof(sf.fields[0].serde_rename),
+             "f0_ren");
+  CDD_STRCPY(sf.fields[0].serde_rename_ser,
+             sizeof(sf.fields[0].serde_rename_ser), "f0_ser");
+  CDD_STRCPY(sf.fields[0].serde_rename_de, sizeof(sf.fields[0].serde_rename_de),
+             "f0_de");
+  sf.fields[0].serde_case = CDD_SERDE_CASE_SNAKECASE;
+  CDD_STRCPY(sf.fields[0].serde_replace_from,
+             sizeof(sf.fields[0].serde_replace_from), "a");
+  CDD_STRCPY(sf.fields[0].serde_replace_to,
+             sizeof(sf.fields[0].serde_replace_to), "b");
+  struct_field_add_alias(&sf.fields[0], "f0_al");
+  sf.fields[0].serde_skip = 1;
+  sf.fields[0].serde_skip_if_kind = CDD_SERDE_SKIP_IF_EMPTY;
+  sf.fields[0].serde_flatten = 1;
+  sf.fields[0].serde_has_default = 1;
+  CDD_STRCPY(sf.fields[0].serde_default_fn,
+             sizeof(sf.fields[0].serde_default_fn), "f0_def_fn");
+  CDD_STRCPY(sf.fields[0].serde_with, sizeof(sf.fields[0].serde_with),
+             "f0_with");
+  CDD_STRCPY(sf.fields[0].serde_serialize_with,
+             sizeof(sf.fields[0].serde_serialize_with), "f0_ser_w");
+  CDD_STRCPY(sf.fields[0].serde_deserialize_with,
+             sizeof(sf.fields[0].serde_deserialize_with), "f0_de_w");
+  sf.fields[0].cli_short = 'a';
+  CDD_STRCPY(sf.fields[0].cli_long, sizeof(sf.fields[0].cli_long), "arr");
+  sf.fields[0].cli_negatable = 1;
+  sf.fields[0].cli_positional = 1;
+  sf.fields[0].cli_index = 0;
+  CDD_STRCPY(sf.fields[0].cli_env, sizeof(sf.fields[0].cli_env), "ENV_ARR");
+  CDD_STRCPY(sf.fields[0].cli_value_name, sizeof(sf.fields[0].cli_value_name),
+             "VAL");
+  CDD_STRCPY(sf.fields[0].cli_help, sizeof(sf.fields[0].cli_help), "Help text");
+  sf.fields[0].cli_action = CDD_CLI_ACTION_APPEND;
+  sf.fields[0].cli_value_delimiter = ',';
+  sf.fields[0].cli_subcommand = 1;
+  struct_field_add_cli_conflict(&sf.fields[0], "other_flag");
+  struct_field_add_cli_requires(&sf.fields[0], "req_flag");
+
+  /* Field 1: skip_serializing + skip_deserializing + skip_if_zero + default_val
+   */
+  struct_fields_add(&sf, "f1", "integer", NULL, "10", NULL);
+  sf.fields[1].serde_skip_serializing = 1;
+  sf.fields[1].serde_skip_deserializing = 1;
+  sf.fields[1].serde_skip_if_kind = CDD_SERDE_SKIP_IF_ZERO;
+  sf.fields[1].serde_has_default = 1;
+
+  /* Field 2: write_only + read_only + skip_if_func + bare default */
+  struct_fields_add(&sf, "f2", "string", NULL, NULL, NULL);
+  sf.fields[2].write_only = 1;
+  sf.fields[2].read_only = 1;
+  sf.fields[2].serde_skip_if_kind = CDD_SERDE_SKIP_IF_FUNC;
+  CDD_STRCPY(sf.fields[2].serde_skip_if_fn,
+             sizeof(sf.fields[2].serde_skip_if_fn), "my_skip_fn");
+  sf.fields[2].serde_has_default = 1;
+
+  /* Field 3: skip_if_null + skip_if_func with empty fn */
+  struct_fields_add(&sf, "f3", "string", NULL, NULL, NULL);
+  sf.fields[3].serde_skip_if_kind = CDD_SERDE_SKIP_IF_FUNC;
+
+  /* Field 4: enum and object fields for get_type_from_ref */
+  struct_fields_add(&sf, "f_enum", "enum", "#/definitions/SE", NULL, NULL);
+  struct_fields_add(&sf, "f_obj", "object", "#/definitions/SO", NULL, NULL);
+
+  cfg.cli_guard = cdd_test_mut_str("CLI_G");
+  cfg.emit_cli = 1;
+
+  for (j = 0; j < 250; ++j) {
+    g_fail_io_after = j;
+    g_io_calls = 0;
+    rc = write_struct_declaration_h(tmp, "RichStruct", &sf, &cfg);
+    if (rc == 0)
+      break;
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
+  }
+  g_fail_io_after = -1;
+
+  /* Test config == NULL when sf.is_cli_command == 1 */
+  ASSERT_EQ(0, write_struct_declaration_h(tmp, "RichStructNoCfg", &sf, NULL));
+
+  /* Test config != NULL && config->cli_guard == NULL when sf.is_cli_command ==
+   * 1, and config != NULL && config->emit_cli == 1 when sf.is_cli_command == 0
+   */
+  cfg.cli_guard = NULL;
+  ASSERT_EQ(0,
+            write_struct_declaration_h(tmp, "RichStructNoCliGuard", &sf, &cfg));
+  sf.is_cli_command = 0;
+  cfg.emit_cli = 1;
+  ASSERT_EQ(0, write_struct_declaration_h(tmp, "RichStructEmitCli", &sf, &cfg));
+  sf.is_cli_command = 1;
+
+  /* Test IO failure inside write_enum_declaration_h when serde_skip[0] == 0 and
+   * serde_names != NULL, when v_n_al > 0 only, and when v_other is first */
+  {
+    struct StructFields sf_e;
+    struct_fields_init(&sf_e);
+    enum_members_add(&sf_e.enum_members, "V1");
+    enum_members_add(&sf_e.enum_members, "V2");
+    enum_member_add_alias(&sf_e.enum_members, 0, "v1_al_only");
+    sf_e.enum_members.serde_other_idx = 1;
+    for (j = 0; j < 30; ++j) {
+      g_fail_io_after = j;
+      g_io_calls = 0;
+      rc = write_enum_declaration_h(tmp, "E_OtherFirst", &sf_e, NULL);
+      if (rc == 0)
+        break;
+      ASSERT_EQ(CDD_C_ERROR_IO, rc);
+    }
+    g_fail_io_after = -1;
+    struct_fields_free(&sf_e);
+  }
+
+  /* Test IO failure on field with serde_skip=0, default_val, bare default,
+   * cli_short first, and container cli_name first */
+  {
+    struct StructFields sf_io2;
+    struct_fields_init(&sf_io2);
+    sf_io2.is_cli_command = 1;
+    struct_fields_add(&sf_io2, "f_defval", "string", NULL, "dv", NULL);
+    sf_io2.fields[0].serde_has_default = 1;
+    sf_io2.fields[0].cli_short = 's';
+    struct_fields_add(&sf_io2, "f_baredef", "integer", NULL, NULL, NULL);
+    sf_io2.fields[1].serde_has_default = 1;
+    struct_fields_add(&sf_io2, "f_clifirst", "integer", NULL, NULL, NULL);
+    sf_io2.fields[2].cli_short = 'c';
+    struct_fields_add(&sf_io2, "f_skip_if_null", "string", NULL, NULL, NULL);
+    sf_io2.fields[3].serde_skip_if_kind = CDD_SERDE_SKIP_IF_NULL;
+    struct_fields_add(&sf_io2, "f_ren_skipser", "string", NULL, NULL, NULL);
+    CDD_STRCPY(sf_io2.fields[4].serde_rename,
+               sizeof(sf_io2.fields[4].serde_rename), "r_ss");
+    sf_io2.fields[4].serde_skip_serializing = 1;
+    struct_fields_add(&sf_io2, "f_deffn_first", "integer", NULL, NULL, NULL);
+    sf_io2.fields[5].serde_has_default = 1;
+    CDD_STRCPY(sf_io2.fields[5].serde_default_fn,
+               sizeof(sf_io2.fields[5].serde_default_fn), "dff");
+    for (j = 0; j < 80; ++j) {
+      g_fail_io_after = j;
+      g_io_calls = 0;
+      rc = write_struct_declaration_h(tmp, "S_Io2", &sf_io2, NULL);
+      if (rc == 0)
+        break;
+      ASSERT_EQ(CDD_C_ERROR_IO, rc);
+    }
+    g_fail_io_after = -1;
+    struct_fields_free(&sf_io2);
+  }
+
+  /* Test array field serde comment IO failure when container has no comment */
+  {
+    struct StructFields sf_arr_io;
+    struct_fields_init(&sf_arr_io);
+    struct_fields_add(&sf_arr_io, "arr", "array", "string", NULL, NULL);
+    sf_arr_io.fields[0].serde_skip = 1;
+    for (j = 0; j < 10; ++j) {
+      g_fail_io_after = j;
+      g_io_calls = 0;
+      rc = write_struct_declaration_h(tmp, "ArrIo", &sf_arr_io, NULL);
+      if (rc == 0)
+        break;
+      ASSERT_EQ(CDD_C_ERROR_IO, rc);
+    }
+    g_fail_io_after = -1;
+    struct_fields_free(&sf_arr_io);
+  }
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_str_after_last;
+    g_cdd_fail_str_after_last = 1;
+    ASSERT_NEQ(0, write_struct_declaration_h(tmp, "FailS1", &sf, &cfg));
+    g_cdd_fail_str_after_last = 2;
+    ASSERT_NEQ(0, write_struct_declaration_h(tmp, "FailS2", &sf, &cfg));
+    g_cdd_fail_str_after_last = 3;
+    ASSERT_NEQ(0, write_struct_declaration_h(tmp, "FailS3", &sf, &cfg));
+    g_cdd_fail_str_after_last = 0;
+  }
+#endif
+  struct_fields_free(&sf);
+
+  /* 4. Test each container attribute and field attribute as the FIRST attribute
+   * (to cover both branches of `first_attr ? "" : ", "`, `f_first ? "" : ", "`,
+   * `c_first ? "" : ", "`, and `has_cli` conditions) */
+  {
+    int step;
+    for (step = 0; step < 30; ++step) {
+      struct StructFields s_perm;
+      struct_fields_init(&s_perm);
+      struct_fields_add(&s_perm, "x", "integer", NULL, NULL, NULL);
+      switch (step) {
+      case 0:
+        s_perm.serde_rename_all = CDD_SERDE_CASE_SNAKECASE;
+        CDD_STRCPY(s_perm.fields[0].serde_rename_ser,
+                   sizeof(s_perm.fields[0].serde_rename_ser), "rs");
+        break;
+      case 1:
+        s_perm.serde_rename_all_ser = CDD_SERDE_CASE_SNAKECASE;
+        CDD_STRCPY(s_perm.fields[0].serde_rename_de,
+                   sizeof(s_perm.fields[0].serde_rename_de), "rd");
+        break;
+      case 2:
+        s_perm.serde_rename_all_de = CDD_SERDE_CASE_SNAKECASE;
+        s_perm.fields[0].serde_case = CDD_SERDE_CASE_SNAKECASE;
+        break;
+      case 3:
+        CDD_STRCPY(s_perm.serde_replace_from, sizeof(s_perm.serde_replace_from),
+                   "a");
+        CDD_STRCPY(s_perm.fields[0].serde_replace_from,
+                   sizeof(s_perm.fields[0].serde_replace_from), "x");
+        break;
+      case 4:
+        CDD_STRCPY(s_perm.serde_prefix, sizeof(s_perm.serde_prefix), "p");
+        struct_field_add_alias(&s_perm.fields[0], "al");
+        break;
+      case 5:
+        CDD_STRCPY(s_perm.serde_suffix, sizeof(s_perm.serde_suffix), "s");
+        s_perm.fields[0].serde_skip = 1;
+        break;
+      case 6:
+        s_perm.serde_deny_unknown_fields = 1;
+        s_perm.fields[0].serde_skip_serializing = 1;
+        break;
+      case 7:
+        s_perm.serde_default = 1;
+        s_perm.fields[0].serde_skip_deserializing = 1;
+        break;
+      case 8:
+        CDD_STRCPY(s_perm.serde_tag, sizeof(s_perm.serde_tag), "t");
+        s_perm.fields[0].serde_skip_if_kind = CDD_SERDE_SKIP_IF_NULL;
+        break;
+      case 9:
+        CDD_STRCPY(s_perm.serde_content, sizeof(s_perm.serde_content), "c");
+        s_perm.fields[0].serde_flatten = 1;
+        break;
+      case 10:
+        s_perm.serde_untagged = 1;
+        s_perm.fields[0].serde_has_default = 1;
+        break;
+      case 11:
+        s_perm.is_cli_command = 1;
+        CDD_STRCPY(s_perm.fields[0].serde_with,
+                   sizeof(s_perm.fields[0].serde_with), "w");
+        break;
+      case 12:
+        CDD_STRCPY(s_perm.cli_name, sizeof(s_perm.cli_name), "cn");
+        CDD_STRCPY(s_perm.fields[0].serde_serialize_with,
+                   sizeof(s_perm.fields[0].serde_serialize_with), "sw");
+        break;
+      case 13:
+        CDD_STRCPY(s_perm.cli_version, sizeof(s_perm.cli_version), "cv");
+        CDD_STRCPY(s_perm.fields[0].serde_deserialize_with,
+                   sizeof(s_perm.fields[0].serde_deserialize_with), "dw");
+        break;
+      case 14:
+        CDD_STRCPY(s_perm.cli_author, sizeof(s_perm.cli_author), "ca");
+        CDD_STRCPY(s_perm.fields[0].cli_long, sizeof(s_perm.fields[0].cli_long),
+                   "cl");
+        break;
+      case 15:
+        CDD_STRCPY(s_perm.cli_about, sizeof(s_perm.cli_about), "cab");
+        s_perm.fields[0].cli_negatable = 1;
+        break;
+      case 16:
+        s_perm.cli_rename_all = CDD_SERDE_CASE_KEBABCASE;
+        s_perm.fields[0].cli_positional = 1;
+        break;
+      case 17:
+        CDD_STRCPY(s_perm.cli_env_prefix, sizeof(s_perm.cli_env_prefix), "CEP");
+        s_perm.fields[0].cli_index = 1;
+        break;
+      case 18:
+        CDD_STRCPY(s_perm.fields[0].cli_env, sizeof(s_perm.fields[0].cli_env),
+                   "CE");
+        break;
+      case 19:
+        CDD_STRCPY(s_perm.fields[0].cli_value_name,
+                   sizeof(s_perm.fields[0].cli_value_name), "CVN");
+        break;
+      case 20:
+        CDD_STRCPY(s_perm.fields[0].cli_help, sizeof(s_perm.fields[0].cli_help),
+                   "CH");
+        break;
+      case 21:
+        s_perm.fields[0].cli_action = CDD_CLI_ACTION_COUNT;
+        break;
+      case 22:
+        s_perm.fields[0].cli_value_delimiter = ':';
+        break;
+      case 23:
+        s_perm.fields[0].cli_subcommand = 1;
+        break;
+      case 24:
+        struct_field_add_cli_conflict(&s_perm.fields[0], "cf");
+        break;
+      case 25:
+        struct_field_add_cli_requires(&s_perm.fields[0], "rq");
+        break;
+      default:
+        break;
+      }
+      ASSERT_EQ(0, write_struct_declaration_h(tmp, "PermS", &s_perm, NULL));
+      struct_fields_free(&s_perm);
+    }
+  }
+
+  fclose(tmp);
+  PASS();
+}
+
+/**
  * @brief Executes the codegen_defaults_suite test suite.
  */
 SUITE(codegen_defaults_suite) {
@@ -582,6 +1053,7 @@ SUITE(codegen_defaults_suite) {
   RUN_TEST(test_write_struct_declaration_h_io_fail);
   RUN_TEST(test_write_union_declaration_h_io_fail);
   RUN_TEST(test_codegen_h_bounds);
+  RUN_TEST(test_codegen_serde_cli_exhaustive);
 }
 
 #ifdef __cplusplus

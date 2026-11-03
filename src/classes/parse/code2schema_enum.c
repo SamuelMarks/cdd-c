@@ -31,9 +31,9 @@ cdd_c_error_t json_array_to_enum_members(const JSON_Array *enum_arr,
     const char *wire_override = NULL;
     if (!s)
       continue;
-    if (c2s_needs_identifier_sanitization(s, &needs_san) == CDD_C_SUCCESS &&
-        needs_san) {
-      if (sanitize_identifier(s, &clean) != CDD_C_SUCCESS || !clean) {
+    c2s_needs_identifier_sanitization(s, &needs_san);
+    if (needs_san) {
+      if (sanitize_identifier(s, &clean) != CDD_C_SUCCESS) {
         return CDD_C_ERROR_MEMORY;
       }
       CDD_STRCPY(final_name, sizeof(final_name), clean);
@@ -53,18 +53,17 @@ cdd_c_error_t json_array_to_enum_members(const JSON_Array *enum_arr,
     if (dup) {
       char base_nm[52];
       unsigned int sfx = 2;
+      int dup_cand = 1;
       CDD_STRCPY(base_nm, sizeof(base_nm), final_name);
-      for (sfx = 2; sfx < 10000; ++sfx) {
-        int dup_cand = 0;
-        CDD_SNPRINTF(final_name, sizeof(final_name), "%s_%u", base_nm, sfx);
+      while (dup_cand) {
+        dup_cand = 0;
+        CDD_SNPRINTF(final_name, sizeof(final_name), "%s_%u", base_nm, sfx++);
         for (k = 0; k < em->size; ++k) {
           if (em->members[k] && strcmp(em->members[k], final_name) == 0) {
             dup_cand = 1;
             break;
           }
         }
-        if (!dup_cand)
-          break;
       }
     }
 

@@ -120,6 +120,38 @@ static cdd_c_error_t print_header_guard_end(FILE *hfile, const char *basename) {
 }
 
 /**
+ * @brief Resolves the C identifier name for a JSON Schema definition.
+ *
+ * @param[in] raw_name Raw schema key in the JSON Schema document.
+ * @param[in] s Schema JSON_Object (inspected for `x-cdd-c-name`).
+ * @param[out] out_name Buffer (capacity >= 64) receiving the resolved C
+ * identifier.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
+ */
+static cdd_c_error_t resolve_schema_c_name(const char *raw_name,
+                                           const JSON_Object *s,
+                                           char *out_name) {
+  const char *c_name_ext = json_object_get_string(s, "x-cdd-c-name");
+  char *san_name = NULL;
+  int needs_san = 0;
+
+  if (c_name_ext && c_name_ext[0] != '\0') {
+    CDD_STRCPY(out_name, 64, c_name_ext);
+    return CDD_C_SUCCESS;
+  }
+  c2s_needs_identifier_sanitization(raw_name, &needs_san);
+  if (needs_san) {
+    if (sanitize_identifier(raw_name, &san_name) != CDD_C_SUCCESS)
+      return CDD_C_ERROR_MEMORY;
+    CDD_STRCPY(out_name, 64, san_name);
+    C_CDD_FREE(san_name);
+    return CDD_C_SUCCESS;
+  }
+  CDD_STRCPY(out_name, 64, raw_name);
+  return CDD_C_SUCCESS;
+}
+
+/**
  * @brief Generates a C header file (`<prefix>.h`) for the given JSON Schemas.
  *
  * @param[in] prefix Output path prefix (without `.h` extension).
@@ -209,22 +241,11 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
     int is_object_schema = 0;
     const char *type = json_object_get_string(s, "type");
     const JSON_Object *props = json_object_get_object(s, "properties");
-    const char *c_name_ext = json_object_get_string(s, "x-cdd-c-name");
     char c_name[64];
-    char *san_name = NULL;
-    int needs_san = 0;
 
-    if (c_name_ext && c_name_ext[0] != '\0') {
-      CDD_STRCPY(c_name, sizeof(c_name), c_name_ext);
-    } else if (c2s_needs_identifier_sanitization(raw_name, &needs_san) ==
-                   CDD_C_SUCCESS &&
-               needs_san &&
-               sanitize_identifier(raw_name, &san_name) == CDD_C_SUCCESS &&
-               san_name) {
-      CDD_STRCPY(c_name, sizeof(c_name), san_name);
-      C_CDD_FREE(san_name);
-    } else {
-      CDD_STRCPY(c_name, sizeof(c_name), raw_name);
+    if (resolve_schema_c_name(raw_name, s, c_name) != CDD_C_SUCCESS) {
+      fclose(fp);
+      return CDD_C_ERROR_MEMORY;
     }
 
     if (struct_fields_init(&sf) != 0) {
@@ -257,22 +278,11 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
     int is_object_schema = 0;
     const char *type = json_object_get_string(s, "type");
     const JSON_Object *props = json_object_get_object(s, "properties");
-    const char *c_name_ext = json_object_get_string(s, "x-cdd-c-name");
     char c_name[64];
-    char *san_name = NULL;
-    int needs_san = 0;
 
-    if (c_name_ext && c_name_ext[0] != '\0') {
-      CDD_STRCPY(c_name, sizeof(c_name), c_name_ext);
-    } else if (c2s_needs_identifier_sanitization(raw_name, &needs_san) ==
-                   CDD_C_SUCCESS &&
-               needs_san &&
-               sanitize_identifier(raw_name, &san_name) == CDD_C_SUCCESS &&
-               san_name) {
-      CDD_STRCPY(c_name, sizeof(c_name), san_name);
-      C_CDD_FREE(san_name);
-    } else {
-      CDD_STRCPY(c_name, sizeof(c_name), raw_name);
+    if (resolve_schema_c_name(raw_name, s, c_name) != CDD_C_SUCCESS) {
+      fclose(fp);
+      return CDD_C_ERROR_MEMORY;
     }
 
     if (struct_fields_init(&sf) != 0) {
@@ -384,24 +394,13 @@ C_CDD_EXPORT cdd_c_error_t generate_source(const char *prefix,
         json_value_get_object(json_object_get_value_at(schemas_obj, i));
     const char *type = json_object_get_string(s, "type");
     const JSON_Object *props = json_object_get_object(s, "properties");
-    const char *c_name_ext = json_object_get_string(s, "x-cdd-c-name");
     char name[64];
-    char *san_name = NULL;
     struct StructFields sf;
     int is_object_schema = 0;
-    int needs_san = 0;
 
-    if (c_name_ext && c_name_ext[0] != '\0') {
-      CDD_STRCPY(name, sizeof(name), c_name_ext);
-    } else if (c2s_needs_identifier_sanitization(raw_name, &needs_san) ==
-                   CDD_C_SUCCESS &&
-               needs_san &&
-               sanitize_identifier(raw_name, &san_name) == CDD_C_SUCCESS &&
-               san_name) {
-      CDD_STRCPY(name, sizeof(name), san_name);
-      C_CDD_FREE(san_name);
-    } else {
-      CDD_STRCPY(name, sizeof(name), raw_name);
+    if (resolve_schema_c_name(raw_name, s, name) != CDD_C_SUCCESS) {
+      fclose(fp);
+      return CDD_C_ERROR_MEMORY;
     }
 
     if (struct_fields_init(&sf) != 0) {

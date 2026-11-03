@@ -34,12 +34,8 @@
  * @return CDD_C_SUCCESS on success.
  */
 static cdd_c_error_t serde_copy_str(char *dst, size_t dst_sz, const char *src) {
-  if (!dst || dst_sz == 0)
+  if (dst_sz == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  if (!src) {
-    dst[0] = '\0';
-    return CDD_C_SUCCESS;
-  }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   strncpy_s(dst, dst_sz, src, _TRUNCATE);
 #else
@@ -76,124 +72,87 @@ static cdd_c_error_t serde_str_ieq(const char *a, const char *b, int *out_eq) {
 cdd_c_error_t cdd_serde_parse_case_rule(const char *str,
                                         enum CddSerdeCaseRule *out_rule) {
   int eq = 0;
-  cdd_c_error_t rc;
   if (!str || !out_rule)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  rc = serde_str_ieq(str, "none", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "none", &eq);
   if (eq || str[0] == '\0') {
     *out_rule = CDD_SERDE_CASE_NONE;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "lowercase", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "lowercase", &eq);
   if (eq) {
     *out_rule = CDD_SERDE_CASE_LOWERCASE;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "uppercase", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "uppercase", &eq);
   if (eq) {
     *out_rule = CDD_SERDE_CASE_UPPERCASE;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "pascalcase", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "pascalcase", &eq);
   if (eq) {
     *out_rule = CDD_SERDE_CASE_PASCALCASE;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "camelcase", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "camelcase", &eq);
   if (eq) {
     *out_rule = CDD_SERDE_CASE_CAMELCASE;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "snake_case", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "snake_case", &eq);
   if (!eq) {
-    rc = serde_str_ieq(str, "snakecase", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "snakecase", &eq);
   }
   if (eq) {
     *out_rule = CDD_SERDE_CASE_SNAKECASE;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "screaming_snake_case", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "screaming_snake_case", &eq);
   if (!eq) {
-    rc = serde_str_ieq(str, "screaming_snakecase", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "screaming_snakecase", &eq);
   }
   if (eq) {
     *out_rule = CDD_SERDE_CASE_SCREAMING_SNAKECASE;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "kebab-case", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "kebab-case", &eq);
   if (!eq) {
-    rc = serde_str_ieq(str, "kebabcase", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "kebabcase", &eq);
   }
   if (!eq) {
-    rc = serde_str_ieq(str, "kebab_case", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "kebab_case", &eq);
   }
   if (eq) {
     *out_rule = CDD_SERDE_CASE_KEBABCASE;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "screaming-kebab-case", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "screaming-kebab-case", &eq);
   if (!eq) {
-    rc = serde_str_ieq(str, "screaming_kebabcase", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "screaming_kebabcase", &eq);
   }
   if (!eq) {
-    rc = serde_str_ieq(str, "screaming_kebab_case", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "screaming_kebab_case", &eq);
   }
   if (eq) {
     *out_rule = CDD_SERDE_CASE_SCREAMING_KEBABCASE;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "train-case", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "train-case", &eq);
   if (!eq) {
-    rc = serde_str_ieq(str, "traincase", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "traincase", &eq);
   }
   if (!eq) {
-    rc = serde_str_ieq(str, "train_case", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "train_case", &eq);
   }
   if (eq) {
     *out_rule = CDD_SERDE_CASE_TRAINCASE;
@@ -253,89 +212,64 @@ cdd_c_error_t cdd_serde_case_rule_to_str(enum CddSerdeCaseRule rule,
 cdd_c_error_t cdd_cli_parse_action(const char *str,
                                    enum CddCliAction *out_action) {
   int eq = 0;
-  cdd_c_error_t rc;
   if (!str || !out_action)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  rc = serde_str_ieq(str, "auto", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "auto", &eq);
   if (eq || str[0] == '\0') {
     *out_action = CDD_CLI_ACTION_AUTO;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "set", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "set", &eq);
   if (eq) {
     *out_action = CDD_CLI_ACTION_SET;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "set_true", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "set_true", &eq);
   if (!eq) {
-    rc = serde_str_ieq(str, "settrue", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "settrue", &eq);
   }
   if (!eq) {
-    rc = serde_str_ieq(str, "true", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "true", &eq);
   }
   if (eq) {
     *out_action = CDD_CLI_ACTION_SET_TRUE;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "set_false", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "set_false", &eq);
   if (!eq) {
-    rc = serde_str_ieq(str, "setfalse", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "setfalse", &eq);
   }
   if (!eq) {
-    rc = serde_str_ieq(str, "false", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "false", &eq);
   }
   if (eq) {
     *out_action = CDD_CLI_ACTION_SET_FALSE;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "count", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "count", &eq);
   if (eq) {
     *out_action = CDD_CLI_ACTION_COUNT;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "append", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "append", &eq);
   if (eq) {
     *out_action = CDD_CLI_ACTION_APPEND;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "help", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "help", &eq);
   if (eq) {
     *out_action = CDD_CLI_ACTION_HELP;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "version", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "version", &eq);
   if (eq) {
     *out_action = CDD_CLI_ACTION_VERSION;
     return CDD_C_SUCCESS;
@@ -388,127 +322,88 @@ cdd_c_error_t cdd_cli_action_to_str(enum CddCliAction action,
 cdd_c_error_t cdd_cli_parse_value_hint(const char *str,
                                        enum CddCliValueHint *out_hint) {
   int eq = 0;
-  cdd_c_error_t rc;
   if (!str || !out_hint)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  rc = serde_str_ieq(str, "none", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "none", &eq);
   if (eq || str[0] == '\0') {
     *out_hint = CDD_CLI_HINT_NONE;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "file", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "file", &eq);
   if (!eq) {
-    rc = serde_str_ieq(str, "file_path", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "file_path", &eq);
   }
   if (!eq) {
-    rc = serde_str_ieq(str, "filepath", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "filepath", &eq);
   }
   if (eq) {
     *out_hint = CDD_CLI_HINT_FILE_PATH;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "dir", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "dir", &eq);
   if (!eq) {
-    rc = serde_str_ieq(str, "dir_path", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "dir_path", &eq);
   }
   if (!eq) {
-    rc = serde_str_ieq(str, "dirpath", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "dirpath", &eq);
   }
   if (eq) {
     *out_hint = CDD_CLI_HINT_DIR_PATH;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "path", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "path", &eq);
   if (!eq) {
-    rc = serde_str_ieq(str, "any_path", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "any_path", &eq);
   }
   if (!eq) {
-    rc = serde_str_ieq(str, "anypath", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "anypath", &eq);
   }
   if (eq) {
     *out_hint = CDD_CLI_HINT_ANY_PATH;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "cmd", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "cmd", &eq);
   if (!eq) {
-    rc = serde_str_ieq(str, "executable", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "executable", &eq);
   }
   if (!eq) {
-    rc = serde_str_ieq(str, "command", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "command", &eq);
   }
   if (eq) {
     *out_hint = CDD_CLI_HINT_EXECUTABLE;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "url", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "url", &eq);
   if (eq) {
     *out_hint = CDD_CLI_HINT_URL;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "hostname", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "hostname", &eq);
   if (!eq) {
-    rc = serde_str_ieq(str, "host", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "host", &eq);
   }
   if (eq) {
     *out_hint = CDD_CLI_HINT_HOSTNAME;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "username", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "username", &eq);
   if (!eq) {
-    rc = serde_str_ieq(str, "user", &eq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_str_ieq(str, "user", &eq);
   }
   if (eq) {
     *out_hint = CDD_CLI_HINT_USERNAME;
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_str_ieq(str, "email", &eq);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_str_ieq(str, "email", &eq);
   if (eq) {
     *out_hint = CDD_CLI_HINT_EMAIL;
     return CDD_C_SUCCESS;
@@ -577,7 +472,7 @@ serde_split_words(const char *input,
 
   for (i = 0; i < len; ++i) {
     unsigned char ch = (unsigned char)input[i];
-    if (ch == '_' || ch == '-' || ch == ' ' || ch == '\t' || ch == '.') {
+    if (ch == '_' || ch == '-' || ch == '.' || isspace(ch)) {
       if (c_idx > 0) {
         words[w_idx][c_idx] = '\0';
         if (w_idx + 1 < CDD_SERDE_MAX_WORDS)
@@ -591,10 +486,9 @@ serde_split_words(const char *input,
       unsigned char prev = (unsigned char)input[i - 1];
       unsigned char next =
           (i + 1 < len) ? (unsigned char)input[i + 1] : (unsigned char)0;
-      if (islower(prev) || isdigit(prev) || (isupper(prev) && islower(next))) {
+      if (islower(prev) || isdigit(prev) || islower(next)) {
         words[w_idx][c_idx] = '\0';
-        if (w_idx + 1 < CDD_SERDE_MAX_WORDS)
-          w_idx++;
+        w_idx++;
         c_idx = 0;
       }
     }
@@ -622,7 +516,6 @@ cdd_c_error_t cdd_serde_transform_case(const char *input,
   char words[CDD_SERDE_MAX_WORDS][CDD_SERDE_MAX_WORD_LEN];
   size_t n_words = 0;
   size_t i, j, pos = 0;
-  cdd_c_error_t rc;
 
   if (!input || !out_buf || out_sz == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -647,9 +540,7 @@ cdd_c_error_t cdd_serde_transform_case(const char *input,
     return CDD_C_SUCCESS;
   }
 
-  rc = serde_split_words(input, words, &n_words);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_split_words(input, words, &n_words);
 
   if (n_words == 0) {
     return serde_copy_str(out_buf, out_sz, input);
@@ -682,8 +573,7 @@ cdd_c_error_t cdd_serde_transform_case(const char *input,
       } else if (rule == CDD_SERDE_CASE_SNAKECASE ||
                  rule == CDD_SERDE_CASE_KEBABCASE) {
         out_buf[pos++] = (char)tolower(ch);
-      } else if (rule == CDD_SERDE_CASE_SCREAMING_SNAKECASE ||
-                 rule == CDD_SERDE_CASE_SCREAMING_KEBABCASE) {
+      } else {
         out_buf[pos++] = (char)toupper(ch);
       }
     }
@@ -752,7 +642,6 @@ static cdd_c_error_t serde_resolve_single_name(const struct StructFields *sf,
   char buf1[128];
   char buf2[128];
   enum CddSerdeCaseRule container_case;
-  cdd_c_error_t rc;
 
   /* 1. Explicit directional rename has highest precedence */
   if (is_serialize && f->serde_rename_ser[0] != '\0') {
@@ -768,34 +657,28 @@ static cdd_c_error_t serde_resolve_single_name(const struct StructFields *sf,
   }
 
   /* 3. Start with C identifier */
-  rc = serde_copy_str(buf1, sizeof(buf1), f->name);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  if (f->name[0] == '\0')
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  serde_copy_str(buf1, sizeof(buf1), f->name);
 
   /* 4. Apply container prefix / suffix if present */
   if (sf->serde_prefix[0] != '\0' || sf->serde_suffix[0] != '\0') {
     size_t pos = 0;
     size_t k;
-    for (k = 0; sf->serde_prefix[k] != '\0' && pos + 1 < sizeof(buf2); ++k)
+    for (k = 0; sf->serde_prefix[k] != '\0'; ++k)
       buf2[pos++] = sf->serde_prefix[k];
-    for (k = 0; buf1[k] != '\0' && pos + 1 < sizeof(buf2); ++k)
+    for (k = 0; buf1[k] != '\0'; ++k)
       buf2[pos++] = buf1[k];
     for (k = 0; sf->serde_suffix[k] != '\0' && pos + 1 < sizeof(buf2); ++k)
       buf2[pos++] = sf->serde_suffix[k];
     buf2[pos] = '\0';
-    rc = serde_copy_str(buf1, sizeof(buf1), buf2);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_copy_str(buf1, sizeof(buf1), buf2);
   }
 
   /* 5. Container case rule vs Field-level case rule override */
   if (f->serde_case != CDD_SERDE_CASE_NONE) {
-    rc = cdd_serde_transform_case(buf1, f->serde_case, buf2, sizeof(buf2));
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    rc = serde_copy_str(buf1, sizeof(buf1), buf2);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    cdd_serde_transform_case(buf1, f->serde_case, buf2, sizeof(buf2));
+    serde_copy_str(buf1, sizeof(buf1), buf2);
   } else {
     container_case = sf->serde_rename_all;
     if (is_serialize && sf->serde_rename_all_ser != CDD_SERDE_CASE_NONE)
@@ -804,35 +687,23 @@ static cdd_c_error_t serde_resolve_single_name(const struct StructFields *sf,
       container_case = sf->serde_rename_all_de;
 
     if (container_case != CDD_SERDE_CASE_NONE) {
-      rc = cdd_serde_transform_case(buf1, container_case, buf2, sizeof(buf2));
-      if (rc != CDD_C_SUCCESS)
-        return rc;
-      rc = serde_copy_str(buf1, sizeof(buf1), buf2);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+      cdd_serde_transform_case(buf1, container_case, buf2, sizeof(buf2));
+      serde_copy_str(buf1, sizeof(buf1), buf2);
     }
   }
 
   /* 6. Container replace_all */
   if (sf->serde_replace_from[0] != '\0') {
-    rc = cdd_serde_replace_str(buf1, sf->serde_replace_from,
-                               sf->serde_replace_to, buf2, sizeof(buf2));
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    rc = serde_copy_str(buf1, sizeof(buf1), buf2);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    cdd_serde_replace_str(buf1, sf->serde_replace_from, sf->serde_replace_to,
+                          buf2, sizeof(buf2));
+    serde_copy_str(buf1, sizeof(buf1), buf2);
   }
 
   /* 7. Field-level replace override */
   if (f->serde_replace_from[0] != '\0') {
-    rc = cdd_serde_replace_str(buf1, f->serde_replace_from, f->serde_replace_to,
-                               buf2, sizeof(buf2));
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    rc = serde_copy_str(buf1, sizeof(buf1), buf2);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    cdd_serde_replace_str(buf1, f->serde_replace_from, f->serde_replace_to,
+                          buf2, sizeof(buf2));
+    serde_copy_str(buf1, sizeof(buf1), buf2);
   }
 
   return serde_copy_str(out_name, out_sz, buf1);
@@ -876,38 +747,27 @@ cdd_c_error_t cdd_serde_resolve_enum_member_name(const struct EnumMembers *em,
                                                  size_t out_sz) {
   char buf1[128];
   char buf2[128];
-  cdd_c_error_t rc;
 
-  if (!em || !em->members || member_idx >= em->size || !out_name || out_sz == 0)
+  if (!em || member_idx >= em->size || !out_name || out_sz == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (em->serde_names && em->serde_names[member_idx] &&
-      em->serde_names[member_idx][0] != '\0') {
+  if (em->serde_names && em->serde_names[member_idx]) {
     return serde_copy_str(out_name, out_sz, em->serde_names[member_idx]);
   }
 
-  rc = serde_copy_str(buf1, sizeof(buf1), em->members[member_idx]);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  if (em->members[member_idx][0] == '\0')
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  serde_copy_str(buf1, sizeof(buf1), em->members[member_idx]);
 
   if (em->serde_rename_all != CDD_SERDE_CASE_NONE) {
-    rc = cdd_serde_transform_case(buf1, em->serde_rename_all, buf2,
-                                  sizeof(buf2));
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    rc = serde_copy_str(buf1, sizeof(buf1), buf2);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    cdd_serde_transform_case(buf1, em->serde_rename_all, buf2, sizeof(buf2));
+    serde_copy_str(buf1, sizeof(buf1), buf2);
   }
 
   if (em->serde_replace_from[0] != '\0') {
-    rc = cdd_serde_replace_str(buf1, em->serde_replace_from,
-                               em->serde_replace_to, buf2, sizeof(buf2));
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    rc = serde_copy_str(buf1, sizeof(buf1), buf2);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    cdd_serde_replace_str(buf1, em->serde_replace_from, em->serde_replace_to,
+                          buf2, sizeof(buf2));
+    serde_copy_str(buf1, sizeof(buf1), buf2);
   }
 
   return serde_copy_str(out_name, out_sz, buf1);
@@ -922,15 +782,9 @@ cdd_c_error_t cdd_serde_resolve_enum_member_name(const struct EnumMembers *em,
  */
 static cdd_c_error_t serde_skip_delims(const char **p, const char *end) {
   const char *cur = *p;
-  while (cur < end) {
-    if (*cur == ' ' || *cur == '\t' || *cur == '\r' || *cur == '\n' ||
-        *cur == ',') {
-      cur++;
-    } else if (*cur == '*' && (cur + 1 >= end || *(cur + 1) != '/')) {
-      cur++;
-    } else {
-      break;
-    }
+  while (cur < end &&
+         (isspace((unsigned char)*cur) || *cur == ',' || *cur == '*')) {
+    cur++;
   }
   *p = cur;
   return CDD_C_SUCCESS;
@@ -950,58 +804,46 @@ static cdd_c_error_t serde_parse_value(const char **p, const char *end,
   const char *cur = *p;
   size_t pos = 0;
   int paren_wrapped = 0;
+  (void)val_sz;
 
-  while (cur < end && (*cur == ' ' || *cur == '\t'))
+  while (cur < end && isspace((unsigned char)*cur))
     cur++;
 
   if (cur < end && *cur == '(') {
     paren_wrapped = 1;
     cur++;
-    while (cur < end && (*cur == ' ' || *cur == '\t'))
+    while (isspace((unsigned char)*cur))
       cur++;
   }
 
   if (cur < end && (*cur == '"' || *cur == '\'')) {
     char quote = *cur++;
     while (cur < end && *cur != quote) {
-      if (*cur == '\\' && cur + 1 < end) {
-        cur++;
-        if (*cur == 'n') {
-          if (pos + 1 < val_sz)
-            out_val[pos++] = '\n';
-        } else if (*cur == 'r') {
-          if (pos + 1 < val_sz)
-            out_val[pos++] = '\r';
-        } else if (*cur == 't') {
-          if (pos + 1 < val_sz)
-            out_val[pos++] = '\t';
-        } else {
-          if (pos + 1 < val_sz)
-            out_val[pos++] = *cur;
-        }
-        cur++;
-        continue;
+      char ch = *cur++;
+      if (ch == '\\' && cur < end) {
+        char esc = *cur++;
+        if (esc == 'n')
+          ch = '\n';
+        else if (esc == 'r')
+          ch = '\r';
+        else if (esc == 't')
+          ch = '\t';
+        else
+          ch = esc;
       }
-      if (pos + 1 < val_sz)
-        out_val[pos++] = *cur;
-      cur++;
+      out_val[pos++] = ch;
     }
-    if (cur < end && *cur == quote)
+    if (cur < end)
       cur++;
   } else {
-    while (cur < end && *cur != ' ' && *cur != '\t' && *cur != '\r' &&
-           *cur != '\n' && *cur != ',' && *cur != ')' &&
-           !(*cur == '*' && cur + 1 < end && *(cur + 1) == '/')) {
-      if (pos + 1 < val_sz)
-        out_val[pos++] = *cur;
-      cur++;
+    while (cur < end && !isspace((unsigned char)*cur) && *cur != ',' &&
+           *cur != ')') {
+      out_val[pos++] = *cur++;
     }
   }
 
   if (paren_wrapped) {
-    while (cur < end && (*cur == ' ' || *cur == '\t'))
-      cur++;
-    if (cur < end && *cur == ')')
+    while (cur < end && (isspace((unsigned char)*cur) || *cur == ')'))
       cur++;
   }
 
@@ -1026,29 +868,20 @@ static cdd_c_error_t serde_parse_replace_tuple(const char **p, const char *end,
                                                char *out_from, size_t from_sz,
                                                char *out_to, size_t to_sz) {
   const char *cur = *p;
-  cdd_c_error_t rc;
 
-  while (cur < end && (*cur == ' ' || *cur == '\t'))
-    cur++;
-  if (cur < end && *cur == '(')
+  while (isspace((unsigned char)*cur) || *cur == '(')
     cur++;
 
-  rc = serde_parse_value(&cur, end, out_from, from_sz);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_parse_value(&cur, end, out_from, from_sz);
 
-  while (cur < end && (*cur == ' ' || *cur == '\t' || *cur == ',' ||
+  while (cur < end && (isspace((unsigned char)*cur) || *cur == ',' ||
                        *cur == '-' || *cur == '>' || *cur == ':')) {
     cur++;
   }
 
-  rc = serde_parse_value(&cur, end, out_to, to_sz);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_parse_value(&cur, end, out_to, to_sz);
 
-  while (cur < end && (*cur == ' ' || *cur == '\t'))
-    cur++;
-  if (cur < end && *cur == ')')
+  while (cur < end && (isspace((unsigned char)*cur) || *cur == ')'))
     cur++;
 
   *p = cur;
@@ -1076,12 +909,9 @@ static cdd_c_error_t serde_find_directive_ex(const char *cur,
   if (out_is_cli)
     *out_is_cli = 0;
   while (*p != '\0') {
-    int is_cdd = (p[0] == '@' && strncmp(p, "@cdd", 4) == 0 &&
-                  !isalnum((unsigned char)p[4]) && p[4] != '_');
-    int is_serde = (p[0] == '@' && strncmp(p, "@serde", 6) == 0 &&
-                    !isalnum((unsigned char)p[6]) && p[6] != '_');
-    int is_cli = (p[0] == '@' && strncmp(p, "@cli", 4) == 0 &&
-                  !isalnum((unsigned char)p[4]) && p[4] != '_');
+    int is_cdd = (strncmp(p, "@cdd", 4) == 0);
+    int is_serde = (strncmp(p, "@serde", 6) == 0);
+    int is_cli = (strncmp(p, "@cli", 4) == 0);
     if (is_cdd || is_serde || is_cli) {
       const char *body = p + (is_serde ? 6 : 4);
       const char *end;
@@ -1136,7 +966,7 @@ static cdd_c_error_t serde_find_directive_ex(const char *cur,
       *out_next = (*end == ')') ? end + 1 : end;
       return CDD_C_SUCCESS;
     }
-    if (p[0] == '#' && p[1] == '[') {
+    if (strncmp(p, "#[", 2) == 0) {
       size_t prefix_len = 0;
       int cli_attr = 0;
       if (strncmp(p, "#[serde(", 8) == 0) {
@@ -1162,9 +992,9 @@ static cdd_c_error_t serde_find_directive_ex(const char *cur,
         char in_quote = 0;
         if (out_is_cli)
           *out_is_cli = cli_attr;
-        while (*end != '\0' && !(end[0] == '*' && end[1] == '/') && depth > 0) {
+        while (*end != '\0' && !(end[0] == '*' && end[1] == '/')) {
           if (in_quote) {
-            if (*end == '\\' && end[1] != '\0') {
+            if (*end == '\\') {
               end += 2;
               continue;
             }
@@ -1213,26 +1043,20 @@ static cdd_c_error_t serde_next_key(const char **p, const char *end,
                                     char *key_buf, size_t key_sz) {
   const char *cur;
   size_t pos = 0;
-  cdd_c_error_t rc;
+  (void)key_sz;
 
-  rc = serde_skip_delims(p, end);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  serde_skip_delims(p, end);
   cur = *p;
-  while (cur < end && (*cur == ')' || *cur == ']')) {
+  while (cur < end && *cur == ')') {
     cur++;
     *p = cur;
-    rc = serde_skip_delims(p, end);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_skip_delims(p, end);
     cur = *p;
   }
 
   while (cur < end &&
          (isalnum((unsigned char)*cur) || *cur == '_' || *cur == '-')) {
-    if (pos + 1 < key_sz)
-      key_buf[pos++] = *cur;
-    cur++;
+    key_buf[pos++] = *cur++;
   }
   key_buf[pos] = '\0';
   *p = cur;
@@ -1249,16 +1073,15 @@ static cdd_c_error_t serde_next_key(const char **p, const char *end,
  */
 static cdd_c_error_t serde_parse_bool_val(const char *val, int *out_bool) {
   int eq_false = 0, eq_no = 0, eq_off = 0;
-  cdd_c_error_t rc;
-  rc = serde_str_ieq(val, "false", &eq_false);
-  rc = serde_str_ieq(val, "no", &eq_no);
-  rc = serde_str_ieq(val, "off", &eq_off);
+  serde_str_ieq(val, "false", &eq_false);
+  serde_str_ieq(val, "no", &eq_no);
+  serde_str_ieq(val, "off", &eq_off);
   if (eq_false || eq_no || eq_off || strcmp(val, "0") == 0) {
     *out_bool = 0;
   } else {
     *out_bool = 1;
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -1272,10 +1095,7 @@ static cdd_c_error_t serde_parse_bool_val(const char *val, int *out_bool) {
  */
 static cdd_c_error_t serde_parse_num_args(const char *val, int *out_min,
                                           int *out_max) {
-  const char *dots;
-  if (!val || !out_min || !out_max)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  dots = strstr(val, "..");
+  const char *dots = strstr(val, "..");
   if (!dots) {
     int n = atoi(val);
     *out_min = n;
@@ -1313,17 +1133,15 @@ static cdd_c_error_t serde_extract_tag_line(const char *start, char *out_buf,
                                             size_t out_sz) {
   const char *p = start;
   size_t pos = 0;
-  if (!out_buf || out_sz == 0)
-    return CDD_C_SUCCESS;
-  while (*p == ' ' || *p == '\t' || *p == ':')
+  (void)out_sz;
+  if (*p == ':')
     p++;
-  while (*p != '\0' && *p != '\r' && *p != '\n' &&
-         !(p[0] == '*' && p[1] == '/')) {
-    if (pos + 1 < out_sz)
-      out_buf[pos++] = *p;
+  while (*p == ' ' || *p == '\t')
     p++;
+  while (*p != '\0' && *p != '\r' && *p != '\n' && strncmp(p, "*/", 2) != 0) {
+    out_buf[pos++] = *p++;
   }
-  while (pos > 0 && (out_buf[pos - 1] == ' ' || out_buf[pos - 1] == '\t'))
+  while (pos > 0 && isspace((unsigned char)out_buf[pos - 1]))
     pos--;
   out_buf[pos] = '\0';
   return CDD_C_SUCCESS;
@@ -1335,9 +1153,9 @@ static cdd_c_error_t serde_extract_tag_line(const char *start, char *out_buf,
  * `@contact`) and plain Doxygen docstrings.
  *
  * @param[in] comment_text Raw comment block.
- * @param[out] out_brief Buffer for brief/summary text (optional).
+ * @param[out] out_brief Buffer for brief/summary text.
  * @param[in] brief_sz Capacity of `out_brief`.
- * @param[out] out_details Buffer for details/description text (optional).
+ * @param[out] out_details Buffer for details/description text.
  * @param[in] details_sz Capacity of `out_details`.
  * @param[out] out_version Buffer for version text (optional).
  * @param[in] version_sz Capacity of `out_version`.
@@ -1350,51 +1168,37 @@ static cdd_c_error_t serde_extract_doxygen_fallbacks(
     char *out_details, size_t details_sz, char *out_version, size_t version_sz,
     char *out_author, size_t author_sz) {
   const char *p = comment_text;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
-  if (out_brief && brief_sz > 0)
-    out_brief[0] = '\0';
-  if (out_details && details_sz > 0)
-    out_details[0] = '\0';
-  if (out_version && version_sz > 0)
+  out_brief[0] = '\0';
+  out_details[0] = '\0';
+  if (out_version)
     out_version[0] = '\0';
-  if (out_author && author_sz > 0)
+  if (out_author)
     out_author[0] = '\0';
-  if (!comment_text)
-    return CDD_C_SUCCESS;
 
   while (*p != '\0') {
     if (*p == '@') {
-      if (out_brief && out_brief[0] == '\0' &&
-          (strncmp(p, "@brief", 6) == 0 && !isalnum((unsigned char)p[6]))) {
-        rc = serde_extract_tag_line(p + 6, out_brief, brief_sz);
-      } else if (out_brief && out_brief[0] == '\0' &&
-                 (strncmp(p, "@summary", 8) == 0 &&
-                  !isalnum((unsigned char)p[8]))) {
-        rc = serde_extract_tag_line(p + 8, out_brief, brief_sz);
-      } else if (out_details && out_details[0] == '\0' &&
-                 (strncmp(p, "@details", 8) == 0 &&
-                  !isalnum((unsigned char)p[8]))) {
-        rc = serde_extract_tag_line(p + 8, out_details, details_sz);
-      } else if (out_details && out_details[0] == '\0' &&
-                 (strncmp(p, "@description", 12) == 0 &&
-                  !isalnum((unsigned char)p[12]))) {
-        rc = serde_extract_tag_line(p + 12, out_details, details_sz);
+      if (out_brief[0] == '\0' && strncmp(p, "@brief", 6) == 0 &&
+          !isalnum((unsigned char)p[6])) {
+        serde_extract_tag_line(p + 6, out_brief, brief_sz);
+      } else if (out_brief[0] == '\0' && strncmp(p, "@summary", 8) == 0) {
+        serde_extract_tag_line(p + 8, out_brief, brief_sz);
+      } else if (out_details[0] == '\0' && strncmp(p, "@details", 8) == 0) {
+        serde_extract_tag_line(p + 8, out_details, details_sz);
+      } else if (out_details[0] == '\0' &&
+                 strncmp(p, "@description", 12) == 0) {
+        serde_extract_tag_line(p + 12, out_details, details_sz);
       } else if (out_version && out_version[0] == '\0' &&
-                 (strncmp(p, "@version", 8) == 0 &&
-                  !isalnum((unsigned char)p[8]))) {
-        rc = serde_extract_tag_line(p + 8, out_version, version_sz);
+                 strncmp(p, "@version", 8) == 0) {
+        serde_extract_tag_line(p + 8, out_version, version_sz);
       } else if (out_version && out_version[0] == '\0' &&
-                 (strncmp(p, "@infoVersion", 12) == 0 &&
-                  !isalnum((unsigned char)p[12]))) {
-        rc = serde_extract_tag_line(p + 12, out_version, version_sz);
+                 strncmp(p, "@infoVersion", 12) == 0) {
+        serde_extract_tag_line(p + 12, out_version, version_sz);
       } else if (out_author && out_author[0] == '\0' &&
-                 (strncmp(p, "@author", 7) == 0 &&
-                  !isalnum((unsigned char)p[7]))) {
-        rc = serde_extract_tag_line(p + 7, out_author, author_sz);
+                 strncmp(p, "@author", 7) == 0) {
+        serde_extract_tag_line(p + 7, out_author, author_sz);
       } else if (out_author && out_author[0] == '\0' &&
-                 (strncmp(p, "@contact", 8) == 0 &&
-                  !isalnum((unsigned char)p[8]))) {
-        rc = serde_extract_tag_line(p + 8, out_author, author_sz);
+                 strncmp(p, "@contact", 8) == 0) {
+        serde_extract_tag_line(p + 8, out_author, author_sz);
       }
     }
     p++;
@@ -1402,7 +1206,7 @@ static cdd_c_error_t serde_extract_doxygen_fallbacks(
 
   /* If no explicit @brief was found, check for a plain Doxygen block or
    * /// line that does not start with @ or #[ */
-  if (out_brief && out_brief[0] == '\0') {
+  if (out_brief[0] == '\0') {
     const char *doc = strstr(comment_text, "/**");
     if (!doc)
       doc = strstr(comment_text, "/*!");
@@ -1410,25 +1214,25 @@ static cdd_c_error_t serde_extract_doxygen_fallbacks(
       const char *s = doc + 3;
       if (*s == '<')
         s++;
-      while (*s != '\0' && !(s[0] == '*' && s[1] == '/')) {
-        while (*s == ' ' || *s == '\t' || *s == '\r' || *s == '\n' ||
-               (*s == '*' && s[1] != '/')) {
+      while (*s != '\0' && strncmp(s, "*/", 2) != 0) {
+        while (isspace((unsigned char)*s) ||
+               (*s == '*' && strncmp(s, "*/", 2) != 0)) {
           s++;
         }
-        if (*s == '\0' || (s[0] == '*' && s[1] == '/'))
+        if (*s == '\0' || strncmp(s, "*/", 2) == 0)
           break;
-        if (*s == '@' || (s[0] == '#' && s[1] == '[')) {
+        if (*s == '@' || strncmp(s, "#[", 2) == 0) {
           /* Skip directive line */
-          while (*s != '\0' && *s != '\n' && !(s[0] == '*' && s[1] == '/'))
+          while (*s != '\0' && *s != '\n' && strncmp(s, "*/", 2) != 0)
             s++;
           continue;
         }
-        rc = serde_extract_tag_line(s, out_brief, brief_sz);
+        serde_extract_tag_line(s, out_brief, brief_sz);
         break;
       }
     }
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -1452,12 +1256,12 @@ cdd_c_error_t cdd_serde_parse_container_comment(const char *comment_text,
   if (!comment_text || comment_text[0] == '\0')
     return CDD_C_SUCCESS;
 
-  rc = serde_extract_doxygen_fallbacks(
-      comment_text, dox_brief, sizeof(dox_brief), dox_details,
-      sizeof(dox_details), dox_version, sizeof(dox_version), dox_author,
-      sizeof(dox_author));
+  serde_extract_doxygen_fallbacks(comment_text, dox_brief, sizeof(dox_brief),
+                                  dox_details, sizeof(dox_details), dox_version,
+                                  sizeof(dox_version), dox_author,
+                                  sizeof(dox_author));
   if (dox_brief[0] != '\0' && sf->cli_about[0] == '\0') {
-    rc = serde_copy_str(sf->cli_about, sizeof(sf->cli_about), dox_brief);
+    serde_copy_str(sf->cli_about, sizeof(sf->cli_about), dox_brief);
   }
   if (dox_details[0] != '\0' && !sf->cli_long_about) {
     rc = c_cdd_strdup(dox_details, &sf->cli_long_about);
@@ -1465,10 +1269,10 @@ cdd_c_error_t cdd_serde_parse_container_comment(const char *comment_text,
       return rc;
   }
   if (dox_version[0] != '\0' && sf->cli_version[0] == '\0') {
-    rc = serde_copy_str(sf->cli_version, sizeof(sf->cli_version), dox_version);
+    serde_copy_str(sf->cli_version, sizeof(sf->cli_version), dox_version);
   }
   if (dox_author[0] != '\0' && sf->cli_author[0] == '\0') {
-    rc = serde_copy_str(sf->cli_author, sizeof(sf->cli_author), dox_author);
+    serde_copy_str(sf->cli_author, sizeof(sf->cli_author), dox_author);
   }
 
   scan = comment_text;
@@ -1476,9 +1280,7 @@ cdd_c_error_t cdd_serde_parse_container_comment(const char *comment_text,
     const char *p;
     int is_cli_dir = 0;
     int in_cli_ctx = 0;
-    rc = serde_find_directive_ex(scan, &start, &end, &next, &is_cli_dir);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_find_directive_ex(scan, &start, &end, &next, &is_cli_dir);
     if (!start)
       break;
 
@@ -1493,16 +1295,14 @@ cdd_c_error_t cdd_serde_parse_container_comment(const char *comment_text,
       char val[1024];
       enum CddSerdeCaseRule rule = CDD_SERDE_CASE_NONE;
 
-      rc = serde_next_key(&p, end, key, sizeof(key));
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+      serde_next_key(&p, end, key, sizeof(key));
       if (key[0] == '\0') {
         if (p < end)
           p++;
         continue;
       }
 
-      while (p < end && (*p == ' ' || *p == '\t'))
+      while (p < end && isspace((unsigned char)*p))
         p++;
 
       if (strcmp(key, "cli") == 0 || strcmp(key, "command") == 0 ||
@@ -1516,50 +1316,34 @@ cdd_c_error_t cdd_serde_parse_container_comment(const char *comment_text,
 
       if (p < end && (*p == '=' || *p == ':' || *p == '(')) {
         int bval = 1;
-        if (*p == '=' || *p == ':')
+        if (*p != '(')
           p++;
         if (strcmp(key, "replace_all") == 0 || strcmp(key, "replace") == 0 ||
             strcmp(key, "rewrite_all") == 0 || strcmp(key, "rewrite") == 0) {
-          rc = serde_parse_replace_tuple(
+          serde_parse_replace_tuple(
               &p, end, sf->serde_replace_from, sizeof(sf->serde_replace_from),
               sf->serde_replace_to, sizeof(sf->serde_replace_to));
-          if (rc != CDD_C_SUCCESS)
-            return rc;
           continue;
         }
-        rc = serde_parse_value(&p, end, val, sizeof(val));
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+        serde_parse_value(&p, end, val, sizeof(val));
 
         if (strcmp(key, "rename") == 0) {
-          rc = serde_copy_str(sf->serde_rename, sizeof(sf->serde_rename), val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(sf->serde_rename, sizeof(sf->serde_rename), val);
         } else if (strcmp(key, "name") == 0) {
           sf->is_cli_command = 1;
-          rc = serde_copy_str(sf->cli_name, sizeof(sf->cli_name), val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(sf->cli_name, sizeof(sf->cli_name), val);
         } else if (strcmp(key, "bin_name") == 0) {
           sf->is_cli_command = 1;
-          rc = serde_copy_str(sf->cli_bin_name, sizeof(sf->cli_bin_name), val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(sf->cli_bin_name, sizeof(sf->cli_bin_name), val);
         } else if (strcmp(key, "version") == 0) {
           sf->is_cli_command = 1;
-          rc = serde_copy_str(sf->cli_version, sizeof(sf->cli_version), val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(sf->cli_version, sizeof(sf->cli_version), val);
         } else if (strcmp(key, "author") == 0) {
           sf->is_cli_command = 1;
-          rc = serde_copy_str(sf->cli_author, sizeof(sf->cli_author), val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(sf->cli_author, sizeof(sf->cli_author), val);
         } else if (strcmp(key, "about") == 0) {
           sf->is_cli_command = 1;
-          rc = serde_copy_str(sf->cli_about, sizeof(sf->cli_about), val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(sf->cli_about, sizeof(sf->cli_about), val);
         } else if (strcmp(key, "long_about") == 0) {
           sf->is_cli_command = 1;
           if (sf->cli_long_about) {
@@ -1590,10 +1374,8 @@ cdd_c_error_t cdd_serde_parse_container_comment(const char *comment_text,
         } else if (strcmp(key, "override_usage") == 0 ||
                    strcmp(key, "usage") == 0) {
           sf->is_cli_command = 1;
-          rc = serde_copy_str(sf->cli_usage_override,
-                              sizeof(sf->cli_usage_override), val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(sf->cli_usage_override, sizeof(sf->cli_usage_override),
+                         val);
         } else if (strcmp(key, "cli_rename_all") == 0) {
           if (cdd_serde_parse_case_rule(val, &rule) == CDD_C_SUCCESS) {
             sf->cli_rename_all = rule;
@@ -1612,45 +1394,42 @@ cdd_c_error_t cdd_serde_parse_container_comment(const char *comment_text,
           }
         } else if (strcmp(key, "env_prefix") == 0) {
           sf->is_cli_command = 1;
-          rc = serde_copy_str(sf->cli_env_prefix, sizeof(sf->cli_env_prefix),
-                              val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(sf->cli_env_prefix, sizeof(sf->cli_env_prefix), val);
         } else if (strcmp(key, "alias") == 0 ||
                    strcmp(key, "visible_alias") == 0) {
           rc = struct_fields_add_cli_alias(sf, val);
           if (rc != CDD_C_SUCCESS)
             return rc;
         } else if (strcmp(key, "arg_required_else_help") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           sf->cli_arg_required_else_help = bval;
         } else if (strcmp(key, "subcommand_required") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           sf->cli_subcommand_required = bval;
         } else if (strcmp(key, "allow_external_subcommands") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           sf->cli_allow_external_subcommands = bval;
         } else if (strcmp(key, "disable_help_flag") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           sf->cli_disable_help_flag = bval;
         } else if (strcmp(key, "disable_version_flag") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           sf->cli_disable_version_flag = bval;
         } else if (strcmp(key, "disable_help_subcommand") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           sf->cli_disable_help_subcommand = bval;
         } else if (strcmp(key, "propagate_version") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           sf->cli_propagate_version = bval;
         } else if (strcmp(key, "allow_windows_slash_flags") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           sf->cli_allow_windows_slash_flags = bval;
         } else if (strcmp(key, "allow_response_files") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           sf->cli_allow_response_files = bval;
         } else if (strcmp(key, "case_insensitive") == 0 ||
                    strcmp(key, "ignore_case") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           sf->cli_case_insensitive_flags = bval;
         } else if (strcmp(key, "rename_all_serialize") == 0 ||
                    strcmp(key, "serialize") == 0) {
@@ -1663,22 +1442,13 @@ cdd_c_error_t cdd_serde_parse_container_comment(const char *comment_text,
             sf->serde_rename_all_de = rule;
           }
         } else if (strcmp(key, "prefix") == 0) {
-          rc = serde_copy_str(sf->serde_prefix, sizeof(sf->serde_prefix), val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(sf->serde_prefix, sizeof(sf->serde_prefix), val);
         } else if (strcmp(key, "suffix") == 0) {
-          rc = serde_copy_str(sf->serde_suffix, sizeof(sf->serde_suffix), val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(sf->serde_suffix, sizeof(sf->serde_suffix), val);
         } else if (strcmp(key, "tag") == 0) {
-          rc = serde_copy_str(sf->serde_tag, sizeof(sf->serde_tag), val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(sf->serde_tag, sizeof(sf->serde_tag), val);
         } else if (strcmp(key, "content") == 0) {
-          rc =
-              serde_copy_str(sf->serde_content, sizeof(sf->serde_content), val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(sf->serde_content, sizeof(sf->serde_content), val);
         }
       } else {
         if (strcmp(key, "deny_unknown_fields") == 0) {
@@ -1690,10 +1460,7 @@ cdd_c_error_t cdd_serde_parse_container_comment(const char *comment_text,
         } else if (strcmp(key, "version") == 0) {
           sf->is_cli_command = 1;
           if (sf->cli_version[0] == '\0') {
-            rc = serde_copy_str(sf->cli_version, sizeof(sf->cli_version),
-                                "0.1.0");
-            if (rc != CDD_C_SUCCESS)
-              return rc;
+            serde_copy_str(sf->cli_version, sizeof(sf->cli_version), "0.1.0");
           }
         } else if (strcmp(key, "author") == 0 || strcmp(key, "about") == 0 ||
                    strcmp(key, "long_about") == 0) {
@@ -1771,33 +1538,17 @@ cdd_c_error_t cdd_serde_parse_enum_comment(const char *comment_text,
   if (tmp_sf.cli_case_insensitive_flags)
     em->cli_case_insensitive = 1;
   if (tmp_sf.serde_replace_from[0] != '\0') {
-    rc = serde_copy_str(em->serde_replace_from, sizeof(em->serde_replace_from),
-                        tmp_sf.serde_replace_from);
-    if (rc != CDD_C_SUCCESS) {
-      struct_fields_free(&tmp_sf);
-      return rc;
-    }
-    rc = serde_copy_str(em->serde_replace_to, sizeof(em->serde_replace_to),
-                        tmp_sf.serde_replace_to);
-    if (rc != CDD_C_SUCCESS) {
-      struct_fields_free(&tmp_sf);
-      return rc;
-    }
+    serde_copy_str(em->serde_replace_from, sizeof(em->serde_replace_from),
+                   tmp_sf.serde_replace_from);
+    serde_copy_str(em->serde_replace_to, sizeof(em->serde_replace_to),
+                   tmp_sf.serde_replace_to);
   }
   if (tmp_sf.serde_tag[0] != '\0') {
-    rc = serde_copy_str(em->serde_tag, sizeof(em->serde_tag), tmp_sf.serde_tag);
-    if (rc != CDD_C_SUCCESS) {
-      struct_fields_free(&tmp_sf);
-      return rc;
-    }
+    serde_copy_str(em->serde_tag, sizeof(em->serde_tag), tmp_sf.serde_tag);
   }
   if (tmp_sf.serde_content[0] != '\0') {
-    rc = serde_copy_str(em->serde_content, sizeof(em->serde_content),
-                        tmp_sf.serde_content);
-    if (rc != CDD_C_SUCCESS) {
-      struct_fields_free(&tmp_sf);
-      return rc;
-    }
+    serde_copy_str(em->serde_content, sizeof(em->serde_content),
+                   tmp_sf.serde_content);
   }
   if (tmp_sf.serde_untagged)
     em->serde_untagged = 1;
@@ -1814,11 +1565,8 @@ cdd_c_error_t cdd_serde_parse_enum_comment(const char *comment_text,
  */
 static cdd_c_error_t serde_add_short_alias_char(struct StructField *field,
                                                 char ch) {
-  size_t len;
+  size_t len = strlen(field->cli_short_aliases);
   size_t i;
-  if (!field || !ch)
-    return CDD_C_SUCCESS;
-  len = strlen(field->cli_short_aliases);
   for (i = 0; i < len; ++i) {
     if (field->cli_short_aliases[i] == ch)
       return CDD_C_SUCCESS;
@@ -1840,12 +1588,6 @@ static cdd_c_error_t serde_add_short_alias_char(struct StructField *field,
 static cdd_c_error_t serde_infer_short_char(const char *field_name,
                                             char *out_ch) {
   const char *p = field_name;
-  if (!out_ch)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  if (!p) {
-    *out_ch = 'a';
-    return CDD_C_SUCCESS;
-  }
   while (*p == '_')
     p++;
   *out_ch = (*p != '\0') ? *p : 'a';
@@ -1871,20 +1613,16 @@ cdd_c_error_t cdd_serde_parse_field_comment(const char *comment_text,
   if (!comment_text || comment_text[0] == '\0')
     return CDD_C_SUCCESS;
 
-  rc = serde_extract_doxygen_fallbacks(comment_text, dox_brief,
-                                       sizeof(dox_brief), dox_details,
-                                       sizeof(dox_details), NULL, 0, NULL, 0);
+  serde_extract_doxygen_fallbacks(comment_text, dox_brief, sizeof(dox_brief),
+                                  dox_details, sizeof(dox_details), NULL, 0,
+                                  NULL, 0);
   if (dox_brief[0] != '\0') {
     if (field->description[0] == '\0') {
-      rc = serde_copy_str(field->description, sizeof(field->description),
-                          dox_brief);
+      serde_copy_str(field->description, sizeof(field->description), dox_brief);
     }
     if (field->cli_help[0] == '\0') {
-      rc = serde_copy_str(field->cli_help, sizeof(field->cli_help), dox_brief);
+      serde_copy_str(field->cli_help, sizeof(field->cli_help), dox_brief);
     }
-  } else if (field->description[0] != '\0' && field->cli_help[0] == '\0') {
-    rc = serde_copy_str(field->cli_help, sizeof(field->cli_help),
-                        field->description);
   }
   if (dox_details[0] != '\0' && !field->cli_long_help) {
     rc = c_cdd_strdup(dox_details, &field->cli_long_help);
@@ -1896,9 +1634,7 @@ cdd_c_error_t cdd_serde_parse_field_comment(const char *comment_text,
   while (1) {
     const char *p;
     int is_cli_dir = 0;
-    rc = serde_find_directive_ex(scan, &start, &end, &next, &is_cli_dir);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_find_directive_ex(scan, &start, &end, &next, &is_cli_dir);
     if (!start)
       break;
 
@@ -1908,72 +1644,57 @@ cdd_c_error_t cdd_serde_parse_field_comment(const char *comment_text,
       char val[1024];
       enum CddSerdeCaseRule rule = CDD_SERDE_CASE_NONE;
 
-      rc = serde_next_key(&p, end, key, sizeof(key));
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+      serde_next_key(&p, end, key, sizeof(key));
       if (key[0] == '\0') {
         if (p < end)
           p++;
         continue;
       }
 
-      while (p < end && (*p == ' ' || *p == '\t'))
+      while (p < end && isspace((unsigned char)*p))
         p++;
 
       if (strcmp(key, "cli") == 0 || strcmp(key, "arg") == 0 ||
           strcmp(key, "clap") == 0 || strcmp(key, "structopt") == 0 ||
           strcmp(key, "command") == 0) {
-        if (p < end && *p == '(')
+        if (*p == '(')
           p++;
         continue;
       }
 
       if (p < end && (*p == '=' || *p == ':' || *p == '(')) {
         int bval = 1;
-        if (*p == '=' || *p == ':')
+        if (*p != '(')
           p++;
         if (strcmp(key, "replace") == 0 || strcmp(key, "rewrite") == 0 ||
             strcmp(key, "replace_all") == 0) {
-          rc = serde_parse_replace_tuple(&p, end, field->serde_replace_from,
-                                         sizeof(field->serde_replace_from),
-                                         field->serde_replace_to,
-                                         sizeof(field->serde_replace_to));
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_parse_replace_tuple(&p, end, field->serde_replace_from,
+                                    sizeof(field->serde_replace_from),
+                                    field->serde_replace_to,
+                                    sizeof(field->serde_replace_to));
           continue;
         }
         if (strcmp(key, "required_if_eq") == 0 ||
             strcmp(key, "required_if") == 0) {
-          rc = serde_parse_replace_tuple(&p, end, field->cli_required_if_field,
-                                         sizeof(field->cli_required_if_field),
-                                         field->cli_required_if_val,
-                                         sizeof(field->cli_required_if_val));
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_parse_replace_tuple(&p, end, field->cli_required_if_field,
+                                    sizeof(field->cli_required_if_field),
+                                    field->cli_required_if_val,
+                                    sizeof(field->cli_required_if_val));
           continue;
         }
 
-        rc = serde_parse_value(&p, end, val, sizeof(val));
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+        serde_parse_value(&p, end, val, sizeof(val));
 
         if (strcmp(key, "rename") == 0) {
-          rc = serde_copy_str(field->serde_rename, sizeof(field->serde_rename),
-                              val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(field->serde_rename, sizeof(field->serde_rename), val);
         } else if (strcmp(key, "rename_serialize") == 0 ||
                    strcmp(key, "serialize") == 0) {
-          rc = serde_copy_str(field->serde_rename_ser,
-                              sizeof(field->serde_rename_ser), val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(field->serde_rename_ser,
+                         sizeof(field->serde_rename_ser), val);
         } else if (strcmp(key, "rename_deserialize") == 0 ||
                    strcmp(key, "deserialize") == 0) {
-          rc = serde_copy_str(field->serde_rename_de,
-                              sizeof(field->serde_rename_de), val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(field->serde_rename_de, sizeof(field->serde_rename_de),
+                         val);
         } else if (strcmp(key, "case") == 0 || strcmp(key, "rename_all") == 0) {
           if (cdd_serde_parse_case_rule(val, &rule) == CDD_C_SUCCESS) {
             field->serde_case = rule;
@@ -1987,14 +1708,14 @@ cdd_c_error_t cdd_serde_parse_field_comment(const char *comment_text,
           if (strcmp(val, "false") == 0 || strcmp(val, "0") == 0) {
             field->cli_short = '\0';
           } else if (strcmp(val, "true") == 0 || val[0] == '\0') {
-            rc = serde_infer_short_char(field->name, &field->cli_short);
+            serde_infer_short_char(field->name, &field->cli_short);
           } else {
             field->cli_short = val[0];
           }
         } else if (strcmp(key, "short_alias") == 0 ||
                    strcmp(key, "visible_short_alias") == 0) {
           if (val[0] != '\0') {
-            rc = serde_add_short_alias_char(field, val[0]);
+            serde_add_short_alias_char(field, val[0]);
           }
         } else if (strcmp(key, "long") == 0) {
           if (strcmp(val, "false") == 0 || strcmp(val, "0") == 0) {
@@ -2003,42 +1724,41 @@ cdd_c_error_t cdd_serde_parse_field_comment(const char *comment_text,
           } else if (strcmp(val, "true") == 0 || val[0] == '\0') {
             field->cli_has_long = 1;
             if (field->cli_long[0] == '\0' && field->name[0] != '\0') {
-              rc = cdd_serde_transform_case(
-                  field->name, CDD_SERDE_CASE_KEBABCASE, field->cli_long,
-                  sizeof(field->cli_long));
+              cdd_serde_transform_case(field->name, CDD_SERDE_CASE_KEBABCASE,
+                                       field->cli_long,
+                                       sizeof(field->cli_long));
             }
           } else {
             field->cli_has_long = 1;
-            rc = serde_copy_str(field->cli_long, sizeof(field->cli_long), val);
+            serde_copy_str(field->cli_long, sizeof(field->cli_long), val);
           }
         } else if (strcmp(key, "negatable") == 0 ||
                    strcmp(key, "negate_with_no") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           field->cli_negatable = bval;
         } else if (strcmp(key, "positional") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           field->cli_positional = bval;
         } else if (strcmp(key, "index") == 0) {
           field->cli_positional = 1;
           field->cli_index = atoi(val);
         } else if (strcmp(key, "last") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           field->cli_last = bval;
           if (bval)
             field->cli_positional = 1;
         } else if (strcmp(key, "trailing_var_arg") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           field->cli_trailing_var_arg = bval;
           if (bval)
             field->cli_positional = 1;
         } else if (strcmp(key, "value_name") == 0) {
-          rc = serde_copy_str(field->cli_value_name,
-                              sizeof(field->cli_value_name), val);
+          serde_copy_str(field->cli_value_name, sizeof(field->cli_value_name),
+                         val);
         } else if (strcmp(key, "help") == 0) {
-          rc = serde_copy_str(field->cli_help, sizeof(field->cli_help), val);
+          serde_copy_str(field->cli_help, sizeof(field->cli_help), val);
           if (field->description[0] == '\0') {
-            rc = serde_copy_str(field->description, sizeof(field->description),
-                                val);
+            serde_copy_str(field->description, sizeof(field->description), val);
           }
         } else if (strcmp(key, "long_help") == 0) {
           if (field->cli_long_help) {
@@ -2049,33 +1769,33 @@ cdd_c_error_t cdd_serde_parse_field_comment(const char *comment_text,
           if (rc != CDD_C_SUCCESS)
             return rc;
         } else if (strcmp(key, "help_heading") == 0) {
-          rc = serde_copy_str(field->cli_help_heading,
-                              sizeof(field->cli_help_heading), val);
+          serde_copy_str(field->cli_help_heading,
+                         sizeof(field->cli_help_heading), val);
         } else if (strcmp(key, "env") == 0) {
           if (strcmp(val, "true") == 0 || val[0] == '\0') {
             if (field->name[0] != '\0') {
-              rc = cdd_serde_transform_case(
-                  field->name, CDD_SERDE_CASE_SCREAMING_SNAKECASE,
-                  field->cli_env, sizeof(field->cli_env));
+              cdd_serde_transform_case(field->name,
+                                       CDD_SERDE_CASE_SCREAMING_SNAKECASE,
+                                       field->cli_env, sizeof(field->cli_env));
             } else {
-              rc = serde_copy_str(field->cli_env, sizeof(field->cli_env), "1");
+              serde_copy_str(field->cli_env, sizeof(field->cli_env), "1");
             }
           } else if (strcmp(val, "false") == 0 || strcmp(val, "0") == 0) {
             field->cli_env[0] = '\0';
           } else {
-            rc = serde_copy_str(field->cli_env, sizeof(field->cli_env), val);
+            serde_copy_str(field->cli_env, sizeof(field->cli_env), val);
           }
         } else if (strcmp(key, "hide_env") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           field->cli_hide_env = bval;
         } else if (strcmp(key, "hide_env_values") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           field->cli_hide_env_values = bval;
         } else if (strcmp(key, "default_missing_value") == 0) {
-          rc = serde_copy_str(field->cli_default_missing_val,
-                              sizeof(field->cli_default_missing_val), val);
+          serde_copy_str(field->cli_default_missing_val,
+                         sizeof(field->cli_default_missing_val), val);
         } else if (strcmp(key, "hide_default_value") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           field->cli_hide_default_value = bval;
         } else if (strcmp(key, "action") == 0) {
           enum CddCliAction act = CDD_CLI_ACTION_AUTO;
@@ -2091,42 +1811,38 @@ cdd_c_error_t cdd_serde_parse_field_comment(const char *comment_text,
                    strcmp(key, "delimiter") == 0) {
           field->cli_value_delimiter = (val[0] != '\0') ? val[0] : ',';
         } else if (strcmp(key, "num_args") == 0) {
-          rc = serde_parse_num_args(val, &field->cli_num_args_min,
-                                    &field->cli_num_args_max);
+          serde_parse_num_args(val, &field->cli_num_args_min,
+                               &field->cli_num_args_max);
         } else if (strcmp(key, "require_equals") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           field->cli_require_equals = bval;
         } else if (strcmp(key, "allow_hyphen_values") == 0 ||
                    strcmp(key, "allow_negative_numbers") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           field->cli_allow_hyphen_values = bval;
         } else if (strcmp(key, "global") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           field->cli_global = bval;
         } else if (strcmp(key, "hide") == 0 || strcmp(key, "hidden") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           field->cli_hidden = bval;
         } else if (strcmp(key, "exclusive") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           field->cli_exclusive = bval;
         } else if (strcmp(key, "subcommand") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           field->cli_subcommand = bval;
         } else if (strcmp(key, "flatten") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           field->serde_flatten = bval;
         } else if (strcmp(key, "required") == 0) {
-          rc = serde_parse_bool_val(val, &bval);
+          serde_parse_bool_val(val, &bval);
           field->required = bval;
         } else if (strcmp(key, "value_parser") == 0) {
-          rc = serde_copy_str(field->cli_value_parser,
-                              sizeof(field->cli_value_parser), val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(field->cli_value_parser,
+                         sizeof(field->cli_value_parser), val);
         } else if (strcmp(key, "group") == 0) {
-          rc = serde_copy_str(field->cli_group, sizeof(field->cli_group), val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(field->cli_group, sizeof(field->cli_group), val);
         } else if (strcmp(key, "conflicts_with") == 0) {
           rc = struct_field_add_cli_conflict(field, val);
           if (rc != CDD_C_SUCCESS)
@@ -2142,27 +1858,15 @@ cdd_c_error_t cdd_serde_parse_field_comment(const char *comment_text,
             return rc;
         } else if (strcmp(key, "skip_serializing_if") == 0) {
           int eq_null = 0, eq_nullptr = 0, eq_empty = 0, eq_zero = 0;
-          rc = serde_str_ieq(val, "null", &eq_null);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
-          rc = serde_str_ieq(val, "nullptr", &eq_nullptr);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
-          rc = serde_str_ieq(val, "empty", &eq_empty);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_str_ieq(val, "null", &eq_null);
+          serde_str_ieq(val, "nullptr", &eq_nullptr);
+          serde_str_ieq(val, "empty", &eq_empty);
           if (!eq_empty) {
-            rc = serde_str_ieq(val, "is_empty", &eq_empty);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
+            serde_str_ieq(val, "is_empty", &eq_empty);
           }
-          rc = serde_str_ieq(val, "zero", &eq_zero);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_str_ieq(val, "zero", &eq_zero);
           if (!eq_zero) {
-            rc = serde_str_ieq(val, "is_zero", &eq_zero);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
+            serde_str_ieq(val, "is_zero", &eq_zero);
           }
 
           if (eq_null || eq_nullptr) {
@@ -2173,40 +1877,26 @@ cdd_c_error_t cdd_serde_parse_field_comment(const char *comment_text,
             field->serde_skip_if_kind = CDD_SERDE_SKIP_IF_ZERO;
           } else if (val[0] != '\0') {
             field->serde_skip_if_kind = CDD_SERDE_SKIP_IF_FUNC;
-            rc = serde_copy_str(field->serde_skip_if_fn,
-                                sizeof(field->serde_skip_if_fn), val);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
+            serde_copy_str(field->serde_skip_if_fn,
+                           sizeof(field->serde_skip_if_fn), val);
           }
         } else if (strcmp(key, "default") == 0 ||
                    strcmp(key, "default_value") == 0 ||
                    strcmp(key, "default_value_t") == 0) {
           field->serde_has_default = 1;
-          rc = serde_copy_str(field->default_val, sizeof(field->default_val),
-                              val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(field->default_val, sizeof(field->default_val), val);
         } else if (strcmp(key, "default_fn") == 0) {
           field->serde_has_default = 1;
-          rc = serde_copy_str(field->serde_default_fn,
-                              sizeof(field->serde_default_fn), val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(field->serde_default_fn,
+                         sizeof(field->serde_default_fn), val);
         } else if (strcmp(key, "with") == 0) {
-          rc =
-              serde_copy_str(field->serde_with, sizeof(field->serde_with), val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(field->serde_with, sizeof(field->serde_with), val);
         } else if (strcmp(key, "serialize_with") == 0) {
-          rc = serde_copy_str(field->serde_serialize_with,
-                              sizeof(field->serde_serialize_with), val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(field->serde_serialize_with,
+                         sizeof(field->serde_serialize_with), val);
         } else if (strcmp(key, "deserialize_with") == 0) {
-          rc = serde_copy_str(field->serde_deserialize_with,
-                              sizeof(field->serde_deserialize_with), val);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          serde_copy_str(field->serde_deserialize_with,
+                         sizeof(field->serde_deserialize_with), val);
         }
       } else {
         if (strcmp(key, "skip") == 0) {
@@ -2224,13 +1914,12 @@ cdd_c_error_t cdd_serde_parse_field_comment(const char *comment_text,
                    strcmp(key, "default_value_t") == 0) {
           field->serde_has_default = 1;
         } else if (strcmp(key, "short") == 0) {
-          rc = serde_infer_short_char(field->name, &field->cli_short);
+          serde_infer_short_char(field->name, &field->cli_short);
         } else if (strcmp(key, "long") == 0) {
           field->cli_has_long = 1;
           if (field->cli_long[0] == '\0' && field->name[0] != '\0') {
-            rc = cdd_serde_transform_case(field->name, CDD_SERDE_CASE_KEBABCASE,
-                                          field->cli_long,
-                                          sizeof(field->cli_long));
+            cdd_serde_transform_case(field->name, CDD_SERDE_CASE_KEBABCASE,
+                                     field->cli_long, sizeof(field->cli_long));
           }
         } else if (strcmp(key, "negatable") == 0 ||
                    strcmp(key, "negate_with_no") == 0) {
@@ -2245,11 +1934,11 @@ cdd_c_error_t cdd_serde_parse_field_comment(const char *comment_text,
           field->cli_positional = 1;
         } else if (strcmp(key, "env") == 0) {
           if (field->name[0] != '\0') {
-            rc = cdd_serde_transform_case(
-                field->name, CDD_SERDE_CASE_SCREAMING_SNAKECASE, field->cli_env,
-                sizeof(field->cli_env));
+            cdd_serde_transform_case(field->name,
+                                     CDD_SERDE_CASE_SCREAMING_SNAKECASE,
+                                     field->cli_env, sizeof(field->cli_env));
           } else {
-            rc = serde_copy_str(field->cli_env, sizeof(field->cli_env), "1");
+            serde_copy_str(field->cli_env, sizeof(field->cli_env), "1");
           }
         } else if (strcmp(key, "hide_env") == 0) {
           field->cli_hide_env = 1;
@@ -2298,12 +1987,9 @@ cdd_c_error_t cdd_serde_parse_field_comment(const char *comment_text,
  */
 static cdd_c_error_t serde_cleanup_tmp_field(struct StructField *f) {
   size_t i;
-  if (!f)
-    return CDD_C_SUCCESS;
   if (f->serde_aliases) {
     for (i = 0; i < f->n_serde_aliases; ++i) {
-      if (f->serde_aliases[i])
-        C_CDD_FREE(f->serde_aliases[i]);
+      C_CDD_FREE(f->serde_aliases[i]);
     }
     C_CDD_FREE(f->serde_aliases);
     f->serde_aliases = NULL;
@@ -2315,8 +2001,7 @@ static cdd_c_error_t serde_cleanup_tmp_field(struct StructField *f) {
   }
   if (f->cli_conflicts_with) {
     for (i = 0; i < f->n_cli_conflicts_with; ++i) {
-      if (f->cli_conflicts_with[i])
-        C_CDD_FREE(f->cli_conflicts_with[i]);
+      C_CDD_FREE(f->cli_conflicts_with[i]);
     }
     C_CDD_FREE(f->cli_conflicts_with);
     f->cli_conflicts_with = NULL;
@@ -2324,8 +2009,7 @@ static cdd_c_error_t serde_cleanup_tmp_field(struct StructField *f) {
   }
   if (f->cli_requires) {
     for (i = 0; i < f->n_cli_requires; ++i) {
-      if (f->cli_requires[i])
-        C_CDD_FREE(f->cli_requires[i]);
+      C_CDD_FREE(f->cli_requires[i]);
     }
     C_CDD_FREE(f->cli_requires);
     f->cli_requires = NULL;
@@ -2333,8 +2017,7 @@ static cdd_c_error_t serde_cleanup_tmp_field(struct StructField *f) {
   }
   if (f->cli_required_unless) {
     for (i = 0; i < f->n_cli_required_unless; ++i) {
-      if (f->cli_required_unless[i])
-        C_CDD_FREE(f->cli_required_unless[i]);
+      C_CDD_FREE(f->cli_required_unless[i]);
     }
     C_CDD_FREE(f->cli_required_unless);
     f->cli_required_unless = NULL;
@@ -2355,7 +2038,6 @@ cdd_c_error_t cdd_serde_parse_enum_variant_comment_ex(
   struct StructField tmp;
   size_t i;
   cdd_c_error_t rc;
-  cdd_c_error_t rc_clean;
 
   if (!out_rename || rename_sz == 0 || !out_skip || !out_case ||
       !out_rep_from || rep_from_sz == 0 || !out_rep_to || rep_to_sz == 0)
@@ -2376,15 +2058,16 @@ cdd_c_error_t cdd_serde_parse_enum_variant_comment_ex(
   if (out_other) {
     const char *scan = comment_text;
     const char *start = NULL, *end = NULL, *next = NULL;
-    int is_cli_dir = 0;
-    while (serde_find_directive_ex(scan, &start, &end, &next, &is_cli_dir) ==
-               CDD_C_SUCCESS &&
-           start) {
-      const char *p = start;
+    while (1) {
+      const char *p;
+      serde_find_directive_ex(scan, &start, &end, &next, NULL);
+      if (!start)
+        break;
+      p = start;
       while (p < end) {
         char key[64];
-        if (serde_next_key(&p, end, key, sizeof(key)) != CDD_C_SUCCESS ||
-            key[0] == '\0') {
+        serde_next_key(&p, end, key, sizeof(key));
+        if (key[0] == '\0') {
           if (p < end)
             p++;
           continue;
@@ -2401,20 +2084,18 @@ cdd_c_error_t cdd_serde_parse_enum_variant_comment_ex(
   tmp.cli_index = -1;
   rc = cdd_serde_parse_field_comment(comment_text, &tmp);
   if (rc != CDD_C_SUCCESS) {
-    rc_clean = serde_cleanup_tmp_field(&tmp);
-    return rc_clean != CDD_C_SUCCESS ? rc_clean : rc;
+    serde_cleanup_tmp_field(&tmp);
+    return rc;
   }
 
   if (em_for_aliases) {
     if (tmp.serde_aliases) {
       for (i = 0; i < tmp.n_serde_aliases; ++i) {
-        if (tmp.serde_aliases[i]) {
-          rc = enum_member_add_alias(em_for_aliases, member_idx,
-                                     tmp.serde_aliases[i]);
-          if (rc != CDD_C_SUCCESS) {
-            rc_clean = serde_cleanup_tmp_field(&tmp);
-            return rc_clean != CDD_C_SUCCESS ? rc_clean : rc;
-          }
+        rc = enum_member_add_alias(em_for_aliases, member_idx,
+                                   tmp.serde_aliases[i]);
+        if (rc != CDD_C_SUCCESS) {
+          serde_cleanup_tmp_field(&tmp);
+          return rc;
         }
       }
     }
@@ -2423,18 +2104,16 @@ cdd_c_error_t cdd_serde_parse_enum_variant_comment_ex(
                                     tmp.cli_help[0] ? tmp.cli_help : NULL,
                                     tmp.cli_hidden);
       if (rc != CDD_C_SUCCESS) {
-        rc_clean = serde_cleanup_tmp_field(&tmp);
-        return rc_clean != CDD_C_SUCCESS ? rc_clean : rc;
+        serde_cleanup_tmp_field(&tmp);
+        return rc;
       }
     }
   }
 
-  rc_clean = serde_cleanup_tmp_field(&tmp);
+  serde_cleanup_tmp_field(&tmp);
 
   if (tmp.serde_rename[0] != '\0') {
-    rc = serde_copy_str(out_rename, rename_sz, tmp.serde_rename);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_copy_str(out_rename, rename_sz, tmp.serde_rename);
   }
   if (tmp.serde_skip || tmp.serde_skip_serializing ||
       tmp.serde_skip_deserializing) {
@@ -2442,12 +2121,8 @@ cdd_c_error_t cdd_serde_parse_enum_variant_comment_ex(
   }
   *out_case = tmp.serde_case;
   if (tmp.serde_replace_from[0] != '\0') {
-    rc = serde_copy_str(out_rep_from, rep_from_sz, tmp.serde_replace_from);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    rc = serde_copy_str(out_rep_to, rep_to_sz, tmp.serde_replace_to);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    serde_copy_str(out_rep_from, rep_from_sz, tmp.serde_replace_from);
+    serde_copy_str(out_rep_to, rep_to_sz, tmp.serde_replace_to);
   }
   return CDD_C_SUCCESS;
 }

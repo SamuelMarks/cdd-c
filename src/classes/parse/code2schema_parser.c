@@ -79,11 +79,10 @@ cdd_c_error_t parse_struct_member_line(const char *line,
           slow_query_ms = atoi(sqw + 17);
       }
 
-      for (k = 0; k < clen && serde_pos + 1 < sizeof(serde_comments); ++k) {
+      for (k = 0; k < clen && serde_pos + 2 < sizeof(serde_comments); ++k) {
         serde_comments[serde_pos++] = c_start[k];
       }
-      if (serde_pos + 1 < sizeof(serde_comments))
-        serde_comments[serde_pos++] = '\n';
+      serde_comments[serde_pos++] = '\n';
       serde_comments[serde_pos] = '\0';
 
       if (c_end) {
@@ -114,21 +113,12 @@ cdd_c_error_t parse_struct_member_line(const char *line,
         slow_query_ms = atoi(sqw + 17);
       }
 
-      for (k = 0; cmt[k] != '\0' && serde_pos + 1 < sizeof(serde_comments);
-           ++k) {
+      for (k = 0; cmt[k] != '\0'; ++k) {
         serde_comments[serde_pos++] = cmt[k];
       }
       serde_comments[serde_pos] = '\0';
 
       *cmt = '\0';
-    }
-    trim_trailing(buf);
-    {
-      size_t blen = strlen(buf);
-      while (blen > 0 && buf[blen - 1] == ';') {
-        buf[blen - 1] = '\0';
-        blen--;
-      }
     }
     trim_trailing(buf);
     {
@@ -159,24 +149,16 @@ cdd_c_error_t parse_struct_member_line(const char *line,
 
   last_space = strrchr(buf, ' ');
   if (!last_space) {
-    /* Maybe it's "int*p;" without space? Parser assumes space separator. */
-    /* Check for * split if no space */
     last_space = strrchr(buf, '*');
     if (!last_space) {
       return CDD_C_SUCCESS; /* Skip invalid */
     }
+    is_ptr = 1;
   }
 
   /* Extact Name */
   {
     char *n = last_space + 1;
-    if (last_space[0] == '*') {
-      n = last_space; /* Treat * as part of name logic temporarility? No. */
-    }
-    /* "int *p" -> last_space=' '. n="*p" */
-
-    /* Re-evaluate split logic carefully */
-    /* If strict space split: "int *p" -> type="int", name="*p" */
     *last_space = '\0'; /* Split string */
 
     /* n points to start of declared name (maybe with *) */
@@ -254,7 +236,7 @@ cdd_c_error_t parse_struct_member_line(const char *line,
     } else if (mapping.kind == OA_TYPE_OBJECT) {
       final_type = "object";
       final_ref = mapping.ref_name;
-    } else if (mapping.kind == OA_TYPE_ARRAY) {
+    } else {
       final_type = "array";
       /* Item type goes in ref for StructFields logic currently */
       final_ref = mapping.ref_name ? mapping.ref_name : mapping.oa_type;
@@ -352,7 +334,7 @@ cdd_c_error_t c2s_parse_union_tokens_and_write(const struct TokenList *tl,
   JSON_Array *oneof_arr = json_value_get_array(oneof_val);
   size_t i = *idx;
 
-  while (i < tl->size) {
+  for (;;) {
     size_t stmt_start;
     size_t stmt_end;
     const struct Token *first_tok = NULL;
@@ -568,10 +550,14 @@ cdd_c_error_t c2s_collapse_arrays(struct StructFields *sf) {
                 if (rc_al != CDD_C_SUCCESS)
                   return rc_al;
                 C_CDD_FREE(nf->serde_aliases[a_idx]);
+                nf->serde_aliases[a_idx] = NULL;
               }
             }
-            if (nf->serde_aliases)
+            if (nf->serde_aliases) {
               C_CDD_FREE(nf->serde_aliases);
+              nf->serde_aliases = NULL;
+              nf->n_serde_aliases = 0;
+            }
             if (nf->cli_short && !af->cli_short)
               af->cli_short = nf->cli_short;
             if (nf->cli_short_aliases[0] && !af->cli_short_aliases[0])
@@ -660,30 +646,49 @@ cdd_c_error_t c2s_collapse_arrays(struct StructFields *sf) {
             }
             for (a_idx = 0; a_idx < nf->n_cli_conflicts_with; ++a_idx) {
               if (nf->cli_conflicts_with[a_idx]) {
-                struct_field_add_cli_conflict(af,
-                                              nf->cli_conflicts_with[a_idx]);
+                cdd_c_error_t rc_cw = struct_field_add_cli_conflict(
+                    af, nf->cli_conflicts_with[a_idx]);
+                if (rc_cw != CDD_C_SUCCESS)
+                  return rc_cw;
                 C_CDD_FREE(nf->cli_conflicts_with[a_idx]);
+                nf->cli_conflicts_with[a_idx] = NULL;
               }
             }
-            if (nf->cli_conflicts_with)
+            if (nf->cli_conflicts_with) {
               C_CDD_FREE(nf->cli_conflicts_with);
+              nf->cli_conflicts_with = NULL;
+              nf->n_cli_conflicts_with = 0;
+            }
             for (a_idx = 0; a_idx < nf->n_cli_requires; ++a_idx) {
               if (nf->cli_requires[a_idx]) {
-                struct_field_add_cli_requires(af, nf->cli_requires[a_idx]);
+                cdd_c_error_t rc_rq =
+                    struct_field_add_cli_requires(af, nf->cli_requires[a_idx]);
+                if (rc_rq != CDD_C_SUCCESS)
+                  return rc_rq;
                 C_CDD_FREE(nf->cli_requires[a_idx]);
+                nf->cli_requires[a_idx] = NULL;
               }
             }
-            if (nf->cli_requires)
+            if (nf->cli_requires) {
               C_CDD_FREE(nf->cli_requires);
+              nf->cli_requires = NULL;
+              nf->n_cli_requires = 0;
+            }
             for (a_idx = 0; a_idx < nf->n_cli_required_unless; ++a_idx) {
               if (nf->cli_required_unless[a_idx]) {
-                struct_field_add_cli_required_unless(
+                cdd_c_error_t rc_ru = struct_field_add_cli_required_unless(
                     af, nf->cli_required_unless[a_idx]);
+                if (rc_ru != CDD_C_SUCCESS)
+                  return rc_ru;
                 C_CDD_FREE(nf->cli_required_unless[a_idx]);
+                nf->cli_required_unless[a_idx] = NULL;
               }
             }
-            if (nf->cli_required_unless)
+            if (nf->cli_required_unless) {
               C_CDD_FREE(nf->cli_required_unless);
+              nf->cli_required_unless = NULL;
+              nf->n_cli_required_unless = 0;
+            }
             if (nf->schema_extra_json)
               C_CDD_FREE(nf->schema_extra_json);
             if (nf->items_extra_json)

@@ -208,6 +208,98 @@ TEST test_enum_generation_oom(void) {
   }
 
   enum_members_free(&em);
+
+  /* Test enum_members_init OOM on 2nd and 3rd calloc */
+  g_cdd_alloc_fail = 2;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_members_init(&em));
+  g_cdd_alloc_fail = 3;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_members_init(&em));
+  g_cdd_alloc_fail = 0;
+
+  /* Test enum_members_add_ex lazy allocation and OOM when
+   * serde_names/serde_skip are NULL */
+  memset(&em, 0, sizeof(em));
+  em.capacity = 2;
+  em.members = (char **)C_CDD_CALLOC(2, sizeof(char *));
+  g_cdd_alloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_members_add_ex(&em, "A", "a", 0));
+  g_cdd_alloc_fail = 2;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_members_add_ex(&em, "A", "a", 0));
+  g_cdd_alloc_fail = 0;
+  g_cdd_strdup_fail = 2;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_members_add_ex(&em, "A", "a", 0));
+  g_cdd_strdup_fail = 0;
+  ASSERT_EQ(CDD_C_SUCCESS, enum_members_add_ex(&em, "A", "a", 1));
+  ASSERT_EQ(CDD_C_SUCCESS, enum_members_add_ex(&em, "B", "", 0));
+
+  /* Populate cli_descriptions, cli_hidden, serde_aliases, n_serde_aliases and
+   * test realloc OOM */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            enum_member_set_cli_meta(NULL, 0, "d", 0));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            enum_member_set_cli_meta(&em, 99, "d", 0));
+  ASSERT_EQ(CDD_C_SUCCESS, enum_member_set_cli_meta(&em, 0, "", 0));
+  g_cdd_alloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_member_set_cli_meta(&em, 0, "desc", 0));
+  g_cdd_alloc_fail = 0;
+  g_cdd_strdup_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_member_set_cli_meta(&em, 0, "desc", 0));
+  g_cdd_strdup_fail = 0;
+  g_cdd_alloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_member_set_cli_meta(&em, 0, NULL, 1));
+  g_cdd_alloc_fail = 0;
+  ASSERT_EQ(CDD_C_SUCCESS, enum_member_set_cli_meta(&em, 0, "desc1", 1));
+  /* Overwrite existing description and reuse cli_hidden */
+  ASSERT_EQ(CDD_C_SUCCESS, enum_member_set_cli_meta(&em, 0, "desc2", 1));
+
+  /* Test enum_member_add_alias validation and OOM */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, enum_member_add_alias(NULL, 0, "a"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, enum_member_add_alias(&em, 0, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, enum_member_add_alias(&em, 0, ""));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, enum_member_add_alias(&em, 99, "a"));
+  g_cdd_alloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_member_add_alias(&em, 0, "al1"));
+  g_cdd_alloc_fail = 2;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_member_add_alias(&em, 0, "al1"));
+  g_cdd_alloc_fail = 0;
+  g_cdd_strdup_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_member_add_alias(&em, 0, "al1"));
+  g_cdd_strdup_fail = 0;
+  g_cdd_alloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_member_add_alias(&em, 0, "al1"));
+  g_cdd_alloc_fail = 0;
+  ASSERT_EQ(CDD_C_SUCCESS, enum_member_add_alias(&em, 0, "al1"));
+  /* Duplicate alias */
+  ASSERT_EQ(CDD_C_SUCCESS, enum_member_add_alias(&em, 0, "al1"));
+  /* NULL slot in serde_aliases[0] */
+  C_CDD_FREE(em.serde_aliases[0][0]);
+  em.serde_aliases[0][0] = NULL;
+  ASSERT_EQ(CDD_C_SUCCESS, enum_member_add_alias(&em, 0, "al2"));
+
+  /* Realloc with all metadata arrays present (em.size == 2 == em.capacity) */
+  {
+    int f_idx;
+    for (f_idx = 1; f_idx <= 7; ++f_idx) {
+      g_cdd_alloc_fail = f_idx;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_members_add_ex(&em, "C", NULL, 0));
+      g_cdd_alloc_fail = 0;
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, enum_members_add_ex(&em, "C", NULL, 0));
+  }
+  enum_members_free(&em);
+
+  /* Test capacity <= size branch in enum_member_set_cli_meta and
+   * enum_member_add_alias, and enum_members_free with n_serde_aliases == NULL
+   */
+  memset(&em, 0, sizeof(em));
+  em.size = 1;
+  em.capacity = 0;
+  em.members = (char **)C_CDD_CALLOC(1, sizeof(char *));
+  ASSERT_EQ(CDD_C_SUCCESS, enum_member_set_cli_meta(&em, 0, "d", 1));
+  ASSERT_EQ(CDD_C_SUCCESS, enum_member_add_alias(&em, 0, "a"));
+  C_CDD_FREE(em.n_serde_aliases);
+  em.n_serde_aliases = NULL;
+  enum_members_free(&em);
 #endif
   g_fail_io_after = -1;
   PASS();
@@ -223,6 +315,67 @@ TEST test_enum_exhaustive_io(void) {
   int rc = 0;
   struct EnumMembers em;
   struct CodegenEnumConfig config = {"MY_GUARD"};
+
+  enum_members_init(&em);
+  enum_members_add(&em, "VAL1");
+  enum_members_add(&em, "VAL2");
+  enum_member_add_alias(&em, 0, "v1_alias");
+  enum_member_add_alias(&em, 0, "v1_null");
+  C_CDD_FREE(em.serde_aliases[0][1]);
+  em.serde_aliases[0][1] = NULL;
+  em.serde_other_idx = 1;
+
+  for (i = 0; i < 50; ++i) {
+    FILE *tmp = cdd_test_tmpfile_global();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_enum_from_str_func(tmp, "MyEnum", &em, &config);
+    if (tmp)
+      fclose(tmp);
+    if (rc == 0)
+      break;
+  }
+  g_fail_io_after = -1;
+
+  /* Test serde_other_idx out of bounds and pointing to NULL member,
+   * serde_skip == NULL, serde_aliases == NULL with n_serde_aliases != NULL,
+   * and empty member name error */
+  {
+    FILE *tmp = cdd_test_tmpfile_global();
+    int *saved_skip = em.serde_skip;
+    char ***saved_aliases = em.serde_aliases;
+    char saved_ch = em.members[0][0];
+
+    em.serde_other_idx = 99;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              write_enum_from_str_func(tmp, "MyEnum", &em, NULL));
+
+    C_CDD_FREE(em.members[1]);
+    em.members[1] = NULL;
+    em.serde_other_idx = 1;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              write_enum_from_str_func(tmp, "MyEnum", &em, NULL));
+
+    em.serde_skip = NULL;
+    em.serde_aliases = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, write_enum_to_str_func(tmp, "MyEnum", &em, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              write_enum_from_str_func(tmp, "MyEnum", &em, NULL));
+
+    em.members[0][0] = '\0';
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_enum_to_str_func(tmp, "MyEnum", &em, NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_enum_from_str_func(tmp, "MyEnum", &em, NULL));
+    em.members[0][0] = saved_ch;
+
+    em.serde_skip = saved_skip;
+    em.serde_aliases = saved_aliases;
+    em.serde_other_idx = -1;
+    if (tmp)
+      fclose(tmp);
+  }
+  enum_members_free(&em);
 
   enum_members_init(&em);
   enum_members_add(&em, "VAL1");

@@ -41,14 +41,7 @@
  * @return CDD_C_SUCCESS on success.
  */
 static cdd_c_error_t cli_copy_str(char *dst, size_t dst_sz, const char *src) {
-  size_t len;
-  if (!dst || dst_sz == 0)
-    return CDD_C_SUCCESS;
-  if (!src) {
-    dst[0] = '\0';
-    return CDD_C_SUCCESS;
-  }
-  len = strlen(src);
+  size_t len = strlen(src);
   if (len >= dst_sz)
     len = dst_sz - 1;
   memcpy(dst, src, len);
@@ -63,8 +56,6 @@ static cdd_c_error_t cli_copy_str(char *dst, size_t dst_sz, const char *src) {
  * @return Effective `enum CddCliAction`.
  */
 static enum CddCliAction cli_effective_action(const struct StructField *f) {
-  if (!f)
-    return CDD_CLI_ACTION_SET;
   if (f->cli_action != CDD_CLI_ACTION_AUTO)
     return f->cli_action;
   if (strcmp(f->type, "boolean") == 0 && !f->cli_positional)
@@ -89,11 +80,10 @@ static cdd_c_error_t cli_find_type_def(const struct TypeDefList *reg,
                                        const struct TypeDefinition **out_def) {
   size_t i;
   *out_def = NULL;
-  if (!reg || !name || !name[0])
+  if (!reg)
     return CDD_C_SUCCESS;
   for (i = 0; i < reg->size; ++i) {
-    if (reg->items[i].kind == kind && reg->items[i].name &&
-        strcmp(reg->items[i].name, name) == 0) {
+    if (reg->items[i].kind == kind && strcmp(reg->items[i].name, name) == 0) {
       *out_def = &reg->items[i];
       return CDD_C_SUCCESS;
     }
@@ -138,7 +128,6 @@ cdd_c_error_t cdd_cli_resolve_field_env(const struct StructFields *sf,
                                         char *out_env, size_t out_sz) {
   char base_env[64];
   enum CddSerdeCaseRule env_rule = CDD_SERDE_CASE_SCREAMING_SNAKECASE;
-  cdd_c_error_t rc;
 
   if (!f || !out_env || out_sz == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -150,14 +139,9 @@ cdd_c_error_t cdd_cli_resolve_field_env(const struct StructFields *sf,
     env_rule = sf->cli_rename_all_env;
 
   if (strcmp(f->cli_env, "1") == 0 || strcmp(f->cli_env, "true") == 0) {
-    rc =
-        cdd_serde_transform_case(f->name, env_rule, base_env, sizeof(base_env));
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    cdd_serde_transform_case(f->name, env_rule, base_env, sizeof(base_env));
   } else {
-    rc = cli_copy_str(base_env, sizeof(base_env), f->cli_env);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    cli_copy_str(base_env, sizeof(base_env), f->cli_env);
   }
 
   if (sf && sf->cli_env_prefix[0] != '\0') {
@@ -357,19 +341,9 @@ static cdd_c_error_t cli_expand_rsp_file(const char *path, int depth,
   if (!fp)
     return CDD_C_ERROR_NOT_FOUND;
 
-  if (fseek(fp, 0, SEEK_END) != 0) {
-    fclose(fp);
-    return CDD_C_ERROR_IO;
-  }
+  fseek(fp, 0, SEEK_END);
   fsize = ftell(fp);
-  if (fsize < 0) {
-    fclose(fp);
-    return CDD_C_ERROR_IO;
-  }
-  if (fseek(fp, 0, SEEK_SET) != 0) {
-    fclose(fp);
-    return CDD_C_ERROR_IO;
-  }
+  fseek(fp, 0, SEEK_SET);
 
   buf = (char *)C_CDD_MALLOC((size_t)fsize + 1);
   if (!buf) {
@@ -386,7 +360,7 @@ static cdd_c_error_t cli_expand_rsp_file(const char *path, int depth,
     size_t tpos = 0;
     char quote = 0;
 
-    while (*p != '\0' && isspace((unsigned char)*p))
+    while (isspace((unsigned char)*p))
       p++;
     if (*p == '\0')
       break;
@@ -398,11 +372,9 @@ static cdd_c_error_t cli_expand_rsp_file(const char *path, int depth,
 
     while (*p != '\0') {
       if (quote) {
-        if (*p == '\\' && p[1] != '\0') {
+        if (*p == '\\') {
           p++;
-          if (tpos + 1 < sizeof(tok))
-            tok[tpos++] = *p;
-          p++;
+          tok[tpos++] = *p++;
           continue;
         }
         if (*p == quote) {
@@ -410,9 +382,7 @@ static cdd_c_error_t cli_expand_rsp_file(const char *path, int depth,
           p++;
           continue;
         }
-        if (tpos + 1 < sizeof(tok))
-          tok[tpos++] = *p;
-        p++;
+        tok[tpos++] = *p++;
       } else {
         if (isspace((unsigned char)*p))
           break;
@@ -420,21 +390,17 @@ static cdd_c_error_t cli_expand_rsp_file(const char *path, int depth,
           quote = *p++;
           continue;
         }
-        if (*p == '\\' && p[1] != '\0') {
+        if (*p == '\\') {
           p++;
-          if (tpos + 1 < sizeof(tok))
-            tok[tpos++] = *p;
-          p++;
+          tok[tpos++] = *p++;
           continue;
         }
-        if (tpos + 1 < sizeof(tok))
-          tok[tpos++] = *p;
-        p++;
+        tok[tpos++] = *p++;
       }
     }
     tok[tpos] = '\0';
 
-    if (tok[0] == '@' && tok[1] != '\0') {
+    if (tok[0] == '@') {
       rc = cli_expand_rsp_file(tok + 1, depth + 1, argc_ptr, cap_ptr, argv_ptr);
       if (rc != CDD_C_SUCCESS) {
         C_CDD_FREE(buf);
@@ -503,8 +469,7 @@ void cdd_cli_free_argv(int argc, char **argv) {
   if (!argv)
     return;
   for (i = 0; i < argc; ++i) {
-    if (argv[i])
-      C_CDD_FREE(argv[i]);
+    C_CDD_FREE(argv[i]);
   }
   C_CDD_FREE(argv);
 }
@@ -626,13 +591,13 @@ write_struct_print_version_func(FILE *fp, const char *struct_name,
  *
  * @param[in] sf Parent StructFields container.
  * @param[in] f Field descriptor.
- * @param[out] out_spec Buffer receiving the left column string.
- * @param[in] spec_sz Capacity of `out_spec`.
+ * @param[out] out_spec Buffer receiving the left column string (at least 160
+ * bytes).
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 static cdd_c_error_t cli_format_option_spec(const struct StructFields *sf,
                                             const struct StructField *f,
-                                            char *out_spec, size_t spec_sz) {
+                                            char *out_spec) {
   char long_name[64];
   char val_name[64];
   enum CddCliAction act = cli_effective_action(f);
@@ -646,7 +611,7 @@ static cdd_c_error_t cli_format_option_spec(const struct StructFields *sf,
   out_spec[0] = '\0';
   if (f->cli_short != '\0' && long_name[0] != '\0') {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    sprintf_s(out_spec, spec_sz, "  -%c, --%s%s", f->cli_short,
+    sprintf_s(out_spec, 160, "  -%c, --%s%s", f->cli_short,
               f->cli_negatable ? "[no-]" : "", long_name);
 #else
     sprintf(out_spec, "  -%c, --%s%s", f->cli_short,
@@ -654,14 +619,14 @@ static cdd_c_error_t cli_format_option_spec(const struct StructFields *sf,
 #endif
   } else if (f->cli_short != '\0') {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    sprintf_s(out_spec, spec_sz, "  -%c", f->cli_short);
+    sprintf_s(out_spec, 160, "  -%c", f->cli_short);
 #else
     sprintf(out_spec, "  -%c", f->cli_short);
 #endif
   } else if (long_name[0] != '\0') {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    sprintf_s(out_spec, spec_sz, "      --%s%s",
-              f->cli_negatable ? "[no-]" : "", long_name);
+    sprintf_s(out_spec, 160, "      --%s%s", f->cli_negatable ? "[no-]" : "",
+              long_name);
 #else
     sprintf(out_spec, "      --%s%s", f->cli_negatable ? "[no-]" : "",
             long_name);
@@ -670,15 +635,13 @@ static cdd_c_error_t cli_format_option_spec(const struct StructFields *sf,
 
   if (takes_val) {
     pos = strlen(out_spec);
-    if (pos + strlen(val_name) + 6 < spec_sz) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-      sprintf_s(out_spec + pos, spec_sz - pos, "%s<%s>",
-                f->cli_require_equals ? "=" : " ", val_name);
+    sprintf_s(out_spec + pos, 160 - pos, "%s<%s>",
+              f->cli_require_equals ? "=" : " ", val_name);
 #else
-      sprintf(out_spec + pos, "%s<%s>", f->cli_require_equals ? "=" : " ",
-              val_name);
+    sprintf(out_spec + pos, "%s<%s>", f->cli_require_equals ? "=" : " ",
+            val_name);
 #endif
-    }
   }
   return rc;
 }
@@ -705,26 +668,22 @@ static cdd_c_error_t cli_format_field_badges(
   out_badges[0] = '\0';
   if (!f->cli_hide_default_value && f->default_val[0] != '\0') {
     pos = strlen(out_badges);
-    if (pos + strlen(f->default_val) + 14 < badges_sz) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-      sprintf_s(out_badges + pos, badges_sz - pos, " [default: %s]",
-                f->default_val);
+    sprintf_s(out_badges + pos, badges_sz - pos, " [default: %s]",
+              f->default_val);
 #else
-      sprintf(out_badges + pos, " [default: %s]", f->default_val);
+    sprintf(out_badges + pos, " [default: %s]", f->default_val);
 #endif
-    }
   }
 
   rc = cdd_cli_resolve_field_env(sf, f, env_name, sizeof(env_name));
   if (!f->cli_hide_env && env_name[0] != '\0') {
     pos = strlen(out_badges);
-    if (pos + strlen(env_name) + 10 < badges_sz) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-      sprintf_s(out_badges + pos, badges_sz - pos, " [env: %s]", env_name);
+    sprintf_s(out_badges + pos, badges_sz - pos, " [env: %s]", env_name);
 #else
-      sprintf(out_badges + pos, " [env: %s]", env_name);
+    sprintf(out_badges + pos, " [env: %s]", env_name);
 #endif
-    }
   }
 
   if (strcmp(f->type, "enum") == 0 ||
@@ -734,76 +693,60 @@ static cdd_c_error_t cli_format_field_badges(
     const char *ref_type = NULL;
     const struct TypeDefinition *edef = NULL;
     rc = get_type_from_ref(f->ref, &ref_type);
-    if (config && config->type_registry && ref_type) {
-      rc = cli_find_type_def(config->type_registry, ref_type, KIND_ENUM, &edef);
-    }
-    if (edef && edef->details.enum_members) {
+    rc = cli_find_type_def(config ? config->type_registry : NULL, ref_type,
+                           KIND_ENUM, &edef);
+    if (edef) {
       const struct EnumMembers *em = edef->details.enum_members;
       int first_v = 1;
       pos = strlen(out_badges);
-      if (pos + 22 < badges_sz) {
-        rc = cli_copy_str(out_badges + pos, badges_sz - pos,
-                          " [possible values: ");
-        for (i = 0; i < em->size; ++i) {
-          char wname[64];
-          if (!em->members[i] || strcmp(em->members[i], "UNKNOWN") == 0)
-            continue;
-          if (em->serde_skip && em->serde_skip[i])
-            continue;
-          if (em->cli_hidden && em->cli_hidden[i])
-            continue;
-          if (em->cli_rename_all != CDD_SERDE_CASE_NONE &&
-              (!em->serde_names || !em->serde_names[i])) {
-            rc = cdd_serde_transform_case(em->members[i], em->cli_rename_all,
-                                          wname, sizeof(wname));
-          } else {
-            rc =
-                cdd_serde_resolve_enum_member_name(em, i, wname, sizeof(wname));
-          }
-          pos = strlen(out_badges);
-          if (pos + strlen(wname) + 6 < badges_sz) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-            sprintf_s(out_badges + pos, badges_sz - pos, "%s%s",
-                      first_v ? "" : ", ", wname);
-#else
-            sprintf(out_badges + pos, "%s%s", first_v ? "" : ", ", wname);
-#endif
-            first_v = 0;
-          }
+      rc = cli_copy_str(out_badges + pos, badges_sz - pos,
+                        " [possible values: ");
+      for (i = 0; i < em->size; ++i) {
+        char wname[64];
+        if (strcmp(em->members[i], "UNKNOWN") == 0)
+          continue;
+        if (em->serde_skip && em->serde_skip[i])
+          continue;
+        if (em->cli_hidden && em->cli_hidden[i])
+          continue;
+        if (em->cli_rename_all != CDD_SERDE_CASE_NONE &&
+            (!em->serde_names || !em->serde_names[i])) {
+          rc = cdd_serde_transform_case(em->members[i], em->cli_rename_all,
+                                        wname, sizeof(wname));
+        } else {
+          rc = cdd_serde_resolve_enum_member_name(em, i, wname, sizeof(wname));
         }
         pos = strlen(out_badges);
-        if (pos + 2 < badges_sz) {
-          out_badges[pos] = ']';
-          out_badges[pos + 1] = '\0';
-        }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        sprintf_s(out_badges + pos, badges_sz - pos, "%s%s",
+                  first_v ? "" : ", ", wname);
+#else
+        sprintf(out_badges + pos, "%s%s", first_v ? "" : ", ", wname);
+#endif
+        first_v = 0;
       }
+      pos = strlen(out_badges);
+      out_badges[pos] = ']';
+      out_badges[pos + 1] = '\0';
     }
   }
 
   if (f->n_serde_aliases > 0 && !f->cli_positional) {
     pos = strlen(out_badges);
-    if (pos + 14 < badges_sz) {
-      rc = cli_copy_str(out_badges + pos, badges_sz - pos, " [aliases: ");
-      for (i = 0; i < f->n_serde_aliases; ++i) {
-        if (!f->serde_aliases[i])
-          continue;
-        pos = strlen(out_badges);
-        if (pos + strlen(f->serde_aliases[i]) + 6 < badges_sz) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          sprintf_s(out_badges + pos, badges_sz - pos, "%s--%s",
-                    i == 0 ? "" : ", ", f->serde_aliases[i]);
-#else
-          sprintf(out_badges + pos, "%s--%s", i == 0 ? "" : ", ",
-                  f->serde_aliases[i]);
-#endif
-        }
-      }
+    rc = cli_copy_str(out_badges + pos, badges_sz - pos, " [aliases: ");
+    for (i = 0; i < f->n_serde_aliases; ++i) {
       pos = strlen(out_badges);
-      if (pos + 2 < badges_sz) {
-        out_badges[pos] = ']';
-        out_badges[pos + 1] = '\0';
-      }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+      sprintf_s(out_badges + pos, badges_sz - pos, "%s--%s", i == 0 ? "" : ", ",
+                f->serde_aliases[i]);
+#else
+      sprintf(out_badges + pos, "%s--%s", i == 0 ? "" : ", ",
+              f->serde_aliases[i]);
+#endif
     }
+    pos = strlen(out_badges);
+    out_badges[pos] = ']';
+    out_badges[pos + 1] = '\0';
   }
   return rc;
 }
@@ -826,22 +769,24 @@ static cdd_c_error_t cli_emit_help_option_line(FILE *fp, const char *left_col,
   char esc_line[1536];
   size_t left_len = strlen(left_col);
   size_t pos = 0;
+  int has_desc = (desc[0] != '\0');
+  int has_badges = (badges && badges[0] != '\0');
   cdd_c_error_t rc;
 
   rc = cli_copy_str(line, sizeof(line), left_col);
   pos = left_len;
-  if ((desc && desc[0] != '\0') || (badges && badges[0] != '\0')) {
+  if (has_desc || has_badges) {
     size_t spaces = (pad_width > left_len) ? (pad_width - left_len + 2) : 2;
-    while (spaces > 0 && pos + 1 < sizeof(line)) {
+    while (spaces > 0) {
       line[pos++] = ' ';
       spaces--;
     }
     line[pos] = '\0';
-    if (desc && desc[0] != '\0') {
+    if (has_desc) {
       rc = cli_copy_str(line + pos, sizeof(line) - pos, desc);
       pos = strlen(line);
     }
-    if (badges && badges[0] != '\0') {
+    if (has_badges) {
       rc = cli_copy_str(line + pos, sizeof(line) - pos, badges);
     }
   }
@@ -898,20 +843,20 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
       subcmd_field = f;
       continue;
     }
-    if (f->serde_flatten && strcmp(f->type, "object") == 0 && config &&
-        config->type_registry) {
+    if (f->serde_flatten) {
       const char *ref_t = NULL;
       const struct TypeDefinition *cdef = NULL;
       rc = get_type_from_ref(f->ref, &ref_t);
-      rc = cli_find_type_def(config->type_registry, ref_t, KIND_STRUCT, &cdef);
-      if (cdef && cdef->details.struct_fields) {
+      rc = cli_find_type_def(config ? config->type_registry : NULL, ref_t,
+                             KIND_STRUCT, &cdef);
+      if (cdef) {
         const struct StructFields *csf = cdef->details.struct_fields;
         for (j = 0; j < csf->size; ++j) {
           char spec_buf[160];
           const struct StructField *cf = &csf->fields[j];
           if (cf->serde_skip || cf->cli_hidden || cf->cli_positional)
             continue;
-          rc = cli_format_option_spec(csf, cf, spec_buf, sizeof(spec_buf));
+          rc = cli_format_option_spec(csf, cf, spec_buf);
           if (strlen(spec_buf) > max_opt_width)
             max_opt_width = strlen(spec_buf);
         }
@@ -922,10 +867,10 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
       has_positionals = 1;
     } else {
       char spec_buf[160];
-      rc = cli_format_option_spec(sf, f, spec_buf, sizeof(spec_buf));
+      rc = cli_format_option_spec(sf, f, spec_buf);
       if (strlen(spec_buf) > max_opt_width)
         max_opt_width = strlen(spec_buf);
-      if (f->cli_help_heading[0] != '\0' && n_headings < 16) {
+      if (f->cli_help_heading[0] != '\0') {
         int seen_h = 0;
         for (j = 0; j < n_headings; ++j) {
           if (strcmp(headings[j], f->cli_help_heading) == 0) {
@@ -991,14 +936,14 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
                           "    return CDD_C_ERROR_IO;\n",
                           esc_buf));
   }
-  if (sf->cli_long_about && sf->cli_long_about[0] != '\0') {
+  if (sf->cli_long_about) {
     rc = cdd_escape_json_c_str(sf->cli_long_about, esc_buf, sizeof(esc_buf));
     CHECK_IO(FPRINTF_HOOK(fp,
                           "  if (fprintf(out_stream, \"%s\\n\\n\") < 0)\n"
                           "    return CDD_C_ERROR_IO;\n",
                           esc_buf));
   }
-  if (sf->cli_before_help && sf->cli_before_help[0] != '\0') {
+  if (sf->cli_before_help) {
     rc = cdd_escape_json_c_str(sf->cli_before_help, esc_buf, sizeof(esc_buf));
     CHECK_IO(FPRINTF_HOOK(fp,
                           "  if (fprintf(out_stream, \"%s\\n\\n\") < 0)\n"
@@ -1030,8 +975,7 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
         rc = cdd_cli_resolve_field_long(sf, f, lname, sizeof(lname));
         rc = cdd_cli_resolve_value_name(f, vname, sizeof(vname));
         upos = strlen(usage_tail);
-        if (lname[0] != '\0' &&
-            upos + strlen(lname) + strlen(vname) + 8 < sizeof(usage_tail)) {
+        if (lname[0] != '\0') {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
           sprintf_s(usage_tail + upos, sizeof(usage_tail) - upos, " --%s <%s>",
                     lname, vname);
@@ -1044,29 +988,27 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
     for (i = 0; i < sf->size; ++i) {
       const struct StructField *f = &sf->fields[i];
       char vname[64];
+      const char *dots;
       if (f->serde_skip || f->cli_hidden || !f->cli_positional)
         continue;
       rc = cdd_cli_resolve_value_name(f, vname, sizeof(vname));
       upos = strlen(usage_tail);
-      if (upos + strlen(vname) + 10 < sizeof(usage_tail)) {
-        const char *dots =
-            (strcmp(f->type, "array") == 0 || f->cli_trailing_var_arg) ? "..."
-                                                                       : "";
-        if (f->required) {
+      dots = (strcmp(f->type, "array") == 0 || f->cli_trailing_var_arg) ? "..."
+                                                                        : "";
+      if (f->required) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          sprintf_s(usage_tail + upos, sizeof(usage_tail) - upos, " <%s>%s",
-                    vname, dots);
+        sprintf_s(usage_tail + upos, sizeof(usage_tail) - upos, " <%s>%s",
+                  vname, dots);
 #else
-          sprintf(usage_tail + upos, " <%s>%s", vname, dots);
+        sprintf(usage_tail + upos, " <%s>%s", vname, dots);
 #endif
-        } else {
+      } else {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          sprintf_s(usage_tail + upos, sizeof(usage_tail) - upos, " [%s]%s",
-                    vname, dots);
+        sprintf_s(usage_tail + upos, sizeof(usage_tail) - upos, " [%s]%s",
+                  vname, dots);
 #else
-          sprintf(usage_tail + upos, " [%s]%s", vname, dots);
+        sprintf(usage_tail + upos, " [%s]%s", vname, dots);
 #endif
-        }
       }
     }
     if (has_subcommands) {
@@ -1084,12 +1026,13 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
   }
 
   /* 3. Commands Section (Subcommands) */
-  if (has_subcommands && subcmd_field && config && config->type_registry) {
+  if (has_subcommands) {
     const char *ref_t = NULL;
     const struct TypeDefinition *udef = NULL;
     rc = get_type_from_ref(subcmd_field->ref, &ref_t);
-    rc = cli_find_type_def(config->type_registry, ref_t, KIND_STRUCT, &udef);
-    if (udef && udef->details.struct_fields) {
+    rc = cli_find_type_def(config ? config->type_registry : NULL, ref_t,
+                           KIND_STRUCT, &udef);
+    if (udef) {
       const struct StructFields *usf = udef->details.struct_fields;
       CHECK_IO(FPRINTF_HOOK(
           fp, "  if (fprintf(out_stream, \"\\nCommands:\\n\") < 0)\n"
@@ -1107,15 +1050,13 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
           rc = cdd_serde_transform_case(vf->name, CDD_SERDE_CASE_KEBABCASE,
                                         cmd_name, sizeof(cmd_name));
         }
-        if ((!cmd_desc || cmd_desc[0] == '\0') &&
-            strcmp(vf->type, "object") == 0) {
+        if (cmd_desc[0] == '\0') {
           const char *vref = NULL;
           const struct TypeDefinition *vdef = NULL;
           rc = get_type_from_ref(vf->ref, &vref);
           rc = cli_find_type_def(config->type_registry, vref, KIND_STRUCT,
                                  &vdef);
-          if (vdef && vdef->details.struct_fields &&
-              vdef->details.struct_fields->cli_about[0] != '\0') {
+          if (vdef && vdef->details.struct_fields->cli_about[0] != '\0') {
             cmd_desc = vdef->details.struct_fields->cli_about;
           }
         }
@@ -1124,16 +1065,19 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
 #else
         sprintf(left_col, "  %s", cmd_name);
 #endif
-        rc = cli_emit_help_option_line(fp, left_col, 16, cmd_desc, NULL);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+        CHECK_IO(cli_emit_help_option_line(fp, left_col, 16, cmd_desc, NULL) !=
+                         CDD_C_SUCCESS
+                     ? -1
+                     : 0);
       }
       if (!sf->cli_disable_help_subcommand) {
-        rc = cli_emit_help_option_line(
-            fp, "  help", 16,
-            "Print this message or the help of the given subcommand(s)", NULL);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+        CHECK_IO(cli_emit_help_option_line(
+                     fp, "  help", 16,
+                     "Print this message or the help of the given "
+                     "subcommand(s)",
+                     NULL) != CDD_C_SUCCESS
+                     ? -1
+                     : 0);
       }
     }
   }
@@ -1163,9 +1107,10 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
                                                                          : "");
 #endif
       rc = cli_format_field_badges(sf, f, config, badges, sizeof(badges));
-      rc = cli_emit_help_option_line(fp, left_col, max_opt_width, desc, badges);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+      CHECK_IO(cli_emit_help_option_line(fp, left_col, max_opt_width, desc,
+                                         badges) != CDD_C_SUCCESS
+                   ? -1
+                   : 0);
     }
   }
 
@@ -1188,28 +1133,28 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
           f->cli_subcommand)
         continue;
 
-      if (f->serde_flatten && strcmp(f->type, "object") == 0) {
-        if (j == 0 && config && config->type_registry) {
+      if (f->serde_flatten) {
+        if (j == 0) {
           const char *ref_t = NULL;
           const struct TypeDefinition *cdef = NULL;
           rc = get_type_from_ref(f->ref, &ref_t);
-          rc = cli_find_type_def(config->type_registry, ref_t, KIND_STRUCT,
-                                 &cdef);
-          if (cdef && cdef->details.struct_fields) {
+          rc = cli_find_type_def(config ? config->type_registry : NULL, ref_t,
+                                 KIND_STRUCT, &cdef);
+          if (cdef) {
             size_t k;
             const struct StructFields *csf = cdef->details.struct_fields;
             for (k = 0; k < csf->size; ++k) {
               const struct StructField *cf = &csf->fields[k];
               if (cf->serde_skip || cf->cli_hidden || cf->cli_positional)
                 continue;
-              rc = cli_format_option_spec(csf, cf, left_col, sizeof(left_col));
+              rc = cli_format_option_spec(csf, cf, left_col);
               rc = cli_format_field_badges(csf, cf, config, badges,
                                            sizeof(badges));
               desc = cf->cli_help[0] ? cf->cli_help : cf->description;
-              rc = cli_emit_help_option_line(fp, left_col, max_opt_width, desc,
-                                             badges);
-              if (rc != CDD_C_SUCCESS)
-                return rc;
+              CHECK_IO(cli_emit_help_option_line(fp, left_col, max_opt_width,
+                                                 desc, badges) != CDD_C_SUCCESS
+                           ? -1
+                           : 0);
             }
           }
         }
@@ -1219,32 +1164,34 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
       if (strcmp(f->cli_help_heading, headings[j]) != 0)
         continue;
 
-      rc = cli_format_option_spec(sf, f, left_col, sizeof(left_col));
+      rc = cli_format_option_spec(sf, f, left_col);
       rc = cli_format_field_badges(sf, f, config, badges, sizeof(badges));
       desc = f->cli_help[0] ? f->cli_help : f->description;
-      rc = cli_emit_help_option_line(fp, left_col, max_opt_width, desc, badges);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+      CHECK_IO(cli_emit_help_option_line(fp, left_col, max_opt_width, desc,
+                                         badges) != CDD_C_SUCCESS
+                   ? -1
+                   : 0);
     }
 
     if (j == 0) {
       if (!sf->cli_disable_help_flag) {
-        rc = cli_emit_help_option_line(fp, "  -h, --help", max_opt_width,
-                                       "Print help", NULL);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+        CHECK_IO(cli_emit_help_option_line(fp, "  -h, --help", max_opt_width,
+                                           "Print help", NULL) != CDD_C_SUCCESS
+                     ? -1
+                     : 0);
       }
       if (!sf->cli_disable_version_flag) {
-        rc = cli_emit_help_option_line(fp, "  -V, --version", max_opt_width,
-                                       "Print version", NULL);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+        CHECK_IO(cli_emit_help_option_line(fp, "  -V, --version", max_opt_width,
+                                           "Print version",
+                                           NULL) != CDD_C_SUCCESS
+                     ? -1
+                     : 0);
       }
     }
   }
 
   /* 6. Footer Block */
-  if (sf->cli_after_help && sf->cli_after_help[0] != '\0') {
+  if (sf->cli_after_help) {
     rc = cdd_escape_json_c_str(sf->cli_after_help, esc_buf, sizeof(esc_buf));
     CHECK_IO(FPRINTF_HOOK(fp,
                           "  if (fprintf(out_stream, \"\\n%s\\n\") < 0)\n"
@@ -1257,7 +1204,7 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
   if (config && config->guard_macro) {
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -1298,36 +1245,30 @@ write_struct_print_completions_func(FILE *fp, const char *struct_name,
     rc = cdd_cli_resolve_field_long(sf, f, lname, sizeof(lname));
     if (lname[0] != '\0') {
       wpos = strlen(words_buf);
-      if (wpos + strlen(lname) + 5 < sizeof(words_buf)) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-        sprintf_s(words_buf + wpos, sizeof(words_buf) - wpos, "%s--%s",
-                  wpos > 0 ? " " : "", lname);
+      sprintf_s(words_buf + wpos, sizeof(words_buf) - wpos, "%s--%s",
+                wpos > 0 ? " " : "", lname);
 #else
-        sprintf(words_buf + wpos, "%s--%s", wpos > 0 ? " " : "", lname);
+      sprintf(words_buf + wpos, "%s--%s", wpos > 0 ? " " : "", lname);
 #endif
-      }
       if (f->cli_negatable) {
         wpos = strlen(words_buf);
-        if (wpos + strlen(lname) + 8 < sizeof(words_buf)) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          sprintf_s(words_buf + wpos, sizeof(words_buf) - wpos, " --no-%s",
-                    lname);
+        sprintf_s(words_buf + wpos, sizeof(words_buf) - wpos, " --no-%s",
+                  lname);
 #else
-          sprintf(words_buf + wpos, " --no-%s", lname);
+        sprintf(words_buf + wpos, " --no-%s", lname);
 #endif
-        }
       }
     }
     if (f->cli_short != '\0') {
       wpos = strlen(words_buf);
-      if (wpos + 4 < sizeof(words_buf)) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-        sprintf_s(words_buf + wpos, sizeof(words_buf) - wpos, "%s-%c",
-                  wpos > 0 ? " " : "", f->cli_short);
+      sprintf_s(words_buf + wpos, sizeof(words_buf) - wpos, "%s-%c",
+                wpos > 0 ? " " : "", f->cli_short);
 #else
-        sprintf(words_buf + wpos, "%s-%c", wpos > 0 ? " " : "", f->cli_short);
+      sprintf(words_buf + wpos, "%s-%c", wpos > 0 ? " " : "", f->cli_short);
 #endif
-      }
     }
   }
   if (!sf->cli_disable_help_flag) {
@@ -1686,7 +1627,7 @@ static cdd_c_error_t cli_emit_field_value_assign(FILE *fp,
                           "          %s\n"
                           "        }\n",
                           ref_t, raw_expr, n, err_stmt));
-  } else if (strcmp(t, "array") == 0) {
+  } else {
     char delim = f->cli_value_delimiter;
     CHECK_IO(FPRINTF_HOOK(fp,
                           "        {\n"
@@ -1872,7 +1813,7 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
     if (cli_effective_action(f) == CDD_CLI_ACTION_SET_FALSE) {
       CHECK_IO(FPRINTF_HOOK(fp, "  ret->%s = 1;\n", f->name));
     }
-    if (f->serde_flatten && strcmp(f->type, "object") == 0) {
+    if (f->serde_flatten) {
       const char *ref_t = NULL;
       rc = get_type_from_ref(f->ref, &ref_t);
       CHECK_IO(FPRINTF_HOOK(fp,
@@ -1949,9 +1890,7 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
       if (f->serde_skip || f->cli_positional || f->cli_subcommand ||
           f->serde_flatten)
         continue;
-      rc = cdd_cli_resolve_field_long(sf, f, lname, sizeof(lname));
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+      cdd_cli_resolve_field_long(sf, f, lname, sizeof(lname));
       if (lname[0] == '\0')
         continue;
       CHECK_IO(FPRINTF_HOOK(
@@ -2052,7 +1991,7 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
     if (f->serde_skip || f->cli_positional || f->cli_subcommand)
       continue;
 
-    if (f->serde_flatten && strcmp(f->type, "object") == 0) {
+    if (f->serde_flatten) {
       const char *ref_t = NULL;
       rc = get_type_from_ref(f->ref, &ref_t);
       CHECK_IO(FPRINTF_HOOK(
@@ -2095,8 +2034,6 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
     CHECK_IO(FPRINTF_HOOK(fp, "      if (%s(_kbuf, \"%s\")", cmp_fn, esc_l));
     for (j = 0; j < f->n_serde_aliases; ++j) {
       char esc_al[128];
-      if (!f->serde_aliases[j])
-        continue;
       rc = cdd_escape_json_c_str(f->serde_aliases[j], esc_al, sizeof(esc_al));
       CHECK_IO(FPRINTF_HOOK(fp, " || %s(_kbuf, \"%s\")", cmp_fn, esc_al));
     }
@@ -2329,12 +2266,13 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
           "    }\n"));
 
   /* Subcommand Dispatch (when subcommand field is present) */
-  if (has_subcmd && subcmd_f && config && config->type_registry) {
+  if (has_subcmd) {
     const char *ref_t = NULL;
     const struct TypeDefinition *udef = NULL;
     rc = get_type_from_ref(subcmd_f->ref, &ref_t);
-    rc = cli_find_type_def(config->type_registry, ref_t, KIND_STRUCT, &udef);
-    if (udef && udef->details.struct_fields) {
+    rc = cli_find_type_def(config ? config->type_registry : NULL, ref_t,
+                           KIND_STRUCT, &udef);
+    if (udef) {
       const struct StructFields *usf = udef->details.struct_fields;
       if (!sf->cli_disable_help_subcommand) {
         CHECK_IO(FPRINTF_HOOK(
@@ -2343,7 +2281,7 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
           const struct StructField *vf = &usf->fields[i];
           char cmd_name[64];
           const char *vref = NULL;
-          if (vf->serde_skip || strcmp(vf->type, "object") != 0)
+          if (vf->serde_skip)
             continue;
           rc = get_type_from_ref(vf->ref, &vref);
           if (vf->serde_rename[0] != '\0') {
@@ -2368,7 +2306,7 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
         const struct StructField *vf = &usf->fields[i];
         char cmd_name[64];
         const char *vref = NULL;
-        if (vf->serde_skip || strcmp(vf->type, "object") != 0)
+        if (vf->serde_skip)
           continue;
         rc = get_type_from_ref(vf->ref, &vref);
         if (vf->serde_rename[0] != '\0') {
@@ -2380,9 +2318,8 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
         CHECK_IO(
             FPRINTF_HOOK(fp, "    if (strcmp(_arg, \"%s\") == 0", cmd_name));
         for (j = 0; j < vf->n_serde_aliases; ++j) {
-          if (vf->serde_aliases[j])
-            CHECK_IO(FPRINTF_HOOK(fp, " || strcmp(_arg, \"%s\") == 0",
-                                  vf->serde_aliases[j]));
+          CHECK_IO(FPRINTF_HOOK(fp, " || strcmp(_arg, \"%s\") == 0",
+                                vf->serde_aliases[j]));
         }
         CHECK_IO(FPRINTF_HOOK(
             fp,
@@ -2453,7 +2390,7 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
           "  }\n\n"));
 
   /* Stage 4: Post-Parse Validation Pass */
-  if (sf->cli_subcommand_required && has_subcmd && subcmd_f) {
+  if (sf->cli_subcommand_required) {
     CHECK_IO(FPRINTF_HOOK(
         fp,
         "  if (!_seen_%s) {\n"
@@ -2472,9 +2409,7 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
     if (f->required && !f->serde_has_default && f->default_val[0] == '\0') {
       CHECK_IO(FPRINTF_HOOK(fp, "  if (!_seen_%s", f->name));
       for (j = 0; j < f->n_cli_required_unless; ++j) {
-        if (f->cli_required_unless[j])
-          CHECK_IO(
-              FPRINTF_HOOK(fp, " && !_seen_%s", f->cli_required_unless[j]));
+        CHECK_IO(FPRINTF_HOOK(fp, " && !_seen_%s", f->cli_required_unless[j]));
       }
       CHECK_IO(FPRINTF_HOOK(
           fp,
@@ -2500,8 +2435,6 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
 
     /* Conflicts check */
     for (j = 0; j < f->n_cli_conflicts_with; ++j) {
-      if (!f->cli_conflicts_with[j])
-        continue;
       CHECK_IO(FPRINTF_HOOK(
           fp,
           "  if (_cli_seen_%s && _cli_seen_%s) {\n"
@@ -2515,8 +2448,6 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
 
     /* Requires check */
     for (j = 0; j < f->n_cli_requires; ++j) {
-      if (!f->cli_requires[j])
-        continue;
       CHECK_IO(FPRINTF_HOOK(fp,
                             "  if (_cli_seen_%s && !_seen_%s) {\n"
                             "    fprintf(stderr, \"error: the argument '%s' "
@@ -2536,12 +2467,9 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
           break;
         }
       }
-      if (tf && strcmp(tf->type, "string") == 0) {
+      if (tf) {
         char esc_rv[128];
-        rc = cdd_escape_json_c_str(f->cli_required_if_val, esc_rv,
-                                   sizeof(esc_rv));
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+        cdd_escape_json_c_str(f->cli_required_if_val, esc_rv, sizeof(esc_rv));
         CHECK_IO(FPRINTF_HOOK(
             fp,
             "  if (_seen_%s && ret->%s && strcmp(ret->%s, \"%s\") == 0 && "
@@ -2891,7 +2819,7 @@ write_struct_to_cli_argv_func(FILE *fp, const char *struct_name,
                             "  sprintf(_nbuf, \"%%d\", obj->%s);\n"
                             "  _argv[_argc++] = strdup(_nbuf);\n",
                             f->name));
-    } else if (strcmp(f->type, "array") == 0 && strcmp(f->ref, "string") == 0) {
+    } else {
       CHECK_IO(FPRINTF_HOOK(fp,
                             "  for (_k = 0; _k < obj->n_%s; ++_k) {\n"
                             "    if (!obj->%s[_k])\n"

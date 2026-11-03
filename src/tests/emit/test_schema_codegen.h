@@ -460,6 +460,41 @@ TEST test_schema_codegen_enum_output(void) {
   remove(filename);
   remove("enum_out.h");
   remove("enum_out.c");
+
+  /* Test x-cdd-c-name, sanitized schema names, and OOM in generate_header /
+   * generate_source */
+  {
+    JSON_Value *root_v = json_parse_string(
+        "{"
+        "\"My-Enum\":{\"type\":\"string\",\"enum\":[\"A\"]},"
+        "\"My-Obj\":{\"type\":\"object\",\"x-cdd-rename\":\"CustomWire\","
+        "\"properties\":{\"x\":{\"type\":\"integer\"}}},"
+        "\"ExtName\":{\"type\":\"object\",\"x-cdd-c-name\":\"ExplicitCName\","
+        "\"properties\":{\"y\":{\"type\":\"integer\"}}},"
+        "\"EmptyExt\":{\"type\":\"object\",\"x-cdd-c-name\":\"\","
+        "\"properties\":{\"z\":{\"type\":\"integer\"}}}"
+        "}");
+    JSON_Object *schemas_obj = json_value_get_object(root_v);
+    int f_alloc;
+
+    for (f_alloc = 1; f_alloc <= 15; ++f_alloc) {
+      g_cdd_alloc_fail = f_alloc;
+      generate_header("enum_san_out", "enum_san_out", schemas_obj, NULL);
+      g_cdd_alloc_fail = 0;
+    }
+    for (f_alloc = 1; f_alloc <= 8; ++f_alloc) {
+      g_cdd_alloc_fail = f_alloc;
+      generate_source("enum_san_out", "enum_san_out", schemas_obj, NULL);
+      g_cdd_alloc_fail = 0;
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, generate_header("enum_san_out", "enum_san_out",
+                                             schemas_obj, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, generate_source("enum_san_out", "enum_san_out",
+                                             schemas_obj, NULL));
+    remove("enum_san_out.h");
+    remove("enum_san_out.c");
+    json_value_free(root_v);
+  }
   g_fail_io_after = -1;
   PASS();
 }

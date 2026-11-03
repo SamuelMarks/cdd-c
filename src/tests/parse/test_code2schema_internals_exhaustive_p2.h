@@ -434,6 +434,40 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
         remove("test_err_main.json");
       }
     }
+
+    /* c2s_needs_identifier_sanitization leading underscore branches and
+     * json_array_to_enum_members OOM/NULL member branches */
+    {
+      int needs_san = 0;
+      JSON_Value *ev = json_parse_string("[\"foo-bar\", \"DUP\", \"DUP\"]");
+      JSON_Array *ea = json_value_get_array(ev);
+      struct EnumMembers em;
+
+      ASSERT_EQ(CDD_C_SUCCESS,
+                c2s_needs_identifier_sanitization("__dunder", &needs_san));
+      ASSERT_EQ(1, needs_san);
+      ASSERT_EQ(CDD_C_SUCCESS,
+                c2s_needs_identifier_sanitization("_0digit", &needs_san));
+      ASSERT_EQ(0, needs_san);
+      ASSERT_EQ(CDD_C_SUCCESS,
+                c2s_needs_identifier_sanitization("_lower", &needs_san));
+      ASSERT_EQ(0, needs_san);
+      ASSERT_EQ(CDD_C_SUCCESS,
+                c2s_needs_identifier_sanitization("_Upper", &needs_san));
+      ASSERT_EQ(1, needs_san);
+
+      enum_members_init(&em);
+      g_cdd_alloc_fail = 1;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, json_array_to_enum_members(ea, &em));
+      g_cdd_alloc_fail = 0;
+
+      enum_members_add(&em, "EXISTING");
+      C_CDD_FREE(em.members[0]);
+      em.members[0] = NULL;
+      ASSERT_EQ(CDD_C_SUCCESS, json_array_to_enum_members(ea, &em));
+      enum_members_free(&em);
+      json_value_free(ev);
+    }
   }
   PASS();
 }

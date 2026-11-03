@@ -672,7 +672,25 @@ TEST test_client_gen_mock_errors(void) {
   names[0] = NULL;
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  names[0] = cdd_test_mut_str("Enum1");
+
+  /* Test with a schema name requiring sanitization and OOM */
+  {
+    int f_alloc;
+    names[0] = cdd_test_mut_str("My-Enum");
+    sf[0].serde_rename[0] = '\0';
+    for (f_alloc = 12; f_alloc <= 20; ++f_alloc) {
+      g_cdd_alloc_fail = f_alloc;
+      openapi_client_generate(&spec, &config);
+      g_cdd_alloc_fail = 0;
+    }
+    sf[0].serde_rename[0] = '\0';
+    ASSERT_EQ(CDD_C_SUCCESS, openapi_client_generate(&spec, &config));
+    ASSERT_STR_EQ("My-Enum", sf[0].serde_rename);
+    /* Second call with serde_rename already populated */
+    ASSERT_EQ(CDD_C_SUCCESS, openapi_client_generate(&spec, &config));
+    sf[0].serde_rename[0] = '\0';
+    names[0] = cdd_test_mut_str("Enum1");
+  }
 
   /* Test with config->header_guard and config->model_header explicitly set */
   config.header_guard = cdd_test_mut_str("CUSTOM_GUARD_H");

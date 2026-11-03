@@ -266,8 +266,7 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
     if (tokens->tokens[i].kind == TOKEN_KEYWORD_STRUCT) {
       size_t id_idx = 0;
       rc = skip_trivia_tok(tokens, i + 1, &id_idx);
-      if (id_idx < tokens->size &&
-          tokens->tokens[id_idx].kind == TOKEN_IDENTIFIER &&
+      if (tokens->tokens[id_idx].kind == TOKEN_IDENTIFIER &&
           tokens->tokens[id_idx].length == 6 &&
           strncmp((const char *)tokens->tokens[id_idx].start, "option", 6) ==
               0) {
@@ -286,8 +285,7 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
               size_t t1 = 0;
               rc = skip_trivia_tok(tokens, cur + 1, &t1);
               if (t1 < tokens->size &&
-                  tokens->tokens[t1].kind == TOKEN_STRING_LITERAL &&
-                  tokens->tokens[t1].length >= 2) {
+                  tokens->tokens[t1].kind == TOKEN_STRING_LITERAL) {
                 char lflag[64];
                 size_t l_len = tokens->tokens[t1].length - 2;
                 int has_arg_val = 0;
@@ -311,8 +309,7 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
                              strncmp(id_s, "optional_argument", 17) == 0)
                       has_arg_val = 2;
                   } else if (tokens->tokens[scan_e].kind ==
-                                 TOKEN_CHAR_LITERAL &&
-                             tokens->tokens[scan_e].length >= 3) {
+                             TOKEN_CHAR_LITERAL) {
                     sflag = (char)tokens->tokens[scan_e].start[1];
                   }
                   scan_e++;
@@ -422,7 +419,7 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
           str_len = tokens->tokens[j].length - 2;
         }
       }
-      if (has_argv && str_start && str_len >= 1 && str_start[0] == '-') {
+      if (has_argv && str_start && str_start[0] == '-') {
         char lflag[64];
         char sflag = '\0';
         lflag[0] = '\0';
@@ -460,11 +457,9 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
               is_int_type = 1;
               consumes_arg = 1;
             }
-            if (tokens->tokens[j].kind == TOKEN_ASSIGN && j > 0 &&
-                tokens->tokens[j].length == 1) {
+            if (tokens->tokens[j].kind == TOKEN_ASSIGN) {
               size_t p_idx = j - 1;
-              while (p_idx > 0 &&
-                     tokens->tokens[p_idx].kind == TOKEN_WHITESPACE)
+              while (tokens->tokens[p_idx].kind == TOKEN_WHITESPACE)
                 p_idx--;
               if (tokens->tokens[p_idx].kind == TOKEN_IDENTIFIER &&
                   !(tokens->tokens[p_idx].length == 1 &&
@@ -549,7 +544,7 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
           if (tokens->tokens[back].kind == TOKEN_SEMICOLON ||
               tokens->tokens[back].kind == TOKEN_LBRACE)
             break;
-          if (tokens->tokens[back].kind == TOKEN_ASSIGN && back > 0) {
+          if (tokens->tokens[back].kind == TOKEN_ASSIGN) {
             size_t lhs = back - 1;
             while (lhs > 0 && tokens->tokens[lhs].kind == TOKEN_WHITESPACE)
               lhs--;
@@ -648,8 +643,8 @@ cdd_c_error_t cli_command_to_struct_fields(const struct CliCommand *cmd,
     }
 
     rc = sanitize_identifier(raw_name, &san_name);
-    if (rc != CDD_C_SUCCESS || !san_name)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
 
     ftype =
         opt->type_str ? opt->type_str : (opt->has_arg ? "string" : "boolean");

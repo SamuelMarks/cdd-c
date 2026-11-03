@@ -168,7 +168,6 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
         int is_union_tag = 0;
         for (u_idx = 0; u_idx < types.size; ++u_idx) {
           if (types.items[u_idx].kind == KIND_STRUCT &&
-              types.items[u_idx].details.struct_fields &&
               types.items[u_idx].details.struct_fields->is_union &&
               strncmp(def->name, types.items[u_idx].name,
                       strlen(types.items[u_idx].name)) == 0 &&
@@ -199,8 +198,7 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
           return rc_sync;
         }
       }
-    } else if (def->details.struct_fields &&
-               def->details.struct_fields->is_union) {
+    } else if (def->details.struct_fields->is_union) {
       struct StructFields *sf = def->details.struct_fields;
       cdd_c_error_t rc_sync;
       rc_sync = write_union_cleanup_func(out, def->name, sf, &types_cfg);
@@ -307,7 +305,7 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
       }
 
       /* Emit CLI if annotated with @cdd cli / @cli */
-      if (sf && sf->is_cli_command) {
+      if (sf->is_cli_command) {
         struct CodegenCliConfig cli_cfg;
         cdd_c_error_t rc_sync;
         memset(&cli_cfg, 0, sizeof(cli_cfg));

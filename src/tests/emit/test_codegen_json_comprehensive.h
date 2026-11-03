@@ -704,12 +704,291 @@ TEST test_codegen_json_comprehensive(void) {
 }
 
 /**
+ * @brief Exhaustively tests Serde reflection branches in json.c.
+ */
+TEST test_json_serde_exhaustive(void) {
+  struct StructFields sf;
+  struct CodegenJsonConfig config;
+  FILE *tmp = NULL;
+  int i;
+
+  tmp = cdd_test_tmpfile_global();
+  ASSERT(tmp != NULL);
+
+  memset(&config, 0, sizeof(config));
+  struct_fields_init(&sf);
+  sf.serde_deny_unknown_fields = 1;
+  sf.serde_untagged = 0;
+
+  /* 0: skip_if = empty on string */
+  struct_fields_add(&sf, "s_empty", "string", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].serde_skip_if_kind = CDD_SERDE_SKIP_IF_EMPTY;
+  sf.fields[sf.size - 1].serde_has_default = 1;
+
+  /* 1: skip_if = empty on array */
+  struct_fields_add(&sf, "a_empty", "array", "string", NULL, NULL);
+  sf.fields[sf.size - 1].serde_skip_if_kind = CDD_SERDE_SKIP_IF_EMPTY;
+  struct_field_add_alias(&sf.fields[sf.size - 1], "a_alias");
+
+  /* 2: skip_if = empty on object */
+  struct_fields_add(&sf, "o_empty", "object", "ChildObj", NULL, NULL);
+  sf.fields[sf.size - 1].serde_skip_if_kind = CDD_SERDE_SKIP_IF_EMPTY;
+  struct_field_add_alias(&sf.fields[sf.size - 1], "o_alias");
+
+  /* 3: skip_if = zero on integer with default_fn */
+  struct_fields_add(&sf, "i_zero", "integer", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].serde_skip_if_kind = CDD_SERDE_SKIP_IF_ZERO;
+  CDD_STRCPY(sf.fields[sf.size - 1].serde_default_fn,
+             sizeof(sf.fields[sf.size - 1].serde_default_fn), "def_int");
+
+  /* 4: skip_if = func on number with alias and default_val */
+  struct_fields_add(&sf, "n_func", "number", NULL, "3.14", NULL);
+  sf.fields[sf.size - 1].serde_skip_if_kind = CDD_SERDE_SKIP_IF_FUNC;
+  CDD_STRCPY(sf.fields[sf.size - 1].serde_skip_if_fn,
+             sizeof(sf.fields[sf.size - 1].serde_skip_if_fn), "is_neg");
+  sf.fields[sf.size - 1].serde_has_default = 1;
+  struct_field_add_alias(&sf.fields[sf.size - 1], "n_alias");
+
+  /* 5: number with default_fn */
+  struct_fields_add(&sf, "n_deffn", "number", NULL, NULL, NULL);
+  CDD_STRCPY(sf.fields[sf.size - 1].serde_default_fn,
+             sizeof(sf.fields[sf.size - 1].serde_default_fn), "def_num");
+
+  /* 6: number with serde_has_default but empty default_val */
+  struct_fields_add(&sf, "n_defempty", "number", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].serde_has_default = 1;
+
+  /* 7: integer with alias and default_val */
+  struct_fields_add(&sf, "i_defval", "integer", NULL, "42", NULL);
+  sf.fields[sf.size - 1].serde_has_default = 1;
+  struct_field_add_alias(&sf.fields[sf.size - 1], "i_alias");
+
+  /* 8: integer with serde_has_default and empty default_val */
+  struct_fields_add(&sf, "i_defempty", "integer", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].serde_has_default = 1;
+
+  /* 9: boolean with alias and default_fn */
+  struct_fields_add(&sf, "b_deffn", "boolean", NULL, NULL, NULL);
+  CDD_STRCPY(sf.fields[sf.size - 1].serde_default_fn,
+             sizeof(sf.fields[sf.size - 1].serde_default_fn), "def_bool");
+  struct_field_add_alias(&sf.fields[sf.size - 1], "b_alias");
+
+  /* 10: boolean with default_val */
+  struct_fields_add(&sf, "b_defval", "boolean", NULL, "1", NULL);
+  sf.fields[sf.size - 1].serde_has_default = 1;
+
+  /* 11: boolean with serde_has_default and empty default_val */
+  struct_fields_add(&sf, "b_defempty", "boolean", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].serde_has_default = 1;
+
+  /* 11b: boolean with alias only (serde_has_default = 0, default_val = "") */
+  struct_fields_add(&sf, "b_alonly", "boolean", NULL, NULL, NULL);
+  struct_field_add_alias(&sf.fields[sf.size - 1], "b_al2");
+
+  /* 11c: read_only field in deny_unknown_fields struct */
+  struct_fields_add(&sf, "ro_field", "string", NULL, "ro_def", NULL);
+  sf.fields[sf.size - 1].read_only = 1;
+
+  /* 11d: string with serde_has_default = 1 and default_val = "" */
+  struct_fields_add(&sf, "s_defempty", "string", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].serde_has_default = 1;
+
+  /* 12: string with default_fn */
+  struct_fields_add(&sf, "s_deffn", "string", NULL, NULL, NULL);
+  CDD_STRCPY(sf.fields[sf.size - 1].serde_default_fn,
+             sizeof(sf.fields[sf.size - 1].serde_default_fn), "def_str");
+
+  /* 13: string with serde_has_default and default_val */
+  struct_fields_add(&sf, "s_defval", "string", NULL, "hello", NULL);
+  sf.fields[sf.size - 1].serde_has_default = 1;
+
+  /* 14: enum with alias */
+  struct_fields_add(&sf, "e_val", "enum", "MyEnum", NULL, NULL);
+  struct_field_add_alias(&sf.fields[sf.size - 1], "e_alias");
+
+  /* 15: flatten with skip_if */
+  struct_fields_add(&sf, "flat_obj", "object", "#/definitions/FlatChild", NULL,
+                    NULL);
+  sf.fields[sf.size - 1].serde_flatten = 1;
+  sf.fields[sf.size - 1].serde_skip_if_kind = CDD_SERDE_SKIP_IF_NULL;
+
+  /* 16: flatten non-object (serde_flatten = 1, type = "string") */
+  struct_fields_add(&sf, "flat_str", "string", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].serde_flatten = 1;
+
+  /* 17: serialize_with and deserialize_with */
+  struct_fields_add(&sf, "custom_rw", "string", NULL, NULL, NULL);
+  CDD_STRCPY(sf.fields[sf.size - 1].serde_serialize_with,
+             sizeof(sf.fields[sf.size - 1].serde_serialize_with), "my_ser");
+  CDD_STRCPY(sf.fields[sf.size - 1].serde_deserialize_with,
+             sizeof(sf.fields[sf.size - 1].serde_deserialize_with), "my_de");
+
+  /* 18: skip_deserializing with default_fn */
+  struct_fields_add(&sf, "skip_de_fn", "integer", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].serde_skip_deserializing = 1;
+  CDD_STRCPY(sf.fields[sf.size - 1].serde_default_fn,
+             sizeof(sf.fields[sf.size - 1].serde_default_fn), "init_skip_int");
+
+  /* 19: skip_deserializing with non-string default_val */
+  struct_fields_add(&sf, "skip_de_int", "integer", NULL, "77", NULL);
+  sf.fields[sf.size - 1].serde_skip_deserializing = 1;
+
+  /* Exhaustive IO failures on Serde struct */
+  for (i = 0; i < 400; ++i) {
+    cdd_c_error_t rc_io;
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc_io = write_struct_to_json_func(tmp, "SerdeExhaustive", &sf, &config);
+    if (rc_io == CDD_C_SUCCESS) {
+      g_fail_io_after = -1;
+      break;
+    }
+    ASSERT_EQ(CDD_C_ERROR_IO, rc_io);
+  }
+  g_fail_io_after = -1;
+
+  for (i = 0; i < 400; ++i) {
+    cdd_c_error_t rc_io;
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc_io =
+        write_struct_from_jsonObject_func(tmp, "SerdeExhaustive", &sf, &config);
+    if (rc_io == CDD_C_SUCCESS) {
+      g_fail_io_after = -1;
+      break;
+    }
+    ASSERT_EQ(CDD_C_ERROR_IO, rc_io);
+  }
+  g_fail_io_after = -1;
+
+  /* Test untagged with deny_unknown_fields */
+  sf.serde_untagged = 1;
+  ASSERT_EQ(CDD_C_SUCCESS, write_struct_from_jsonObject_func(
+                               tmp, "SerdeUntagged", &sf, &config));
+  sf.serde_untagged = 0;
+
+  struct_fields_free(&sf);
+
+  /* Test rc_needed specifically triggered by serde_serialize_with / serde_with
+   * / serde_deserialize_with / serde_default_fn */
+  {
+    struct StructFields sf_rc;
+
+    /* 1. to_json with serde_serialize_with only */
+    struct_fields_init(&sf_rc);
+    struct_fields_add(&sf_rc, "x", "integer", NULL, NULL, NULL);
+    CDD_STRCPY(sf_rc.fields[0].serde_serialize_with,
+               sizeof(sf_rc.fields[0].serde_serialize_with), "ser_x");
+    ASSERT_EQ(CDD_C_SUCCESS,
+              write_struct_to_json_func(tmp, "S1", &sf_rc, NULL));
+    struct_fields_free(&sf_rc);
+
+    /* 2. from_jsonObject with read_only + serde_default_fn only */
+    struct_fields_init(&sf_rc);
+    struct_fields_add(&sf_rc, "x", "integer", NULL, NULL, NULL);
+    sf_rc.fields[0].read_only = 1;
+    CDD_STRCPY(sf_rc.fields[0].serde_default_fn,
+               sizeof(sf_rc.fields[0].serde_default_fn), "def_x");
+    for (i = 0; i < 30; ++i) {
+      cdd_c_error_t rc_io;
+      g_fail_io_after = i;
+      g_io_calls = 0;
+      rc_io = write_struct_from_jsonObject_func(tmp, "S2", &sf_rc, NULL);
+      if (rc_io == CDD_C_SUCCESS) {
+        g_fail_io_after = -1;
+        break;
+      }
+      ASSERT_EQ(CDD_C_ERROR_IO, rc_io);
+    }
+    g_fail_io_after = -1;
+    struct_fields_free(&sf_rc);
+
+    /* 3. from_jsonObject with serde_deserialize_with only */
+    struct_fields_init(&sf_rc);
+    struct_fields_add(&sf_rc, "x", "integer", NULL, NULL, NULL);
+    CDD_STRCPY(sf_rc.fields[0].serde_deserialize_with,
+               sizeof(sf_rc.fields[0].serde_deserialize_with), "de_x");
+    ASSERT_EQ(CDD_C_SUCCESS,
+              write_struct_from_jsonObject_func(tmp, "S3", &sf_rc, NULL));
+    struct_fields_free(&sf_rc);
+
+    /* 4. from_jsonObject with serde_default_fn on normal field only */
+    struct_fields_init(&sf_rc);
+    struct_fields_add(&sf_rc, "x", "integer", NULL, NULL, NULL);
+    CDD_STRCPY(sf_rc.fields[0].serde_default_fn,
+               sizeof(sf_rc.fields[0].serde_default_fn), "def_x");
+    ASSERT_EQ(CDD_C_SUCCESS,
+              write_struct_from_jsonObject_func(tmp, "S4", &sf_rc, NULL));
+    struct_fields_free(&sf_rc);
+
+    /* 5. flatten get_type_from_ref failure in to_json and from_jsonObject */
+#ifdef CDD_BUILD_TESTS
+    struct_fields_init(&sf_rc);
+    struct_fields_add(&sf_rc, "flat", "object", "#/definitions/Sub", NULL,
+                      NULL);
+    sf_rc.fields[0].serde_flatten = 1;
+    g_cdd_fail_str_after_last = 1;
+    ASSERT_NEQ(CDD_C_SUCCESS,
+               write_struct_to_json_func(tmp, "FailFlat", &sf_rc, NULL));
+    g_cdd_fail_str_after_last = 1;
+    ASSERT_NEQ(CDD_C_SUCCESS, write_struct_from_jsonObject_func(tmp, "FailFlat",
+                                                                &sf_rc, NULL));
+    g_cdd_fail_str_after_last = 0;
+    struct_fields_free(&sf_rc);
+#endif
+
+    /* 6. empty field name failure in cdd_serde_resolve_field_names */
+    struct_fields_init(&sf_rc);
+    struct_fields_add(&sf_rc, "", "integer", NULL, NULL, NULL);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_struct_to_json_func(tmp, "FailName", &sf_rc, NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_struct_from_jsonObject_func(tmp, "FailName", &sf_rc, NULL));
+    sf_rc.serde_deny_unknown_fields = 1;
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_struct_from_jsonObject_func(tmp, "FailName", &sf_rc, NULL));
+    struct_fields_free(&sf_rc);
+
+    /* 7. IO failure on boolean with serde_default_fn only, boolean with
+     * default_val, and string with alias + serde_has_default + default_val */
+    struct_fields_init(&sf_rc);
+    struct_fields_add(&sf_rc, "b_fn_only", "boolean", NULL, NULL, NULL);
+    CDD_STRCPY(sf_rc.fields[0].serde_default_fn,
+               sizeof(sf_rc.fields[0].serde_default_fn), "def_b");
+    struct_fields_add(&sf_rc, "b_al", "boolean", NULL, NULL, NULL);
+    struct_field_add_alias(&sf_rc.fields[1], "b2");
+    struct_fields_add(&sf_rc, "b_def", "boolean", NULL, "1", NULL);
+    sf_rc.fields[2].serde_has_default = 1;
+    struct_fields_add(&sf_rc, "s_def", "string", NULL, "def_s", NULL);
+    sf_rc.fields[3].serde_has_default = 1;
+    struct_field_add_alias(&sf_rc.fields[3], "s_alias_io");
+    for (i = 0; i < 50; ++i) {
+      cdd_c_error_t rc_io;
+      g_fail_io_after = i;
+      g_io_calls = 0;
+      rc_io = write_struct_from_jsonObject_func(tmp, "S7", &sf_rc, NULL);
+      if (rc_io == CDD_C_SUCCESS) {
+        g_fail_io_after = -1;
+        break;
+      }
+      ASSERT_EQ(CDD_C_ERROR_IO, rc_io);
+    }
+    g_fail_io_after = -1;
+    struct_fields_free(&sf_rc);
+  }
+
+  fclose(tmp);
+  PASS();
+}
+
+/**
  * @brief Executes the codegen_json_comprehensive_suite test suite.
  */
 SUITE(codegen_json_comprehensive_suite) {
   RUN_TEST(test_json_exhaustive_io);
   RUN_TEST(test_codegen_json_extra);
   RUN_TEST(test_codegen_json_comprehensive);
+  RUN_TEST(test_json_serde_exhaustive);
 }
 
 #ifdef __cplusplus

@@ -92,9 +92,39 @@ TEST test_form_generation_basic(void) {
       strcpy(f3.type, "boolean");
 #endif
       sf.fields[sf.size++] = f3;
+
+      {
+        struct StructField f4;
+        memset(&f4, 0, sizeof(f4));
+#if defined(_MSC_VER)
+        strcpy_s(f4.name, sizeof(f4.name), "secret");
+        strcpy_s(f4.type, sizeof(f4.type), "string");
+#else
+        strcpy(f4.name, "secret");
+        strcpy(f4.type, "string");
+#endif
+        f4.write_only = 1;
+        sf.fields[sf.size++] = f4;
+      }
     }
 
     ASSERT_EQ(0, write_struct_to_form_urlencoded_func(tmp, "AuthRequest", &sf));
+
+    {
+      struct StructFields sf_bad;
+      struct StructField f_bad;
+      ASSERT_EQ(0, struct_fields_init(&sf_bad));
+      memset(&f_bad, 0, sizeof(f_bad));
+#if defined(_MSC_VER)
+      strcpy_s(f_bad.type, sizeof(f_bad.type), "string");
+#else
+      strcpy(f_bad.type, "string");
+#endif
+      sf_bad.fields[sf_bad.size++] = f_bad;
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                write_struct_to_form_urlencoded_func(tmp, "BadForm", &sf_bad));
+      struct_fields_free(&sf_bad);
+    }
 
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);

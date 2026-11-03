@@ -142,11 +142,12 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
       int needs_san = 0;
       if (!raw_name)
         continue;
-      if (c2s_needs_identifier_sanitization(raw_name, &needs_san) ==
-              CDD_C_SUCCESS &&
-          needs_san &&
-          sanitize_identifier(raw_name, &san_name) == CDD_C_SUCCESS &&
-          san_name) {
+      c2s_needs_identifier_sanitization(raw_name, &needs_san);
+      if (needs_san) {
+        rc = sanitize_identifier(raw_name, &san_name);
+        if (rc != CDD_C_SUCCESS) {
+          goto cleanup;
+        }
         CDD_STRCPY(name, sizeof(name), san_name);
         C_CDD_FREE(san_name);
       } else {
@@ -178,18 +179,19 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
       int needs_san = 0;
       if (!raw_name)
         continue;
-      if (c2s_needs_identifier_sanitization(raw_name, &needs_san) ==
-              CDD_C_SUCCESS &&
-          needs_san &&
-          sanitize_identifier(raw_name, &san_name) == CDD_C_SUCCESS &&
-          san_name) {
+      c2s_needs_identifier_sanitization(raw_name, &needs_san);
+      if (needs_san) {
+        rc = sanitize_identifier(raw_name, &san_name);
+        if (rc != CDD_C_SUCCESS) {
+          goto cleanup;
+        }
         CDD_STRCPY(name, sizeof(name), san_name);
         C_CDD_FREE(san_name);
+        if (sf->serde_rename[0] == '\0') {
+          CDD_STRCPY(sf->serde_rename, sizeof(sf->serde_rename), raw_name);
+        }
       } else {
         CDD_STRCPY(name, sizeof(name), raw_name);
-      }
-      if (strcmp(name, raw_name) != 0 && sf->serde_rename[0] == '\0') {
-        CDD_STRCPY(sf->serde_rename, sizeof(sf->serde_rename), raw_name);
       }
 
       if (sf->is_enum) {

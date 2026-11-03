@@ -1166,6 +1166,731 @@ TEST test_serde_sum_types_enum_other_and_deepcopy(void) {
 }
 
 /**
+ * @brief Exhaustive tests for all functions and branches in cdd_serde.c.
+ */
+TEST test_cdd_serde_exhaustive(void) {
+  enum CddSerdeCaseRule rule;
+  enum CddCliAction act;
+  enum CddCliValueHint hint;
+  const char *s = NULL;
+  char buf[128];
+  struct StructFields sf;
+  struct EnumMembers em;
+
+  /* 1. cdd_serde_parse_case_rule & cdd_serde_case_rule_to_str */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_parse_case_rule(NULL, &rule));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_parse_case_rule("none", NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_case_rule("none", &rule));
+  ASSERT_EQ(CDD_SERDE_CASE_NONE, rule);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_case_rule("", &rule));
+  ASSERT_EQ(CDD_SERDE_CASE_NONE, rule);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_case_rule("snakecase", &rule));
+  ASSERT_EQ(CDD_SERDE_CASE_SNAKECASE, rule);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_case_rule("screaming_snakecase", &rule));
+  ASSERT_EQ(CDD_SERDE_CASE_SCREAMING_SNAKECASE, rule);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_case_rule("kebab_case", &rule));
+  ASSERT_EQ(CDD_SERDE_CASE_KEBABCASE, rule);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_case_rule("screaming_kebabcase", &rule));
+  ASSERT_EQ(CDD_SERDE_CASE_SCREAMING_KEBABCASE, rule);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_case_rule("screaming_kebab_case", &rule));
+  ASSERT_EQ(CDD_SERDE_CASE_SCREAMING_KEBABCASE, rule);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_case_rule("traincase", &rule));
+  ASSERT_EQ(CDD_SERDE_CASE_TRAINCASE, rule);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_case_rule("train_case", &rule));
+  ASSERT_EQ(CDD_SERDE_CASE_TRAINCASE, rule);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_parse_case_rule("unknown_rule", &rule));
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_case_rule_to_str(CDD_SERDE_CASE_NONE, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_case_rule_to_str(CDD_SERDE_CASE_NONE, &s));
+  ASSERT_STR_EQ("none", s);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_case_rule_to_str((enum CddSerdeCaseRule)999, &s));
+  ASSERT_STR_EQ("none", s);
+
+  /* 2. cdd_cli_parse_action & cdd_cli_action_to_str */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cli_parse_action(NULL, &act));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cli_parse_action("auto", NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_action("auto", &act));
+  ASSERT_EQ(CDD_CLI_ACTION_AUTO, act);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_action("", &act));
+  ASSERT_EQ(CDD_CLI_ACTION_AUTO, act);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_action("set", &act));
+  ASSERT_EQ(CDD_CLI_ACTION_SET, act);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_action("set_true", &act));
+  ASSERT_EQ(CDD_CLI_ACTION_SET_TRUE, act);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_action("settrue", &act));
+  ASSERT_EQ(CDD_CLI_ACTION_SET_TRUE, act);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_action("true", &act));
+  ASSERT_EQ(CDD_CLI_ACTION_SET_TRUE, act);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_action("set_false", &act));
+  ASSERT_EQ(CDD_CLI_ACTION_SET_FALSE, act);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_action("setfalse", &act));
+  ASSERT_EQ(CDD_CLI_ACTION_SET_FALSE, act);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_action("false", &act));
+  ASSERT_EQ(CDD_CLI_ACTION_SET_FALSE, act);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_action("count", &act));
+  ASSERT_EQ(CDD_CLI_ACTION_COUNT, act);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_action("append", &act));
+  ASSERT_EQ(CDD_CLI_ACTION_APPEND, act);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_action("help", &act));
+  ASSERT_EQ(CDD_CLI_ACTION_HELP, act);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_action("version", &act));
+  ASSERT_EQ(CDD_CLI_ACTION_VERSION, act);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cli_parse_action("invalid_act", &act));
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cli_action_to_str(CDD_CLI_ACTION_AUTO, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_action_to_str(CDD_CLI_ACTION_SET, &s));
+  ASSERT_STR_EQ("set", s);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_action_to_str(CDD_CLI_ACTION_SET_TRUE, &s));
+  ASSERT_STR_EQ("set_true", s);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_action_to_str(CDD_CLI_ACTION_SET_FALSE, &s));
+  ASSERT_STR_EQ("set_false", s);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_action_to_str(CDD_CLI_ACTION_COUNT, &s));
+  ASSERT_STR_EQ("count", s);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_action_to_str(CDD_CLI_ACTION_APPEND, &s));
+  ASSERT_STR_EQ("append", s);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_action_to_str(CDD_CLI_ACTION_HELP, &s));
+  ASSERT_STR_EQ("help", s);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_action_to_str(CDD_CLI_ACTION_VERSION, &s));
+  ASSERT_STR_EQ("version", s);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_action_to_str(CDD_CLI_ACTION_AUTO, &s));
+  ASSERT_STR_EQ("auto", s);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_action_to_str((enum CddCliAction)999, &s));
+  ASSERT_STR_EQ("auto", s);
+
+  /* 3. cdd_cli_parse_value_hint & cdd_cli_value_hint_to_str */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cli_parse_value_hint(NULL, &hint));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cli_parse_value_hint("none", NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("none", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_NONE, hint);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_NONE, hint);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("file", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_FILE_PATH, hint);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("file_path", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_FILE_PATH, hint);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("filepath", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_FILE_PATH, hint);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("dir", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_DIR_PATH, hint);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("dir_path", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_DIR_PATH, hint);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("dirpath", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_DIR_PATH, hint);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("path", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_ANY_PATH, hint);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("any_path", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_ANY_PATH, hint);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("anypath", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_ANY_PATH, hint);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("cmd", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_EXECUTABLE, hint);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("executable", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_EXECUTABLE, hint);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("command", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_EXECUTABLE, hint);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("url", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_URL, hint);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("hostname", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_HOSTNAME, hint);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("host", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_HOSTNAME, hint);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("username", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_USERNAME, hint);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("user", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_USERNAME, hint);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_value_hint("email", &hint));
+  ASSERT_EQ(CDD_CLI_HINT_EMAIL, hint);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cli_parse_value_hint("invalid_hint", &hint));
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cli_value_hint_to_str(CDD_CLI_HINT_NONE, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_cli_value_hint_to_str(CDD_CLI_HINT_FILE_PATH, &s));
+  ASSERT_STR_EQ("file", s);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_cli_value_hint_to_str(CDD_CLI_HINT_DIR_PATH, &s));
+  ASSERT_STR_EQ("dir", s);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_cli_value_hint_to_str(CDD_CLI_HINT_ANY_PATH, &s));
+  ASSERT_STR_EQ("path", s);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_cli_value_hint_to_str(CDD_CLI_HINT_EXECUTABLE, &s));
+  ASSERT_STR_EQ("executable", s);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_value_hint_to_str(CDD_CLI_HINT_URL, &s));
+  ASSERT_STR_EQ("url", s);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_cli_value_hint_to_str(CDD_CLI_HINT_HOSTNAME, &s));
+  ASSERT_STR_EQ("hostname", s);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_cli_value_hint_to_str(CDD_CLI_HINT_USERNAME, &s));
+  ASSERT_STR_EQ("username", s);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_value_hint_to_str(CDD_CLI_HINT_EMAIL, &s));
+  ASSERT_STR_EQ("email", s);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_value_hint_to_str(CDD_CLI_HINT_NONE, &s));
+  ASSERT_STR_EQ("none", s);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_cli_value_hint_to_str((enum CddCliValueHint)999, &s));
+  ASSERT_STR_EQ("none", s);
+
+  /* 4. cdd_serde_transform_case & cdd_serde_replace_str bounds */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_transform_case(NULL, CDD_SERDE_CASE_NONE, buf, 10));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_transform_case("a", CDD_SERDE_CASE_NONE, NULL, 10));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_transform_case("a", CDD_SERDE_CASE_NONE, buf, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_transform_case("abc", CDD_SERDE_CASE_NONE,
+                                                    buf, sizeof(buf)));
+  ASSERT_STR_EQ("abc", buf);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_transform_case("___", CDD_SERDE_CASE_SNAKECASE, buf,
+                                     sizeof(buf)));
+  ASSERT_STR_EQ("___", buf);
+  /* Small buffer truncation in transform_case */
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_transform_case(
+                               "a_b_c", CDD_SERDE_CASE_SNAKECASE, buf, 3));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_transform_case(
+                               "a_b_c", CDD_SERDE_CASE_KEBABCASE, buf, 3));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_transform_case("abc", CDD_SERDE_CASE_LOWERCASE, buf, 2));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_transform_case("abc", CDD_SERDE_CASE_UPPERCASE, buf, 2));
+  /* >32 words and >64 char word in serde_split_words */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_transform_case(
+                "w1_w2_w3_w4_w5_w6_w7_w8_w9_w10_w11_w12_w13_w14_w15_w16_w17_"
+                "w18_w19_w20_w21_w22_w23_w24_w25_w26_w27_w28_w29_w30_w31_w32_"
+                "w33_w34_abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz"
+                "abcdefghijklmnopqrstuvwxyz",
+                CDD_SERDE_CASE_SNAKECASE, buf, sizeof(buf)));
+  /* digit-to-upper boundary in serde_split_words */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_transform_case("v1Beta2", CDD_SERDE_CASE_SNAKECASE, buf,
+                                     sizeof(buf)));
+  ASSERT_STR_EQ("v1_beta2", buf);
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_replace_str(NULL, "a", "b", buf, 10));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_replace_str("x", "a", "b", NULL, 10));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_replace_str("x", "a", "b", buf, 0));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_replace_str("abc", NULL, "b", buf, sizeof(buf)));
+  ASSERT_STR_EQ("abc", buf);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_replace_str("abc", "", "b", buf, sizeof(buf)));
+  ASSERT_STR_EQ("abc", buf);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_replace_str("abc", "a", NULL, buf, sizeof(buf)));
+  ASSERT_STR_EQ("abc", buf);
+  /* Small buffer truncation in replace_str */
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_replace_str("prefix_match_suffix", "match",
+                                                 "longrep", buf, 10));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_replace_str("prefix_match_suffix", "match", "x", buf, 5));
+
+  /* 5. cdd_serde_resolve_field_names & cdd_serde_resolve_enum_member_name */
+  struct_fields_init(&sf);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_resolve_field_names(NULL, 0, buf, sizeof(buf), NULL, 0));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_resolve_field_names(&sf, 0, buf, sizeof(buf), NULL, 0));
+  struct_fields_add(&sf, "my_field", "string", NULL, NULL, NULL);
+  CDD_STRCPY(sf.serde_prefix, sizeof(sf.serde_prefix), "pre_");
+  CDD_STRCPY(sf.serde_suffix, sizeof(sf.serde_suffix), "_suf");
+  sf.serde_rename_all_ser = CDD_SERDE_CASE_UPPERCASE;
+  sf.serde_rename_all_de = CDD_SERDE_CASE_LOWERCASE;
+  CDD_STRCPY(sf.serde_replace_from, sizeof(sf.serde_replace_from), "_");
+  CDD_STRCPY(sf.serde_replace_to, sizeof(sf.serde_replace_to), "-");
+  {
+    char s_buf[128], d_buf[128];
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_serde_resolve_field_names(&sf, 0, s_buf, sizeof(s_buf), d_buf,
+                                            sizeof(d_buf)));
+    ASSERT_STR_EQ("PRE-MY-FIELD-SUF", s_buf);
+    ASSERT_STR_EQ("pre-my-field-suf", d_buf);
+    /* serde_copy_str failure when ser_sz == 0 or de_sz == 0 */
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_serde_resolve_field_names(&sf, 0, s_buf, 0, NULL, 0));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_serde_resolve_field_names(&sf, 0, NULL, 0, d_buf, 0));
+
+    CDD_STRCPY(sf.fields[0].serde_rename_ser,
+               sizeof(sf.fields[0].serde_rename_ser), "explicit_ser");
+    CDD_STRCPY(sf.fields[0].serde_rename_de,
+               sizeof(sf.fields[0].serde_rename_de), "explicit_de");
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_serde_resolve_field_names(&sf, 0, s_buf, sizeof(s_buf), d_buf,
+                                            sizeof(d_buf)));
+    ASSERT_STR_EQ("explicit_ser", s_buf);
+    ASSERT_STR_EQ("explicit_de", d_buf);
+  }
+  struct_fields_free(&sf);
+
+  enum_members_init(&em);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_resolve_enum_member_name(NULL, 0, buf, sizeof(buf)));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_resolve_enum_member_name(&em, 0, buf, sizeof(buf)));
+  enum_members_add(&em, "MY_VAR");
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_resolve_enum_member_name(&em, 0, NULL, 10));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_resolve_enum_member_name(&em, 0, buf, 0));
+  CDD_STRCPY(em.serde_replace_from, sizeof(em.serde_replace_from), "_");
+  CDD_STRCPY(em.serde_replace_to, sizeof(em.serde_replace_to), "-");
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_resolve_enum_member_name(&em, 0, buf, sizeof(buf)));
+  ASSERT_STR_EQ("MY-VAR", buf);
+  em.members[0][0] = '\0';
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_resolve_enum_member_name(&em, 0, buf, sizeof(buf)));
+  enum_members_free(&em);
+
+  /* 6. Container, enum, field, and variant comment parsers */
+  struct_fields_init(&sf);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_parse_container_comment("/* @cdd default */", NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_container_comment(NULL, &sf));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_container_comment("", &sf));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_container_comment(
+                "/*!< @summary Sum text \t \n"
+                " * @description Desc text \n"
+                " * @version 1.2.3 \n"
+                " * @infoVersion 2.0.0 \n"
+                " * @author Jane \n"
+                " * @contact jane@example.com \n"
+                " * #[serde(rename = (\"R\\n\\r\\t\\\\x\"), replace_all = "
+                "(\"_\" -> \"-\"), rename_all_serialize = \"camelCase\", "
+                "rename_all_deserialize = \"snake_case\", prefix = \"p_\", "
+                "suffix = \"_s\", tag = \"t\", content = \"c\", default, "
+                "untagged)] */",
+                &sf));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_container_comment(
+                "/* #[command(name = 'app\\'s', bin_name = \"bin\", version = "
+                "\"0.2\", author = \"A\", about = \"Ab\", long_about = \"L1\", "
+                "long_about = \"L2\", before_help = \"B1\", before_help = "
+                "\"B2\", after_help = \"A1\", after_help = \"A2\", "
+                "override_usage = \"U\", cli_rename_all = \"kebab-case\", "
+                "rename_all = \"snake_case\", rename_all_env = \"UPPERCASE\", "
+                "env_prefix = \"EP_\", alias = \"al1\", visible_alias = "
+                "\"al2\")] */",
+                &sf));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_container_comment(
+                "/* #[command(arg_required_else_help = false, "
+                "subcommand_required = no, allow_external_subcommands = off, "
+                "disable_help_flag = 0, disable_version_flag = true, "
+                "disable_help_subcommand = 1, propagate_version = true, "
+                "allow_windows_slash_flags = true, allow_response_files = "
+                "true, case_insensitive = true)] */",
+                &sf));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_container_comment(
+                "/* #[clap(version, author, about, long_about, "
+                "arg_required_else_help, subcommand_required, "
+                "allow_external_subcommands, disable_help_flag, "
+                "disable_version_flag, disable_help_subcommand, "
+                "propagate_version, allow_windows_slash_flags, "
+                "allow_response_files, ignore_case, kebab-case, +)]\n"
+                " * #[structopt(cli(name = \"so\"))]\n */",
+                &sf));
+  struct_fields_free(&sf);
+
+  /* Plain docstring fallback, long_about when NULL, and ':' delimiter in
+   * container comment */
+  struct_fields_init(&sf);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_container_comment(
+                "/*!<\n * @cli(version, long_about: \"LA_init\", "
+                "rename(val))\n * Plain brief line\r\n */",
+                &sf));
+  ASSERT_STR_EQ("Plain brief line", sf.cli_about);
+  ASSERT_STR_EQ("0.1.0", sf.cli_version);
+  struct_fields_free(&sf);
+
+  /* Enum comment parser */
+  enum_members_init(&em);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_parse_enum_comment("/* @cdd untagged */", NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_enum_comment(NULL, &em));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_enum_comment("", &em));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_enum_comment(
+                "/* @cdd cli(rename_all = \"kebab-case\", case_insensitive), "
+                "replace_all = (\"A\" -> \"B\"), tag = \"t\", content = \"c\", "
+                "untagged */",
+                &em));
+  ASSERT_EQ(CDD_SERDE_CASE_KEBABCASE, em.cli_rename_all);
+  ASSERT_EQ(1, em.cli_case_insensitive);
+  ASSERT_STR_EQ("A", em.serde_replace_from);
+  ASSERT_STR_EQ("B", em.serde_replace_to);
+  ASSERT_STR_EQ("t", em.serde_tag);
+  ASSERT_STR_EQ("c", em.serde_content);
+  ASSERT_EQ(1, em.serde_untagged);
+  enum_members_free(&em);
+
+  /* Field comment parser */
+  struct_fields_init(&sf);
+  struct_fields_add(&sf, "__my_opt", "string", NULL, NULL, "existing_desc");
+  struct_fields_add(&sf, "", "string", NULL, NULL, NULL);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_serde_parse_field_comment("/* @cdd skip */", NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_field_comment(NULL, &sf.fields[0]));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_field_comment("", &sf.fields[0]));
+  /* First call without @brief or docstring so field->description[0] != '\0' &&
+   * field->cli_help[0] == '\0' is hit */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_field_comment(
+                "/* @details Field detail\n"
+                " * #[arg(required_if_eq = (\"other\" -> \"val\"), "
+                "rename_serialize = \"rs\", rename_deserialize = \"rd\", "
+                "case = \"snake_case\", short = false, short = true, short = "
+                "'x', short_alias = 'y', visible_short_alias = 'y', "
+                "long = false, long = true, long = \"custom-long\")] */",
+                &sf.fields[0]));
+  /* Also test when field->description[0] != '\0' and field->cli_help[0] != '\0'
+   * without dox_brief */
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_field_comment(
+                               "/* @details Second detail */", &sf.fields[0]));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_field_comment(
+                "/* #[arg(negatable = true, positional = false, index = 0, "
+                "last = true, trailing_var_arg = true, value_name = \"VN\", "
+                "help = \"H\", long_help = \"LH1\", long_help = \"LH2\", "
+                "help_heading = \"HH\", env = true, env = false, env = "
+                "\"MY_ENV\", hide_env = true, hide_env_values = true, "
+                "default_missing_value = \"dmv\", hide_default_value = "
+                "true)] */",
+                &sf.fields[0]));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_field_comment(
+                "/* #[arg(action = \"count\", value_hint = \"file\", "
+                "value_delimiter = ';', num_args = \"2\", num_args = \"..=3\", "
+                "num_args = \"1..4\", num_args = \"1..\", num_args = \"..=\", "
+                "require_equals = true, allow_hyphen_values = true, "
+                "global = true, hide = true, exclusive = true, subcommand = "
+                "true, flatten = true, required = true)] */",
+                &sf.fields[0]));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_field_comment(
+                "/* #[arg(value_parser = \"vp\", group = \"grp\", "
+                "conflicts_with = \"c1\", requires = \"r1\", "
+                "required_unless = \"ru1\", skip_serializing_if = \"empty\", "
+                "skip_serializing_if = \"is_zero\", skip_serializing_if = "
+                "\"fn_sk\", default_fn = \"dfn\", serialize_with = \"sw\", "
+                "deserialize_with = \"dw\", +)] */",
+                &sf.fields[0]));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_field_comment(
+                "/* @cdd default, short, long, negatable, positional, last, "
+                "trailing_var_arg, env, hide_env, hide_env_values, "
+                "hide_default_value, value_delimiter, require_equals, "
+                "allow_hyphen_values, global, hidden, exclusive, subcommand, "
+                "required, count */",
+                &sf.fields[0]));
+  /* Test synonym keys, whitespace around paren-wrapped values, and invalid
+   * action/hint/case_rule */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_field_comment(
+                "/* @serde( rename = ( \"val\" ) , replace_all = ( \"a\" : "
+                "\"b\" ) ,\n * required_if = ( \"f\" , \"v\" ) , serialize = "
+                "\"s\" , deserialize = \"d\" , rename_all = \"bad\" , "
+                "short = 0 , short = \"\" , short_alias = \"\" , long = 0 , "
+                "long = \"\" , negate_with_no = 1 , env = \"\" , env = 0 ) */",
+                &sf.fields[0]));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_field_comment(
+                "/* @serde( action = \"bad\" , value_hint = \"bad\" , "
+                "delimiter = \"\" , allow_negative_numbers = 1 , hidden = 1 , "
+                "required_unless_present = \"u2\" , "
+                "skip_serializing_if = \"nullptr\" , "
+                "skip_serializing_if = \"is_empty\" , "
+                "skip_serializing_if = \"zero\" , "
+                "skip_serializing_if = \"\" , default_value = \"dv\" , "
+                "default_value_t = \"dvt\" , unknown_key = \"uk\" ) */",
+                &sf.fields[0]));
+  ASSERT_EQ(
+      CDD_C_SUCCESS,
+      cdd_serde_parse_field_comment(
+          "/* @cdd cli(default_value, default_value_t, negate_with_no, "
+          "delimiter, allow_negative_numbers, hide, none, unknown_bare), "
+          "clap(short_alias = 'a'), structopt(short_alias = 'b'), "
+          "command(short_alias = 'c'), arg(short_alias = 'd'), "
+          "rewrite = (\"x\" -> \"y\"), visible_alias: \"va\", "
+          "cli, short\n * @cdd (\"\n * @cdd rename = (\n * @cdd rename = \n"
+          " * @cdd replace = \n */",
+          &sf.fields[0]));
+  /* Test long = true when cli_long is already populated */
+  CDD_STRCPY(sf.fields[0].cli_long, sizeof(sf.fields[0].cli_long), "already");
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_field_comment(
+                               "/* @cdd long = true */", &sf.fields[0]));
+  /* Fill short_aliases buffer to test capacity check */
+  {
+    const char *als =
+        "/* @cdd short_alias='d', short_alias='e', short_alias='f', "
+        "short_alias='g', short_alias='h', short_alias='i', short_alias='j', "
+        "short_alias='k', short_alias='l', short_alias='m', short_alias='n', "
+        "short_alias='o', short_alias='p', short_alias='q' */";
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_field_comment(als, &sf.fields[0]));
+  }
+  /* Test empty field name with env = true, env bare, long = true, short = true
+   */
+  sf.fields[1].description[0] = '\0';
+  ASSERT_EQ(
+      CDD_C_SUCCESS,
+      cdd_serde_parse_field_comment(
+          "/* @brief Brief text\n"
+          " * @cdd cli(short = true, long = true, env = true, help = \"H2\", "
+          "last = false, trailing_var_arg = false, num_args = \"0..0\")\n"
+          " * @cdd env, short, long\n"
+          " */",
+          &sf.fields[1]));
+  /* Test @brief when description and cli_help are already populated */
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_field_comment(
+                               "/* @brief Ignored brief */", &sf.fields[1]));
+  struct_fields_free(&sf);
+
+  /* Additional container comment branches (synonyms, invalid rules, unclosed
+   * quotes/directives, plain docstrings) */
+  struct_fields_init(&sf);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_container_comment(
+                "/** @briefFirstNoSpace\n"
+                " * #[unknown_attr(foo)]\n"
+                " * #[serde(rewrite_all = (\"a\" -> \"b\"), rewrite = (\"c\" "
+                "-> \"d\"), replace = (\"e\" -> \"f\"), usage = \"u\", "
+                "case = \"bad\", cli_rename_all = \"bad\", "
+                "rename_all_env = \"bad\", ignore_case = 1, "
+                "serialize = \"bad\", deserialize = \"bad\", "
+                "unknown_kv = \"v\")]\n"
+                " * @cli(none, unknown_bare)\n"
+                " * @cdd(rename = \"unclosed\n"
+                " */",
+                &sf));
+  /* Container comment when cli_about, cli_version, cli_author, cli_long_about
+   * are already set */
+  CDD_STRCPY(sf.cli_about, sizeof(sf.cli_about), "PreAbout");
+  CDD_STRCPY(sf.cli_version, sizeof(sf.cli_version), "PreVer");
+  CDD_STRCPY(sf.cli_author, sizeof(sf.cli_author), "PreAuth");
+  sf.cli_long_about = strdup("PreLongAbout");
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_container_comment(
+                "/** @brief B\n * @details D\n * @version V\n * @author A\n"
+                " * @cdd version */",
+                &sf));
+  /* Unclosed block comment and #[serde( at EOF */
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_container_comment(
+                               "/** #[serde(rename = \"a\\\")]", &sf));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_container_comment("/**   */", &sf));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_container_comment("/** @cdd rename = \"a\\", &sf));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_container_comment("/** @cdd ) */", &sf));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_container_comment(
+                               "/** @cdd a = 1 @cdd b = 2 */", &sf));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_container_comment(
+                "/** @brief\n * #[serde(replace = (\"a\" -> \"b\")\n"
+                " * @cdd cli, command, clap, structopt, rename = \n"
+                " * @cdd replace = \"a\" -> \"b\" */",
+                &sf));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_container_comment("/**   ", &sf));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_container_comment("/** @cdd x = 1", &sf));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_container_comment("/** @cdd x = 1 */", &sf));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_container_comment("/** @brief:Brief", &sf));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_container_comment("/** @brief\tBrief", &sf));
+  struct_fields_free(&sf);
+
+  /* Suffix-only and long prefix/suffix truncation in serde_resolve_single_name
+   */
+  struct_fields_init(&sf);
+  struct_fields_add(&sf,
+                    "very_long_field_name_012345678901234567890123456789012345",
+                    "string", NULL, NULL, NULL);
+  CDD_STRCPY(sf.serde_suffix, sizeof(sf.serde_suffix),
+             "_very_long_suffix_01234567890123456789012345678901234567890123");
+  {
+    char s_buf[128];
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_resolve_field_names(
+                                 &sf, 0, s_buf, sizeof(s_buf), NULL, 0));
+    CDD_STRCPY(
+        sf.serde_prefix, sizeof(sf.serde_prefix),
+        "very_long_prefix_01234567890123456789012345678901234567890123_");
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_resolve_field_names(
+                                 &sf, 0, s_buf, sizeof(s_buf), NULL, 0));
+  }
+  struct_fields_free(&sf);
+
+  /* serde_split_words with '-', '.', '\t', and UPPER->UPPER non-boundary */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_transform_case("a-b.c\td_ABC", CDD_SERDE_CASE_SNAKECASE,
+                                     buf, sizeof(buf)));
+
+  /* Enum variant comment parser */
+  enum_members_init(&em);
+  enum_members_add(&em, "V1");
+  {
+    char ren[64], rf[64], rt[64];
+    int sk = 0, oth = 0;
+    enum CddSerdeCaseRule vcase = CDD_SERDE_CASE_NONE;
+
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_serde_parse_enum_variant_comment(
+                  NULL, NULL, 0, &sk, &vcase, rf, sizeof(rf), rt, sizeof(rt)));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_serde_parse_enum_variant_comment(
+                  NULL, ren, 0, &sk, &vcase, rf, sizeof(rf), rt, sizeof(rt)));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_serde_parse_enum_variant_comment(NULL, ren, sizeof(ren), NULL,
+                                                   &vcase, rf, sizeof(rf), rt,
+                                                   sizeof(rt)));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_serde_parse_enum_variant_comment(NULL, ren, sizeof(ren), &sk,
+                                                   NULL, rf, sizeof(rf), rt,
+                                                   sizeof(rt)));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_serde_parse_enum_variant_comment(NULL, ren, sizeof(ren), &sk,
+                                                   &vcase, NULL, sizeof(rf), rt,
+                                                   sizeof(rt)));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_serde_parse_enum_variant_comment(
+                  NULL, ren, sizeof(ren), &sk, &vcase, rf, 0, rt, sizeof(rt)));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_serde_parse_enum_variant_comment(NULL, ren, sizeof(ren), &sk,
+                                                   &vcase, rf, sizeof(rf), NULL,
+                                                   sizeof(rt)));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_serde_parse_enum_variant_comment(
+                  NULL, ren, sizeof(ren), &sk, &vcase, rf, sizeof(rf), rt, 0));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_enum_variant_comment(
+                                 NULL, ren, sizeof(ren), &sk, &vcase, rf,
+                                 sizeof(rf), rt, sizeof(rt)));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_enum_variant_comment(
+                                 "", ren, sizeof(ren), &sk, &vcase, rf,
+                                 sizeof(rf), rt, sizeof(rt)));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_serde_parse_enum_variant_comment_ex(
+                  "/* #[serde(other)] @cdd + other, rename = \"v_one\", skip, "
+                  "replace = (\"a\" -> \"b\"), alias = \"v1_al\", help = "
+                  "\"V help\", hidden, conflicts_with = \"c\", requires = "
+                  "\"r\", required_unless = \"u\", long_help = \"lh\" */",
+                  ren, sizeof(ren), &sk, &vcase, rf, sizeof(rf), rt, sizeof(rt),
+                  &oth, &em, 0));
+    ASSERT_STR_EQ("v_one", ren);
+    ASSERT_EQ(1, sk);
+    ASSERT_EQ(1, oth);
+    ASSERT_STR_EQ("a", rf);
+    ASSERT_STR_EQ("b", rt);
+
+    /* Variant with hidden only (cli_help empty), skip_serializing only,
+     * skip_deserializing only */
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_serde_parse_enum_variant_comment_ex(
+                  "/* @cdd hidden, skip_serializing */", ren, sizeof(ren), &sk,
+                  &vcase, rf, sizeof(rf), rt, sizeof(rt), NULL, &em, 0));
+    ASSERT_EQ(1, sk);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_serde_parse_enum_variant_comment_ex(
+                  "/* @cdd skip_deserializing */", ren, sizeof(ren), &sk,
+                  &vcase, rf, sizeof(rf), rt, sizeof(rt), NULL, NULL, 0));
+    ASSERT_EQ(1, sk);
+  }
+  enum_members_free(&em);
+
+  /* Escape helpers edge cases */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_escape_json_c_str("a", NULL, 10));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_escape_json_c_str("a", buf, 0));
+  /* Control char when pos + 4 >= out_sz, and normal truncation */
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_escape_json_c_str("\x01", buf, 4));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_escape_json_c_str("abcdef", buf, 3));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_escape_comment_str("a", NULL, 10));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_escape_comment_str("a", buf, 0));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_escape_comment_str("a\\b*c\nd\re\t", buf, sizeof(buf)));
+  ASSERT_STR_EQ("a\\\\b*c\\nd\\re\\t", buf);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_escape_comment_str("abcdef", buf, 3));
+
+#ifdef CDD_BUILD_TESTS
+  /* OOM tests for container, enum, field, and variant comment parsers */
+  {
+    int k;
+    for (k = 1; k <= 12; ++k) {
+      struct StructFields sf_oom;
+      struct EnumMembers em_oom;
+      char ren[64], rf[64], rt[64];
+      int sk = 0, oth = 0;
+      enum CddSerdeCaseRule vcase = CDD_SERDE_CASE_NONE;
+
+      struct_fields_init(&sf_oom);
+      struct_fields_add(&sf_oom, "f", "string", NULL, NULL, NULL);
+      g_cdd_strdup_fail = k;
+      cdd_serde_parse_container_comment(
+          "/* @details D\n * @cdd long_about = \"L\", before_help = \"B\", "
+          "after_help = \"A\", alias = \"al\" */",
+          &sf_oom);
+      g_cdd_strdup_fail = k;
+      cdd_serde_parse_field_comment(
+          "/* @cdd long_help = \"LH\", alias = \"a\", conflicts_with = \"c\", "
+          "requires = \"r\", required_unless = \"u\" */",
+          &sf_oom.fields[0]);
+      g_cdd_strdup_fail = 0;
+      struct_fields_free(&sf_oom);
+
+      enum_members_init(&em_oom);
+      enum_members_add(&em_oom, "V1");
+      g_cdd_strdup_fail = k;
+      cdd_serde_parse_enum_comment("/* @details D */", &em_oom);
+      g_cdd_strdup_fail = k;
+      cdd_serde_parse_enum_variant_comment_ex(
+          "/* @details D\n * @cdd alias = \"a\", conflicts_with = \"c\", "
+          "requires = \"r\", required_unless = \"u\", help = \"h\" */",
+          ren, sizeof(ren), &sk, &vcase, rf, sizeof(rf), rt, sizeof(rt), &oth,
+          &em_oom, 0);
+      g_cdd_strdup_fail = 0;
+      enum_members_free(&em_oom);
+    }
+    /* Test enum_member_set_cli_meta failure when member_idx is out of bounds */
+    {
+      struct EnumMembers em_oob;
+      char ren[64], rf[64], rt[64];
+      int sk = 0;
+      enum CddSerdeCaseRule vcase = CDD_SERDE_CASE_NONE;
+      enum_members_init(&em_oob);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_serde_parse_enum_variant_comment_ex(
+                    "/* @cdd help = \"h\" */", ren, sizeof(ren), &sk, &vcase,
+                    rf, sizeof(rf), rt, sizeof(rt), NULL, &em_oob, 99));
+      enum_members_free(&em_oob);
+    }
+  }
+#endif
+
+  PASS();
+}
+
+/**
  * @brief codegen_json_suite
  */
 
@@ -1182,6 +1907,7 @@ SUITE(codegen_json_suite) {
   RUN_TEST(test_serde_comment_parsing_and_codegen);
   RUN_TEST(test_serde_inspector_and_schema_roundtrip);
   RUN_TEST(test_serde_sum_types_enum_other_and_deepcopy);
+  RUN_TEST(test_cdd_serde_exhaustive);
 }
 
 #ifdef __cplusplus

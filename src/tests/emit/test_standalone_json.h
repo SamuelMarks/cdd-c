@@ -192,6 +192,66 @@ TEST test_standalone_json_gen(void) {
       struct_fields_free(&sf_bool);
     }
 
+    {
+      struct StructFields sf_edge;
+      struct StructField f_ro = {0};
+      struct StructField f_str_al = {0};
+      struct StructField f_int_al = {0};
+      char s_al_buf[] = "s_alias";
+      char i_al_buf[] = "i_alias";
+      char *str_aliases[2];
+      char *int_aliases[2];
+
+      ASSERT_EQ(0, struct_fields_init(&sf_edge));
+#if defined(_MSC_VER)
+      strcpy_s(f_ro.name, sizeof(f_ro.name), "ro_field");
+      strcpy_s(f_ro.type, sizeof(f_ro.type), "string");
+      strcpy_s(f_str_al.name, sizeof(f_str_al.name), "str_al");
+      strcpy_s(f_str_al.type, sizeof(f_str_al.type), "string");
+      strcpy_s(f_int_al.name, sizeof(f_int_al.name), "int_al");
+      strcpy_s(f_int_al.type, sizeof(f_int_al.type), "integer");
+#else
+      strcpy(f_ro.name, "ro_field");
+      strcpy(f_ro.type, "string");
+      strcpy(f_str_al.name, "str_al");
+      strcpy(f_str_al.type, "string");
+      strcpy(f_int_al.name, "int_al");
+      strcpy(f_int_al.type, "integer");
+#endif
+      f_ro.read_only = 1;
+      str_aliases[0] = s_al_buf;
+      str_aliases[1] = NULL;
+      f_str_al.serde_aliases = str_aliases;
+      f_str_al.n_serde_aliases = 2;
+
+      int_aliases[0] = i_al_buf;
+      int_aliases[1] = NULL;
+      f_int_al.serde_aliases = int_aliases;
+      f_int_al.n_serde_aliases = 2;
+
+      sf_edge.fields[sf_edge.size++] = f_ro;
+      sf_edge.fields[sf_edge.size++] = f_str_al;
+      sf_edge.fields[sf_edge.size++] = f_int_al;
+
+      ASSERT_EQ(CDD_C_SUCCESS,
+                write_struct_from_json_standalone_func(tmp, "EdgeS", &sf_edge));
+
+      sf_edge.fields[1].name[0] = '\0';
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                write_struct_from_json_standalone_func(tmp, "EdgeS", &sf_edge));
+      sf_edge.fields[1].name[0] = 's';
+
+      sf_edge.fields[2].name[0] = '\0';
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                write_struct_from_json_standalone_func(tmp, "EdgeS", &sf_edge));
+
+      sf_edge.fields[1].serde_aliases = NULL;
+      sf_edge.fields[1].n_serde_aliases = 0;
+      sf_edge.fields[2].serde_aliases = NULL;
+      sf_edge.fields[2].n_serde_aliases = 0;
+      struct_fields_free(&sf_edge);
+    }
+
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;

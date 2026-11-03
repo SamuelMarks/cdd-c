@@ -567,6 +567,54 @@ TEST test_sync_oom(void) {
 }
 
 /**
+ * @brief test_sync_code_union_and_cli
+ * @return TEST
+ */
+TEST test_sync_code_union_and_cli(void) {
+  const char *const filename = "union_cli_sync.h";
+  char *argv[2];
+  extern C_CDD_EXPORT int g_io_calls;
+  int k;
+  cdd_c_error_t rc_sync;
+
+  argv[0] = cdd_test_mut_str(filename);
+  argv[1] = cdd_test_mut_str("union_cli_sync.c");
+  ASSERT_EQ(EXIT_SUCCESS,
+            write_to_file(filename, "enum Other { O0 };\n"
+                                    "enum Other_tag { O1, O2 };\n"
+                                    "enum MyUnionLonger_tag { MU1, MU2 };\n"
+                                    "enum MyUnion_tag { TAG_A, TAG_B };\n"
+                                    "struct NormalStruct { int x; };\n"
+                                    "struct MyUnion {\n"
+                                    "  enum MyUnion_tag tag;\n"
+                                    "  union {\n"
+                                    "    int a;\n"
+                                    "    char *b;\n"
+                                    "  } data;\n"
+                                    "};\n"
+                                    "/** @cdd cli */\n"
+                                    "struct CliCmd {\n"
+                                    "  int verbose;\n"
+                                    "};\n"));
+  ASSERT_EQ(CDD_C_SUCCESS, sync_code_main(2, argv));
+
+  for (k = 0; k <= 200; k++) {
+    g_io_calls = 0;
+    g_fail_io_after = k;
+    rc_sync = sync_code_main(2, argv);
+    if (rc_sync != CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_ERROR_IO, rc_sync);
+    }
+    g_fail_io_after = -1;
+  }
+
+  remove(filename);
+  remove("union_cli_sync.c");
+  g_fail_io_after = -1;
+  PASS();
+}
+
+/**
  * @brief sync_code_suite
  */
 SUITE(sync_code_suite) {
@@ -580,6 +628,7 @@ SUITE(sync_code_suite) {
   RUN_TEST(test_sync_code_impl_file_cannot_open);
   RUN_TEST(test_sync_code_too_many_defs);
   RUN_TEST(test_sync_code_unterminated_defs);
+  RUN_TEST(test_sync_code_union_and_cli);
   RUN_TEST(test_patch_header_basic);
   RUN_TEST(test_patch_header_ptr_arg);
   RUN_TEST(test_patch_header_ignore_others);

@@ -79,25 +79,16 @@ cdd_c_error_t get_type_from_ref(const char *ref, const char **_out_val) {
   }
   {
     const char *after = NULL;
-    size_t k;
     int needs_san = 0;
     cdd_c_error_t rc_after = c_cdd_str_after_last(ref, '/', &after);
     if (rc_after != CDD_C_SUCCESS) {
       return rc_after;
     }
-    if (after && after[0] != '\0') {
-      for (k = 0; after[k] != '\0'; ++k) {
-        unsigned char uc = (unsigned char)after[k];
-        if (!((uc >= 'a' && uc <= 'z') || (uc >= 'A' && uc <= 'Z') ||
-              (uc >= '0' && uc <= '9') || uc == '_') ||
-            (k == 0 && uc >= '0' && uc <= '9')) {
-          needs_san = 1;
-          break;
-        }
-      }
+    if (strchr(ref, '/') != NULL && after[0] != '\0') {
+      c2s_needs_identifier_sanitization(after, &needs_san);
       if (needs_san) {
         char *san = NULL;
-        if (sanitize_identifier(after, &san) == CDD_C_SUCCESS && san) {
+        if (sanitize_identifier(after, &san) == CDD_C_SUCCESS) {
           size_t slot = s_ref_idx % 4;
           s_ref_idx++;
           CDD_STRCPY(s_ref_buf[slot], sizeof(s_ref_buf[slot]), san);
@@ -618,7 +609,7 @@ write_struct_deepcopy_func(FILE *fp, const char *struct_name,
       } else if (strcmp(t, "object") == 0) {
         const char *tn = NULL;
         get_type_from_ref(r, &tn);
-        if (tn && tn[0] != '\0') {
+        if (tn[0] != '\0') {
           CHECK_IO(FPRINTF_HOOK(
               fp,
               "  if (src->%s) {\n"
@@ -673,7 +664,7 @@ write_struct_deepcopy_func(FILE *fp, const char *struct_name,
                    r[0] != '\0') {
           const char *tn = NULL;
           get_type_from_ref(r, &tn);
-          if (tn && tn[0] != '\0') {
+          if (tn[0] != '\0') {
             CHECK_IO(FPRINTF_HOOK(
                 fp,
                 "  if (src->%s && src->n_%s > 0) {\n"
