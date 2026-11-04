@@ -1974,6 +1974,148 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
           json_value_free(av);
           json_value_free(rv);
         }
+
+        /* Round-trip all extended CLI, Enum, C-type, and C23/GNU attribute
+         * reflection extensions */
+        {
+          struct StructFields rt_sf, rt_out, rt_esf, rt_eout;
+          struct StructField *rf;
+          JSON_Value *schemas_v = json_value_init_object();
+          JSON_Object *schemas_o = json_value_get_object(schemas_v);
+
+          struct_fields_init(&rt_esf);
+          rt_esf.is_enum = 1;
+          enum_members_add_ex(&rt_esf.enum_members, "VAL_A", "val_a", 0);
+          enum_members_add_ex(&rt_esf.enum_members, "VAL_B", "val_b", 0);
+          enum_members_add_ex(&rt_esf.enum_members, "VAL_C", "val_c", 0);
+          enum_member_add_alias(&rt_esf.enum_members, 0, "alias_a");
+          enum_member_set_cli_meta(&rt_esf.enum_members, 0, "Help A", 0);
+          ASSERT_EQ(CDD_C_SUCCESS, write_struct_to_json_schema(
+                                       schemas_o, "DescOnlyEnum", &rt_esf));
+          struct_fields_init(&rt_eout);
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    json_object_to_struct_fields(
+                        json_object_get_object(schemas_o, "DescOnlyEnum"),
+                        &rt_eout, schemas_o));
+          struct_fields_free(&rt_eout);
+
+          enum_member_set_cli_meta(&rt_esf.enum_members, 0, "Help A", 1);
+          enum_member_set_cli_meta(&rt_esf.enum_members, 1, NULL, 1);
+          ASSERT_EQ(CDD_C_SUCCESS, write_struct_to_json_schema(
+                                       schemas_o, "RichEnum", &rt_esf));
+          struct_fields_init(&rt_eout);
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    json_object_to_struct_fields(
+                        json_object_get_object(schemas_o, "RichEnum"), &rt_eout,
+                        schemas_o));
+          ASSERT_EQ(1, rt_eout.enum_members.n_serde_aliases[0]);
+          ASSERT_STR_EQ("alias_a", rt_eout.enum_members.serde_aliases[0][0]);
+          ASSERT_STR_EQ("Help A", rt_eout.enum_members.cli_descriptions[0]);
+          ASSERT_EQ(1, rt_eout.enum_members.cli_hidden[0]);
+
+          struct_fields_init(&rt_sf);
+          rt_sf.is_cli_command = 1;
+          CDD_STRCPY(rt_sf.cli_bin_name, sizeof(rt_sf.cli_bin_name), "my-bin");
+          c_cdd_strdup("Long about text", &rt_sf.cli_long_about);
+          c_cdd_strdup("Before help", &rt_sf.cli_before_help);
+          c_cdd_strdup("After help", &rt_sf.cli_after_help);
+          CDD_STRCPY(rt_sf.cli_usage_override, sizeof(rt_sf.cli_usage_override),
+                     "my-bin [ARGS]");
+          rt_sf.cli_rename_all_env = CDD_SERDE_CASE_SCREAMING_SNAKECASE;
+          rt_sf.cli_arg_required_else_help = 1;
+          rt_sf.cli_subcommand_required = 1;
+          rt_sf.cli_allow_external_subcommands = 1;
+          rt_sf.cli_disable_help_flag = 1;
+          rt_sf.cli_disable_version_flag = 1;
+          rt_sf.cli_disable_help_subcommand = 1;
+          rt_sf.cli_propagate_version = 1;
+          rt_sf.cli_allow_windows_slash_flags = 1;
+          rt_sf.cli_allow_response_files = 1;
+          rt_sf.cli_case_insensitive_flags = 1;
+          struct_fields_add_cli_alias(&rt_sf, "mb");
+
+          struct_fields_add(&rt_sf, "arg1", "string", NULL, NULL, NULL);
+          rf = &rt_sf.fields[0];
+          CDD_STRCPY(rf->cli_short_aliases, sizeof(rf->cli_short_aliases),
+                     "ab");
+          rf->cli_last = 1;
+          rf->cli_trailing_var_arg = 1;
+          c_cdd_strdup("Long field help", &rf->cli_long_help);
+          CDD_STRCPY(rf->cli_help_heading, sizeof(rf->cli_help_heading), "ADV");
+          rf->cli_hide_env = 1;
+          rf->cli_hide_env_values = 1;
+          CDD_STRCPY(rf->cli_default_missing_val,
+                     sizeof(rf->cli_default_missing_val), "auto");
+          rf->cli_hide_default_value = 1;
+          rf->cli_value_hint = CDD_CLI_HINT_FILE_PATH;
+          rf->cli_num_args_min = 1;
+          rf->cli_num_args_max = 3;
+          rf->cli_require_equals = 1;
+          rf->cli_allow_hyphen_values = 1;
+          rf->cli_global = 1;
+          rf->cli_hidden = 1;
+          rf->cli_exclusive = 1;
+          CDD_STRCPY(rf->cli_value_parser, sizeof(rf->cli_value_parser),
+                     "parse_custom");
+          CDD_STRCPY(rf->cli_group, sizeof(rf->cli_group), "grp1");
+          CDD_STRCPY(rf->cli_required_if_field,
+                     sizeof(rf->cli_required_if_field), "mode");
+          CDD_STRCPY(rf->cli_required_if_val, sizeof(rf->cli_required_if_val),
+                     "strict");
+          struct_field_add_cli_required_unless(rf, "fallback");
+
+          /* Test C23 [[cdd(...)]] / [[serde(...)]] / [[cli(...)]] attributes */
+          cdd_serde_parse_field_comment(
+              "[[cdd(cdd::c_type = \"int64_t\", cdd::nullable_ptr = true, "
+              "cdd::fixed_array_len = 16)]] "
+              "[[serde(serde::rename = \"arg_one\", nullable_ptr)]] "
+              "[[cli(cli::hide)]] [[other]]",
+              rf);
+          ASSERT_STR_EQ("int64_t", rf->c_type);
+          ASSERT_EQ(1, rf->is_nullable_ptr);
+          ASSERT_EQ(16, rf->fixed_array_len);
+
+          struct_fields_add(&rt_sf, "earr", "array", "string", NULL, NULL);
+          rt_sf.fields[1].is_enum_array = 1;
+          CDD_STRCPY(rt_sf.fields[1].enum_array_ref,
+                     sizeof(rt_sf.fields[1].enum_array_ref), "RichEnum");
+
+          {
+            struct StructFields sub_sf;
+            struct_fields_init(&sub_sf);
+            struct_fields_add(&sub_sf, "sub_prop", "string", NULL, NULL, NULL);
+            ASSERT_EQ(CDD_C_SUCCESS, write_struct_to_json_schema(
+                                         schemas_o, "FlatSubObj", &sub_sf));
+            struct_fields_free(&sub_sf);
+          }
+          struct_fields_add(&rt_sf, "flat_sub", "object",
+                            "#/components/schemas/FlatSubObj", NULL, NULL);
+          rt_sf.fields[2].serde_flatten = 1;
+          struct_fields_add(&rt_sf, "flat_missing", "object",
+                            "#/components/schemas/MissingObj", NULL, NULL);
+          rt_sf.fields[3].serde_flatten = 1;
+
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    write_struct_to_json_schema(schemas_o, "RichCmd", &rt_sf));
+          struct_fields_init(&rt_out);
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    json_object_to_struct_fields(
+                        json_object_get_object(schemas_o, "RichCmd"), &rt_out,
+                        schemas_o));
+          ASSERT_STR_EQ("my-bin", rt_out.cli_bin_name);
+          ASSERT_EQ(1, rt_out.n_cli_aliases);
+          ASSERT_STR_EQ("int64_t", rt_out.fields[0].c_type);
+          ASSERT_EQ(1, rt_out.fields[0].is_nullable_ptr);
+          ASSERT_EQ(16, rt_out.fields[0].fixed_array_len);
+          ASSERT_EQ(1, rt_out.fields[1].is_enum_array);
+          ASSERT_STR_EQ("RichEnum", rt_out.fields[1].enum_array_ref);
+
+          struct_fields_free(&rt_sf);
+          struct_fields_free(&rt_out);
+          struct_fields_free(&rt_esf);
+          struct_fields_free(&rt_eout);
+          json_value_free(schemas_v);
+        }
       }
     }
   }

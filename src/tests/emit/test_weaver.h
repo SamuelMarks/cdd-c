@@ -433,7 +433,7 @@ TEST test_weaver_oom(void) {
   free(patches.patches);
   patches.patches = C_CDD_CALLOC(1, sizeof(struct Patch));
 
-  tokenize(az_span_create((uint8_t *)(size_t)src, strlen(src)), &tl);
+  tokenize(az_span_create_from_str(src), &tl);
 
 #ifdef CDD_BUILD_TESTS
   g_cdd_alloc_fail = 1;
@@ -697,7 +697,7 @@ TEST test_weaver_interactive(void) {
   free(patches.patches);
   patches.patches = C_CDD_CALLOC(1, sizeof(struct Patch));
 
-  tokenize(az_span_create((uint8_t *)(size_t)src, strlen(src)), &tl);
+  tokenize(az_span_create_from_str(src), &tl);
 
 #if defined(_MSC_VER)
   sprintf_s(tmp_name, sizeof(tmp_name), "test_in_%d.txt", rand() % 10000);

@@ -102,6 +102,13 @@ repos:
     language: python
     additional_dependencies: [libclang]
     types: [c]
+  - id: check-az-span-casts
+    name: Check az_span_create Casts
+    entry: python scripts/check_az_span_casts.py
+    language: python
+    types_or:
+    - c
+    - c++
   - id: update-shields
     name: Update README Shields
     entry: python scripts/precommit_matrix.py shields

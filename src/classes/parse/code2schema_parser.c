@@ -444,7 +444,7 @@ cdd_c_error_t c2s_parse_union_and_write(FILE *fp, JSON_Object *schemas_obj,
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  rc = tokenize(az_span_create((uint8_t *)content, sz), &tl);
+  rc = tokenize(az_span_create_from_str_of_size(content, sz), &tl);
   if (rc != CDD_C_SUCCESS) {
     C_CDD_FREE(content);
     return rc;

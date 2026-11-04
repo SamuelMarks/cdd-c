@@ -574,7 +574,7 @@ TEST test_patcher_oom_original_token_copy(void) {
   res = patch_list_init(&list);
   ASSERT_EQ(CDD_C_SUCCESS, res);
 
-  res = tokenize(az_span_create((uint8_t *)(size_t)src, strlen(src)), &tl);
+  res = tokenize(az_span_create_from_str(src), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, res);
 
   /* Add a patch so patch loop logic applies */
@@ -726,7 +726,7 @@ TEST test_patcher_oom_no_patches(void) {
   int i;
 
   res = patch_list_init(&list);
-  res = tokenize(az_span_create((uint8_t *)(size_t)src, strlen(src)), &tl);
+  res = tokenize(az_span_create_from_str(src), &tl);
 
 #ifdef CDD_BUILD_TESTS
   {

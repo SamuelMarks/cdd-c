@@ -498,10 +498,9 @@ TEST test_gnu_standardizer_error_branches(void) {
   tree = NULL;
 
   /* variadic macro */
-  ASSERT_EQ(0,
-            cdd_cst_parse(az_span_create_from_str(
-                              (char *)(size_t) "#define M(args...) f(args)\n"),
-                          &tree));
+  ASSERT_EQ(
+      0, cdd_cst_parse(az_span_create_from_str("#define M(args...) f(args)\n"),
+                       &tree));
   g_cdd_alloc_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
   g_cdd_alloc_fail = 0;
@@ -585,8 +584,7 @@ TEST test_gnu_standardizer_error_branches(void) {
     tree = NULL;
   }
   if (cdd_cst_parse(
-          az_span_create_from_str(
-              (char *)(size_t) "struct Anon { struct { int a; }; };\n"),
+          az_span_create_from_str("struct Anon { struct { int a; }; };\n"),
           &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
     cdd_transform_gnu(tree, &config);
@@ -595,8 +593,7 @@ TEST test_gnu_standardizer_error_branches(void) {
     tree = NULL;
   }
   if (cdd_cst_parse(
-          az_span_create_from_str(
-              (char *)(size_t) "struct AnonU { union { int a; }; };\n"),
+          az_span_create_from_str("struct AnonU { union { int a; }; };\n"),
           &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
     cdd_transform_gnu(tree, &config);

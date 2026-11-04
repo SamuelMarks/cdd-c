@@ -164,8 +164,7 @@ TEST test_diff_invalid_args(void) {
 
   rc = patch_list_init(&list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = tokenize(az_span_create_from_str((cdd_test_mut_str("int a;\n"))),
-                &tokens);
+  rc = tokenize(az_span_create_from_str("int a;\n"), &tokens);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -208,8 +207,7 @@ TEST test_diff_sort_fail(void) {
 
   rc = patch_list_init(&list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = tokenize(az_span_create_from_str((cdd_test_mut_str("int a;\n"))),
-                &tokens);
+  rc = tokenize(az_span_create_from_str("int a;\n"), &tokens);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   text = (char *)malloc(6);
@@ -247,9 +245,7 @@ TEST test_diff_insert_delete_adjacent(void) {
   char *large_text;
   cdd_c_error_t rc = 0;
 
-  rc = tokenize(
-      az_span_create_from_str((cdd_test_mut_str("int a = 1;\nint b = 2;\n"))),
-      &tokens);
+  rc = tokenize(az_span_create_from_str("int a = 1;\nint b = 2;\n"), &tokens);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   rc = patch_list_init(&list);
@@ -313,8 +309,7 @@ TEST test_diff_end_token_zero_and_max_mod(void) {
   cdd_c_error_t rc = 0;
 
   /* Test 1: Single pure insertion at token 0 (end_token_idx == 0) */
-  rc = tokenize(az_span_create_from_str((cdd_test_mut_str("int a;\nint b;\n"))),
-                &tokens);
+  rc = tokenize(az_span_create_from_str("int a;\nint b;\n"), &tokens);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = patch_list_init(&list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -337,8 +332,7 @@ TEST test_diff_end_token_zero_and_max_mod(void) {
 
   /* Test 2: Pure insertion on line 2 (start = end = token 5: 'int' on line 2)
    */
-  rc = tokenize(az_span_create_from_str((cdd_test_mut_str("int a;\nint b;\n"))),
-                &tokens);
+  rc = tokenize(az_span_create_from_str("int a;\nint b;\n"), &tokens);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = patch_list_init(&list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -375,7 +369,7 @@ TEST test_diff_empty_block_and_cursor_end(void) {
   cdd_c_error_t rc = 0;
 
   /* Source has only 1 line, replacing all tokens 0..tokens->size with "" */
-  rc = tokenize(az_span_create_from_str((cdd_test_mut_str("int a;"))), &tokens);
+  rc = tokenize(az_span_create_from_str("int a;"), &tokens);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = patch_list_init(&list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -445,9 +439,7 @@ TEST test_diff_find_line_errors(void) {
     char *t1;
     cdd_c_error_t rc = 0;
 
-    rc = tokenize(
-        az_span_create_from_str((cdd_test_mut_str("int a;\nint b;\n"))),
-        &tokens);
+    rc = tokenize(az_span_create_from_str("int a;\nint b;\n"), &tokens);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     rc = patch_list_init(&list);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -478,9 +470,7 @@ TEST test_diff_find_line_errors(void) {
     char *t1;
     cdd_c_error_t rc = 0;
 
-    rc = tokenize(
-        az_span_create_from_str((cdd_test_mut_str("int a;\nint b;\n"))),
-        &tokens);
+    rc = tokenize(az_span_create_from_str("int a;\nint b;\n"), &tokens);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     rc = patch_list_init(&list);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -522,7 +512,7 @@ TEST test_diff_append_errors(void) {
     char *t1;
     cdd_c_error_t rc = 0;
 
-    rc = tokenize(az_span_create_from_str((cdd_test_mut_str(src))), &tokens);
+    rc = tokenize(az_span_create_from_str(src), &tokens);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     rc = patch_list_init(&list);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -559,7 +549,7 @@ TEST test_diff_append_errors(void) {
     char *t1;
     cdd_c_error_t rc = 0;
 
-    rc = tokenize(az_span_create_from_str((cdd_test_mut_str(src))), &tokens);
+    rc = tokenize(az_span_create_from_str(src), &tokens);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     rc = patch_list_init(&list);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -612,7 +602,7 @@ TEST test_diff_multiple_blocks(void) {
   char *rep3;
   char *rep4;
 
-  rc = tokenize(az_span_create_from_str((cdd_test_mut_str(src))), &tokens);
+  rc = tokenize(az_span_create_from_str(src), &tokens);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   rc = patch_list_init(&list);
@@ -683,7 +673,7 @@ TEST test_diff_no_newline_eof(void) {
   cdd_c_error_t rc = 0;
   char *rep;
 
-  rc = tokenize(az_span_create_from_str((cdd_test_mut_str(src))), &tokens);
+  rc = tokenize(az_span_create_from_str(src), &tokens);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   rc = patch_list_init(&list);
@@ -709,8 +699,7 @@ TEST test_diff_no_newline_eof(void) {
   free_token_list(tokens);
 
   /* Test where the last line is in keep_end */
-  rc = tokenize(az_span_create_from_str((cdd_test_mut_str("one\ntwo\nthree"))),
-                &tokens);
+  rc = tokenize(az_span_create_from_str("one\ntwo\nthree"), &tokens);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   rc = patch_list_init(&list);
@@ -751,8 +740,7 @@ TEST test_diff_alloc_failures(void) {
     char *rep;
     cdd_c_error_t rc = 0;
 
-    rc = tokenize(az_span_create_from_str(
-                      (cdd_test_mut_str("int x = 10;\nint y = 20;\n"))),
+    rc = tokenize(az_span_create_from_str("int x = 10;\nint y = 20;\n"),
                   &tokens);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 

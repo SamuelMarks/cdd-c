@@ -141,8 +141,8 @@ write_union_to_json_func(FILE *fp, const char *union_name,
             ref_type, name));
         CHECK_IO(FPRINTF_HOOK(
             fp,
-            "        if (sub && sub[0] == '{' && strstr(sub, "
-            "\"\\\"%s\\\":\") == NULL) {\n"
+            "        if (sub && sub[0] == '{' && strncmp(sub + 1, "
+            "\"\\\"%s\\\":\", %lu) != 0) {\n"
             "          if (sub[1] == '}') {\n"
             "            rc = c89stringutils_jasprintf(json, "
             "\"{\\\"%s\\\":\\\"%s\\\"}\");\n"
@@ -155,7 +155,8 @@ write_union_to_json_func(FILE *fp, const char *union_name,
             "        }\n"
             "        free(sub);\n"
             "      }\n",
-            esc_tag, esc_tag, esc_val, esc_tag, esc_val));
+            esc_tag, (unsigned long)(strlen(esc_tag) + 3), esc_tag, esc_val,
+            esc_tag, esc_val));
       } else {
         CHECK_IO(FPRINTF_HOOK(
             fp,

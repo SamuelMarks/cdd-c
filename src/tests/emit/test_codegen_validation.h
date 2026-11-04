@@ -145,7 +145,7 @@ TEST test_int_min_validation(void) {
   ASSERT(code != NULL);
 
   /* Check basic logic */
-  ASSERT(strstr(code, "if (tmp < 10.000000) { free(ret); return "
+  ASSERT(strstr(code, "if (tmp < 10.000000) { SMin_cleanup(ret); return "
                       "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
   C_CDD_FREE(code);
@@ -177,7 +177,7 @@ TEST test_int_exclusive_min(void) {
   ASSERT(code != NULL);
 
   /* Check exclusive */
-  ASSERT(strstr(code, "if (tmp <= 5.000000) { free(ret); return "
+  ASSERT(strstr(code, "if (tmp <= 5.000000) { SExcMin_cleanup(ret); return "
                       "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
   C_CDD_FREE(code);
@@ -208,7 +208,7 @@ TEST test_double_max_validation(void) {
   ASSERT(code != NULL);
 
   /* Check logic */
-  ASSERT(strstr(code, "if (tmp > 100.500000) { free(ret); return "
+  ASSERT(strstr(code, "if (tmp > 100.500000) { SMax_cleanup(ret); return "
                       "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
   C_CDD_FREE(code);
@@ -240,7 +240,7 @@ TEST test_double_exclusive_max(void) {
   ASSERT(code != NULL);
 
   /* Check logic */
-  ASSERT(strstr(code, "if (tmp >= 0.000000) { free(ret); return "
+  ASSERT(strstr(code, "if (tmp >= 0.000000) { SExcMax_cleanup(ret); return "
                       "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
   C_CDD_FREE(code);
@@ -272,9 +272,9 @@ TEST test_min_and_max(void) {
           _ast_gen_parse_code_4);
   ASSERT(code != NULL);
 
-  ASSERT(strstr(code, "if (tmp < 0.000000) { free(ret); return "
+  ASSERT(strstr(code, "if (tmp < 0.000000) { Person_cleanup(ret); return "
                       "CDD_C_ERROR_INVALID_ARGUMENT; }"));
-  ASSERT(strstr(code, "if (tmp > 120.000000) { free(ret); return "
+  ASSERT(strstr(code, "if (tmp > 120.000000) { Person_cleanup(ret); return "
                       "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
   C_CDD_FREE(code);

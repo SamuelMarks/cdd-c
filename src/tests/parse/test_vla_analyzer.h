@@ -333,11 +333,9 @@ TEST test_scan_for_vlas_edge_cases(void) {
                   vla_site_list_free(&list);
 
                   /* Test 4: Semicolon, LBRACE, RBRACE to hit line 209-211 */
-                  ASSERT_EQ(
-                      0,
-                      tokenize(az_span_create_from_str(
-                                   (char *)(size_t) "int a[; int a[{ int a[}"),
-                               &tokens));
+                  ASSERT_EQ(0, tokenize(az_span_create_from_str(
+                                            "int a[; int a[{ int a[}"),
+                                        &tokens));
                   ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
                   scan_for_vlas(tokens, &list);
                   vla_site_list_free(&list);

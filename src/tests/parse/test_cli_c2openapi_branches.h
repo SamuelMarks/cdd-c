@@ -1325,8 +1325,7 @@ TEST test_cli_c2openapi_unit_internals(void) {
   /* Create a valid dummy TokenList */
   {
     const char dummy_code[] = "int x = 1;";
-    az_span d_span =
-        az_span_create((uint8_t *)(size_t)dummy_code, strlen(dummy_code));
+    az_span d_span = az_span_create_from_str(dummy_code);
     tokenize(d_span, &tokens);
   }
 
@@ -1363,7 +1362,7 @@ TEST test_cli_c2openapi_unit_internals(void) {
                         "  HTTP_POST;\n"
                         "  \"/my/path\";\n"
                         "}\n";
-    az_span span = az_span_create((uint8_t *)(size_t)code, strlen(code));
+    az_span span = az_span_create_from_str(code);
     ASSERT_EQ(0, tokenize(span, &tokens));
 
     memset(&func_node, 0, sizeof(func_node));
@@ -1400,8 +1399,7 @@ TEST test_cli_c2openapi_unit_internals(void) {
         "  c_rest_router_add(r, \"POST\", \"/items\", custom_create);\n"
         "  c_rest_router_add(r, \"DELETE\", \"/items\", handle_);\n"
         "}\n";
-    az_span span =
-        az_span_create((uint8_t *)(size_t)srv_code, strlen(srv_code));
+    az_span span = az_span_create_from_str(srv_code);
     ASSERT_EQ(0, tokenize(span, &tokens));
 
     memset(&spec, 0, sizeof(spec));
@@ -1424,8 +1422,7 @@ TEST test_cli_c2openapi_unit_internals(void) {
   /* 6. GUI view scanning */
   {
     const char gui_code[] = "void render_users_view(void) {}\n";
-    az_span span =
-        az_span_create((uint8_t *)(size_t)gui_code, strlen(gui_code));
+    az_span span = az_span_create_from_str(gui_code);
     ASSERT_EQ(0, tokenize(span, &tokens));
 
     memset(&spec, 0, sizeof(spec));
@@ -1464,7 +1461,7 @@ TEST test_cli_c2openapi_aggregator_errors(void) {
   {
     const char code[] = "void init() { c_rest_router_add(r, \"GET\", "
                         "\"/items\", handle_items); }\n";
-    az_span span = az_span_create((uint8_t *)(size_t)code, strlen(code));
+    az_span span = az_span_create_from_str(code);
     ASSERT_EQ(0, tokenize(span, &tokens));
 
     memset(&spec, 0, sizeof(spec));
@@ -1483,7 +1480,7 @@ TEST test_cli_c2openapi_aggregator_errors(void) {
   /* 2. GUI view route addition error */
   {
     const char code[] = "void render_users_view(void) {}\n";
-    az_span span = az_span_create((uint8_t *)(size_t)code, strlen(code));
+    az_span span = az_span_create_from_str(code);
     ASSERT_EQ(0, tokenize(span, &tokens));
 
     memset(&spec, 0, sizeof(spec));
@@ -1517,7 +1514,7 @@ TEST test_cli_c2openapi_aggregator_errors(void) {
         "  tool_obj,\"name\",123;\n"
         "  tool_obj;\n"
         "}";
-    az_span span = az_span_create((uint8_t *)(size_t)code, strlen(code));
+    az_span span = az_span_create_from_str(code);
     ASSERT_EQ(0, tokenize(span, &tokens));
 
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,

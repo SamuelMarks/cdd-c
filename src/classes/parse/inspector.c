@@ -142,6 +142,90 @@ static cdd_c_error_t is_comment_start(const char *s, int *out_is_cmt) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Finds the first occurrence of `target` outside closed inline comments
+ * and string literals.
+ *
+ * @param[in] s Input string to scan.
+ * @param[in] target Character to locate (e.g. '{' or '}').
+ * @param[out] out Pointer to matching character in `s`, or NULL if not found.
+ * @return CDD_C_SUCCESS on success.
+ */
+static cdd_c_error_t find_code_char(char *s, char target, char **out) {
+  int in_str = 0;
+  while (*s) {
+    if (!in_str && s[0] == '/' && s[1] == '/') {
+      *out = NULL;
+      return CDD_C_SUCCESS;
+    }
+    if (!in_str && s[0] == '/' && s[1] == '*') {
+      char *end = strstr(s + 2, "*/");
+      if (end) {
+        s = end + 2;
+        continue;
+      }
+    }
+    if (*s == '"') {
+      in_str = !in_str;
+    } else if (!in_str && *s == target) {
+      *out = s;
+      return CDD_C_SUCCESS;
+    }
+    s++;
+  }
+  *out = NULL;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Splits a mutable string on `delim` while ignoring delimiters inside
+ * closed inline comments or string literals.
+ *
+ * @param[in,out] cursor Pointer to current scan position (updated to next
+ * segment or NULL).
+ * @param[in] delim Delimiter character (e.g. ';' or ',').
+ * @param[out] out_tok Output pointer to token start, or NULL if exhausted.
+ * @return CDD_C_SUCCESS on success.
+ */
+static cdd_c_error_t next_delim_tok(char **cursor, char delim, char **out_tok) {
+  char *s = *cursor;
+  char *start;
+  int in_str = 0;
+  if (!s) {
+    *out_tok = NULL;
+    return CDD_C_SUCCESS;
+  }
+  while (*s == delim)
+    s++;
+  if (!*s) {
+    *cursor = NULL;
+    *out_tok = NULL;
+    return CDD_C_SUCCESS;
+  }
+  start = s;
+  while (*s) {
+    if (!in_str && s[0] == '/' && s[1] == '*') {
+      char *end = strstr(s + 2, "*/");
+      if (end) {
+        s = end + 2;
+        continue;
+      }
+    }
+    if (*s == '"') {
+      in_str = !in_str;
+    } else if (!in_str && *s == delim) {
+      *s = '\0';
+      *cursor = s + 1;
+      *out_tok = start;
+      return CDD_C_SUCCESS;
+    }
+    s++;
+  }
+  *cursor = NULL;
+  *out_tok = start;
+  return CDD_C_SUCCESS;
+}
+
 /*
  * @brief Scans a C source or header file for struct, enum, and typedef
  * declarations.
@@ -161,6 +245,9 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
   char current_name[64] = {0};
   int in_union_sub = 0;
   int in_block_comment = 0;
+  int is_typedef = 0;
+  int awaiting_brace = 0;
+  int pending_is_enum = 0;
 
   struct EnumMembers *curr_em = NULL;
   struct StructFields *curr_sf = NULL;
@@ -223,35 +310,53 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
             break;
           }
         }
-        {
-          cdd_c_error_t rc_str = c_cdd_str_starts_with(p, "enum ", &starts1);
-          if (rc_str != CDD_C_SUCCESS) {
-            rc = rc_str;
-            break;
+        if (awaiting_brace && *p == '{') {
+          awaiting_brace = 0;
+          starts1 = pending_is_enum;
+          starts2 = !pending_is_enum;
+        } else {
+          awaiting_brace = 0;
+          if (strncmp(p, "typedef ", 8) == 0) {
+            is_typedef = 1;
+            p += 8;
           }
-        }
-        {
-          cdd_c_error_t rc_str = c_cdd_str_starts_with(p, "struct ", &starts2);
-          if (rc_str != CDD_C_SUCCESS) {
-            rc = rc_str;
-            break;
+          {
+            cdd_c_error_t rc_str = c_cdd_str_starts_with(p, "enum ", &starts1);
+            if (rc_str != CDD_C_SUCCESS) {
+              rc = rc_str;
+              break;
+            }
           }
+          {
+            cdd_c_error_t rc_str =
+                c_cdd_str_starts_with(p, "struct ", &starts2);
+            if (rc_str != CDD_C_SUCCESS) {
+              rc = rc_str;
+              break;
+            }
+          }
+          if (!starts1 && strncmp(p, "enum{", 5) == 0)
+            starts1 = 1;
+          if (!starts2 && strncmp(p, "struct{", 7) == 0)
+            starts2 = 1;
         }
         if (starts1 || starts2) {
-          char *brace = strchr(p, '{');
+          char *brace = NULL;
+          int is_enum = starts1;
+          find_code_char(p, '{', &brace);
 
-          if (brace) {
-            int is_enum = starts1;
-            /* Extract "Name" from "enum Name {" or "struct Name {" */
-            const char *name_start = p + (is_enum ? 5 : 7);
-            const char *name_end_ptr = brace;
+          if (*p != '{') {
+            const char *name_start =
+                p + (is_enum ? (p[4] == '{' ? 4 : 5) : (p[6] == '{' ? 6 : 7));
+            const char *name_end_ptr =
+                brace ? (const char *)brace : (p + strlen(p));
 
             /* Handle C23 enum fixed type or C++ inheritance: [enum|struct] Name
              * : ... { */
             {
               const char *colon = NULL;
               const char *scan = name_start;
-              while (scan < brace) {
+              while (scan < name_end_ptr) {
                 if (*scan == ':') {
                   colon = scan;
                   break;
@@ -281,7 +386,9 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
             } else {
               current_name[0] = 0;
             }
+          }
 
+          if (brace) {
             if (is_enum) {
               curr_em = (struct EnumMembers *)C_CDD_CALLOC(1, sizeof(*curr_em));
               if (!curr_em || enum_members_init(curr_em) != 0) {
@@ -318,10 +425,15 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
             p = brace + 1;
             continue;
           } else {
-            /* No brace found, possibly forward decl or split line. Skip line.
-             */
-            pending_comment[0] = '\0';
-            pending_len = 0;
+            /* If no semicolon on line, opening brace may be on the next line */
+            if (strchr(p, ';') == NULL) {
+              awaiting_brace = 1;
+              pending_is_enum = is_enum;
+            } else {
+              pending_comment[0] = '\0';
+              pending_len = 0;
+              is_typedef = 0;
+            }
             break;
           }
         }
@@ -329,11 +441,12 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
         if (*p == ';') {
           pending_comment[0] = '\0';
           pending_len = 0;
+          is_typedef = 0;
         }
         p++;
       } else {
         /* Inside a definition block */
-        close_brace = strchr(p, '}');
+        find_code_char(p, '}', &close_brace);
 
         if (close_brace && state == ST_STRUCT && in_union_sub) {
           /* Closing `}` of nested `union { ... } data;` inside a tagged union
@@ -379,12 +492,9 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
               }
             }
             {
-              char *ctx = NULL;
-#ifdef _WIN32
-              char *tok = strtok_s(copy, ",", &ctx);
-#else
-              char *tok = strtok_r(copy, ",", &ctx);
-#endif
+              char *ctx = copy;
+              char *tok = NULL;
+              next_delim_tok(&ctx, ',', &tok);
               while (tok) {
                 char var_cmt[512];
                 size_t vc_pos = 0;
@@ -494,11 +604,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                     }
                   }
                 }
-#ifdef _WIN32
-                tok = strtok_s(NULL, ",", &ctx);
-#else
-                tok = strtok_r(NULL, ",", &ctx);
-#endif
+                next_delim_tok(&ctx, ',', &tok);
               }
               if (copy) {
                 C_CDD_FREE(copy);
@@ -556,12 +662,9 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                 }
               }
               {
-                char *ctx = NULL;
-#ifdef _WIN32
-                char *tok = strtok_s(copy, ";", &ctx);
-#else
-                char *tok = strtok_r(copy, ";", &ctx);
-#endif
+                char *ctx = copy;
+                char *tok = NULL;
+                next_delim_tok(&ctx, ';', &tok);
                 while (tok) {
                   /* Ensure not just whitespace */
                   char *chk = tok;
@@ -607,11 +710,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                       }
                     }
                   }
-#ifdef _WIN32
-                  tok = strtok_s(NULL, ";", &ctx);
-#else
-                  tok = strtok_r(NULL, ";", &ctx);
-#endif
+                  next_delim_tok(&ctx, ';', &tok);
                 }
                 if (copy) {
                   C_CDD_FREE(copy);
@@ -628,6 +727,17 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
           pending_comment[0] = '\0';
           pending_len = 0;
           in_union_sub = 0;
+          if (is_typedef) {
+            const char *ap = close_brace + 1;
+            size_t alen = 0;
+            while (isspace((unsigned char)*ap))
+              ap++;
+            while (isalnum((unsigned char)ap[alen]) || ap[alen] == '_')
+              alen++;
+            memcpy(current_name, ap, alen);
+            current_name[alen] = '\0';
+            is_typedef = 0;
+          }
           /* Definition Ended */
           if (current_name[0] != '\0') {
             if (state == ST_ENUM) {
@@ -763,6 +873,41 @@ static cdd_c_error_t extract_span_text(const struct TokenList *tokens,
   }
 }
 
+/**
+ * @brief Copies a token span into a fixed-size buffer with leading/trailing
+ * whitespace trimmed.
+ *
+ * @param[in] tokens Token list containing the span.
+ * @param[in] start Inclusive start token index.
+ * @param[in] end Exclusive end token index.
+ * @param[out] dst Destination fixed-size buffer.
+ * @param[in] dst_sz Capacity of `dst`.
+ * @return CDD_C_SUCCESS on success.
+ */
+static cdd_c_error_t copy_token_span_trimmed(const struct TokenList *tokens,
+                                             size_t start, size_t end,
+                                             char *dst, size_t dst_sz) {
+  size_t pos = 0;
+  size_t i;
+  (void)dst_sz;
+  dst[0] = '\0';
+  while (tokens->tokens[start].kind == TOKEN_WHITESPACE) {
+    start++;
+  }
+  while (tokens->tokens[end - 1].kind == TOKEN_WHITESPACE) {
+    end--;
+  }
+  for (i = start; i < end; ++i) {
+    size_t k;
+    for (k = 0; k < tokens->tokens[i].length; ++k) {
+      dst[pos++] = (char)tokens->tokens[i].start[k];
+    }
+  }
+  dst[pos] = '\0';
+  c_cdd_str_trim_trailing_whitespace(dst);
+  return CDD_C_SUCCESS;
+}
+
 /*
  * @brief Extracts C function signatures and docstrings from a source file.
  *
@@ -796,6 +941,7 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
       size_t start_idx = cst.nodes[i].start_token;
       size_t sig_end_idx = start_idx;
       size_t name_idx = 0;
+      size_t lparen_idx = 0;
       int found_name = 0;
       int is_variadic = 0;
 
@@ -811,6 +957,7 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
           }
           if (tl->tokens[k].kind == TOKEN_LPAREN && !found_name) {
             size_t n = k;
+            lparen_idx = k;
             do {
               n--;
             } while (n > start_idx && tl->tokens[n].kind == TOKEN_WHITESPACE);
@@ -872,6 +1019,51 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
             C_CDD_FREE(out->items[out->size].doc);
           rc = CDD_C_ERROR_MEMORY;
           goto cleanup;
+        }
+        memset(out->items[out->size].return_type, 0,
+               sizeof(out->items[out->size].return_type));
+        memset(out->items[out->size].params, 0,
+               sizeof(out->items[out->size].params));
+        out->items[out->size].n_params = 0;
+        copy_token_span_trimmed(tl, start_idx, name_idx,
+                                out->items[out->size].return_type,
+                                sizeof(out->items[out->size].return_type));
+        {
+          size_t p_start = lparen_idx + 1;
+          int depth = 1;
+          size_t cur = lparen_idx + 1;
+          while (depth > 0) {
+            enum TokenKind tk = tl->tokens[cur].kind;
+            if (tk == TOKEN_LPAREN) {
+              depth++;
+            } else if (tk == TOKEN_RPAREN) {
+              depth--;
+            }
+            if ((depth == 1 && tk == TOKEN_COMMA) ||
+                (depth == 0 && tk == TOKEN_RPAREN)) {
+              size_t p_end = cur;
+              size_t last_id = p_end;
+              size_t scan_p;
+              for (scan_p = p_start; scan_p < p_end; ++scan_p) {
+                if (tl->tokens[scan_p].kind == TOKEN_IDENTIFIER)
+                  last_id = scan_p;
+              }
+              if (last_id < p_end) {
+                size_t pidx = out->items[out->size].n_params;
+                copy_token_span_trimmed(
+                    tl, p_start, last_id,
+                    out->items[out->size].params[pidx].type,
+                    sizeof(out->items[out->size].params[pidx].type));
+                copy_token_span_trimmed(
+                    tl, last_id, last_id + 1,
+                    out->items[out->size].params[pidx].name,
+                    sizeof(out->items[out->size].params[pidx].name));
+                out->items[out->size].n_params++;
+              }
+              p_start = cur + 1;
+            }
+            cur++;
+          }
         }
         out->size++;
       }

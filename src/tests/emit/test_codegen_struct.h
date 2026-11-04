@@ -352,6 +352,25 @@ TEST test_struct_debug_func(void) {
 }
 
 /**
+ * @brief Visitor callback used to test cdd_reflect_visit_fields.
+ * @param[in] field Field reflection descriptor.
+ * @param[in] field_ptr Pointer to field value in struct instance.
+ * @param[in,out] user_data Counter / stop-after-1 flag.
+ * @return CDD_C_SUCCESS or CDD_C_ERROR_INVALID_ARGUMENT.
+ */
+static cdd_c_error_t test_reflect_visitor_cb(const struct cdd_field_info *field,
+                                             const void *field_ptr,
+                                             void *user_data) {
+  int *cnt = (int *)user_data;
+  if (!field || !field_ptr || !cnt)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (*cnt < 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  (*cnt)++;
+  return CDD_C_SUCCESS;
+}
+
+/**
  * @brief test_struct_invalid_args
  * @return TEST
  */
@@ -731,6 +750,167 @@ TEST test_struct_fields_init_oom(void) {
         ASSERT_EQ(CDD_C_SUCCESS,
                   write_struct_deepcopy_func(tmp, "TestDcEdge", &sf_dc, NULL));
         struct_fields_free(&sf_dc);
+      }
+
+      /* Test serde_default_fn in write_struct_default_func and serde_skip in
+       * write_struct_debug_func */
+      {
+        struct StructFields sf_df;
+        int fail_step;
+        cdd_c_error_t rc_step;
+        struct_fields_init(&sf_df);
+        struct_fields_add(&sf_df, "fn_val", "integer", NULL, NULL, NULL);
+        CDD_STRCPY(sf_df.fields[0].serde_default_fn,
+                   sizeof(sf_df.fields[0].serde_default_fn), "init_fn_val");
+        sf_df.fields[0].serde_skip = 1;
+        struct_fields_add(&sf_df, "enum_no_ref", "enum", NULL, NULL, NULL);
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  write_struct_default_func(tmp, "TestDefFn", &sf_df, NULL));
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  write_struct_debug_func(tmp, "TestDefFn", &sf_df, NULL));
+        for (fail_step = 0; fail_step < 20; ++fail_step) {
+          g_fail_io_after = fail_step;
+          g_io_calls = 0;
+          rc_step = write_struct_default_func(tmp, "TestDefFn", &sf_df, NULL);
+          if (rc_step == CDD_C_SUCCESS)
+            break;
+          ASSERT_EQ(CDD_C_ERROR_IO, rc_step);
+        }
+        g_fail_io_after = -1;
+        struct_fields_free(&sf_df);
+      }
+
+      /* Test runtime reflection descriptor generation & visitor API */
+      {
+        struct DummyReflStruct {
+          int id;
+          double score;
+        } dummy_inst;
+        struct cdd_field_info dummy_fields[3];
+        struct cdd_type_info dummy_ti;
+        const struct cdd_field_info *found_f = NULL;
+        struct StructFields sf_rf;
+        int fail_step;
+        cdd_c_error_t rc_step;
+        const char *g_names[2] = {"AlphaStruct", "BetaStruct"};
+        const char *bad_names[1] = {""};
+
+        memset(&cfg, 0, sizeof(cfg));
+        cfg.guard_macro = "TEST_REFL_GUARD";
+
+        memset(&dummy_inst, 0, sizeof(dummy_inst));
+        dummy_inst.id = 42;
+        dummy_inst.score = 3.5;
+        memset(dummy_fields, 0, sizeof(dummy_fields));
+        dummy_fields[0].name = "id";
+        dummy_fields[0].wire_name = "userId";
+        dummy_fields[0].kind = CDD_FIELD_KIND_INTEGER;
+        dummy_fields[0].offset = offsetof(struct DummyReflStruct, id);
+        dummy_fields[0].size = sizeof(int);
+        dummy_fields[1].name = "skipped";
+        dummy_fields[1].wire_name = "skipped";
+        dummy_fields[1].skip = 1;
+        dummy_fields[2].name = "score";
+        dummy_fields[2].wire_name = "score";
+        dummy_fields[2].kind = CDD_FIELD_KIND_NUMBER;
+        dummy_fields[2].offset = offsetof(struct DummyReflStruct, score);
+        dummy_fields[2].size = sizeof(double);
+
+        dummy_ti.name = "DummyReflStruct";
+        dummy_ti.size = sizeof(struct DummyReflStruct);
+        dummy_ti.is_union = 0;
+        dummy_ti.fields = dummy_fields;
+        dummy_ti.n_fields = 3;
+
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_find_field(NULL, "id", &found_f));
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_find_field(&dummy_ti, NULL, &found_f));
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_find_field(&dummy_ti, "id", NULL));
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_reflect_find_field(&dummy_ti, "id", &found_f));
+        ASSERT_STR_EQ("id", found_f->name);
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_reflect_find_field(&dummy_ti, "userId", &found_f));
+        ASSERT_STR_EQ("id", found_f->name);
+        ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+                  cdd_reflect_find_field(&dummy_ti, "nonexistent", &found_f));
+
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_visit_fields(NULL, &dummy_ti, NULL, NULL));
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_visit_fields(&dummy_inst, NULL, NULL, NULL));
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_visit_fields(&dummy_inst, &dummy_ti, NULL, NULL));
+        {
+          int v_cnt = 0;
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_visit_fields(&dummy_inst, &dummy_ti,
+                                             test_reflect_visitor_cb, &v_cnt));
+          ASSERT_EQ(2, v_cnt);
+          v_cnt = -1;
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_visit_fields(&dummy_inst, &dummy_ti,
+                                             test_reflect_visitor_cb, &v_cnt));
+        }
+
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  write_struct_reflect_func(NULL, "S", &sf_empty, NULL));
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  write_struct_reflect_func(tmp, NULL, &sf_empty, NULL));
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  write_struct_reflect_func(tmp, "S", NULL, NULL));
+
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  write_struct_reflect_func(tmp, "EmptyRefl", &sf_empty, NULL));
+        struct_fields_init(&sf_rf);
+        struct_fields_add(&sf_rf, "i", "integer", NULL, NULL, NULL);
+        struct_fields_add(&sf_rf, "n", "number", NULL, NULL, NULL);
+        struct_fields_add(&sf_rf, "b", "boolean", NULL, NULL, NULL);
+        struct_fields_add(&sf_rf, "s", "string", NULL, NULL, NULL);
+        struct_fields_add(&sf_rf, "e", "enum", "MyEnum", NULL, NULL);
+        struct_fields_add(&sf_rf, "o", "object", "MyObj", NULL, NULL);
+        struct_fields_add(&sf_rf, "a", "array", "string", NULL, NULL);
+        struct_fields_add(&sf_rf, "bf", "integer", NULL, NULL, "4");
+        struct_fields_add(&sf_rf, "u", "custom", NULL, NULL, NULL);
+        CDD_STRCPY(sf_rf.fields[8].name, sizeof(sf_rf.fields[8].name), "");
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  write_struct_reflect_func(tmp, "FullRefl", &sf_rf, &cfg));
+        cfg.guard_macro = NULL;
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  write_struct_reflect_func(tmp, "NoGuardRefl", &sf_rf, &cfg));
+        cfg.guard_macro = "TEST_REFL_GUARD";
+        for (fail_step = 0; fail_step < 30; ++fail_step) {
+          g_fail_io_after = fail_step;
+          g_io_calls = 0;
+          rc_step = write_struct_reflect_func(tmp, "FullRefl", &sf_rf, &cfg);
+          if (rc_step == CDD_C_SUCCESS)
+            break;
+          ASSERT_EQ(CDD_C_ERROR_IO, rc_step);
+        }
+        g_fail_io_after = -1;
+        struct_fields_free(&sf_rf);
+
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  write_struct_generic_dispatch_macros(NULL, g_names, 2));
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  write_struct_generic_dispatch_macros(tmp, NULL, 2));
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  write_struct_generic_dispatch_macros(tmp, g_names, 0));
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  write_struct_generic_dispatch_macros(tmp, bad_names, 1));
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  write_struct_generic_dispatch_macros(tmp, g_names, 2));
+        for (fail_step = 0; fail_step < 30; ++fail_step) {
+          g_fail_io_after = fail_step;
+          g_io_calls = 0;
+          rc_step = write_struct_generic_dispatch_macros(tmp, g_names, 2);
+          if (rc_step == CDD_C_SUCCESS)
+            break;
+          ASSERT_EQ(CDD_C_ERROR_IO, rc_step);
+        }
+        g_fail_io_after = -1;
       }
 
       struct_fields_free(&sf_ref);

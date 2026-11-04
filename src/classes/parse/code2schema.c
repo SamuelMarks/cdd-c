@@ -228,7 +228,7 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
     goto cleanup;
   }
 
-  ret_rc = tokenize(az_span_create((uint8_t *)content, content_sz), &tl);
+  ret_rc = tokenize(az_span_create_from_str_of_size(content, content_sz), &tl);
   if (ret_rc != CDD_C_SUCCESS) {
     goto cleanup;
   }

@@ -45,7 +45,7 @@ TEST test_diff_generation_basic(void) {
   az_span span;
 
   patch_list_init(&patch_list);
-  span = az_span_create((uint8_t *)(size_t)src, strlen(src));
+  span = az_span_create_from_str(src);
   rc = tokenize(span, &tokens);
   ASSERT_EQ(0, rc);
 

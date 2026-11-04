@@ -116,6 +116,7 @@ def main():
                         test_lint_errors += 1
         if test_lint_errors > 0:
             sys.exit(1)
+        run_cmd([sys.executable, "scripts/check_az_span_casts.py", "src", "include"])
         try:
             subprocess.run(
                 ["cppcheck", "--version"],

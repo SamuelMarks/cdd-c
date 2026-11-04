@@ -635,9 +635,7 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
   {
     cdd_cst_tree_t *t = NULL;
     cdd_cst_parse(
-        az_span_create_from_str(
-            (char *)(size_t) "void edge_void4() { if (1) malloc(1); }"),
-        &t);
+        az_span_create_from_str("void edge_void4() { if (1) malloc(1); }"), &t);
     cdd_transform_percolate_errors(t, &config);
     cdd_cst_tree_free(t);
   }

@@ -162,11 +162,9 @@ TEST test_parsing_comments(void) {
  */
 TEST test_parsing_macros(void) {
 
-  CHECK_CALL(
-      parsing_test("Macros parsing",
-                   az_span_create_from_str(
-                       (char *)(size_t)(size_t) "#define MAX 100\nint a;"),
-                   0, 0, 0, 0, 1, 2));
+  CHECK_CALL(parsing_test("Macros parsing",
+                          az_span_create_from_str("#define MAX 100\nint a;"), 0,
+                          0, 0, 0, 1, 2));
   g_fail_io_after = -1;
   PASS();
 }

@@ -653,8 +653,7 @@ TEST test_sync_full_coverage(void) {
       struct CstNodeList cst_ws;
       memset(&cst_ws, 0, sizeof(cst_ws));
       rc = tokenize(
-          az_span_create_from_str(
-              (char *)(size_t) "int api_test_op  (int a) { return 0; }"),
+          az_span_create_from_str("int api_test_op  (int a) { return 0; }"),
           &tl_ws);
       ASSERT_EQ(0, rc);
       rc = parse_tokens(tl_ws, &cst_ws);

@@ -715,7 +715,7 @@ extract_workflow_from_function_node(const struct CstNode *func_node,
   int found = 0;
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
-  span = az_span_create((uint8_t *)(size_t)func_node->start, func_node->length);
+  span = az_span_create_from_const_u8(func_node->start, func_node->length);
   if (tokenize(span, &tl) != 0) {
     return CDD_C_SUCCESS;
   }

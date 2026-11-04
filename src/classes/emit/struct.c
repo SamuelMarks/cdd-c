@@ -18,6 +18,7 @@
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
 #include "c_cdd_export.h"
+#include "classes/parse/cdd_serde.h"
 #include "classes/parse/code2schema.h"
 #include "classes/parse/numeric.h"
 #include "functions/parse/str.h"
@@ -71,7 +72,7 @@ static void free_string_array(char **arr, size_t n) {
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t get_type_from_ref(const char *ref, const char **_out_val) {
-  static char s_ref_buf[4][64];
+  static char s_ref_buf[16][256];
   static size_t s_ref_idx = 0;
   if (ref == NULL) {
     *_out_val = "";
@@ -89,7 +90,7 @@ cdd_c_error_t get_type_from_ref(const char *ref, const char **_out_val) {
       if (needs_san) {
         char *san = NULL;
         if (sanitize_identifier(after, &san) == CDD_C_SUCCESS) {
-          size_t slot = s_ref_idx % 4;
+          size_t slot = s_ref_idx % 16;
           s_ref_idx++;
           CDD_STRCPY(s_ref_buf[slot], sizeof(s_ref_buf[slot]), san);
           C_CDD_FREE(san);
@@ -819,8 +820,9 @@ write_struct_default_func(FILE *fp, const char *struct_name,
 
   /* Check if we need 'rc' variable */
   for (i = 0; i < sf->size; ++i) {
-    if (sf->fields[i].default_val[0] != '\0' &&
-        strcmp(sf->fields[i].type, "enum") == 0) {
+    if ((sf->fields[i].default_val[0] != '\0' &&
+         strcmp(sf->fields[i].type, "enum") == 0) ||
+        sf->fields[i].serde_default_fn[0] != '\0') {
       rc_needed = 1;
       break;
     }
@@ -841,7 +843,15 @@ write_struct_default_func(FILE *fp, const char *struct_name,
 
   for (i = 0; i < sf->size; ++i) {
     const char *def = sf->fields[i].default_val;
-    if (def[0] != '\0') {
+    if (sf->fields[i].serde_default_fn[0] != '\0') {
+      CHECK_IO(FPRINTF_HOOK(fp, "  rc = %s(&(*out)->%s);\n",
+                            sf->fields[i].serde_default_fn,
+                            sf->fields[i].name));
+      CHECK_IO(FPRINTF_HOOK(fp,
+                            "  if (rc != CDD_C_SUCCESS) { %s_cleanup(*out); "
+                            "*out=NULL; return rc; }\n",
+                            struct_name));
+    } else if (def[0] != '\0') {
       const char *n = sf->fields[i].name;
       const char *t = sf->fields[i].type;
       const char *r = NULL;
@@ -952,7 +962,10 @@ write_struct_debug_func(FILE *fp, const char *struct_name,
     const char *n = sf->fields[i].name;
     const char *t = sf->fields[i].type;
     const char *r = NULL;
-    cdd_c_error_t rc_ref = get_type_from_ref(sf->fields[i].ref, &r);
+    cdd_c_error_t rc_ref;
+    if (sf->fields[i].serde_skip)
+      continue;
+    rc_ref = get_type_from_ref(sf->fields[i].ref, &r);
     if (rc_ref != CDD_C_SUCCESS) {
       return rc_ref;
     }
@@ -1004,6 +1017,16 @@ write_struct_debug_func(FILE *fp, const char *struct_name,
           FPRINTF_HOOK(fp, "    if (fprintf_rc < 0) return CDD_C_ERROR_IO;\n"));
       CHECK_IO(FPRINTF_HOOK(fp, "  }\n"));
       CHECK_IO(FPRINTF_HOOK(fp, "  fprintf_rc = fprintf(fp, \"  ]\\n\");\n"));
+      CHECK_IO(
+          FPRINTF_HOOK(fp, "  if (fprintf_rc < 0) return CDD_C_ERROR_IO;\n"));
+    } else if (strcmp(t, "enum") == 0 && r[0] != '\0') {
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "  { const char *_es = NULL; if (%s_to_str(obj->%s, &_es) == "
+          "CDD_C_SUCCESS && _es) fprintf_rc = fprintf(fp, \"  %s: %%s\\n\", "
+          "_es); else fprintf_rc = fprintf(fp, \"  %s: %%d\\n\", "
+          "(int)obj->%s); }\n",
+          r, n, n, n, n));
       CHECK_IO(
           FPRINTF_HOOK(fp, "  if (fprintf_rc < 0) return CDD_C_ERROR_IO;\n"));
     } else if (strcmp(t, "integer") == 0 || strcmp(t, "boolean") == 0 ||
@@ -1068,5 +1091,219 @@ write_struct_display_func(FILE *fp, const char *struct_name,
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
 
+  return CDD_C_SUCCESS;
+}
+
+/*
+ * @brief Looks up a reflected field descriptor by C member name or wire name.
+ *
+ * @param[in] ti Runtime type descriptor table.
+ * @param[in] name C field name or serialized wire name to look up.
+ * @param[out] out_field Output pointer receiving the matching field descriptor.
+ * @return CDD_C_SUCCESS if found, CDD_C_ERROR_NOT_FOUND if absent, or
+ * CDD_C_ERROR_INVALID_ARGUMENT on NULL arguments.
+ */
+cdd_c_error_t cdd_reflect_find_field(const struct cdd_type_info *ti,
+                                     const char *name,
+                                     const struct cdd_field_info **out_field) {
+  size_t i;
+  if (!ti || !name || !out_field)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_field = NULL;
+  for (i = 0; i < ti->n_fields; ++i) {
+    if (strcmp(ti->fields[i].name, name) == 0 ||
+        strcmp(ti->fields[i].wire_name, name) == 0) {
+      *out_field = &ti->fields[i];
+      return CDD_C_SUCCESS;
+    }
+  }
+  return CDD_C_ERROR_NOT_FOUND;
+}
+
+/*
+ * @brief Iterates over all fields of a struct instance `obj` using its runtime
+ * `cdd_type_info` table and invokes `visitor` with the computed member address.
+ *
+ * @param[in] obj Pointer to struct instance.
+ * @param[in] ti Runtime type descriptor for `obj`.
+ * @param[in] visitor Callback invoked for each non-skipped field.
+ * @param[in] user_data Opaque context pointer forwarded to `visitor`.
+ * @return CDD_C_SUCCESS on success, or the first non-zero error code returned
+ * by `visitor`.
+ */
+cdd_c_error_t cdd_reflect_visit_fields(const void *obj,
+                                       const struct cdd_type_info *ti,
+                                       cdd_field_visitor_fn visitor,
+                                       void *user_data) {
+  size_t i;
+  if (!obj || !ti || !visitor)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  for (i = 0; i < ti->n_fields; ++i) {
+    const void *field_ptr;
+    cdd_c_error_t rc;
+    if (ti->fields[i].skip)
+      continue;
+    field_ptr =
+        (const void *)((const unsigned char *)obj + ti->fields[i].offset);
+    rc = visitor(&ti->fields[i], field_ptr, user_data);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
+  return CDD_C_SUCCESS;
+}
+
+/*
+ * @brief Emits runtime reflection descriptor tables (`struct cdd_field_info[]`
+ * and `struct cdd_type_info`) and `<struct_name>_reflect` accessor for a C
+ * struct.
+ *
+ * @param[in] fp File pointer to write to.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Fields descriptor.
+ * @param[in] config Optional configuration options.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
+cdd_c_error_t
+write_struct_reflect_func(FILE *fp, const char *struct_name,
+                          const struct StructFields *sf,
+                          const struct CodegenStructConfig *config) {
+  size_t i;
+  if (!fp || !struct_name || !sf)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  if (config && config->guard_macro)
+    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
+
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "static const struct cdd_field_info %s_fields[] = {\n", struct_name));
+
+  for (i = 0; i < sf->size; ++i) {
+    const struct StructField *f = &sf->fields[i];
+    const char *kind_str = "CDD_FIELD_KIND_UNKNOWN";
+    const char *ref_out = "";
+    char wire_name[128];
+    unsigned int bw = f->bit_width[0] ? (unsigned int)atoi(f->bit_width) : 0U;
+
+    if (cdd_serde_resolve_field_names(sf, i, wire_name, sizeof(wire_name), NULL,
+                                      0) != CDD_C_SUCCESS) {
+      CDD_STRCPY(wire_name, sizeof(wire_name), f->name);
+    }
+    if (f->ref[0] != '\0') {
+      get_type_from_ref(f->ref, &ref_out);
+    }
+    if (strcmp(f->type, "integer") == 0)
+      kind_str = "CDD_FIELD_KIND_INTEGER";
+    else if (strcmp(f->type, "number") == 0)
+      kind_str = "CDD_FIELD_KIND_NUMBER";
+    else if (strcmp(f->type, "boolean") == 0)
+      kind_str = "CDD_FIELD_KIND_BOOLEAN";
+    else if (strcmp(f->type, "string") == 0)
+      kind_str = "CDD_FIELD_KIND_STRING";
+    else if (strcmp(f->type, "enum") == 0)
+      kind_str = "CDD_FIELD_KIND_ENUM";
+    else if (strcmp(f->type, "object") == 0)
+      kind_str = "CDD_FIELD_KIND_OBJECT";
+    else if (strcmp(f->type, "array") == 0)
+      kind_str = "CDD_FIELD_KIND_ARRAY";
+
+    if (bw > 0) {
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "  { \"%s\", \"%s\", \"%s\", \"%s\", %s, 0, 0, 0, %u, %d, %d },\n",
+          f->name, wire_name, f->c_type, ref_out, kind_str, bw, f->required,
+          f->serde_skip));
+    } else if (strcmp(f->type, "array") == 0) {
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "  { \"%s\", \"%s\", \"%s\", \"%s\", %s, offsetof(struct %s, %s), "
+          "sizeof(((struct %s *)0)->%s), offsetof(struct %s, n_%s), 0, %d, %d "
+          "},\n",
+          f->name, wire_name, f->c_type, ref_out, kind_str, struct_name,
+          f->name, struct_name, f->name, struct_name, f->name, f->required,
+          f->serde_skip));
+    } else {
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "  { \"%s\", \"%s\", \"%s\", \"%s\", %s, offsetof(struct %s, %s), "
+          "sizeof(((struct %s *)0)->%s), 0, 0, %d, %d },\n",
+          f->name, wire_name, f->c_type, ref_out, kind_str, struct_name,
+          f->name, struct_name, f->name, f->required, f->serde_skip));
+    }
+  }
+  CHECK_IO(FPRINTF_HOOK(
+      fp,
+      "  { NULL, NULL, NULL, NULL, CDD_FIELD_KIND_UNKNOWN, 0, 0, 0, 0, 0, 0 "
+      "}\n"
+      "};\n"
+      "static const struct cdd_type_info %s_type_info_table = {\n"
+      "  \"%s\", sizeof(struct %s), %d, %s_fields, %lu\n"
+      "};\n"
+      "cdd_c_error_t %s_reflect(const struct cdd_type_info **out) {\n"
+      "  if (!out) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+      "  *out = &%s_type_info_table;\n"
+      "  return CDD_C_SUCCESS;\n"
+      "}\n",
+      struct_name, struct_name, struct_name, sf->is_union, struct_name,
+      (unsigned long)sf->size, struct_name, struct_name));
+
+  if (config && config->guard_macro)
+    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
+
+  return CDD_C_SUCCESS;
+}
+
+/*
+ * @brief Emits C11/C23 `_Generic` polymorphic reflection dispatch macros
+ * (`CDD_REFLECT`, `CDD_TO_JSON`, `CDD_CLEANUP`, `CDD_DEBUG`) for a set of
+ * struct names.
+ *
+ * @param[in] fp File pointer to write to.
+ * @param[in] struct_names Array of struct names.
+ * @param[in] n_structs Number of struct names in the array.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
+cdd_c_error_t
+write_struct_generic_dispatch_macros(FILE *fp, const char *const *struct_names,
+                                     size_t n_structs) {
+  size_t i;
+  if (!fp || !struct_names || n_structs == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L\n"
+          "#define CDD_REFLECT(ptr, out) _Generic((ptr), \\\n"));
+  for (i = 0; i < n_structs; ++i) {
+    if (struct_names[i][0] == '\0')
+      return CDD_C_ERROR_INVALID_ARGUMENT;
+    CHECK_IO(FPRINTF_HOOK(fp, "  const struct %s *: %s_reflect, \\\n",
+                          struct_names[i], struct_names[i]));
+    CHECK_IO(FPRINTF_HOOK(fp, "  struct %s *: %s_reflect%s \\\n",
+                          struct_names[i], struct_names[i],
+                          (i + 1 < n_structs) ? "," : ")(out)"));
+  }
+  CHECK_IO(
+      FPRINTF_HOOK(fp, "#define CDD_TO_JSON(ptr, out) _Generic((ptr), \\\n"));
+  for (i = 0; i < n_structs; ++i) {
+    CHECK_IO(FPRINTF_HOOK(fp, "  const struct %s *: %s_to_json, \\\n",
+                          struct_names[i], struct_names[i]));
+    CHECK_IO(FPRINTF_HOOK(fp, "  struct %s *: %s_to_json%s \\\n",
+                          struct_names[i], struct_names[i],
+                          (i + 1 < n_structs) ? "," : ")(ptr, out)"));
+  }
+  CHECK_IO(FPRINTF_HOOK(fp, "#define CDD_CLEANUP(ptr) _Generic((ptr), \\\n"));
+  for (i = 0; i < n_structs; ++i) {
+    CHECK_IO(FPRINTF_HOOK(fp, "  struct %s *: %s_cleanup%s \\\n",
+                          struct_names[i], struct_names[i],
+                          (i + 1 < n_structs) ? "," : ")(ptr)"));
+  }
+  CHECK_IO(FPRINTF_HOOK(fp, "#define CDD_DEBUG(ptr, fp) _Generic((ptr), \\\n"));
+  for (i = 0; i < n_structs; ++i) {
+    CHECK_IO(FPRINTF_HOOK(fp, "  const struct %s *: %s_debug, \\\n",
+                          struct_names[i], struct_names[i]));
+    CHECK_IO(FPRINTF_HOOK(fp, "  struct %s *: %s_debug%s \\\n", struct_names[i],
+                          struct_names[i],
+                          (i + 1 < n_structs) ? "," : ")(ptr, fp)"));
+  }
+  CHECK_IO(FPRINTF_HOOK(fp, "#endif /* __STDC_VERSION__ >= 201112L */\n"));
   return CDD_C_SUCCESS;
 }

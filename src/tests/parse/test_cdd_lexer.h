@@ -106,9 +106,7 @@ TEST test_cdd_lexer_errors(void) {
 TEST test_cdd_lexer_strings(void) {
   cdd_token_list_t *list = NULL;
   int rc = cdd_lexer_tokenize(
-      az_span_create_from_str((
-          char
-              *)(size_t)(size_t) "\"hello \\\" world\" 'a' \"line1\\\nline2\""),
+      az_span_create_from_str("\"hello \\\" world\" 'a' \"line1\\\nline2\""),
       &list);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(3, list->size);
@@ -529,26 +527,23 @@ TEST test_lexer_oom_injected(void) {
   int r1, r2, r3, r4;
 
   g_cdd_alloc_fail = 1;
-  r1 = cdd_lexer_tokenize(az_span_create((uint8_t *)(size_t) "// trivia", 9),
-                          &tl);
+  r1 = cdd_lexer_tokenize(az_span_create_from_str("// trivia"), &tl);
   g_cdd_alloc_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, r1);
 
   g_cdd_alloc_fail = 2;
-  r2 = cdd_lexer_tokenize(az_span_create((uint8_t *)(size_t) "   ", 3), &tl);
+  r2 = cdd_lexer_tokenize(az_span_create_from_str("   "), &tl);
   g_cdd_alloc_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, r2);
 
   g_cdd_alloc_fail = 3;
-  r3 = cdd_lexer_tokenize(az_span_create((uint8_t *)(size_t) "// trivia", 9),
-                          &tl);
+  r3 = cdd_lexer_tokenize(az_span_create_from_str("// trivia"), &tl);
   g_cdd_alloc_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, r3);
 
   /* Test cleanup of pending_trivia_head when second trivia allocation fails */
   g_cdd_alloc_fail = 4;
-  r4 = cdd_lexer_tokenize(
-      az_span_create((uint8_t *)(size_t) "/* c1 */  my_var", 16), &tl);
+  r4 = cdd_lexer_tokenize(az_span_create_from_str("/* c1 */  my_var"), &tl);
   g_cdd_alloc_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, r4);
 

@@ -64,7 +64,7 @@ TEST test_cli_parser_getopt(void) {
 
   {
     az_span span;
-    span = az_span_create((uint8_t *)(size_t)src, strlen(src));
+    span = az_span_create_from_str(src);
     rc = tokenize(span, &tokens);
     ASSERT_EQ(0, rc);
 
@@ -157,8 +157,7 @@ TEST test_cli_parser_getopt(void) {
       struct CstNodeList *nodes2 =
           (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
       struct CliCommand cmd2;
-      az_span span2 =
-          az_span_create((uint8_t *)(size_t)no_getopt, strlen(no_getopt));
+      az_span span2 = az_span_create_from_str(no_getopt);
       ASSERT_EQ(0, tokenize(span2, &tok2));
       ASSERT_EQ(0, parse_tokens(tok2, nodes2));
       ASSERT_EQ(CDD_C_SUCCESS, cst_extract_cli_command(nodes2, tok2, &cmd2));
@@ -175,8 +174,7 @@ TEST test_cli_parser_getopt(void) {
       struct CstNodeList *nodes3 =
           (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
       struct CliCommand cmd3;
-      az_span span3 = az_span_create((uint8_t *)(size_t)getopt_no_str,
-                                     strlen(getopt_no_str));
+      az_span span3 = az_span_create_from_str(getopt_no_str);
       ASSERT_EQ(0, tokenize(span3, &tok3));
       ASSERT_EQ(0, parse_tokens(tok3, nodes3));
       ASSERT_EQ(CDD_C_SUCCESS, cst_extract_cli_command(nodes3, tok3, &cmd3));
@@ -193,8 +191,7 @@ TEST test_cli_parser_getopt(void) {
       struct CstNodeList *nodes4 =
           (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
       struct CliCommand cmd4;
-      az_span span4 =
-          az_span_create((uint8_t *)(size_t)case_at_end, strlen(case_at_end));
+      az_span span4 = az_span_create_from_str(case_at_end);
       ASSERT_EQ(0, tokenize(span4, &tok4));
       ASSERT_EQ(CDD_C_SUCCESS, cst_extract_cli_command(nodes4, tok4, &cmd4));
       cli_command_free(&cmd4);
@@ -242,7 +239,7 @@ TEST test_cli_parser_mappings(void) {
       (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
   struct CliCommand cmd;
   struct StructFields sf;
-  az_span span = az_span_create((uint8_t *)(size_t)src, strlen(src));
+  az_span span = az_span_create_from_str(src);
 
   ASSERT_EQ(0, tokenize(span, &tokens));
   ASSERT_EQ(0, parse_tokens(tokens, nodes));
@@ -435,8 +432,7 @@ TEST test_cli_parser_mappings(void) {
       struct CstNodeList *nodes_c =
           (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
       struct CliCommand cmd_c;
-      az_span sp_c = az_span_create((uint8_t *)(size_t)complex_parts[p_idx],
-                                    strlen(complex_parts[p_idx]));
+      az_span sp_c = az_span_create_from_str(complex_parts[p_idx]);
       int k;
 
       ASSERT_EQ(0, tokenize(sp_c, &tok_c));
@@ -486,8 +482,7 @@ TEST test_cli_parser_mappings(void) {
       struct TokenList *tl = NULL;
       struct CstNodeList nl = {0};
       struct CliCommand cmd_e;
-      az_span sp = az_span_create((uint8_t *)(size_t)eof_cases[idx],
-                                  strlen(eof_cases[idx]));
+      az_span sp = az_span_create_from_str(eof_cases[idx]);
       ASSERT_EQ(0, tokenize(sp, &tl));
       ASSERT_EQ(CDD_C_SUCCESS, cst_extract_cli_command(&nl, tl, &cmd_e));
       cli_command_free(&cmd_e);

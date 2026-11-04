@@ -552,8 +552,7 @@ TEST test_pp_eval_all_branches(void) {
 
   /* Relational operators <=, >=, <, > */
   rc = tokenize(
-      az_span_create_from_str(
-          (char *)(size_t) "(1 <= 2) && (2 >= 1) && (1 < 2) && (2 > 1)"),
+      az_span_create_from_str("(1 <= 2) && (2 >= 1) && (1 < 2) && (2 > 1)"),
       &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
@@ -562,8 +561,7 @@ TEST test_pp_eval_all_branches(void) {
   free_token_list(tl);
 
   rc = tokenize(
-      az_span_create_from_str(
-          (char *)(size_t) "(2 <= 1) || (1 >= 2) || (2 < 1) || (1 > 2)"),
+      az_span_create_from_str("(2 <= 1) || (1 >= 2) || (2 < 1) || (1 > 2)"),
       &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);

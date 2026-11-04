@@ -28,6 +28,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdio.h>
 
+#include "c_cdd/reflect.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include "classes/emit/enum.h"
@@ -41,7 +42,7 @@ struct StructField {
   char name[64]; /**< Field identifier */
   char type[64]; /**< C or Logical Field type (e.g. "string", "integer",
                     "object") */
-  char ref[64];  /**< Reference type name (for objects/enums) or item type (for
+  char ref[256]; /**< Reference type name (for objects/enums) or item type (for
                     arrays) */
   char **type_union;       /**< Optional type array (e.g. ["string","null"]) */
   size_t n_type_union;     /**< Count of type_union entries */
@@ -147,6 +148,13 @@ struct StructField {
   size_t n_cli_required_unless; /**< Count of cli_required_unless */
   char cli_required_if_field[64]; /**< Conditional requirement target field */
   char cli_required_if_val[64];   /**< Conditional requirement trigger value */
+
+  /* Rich C Type & Enum Array Reflection Extensions */
+  int is_enum_array;       /**< Non-zero if array items reference an enum */
+  char enum_array_ref[64]; /**< Referenced enum name for enum arrays */
+  char c_type[64];         /**< Exact C type (e.g. "int64_t", "uint8_t") */
+  int is_nullable_ptr;     /**< Non-zero if primitive is a nullable pointer */
+  size_t fixed_array_len;  /**< Inline fixed C array length, or 0 if dynamic */
 };
 
 /**
@@ -436,6 +444,34 @@ extern C_CDD_EXPORT cdd_c_error_t write_struct_display_func(
  */
 extern C_CDD_EXPORT cdd_c_error_t get_type_from_ref(const char *ref,
                                                     const char **_out_val);
+
+/**
+ * @brief Emits runtime reflection descriptor tables (`struct cdd_field_info[]`
+ * and `struct cdd_type_info`) and `<struct_name>_reflect` accessor for a C
+ * struct.
+ *
+ * @param[in] fp File pointer to write to.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Fields descriptor.
+ * @param[in] config Optional configuration options.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t write_struct_reflect_func(
+    FILE *fp, const char *struct_name, const struct StructFields *sf,
+    const struct CodegenStructConfig *config);
+
+/**
+ * @brief Emits C11/C23 `_Generic` polymorphic reflection dispatch macros
+ * (`CDD_REFLECT`, `CDD_TO_JSON`, `CDD_CLEANUP`, `CDD_DEBUG`) for a set of
+ * struct names.
+ *
+ * @param[in] fp File pointer to write to.
+ * @param[in] struct_names Array of struct names.
+ * @param[in] n_structs Number of struct names in the array.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t write_struct_generic_dispatch_macros(
+    FILE *fp, const char *const *struct_names, size_t n_structs);
 
 #ifdef __cplusplus
 }

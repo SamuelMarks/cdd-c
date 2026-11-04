@@ -188,11 +188,9 @@ TEST test_gnu_standardizer_reach_100_percent_coverage(void) {
       g_cdd_alloc_fail = 0;
       cdd_cst_tree_free(tr_valid);
     }
-    if (cdd_cst_parse(
-            az_span_create_from_str((
-                char
-                    *)(size_t) "unsigned __int128 x = 18446744073709551616;\n"),
-            &tr_valid) == 0 &&
+    if (cdd_cst_parse(az_span_create_from_str(
+                          "unsigned __int128 x = 18446744073709551616;\n"),
+                      &tr_valid) == 0 &&
         tr_valid) {
       g_cdd_alloc_fail = 3;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tr_valid, &config));
@@ -902,8 +900,7 @@ TEST test_gnu_standardizer_final_branches(void) {
 
   /* 9. L1676: cast closed by RBRACE instead of RPAREN */
   if (cdd_cst_parse(
-          az_span_create_from_str(
-              (char *)(size_t) "void f(void) { int x; (int)x = 1; }\n"),
+          az_span_create_from_str("void f(void) { int x; (int)x = 1; }\n"),
           &tree) == 0 &&
       tree) {
     size_t ti;

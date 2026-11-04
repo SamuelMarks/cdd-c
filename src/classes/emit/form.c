@@ -235,11 +235,192 @@ write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
       fprintf(fp, "#endif\n");
       fprintf(fp, "    length += strlen(val);\n");
       fprintf(fp, "    is_first = 0;\n  }\n");
+    } else if (strcmp(f->type, "number") == 0) {
+      if (f->serde_skip_if_kind == CDD_SERDE_SKIP_IF_ZERO) {
+        fprintf(fp, "  if (obj->%s != 0.0) {\n", f->name);
+      } else {
+        fprintf(fp, "  {\n");
+      }
+      fprintf(fp, "    char buf[64];\n    size_t slen;\n");
+      fprintf(fp, "#if defined(_MSC_VER)\n");
+      fprintf(fp, "    sprintf_s(buf, sizeof(buf), \"%%g\", obj->%s);\n",
+              f->name);
+      fprintf(fp, "#else\n");
+      fprintf(fp,
+              "    spr"
+              "intf(buf, \"%%g\", obj->%s);\n",
+              f->name);
+      fprintf(fp, "#endif\n");
+      fprintf(fp, "    slen = strlen(buf) + %lu + 2;\n",
+              (unsigned long)strlen(kn));
+      fprintf(fp, "    if (length + slen + 1 > capacity) {\n");
+      fprintf(fp, "      char *tmp;\n");
+      fprintf(fp, "      capacity = (length + slen + 1) * 2;\n");
+      fprintf(fp, "      tmp = (char *)realloc(res, capacity);\n");
+      fprintf(fp,
+              "      if (!tmp) { free(res); return CDD_C_ERROR_MEMORY; }\n");
+      fprintf(fp, "      res = tmp;\n");
+      fprintf(fp, "    }\n");
+      fprintf(fp, "    if (!is_first) { res[length++] = '&'; res[length] = "
+                  "'\\0'; }\n");
+      fprintf(fp,
+              "    str"
+              "cpy(res + length, \"%s=\"); length += %lu;\n",
+              kn, (unsigned long)strlen(kn) + 1);
+      fprintf(fp, "    str"
+                  "cpy(res + length, buf); length += strlen(buf);\n");
+      fprintf(fp, "    is_first = 0;\n  }\n");
+    } else if (strcmp(f->type, "enum") == 0) {
+      const char *tn = NULL;
+      get_type_from_ref(f->ref, &tn);
+      fprintf(fp, "  {\n    const char *val = NULL;\n");
+      fprintf(fp,
+              "    if (%s_to_str(obj->%s, &val) == CDD_C_SUCCESS && val) "
+              "{\n",
+              tn, f->name);
+      fprintf(fp, "      size_t slen = strlen(val) + %lu + 2;\n",
+              (unsigned long)strlen(kn));
+      fprintf(fp, "      if (length + slen + 1 > capacity) {\n");
+      fprintf(fp, "        char *tmp;\n");
+      fprintf(fp, "        capacity = (length + slen + 1) * 2;\n");
+      fprintf(fp, "        tmp = (char *)realloc(res, capacity);\n");
+      fprintf(fp,
+              "        if (!tmp) { free(res); return CDD_C_ERROR_MEMORY; }\n");
+      fprintf(fp, "        res = tmp;\n");
+      fprintf(fp, "      }\n");
+      fprintf(fp, "      if (!is_first) { res[length++] = '&'; res[length] = "
+                  "'\\0'; }\n");
+      fprintf(fp,
+              "      str"
+              "cpy(res + length, \"%s=\"); length += %lu;\n",
+              kn, (unsigned long)strlen(kn) + 1);
+      fprintf(fp, "      str"
+                  "cpy(res + length, val); length += strlen(val);\n");
+      fprintf(fp, "      is_first = 0;\n    }\n  }\n");
+    } else if (strcmp(f->type, "object") == 0) {
+      const char *tn = NULL;
+      get_type_from_ref(f->ref, &tn);
+      fprintf(fp, "  if (obj->%s) {\n    char *sub = NULL;\n", f->name);
+      fprintf(fp,
+              "    if (%s_to_form_urlencoded(obj->%s, &sub) == CDD_C_SUCCESS "
+              "&& sub && sub[0]) {\n",
+              tn, f->name);
+      fprintf(fp, "      size_t slen = strlen(sub) + 2;\n");
+      fprintf(fp, "      if (length + slen + 1 > capacity) {\n");
+      fprintf(fp, "        char *tmp;\n");
+      fprintf(fp, "        capacity = (length + slen + 1) * 2;\n");
+      fprintf(fp, "        tmp = (char *)realloc(res, capacity);\n");
+      fprintf(fp, "        if (!tmp) { free(sub); free(res); return "
+                  "CDD_C_ERROR_MEMORY; }\n");
+      fprintf(fp, "        res = tmp;\n");
+      fprintf(fp, "      }\n");
+      fprintf(fp, "      if (!is_first) { res[length++] = '&'; res[length] = "
+                  "'\\0'; }\n");
+      fprintf(fp, "      str"
+                  "cpy(res + length, sub); length += strlen(sub);\n");
+      fprintf(fp, "      is_first = 0;\n    }\n    free(sub);\n  }\n");
     }
   }
 
   fprintf(fp, "  *out = res;\n");
   fprintf(fp, "  return CDD_C_SUCCESS;\n");
   fprintf(fp, "}\n");
+  return CDD_C_SUCCESS;
+}
+
+/*
+ * @brief Generates a C function to deserialize an
+ * `application/x-www-form-urlencoded` string into a struct.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the C struct.
+ * @param[in] sf Struct fields descriptor container.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+cdd_c_error_t
+write_struct_from_form_urlencoded_func(FILE *fp, const char *struct_name,
+                                       const struct StructFields *sf) {
+  size_t i;
+  if (!fp || !struct_name || !sf)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  if ((int)FPRINTF_HOOK(
+          fp,
+          "/**\n * @brief Autogenerated Form-to-Struct deserializer.\n */\n"
+          "cdd_c_error_t %s_from_form_urlencoded(const char *form_str, struct "
+          "%s **out) {\n",
+          struct_name, struct_name) < 0)
+    return CDD_C_ERROR_IO;
+  fprintf(fp,
+          "  struct %s *ret = NULL;\n"
+          "  const char *p;\n"
+          "  if (!form_str || !out) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+          "  ret = (struct %s *)calloc(1, sizeof(struct %s));\n"
+          "  if (!ret) return CDD_C_ERROR_MEMORY;\n",
+          struct_name, struct_name, struct_name);
+  fprintf(fp, "  p = form_str;\n"
+              "  while (*p) {\n"
+              "    const char *amp = strchr(p, '&');\n"
+              "    size_t pair_len = amp ? (size_t)(amp - p) : strlen(p);\n"
+              "    const char *eq = (const char *)memchr(p, '=', pair_len);\n");
+  fprintf(fp,
+          "    if (eq) {\n"
+          "      size_t klen = (size_t)(eq - p);\n"
+          "      size_t vlen = pair_len - klen - 1;\n"
+          "      char key[128];\n"
+          "      char *val = (char *)calloc(vlen + 1, 1);\n"
+          "      if (!val) { %s_cleanup(ret); return CDD_C_ERROR_MEMORY; }\n",
+          struct_name);
+  fprintf(fp, "      if (klen >= sizeof(key)) klen = sizeof(key) - 1;\n"
+              "      memcpy(key, p, klen);\n"
+              "      key[klen] = '\\0';\n"
+              "      memcpy(val, eq + 1, vlen);\n"
+              "      val[vlen] = '\\0';\n");
+
+  for (i = 0; i < sf->size; ++i) {
+    const struct StructField *f = &sf->fields[i];
+    char kn[128];
+    size_t a;
+    cdd_c_error_t rc;
+    if (f->read_only)
+      continue;
+    rc = cdd_serde_resolve_field_names(sf, i, NULL, 0, kn, sizeof(kn));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    fprintf(fp, "      if (strcmp(key, \"%s\") == 0", kn);
+    for (a = 0; a < f->n_serde_aliases; ++a) {
+      fprintf(fp, " || strcmp(key, \"%s\") == 0", f->serde_aliases[a]);
+    }
+    fprintf(fp, ") {\n");
+    if (strcmp(f->type, "string") == 0) {
+      fprintf(fp,
+              "        free(ret->%s);\n        ret->%s = val;\n        val "
+              "= NULL;\n",
+              f->name, f->name);
+    } else if (strcmp(f->type, "integer") == 0) {
+      fprintf(fp, "        ret->%s = atoi(val);\n", f->name);
+    } else if (strcmp(f->type, "number") == 0) {
+      fprintf(fp, "        ret->%s = atof(val);\n", f->name);
+    } else if (strcmp(f->type, "boolean") == 0) {
+      fprintf(fp,
+              "        ret->%s = (strcmp(val, \"true\") == 0 || strcmp(val, "
+              "\"1\") == 0) ? 1 : 0;\n",
+              f->name);
+    } else if (strcmp(f->type, "enum") == 0) {
+      const char *tn = NULL;
+      get_type_from_ref(f->ref, &tn);
+      fprintf(fp, "        %s_from_str(val, &ret->%s);\n", tn, f->name);
+    }
+    fprintf(fp, "      }\n");
+  }
+
+  fprintf(fp, "      free(val);\n"
+              "    }\n"
+              "    if (!amp) break;\n"
+              "    p = amp + 1;\n"
+              "  }\n"
+              "  *out = ret;\n"
+              "  return CDD_C_SUCCESS;\n"
+              "}\n");
   return CDD_C_SUCCESS;
 }

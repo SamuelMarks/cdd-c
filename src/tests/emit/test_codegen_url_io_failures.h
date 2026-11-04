@@ -178,6 +178,11 @@ TEST test_url_io_failure_branches(void) {
   rc = test_run_io_exhaustive_obj(fp, &p);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
+  p.schema.ref_name = cdd_test_mut_str("FilterStruct");
+  rc = test_run_io_exhaustive_obj(fp, &p);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  p.schema.ref_name = NULL;
+
   /* Object with name == NULL and style == OA_STYLE_UNKNOWN */
   p.name = NULL;
   p.style = OA_STYLE_UNKNOWN;

@@ -665,18 +665,34 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
     return CDD_C_SUCCESS;
   }
 
+  if (p->schema.ref_name) {
+    CHECK_IO(fprintf(fp,
+                     "  {\n"
+                     "    char *_form_q = NULL;\n"
+                     "    rc = %s_to_form_urlencoded(%s, &_form_q);\n"
+                     "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"
+                     "    if (_form_q) {\n"
+                     "      rc = url_query_add_encoded(&qp, \"%s\", _form_q);\n"
+                     "      free(_form_q);\n"
+                     "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"
+                     "    }\n"
+                     "  }\n",
+                     p->schema.ref_name, name, name));
+    return CDD_C_SUCCESS;
+  }
+
   CHECK_IO(fprintf(fp, "  {\n"));
-  CHECK_IO(fprintf(fp, "    /* Object serialization stub replaced with dynamic "
-                       "struct extraction */\n"));
-  CHECK_IO(fprintf(fp,
-                   "    /* Assuming object is passed as cJSON/parson or raw "
-                   "fields in %s */\n",
-                   name));
   CHECK_IO(fprintf(
       fp,
-      "    rc = CDD_C_ERROR_NOT_IMPLEMENTED; /* Proper struct introspection "
-      "requires reflection bindings generated via CodeGen Phase 3 */\n"));
-  CHECK_IO(fprintf(fp, "    goto cleanup;\n"));
+      "    size_t i;\n"
+      "    for (i = 0; i < %s_len; ++i) {\n"
+      "      const struct OpenAPI_KV *kv = &%s[i];\n"
+      "      if (kv->key && kv->type == OA_KV_STRING && kv->value.s) {\n"
+      "        rc = url_query_add(&qp, kv->key, kv->value.s);\n"
+      "        if (rc != CDD_C_SUCCESS) goto cleanup;\n"
+      "      }\n"
+      "    }\n",
+      name, name));
   CHECK_IO(fprintf(fp, "  }\n"));
   return CDD_C_SUCCESS;
 }

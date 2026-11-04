@@ -26,6 +26,16 @@ extern "C" {
 extern C_CDD_EXPORT cdd_c_error_t write_struct_to_form_urlencoded_func(
     FILE *fp, const char *struct_name, const struct StructFields *sf);
 
+/**
+ * @brief Writes a struct-from-form-urlencoded deserializer function.
+ * @param[in,out] fp Output file.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Struct fields list.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t write_struct_from_form_urlencoded_func(
+    FILE *fp, const char *struct_name, const struct StructFields *sf);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

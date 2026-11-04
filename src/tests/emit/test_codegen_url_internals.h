@@ -512,9 +512,16 @@ TEST test_url_write_query_and_path_object_serialization(void) {
   p.allow_reserved_set = 1;
   ASSERT_EQ(CDD_C_SUCCESS, write_query_object_param(fp, &p));
 
-  /* Unsupported object style */
+  /* Unsupported object style with and without schema.ref_name */
   p.style = OA_STYLE_MATRIX;
   ASSERT_EQ(CDD_C_SUCCESS, write_query_object_param(fp, &p));
+  p.schema.ref_name = cdd_test_mut_str("FilterStruct");
+  ASSERT_EQ(CDD_C_SUCCESS, write_query_object_param(fp, &p));
+  g_fail_io_after = 0;
+  g_io_calls = 0;
+  ASSERT_EQ(CDD_C_ERROR_IO, write_query_object_param(fp, &p));
+  g_fail_io_after = -1;
+  p.schema.ref_name = NULL;
 
   /* write_path_object_serialization */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,

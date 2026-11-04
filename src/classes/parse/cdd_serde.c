@@ -808,7 +808,6 @@ static cdd_c_error_t serde_parse_value(const char **p, const char *end,
   const char *cur = *p;
   size_t pos = 0;
   int paren_wrapped = 0;
-  (void)val_sz;
 
   while (cur < end && isspace((unsigned char)*cur))
     cur++;
@@ -853,6 +852,7 @@ static cdd_c_error_t serde_parse_value(const char **p, const char *end,
 
   out_val[pos] = '\0';
   *p = cur;
+  (void)val_sz;
   return CDD_C_SUCCESS;
 }
 
@@ -970,12 +970,18 @@ static cdd_c_error_t serde_find_directive_ex(const char *cur,
       *out_next = (*end == ')') ? end + 1 : end;
       return CDD_C_SUCCESS;
     }
-    if (strncmp(p, "#[", 2) == 0) {
+    if (strncmp(p, "#[", 2) == 0 || strncmp(p, "[[", 2) == 0) {
       size_t prefix_len = 0;
       int cli_attr = 0;
-      if (strncmp(p, "#[serde(", 8) == 0) {
+      if (strncmp(p, "#[serde(", 8) == 0 || strncmp(p, "[[serde(", 8) == 0) {
         prefix_len = 8;
         cli_attr = 0;
+      } else if (strncmp(p, "[[cdd(", 6) == 0) {
+        prefix_len = 6;
+        cli_attr = 0;
+      } else if (strncmp(p, "[[cli(", 6) == 0) {
+        prefix_len = 6;
+        cli_attr = 1;
       } else if (strncmp(p, "#[command(", 10) == 0) {
         prefix_len = 10;
         cli_attr = 1;
@@ -1056,6 +1062,11 @@ static cdd_c_error_t serde_next_key(const char **p, const char *end,
     *p = cur;
     serde_skip_delims(p, end);
     cur = *p;
+  }
+  if (strncmp(cur, "cdd::", 5) == 0 || strncmp(cur, "cli::", 5) == 0) {
+    cur += 5;
+  } else if (strncmp(cur, "serde::", 7) == 0) {
+    cur += 7;
   }
 
   while (cur < end &&
@@ -1909,12 +1920,21 @@ cdd_c_error_t cdd_serde_parse_field_comment(const char *comment_text,
         } else if (strcmp(key, "deserialize_with") == 0) {
           serde_copy_str(field->serde_deserialize_with,
                          sizeof(field->serde_deserialize_with), val);
+        } else if (strcmp(key, "c_type") == 0) {
+          serde_copy_str(field->c_type, sizeof(field->c_type), val);
+        } else if (strcmp(key, "nullable_ptr") == 0) {
+          serde_parse_bool_val(val, &bval);
+          field->is_nullable_ptr = bval;
+        } else if (strcmp(key, "fixed_array_len") == 0) {
+          field->fixed_array_len = (size_t)atoi(val);
         }
       } else {
         if (strcmp(key, "skip") == 0) {
           field->serde_skip = 1;
           field->serde_skip_serializing = 1;
           field->serde_skip_deserializing = 1;
+        } else if (strcmp(key, "nullable_ptr") == 0) {
+          field->is_nullable_ptr = 1;
         } else if (strcmp(key, "skip_serializing") == 0) {
           field->serde_skip_serializing = 1;
         } else if (strcmp(key, "skip_deserializing") == 0) {

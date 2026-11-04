@@ -489,8 +489,7 @@ TEST test_cdd_transform_safe_crt(void) {
                 {
                   const char *code11 = "void edge11() { scanf(\"%s\", 0); }";
                   cdd_cst_tree_t *tree11 = NULL;
-                  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((
-                                                 char *)(size_t)(size_t)code11),
+                  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code11),
                                              &tree11));
                   ASSERT_EQ(0, cdd_transform_safe_crt(tree11, &config));
                   cdd_cst_tree_free(tree11);

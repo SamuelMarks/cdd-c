@@ -129,8 +129,7 @@ TEST test_rewrite_body_all_branches(void) {
 
   /* 3. Assignment after RBRACE (line 278) */
   rc = tokenize(
-      az_span_create_from_str(
-          (char *)(size_t) "void f() { if (1) {} s=my_strdup(\"a\"); }"),
+      az_span_create_from_str("void f() { if (1) {} s=my_strdup(\"a\"); }"),
       &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
@@ -212,8 +211,7 @@ TEST test_rewrite_body_all_branches(void) {
 
   /* 6. Whitespace inside call args (line 344) */
   rc = tokenize(
-      az_span_create_from_str(
-          (char *)(size_t) "void f() { char *s = my_strdup( \"a\" ); }"),
+      az_span_create_from_str("void f() { char *s = my_strdup( \"a\" ); }"),
       &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
@@ -237,7 +235,7 @@ TEST test_rewrite_body_all_branches(void) {
   free_token_list(tl);
 
   /* 8. Return at EOF with void transform (lines 520, 523) */
-  rc = tokenize(az_span_create_from_str((cdd_test_mut_str("return"))), &tl);
+  rc = tokenize(az_span_create_from_str("return"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, NULL, 0, &t_void, &out_code);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -340,7 +338,7 @@ TEST test_rewrite_body_all_branches(void) {
   free_token_list(tl);
 
   /* 14. Void function with empty tokens (line 626) */
-  rc = tokenize(az_span_create_from_str((cdd_test_mut_str(""))), &tl);
+  rc = tokenize(az_span_create_from_str(""), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, NULL, 0, &t_void, &out_code);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -351,7 +349,7 @@ TEST test_rewrite_body_all_branches(void) {
   free_token_list(tl);
 
   /* 15. Void function with only closing brace (line 634) */
-  rc = tokenize(az_span_create_from_str((cdd_test_mut_str("}"))), &tl);
+  rc = tokenize(az_span_create_from_str("}"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = rewrite_body(tl, NULL, NULL, 0, &t_void, &out_code);
   ASSERT_EQ(CDD_C_SUCCESS, rc);

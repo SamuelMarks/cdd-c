@@ -913,9 +913,67 @@ TEST test_inspector_branch_coverage(void) {
     /* Function with callback parameter (multiple parens) */
     {
       struct FuncSigList sigs = {0};
-      ASSERT_EQ(CDD_C_SUCCESS, c_inspector_extract_signatures(
-                                   "void with_cb(int (*cb)(void)) {}", &sigs));
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          c_inspector_extract_signatures(
+              "/* doc */ int with_cb(const char *name, int (*cb)(void), int x) "
+              "{}",
+              &sigs));
+      ASSERT_EQ(1, sigs.size);
+      ASSERT_STR_EQ("int", sigs.items[0].return_type);
+      ASSERT_EQ(3, sigs.items[0].n_params);
+      ASSERT_STR_EQ("const char *", sigs.items[0].params[0].type);
+      ASSERT_STR_EQ("name", sigs.items[0].params[0].name);
+      ASSERT_STR_EQ("int", sigs.items[0].params[2].type);
+      ASSERT_STR_EQ("x", sigs.items[0].params[2].name);
       func_sig_list_free(&sigs);
+    }
+
+    /* Typedef struct/enum, multi-line brace, and inline comment delimiters */
+    fp = fopen(filename, "w");
+    fputs("typedef struct {\n"
+          "  int a; /* comment with ; and } inside */\n"
+          "  const char *s; /* \"quoted;}\" */\n"
+          "} AnonTypedefStruct;\n"
+          "typedef enum {\n"
+          "   E_ONE = 1, /* a, b, } */\n"
+          "   E_TWO = 2\n"
+          "} AnonTypedefEnum;\n"
+          "/** @cdd rename_all = \"camelCase\" */\n"
+          "struct MultiLineStruct\n"
+          "{\n"
+          "  int first_field;\n"
+          "};\n"
+          "/** @cdd rename_all = \"UPPERCASE\" */\n"
+          "enum MultiLineEnum\n"
+          "{\n"
+          "  ML_A,\n"
+          "  ML_B\n"
+          "};\n"
+          "enum{AnonE1};\n"
+          "struct{int x;};\n",
+          fp);
+    fclose(fp);
+    type_def_list_init(&types);
+    ASSERT_EQ(CDD_C_SUCCESS, c_inspector_scan_file_types(filename, &types));
+    ASSERT_EQ(4, types.size);
+    ASSERT_STR_EQ("AnonTypedefStruct", types.items[0].name);
+    ASSERT_EQ(2, types.items[0].details.struct_fields->size);
+    ASSERT_STR_EQ("AnonTypedefEnum", types.items[1].name);
+    ASSERT_EQ(2, types.items[1].details.enum_members->size);
+    ASSERT_STR_EQ("MultiLineStruct", types.items[2].name);
+    ASSERT_EQ(CDD_SERDE_CASE_CAMELCASE,
+              types.items[2].details.struct_fields->serde_rename_all);
+    ASSERT_STR_EQ("MultiLineEnum", types.items[3].name);
+    ASSERT_EQ(CDD_SERDE_CASE_UPPERCASE,
+              types.items[3].details.enum_members->serde_rename_all);
+    type_def_list_free(&types);
+    for (k = 1; k <= 30; ++k) {
+      g_cdd_alloc_fail = k;
+      type_def_list_init(&types);
+      c_inspector_scan_file_types(filename, &types);
+      g_cdd_alloc_fail = 0;
+      type_def_list_free(&types);
     }
 
     /* Long comments inside enum and struct (>2048 chars and >512 chars) */

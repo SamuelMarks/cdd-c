@@ -222,6 +222,64 @@ cdd_c_error_t c2s_json_object_to_struct_fields_internal_mut(
       f->is_cli_command = 1;
       CDD_STRCPY(f->cli_env_prefix, sizeof(f->cli_env_prefix), s_ext);
     }
+    s_ext = json_object_get_string(o, "x-cdd-cli-bin-name");
+    if (s_ext) {
+      f->is_cli_command = 1;
+      CDD_STRCPY(f->cli_bin_name, sizeof(f->cli_bin_name), s_ext);
+    }
+    s_ext = json_object_get_string(o, "x-cdd-cli-long-about");
+    if (s_ext) {
+      f->is_cli_command = 1;
+      c_cdd_strdup(s_ext, &f->cli_long_about);
+    }
+    s_ext = json_object_get_string(o, "x-cdd-cli-before-help");
+    if (s_ext) {
+      f->is_cli_command = 1;
+      c_cdd_strdup(s_ext, &f->cli_before_help);
+    }
+    s_ext = json_object_get_string(o, "x-cdd-cli-after-help");
+    if (s_ext) {
+      f->is_cli_command = 1;
+      c_cdd_strdup(s_ext, &f->cli_after_help);
+    }
+    s_ext = json_object_get_string(o, "x-cdd-cli-usage-override");
+    if (s_ext) {
+      f->is_cli_command = 1;
+      CDD_STRCPY(f->cli_usage_override, sizeof(f->cli_usage_override), s_ext);
+    }
+    s_ext = json_object_get_string(o, "x-cdd-cli-rename-all-env");
+    if (s_ext)
+      cdd_serde_parse_case_rule(s_ext, &f->cli_rename_all_env);
+    if (json_object_get_boolean(o, "x-cdd-cli-arg-required-else-help") == 1)
+      f->cli_arg_required_else_help = 1;
+    if (json_object_get_boolean(o, "x-cdd-cli-subcommand-required") == 1)
+      f->cli_subcommand_required = 1;
+    if (json_object_get_boolean(o, "x-cdd-cli-allow-external-subcommands") == 1)
+      f->cli_allow_external_subcommands = 1;
+    if (json_object_get_boolean(o, "x-cdd-cli-disable-help-flag") == 1)
+      f->cli_disable_help_flag = 1;
+    if (json_object_get_boolean(o, "x-cdd-cli-disable-version-flag") == 1)
+      f->cli_disable_version_flag = 1;
+    if (json_object_get_boolean(o, "x-cdd-cli-disable-help-subcommand") == 1)
+      f->cli_disable_help_subcommand = 1;
+    if (json_object_get_boolean(o, "x-cdd-cli-propagate-version") == 1)
+      f->cli_propagate_version = 1;
+    if (json_object_get_boolean(o, "x-cdd-cli-allow-windows-slash-flags") == 1)
+      f->cli_allow_windows_slash_flags = 1;
+    if (json_object_get_boolean(o, "x-cdd-cli-allow-response-files") == 1)
+      f->cli_allow_response_files = 1;
+    if (json_object_get_boolean(o, "x-cdd-cli-case-insensitive-flags") == 1)
+      f->cli_case_insensitive_flags = 1;
+    {
+      const JSON_Array *ca_arr = json_object_get_array(o, "x-cdd-cli-aliases");
+      if (ca_arr) {
+        size_t ca_i, ca_cnt = json_array_get_count(ca_arr);
+        for (ca_i = 0; ca_i < ca_cnt; ++ca_i) {
+          const char *ca_s = json_array_get_string(ca_arr, ca_i);
+          struct_fields_add_cli_alias(f, ca_s);
+        }
+      }
+    }
   }
 
   {
@@ -279,6 +337,48 @@ cdd_c_error_t c2s_json_object_to_struct_fields_internal_mut(
             if (strcmp(f->enum_members.members[oi], other_name) == 0) {
               f->enum_members.serde_other_idx = (int)oi;
               break;
+            }
+          }
+        }
+        {
+          const JSON_Object *ea_obj =
+              json_object_get_object(o, "x-cdd-enum-aliases");
+          const JSON_Object *ed_obj =
+              json_object_get_object(o, "x-cdd-enum-cli-descriptions");
+          const JSON_Array *eh_arr =
+              json_object_get_array(o, "x-cdd-enum-cli-hidden");
+          size_t ei;
+          if (ea_obj) {
+            for (ei = 0; ei < f->enum_members.size; ++ei) {
+              const JSON_Array *va =
+                  json_object_get_array(ea_obj, f->enum_members.members[ei]);
+              if (va) {
+                size_t ai, ac = json_array_get_count(va);
+                for (ai = 0; ai < ac; ++ai) {
+                  enum_member_add_alias(&f->enum_members, ei,
+                                        json_array_get_string(va, ai));
+                }
+              }
+            }
+          }
+          if (ed_obj) {
+            for (ei = 0; ei < f->enum_members.size; ++ei) {
+              const char *desc =
+                  json_object_get_string(ed_obj, f->enum_members.members[ei]);
+              int hid = 0;
+              if (eh_arr) {
+                size_t hi, hc = json_array_get_count(eh_arr);
+                for (hi = 0; hi < hc; ++hi) {
+                  const char *hs = json_array_get_string(eh_arr, hi);
+                  if (strcmp(hs, f->enum_members.members[ei]) == 0) {
+                    hid = 1;
+                    break;
+                  }
+                }
+              }
+              if (desc || hid) {
+                enum_member_set_cli_meta(&f->enum_members, ei, desc, hid);
+              }
             }
           }
         }
@@ -383,6 +483,7 @@ cdd_c_error_t c2s_json_object_to_struct_fields_internal_mut(
         char **items_type_union = NULL;
         size_t n_items_type_union = 0;
         const char *item_ref = json_object_get_string(items, "$ref");
+        const char *saved_enum_ref = NULL;
         if (item_ref && root) {
           int is_enum = 0;
           cdd_c_error_t rc_c2s =
@@ -390,7 +491,7 @@ cdd_c_error_t c2s_json_object_to_struct_fields_internal_mut(
           if (rc_c2s != CDD_C_SUCCESS)
             return rc_c2s;
           if (is_enum) {
-            /* Enum arrays are not strongly typed yet; treat as string arrays */
+            saved_enum_ref = item_ref;
             item_ref = NULL;
             item_type = "string";
           }
@@ -419,6 +520,12 @@ cdd_c_error_t c2s_json_object_to_struct_fields_internal_mut(
         }
         field = &f->fields[f->size - 1];
         field_added = 1;
+        if (saved_enum_ref) {
+          const char *er = NULL;
+          field->is_enum_array = 1;
+          get_type_from_ref(saved_enum_ref, &er);
+          CDD_STRCPY(field->enum_array_ref, sizeof(field->enum_array_ref), er);
+        }
         field->type_union = type_union;
         field->n_type_union = n_type_union;
         type_union = NULL;
@@ -731,6 +838,15 @@ cdd_c_error_t c2s_json_object_to_struct_fields_internal_mut(
       if (f_ext)
         CDD_STRCPY(field->serde_deserialize_with,
                    sizeof(field->serde_deserialize_with), f_ext);
+      f_ext = json_object_get_string(prop, "x-c-type");
+      if (f_ext)
+        CDD_STRCPY(field->c_type, sizeof(field->c_type), f_ext);
+      if (json_object_get_boolean(prop, "x-c-nullable-ptr") == 1)
+        field->is_nullable_ptr = 1;
+      if (json_object_has_value_of_type(prop, "x-c-fixed-array-len",
+                                        JSONNumber))
+        field->fixed_array_len =
+            (size_t)json_object_get_number(prop, "x-c-fixed-array-len");
 
       /* Load property-level CLI reflection extensions */
       f_ext = json_object_get_string(prop, "x-cdd-cli-short");
@@ -793,6 +909,89 @@ cdd_c_error_t c2s_json_object_to_struct_fields_internal_mut(
             cdd_c_error_t rc_rq = struct_field_add_cli_requires(field, al_s);
             if (rc_rq != CDD_C_SUCCESS)
               return rc_rq;
+          }
+        }
+      }
+      f_ext = json_object_get_string(prop, "x-cdd-cli-short-aliases");
+      if (f_ext)
+        CDD_STRCPY(field->cli_short_aliases, sizeof(field->cli_short_aliases),
+                   f_ext);
+      if (json_object_get_boolean(prop, "x-cdd-cli-last") == 1)
+        field->cli_last = 1;
+      if (json_object_get_boolean(prop, "x-cdd-cli-trailing-var-arg") == 1)
+        field->cli_trailing_var_arg = 1;
+      f_ext = json_object_get_string(prop, "x-cdd-cli-long-help");
+      if (f_ext)
+        c_cdd_strdup(f_ext, &field->cli_long_help);
+      f_ext = json_object_get_string(prop, "x-cdd-cli-help-heading");
+      if (f_ext)
+        CDD_STRCPY(field->cli_help_heading, sizeof(field->cli_help_heading),
+                   f_ext);
+      if (json_object_get_boolean(prop, "x-cdd-cli-hide-env") == 1)
+        field->cli_hide_env = 1;
+      if (json_object_get_boolean(prop, "x-cdd-cli-hide-env-values") == 1)
+        field->cli_hide_env_values = 1;
+      f_ext = json_object_get_string(prop, "x-cdd-cli-default-missing-val");
+      if (f_ext)
+        CDD_STRCPY(field->cli_default_missing_val,
+                   sizeof(field->cli_default_missing_val), f_ext);
+      if (json_object_get_boolean(prop, "x-cdd-cli-hide-default-value") == 1)
+        field->cli_hide_default_value = 1;
+      f_ext = json_object_get_string(prop, "x-cdd-cli-value-hint");
+      if (f_ext)
+        cdd_cli_parse_value_hint(f_ext, &field->cli_value_hint);
+      if (json_object_has_value_of_type(prop, "x-cdd-cli-num-args-min",
+                                        JSONNumber))
+        field->cli_num_args_min =
+            (int)json_object_get_number(prop, "x-cdd-cli-num-args-min");
+      if (json_object_has_value_of_type(prop, "x-cdd-cli-num-args-max",
+                                        JSONNumber))
+        field->cli_num_args_max =
+            (int)json_object_get_number(prop, "x-cdd-cli-num-args-max");
+      if (json_object_get_boolean(prop, "x-cdd-cli-require-equals") == 1)
+        field->cli_require_equals = 1;
+      if (json_object_get_boolean(prop, "x-cdd-cli-allow-hyphen-values") == 1)
+        field->cli_allow_hyphen_values = 1;
+      if (json_object_get_boolean(prop, "x-cdd-cli-global") == 1)
+        field->cli_global = 1;
+      if (json_object_get_boolean(prop, "x-cdd-cli-hidden") == 1)
+        field->cli_hidden = 1;
+      if (json_object_get_boolean(prop, "x-cdd-cli-exclusive") == 1)
+        field->cli_exclusive = 1;
+      f_ext = json_object_get_string(prop, "x-cdd-cli-value-parser");
+      if (f_ext)
+        CDD_STRCPY(field->cli_value_parser, sizeof(field->cli_value_parser),
+                   f_ext);
+      f_ext = json_object_get_string(prop, "x-cdd-cli-group");
+      if (f_ext)
+        CDD_STRCPY(field->cli_group, sizeof(field->cli_group), f_ext);
+      f_ext = json_object_get_string(prop, "x-cdd-cli-required-if-field");
+      if (f_ext) {
+        const char *f_val =
+            json_object_get_string(prop, "x-cdd-cli-required-if-val");
+        CDD_STRCPY(field->cli_required_if_field,
+                   sizeof(field->cli_required_if_field), f_ext);
+        CDD_STRCPY(field->cli_required_if_val,
+                   sizeof(field->cli_required_if_val), f_val);
+      }
+      al_arr = json_object_get_array(prop, "x-cdd-cli-required-unless");
+      if (al_arr) {
+        size_t a_idx, a_cnt = json_array_get_count(al_arr);
+        for (a_idx = 0; a_idx < a_cnt; ++a_idx) {
+          struct_field_add_cli_required_unless(
+              field, json_array_get_string(al_arr, a_idx));
+        }
+      }
+      if (field->serde_flatten && root) {
+        const JSON_Object *flat_target = NULL;
+        resolve_schema_ref_object(root, field->ref, &flat_target);
+        if (flat_target) {
+          const JSON_Object *flat_props =
+              json_object_get_object(flat_target, "properties");
+          size_t fp_i, fp_cnt = json_object_get_count(flat_props);
+          for (fp_i = 0; fp_i < fp_cnt; ++fp_i) {
+            struct_field_add_alias(field,
+                                   json_object_get_name(flat_props, fp_i));
           }
         }
       }

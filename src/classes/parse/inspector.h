@@ -63,6 +63,14 @@ struct TypeDefList {
 };
 
 /**
+ * @brief Reflected parameter descriptor for a C function signature.
+ */
+struct FuncParamReflection {
+  char type[64]; /**< Parameter C type (e.g., "int", "const char *") */
+  char name[64]; /**< Parameter identifier (e.g., "x") */
+};
+
+/**
  * @brief Represents a function signature extracted from source code.
  */
 struct FuncSignature {
@@ -70,6 +78,9 @@ struct FuncSignature {
   char *sig;  /**< Full signature string (e.g., "int my_func(int x)") */
   char *doc; /**< Optional docstring / Doxygen comment preceding the function */
   int is_variadic; /**< True if the function takes variable arguments (...) */
+  char return_type[64]; /**< Extracted return type (e.g., "int", "void") */
+  struct FuncParamReflection params[16]; /**< Extracted parameter descriptors */
+  size_t n_params;                       /**< Number of extracted parameters */
 };
 
 /**

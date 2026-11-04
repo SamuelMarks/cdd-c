@@ -46,7 +46,7 @@ static cdd_c_error_t helper_generate_patches(const char *src,
     memset(patches, 0, sizeof(*patches));
   *out_nodes = (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
   *out_tokens = NULL;
-  span = az_span_create((uint8_t *)(size_t)src, strlen(src));
+  span = az_span_create_from_str(src);
   rc = tokenize(span, out_tokens);
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -144,7 +144,7 @@ TEST test_safe_crt_add_patch_unit(void) {
 TEST test_safe_crt_extract_token_text_unit(void) {
   const char *src = "int x;";
   struct TokenList *tokens = NULL;
-  az_span span = az_span_create((uint8_t *)(size_t)src, strlen(src));
+  az_span span = az_span_create_from_str(src);
   char *out = NULL;
 
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(span, &tokens));
@@ -198,8 +198,7 @@ TEST test_safe_crt_direct_patch_generators_invalid(void) {
   {
     const char *empty_src = "void f() {}";
     struct TokenList *tl = NULL;
-    az_span sp =
-        az_span_create((uint8_t *)(size_t)empty_src, strlen(empty_src));
+    az_span sp = az_span_create_from_str(empty_src);
     safe_crt_patch_list_init(&patches);
     ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
     ASSERT_EQ(CDD_C_SUCCESS,
@@ -499,7 +498,7 @@ TEST test_safe_crt_short_nodes(void) {
   struct SafeCrtPatchList patches;
   struct CstNode n;
   const char *src = "int x;";
-  az_span span = az_span_create((uint8_t *)(size_t)src, strlen(src));
+  az_span span = az_span_create_from_str(src);
 
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(span, &tokens));
   memset(&nodes, 0, sizeof(nodes));
@@ -539,81 +538,81 @@ TEST test_safe_crt_direct_branches(void) {
   safe_crt_patch_list_init(&patches);
 
   /* strcpy direct */
-  sp = az_span_create((uint8_t *)(size_t) "strcpy, (a, b);", 15);
+  sp = az_span_create_from_str("strcpy, (a, b);");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_strcpy_patch(tl, 0, tl->size, &patches));
   free_token_list(tl);
 
-  sp = az_span_create((uint8_t *)(size_t) "strcpy(a, b;", 12);
+  sp = az_span_create_from_str("strcpy(a, b;");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_strcpy_patch(tl, 0, tl->size, &patches));
   free_token_list(tl);
 
   /* fopen: comma before lparen */
-  sp = az_span_create((uint8_t *)(size_t) "fopen, (a, b);", 14);
+  sp = az_span_create_from_str("fopen, (a, b);");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_fopen_patch(tl, 0, tl->size, &patches));
   free_token_list(tl);
 
   /* fopen: missing rparen */
-  sp = az_span_create((uint8_t *)(size_t) "f = fopen(a, b;", 15);
+  sp = az_span_create_from_str("f = fopen(a, b;");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_fopen_patch(tl, 4, tl->size, &patches));
   free_token_list(tl);
 
   /* fopen: backward search stops at rbrace before finding = */
-  sp = az_span_create((uint8_t *)(size_t) "; } fopen(a, b);", 16);
+  sp = az_span_create_from_str("; } fopen(a, b);");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_fopen_patch(tl, 4, tl->size, &patches));
   free_token_list(tl);
 
   /* fopen: no id before assign, stops at lbrace */
-  sp = az_span_create((uint8_t *)(size_t) "{ = fopen(a, b);", 16);
+  sp = az_span_create_from_str("{ = fopen(a, b);");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_fopen_patch(tl, 4, tl->size, &patches));
   free_token_list(tl);
 
   /* fopen: no id before assign, stops at rbrace */
-  sp = az_span_create((uint8_t *)(size_t) "} = fopen(a, b);", 16);
+  sp = az_span_create_from_str("} = fopen(a, b);");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_fopen_patch(tl, 4, tl->size, &patches));
   free_token_list(tl);
 
   /* fopen: id_idx loop terminates on 0 with literal int */
-  sp = az_span_create((uint8_t *)(size_t) "1 = fopen(a, b);", 16);
+  sp = az_span_create_from_str("1 = fopen(a, b);");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_fopen_patch(tl, 4, tl->size, &patches));
   free_token_list(tl);
 
   /* strncpy direct */
-  sp = az_span_create((uint8_t *)(size_t) "strncpy, (a, b, c);", 19);
+  sp = az_span_create_from_str("strncpy, (a, b, c);");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_strncpy_patch(tl, 0, tl->size, &patches));
   free_token_list(tl);
 
-  sp = az_span_create((uint8_t *)(size_t) "strncpy(a, b, c;", 16);
+  sp = az_span_create_from_str("strncpy(a, b, c;");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_strncpy_patch(tl, 0, tl->size, &patches));
   free_token_list(tl);
 
   /* sprintf direct */
-  sp = az_span_create((uint8_t *)(size_t) "sprintf, (a, b);", 16);
+  sp = az_span_create_from_str("sprintf, (a, b);");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_sprintf_patch(tl, 0, tl->size, &patches));
   free_token_list(tl);
 
-  sp = az_span_create((uint8_t *)(size_t) "CDD_SNPRINTF(a, b;", 18);
+  sp = az_span_create_from_str("CDD_SNPRINTF(a, b;");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_sprintf_patch(tl, 0, tl->size, &patches));
@@ -666,7 +665,7 @@ TEST test_safe_crt_oom(void) {
   }
 
   nodes = (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
-  span = az_span_create((uint8_t *)(size_t)src, strlen(src));
+  span = az_span_create_from_str(src);
   rc = tokenize(span, &tokens);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = parse_tokens(tokens, nodes);

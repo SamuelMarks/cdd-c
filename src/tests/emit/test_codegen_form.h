@@ -106,9 +106,35 @@ TEST test_form_generation_basic(void) {
         f4.write_only = 1;
         sf.fields[sf.size++] = f4;
       }
+      struct_fields_add(&sf, "score", "number", NULL, NULL, NULL);
+      sf.fields[sf.size - 1].serde_skip_if_kind = CDD_SERDE_SKIP_IF_ZERO;
+      struct_fields_add(&sf, "price", "number", NULL, NULL, NULL);
+      struct_fields_add(&sf, "status", "enum", "#/components/schemas/Status",
+                        NULL, NULL);
+      struct_field_add_alias(&sf.fields[sf.size - 1], "stat");
+      struct_fields_add(&sf, "extra", "object", "#/components/schemas/Extra",
+                        NULL, NULL);
+      sf.fields[sf.size - 1].serde_flatten = 1;
+      struct_fields_add(&sf, "count", "integer", NULL, NULL, NULL);
+      struct_fields_add(&sf, "ro_field", "string", NULL, NULL, NULL);
+      sf.fields[sf.size - 1].read_only = 1;
+      struct_fields_add(&sf, "tags", "array", "string", NULL, NULL);
     }
 
     ASSERT_EQ(0, write_struct_to_form_urlencoded_func(tmp, "AuthRequest", &sf));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_struct_from_form_urlencoded_func(NULL, "Form", &sf));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_struct_from_form_urlencoded_func(tmp, NULL, &sf));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_struct_from_form_urlencoded_func(tmp, "Form", NULL));
+    ASSERT_EQ(0,
+              write_struct_from_form_urlencoded_func(tmp, "AuthRequest", &sf));
+    g_fail_io_after = 0;
+    g_io_calls = 0;
+    ASSERT_EQ(CDD_C_ERROR_IO,
+              write_struct_from_form_urlencoded_func(tmp, "AuthRequest", &sf));
+    g_fail_io_after = -1;
 
     {
       struct StructFields sf_bad;
@@ -123,6 +149,9 @@ TEST test_form_generation_basic(void) {
       sf_bad.fields[sf_bad.size++] = f_bad;
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
                 write_struct_to_form_urlencoded_func(tmp, "BadForm", &sf_bad));
+      ASSERT_EQ(
+          CDD_C_ERROR_INVALID_ARGUMENT,
+          write_struct_from_form_urlencoded_func(tmp, "BadForm", &sf_bad));
       struct_fields_free(&sf_bad);
     }
 

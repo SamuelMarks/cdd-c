@@ -991,6 +991,43 @@ TEST test_json_serde_exhaustive(void) {
     }
     g_fail_io_after = -1;
     struct_fields_free(&sf_rc);
+
+    /* 8. Required fields, container serde_default, and flatten aliases in
+     * deny_unknown_fields */
+    struct_fields_init(&sf_rc);
+    sf_rc.serde_deny_unknown_fields = 1;
+    struct_fields_add(&sf_rc, "req_plain", "integer", NULL, NULL, NULL);
+    sf_rc.fields[0].required = 1;
+    struct_fields_add(&sf_rc, "req_al", "string", NULL, NULL, NULL);
+    sf_rc.fields[1].required = 1;
+    struct_field_add_alias(&sf_rc.fields[1], "req_alias1");
+    struct_fields_add(&sf_rc, "req_def", "integer", NULL, "5", NULL);
+    sf_rc.fields[2].required = 1;
+    sf_rc.fields[2].serde_has_default = 1;
+    struct_fields_add(&sf_rc, "req_fn", "integer", NULL, NULL, NULL);
+    sf_rc.fields[3].required = 1;
+    CDD_STRCPY(sf_rc.fields[3].serde_default_fn,
+               sizeof(sf_rc.fields[3].serde_default_fn), "def_req_fn");
+    struct_fields_add(&sf_rc, "flat_al", "object", "#/definitions/FlatSub",
+                      NULL, NULL);
+    sf_rc.fields[4].serde_flatten = 1;
+    struct_field_add_alias(&sf_rc.fields[4], "flat_child_key");
+    for (i = 0; i < 60; ++i) {
+      cdd_c_error_t rc_io;
+      g_fail_io_after = i;
+      g_io_calls = 0;
+      rc_io = write_struct_from_jsonObject_func(tmp, "S8", &sf_rc, NULL);
+      if (rc_io == CDD_C_SUCCESS) {
+        g_fail_io_after = -1;
+        break;
+      }
+      ASSERT_EQ(CDD_C_ERROR_IO, rc_io);
+    }
+    g_fail_io_after = -1;
+    sf_rc.serde_default = 1;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              write_struct_from_jsonObject_func(tmp, "S8Def", &sf_rc, NULL));
+    struct_fields_free(&sf_rc);
   }
 
   fclose(tmp);
