@@ -230,6 +230,13 @@ cdd_c_error_t parse_struct_member_line(const char *line,
   {
     const char *final_type = "string";
     const char *final_ref = NULL;
+    size_t fixed_arr_len = 0;
+    char *lbrack = strchr(name, '[');
+
+    if (lbrack && !is_fam) {
+      fixed_arr_len = (size_t)atoi(lbrack + 1);
+      *lbrack = '\0';
+    }
 
     if (mapping.kind == OA_TYPE_PRIMITIVE) {
       final_type = mapping.oa_type;
@@ -253,6 +260,13 @@ cdd_c_error_t parse_struct_member_line(const char *line,
       struct StructField *field = &sf->fields[sf->size - 1];
       if (is_fam) {
         field->is_flexible_array = 1;
+      }
+      if (fixed_arr_len > 0) {
+        field->fixed_array_len = fixed_arr_len;
+        CDD_SNPRINTF(field->c_type, sizeof(field->c_type), "%s[%lu]", type_raw,
+                     (unsigned long)fixed_arr_len);
+      } else {
+        CDD_STRCPY(field->c_type, sizeof(field->c_type), type_raw);
       }
 
       if (serde_comments[0] != '\0') {
@@ -631,6 +645,9 @@ cdd_c_error_t c2s_collapse_arrays(struct StructFields *sf) {
               af->cli_exclusive = 1;
             if (nf->cli_subcommand)
               af->cli_subcommand = 1;
+            af->cli_skip |= nf->cli_skip;
+            af->cli_skip_to_cli |= nf->cli_skip_to_cli;
+            af->cli_skip_from_cli |= nf->cli_skip_from_cli;
             if (nf->cli_value_parser[0] && !af->cli_value_parser[0])
               CDD_STRCPY(af->cli_value_parser, sizeof(af->cli_value_parser),
                          nf->cli_value_parser);

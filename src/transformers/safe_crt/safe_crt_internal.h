@@ -88,7 +88,22 @@ extern C_CDD_EXPORT cdd_cst_tree_t *safe_crt_current_tree;
 #define current_tree safe_crt_current_tree
 
 #ifdef CDD_BUILD_TESTS
+/** @brief Fault injection counter for Safe CRT malloc calls */
 extern C_CDD_EXPORT int g_safe_crt_malloc_fail;
+/** @brief Fault injection counter for Safe CRT rule emission calls */
+extern C_CDD_EXPORT int g_mock_safe_crt_rules_fail;
+
+/**
+ * @brief Checks and decrements the test fault injection counter for Safe CRT
+ * rules.
+ *
+ * @param[in] current Current error status code.
+ * @return CDD_C_ERROR_UNKNOWN when fault triggers, otherwise @p current.
+ */
+C_CDD_EXPORT cdd_c_error_t safe_crt_check_mock_fail(cdd_c_error_t current);
+#else
+/** @brief Pass-through macro when test fault injection is disabled */
+#define safe_crt_check_mock_fail(x) (x)
 #endif
 
 /**
@@ -242,6 +257,162 @@ C_CDD_EXPORT cdd_c_error_t emit_inferred_size(cdd_cst_builder_t *bld,
  */
 C_CDD_EXPORT cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
                                         int is_msc, int *out_changes);
+
+/**
+ * @brief Emits Safe CRT string, memory, and buffer size rules (categories 1, 2,
+ * 6, 9).
+ *
+ * @param[in] node Call expression AST node.
+ * @param[in,out] bld CST builder.
+ * @param[in] is_msc Non-zero if targeting MSC Safe CRT.
+ * @param[in] is_safe Safe CRT category code (1, 2, 6, or 9).
+ * @param[in,out] changes Pointer to accumulated change count.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t emit_safe_crt_str_basic(expr_t *node,
+                                                   cdd_cst_builder_t *bld,
+                                                   int is_msc, int is_safe,
+                                                   int *changes);
+
+/**
+ * @brief Emits Safe CRT qsort/bsearch and strtok/wcstok/_mbstok rules
+ * (categories 25, 29).
+ *
+ * @param[in] node Call expression AST node.
+ * @param[in,out] bld CST builder.
+ * @param[in] is_msc Non-zero if targeting MSC Safe CRT.
+ * @param[in] is_safe Safe CRT category code (25 or 29).
+ * @param[in] name Function identifier name.
+ * @param[in,out] ctx MSC emission context.
+ * @param[in,out] changes Pointer to accumulated change count.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t emit_safe_crt_search_tok(
+    expr_t *node, cdd_cst_builder_t *bld, int is_msc, int is_safe,
+    const char *name, emit_ctx_t *ctx, int *changes);
+
+/**
+ * @brief Emits Safe CRT snprintf/vsnprintf rules (category 3).
+ *
+ * @param[in] node Call expression AST node.
+ * @param[in,out] bld CST builder.
+ * @param[in] is_msc Non-zero if targeting MSC Safe CRT.
+ * @param[in,out] changes Pointer to accumulated change count.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t emit_safe_crt_snprintf(expr_t *node,
+                                                  cdd_cst_builder_t *bld,
+                                                  int is_msc, int *changes);
+
+/**
+ * @brief Emits Safe CRT scanf/fscanf/sscanf rules (category 7).
+ *
+ * @param[in] node Call expression AST node.
+ * @param[in,out] bld CST builder.
+ * @param[in] is_msc Non-zero if targeting MSC Safe CRT.
+ * @param[in] name Function identifier name.
+ * @param[in,out] changes Pointer to accumulated change count.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t emit_safe_crt_scanf(expr_t *node,
+                                               cdd_cst_builder_t *bld,
+                                               int is_msc, const char *name,
+                                               int *changes);
+
+/**
+ * @brief Emits Safe CRT fopen/freopen/_wfopen/tmpfile assignment rules (node
+ * type 3).
+ *
+ * @param[in] node Assignment expression AST node of type 3.
+ * @param[in,out] bld CST builder.
+ * @param[in] is_msc Non-zero if targeting MSC Safe CRT.
+ * @param[in,out] changes Pointer to accumulated change count.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t emit_safe_crt_fopen(expr_t *node,
+                                               cdd_cst_builder_t *bld,
+                                               int is_msc, int *changes);
+
+/**
+ * @brief Emits Safe CRT _itoa/_ltoa/_ultoa/_itow rules (category 8).
+ *
+ * @param[in] node Call expression AST node.
+ * @param[in,out] bld CST builder.
+ * @param[in] is_msc Non-zero if targeting MSC Safe CRT.
+ * @param[in,out] changes Pointer to accumulated change count.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t emit_safe_crt_itoa(expr_t *node,
+                                              cdd_cst_builder_t *bld,
+                                              int is_msc, int *changes);
+
+/**
+ * @brief Emits Safe CRT _gcvt, mbstowcs/wcstombs, and wctomb rules (categories
+ * 19, 20, 21).
+ *
+ * @param[in] node Call expression AST node.
+ * @param[in,out] bld CST builder.
+ * @param[in] is_msc Non-zero if targeting MSC Safe CRT.
+ * @param[in] is_safe Safe CRT category code (19, 20, or 21).
+ * @param[in] name Function identifier name.
+ * @param[in,out] changes Pointer to accumulated change count.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t emit_safe_crt_gcvt_mbs(expr_t *node,
+                                                  cdd_cst_builder_t *bld,
+                                                  int is_msc, int is_safe,
+                                                  const char *name,
+                                                  int *changes);
+
+/**
+ * @brief Emits Safe CRT strerror/_wcserror/_ecvt/_fcvt rules (categories 26,
+ * 27, 28).
+ *
+ * @param[in] node Call expression AST node.
+ * @param[in,out] bld CST builder.
+ * @param[in] is_msc Non-zero if targeting MSC Safe CRT.
+ * @param[in] is_safe Safe CRT category code (26, 27, or 28).
+ * @param[in] name Function identifier name.
+ * @param[in,out] ctx MSC emission context.
+ * @param[in,out] changes Pointer to accumulated change count.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t emit_safe_crt_err_fcvt(
+    expr_t *node, cdd_cst_builder_t *bld, int is_msc, int is_safe,
+    const char *name, emit_ctx_t *ctx, int *changes);
+
+/**
+ * @brief Emits Safe CRT _splitpath/_makepath rules (categories 10, 11).
+ *
+ * @param[in] node Call expression AST node.
+ * @param[in,out] bld CST builder.
+ * @param[in] is_msc Non-zero if targeting MSC Safe CRT.
+ * @param[in] is_safe Safe CRT category code (10 or 11).
+ * @param[in,out] changes Pointer to accumulated change count.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t emit_safe_crt_path(expr_t *node,
+                                              cdd_cst_builder_t *bld,
+                                              int is_msc, int is_safe,
+                                              int *changes);
+
+/**
+ * @brief Emits Safe CRT _searchenv, getenv, and _putenv rules (categories 22,
+ * 23, 24).
+ *
+ * @param[in] node Call expression AST node.
+ * @param[in,out] bld CST builder.
+ * @param[in] is_msc Non-zero if targeting MSC Safe CRT.
+ * @param[in] is_safe Safe CRT category code (22, 23, or 24).
+ * @param[in] name Function identifier name.
+ * @param[in,out] ctx MSC emission context.
+ * @param[in,out] changes Pointer to accumulated change count.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t emit_safe_crt_env(expr_t *node,
+                                             cdd_cst_builder_t *bld, int is_msc,
+                                             int is_safe, const char *name,
+                                             emit_ctx_t *ctx, int *changes);
 
 /**
  * @brief Extracts the indentation string from a token's leading trivia.

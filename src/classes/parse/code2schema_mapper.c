@@ -94,7 +94,10 @@ static const char *k_property_skip_keys[] = {"type",
                                              "x-cdd-cli-delimiter",
                                              "x-cdd-cli-subcommand",
                                              "x-cdd-cli-conflicts-with",
-                                             "x-cdd-cli-requires"};
+                                             "x-cdd-cli-requires",
+                                             "x-cdd-cli-skip",
+                                             "x-cdd-cli-skip-to",
+                                             "x-cdd-cli-skip-from"};
 
 /** @brief Keys skipped when collecting extra array items schema fields */
 static const char *k_items_skip_keys[] = {"type", "$ref"};
@@ -958,6 +961,15 @@ cdd_c_error_t c2s_json_object_to_struct_fields_internal_mut(
         field->cli_hidden = 1;
       if (json_object_get_boolean(prop, "x-cdd-cli-exclusive") == 1)
         field->cli_exclusive = 1;
+      if (json_object_get_boolean(prop, "x-cdd-cli-skip") == 1) {
+        field->cli_skip = 1;
+        field->cli_skip_to_cli = 1;
+        field->cli_skip_from_cli = 1;
+      }
+      if (json_object_get_boolean(prop, "x-cdd-cli-skip-to") == 1)
+        field->cli_skip_to_cli = 1;
+      if (json_object_get_boolean(prop, "x-cdd-cli-skip-from") == 1)
+        field->cli_skip_from_cli = 1;
       f_ext = json_object_get_string(prop, "x-cdd-cli-value-parser");
       if (f_ext)
         CDD_STRCPY(field->cli_value_parser, sizeof(field->cli_value_parser),

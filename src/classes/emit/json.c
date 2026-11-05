@@ -122,13 +122,19 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
       has_skip_if = 1;
     } else if (f->serde_skip_if_kind == CDD_SERDE_SKIP_IF_EMPTY) {
       if (strcmp(t, "string") == 0) {
-        CHECK_IO(FPRINTF_HOOK(
-            fp, "  if (obj->%s != NULL && obj->%s[0] != '\\0') {\n", n, n));
+        if (f->fixed_array_len > 0) {
+          CHECK_IO(FPRINTF_HOOK(fp, "  if (obj->%s[0] != '\\0') {\n", n));
+        } else {
+          CHECK_IO(FPRINTF_HOOK(
+              fp, "  if (obj->%s != NULL && obj->%s[0] != '\\0') {\n", n, n));
+        }
         has_skip_if = 1;
       } else if (strcmp(t, "array") == 0) {
-        CHECK_IO(FPRINTF_HOOK(fp, "  if (obj->%s != NULL && obj->n_%s > 0) {\n",
-                              n, n));
-        has_skip_if = 1;
+        if (f->fixed_array_len == 0) {
+          CHECK_IO(FPRINTF_HOOK(
+              fp, "  if (obj->%s != NULL && obj->n_%s > 0) {\n", n, n));
+          has_skip_if = 1;
+        }
       } else {
         CHECK_IO(FPRINTF_HOOK(fp, "  if (obj->%s != NULL) {\n", n));
         has_skip_if = 1;
@@ -223,15 +229,23 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
                             "\"true\" : \"false\");\n",
                             kn, n));
     } else if (strcmp(t, "string") == 0) {
-      CHECK_IO(FPRINTF_HOOK(
-          fp,
-          "  if (obj->%s) rc = c89stringutils_jasprintf(json, \"\\\"%s\\\": "
-          "\\\"%%s\\\"\", obj->%s);\n",
-          n, kn, n));
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "  else rc = c89stringutils_jasprintf(json, "
-                            "\"\\\"%s\\\": null\");\n",
-                            kn));
+      if (f->fixed_array_len > 0) {
+        CHECK_IO(
+            FPRINTF_HOOK(fp,
+                         "  rc = c89stringutils_jasprintf(json, \"\\\"%s\\\": "
+                         "\\\"%%s\\\"\", obj->%s);\n",
+                         kn, n));
+      } else {
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "  if (obj->%s) rc = c89stringutils_jasprintf(json, \"\\\"%s\\\": "
+            "\\\"%%s\\\"\", obj->%s);\n",
+            n, kn, n));
+        CHECK_IO(FPRINTF_HOOK(fp,
+                              "  else rc = c89stringutils_jasprintf(json, "
+                              "\"\\\"%s\\\": null\");\n",
+                              kn));
+      }
     } else if (strcmp(t, "object") == 0) {
       /* Recursive call */
       CHECK_IO(FPRINTF_HOOK(fp, "  if (obj->%s) {\n", n));
@@ -280,7 +294,12 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
           kn));
       CHECK_IO(FPRINTF_HOOK(
           fp, "  if (rc < 0 || *json==NULL) return CDD_C_ERROR_MEMORY;\n"));
-      CHECK_IO(FPRINTF_HOOK(fp, "  for (i=0; i < obj->n_%s; ++i) {\n", n));
+      if (f->fixed_array_len > 0) {
+        CHECK_IO(FPRINTF_HOOK(fp, "  for (i=0; i < %lu; ++i) {\n",
+                              (unsigned long)f->fixed_array_len));
+      } else {
+        CHECK_IO(FPRINTF_HOOK(fp, "  for (i=0; i < obj->n_%s; ++i) {\n", n));
+      }
       /* Loop Body handling type */
       if (strcmp(r, "integer") == 0) {
         CHECK_IO(FPRINTF_HOOK(
@@ -312,12 +331,21 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
       }
       CHECK_IO(FPRINTF_HOOK(
           fp, "    if (rc < 0 || *json==NULL) return CDD_C_ERROR_MEMORY;\n"));
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "    if (i+1 < obj->n_%s) { "
-                            "rc = c89stringutils_jasprintf(json, \",\"); "
-                            "if (rc < 0 || *json==NULL) return "
-                            "CDD_C_ERROR_MEMORY; }\n",
-                            n));
+      if (f->fixed_array_len > 0) {
+        CHECK_IO(FPRINTF_HOOK(fp,
+                              "    if (i+1 < %lu) { "
+                              "rc = c89stringutils_jasprintf(json, \",\"); "
+                              "if (rc < 0 || *json==NULL) return "
+                              "CDD_C_ERROR_MEMORY; }\n",
+                              (unsigned long)f->fixed_array_len));
+      } else {
+        CHECK_IO(FPRINTF_HOOK(fp,
+                              "    if (i+1 < obj->n_%s) { "
+                              "rc = c89stringutils_jasprintf(json, \",\"); "
+                              "if (rc < 0 || *json==NULL) return "
+                              "CDD_C_ERROR_MEMORY; }\n",
+                              n));
+      }
       CHECK_IO(FPRINTF_HOOK(fp, "  }\n"));
       CHECK_IO(
           FPRINTF_HOOK(fp, "  rc = c89stringutils_jasprintf(json, \"]\");\n"));
@@ -571,18 +599,35 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
 
     if (f->read_only || f->serde_skip || f->serde_skip_deserializing) {
       if (f->serde_default_fn[0] != '\0') {
-        CHECK_IO(FPRINTF_HOOK(fp,
-                              "  rc = %s(&ret->%s);\n"
-                              "  if (rc) { %s_cleanup(ret); return rc; }\n",
-                              f->serde_default_fn, n, struct_name));
+        if (f->bit_width[0] != '\0') {
+          CHECK_IO(FPRINTF_HOOK(fp,
+                                "  { int _bf_tmp = 0; rc = %s(&_bf_tmp);\n"
+                                "    if (rc) { %s_cleanup(ret); return rc; }\n"
+                                "    ret->%s = _bf_tmp; }\n",
+                                f->serde_default_fn, struct_name, n));
+        } else {
+          CHECK_IO(FPRINTF_HOOK(fp,
+                                "  rc = %s(&ret->%s);\n"
+                                "  if (rc) { %s_cleanup(ret); return rc; }\n",
+                                f->serde_default_fn, n, struct_name));
+        }
       } else if (f->default_val[0] != '\0') {
         if (strcmp(t, "string") == 0) {
-          CHECK_IO(FPRINTF_HOOK(
-              fp,
-              "  ret->%s = strdup(\"%s\");\n"
-              "  if (!ret->%s) { %s_cleanup(ret); return CDD_C_ERROR_MEMORY; "
-              "}\n",
-              n, f->default_val, n, struct_name));
+          if (f->fixed_array_len > 0) {
+            unsigned long cap = (unsigned long)f->fixed_array_len;
+            CHECK_IO(FPRINTF_HOOK(fp,
+                                  "  strncpy(ret->%s, \"%s\", %lu);\n"
+                                  "  ret->%s[%lu] = '\\0';\n",
+                                  n, f->default_val, cap > 0 ? cap - 1 : 0, n,
+                                  cap > 0 ? cap - 1 : 0));
+          } else {
+            CHECK_IO(FPRINTF_HOOK(
+                fp,
+                "  ret->%s = strdup(\"%s\");\n"
+                "  if (!ret->%s) { %s_cleanup(ret); return CDD_C_ERROR_MEMORY; "
+                "}\n",
+                n, f->default_val, n, struct_name));
+          }
         } else {
           CHECK_IO(FPRINTF_HOOK(fp, "  ret->%s = %s;\n", n, f->default_val));
         }
@@ -633,10 +678,19 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
         CDD_SNPRINTF(fn_buf, sizeof(fn_buf), "%s_from_jsonObject",
                      f->serde_with);
       }
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "  rc = %s(jsonObject, \"%s\", &ret->%s);\n"
-                            "  if (rc) { %s_cleanup(ret); return rc; }\n",
-                            fn_buf, kn, n, struct_name));
+      if (f->bit_width[0] != '\0') {
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "  { int _bf_tmp = 0; rc = %s(jsonObject, \"%s\", &_bf_tmp);\n"
+            "    if (rc) { %s_cleanup(ret); return rc; }\n"
+            "    ret->%s = _bf_tmp; }\n",
+            fn_buf, kn, struct_name, n));
+      } else {
+        CHECK_IO(FPRINTF_HOOK(fp,
+                              "  rc = %s(jsonObject, \"%s\", &ret->%s);\n"
+                              "  if (rc) { %s_cleanup(ret); return rc; }\n",
+                              fn_buf, kn, n, struct_name));
+      }
       continue;
     }
 
@@ -662,11 +716,19 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
               f->serde_aliases[a], n, f->serde_aliases[a]));
         }
         if (f->serde_default_fn[0] != '\0') {
-          CHECK_IO(FPRINTF_HOOK(
-              fp,
-              "  else { rc = %s(&ret->%s); if (rc) { %s_cleanup(ret); return "
-              "rc; } }\n",
-              f->serde_default_fn, n, struct_name));
+          if (f->bit_width[0] != '\0') {
+            CHECK_IO(FPRINTF_HOOK(
+                fp,
+                "  else { int _bf_tmp = 0; rc = %s(&_bf_tmp); if (rc) { "
+                "%s_cleanup(ret); return rc; } ret->%s = _bf_tmp; }\n",
+                f->serde_default_fn, struct_name, n));
+          } else {
+            CHECK_IO(FPRINTF_HOOK(
+                fp,
+                "  else { rc = %s(&ret->%s); if (rc) { %s_cleanup(ret); return "
+                "rc; } }\n",
+                f->serde_default_fn, n, struct_name));
+          }
         } else if (f->default_val[0] != '\0') {
           CHECK_IO(
               FPRINTF_HOOK(fp, "  else ret->%s = %s;\n", n, f->default_val));
@@ -778,11 +840,19 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
               f->serde_aliases[a], n, f->serde_aliases[a]));
         }
         if (f->serde_default_fn[0] != '\0') {
-          CHECK_IO(FPRINTF_HOOK(
-              fp,
-              "  else { rc = %s(&ret->%s); if (rc) { %s_cleanup(ret); return "
-              "rc; } }\n",
-              f->serde_default_fn, n, struct_name));
+          if (f->bit_width[0] != '\0') {
+            CHECK_IO(FPRINTF_HOOK(
+                fp,
+                "  else { int _bf_tmp = 0; rc = %s(&_bf_tmp); if (rc) { "
+                "%s_cleanup(ret); return rc; } ret->%s = _bf_tmp; }\n",
+                f->serde_default_fn, struct_name, n));
+          } else {
+            CHECK_IO(FPRINTF_HOOK(
+                fp,
+                "  else { rc = %s(&ret->%s); if (rc) { %s_cleanup(ret); return "
+                "rc; } }\n",
+                f->serde_default_fn, n, struct_name));
+          }
         } else if (f->default_val[0] != '\0') {
           CHECK_IO(
               FPRINTF_HOOK(fp, "  else ret->%s = %s;\n", n, f->default_val));
@@ -803,11 +873,20 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
         CHECK_IO(FPRINTF_HOOK(fp, "    if (!s) s = \"%s\";\n", f->default_val));
       }
       CHECK_IO(FPRINTF_HOOK(fp, "    if (s) {\n"));
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "      ret->%s = strdup(s);\n"
-                            "      if (!ret->%s) { %s_cleanup(ret); return "
-                            "CDD_C_ERROR_MEMORY; }\n",
-                            n, n, struct_name));
+      if (f->fixed_array_len > 0) {
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "      if (strlen(s) >= %lu) { %s_cleanup(ret); return "
+            "CDD_C_ERROR_INVALID_ARGUMENT; }\n"
+            "      memcpy(ret->%s, s, strlen(s) + 1);\n",
+            (unsigned long)f->fixed_array_len, struct_name, n));
+      } else {
+        CHECK_IO(FPRINTF_HOOK(fp,
+                              "      ret->%s = strdup(s);\n"
+                              "      if (!ret->%s) { %s_cleanup(ret); return "
+                              "CDD_C_ERROR_MEMORY; }\n",
+                              n, n, struct_name));
+      }
       if (f->has_min_len || f->has_max_len || f->pattern[0]) {
         CHECK_IO(FPRINTF_HOOK(fp, "      len = strlen(ret->%s);\n", n));
         if (f->has_min_len)
@@ -930,12 +1009,23 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
         if (rc_ref != CDD_C_SUCCESS) {
           return rc_ref;
         }
-        io_rc =
-            FPRINTF_HOOK(fp, "      rc = %s_from_str(s, &ret->%s);\n", tn, n);
-        CHECK_IO(io_rc);
+        if (f->bit_width[0] != '\0') {
+          io_rc = FPRINTF_HOOK(
+              fp,
+              "      { enum %s _bf_tmp; rc = %s_from_str(s, &_bf_tmp);\n"
+              "        if (rc) { %s_cleanup(ret); return rc; }\n"
+              "        ret->%s = _bf_tmp; }\n",
+              tn, tn, struct_name, n);
+          CHECK_IO(io_rc);
+        } else {
+          io_rc =
+              FPRINTF_HOOK(fp, "      rc = %s_from_str(s, &ret->%s);\n", tn, n);
+          CHECK_IO(io_rc);
+          CHECK_IO(FPRINTF_HOOK(
+              fp, "      if (rc) { %s_cleanup(ret); return rc; }\n",
+              struct_name));
+        }
       }
-      CHECK_IO(FPRINTF_HOOK(
-          fp, "      if (rc) { %s_cleanup(ret); return rc; }\n", struct_name));
       CHECK_IO(FPRINTF_HOOK(fp, "    }\n  }\n"));
     } else if (strcmp(t, "array") == 0) {
       size_t a;
@@ -948,6 +1038,43 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
             f->serde_aliases[a]));
       }
       CHECK_IO(FPRINTF_HOOK(fp, "  if (arr) {\n"));
+      if (f->fixed_array_len > 0) {
+        unsigned long flen = (unsigned long)f->fixed_array_len;
+        CHECK_IO(FPRINTF_HOOK(fp,
+                              "    size_t _cnt = json_array_get_count(arr);\n"
+                              "    if (_cnt > %lu) _cnt = %lu;\n"
+                              "    for (i = 0; i < _cnt; ++i) {\n",
+                              flen, flen));
+        if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0) {
+          CHECK_IO(FPRINTF_HOOK(
+              fp, "      ret->%s[i] = (int)json_array_get_number(arr, i);\n",
+              n));
+        } else if (strcmp(r, "number") == 0) {
+          CHECK_IO(FPRINTF_HOOK(
+              fp, "      ret->%s[i] = json_array_get_number(arr, i);\n", n));
+        } else if (strcmp(r, "string") == 0) {
+          CHECK_IO(FPRINTF_HOOK(
+              fp,
+              "      const char *_es = json_array_get_string(arr, i);\n"
+              "      if (_es) {\n"
+              "        ret->%s[i] = strdup(_es);\n"
+              "        if (!ret->%s[i]) { %s_cleanup(ret); return "
+              "CDD_C_ERROR_MEMORY; }\n"
+              "      }\n",
+              n, n, struct_name));
+        } else {
+          const char *tn = NULL;
+          get_type_from_ref(r, &tn);
+          CHECK_IO(FPRINTF_HOOK(
+              fp,
+              "      rc = %s_from_jsonObject(json_array_get_object(arr, i), "
+              "&ret->%s[i]);\n"
+              "      if (rc) { %s_cleanup(ret); return rc; }\n",
+              tn, n, struct_name));
+        }
+        CHECK_IO(FPRINTF_HOOK(fp, "    }\n  }\n"));
+        continue;
+      }
       CHECK_IO(
           FPRINTF_HOOK(fp, "    ret->n_%s = json_array_get_count(arr);\n", n));
       CHECK_IO(FPRINTF_HOOK(fp, "    if (ret->n_%s > 0) {\n", n));

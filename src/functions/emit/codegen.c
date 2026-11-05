@@ -176,6 +176,11 @@ cdd_c_error_t write_enum_declaration_h(FILE *hfile, const char *enum_name,
   CHECK_IO(fprintf(hfile,
                    "extern LIB_EXPORT int %s_to_str(enum %s, char **);\n",
                    enum_name, enum_name));
+  CHECK_IO(fprintf(hfile, "struct cdd_enum_info;\n"));
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT cdd_c_error_t %s_reflect(const struct "
+                   "cdd_enum_info **);\n",
+                   enum_name));
   if (config && config->enum_guard) {
     CHECK_IO(fprintf(hfile, "#endif\n"));
   }
@@ -313,6 +318,11 @@ cdd_c_error_t write_union_declaration_h(FILE *hfile, const char *union_name,
   CHECK_IO(fprintf(hfile,
                    "extern LIB_EXPORT cdd_c_error_t %s_cleanup(struct %s *);\n",
                    union_name, union_name));
+  CHECK_IO(fprintf(hfile, "struct cdd_type_info;\n"));
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT cdd_c_error_t %s_reflect(const struct "
+                   "cdd_type_info **);\n",
+                   union_name));
   if (config && config->utils_guard) {
     CHECK_IO(fprintf(hfile, "#endif\n"));
   }
@@ -343,7 +353,8 @@ static cdd_c_error_t emit_field_serde_comment(FILE *hfile,
        field->cli_help[0] != '\0' || field->cli_action != CDD_CLI_ACTION_AUTO ||
        field->cli_value_delimiter != '\0' || field->n_cli_conflicts_with > 0 ||
        field->n_cli_requires > 0 || field->cli_subcommand ||
-       field->cli_negatable);
+       field->cli_negatable || field->cli_skip || field->cli_skip_to_cli ||
+       field->cli_skip_from_cli);
 
   if (field->serde_rename[0] == '\0' && field->serde_rename_ser[0] == '\0' &&
       field->serde_rename_de[0] == '\0' &&
@@ -510,6 +521,19 @@ static cdd_c_error_t emit_field_serde_comment(FILE *hfile,
     if (field->cli_subcommand) {
       CHECK_IO(fprintf(hfile, "%ssubcommand", c_first ? "" : ", "));
       c_first = 0;
+    }
+    if (field->cli_skip) {
+      CHECK_IO(fprintf(hfile, "%sskip", c_first ? "" : ", "));
+      c_first = 0;
+    } else {
+      if (field->cli_skip_to_cli) {
+        CHECK_IO(fprintf(hfile, "%sskip_to_cli", c_first ? "" : ", "));
+        c_first = 0;
+      }
+      if (field->cli_skip_from_cli) {
+        CHECK_IO(fprintf(hfile, "%sskip_from_cli", c_first ? "" : ", "));
+        c_first = 0;
+      }
     }
     for (a_idx = 0; a_idx < field->n_cli_conflicts_with; ++a_idx) {
       cdd_escape_comment_str(field->cli_conflicts_with[a_idx], esc1,
@@ -693,10 +717,27 @@ cdd_c_error_t write_struct_declaration_h(FILE *hfile, const char *struct_name,
     cdd_c_error_t rc_cmt;
 
     if (strcmp(t, "array") == 0) {
-      CHECK_IO(fprintf(hfile, "  size_t n_%s;\n", n));
+      if (field->fixed_array_len == 0) {
+        CHECK_IO(fprintf(hfile, "  size_t n_%s;\n", n));
+      }
       rc_cmt = emit_field_serde_comment(hfile, field);
       if (rc_cmt != CDD_C_SUCCESS)
         return rc_cmt;
+      if (field->fixed_array_len > 0) {
+        unsigned long flen = (unsigned long)field->fixed_array_len;
+        if (strcmp(r, "string") == 0) {
+          CHECK_IO(fprintf(hfile, "  char *%s[%lu];\n", n, flen));
+        } else if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0) {
+          CHECK_IO(fprintf(hfile, "  int %s[%lu];\n", n, flen));
+        } else if (strcmp(r, "number") == 0) {
+          CHECK_IO(fprintf(hfile, "  double %s[%lu];\n", n, flen));
+        } else {
+          get_type_from_ref(r, &ref_type);
+          CHECK_IO(
+              fprintf(hfile, "  struct %s *%s[%lu];\n", ref_type, n, flen));
+        }
+        continue;
+      }
       if (strcmp(r, "string") == 0) {
         CHECK_IO(fprintf(hfile, "  char **%s;\n", n));
       } else if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0) {
@@ -717,13 +758,26 @@ cdd_c_error_t write_struct_declaration_h(FILE *hfile, const char *struct_name,
       return rc_cmt;
 
     if (strcmp(t, "string") == 0) {
-      CHECK_IO(fprintf(hfile, "  const char *%s;\n", n));
+      if (field->fixed_array_len > 0) {
+        CHECK_IO(fprintf(hfile, "  char %s[%lu];\n", n,
+                         (unsigned long)field->fixed_array_len));
+      } else {
+        CHECK_IO(fprintf(hfile, "  const char *%s;\n", n));
+      }
     } else if (strcmp(t, "integer") == 0) {
-      CHECK_IO(fprintf(hfile, "  int %s;\n", n));
+      if (field->bit_width[0] != '\0') {
+        CHECK_IO(fprintf(hfile, "  int %s : %s;\n", n, field->bit_width));
+      } else {
+        CHECK_IO(fprintf(hfile, "  int %s;\n", n));
+      }
     } else if (strcmp(t, "number") == 0) {
       CHECK_IO(fprintf(hfile, "  double %s;\n", n));
     } else if (strcmp(t, "boolean") == 0) {
-      CHECK_IO(fprintf(hfile, "  int %s;\n", n));
+      if (field->bit_width[0] != '\0') {
+        CHECK_IO(fprintf(hfile, "  int %s : %s;\n", n, field->bit_width));
+      } else {
+        CHECK_IO(fprintf(hfile, "  int %s;\n", n));
+      }
     } else if (strcmp(t, "enum") == 0) {
       rc_ref = get_type_from_ref(r, &ref_type);
       if (rc_ref != CDD_C_SUCCESS)
@@ -796,6 +850,11 @@ cdd_c_error_t write_struct_declaration_h(FILE *hfile, const char *struct_name,
       "extern LIB_EXPORT cdd_c_error_t %s_to_jsonObject(const struct %s *, "
       "struct json_object_t **);\n",
       struct_name, struct_name));
+  CHECK_IO(fprintf(hfile, "struct cdd_type_info;\n"));
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT cdd_c_error_t %s_reflect(const struct "
+                   "cdd_type_info **);\n",
+                   struct_name));
   if (config && config->utils_guard) {
     CHECK_IO(fprintf(hfile, "#endif\n"));
   }

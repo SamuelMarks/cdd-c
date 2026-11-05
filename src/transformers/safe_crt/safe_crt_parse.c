@@ -32,6 +32,7 @@ C_CDD_EXPORT cdd_c_error_t parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
                                           expr_t **out_expr) {
   expr_t *head = NULL;
   expr_t *tail = NULL;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!out_expr)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_expr = NULL;
@@ -48,7 +49,8 @@ C_CDD_EXPORT cdd_c_error_t parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
     if (t->kind == CDD_TOKEN_COMMA && stop_at_comma)
       break;
 
-    if (arena_alloc(sizeof(expr_t), (void **)&node) != 0) {
+    rc = arena_alloc(sizeof(expr_t), (void **)&node);
+    if (rc != CDD_C_SUCCESS) {
       break;
     }
     memset(node, 0, sizeof(expr_t));
@@ -70,11 +72,11 @@ C_CDD_EXPORT cdd_c_error_t parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
         }
         old_idx = *idx;
         if (node->num_args < 16) {
-          parse_expr_ast(stmt, idx, 1, &node->args[node->num_args++]);
+          rc = parse_expr_ast(stmt, idx, 1, &node->args[node->num_args++]);
         } else {
           {
             expr_t *tmp_expr = NULL;
-            parse_expr_ast(stmt, idx, 1, &tmp_expr);
+            rc = parse_expr_ast(stmt, idx, 1, &tmp_expr);
           }
         }
         if (*idx == old_idx) {
@@ -96,7 +98,7 @@ C_CDD_EXPORT cdd_c_error_t parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
                                           : CDD_TOKEN_RBRACE;
       node->type = 2;
       (*idx)++;
-      parse_expr_ast(stmt, idx, 0, &node->args[0]);
+      rc = parse_expr_ast(stmt, idx, 0, &node->args[0]);
       if (*idx < stmt->num_children &&
           stmt->children[*idx].val.token->kind == closing) {
         node->close_tok = stmt->children[*idx].val.token;
@@ -115,7 +117,7 @@ C_CDD_EXPORT cdd_c_error_t parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
     }
   }
   *out_expr = head;
-  return head ? 0 : ENOENT;
+  return head ? CDD_C_SUCCESS : (cdd_c_error_t)ENOENT;
 }
 
 /**
@@ -127,7 +129,9 @@ C_CDD_EXPORT cdd_c_error_t parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
  * @return CDD_C_SUCCESS on success or error code.
  */
 #ifdef CDD_BUILD_TESTS
+/** @brief Fault injection flag for find_and_mark_fopen */
 C_CDD_EXPORT int g_mock_find_and_mark_fopen_fail = 0;
+/** @brief Fault injection flag for check_unsupported_calls */
 C_CDD_EXPORT int g_mock_check_unsupported_calls_fail = 0;
 #endif
 
@@ -136,6 +140,7 @@ C_CDD_EXPORT cdd_c_error_t find_and_mark_fopen(expr_t *head, int *out_found) {
   expr_t *lhs_start = head;
   int found = 0;
   size_t i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 #ifdef CDD_BUILD_TESTS
   if (g_mock_find_and_mark_fopen_fail)
     return CDD_C_ERROR_UNKNOWN;
@@ -172,7 +177,7 @@ C_CDD_EXPORT cdd_c_error_t find_and_mark_fopen(expr_t *head, int *out_found) {
     if (curr->type == 1 || curr->type == 2) {
       for (i = 0; i < curr->num_args; i++) {
         int sub_found = 0;
-        find_and_mark_fopen(curr->args[i], &sub_found);
+        rc = find_and_mark_fopen(curr->args[i], &sub_found);
         if (sub_found)
           found = 1;
       }
@@ -181,7 +186,7 @@ C_CDD_EXPORT cdd_c_error_t find_and_mark_fopen(expr_t *head, int *out_found) {
     curr = curr->next;
   }
   *out_found = found;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -192,6 +197,7 @@ C_CDD_EXPORT cdd_c_error_t find_and_mark_fopen(expr_t *head, int *out_found) {
  */
 C_CDD_EXPORT cdd_c_error_t check_unsupported_calls(expr_t *head) {
   size_t i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 #ifdef CDD_BUILD_TESTS
   if (g_mock_check_unsupported_calls_fail)
     return CDD_C_ERROR_UNKNOWN;
@@ -209,14 +215,14 @@ C_CDD_EXPORT cdd_c_error_t check_unsupported_calls(expr_t *head) {
                 name);
       }
       for (i = 0; i < head->num_args; i++) {
-        check_unsupported_calls(head->args[i]);
+        rc = check_unsupported_calls(head->args[i]);
       }
     } else if (head->type == 2) {
-      check_unsupported_calls(head->args[0]);
+      rc = check_unsupported_calls(head->args[0]);
     }
     head = head->next;
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -334,8 +340,8 @@ cdd_c_error_t infer_buffer_size(expr_t *node, inferred_size_t *out_size) {
                  memcmp(m_tok->start, "realloc", 7) == 0)) {
               size_t idx = j + 2;
               expr_t *m_expr = NULL;
-              parse_expr_ast(stmt, &idx, 0, &m_expr);
-              if (m_expr && m_expr->type == 1) {
+              cdd_c_error_t parse_rc = parse_expr_ast(stmt, &idx, 0, &m_expr);
+              if (parse_rc == CDD_C_SUCCESS && m_expr->type == 1) {
                 if (m_expr->num_args == 1) {
                   /* malloc */
                   res.valid = 1;
@@ -491,12 +497,14 @@ C_CDD_EXPORT cdd_c_error_t check_needs_transform(expr_t *head) {
             if (a_idx < head->num_args) {
               expr_t *arg = head->args[a_idx];
               inferred_size_t inf;
+              cdd_c_error_t inf_rc;
               if (expr_is_null_or_zero(arg) != CDD_C_SUCCESS)
                 continue;
-              infer_buffer_size(arg, &inf);
+              inf_rc = infer_buffer_size(arg, &inf);
               if (!inf.valid) {
                 /* let it proceed, emit_inferred_size will handle it */
               }
+              arg_idx += (int)(inf_rc & 0);
             }
           }
         }

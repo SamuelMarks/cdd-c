@@ -471,6 +471,85 @@ TEST test_enum_exhaustive_io(void) {
   g_fail_io_after = -1;
   PASS();
 }
+
+/**
+ * @brief Unit test test_enum_reflect_func.
+ * @return Greatest test result.
+ */
+TEST test_enum_reflect_func(void) {
+  struct EnumMembers em;
+  struct EnumMembers bad_em = {0};
+  struct CodegenEnumConfig config = {"ENUM_REFL_GUARD"};
+  FILE *tmp = cdd_test_tmpfile_global();
+  int i;
+  cdd_c_error_t rc;
+
+  ASSERT(tmp != NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, enum_members_init(&em));
+  ASSERT_EQ(CDD_C_SUCCESS, enum_members_add_ex(&em, "ALPHA", "alpha_wire", 0));
+  ASSERT_EQ(CDD_C_SUCCESS, enum_members_add_ex(&em, "BETA", NULL, 1));
+  ASSERT_EQ(CDD_C_SUCCESS, enum_members_add_ex(&em, "OTHER_VAL", NULL, 0));
+  em.serde_other_idx = 2;
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_reflect_func(NULL, "MyEnum", &em, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_reflect_func(tmp, NULL, &em, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_reflect_func(tmp, "MyEnum", NULL, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_reflect_func(tmp, "MyEnum", &bad_em, &config));
+
+  ASSERT_EQ(CDD_C_SUCCESS,
+            write_enum_reflect_func(tmp, "MyEnum", &em, &config));
+  ASSERT_EQ(CDD_C_SUCCESS, write_enum_reflect_func(tmp, "MyEnum", &em, NULL));
+
+  /* Test NULL member slot, serde_skip == NULL, and empty member name error */
+  {
+    int *saved_skip = em.serde_skip;
+    char *saved_m1 = em.members[1];
+    char saved_ch = em.members[2][0];
+
+    em.members[1] = NULL;
+    em.serde_skip = NULL;
+    em.serde_other_idx = -1;
+    ASSERT_EQ(CDD_C_SUCCESS, write_enum_reflect_func(tmp, "MyEnum", &em, NULL));
+
+    em.members[2][0] = '\0';
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_enum_reflect_func(tmp, "MyEnum", &em, NULL));
+    em.members[2][0] = saved_ch;
+    em.members[1] = saved_m1;
+    em.serde_skip = saved_skip;
+    em.serde_other_idx = 2;
+  }
+
+#ifdef CDD_BUILD_TESTS
+  for (i = 0; i < 30; ++i) {
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_enum_reflect_func(tmp, "MyEnum", &em, &config);
+    if (rc == CDD_C_SUCCESS)
+      break;
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
+  }
+  config.guard_macro = NULL;
+  for (i = 0; i < 30; ++i) {
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_enum_reflect_func(tmp, "MyEnum", &em, &config);
+    if (rc == CDD_C_SUCCESS)
+      break;
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
+  }
+  g_fail_io_after = -1;
+#endif
+
+  enum_members_free(&em);
+  fclose(tmp);
+  PASS();
+}
+
 /**
  * @brief Executes the codegen_enum_suite test suite.
  */
@@ -478,6 +557,7 @@ SUITE(codegen_enum_suite) {
   RUN_TEST(test_enum_generation);
   RUN_TEST(test_enum_generation_oom);
   RUN_TEST(test_enum_exhaustive_io);
+  RUN_TEST(test_enum_reflect_func);
 }
 
 #ifdef __cplusplus

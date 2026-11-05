@@ -229,6 +229,21 @@ extern C_CDD_EXPORT cdd_c_error_t write_enum_to_str_func(
     FILE *fp, const char *enum_name, const struct EnumMembers *em,
     const struct CodegenEnumConfig *config);
 
+/**
+ * @brief Emits runtime reflection descriptor tables
+ * (`struct cdd_enum_variant_info[]` and `struct cdd_enum_info`) and
+ * `<enum_name>_reflect` accessor for a C enum.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] enum_name Name of the C enum type.
+ * @param[in] em Container of enum member strings.
+ * @param[in] config Optional configuration for guards (can be NULL).
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t write_enum_reflect_func(
+    FILE *fp, const char *enum_name, const struct EnumMembers *em,
+    const struct CodegenEnumConfig *config);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

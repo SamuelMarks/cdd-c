@@ -1000,6 +1000,12 @@ TEST test_cli_struct_exhaustive(void) {
                     "#/definitions/EmptyAboutCmd", NULL, NULL);
   struct_fields_add(&usf, "unreg_cmd", "object", "#/definitions/UnregCmd", NULL,
                     NULL);
+  struct_fields_add(&usf, "cli_skip_cmd", "object", "#/definitions/CliSkipCmd",
+                    NULL, NULL);
+  usf.fields[usf.size - 1].cli_skip = 1;
+  struct_fields_add(&usf, "cli_skip_from_cmd", "object",
+                    "#/definitions/CliSkipFromCmd", NULL, NULL);
+  usf.fields[usf.size - 1].cli_skip_from_cli = 1;
 
   /* Build TypeDefList registry */
   {
@@ -1096,6 +1102,9 @@ TEST test_cli_struct_exhaustive(void) {
      * exclusive + conflicts + requires + required_if_eq + group */
     struct_fields_add(&sf, "mode", "enum", "#/definitions/ModeEnum", NULL,
                       "Mode desc");
+    CDD_STRCPY(sf.fields[sf.size - 1].cli_env,
+               sizeof(sf.fields[sf.size - 1].cli_env), "MODE_ENV");
+    sf.fields[sf.size - 1].cli_short = 'm';
     CDD_STRCPY(sf.fields[sf.size - 1].cli_help_heading,
                sizeof(sf.fields[sf.size - 1].cli_help_heading), "Caching");
     sf.fields[sf.size - 1].required = 1;
@@ -1193,7 +1202,7 @@ TEST test_cli_struct_exhaustive(void) {
      * trailing_var_arg, positional last */
     struct_fields_add(&sf, "pos_bool", "boolean", NULL, NULL, NULL);
     sf.fields[sf.size - 1].cli_positional = 1;
-    sf.fields[sf.size - 1].cli_index = -1;
+    sf.fields[sf.size - 1].cli_index = 0;
     CDD_STRCPY(sf.fields[sf.size - 1].cli_help,
                sizeof(sf.fields[sf.size - 1].cli_help), "Pos bool help");
     struct_field_add_alias(&sf.fields[sf.size - 1], "pb_al");
@@ -1210,6 +1219,46 @@ TEST test_cli_struct_exhaustive(void) {
     struct_fields_add(&sf, "pos_last", "string", NULL, NULL, NULL);
     sf.fields[sf.size - 1].cli_positional = 1;
     sf.fields[sf.size - 1].cli_last = 1;
+    sf.fields[sf.size - 1].cli_index = -1;
+
+    /* 11b: bitfield custom parser, bitfield int, bitfield bool, bitfield enum,
+     * fixed string option & positional, fixed arrays of string, int, bool,
+     * number, other, and positional fixed array */
+    struct_fields_add(&sf, "bf_cust", "integer", NULL, NULL, NULL);
+    CDD_STRCPY(sf.fields[sf.size - 1].cli_value_parser,
+               sizeof(sf.fields[sf.size - 1].cli_value_parser), "parse_my_int");
+    CDD_STRCPY(sf.fields[sf.size - 1].bit_width,
+               sizeof(sf.fields[sf.size - 1].bit_width), "4");
+    struct_fields_add(&sf, "bf_int", "integer", NULL, NULL, NULL);
+    CDD_STRCPY(sf.fields[sf.size - 1].bit_width,
+               sizeof(sf.fields[sf.size - 1].bit_width), "4");
+    struct_fields_add(&sf, "bf_bool", "boolean", NULL, NULL, NULL);
+    sf.fields[sf.size - 1].cli_action = CDD_CLI_ACTION_SET;
+    CDD_STRCPY(sf.fields[sf.size - 1].bit_width,
+               sizeof(sf.fields[sf.size - 1].bit_width), "1");
+    struct_fields_add(&sf, "bf_enum", "enum", "#/definitions/ModeEnum", NULL,
+                      NULL);
+    CDD_STRCPY(sf.fields[sf.size - 1].bit_width,
+               sizeof(sf.fields[sf.size - 1].bit_width), "3");
+    struct_fields_add(&sf, "fix_str_opt", "string", NULL, NULL, NULL);
+    sf.fields[sf.size - 1].fixed_array_len = 16;
+    struct_fields_add(&sf, "fix_arr_str", "array", "string", NULL, NULL);
+    sf.fields[sf.size - 1].fixed_array_len = 2;
+    struct_fields_add(&sf, "fix_arr_int", "array", "integer", NULL, NULL);
+    sf.fields[sf.size - 1].fixed_array_len = 2;
+    struct_fields_add(&sf, "fix_arr_bool", "array", "boolean", NULL, NULL);
+    sf.fields[sf.size - 1].fixed_array_len = 2;
+    struct_fields_add(&sf, "fix_arr_num", "array", "number", NULL, NULL);
+    sf.fields[sf.size - 1].fixed_array_len = 2;
+    struct_fields_add(&sf, "fix_arr_other", "array", "object", NULL, NULL);
+    sf.fields[sf.size - 1].fixed_array_len = 2;
+    struct_fields_add(&sf, "fix_str_pos", "string", NULL, NULL, NULL);
+    sf.fields[sf.size - 1].cli_positional = 1;
+    sf.fields[sf.size - 1].fixed_array_len = 16;
+    sf.fields[sf.size - 1].cli_index = -1;
+    struct_fields_add(&sf, "fix_arr_pos", "array", "string", NULL, NULL);
+    sf.fields[sf.size - 1].cli_positional = 1;
+    sf.fields[sf.size - 1].fixed_array_len = 2;
     sf.fields[sf.size - 1].cli_index = -1;
 
     /* Exhaustive I/O failure sweep across all CLI emitter functions */
@@ -1242,7 +1291,7 @@ TEST test_cli_struct_exhaustive(void) {
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               write_struct_to_cli_argv_func(fp, "S", NULL, &cfg));
 
-    for (k = 0; k < 600; ++k) {
+    for (k = 0; k < 1200; ++k) {
       cdd_c_error_t rc_io;
       g_fail_io_after = k;
       g_io_calls = 0;
@@ -1362,6 +1411,18 @@ TEST test_cli_struct_exhaustive(void) {
       sf_empty.cli_disable_help_flag = 1;
       ASSERT_EQ(CDD_C_SUCCESS, write_struct_print_completions_func(
                                    fp, "EmptyCli2", &sf_empty, NULL));
+      struct_fields_add(&sf_empty, "plain_enum", "enum", "#/definitions/E",
+                        NULL, NULL);
+      for (k = 0; k < 40; ++k) {
+        cdd_c_error_t rc_io;
+        g_fail_io_after = k;
+        g_io_calls = 0;
+        rc_io = write_struct_cli_parse_into_func(fp, "PlainEnumCli", &sf_empty,
+                                                 NULL);
+        g_fail_io_after = -1;
+        if (rc_io == CDD_C_SUCCESS)
+          break;
+      }
       struct_fields_free(&sf_empty);
     }
 
@@ -1397,6 +1458,12 @@ TEST test_cli_struct_exhaustive(void) {
     g_cdd_fail_str_after_last = 1;
     ASSERT_NEQ(CDD_C_SUCCESS,
                write_struct_to_cli_argv_func(fp, "EFail", &sf_enum_fail, NULL));
+    CDD_STRCPY(sf_enum_fail.fields[0].bit_width,
+               sizeof(sf_enum_fail.fields[0].bit_width), "2");
+    g_cdd_fail_str_after_last = 1;
+    ASSERT_NEQ(CDD_C_SUCCESS, write_struct_cli_parse_into_func(
+                                  fp, "EFail", &sf_enum_fail, NULL));
+    sf_enum_fail.fields[0].bit_width[0] = '\0';
     sf_enum_fail.fields[0].cli_positional = 1;
     g_cdd_fail_str_after_last = 2;
     ASSERT_NEQ(CDD_C_SUCCESS, write_struct_cli_parse_into_func(
@@ -1421,6 +1488,150 @@ TEST test_cli_struct_exhaustive(void) {
 }
 
 /**
+ * @brief Tests directional scope directives (`@to_json`, `@from_json`,
+ * `@to_cli`, `@from_cli`, `[[cdd::...]]`) and directional CLI skips.
+ *
+ * @return Greatest test result.
+ */
+TEST test_directional_scope_directives_and_cli_skip(void) {
+  struct StructFields sf;
+  struct StructField f;
+  FILE *fp = NULL;
+  JSON_Value *root_val = NULL;
+  JSON_Object *schemas_obj = NULL;
+  JSON_Object *schema_obj = NULL;
+  struct StructFields sf_roundtrip;
+
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_container_comment(
+                "/* @to_json(rename_all = \"camelCase\") "
+                "@from_json(rename_all = \"snake_case\") @to_cli(kebab-case) "
+                "@from_cli(rename_all = \"kebab-case\") */",
+                &sf));
+  ASSERT_EQ(CDD_SERDE_CASE_CAMELCASE, sf.serde_rename_all_ser);
+  ASSERT_EQ(CDD_SERDE_CASE_SNAKECASE, sf.serde_rename_all_de);
+  ASSERT_EQ(CDD_SERDE_CASE_KEBABCASE, sf.cli_rename_all);
+  ASSERT_EQ(1, sf.is_cli_command);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_container_comment(
+                "/* @to_json(PascalCase) @from_json(snake_case) */", &sf));
+
+  memset(&f, 0, sizeof(f));
+  CDD_STRCPY(f.name, sizeof(f.name), "user_token");
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_field_comment(
+                "/* @cdd to_json(rename = \"outToken\", with = \"ser_tok\", "
+                "skip_if = \"null\") from_json(rename = \"inToken\", "
+                "with = \"de_tok\") to_cli(rename = \"token-flag\", "
+                "case = \"kebab-case\") from_cli(with = \"parse_tok\", "
+                "SCREAMING_SNAKE_CASE) */",
+                &f));
+  ASSERT_STR_EQ("outToken", f.serde_rename_ser);
+  ASSERT_STR_EQ("inToken", f.serde_rename_de);
+  ASSERT_STR_EQ("ser_tok", f.serde_serialize_with);
+  ASSERT_STR_EQ("de_tok", f.serde_deserialize_with);
+  ASSERT_STR_EQ("parse_tok", f.cli_value_parser);
+  ASSERT_EQ(CDD_SERDE_SKIP_IF_NULL, f.serde_skip_if_kind);
+  ASSERT_EQ(1, f.cli_has_long);
+
+  /* Test C23 and scoped skip directives */
+  memset(&f, 0, sizeof(f));
+  CDD_STRCPY(f.name, sizeof(f.name), "sec_field");
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_field_comment(
+                "/* [[cdd::to_json(skip)]] [[cdd::from_json(skip = false)]] "
+                "[[cdd::to_cli(skip)]] [[cdd::from_cli(skip = true)]] "
+                "[[cli::short = 's']] [[cdd::rename = \"sec\\\"x\"]] */",
+                &f));
+  ASSERT_EQ(1, f.serde_skip_serializing);
+  ASSERT_EQ(0, f.serde_skip_deserializing);
+  ASSERT_EQ(1, f.cli_skip_to_cli);
+  ASSERT_EQ(1, f.cli_skip_from_cli);
+  ASSERT_EQ('s', f.cli_short);
+  ASSERT_STR_EQ("sec\"x", f.serde_rename);
+
+  memset(&f, 0, sizeof(f));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_field_comment(
+                "/* #[to_json(skip = true)] #[from_json(skip)] "
+                "#[to_cli(skip = true)] #[from_cli(skip = false)] "
+                "@from_cli(skip) @cli(skip = true) @cdd(skip = true) "
+                "@cli(skip) */",
+                &f));
+  ASSERT_EQ(1, f.serde_skip_serializing);
+  ASSERT_EQ(1, f.serde_skip_deserializing);
+  ASSERT_EQ(1, f.cli_skip);
+  ASSERT_EQ(1, f.cli_skip_to_cli);
+  ASSERT_EQ(1, f.cli_skip_from_cli);
+
+  memset(&f, 0, sizeof(f));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_field_comment(
+                               "/* @cdd cli_skip = true, skip_to_cli = false, "
+                               "skip_from_cli = true */",
+                               &f));
+  ASSERT_EQ(1, f.cli_skip);
+  ASSERT_EQ(0, f.cli_skip_to_cli);
+  ASSERT_EQ(1, f.cli_skip_from_cli);
+
+  memset(&f, 0, sizeof(f));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_field_comment(
+                "/* @cdd cli_skip, skip_to_cli, skip_from_cli */", &f));
+  ASSERT_EQ(1, f.cli_skip);
+  ASSERT_EQ(1, f.cli_skip_to_cli);
+  ASSERT_EQ(1, f.cli_skip_from_cli);
+
+  /* Test codegen, schema writer, and schema mapper roundtrip with cli_skip */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "f_both", "string", NULL, NULL, NULL));
+  sf.fields[0].cli_skip = 1;
+  sf.fields[0].cli_skip_to_cli = 1;
+  sf.fields[0].cli_skip_from_cli = 1;
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "f_to_only", "integer", NULL, NULL, NULL));
+  sf.fields[1].cli_skip_from_cli = 1;
+  sf.fields[1].cli_short = 't';
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "f_from_only", "integer", NULL, NULL, NULL));
+  sf.fields[2].cli_skip_to_cli = 1;
+  sf.fields[2].cli_short = 'r';
+  sf.fields[2].cli_positional = 1;
+
+  sf.cli_allow_windows_slash_flags = 1;
+  fp = tmpfile();
+  ASSERT(fp != NULL);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            write_struct_declaration_h(fp, "ScopedCli", &sf, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            write_struct_cli_all_funcs(fp, "ScopedCli", &sf, NULL));
+  fclose(fp);
+  sf.cli_allow_windows_slash_flags = 0;
+
+  root_val = json_value_init_object();
+  schemas_obj = json_value_get_object(root_val);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            write_struct_to_json_schema(schemas_obj, "ScopedCli", &sf));
+  schema_obj = json_object_get_object(schemas_obj, "ScopedCli");
+  ASSERT(schema_obj != NULL);
+
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf_roundtrip));
+  ASSERT_EQ(CDD_C_SUCCESS, json_object_to_struct_fields(
+                               schema_obj, &sf_roundtrip, schemas_obj));
+  ASSERT_EQ(3u, sf_roundtrip.size);
+  ASSERT_EQ(1, sf_roundtrip.fields[0].cli_skip);
+  ASSERT_EQ(1, sf_roundtrip.fields[1].cli_skip_from_cli);
+  ASSERT_EQ(0, sf_roundtrip.fields[1].cli_skip_to_cli);
+  ASSERT_EQ(1, sf_roundtrip.fields[2].cli_skip_to_cli);
+  ASSERT_EQ(0, sf_roundtrip.fields[2].cli_skip_from_cli);
+
+  struct_fields_free(&sf_roundtrip);
+  json_value_free(root_val);
+  struct_fields_free(&sf);
+  PASS();
+}
+
+/**
  * @brief Suite for Guided Structured CLI Reflection code generation.
  */
 SUITE(codegen_cli_suite) {
@@ -1432,6 +1643,7 @@ SUITE(codegen_cli_suite) {
   RUN_TEST(test_cli_sync_code_regeneration);
   RUN_TEST(test_cli_io_and_invalid_arg_branches);
   RUN_TEST(test_cli_struct_exhaustive);
+  RUN_TEST(test_directional_scope_directives_and_cli_skip);
 }
 
 #ifdef __cplusplus

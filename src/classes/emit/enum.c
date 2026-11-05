@@ -499,3 +499,110 @@ cdd_c_error_t write_enum_from_str_func(FILE *fp, const char *enum_name,
 
   return CDD_C_SUCCESS;
 }
+
+/*
+ * @brief Emits runtime reflection descriptor tables
+ * (`struct cdd_enum_variant_info[]` and `struct cdd_enum_info`) and
+ * `<enum_name>_reflect` accessor for a C enum.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] enum_name Name of the C enum type.
+ * @param[in] em Container of enum member strings.
+ * @param[in] config Optional configuration for guards (can be NULL).
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+cdd_c_error_t write_enum_reflect_func(FILE *fp, const char *enum_name,
+                                      const struct EnumMembers *em,
+                                      const struct CodegenEnumConfig *config) {
+  size_t i;
+  if (!fp || !enum_name || !em || !em->members)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  if (config && config->guard_macro) {
+    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
+  }
+
+  for (i = 0; i < em->size; ++i) {
+    if (em->members[i] && em->n_serde_aliases && em->n_serde_aliases[i] > 0 &&
+        em->serde_aliases && em->serde_aliases[i]) {
+      size_t a_idx;
+      CHECK_IO(FPRINTF_HOOK(fp, "static const char *const %s_%s_aliases[] = { ",
+                            enum_name, em->members[i]));
+      for (a_idx = 0; a_idx < em->n_serde_aliases[i]; ++a_idx) {
+        char esc_al[256];
+        cdd_escape_json_c_str(em->serde_aliases[i][a_idx], esc_al,
+                              sizeof(esc_al));
+        CHECK_IO(FPRINTF_HOOK(fp, "\"%s\"%s", esc_al,
+                              (a_idx + 1 < em->n_serde_aliases[i]) ? ", "
+                                                                   : " };\n"));
+      }
+    }
+  }
+
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "static const struct cdd_enum_variant_info %s_variants[] = {\n",
+      enum_name));
+
+  for (i = 0; i < em->size; ++i) {
+    if (em->members[i]) {
+      char wname[128];
+      char esc_wname[256];
+      char al_ref[160];
+      size_t n_al =
+          (em->n_serde_aliases && em->serde_aliases && em->serde_aliases[i])
+              ? em->n_serde_aliases[i]
+              : 0;
+      int skip_val = (em->serde_skip && em->serde_skip[i]) ? 1 : 0;
+      int is_other =
+          (em->serde_other_idx >= 0 && (size_t)em->serde_other_idx == i) ? 1
+                                                                         : 0;
+      cdd_c_error_t rc_name =
+          cdd_serde_resolve_enum_member_name(em, i, wname, sizeof(wname));
+      if (rc_name != CDD_C_SUCCESS)
+        return rc_name;
+      cdd_escape_json_c_str(wname, esc_wname, sizeof(esc_wname));
+      if (n_al > 0) {
+        CDD_SNPRINTF(al_ref, sizeof(al_ref), "%s_%s_aliases", enum_name,
+                     em->members[i]);
+      } else {
+        CDD_STRCPY(al_ref, sizeof(al_ref), "NULL");
+      }
+      CHECK_IO(FPRINTF_HOOK(
+          fp, "  { \"%s\", \"%s\", (int)%s_%s, %d, %d, %s, %lu },\n",
+          em->members[i], esc_wname, enum_name, em->members[i], skip_val,
+          is_other, al_ref, (unsigned long)n_al));
+    }
+  }
+
+  CHECK_IO(FPRINTF_HOOK(
+      fp,
+      "  { NULL, NULL, 0, 0, 0, NULL, 0 }\n"
+      "};\n"
+      "static const struct cdd_enum_info %s_enum_info_table = {\n"
+      "  \"%s\", %s_variants, %lu, %d\n"
+      "};\n"
+      "cdd_c_error_t %s_reflect(const struct cdd_enum_info **out) {\n"
+      "  if (!out) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+      "  *out = &%s_enum_info_table;\n"
+      "  return CDD_C_SUCCESS;\n"
+      "}\n",
+      enum_name, enum_name, enum_name, (unsigned long)em->size,
+      em->serde_other_idx, enum_name, enum_name));
+  CHECK_IO(FPRINTF_HOOK(
+      fp,
+      "#ifdef CDD_REFLECT_AUTO_REGISTER\n"
+      "#if defined(__GNUC__) || defined(__clang__)\n"
+      "__attribute__((constructor)) static void %s_auto_register(void) {\n"
+      "  cdd_reflect_register_enum(&%s_enum_info_table);\n"
+      "}\n"
+      "#endif\n"
+      "#endif /* CDD_REFLECT_AUTO_REGISTER */\n",
+      enum_name, enum_name));
+
+  if (config && config->guard_macro) {
+    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n", config->guard_macro));
+  }
+  CHECK_IO(FPRINTF_HOOK(fp, "\n"));
+
+  return CDD_C_SUCCESS;
+}

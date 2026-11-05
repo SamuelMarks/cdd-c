@@ -66,8 +66,13 @@ struct TypeDefList {
  * @brief Reflected parameter descriptor for a C function signature.
  */
 struct FuncParamReflection {
-  char type[64]; /**< Parameter C type (e.g., "int", "const char *") */
-  char name[64]; /**< Parameter identifier (e.g., "x") */
+  char type[64];         /**< Parameter C type (e.g., "int", "const char *") */
+  char name[64];         /**< Parameter identifier (e.g., "x") */
+  const char *doc;       /**< Optional parameter documentation string */
+  int has_required_flag; /**< Non-zero if `required` was explicitly set */
+  int required;          /**< Non-zero if parameter is required */
+  int has_nullable_flag; /**< Non-zero if `is_nullable` was explicitly set */
+  int is_nullable;       /**< Non-zero if parameter is nullable */
 };
 
 /**
@@ -79,8 +84,14 @@ struct FuncSignature {
   char *doc; /**< Optional docstring / Doxygen comment preceding the function */
   int is_variadic; /**< True if the function takes variable arguments (...) */
   char return_type[64]; /**< Extracted return type (e.g., "int", "void") */
-  struct FuncParamReflection params[16]; /**< Extracted parameter descriptors */
-  size_t n_params;                       /**< Number of extracted parameters */
+  struct FuncParamReflection
+      *params;              /**< Dynamically allocated parameter descriptors */
+  size_t n_params;          /**< Number of extracted parameters */
+  size_t params_capacity;   /**< Allocated capacity of `params` */
+  const char *route_method; /**< Optional HTTP verb (e.g., "GET", "POST") */
+  const char *route_path;   /**< Optional HTTP route path (e.g., "/users") */
+  const char *summary;      /**< Optional short summary text */
+  int is_deprecated;        /**< Non-zero if function is deprecated */
 };
 
 /**

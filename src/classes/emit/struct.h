@@ -83,7 +83,7 @@ struct StructField {
   /* C Type Properties */
   int is_flexible_array; /**< 1 if field is a Flexible Array Member `type
                             name[]`, 0 otherwise */
-  char bit_width[16]; /**< Bit-field width literal (e.g. "3", "8"), or empty if
+  char bit_width[64]; /**< Bit-field width literal (e.g. "3", "8"), or empty if
                          not a bit-field */
 
   /* Serde Reflection & Rewriting Metadata */
@@ -148,6 +148,9 @@ struct StructField {
   size_t n_cli_required_unless; /**< Count of cli_required_unless */
   char cli_required_if_field[64]; /**< Conditional requirement target field */
   char cli_required_if_val[64];   /**< Conditional requirement trigger value */
+  int cli_skip;                   /**< 1 if skipped in both CLI parse & emit */
+  int cli_skip_to_cli;            /**< 1 if omitted during to_cli_argv */
+  int cli_skip_from_cli;          /**< 1 if ignored during from_cli */
 
   /* Rich C Type & Enum Array Reflection Extensions */
   int is_enum_array;       /**< Non-zero if array items reference an enum */
@@ -459,6 +462,22 @@ extern C_CDD_EXPORT cdd_c_error_t get_type_from_ref(const char *ref,
 extern C_CDD_EXPORT cdd_c_error_t write_struct_reflect_func(
     FILE *fp, const char *struct_name, const struct StructFields *sf,
     const struct CodegenStructConfig *config);
+
+struct FuncSignature;
+
+/**
+ * @brief Emits runtime function reflection descriptor tables
+ * (`struct cdd_param_info[]` and `struct cdd_func_info`) and
+ * `<func_name>_reflect` accessor for a C function signature.
+ *
+ * @param[in] fp File pointer to write to.
+ * @param[in] sig Extracted function signature descriptor.
+ * @param[in] config Optional configuration options.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+write_func_reflect_func(FILE *fp, const struct FuncSignature *sig,
+                        const struct CodegenStructConfig *config);
 
 /**
  * @brief Emits C11/C23 `_Generic` polymorphic reflection dispatch macros

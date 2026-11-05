@@ -927,6 +927,45 @@ TEST test_inspector_branch_coverage(void) {
       ASSERT_STR_EQ("int", sigs.items[0].params[2].type);
       ASSERT_STR_EQ("x", sigs.items[0].params[2].name);
       func_sig_list_free(&sigs);
+
+      /* Test >16 parameters dynamic reallocation, OOM, and >63 char span */
+      {
+        const char *many_params_src =
+            "/** doc */\n"
+            "unsigned long long int const volatile * const "
+            "very_long_return_type_func("
+            "int p0, int p1, int p2, int p3, int p4, int p5, int p6, int p7, "
+            "int p8, int p9, int p10, int p11, int p12, int p13, int p14, "
+            "int p15, int p16, int p17, int p18, "
+            "unsigned long long int const volatile * const "
+            "very_long_parameter_identifier_name_that_exceeds_sixty_four_bytes"
+            ") {}";
+        func_sig_list_init(&sigs);
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  c_inspector_extract_signatures(many_params_src, &sigs));
+        ASSERT_EQ(1, sigs.size);
+        ASSERT_EQ(20, sigs.items[0].n_params);
+        func_sig_list_free(&sigs);
+
+        for (k = 1; k <= 25; ++k) {
+          g_cdd_alloc_fail = k;
+          func_sig_list_init(&sigs);
+          c_inspector_extract_signatures(many_params_src, &sigs);
+          g_cdd_alloc_fail = 0;
+          func_sig_list_free(&sigs);
+        }
+        /* Also test without docstring when param realloc fails */
+        for (k = 1; k <= 25; ++k) {
+          g_cdd_alloc_fail = k;
+          func_sig_list_init(&sigs);
+          c_inspector_extract_signatures(
+              "void f(int a0, int a1, int a2, int a3, int a4, int a5, int a6, "
+              "int a7, int a8) {}",
+              &sigs);
+          g_cdd_alloc_fail = 0;
+          func_sig_list_free(&sigs);
+        }
+      }
     }
 
     /* Typedef struct/enum, multi-line brace, and inline comment delimiters */

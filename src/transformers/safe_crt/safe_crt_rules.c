@@ -1,6 +1,7 @@
 /**
  * @file safe_crt_rules.c
- * @brief AST code emission and rewriting rules for Safe CRT transformer.
+ * @brief Core AST code emission dispatcher and size inference emitter for Safe
+ * CRT transformer.
  *
  * @author Samuel Marks
  */
@@ -20,7 +21,15 @@
 
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_mock_safe_crt_rules_fail = 0;
-static cdd_c_error_t check_mock_fail(cdd_c_error_t current) {
+
+/**
+ * @brief Checks and decrements the test fault injection counter for Safe CRT
+ * rules.
+ *
+ * @param[in] current Current error status code.
+ * @return CDD_C_ERROR_UNKNOWN when fault triggers, otherwise @p current.
+ */
+C_CDD_EXPORT cdd_c_error_t safe_crt_check_mock_fail(cdd_c_error_t current) {
   if (g_mock_safe_crt_rules_fail) {
     g_mock_safe_crt_rules_fail--;
     if (g_mock_safe_crt_rules_fail == 0) {
@@ -29,10 +38,10 @@ static cdd_c_error_t check_mock_fail(cdd_c_error_t current) {
   }
   return current;
 }
-#else
-/** @brief Pass-through macro when test fault injection is disabled */
-#define check_mock_fail(x) (x)
 #endif
+
+/** @brief Alias for safe_crt_check_mock_fail */
+#define check_mock_fail(x) safe_crt_check_mock_fail(x)
 
 /**
  * @brief Emits an expression AST with stripped leading trivia.
@@ -84,7 +93,7 @@ C_CDD_EXPORT cdd_c_error_t emit_ast_bld_strip_ampersand(expr_t *node,
   return emit_ast_bld_strip(node, bld, is_msc);
 }
 
-/*
+/**
  * @brief Emits the inferred buffer size expression into builder.
  *
  * @param[in,out] bld Target CST builder.
@@ -102,7 +111,7 @@ C_CDD_EXPORT cdd_c_error_t emit_inferred_size(cdd_cst_builder_t *bld,
   } else {
     current_tree = NULL;
   }
-  infer_buffer_size(dest, &info);
+  rc_err = infer_buffer_size(dest, &info);
   if (!info.valid) {
     {
       rc_err = cdd_cst_bld_ident(bld, "sizeof");
@@ -198,8 +207,8 @@ C_CDD_EXPORT cdd_c_error_t emit_inferred_size(cdd_cst_builder_t *bld,
         return rc_err;
     }
 
-    clone_token(bld->tree, info.base_tok, &ct);
-    if (ct) {
+    rc_err = clone_token(bld->tree, info.base_tok, &ct);
+    if (rc_err == CDD_C_SUCCESS) {
       if (ct->leading_trivia) {
         cdd_trivia_t *curr = ct->leading_trivia;
         while (curr) {
@@ -273,6 +282,87 @@ C_CDD_EXPORT cdd_c_error_t emit_inferred_size(cdd_cst_builder_t *bld,
 }
 
 /**
+ * @brief Classifies a C CRT function name into a Safe CRT transformation
+ * category.
+ *
+ * @param[in] name Function identifier name.
+ * @param[out] out_is_safe Pointer to receive Safe CRT category (0 if not
+ * transformed).
+ * @return CDD_C_SUCCESS on success.
+ */
+static cdd_c_error_t classify_safe_crt_call(const char *name,
+                                            int *out_is_safe) {
+  int is_safe = 0;
+  if (strcmp(name, "strcpy") == 0 || strcmp(name, "strcat") == 0 ||
+      strcmp(name, "sprintf") == 0 || strcmp(name, "vsprintf") == 0 ||
+      strcmp(name, "wcscpy") == 0 || strcmp(name, "wcscat") == 0 ||
+      strcmp(name, "_mbscpy") == 0 || strcmp(name, "_mbscat") == 0 ||
+      strcmp(name, "swprintf") == 0 || strcmp(name, "vswprintf") == 0 ||
+      strcmp(name, "_strnset") == 0 || strcmp(name, "_strset") == 0 ||
+      strcmp(name, "_mbsset") == 0)
+    is_safe = 1;
+  else if (strcmp(name, "_strlwr") == 0 || strcmp(name, "_strupr") == 0 ||
+           strcmp(name, "_mbslwr") == 0 || strcmp(name, "_mbsupr") == 0 ||
+           strcmp(name, "_wcslwr") == 0 || strcmp(name, "_wcsupr") == 0 ||
+           strcmp(name, "gets") == 0 || strcmp(name, "tmpnam") == 0 ||
+           strcmp(name, "strlen") == 0)
+    is_safe = 9;
+  else if (strcmp(name, "strncpy") == 0 || strcmp(name, "strncat") == 0 ||
+           strcmp(name, "wcsncpy") == 0 || strcmp(name, "wcsncat") == 0 ||
+           strcmp(name, "_mbsncpy") == 0 || strcmp(name, "_mbsncat") == 0 ||
+           strcmp(name, "_mbsnset") == 0)
+    is_safe = 2;
+  else if (strcmp(name, "snprintf") == 0 || strcmp(name, "vsnprintf") == 0 ||
+           strcmp(name, "_snprintf") == 0 || strcmp(name, "_vsnprintf") == 0)
+    is_safe = 3;
+  else if (strcmp(name, "printf") == 0 || strcmp(name, "vprintf") == 0 ||
+           strcmp(name, "vfprintf") == 0)
+    is_safe = 4;
+  else if (strcmp(name, "memcpy") == 0 || strcmp(name, "memmove") == 0 ||
+           strcmp(name, "wmemcpy") == 0 || strcmp(name, "wmemmove") == 0)
+    is_safe = 6;
+  else if (strcmp(name, "scanf") == 0 || strcmp(name, "fscanf") == 0 ||
+           strcmp(name, "sscanf") == 0 || strcmp(name, "vscanf") == 0 ||
+           strcmp(name, "vfscanf") == 0 || strcmp(name, "vsscanf") == 0)
+    is_safe = 7;
+  else if (strcmp(name, "_itoa") == 0 || strcmp(name, "_ltoa") == 0 ||
+           strcmp(name, "_ultoa") == 0 || strcmp(name, "_i64toa") == 0 ||
+           strcmp(name, "_ui64toa") == 0 || strcmp(name, "_itow") == 0 ||
+           strcmp(name, "_ltow") == 0 || strcmp(name, "_ultow") == 0)
+    is_safe = 8;
+  else if (strcmp(name, "_splitpath") == 0 || strcmp(name, "_wsplitpath") == 0)
+    is_safe = 10;
+  else if (strcmp(name, "_makepath") == 0 || strcmp(name, "_wmakepath") == 0)
+    is_safe = 11;
+  else if (strcmp(name, "_gcvt") == 0)
+    is_safe = 19;
+  else if (strcmp(name, "mbstowcs") == 0 || strcmp(name, "wcstombs") == 0)
+    is_safe = 20;
+  else if (strcmp(name, "wctomb") == 0)
+    is_safe = 21;
+  else if (strcmp(name, "_searchenv") == 0 || strcmp(name, "_wsearchenv") == 0)
+    is_safe = 22;
+  else if (strcmp(name, "_wgetenv") == 0 || strcmp(name, "getenv") == 0)
+    is_safe = 23;
+  else if (strcmp(name, "_putenv") == 0 || strcmp(name, "_wputenv") == 0)
+    is_safe = 24;
+  else if (strcmp(name, "strerror") == 0 || strcmp(name, "_strerror") == 0)
+    is_safe = 27;
+  else if (strcmp(name, "_wcserror") == 0)
+    is_safe = 26;
+  else if (strcmp(name, "_ecvt") == 0 || strcmp(name, "_fcvt") == 0)
+    is_safe = 28;
+  else if (strcmp(name, "strtok") == 0 || strcmp(name, "wcstok") == 0 ||
+           strcmp(name, "_mbstok") == 0)
+    is_safe = 29;
+  else if (strcmp(name, "qsort") == 0 || strcmp(name, "bsearch") == 0)
+    is_safe = 25;
+
+  *out_is_safe = is_safe;
+  return CDD_C_SUCCESS;
+}
+
+/**
  * @brief Emits transformed AST tokens into the CST builder.
  *
  * @param[in] node Expression node.
@@ -294,16 +384,16 @@ cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
   while (node) {
     if (node->type == 0 || (node->type == 4 && !is_msc)) {
       cdd_token_t *ct = NULL;
-      clone_token(bld->tree, node->tok, &ct);
-      if (ct) {
+      rc_err = clone_token(bld->tree, node->tok, &ct);
+      if (rc_err == CDD_C_SUCCESS) {
         rc_err = cdd_cst_append_child_token(bld->target_node, ct);
         if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
           return rc_err;
       }
     } else if (node->type == 2) {
       cdd_token_t *ct = NULL;
-      clone_token(bld->tree, node->tok, &ct);
-      if (ct) {
+      rc_err = clone_token(bld->tree, node->tok, &ct);
+      if (rc_err == CDD_C_SUCCESS) {
         rc_err = cdd_cst_append_child_token(bld->target_node, ct);
         if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
           return rc_err;
@@ -316,8 +406,8 @@ cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
       }
       if (node->close_tok) {
         cdd_token_t *ct_close = NULL;
-        clone_token(bld->tree, node->close_tok, &ct_close);
-        if (ct_close) {
+        rc_err = clone_token(bld->tree, node->close_tok, &ct_close);
+        if (rc_err == CDD_C_SUCCESS) {
           rc_err = cdd_cst_append_child_token(bld->target_node, ct_close);
           if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
             return rc_err;
@@ -333,76 +423,7 @@ cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
         memcpy(name, node->tok->start, nlen);
 
       if (is_msc) {
-        if (strcmp(name, "strcpy") == 0 || strcmp(name, "strcat") == 0 ||
-            strcmp(name, "sprintf") == 0 || strcmp(name, "vsprintf") == 0 ||
-            strcmp(name, "wcscpy") == 0 || strcmp(name, "wcscat") == 0 ||
-            strcmp(name, "_mbscpy") == 0 || strcmp(name, "_mbscat") == 0 ||
-            strcmp(name, "swprintf") == 0 || strcmp(name, "vswprintf") == 0 ||
-            strcmp(name, "_strnset") == 0 || strcmp(name, "_strset") == 0 ||
-            strcmp(name, "_mbsset") == 0)
-          is_safe = 1;
-        else if (strcmp(name, "_strlwr") == 0 || strcmp(name, "_strupr") == 0 ||
-                 strcmp(name, "_mbslwr") == 0 || strcmp(name, "_mbsupr") == 0 ||
-                 strcmp(name, "_wcslwr") == 0 || strcmp(name, "_wcsupr") == 0 ||
-                 strcmp(name, "gets") == 0 || strcmp(name, "tmpnam") == 0 ||
-                 strcmp(name, "strlen") == 0)
-          is_safe = 9;
-        else if (strcmp(name, "strncpy") == 0 || strcmp(name, "strncat") == 0 ||
-                 strcmp(name, "wcsncpy") == 0 || strcmp(name, "wcsncat") == 0 ||
-                 strcmp(name, "_mbsncpy") == 0 ||
-                 strcmp(name, "_mbsncat") == 0 || strcmp(name, "_mbsnset") == 0)
-          is_safe = 2;
-        else if (strcmp(name, "snprintf") == 0 ||
-                 strcmp(name, "vsnprintf") == 0 ||
-                 strcmp(name, "_snprintf") == 0 ||
-                 strcmp(name, "_vsnprintf") == 0)
-          is_safe = 3;
-        else if (strcmp(name, "printf") == 0 || strcmp(name, "vprintf") == 0 ||
-                 strcmp(name, "vfprintf") == 0)
-          is_safe = 4;
-        else if (strcmp(name, "memcpy") == 0 || strcmp(name, "memmove") == 0 ||
-                 strcmp(name, "wmemcpy") == 0 || strcmp(name, "wmemmove") == 0)
-          is_safe = 6;
-        else if (strcmp(name, "scanf") == 0 || strcmp(name, "fscanf") == 0 ||
-                 strcmp(name, "sscanf") == 0 || strcmp(name, "vscanf") == 0 ||
-                 strcmp(name, "vfscanf") == 0 || strcmp(name, "vsscanf") == 0)
-          is_safe = 7;
-        else if (strcmp(name, "_itoa") == 0 || strcmp(name, "_ltoa") == 0 ||
-                 strcmp(name, "_ultoa") == 0 || strcmp(name, "_i64toa") == 0 ||
-                 strcmp(name, "_ui64toa") == 0 || strcmp(name, "_itow") == 0 ||
-                 strcmp(name, "_ltow") == 0 || strcmp(name, "_ultow") == 0)
-          is_safe = 8;
-        else if (strcmp(name, "_splitpath") == 0 ||
-                 strcmp(name, "_wsplitpath") == 0)
-          is_safe = 10;
-        else if (strcmp(name, "_makepath") == 0 ||
-                 strcmp(name, "_wmakepath") == 0)
-          is_safe = 11;
-        else if (strcmp(name, "_gcvt") == 0)
-          is_safe = 19;
-        else if (strcmp(name, "mbstowcs") == 0 || strcmp(name, "wcstombs") == 0)
-          is_safe = 20;
-        else if (strcmp(name, "wctomb") == 0)
-          is_safe = 21;
-        else if (strcmp(name, "_searchenv") == 0 ||
-                 strcmp(name, "_wsearchenv") == 0)
-          is_safe = 22;
-        else if (strcmp(name, "_wgetenv") == 0 || strcmp(name, "getenv") == 0)
-          is_safe = 23;
-        else if (strcmp(name, "_putenv") == 0 || strcmp(name, "_wputenv") == 0)
-          is_safe = 24;
-        else if (strcmp(name, "strerror") == 0 ||
-                 strcmp(name, "_strerror") == 0)
-          is_safe = 27;
-        else if (strcmp(name, "_wcserror") == 0)
-          is_safe = 26;
-        else if (strcmp(name, "_ecvt") == 0 || strcmp(name, "_fcvt") == 0)
-          is_safe = 28;
-        else if (strcmp(name, "strtok") == 0 || strcmp(name, "wcstok") == 0 ||
-                 strcmp(name, "_mbstok") == 0)
-          is_safe = 29;
-        else if (strcmp(name, "qsort") == 0 || strcmp(name, "bsearch") == 0)
-          is_safe = 25;
+        rc_err = classify_safe_crt_call(name, &is_safe);
       }
 
       if (is_safe > 0)
@@ -423,8 +444,8 @@ cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
           CDD_SNPRINTF(safe_name, sizeof(safe_name), "%s_s", name);
         }
 
-        clone_token(bld->tree, node->tok, &ct);
-        if (ct) {
+        rc_err = clone_token(bld->tree, node->tok, &ct);
+        if (rc_err == CDD_C_SUCCESS) {
           const char *pooled = NULL;
           if (safe_crt_pool_string_safe(tree, safe_name, &pooled) ==
               CDD_C_SUCCESS) {
@@ -444,8 +465,8 @@ cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
         }
       } else if (!is_safe) {
         cdd_token_t *ct = NULL;
-        clone_token(bld->tree, node->tok, &ct);
-        if (ct) {
+        rc_err = clone_token(bld->tree, node->tok, &ct);
+        if (rc_err == CDD_C_SUCCESS) {
           rc_err = cdd_cst_append_child_token(bld->target_node, ct);
           if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
             return rc_err;
@@ -457,8 +478,8 @@ cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
         }
       } else {
         cdd_token_t *ct = NULL;
-        clone_token(bld->tree, node->tok, &ct);
-        if (ct) {
+        rc_err = clone_token(bld->tree, node->tok, &ct);
+        if (rc_err == CDD_C_SUCCESS) {
           ct->length = 0;
           ct->start = (const uint8_t *)"";
           {
@@ -469,1476 +490,55 @@ cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
         }
       }
 
-      if (is_safe == 1 && node->num_args >= 2) {
-        {
-          rc_err = emit_ast_bld(node->args[0], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_inferred_size(bld, node->args[0]);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        for (k = 1; k < node->num_args; k++) {
-          {
-            rc_err = cdd_cst_bld_punct(bld, ",");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_space(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = emit_ast_bld(node->args[k], bld, is_msc, &_ch);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-            changes += _ch;
-          }
-        }
-      } else if (is_safe == 2 && node->num_args >= 3) {
-        {
-          rc_err = emit_ast_bld(node->args[0], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_inferred_size(bld, node->args[0]);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld(node->args[1], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_ident(bld, "_TRUNCATE");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
+      if ((is_safe == 1 && node->num_args >= 2) ||
+          (is_safe == 2 && node->num_args >= 3) ||
+          (is_safe == 6 && node->num_args >= 3) ||
+          (is_safe == 9 && node->num_args == 1)) {
+        rc_err = emit_safe_crt_str_basic(node, bld, is_msc, is_safe, &changes);
+        if (rc_err != CDD_C_SUCCESS)
+          return rc_err;
       } else if (is_safe == 3 && node->num_args >= 3) {
-        {
-          rc_err = emit_ast_bld(node->args[0], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld(node->args[1], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_ident(bld, "_TRUNCATE");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        for (k = 2; k < node->num_args; k++) {
-          {
-            rc_err = cdd_cst_bld_punct(bld, ",");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_space(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = emit_ast_bld(node->args[k], bld, is_msc, &_ch);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-            changes += _ch;
-          }
-        }
-      } else if (is_safe == 6 && node->num_args >= 3) {
-        {
-          rc_err = emit_ast_bld(node->args[0], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_inferred_size(bld, node->args[0]);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld(node->args[1], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld(node->args[2], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
+        rc_err = emit_safe_crt_snprintf(node, bld, is_msc, &changes);
+        if (rc_err != CDD_C_SUCCESS)
+          return rc_err;
       } else if (is_safe == 8 && node->num_args >= 3) {
-        {
-          rc_err = emit_ast_bld(node->args[0], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld(node->args[1], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_inferred_size(bld, node->args[1]);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld(node->args[2], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-      } else if (is_safe == 9 && node->num_args == 1) {
-        {
-          rc_err = emit_ast_bld(node->args[0], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_inferred_size(bld, node->args[0]);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-      } else if (is_safe == 10 && node->num_args >= 5) {
-        {
-          rc_err = emit_ast_bld(node->args[0], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        for (k = 1; k < 5; k++) {
-          {
-            rc_err = cdd_cst_bld_punct(bld, ",");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_space(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = emit_ast_bld(node->args[k], bld, is_msc, &_ch);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-            changes += _ch;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, ",");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_space(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          if (expr_is_null_or_zero(node->args[k])) {
-            {
-              rc_err = cdd_cst_bld_int(bld, 0);
-              if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                return rc_err;
-            }
-          } else {
-            {
-              rc_err = emit_inferred_size(bld, node->args[k]);
-              if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                return rc_err;
-            }
-          }
-        }
-      } else if (is_safe == 11 && node->num_args >= 5) {
-        {
-          rc_err = emit_ast_bld(node->args[0], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_inferred_size(bld, node->args[0]);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        for (k = 1; k < node->num_args; k++) {
-          {
-            rc_err = cdd_cst_bld_punct(bld, ",");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_space(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = emit_ast_bld(node->args[k], bld, is_msc, &_ch);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-            changes += _ch;
-          }
-        }
-      } else if (is_safe == 19 && node->num_args == 3) {
-        {
-          rc_err = cdd_cst_bld_punct(bld, "(");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_ident(bld, "_gcvt_s");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, "(");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld(node->args[2], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_inferred_size(bld, node->args[2]);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld(node->args[0], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld(node->args[1], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ")");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld_strip(node->args[2], bld, 0);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ")");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-      } else if (is_safe == 20 && node->num_args == 3) {
-        {
-          rc_err = cdd_cst_bld_punct(bld, "(");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          const char *pooled_nm = NULL;
-          safe_crt_pool_string_safe(bld->tree, name, &pooled_nm);
-          rc_err = cdd_cst_bld_ident(bld, pooled_nm);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_ident(bld, "_s");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, "(");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_ident(bld, "NULL");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld(node->args[0], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, "(");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_inferred_size(bld, node->args[0]);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        if (strcmp(name, "wcstombs") == 0) {
-          {
-            rc_err = cdd_cst_bld_punct(bld, ")");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-        } else {
-          {
-            rc_err = cdd_cst_bld_punct(bld, ")");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_space(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, "/");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_space(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_ident(bld, "sizeof");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, "(");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_ident(bld, "wchar_t");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, ")");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld(node->args[1], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld(node->args[2], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ")");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld_strip(node->args[0], bld, 0);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ")");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-      } else if (is_safe == 21 && node->num_args == 2) {
-        {
-          rc_err = cdd_cst_bld_punct(bld, "(");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_ident(bld, "wctomb_s");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, "(");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_ident(bld, "NULL");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld(node->args[0], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_inferred_size(bld, node->args[0]);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld(node->args[1], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ")");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld_strip(node->args[0], bld, 0);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ")");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-      } else if (is_safe == 22 && node->num_args == 3) {
-        {
-          const char *pooled_nm = NULL;
-          safe_crt_pool_string_safe(bld->tree, name, &pooled_nm);
-          rc_err = cdd_cst_bld_ident(bld, pooled_nm);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_ident(bld, "_s");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, "(");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld(node->args[0], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld(node->args[1], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_ast_bld(node->args[2], bld, is_msc, &_ch);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-          changes += _ch;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = emit_inferred_size(bld, node->args[2]);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        if (strcmp(name, "_wsearchenv") == 0) {
-          {
-            rc_err = cdd_cst_bld_space(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, "/");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_space(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_ident(bld, "sizeof");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, "(");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_ident(bld, "wchar_t");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, ")");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-        }
-      } else if (is_safe == 23 && node->num_args == 1) {
-        if (strcmp(name, "_wgetenv") == 0) {
-          ctx->needs_wgetenv_ptr = 1;
-          {
-            rc_err = cdd_cst_bld_punct(bld, "(");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_ident(bld, "_wdupenv_s");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, "(");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, "&");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_ident(bld, "__wgetenv_ptr");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, ",");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_space(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_ident(bld, "NULL");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, ",");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_space(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = emit_ast_bld(node->args[0], bld, is_msc, &_ch);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-            changes += _ch;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, ")");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, ",");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_space(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_ident(bld, "__wgetenv_ptr");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, ")");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-        } else {
-          ctx->needs_getenv_ptr = 1;
-          {
-            rc_err = cdd_cst_bld_punct(bld, "(");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_ident(bld, "_dupenv_s");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, "(");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, "&");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_ident(bld, "__getenv_ptr");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, ",");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_space(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_ident(bld, "NULL");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, ",");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_space(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = emit_ast_bld(node->args[0], bld, is_msc, &_ch);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-            changes += _ch;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, ")");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, ",");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_space(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_ident(bld, "__getenv_ptr");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, ")");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-        }
-      } else if (is_safe == 24 && node->num_args == 1) {
-        /* _putenv. We need to split the "A=B" string if it is a literal */
-        int split = 0;
-        expr_t *str_node = node->args[0];
-        if (str_node && str_node->type == 0 && str_node->tok) {
-          if (str_node->tok->kind == CDD_TOKEN_IDENTIFIER &&
-              str_node->tok->length == 1 && str_node->tok->start[0] == 'L') {
-            str_node = str_node->next;
-          }
-          if (str_node && str_node->type == 0 && str_node->tok &&
-              str_node->tok->kind == CDD_TOKEN_STRING) {
-            const char *s = (const char *)str_node->tok->start;
-            size_t slen = str_node->tok->length;
-            char *eq = (char *)memchr(s, '=', slen);
-            if (eq && (s[0] == '"' || (s[0] == 'L' && s[1] == '"'))) {
-              split = 1;
-              cdd_cst_bld_ident(bld, strcmp(name, "_wputenv") == 0
-                                         ? "_wputenv_s"
-                                         : "_putenv_s");
-              {
-                rc_err = cdd_cst_bld_punct(bld, "(");
-                if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                  return rc_err;
-              }
-              {
-                char left[256] = {0};
-                char right[256] = {0};
-                size_t ll = (size_t)(eq - s);
-                size_t rl = slen - (size_t)(eq - s) - 1;
-                if (strcmp(name, "_wputenv") == 0) {
-                  left[0] = 'L';
-                  left[1] = '"';
-                  memcpy(left + 2, s + 1, ll - 1);
-                  left[ll + 1] = '"';
-                  right[0] = 'L';
-                  right[1] = '"';
-                  memcpy(right + 2, eq + 1, rl);
-                } else {
-                  memcpy(left, s, ll);
-                  left[ll] = '"';
-                  right[0] = '"';
-                  memcpy(right + 1, eq + 1, rl);
-                }
-                {
-                  const char *pooled_l = NULL;
-                  safe_crt_pool_string_safe(bld->tree, left, &pooled_l);
-                  cdd_cst_bld_token(bld, CDD_TOKEN_STRING, pooled_l);
-                }
-                {
-                  rc_err = cdd_cst_bld_punct(bld, ",");
-                  if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                    return rc_err;
-                }
-                {
-                  rc_err = cdd_cst_bld_space(bld);
-                  if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                    return rc_err;
-                }
-                {
-                  const char *pooled_r = NULL;
-                  safe_crt_pool_string_safe(bld->tree, right, &pooled_r);
-                  cdd_cst_bld_token(bld, CDD_TOKEN_STRING, pooled_r);
-                }
-                {
-                  rc_err = cdd_cst_bld_punct(bld, ")");
-                  if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                    return rc_err;
-                }
-              }
-            }
-          }
-        }
-        if (!split) {
-          {
-            const char *pooled_nm = NULL;
-            safe_crt_pool_string_safe(bld->tree, name, &pooled_nm);
-            rc_err = cdd_cst_bld_ident(bld, pooled_nm);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, "(");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = emit_ast_bld(node->args[0], bld, is_msc, &_ch);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-            changes += _ch;
-          }
-        }
-      } else if (is_safe == 25 &&
-                 (node->num_args == 4 || node->num_args == 5)) {
-        {
-          const char *pooled_nm = NULL;
-          safe_crt_pool_string_safe(bld->tree, name, &pooled_nm);
-          rc_err = cdd_cst_bld_ident(bld, pooled_nm);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_ident(bld, "_s");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, "(");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        for (k = 0; k < node->num_args; k++) {
-          if (k > 0) {
-            {
-              rc_err = cdd_cst_bld_punct(bld, ",");
-              if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                return rc_err;
-            }
-            {
-              rc_err = cdd_cst_bld_space(bld);
-              if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                return rc_err;
-            }
-          }
-          {
-            rc_err = emit_ast_bld(node->args[k], bld, is_msc, &_ch);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-            changes += _ch;
-          }
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_ident(bld, "NULL");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-      } else if (is_safe == 29) {
-        if (strcmp(name, "strtok") == 0)
-          ctx->needs_strtokctx = 1;
-        else if (strcmp(name, "wcstok") == 0)
-          ctx->needs_wcstokctx = 1;
-        else
-          ctx->needs_mbstokctx = 1;
-        {
-          const char *pooled_nm = NULL;
-          safe_crt_pool_string_safe(bld->tree, name, &pooled_nm);
-          rc_err = cdd_cst_bld_ident(bld, pooled_nm);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_ident(bld, "_s");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, "(");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        for (k = 0; k < node->num_args; k++) {
-          if (k > 0) {
-            {
-              rc_err = cdd_cst_bld_punct(bld, ",");
-              if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                return rc_err;
-            }
-            {
-              rc_err = cdd_cst_bld_space(bld);
-              if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                return rc_err;
-            }
-          }
-          {
-            rc_err = emit_ast_bld(node->args[k], bld, is_msc, &_ch);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-            changes += _ch;
-          }
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, "&");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        if (strcmp(name, "strtok") == 0) {
-          rc_err = cdd_cst_bld_ident(bld, "__strtokctx");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        } else if (strcmp(name, "wcstok") == 0) {
-          rc_err = cdd_cst_bld_ident(bld, "__wcstokctx");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        } else {
-          rc_err = cdd_cst_bld_ident(bld, "__mbstokctx");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
+        rc_err = emit_safe_crt_itoa(node, bld, is_msc, &changes);
+        if (rc_err != CDD_C_SUCCESS)
+          return rc_err;
+      } else if ((is_safe == 10 || is_safe == 11) && node->num_args >= 5) {
+        rc_err = emit_safe_crt_path(node, bld, is_msc, is_safe, &changes);
+        if (rc_err != CDD_C_SUCCESS)
+          return rc_err;
+      } else if ((is_safe == 19 && node->num_args == 3) ||
+                 (is_safe == 20 && node->num_args == 3) ||
+                 (is_safe == 21 && node->num_args == 2)) {
+        rc_err =
+            emit_safe_crt_gcvt_mbs(node, bld, is_msc, is_safe, name, &changes);
+        if (rc_err != CDD_C_SUCCESS)
+          return rc_err;
+      } else if ((is_safe == 22 && node->num_args == 3) ||
+                 (is_safe == 23 && node->num_args == 1) ||
+                 (is_safe == 24 && node->num_args == 1)) {
+        rc_err =
+            emit_safe_crt_env(node, bld, is_msc, is_safe, name, ctx, &changes);
+        if (rc_err != CDD_C_SUCCESS)
+          return rc_err;
+      } else if ((is_safe == 25 &&
+                  (node->num_args == 4 || node->num_args == 5)) ||
+                 is_safe == 29) {
+        rc_err = emit_safe_crt_search_tok(node, bld, is_msc, is_safe, name, ctx,
+                                          &changes);
+        if (rc_err != CDD_C_SUCCESS)
+          return rc_err;
       } else if (is_safe == 26 || is_safe == 27 || is_safe == 28) {
-        const char *bufname;
-        if (is_safe == 26) {
-          bufname = "__wcserrbuf";
-          ctx->needs_wcserrbuf = 1;
-        } else if (is_safe == 27) {
-          bufname = "__errbuf";
-          ctx->needs_errbuf = 1;
-        } else {
-          if (strcmp(name, "_ecvt") == 0) {
-            bufname = "__ecvtbuf";
-            ctx->needs_ecvtbuf = 1;
-          } else {
-            bufname = "__fcvtbuf";
-            ctx->needs_fcvtbuf = 1;
-          }
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, "(");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, "(");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          const char *pooled_nm = NULL;
-          safe_crt_pool_string_safe(bld->tree, name, &pooled_nm);
-          rc_err = cdd_cst_bld_ident(bld, pooled_nm);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_ident(bld, "_s");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, "(");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          const char *pooled_bn = NULL;
-          safe_crt_pool_string_safe(bld->tree, bufname, &pooled_bn);
-          rc_err = cdd_cst_bld_ident(bld, pooled_bn);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_ident(bld, is_safe == 28 ? "128" : "94");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        for (k = 0; k < node->num_args; k++) {
-          {
-            rc_err = cdd_cst_bld_punct(bld, ",");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_space(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = emit_ast_bld(node->args[k], bld, is_msc, &_ch);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-            changes += _ch;
-          }
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ")");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ",");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_space(bld);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          const char *pooled_bn = NULL;
-          safe_crt_pool_string_safe(bld->tree, bufname, &pooled_bn);
-          rc_err = cdd_cst_bld_ident(bld, pooled_bn);
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ")");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
+        rc_err = emit_safe_crt_err_fcvt(node, bld, is_msc, is_safe, name, ctx,
+                                        &changes);
+        if (rc_err != CDD_C_SUCCESS)
+          return rc_err;
       } else if (is_safe == 7) {
-        size_t format_idx = 0;
-        if (strcmp(name, "fscanf") == 0 || strcmp(name, "sscanf") == 0 ||
-            strcmp(name, "vfscanf") == 0 || strcmp(name, "vsscanf") == 0) {
-          format_idx = 1;
-        }
-
-        if (format_idx < node->num_args) {
-          int needs_size[32] = {0};
-          int num_specifiers = 0;
-
-          if (node->args[format_idx] && node->args[format_idx]->type == 0 &&
-              node->args[format_idx]->tok &&
-              node->args[format_idx]->tok->kind == CDD_TOKEN_STRING) {
-            const char *start =
-                (const char *)node->args[format_idx]->tok->start;
-            const char *end = start + node->args[format_idx]->tok->length;
-            while (start < end) {
-              if (*start == '%') {
-                start++;
-                if (*start == '%') {
-                  start++;
-                  continue;
-                }
-                if (*start == '*') {
-                  start++;
-                  while (start < end && !isalpha((unsigned char)*start) &&
-                         *start != '[') {
-                    start++;
-                  }
-                  if (start < end)
-                    start++;
-                  continue;
-                }
-                while (start < end && !isalpha((unsigned char)*start) &&
-                       *start != '[')
-                  start++;
-                if (start < end) {
-                  if (*start == 's' || *start == 'S' || *start == 'c' ||
-                      *start == 'C' || *start == '[') {
-                    if (num_specifiers < 32)
-                      needs_size[num_specifiers] = 1;
-                  }
-                  num_specifiers++;
-                  if (*start == '[') {
-                    start++;
-                    if (*start == '^')
-                      start++;
-                    if (*start == ']')
-                      start++;
-                    while (start < end && *start != ']')
-                      start++;
-                  }
-                  start++;
-                }
-              } else {
-                start++;
-              }
-            }
-          }
-
-          for (k = 0; k < node->num_args; k++) {
-            if (k > 0) {
-              {
-                rc_err = cdd_cst_bld_punct(bld, ",");
-                if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                  return rc_err;
-              }
-              {
-                rc_err = cdd_cst_bld_space(bld);
-                if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                  return rc_err;
-              }
-            }
-            {
-              rc_err = emit_ast_bld(node->args[k], bld, is_msc, &_ch);
-              if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                return rc_err;
-              changes += _ch;
-            }
-
-            if (k > format_idx) {
-              int arg_idx = (int)(k - (format_idx + 1));
-              if (arg_idx < num_specifiers && needs_size[arg_idx]) {
-                {
-                  rc_err = cdd_cst_bld_punct(bld, ",");
-                  if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                    return rc_err;
-                }
-                {
-                  rc_err = cdd_cst_bld_space(bld);
-                  if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                    return rc_err;
-                }
-                {
-                  rc_err = cdd_cst_bld_punct(bld, "(");
-                  if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                    return rc_err;
-                }
-                {
-                  rc_err = cdd_cst_bld_ident(bld, "unsigned");
-                  if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                    return rc_err;
-                }
-                {
-                  rc_err = cdd_cst_bld_punct(bld, ")");
-                  if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                    return rc_err;
-                }
-                {
-                  rc_err = cdd_cst_bld_ident(bld, "sizeof");
-                  if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                    return rc_err;
-                }
-                {
-                  rc_err = cdd_cst_bld_punct(bld, "(");
-                  if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                    return rc_err;
-                }
-                {
-                  rc_err = emit_ast_bld_strip_ampersand(node->args[k], bld, 0);
-                  if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                    return rc_err;
-                }
-                {
-                  rc_err = cdd_cst_bld_punct(bld, ")");
-                  if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                    return rc_err;
-                }
-              }
-            }
-          }
-        } else {
-          if (node->num_args > 0) {
-            {
-              rc_err = emit_ast_bld(node->args[0], bld, is_msc, &_ch);
-              if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                return rc_err;
-              changes += _ch;
-            }
-          }
-        }
+        rc_err = emit_safe_crt_scanf(node, bld, is_msc, name, &changes);
+        if (rc_err != CDD_C_SUCCESS)
+          return rc_err;
       } else {
         for (k = 0; k < node->num_args; k++) {
           if (k > 0) {
@@ -1980,230 +580,9 @@ cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
         }
       }
     } else if (node->type == 3) {
-      printf("FOPEN HIT\n");
-      changes++;
-      if (is_msc) {
-        expr_t *lhs = node->args[0];
-        expr_t *call = node->args[1];
-        size_t nlen = 0;
-        int is_decl = 0;
-        int token_count = 0;
-        int has_dot_arrow_bracket = 0;
-        int first_is_star = 0;
-        expr_t *last_t = NULL;
-        expr_t *t_iter = lhs;
-
-        while (t_iter != node) {
-          if (t_iter->tok) {
-            if (token_count == 0 && t_iter->tok->kind == CDD_TOKEN_STAR)
-              first_is_star = 1;
-            if (t_iter->tok->kind == CDD_TOKEN_DOT ||
-                t_iter->tok->kind == CDD_TOKEN_ARROW ||
-                t_iter->tok->kind == CDD_TOKEN_LBRACKET)
-              has_dot_arrow_bracket = 1;
-          }
-          token_count++;
-          last_t = t_iter;
-          t_iter = t_iter->next;
-        }
-
-        if (token_count > 1 && !has_dot_arrow_bracket && !first_is_star)
-          is_decl = 1;
-
-        if (is_decl) {
-          char safe_call[32];
-          char call_name[16];
-          expr_t *t = lhs;
-          memset(call_name, 0, sizeof(call_name));
-          nlen = call->tok->length;
-          memcpy(call_name, call->tok->start, nlen);
-          CDD_SNPRINTF(safe_call, sizeof(safe_call), "%s_s", call_name);
-          while (t != node) {
-            cdd_token_t *ct = NULL;
-            clone_token(bld->tree, t->tok, &ct);
-            if (ct) {
-              rc_err = cdd_cst_append_child_token(bld->target_node, ct);
-              if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                return rc_err;
-            }
-            t = t->next;
-          }
-          cdd_cst_bld_punct(bld, ";");
-          {
-            rc_err = cdd_cst_bld_newline(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            const char *pooled_sc = NULL;
-            safe_crt_pool_string_safe(bld->tree, safe_call, &pooled_sc);
-            cdd_cst_bld_ident(bld, pooled_sc);
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, "(");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, "&");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            cdd_token_t *ct = NULL;
-            cdd_cst_create_token_len(bld->tree, last_t->tok->kind,
-                                     (const char *)last_t->tok->start,
-                                     last_t->tok->length, &ct);
-            if (ct) {
-              {
-                rc_err = cdd_cst_append_child_token(bld->target_node, ct);
-                if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                  return rc_err;
-              }
-            }
-          }
-        } else {
-          char safe_call[32];
-          char call_name[16];
-          expr_t *t = lhs;
-          memset(call_name, 0, sizeof(call_name));
-          nlen = call->tok->length;
-          memcpy(call_name, call->tok->start, nlen);
-          CDD_SNPRINTF(safe_call, sizeof(safe_call), "%s_s", call_name);
-
-          if (node->tok && node->tok->leading_trivia) {
-            cdd_token_t *ct_space = NULL;
-            cdd_cst_create_token_len(bld->tree, CDD_TOKEN_OTHER, "", 0,
-                                     &ct_space);
-            clone_trivia(node->tok->leading_trivia, &ct_space->leading_trivia);
-            {
-              rc_err = cdd_cst_append_child_token(bld->target_node, ct_space);
-              if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                return rc_err;
-            }
-          }
-          {
-            const char *pooled_sc = NULL;
-            safe_crt_pool_string_safe(bld->tree, safe_call, &pooled_sc);
-            cdd_cst_bld_ident(bld, pooled_sc);
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, "(");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_punct(bld, "&");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          while (t != node) {
-            cdd_token_t *ct = NULL;
-            clone_token(bld->tree, t->tok, &ct);
-            if (ct) {
-              rc_err = cdd_cst_append_child_token(bld->target_node, ct);
-              if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-                return rc_err;
-            }
-            t = t->next;
-          }
-        }
-        if (call->num_args >= 1) {
-          {
-            rc_err = cdd_cst_bld_punct(bld, ",");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_space(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = emit_ast_bld(call->args[0], bld, is_msc, &_ch);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-        }
-        if (call->num_args >= 2) {
-          {
-            rc_err = cdd_cst_bld_punct(bld, ",");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_space(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = emit_ast_bld(call->args[1], bld, is_msc, &_ch);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-        }
-        if (call->num_args >= 3) {
-          {
-            rc_err = cdd_cst_bld_punct(bld, ",");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = cdd_cst_bld_space(bld);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-          {
-            rc_err = emit_ast_bld(call->args[2], bld, is_msc, &_ch);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, ")");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        if (node->tok && node->tok->trailing_trivia) {
-          cdd_token_t *ct_space = NULL;
-          cdd_cst_create_token_len(bld->tree, CDD_TOKEN_OTHER, "", 0,
-                                   &ct_space);
-          clone_trivia(node->tok->trailing_trivia, &ct_space->trailing_trivia);
-          {
-            rc_err = cdd_cst_append_child_token(bld->target_node, ct_space);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-        }
-      } else {
-        if (node->tok && node->tok->leading_trivia) {
-          cdd_token_t *ct_space = NULL;
-          cdd_cst_create_token_len(bld->tree, CDD_TOKEN_OTHER, "", 0,
-                                   &ct_space);
-          clone_trivia(node->tok->leading_trivia, &ct_space->leading_trivia);
-          {
-            rc_err = cdd_cst_append_child_token(bld->target_node, ct_space);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-        }
-        {
-          rc_err = cdd_cst_bld_punct(bld, "=");
-          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-            return rc_err;
-        }
-        if (node->tok && node->tok->trailing_trivia) {
-          cdd_token_t *ct_space = NULL;
-          cdd_cst_create_token_len(bld->tree, CDD_TOKEN_OTHER, "", 0,
-                                   &ct_space);
-          clone_trivia(node->tok->trailing_trivia, &ct_space->trailing_trivia);
-          {
-            rc_err = cdd_cst_append_child_token(bld->target_node, ct_space);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
-        }
-      }
+      rc_err = emit_safe_crt_fopen(node, bld, is_msc, &changes);
+      if (rc_err != CDD_C_SUCCESS)
+        return rc_err;
     }
     node = node->next;
   }

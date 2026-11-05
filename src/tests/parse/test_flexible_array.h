@@ -118,13 +118,9 @@ TEST test_parse_fixed_array_not_fam(void) {
   ASSERT_EQ(0, rc);
 
   f = &sf.fields[0];
-  /* Current naive parser includes [10] in name likely, verify behavior */
-  /* Logic: last space split. "char buf[10];" -> name="buf[10]" type="char" */
-  /* Our FAM check name[len-1]==']' && name[len-2]=='['. */
-  /* ']' at end? Yes. '[' at len-2? No, it's '0'. */
-
-  /* NOTE: The naive parser keeps array brackets in the name currently. */
-  ASSERT_STR_EQ("buf[10]", f->name);
+  ASSERT_STR_EQ("buf", f->name);
+  ASSERT_EQ(10u, f->fixed_array_len);
+  ASSERT_STR_EQ("char[10]", f->c_type);
   ASSERT_EQ(0, f->is_flexible_array);
 
   struct_fields_free(&sf);

@@ -629,6 +629,12 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
       json_object_set_boolean(pobj, "x-cdd-cli-hidden", 1);
     if (field->cli_exclusive)
       json_object_set_boolean(pobj, "x-cdd-cli-exclusive", 1);
+    if (field->cli_skip)
+      json_object_set_boolean(pobj, "x-cdd-cli-skip", 1);
+    if (field->cli_skip_to_cli)
+      json_object_set_boolean(pobj, "x-cdd-cli-skip-to", 1);
+    if (field->cli_skip_from_cli)
+      json_object_set_boolean(pobj, "x-cdd-cli-skip-from", 1);
     if (field->cli_value_parser[0] != '\0')
       json_object_set_string(pobj, "x-cdd-cli-value-parser",
                              field->cli_value_parser);

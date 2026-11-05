@@ -67,11 +67,14 @@ struct DeployConfig {
 };
 ```
 
-Running `sync_code deploy.h deploy.c` generates:
+Running `sync_code deploy.h deploy.c` generates direct, zero-overhead C89 functions and additive RTTI descriptors:
 - `DeployConfig_to_json` / `DeployConfig_from_json` / `DeployConfig_from_jsonObject`
 - `DeployConfig_from_cli` / `DeployConfig_parse_cli_into` / `DeployConfig_to_cli_argv`
 - `DeployConfig_print_help` / `DeployConfig_print_version` / `DeployConfig_print_completions`
-- `DeployConfig_default` / `DeployConfig_deepcopy` / `DeployConfig_eq` / `DeployConfig_cleanup`
+- `DeployConfig_to_form_urlencoded` / `DeployConfig_from_form_urlencoded`
+- `DeployConfig_default` / `DeployConfig_deepcopy` / `DeployConfig_eq` / `DeployConfig_cleanup` / `DeployConfig_debug`
+- `DeployConfig_reflect` (`struct cdd_type_info`, `struct cdd_field_info`, `cdd_reflect_visit_fields`, `cdd_reflect_visit_fields_mut`, `cdd_reflect_get_*` / `cdd_reflect_set_*`, `cdd_reflect_array_len` / `cdd_reflect_array_at`)
+- C11/C23 `_Generic` dispatch macros (`CDD_TO_JSON`, `CDD_FROM_JSON`, `CDD_FROM_CLI`, `CDD_TO_CLI_ARGV`, `CDD_TO_FORM`, `CDD_FROM_FORM`, `CDD_EQ`, `CDD_DEEPCOPY`, `CDD_DEFAULT`, `CDD_CLEANUP`, `CDD_DEBUG`, `CDD_REFLECT`)
 
 ---
 

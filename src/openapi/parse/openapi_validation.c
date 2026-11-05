@@ -245,9 +245,8 @@ cdd_c_error_t add_unique_operation_id(char ***ids, size_t *count, size_t *cap,
 cdd_c_error_t collect_operation_ids(const struct OpenAPI_Path *paths,
                                     size_t n_paths, char ***ids, size_t *count,
                                     size_t *cap) {
-  size_t i, j = 0;
+  size_t i, j;
   cdd_c_error_t rc;
-  (void)j;
   if (!paths)
     return CDD_C_SUCCESS;
   for (i = 0; i < n_paths; ++i) {

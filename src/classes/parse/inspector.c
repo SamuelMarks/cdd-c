@@ -828,6 +828,8 @@ void func_sig_list_free(struct FuncSigList *list) {
       C_CDD_FREE(list->items[i].sig);
       if (list->items[i].doc)
         C_CDD_FREE(list->items[i].doc);
+      if (list->items[i].params)
+        C_CDD_FREE(list->items[i].params);
     }
     C_CDD_FREE(list->items);
     list->items = NULL;
@@ -889,7 +891,6 @@ static cdd_c_error_t copy_token_span_trimmed(const struct TokenList *tokens,
                                              char *dst, size_t dst_sz) {
   size_t pos = 0;
   size_t i;
-  (void)dst_sz;
   dst[0] = '\0';
   while (tokens->tokens[start].kind == TOKEN_WHITESPACE) {
     start++;
@@ -899,7 +900,7 @@ static cdd_c_error_t copy_token_span_trimmed(const struct TokenList *tokens,
   }
   for (i = start; i < end; ++i) {
     size_t k;
-    for (k = 0; k < tokens->tokens[i].length; ++k) {
+    for (k = 0; k < tokens->tokens[i].length && pos + 1 < dst_sz; ++k) {
       dst[pos++] = (char)tokens->tokens[i].start[k];
     }
   }
@@ -997,6 +998,7 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
           out->capacity = c;
         }
 
+        memset(&out->items[out->size], 0, sizeof(struct FuncSignature));
         out->items[out->size].name = NULL;
         extract_span_text(tl, name_idx, name_idx + 1,
                           &out->items[out->size].name);
@@ -1022,9 +1024,9 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
         }
         memset(out->items[out->size].return_type, 0,
                sizeof(out->items[out->size].return_type));
-        memset(out->items[out->size].params, 0,
-               sizeof(out->items[out->size].params));
+        out->items[out->size].params = NULL;
         out->items[out->size].n_params = 0;
+        out->items[out->size].params_capacity = 0;
         copy_token_span_trimmed(tl, start_idx, name_idx,
                                 out->items[out->size].return_type,
                                 sizeof(out->items[out->size].return_type));
@@ -1050,6 +1052,29 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
               }
               if (last_id < p_end) {
                 size_t pidx = out->items[out->size].n_params;
+                if (pidx >= out->items[out->size].params_capacity) {
+                  size_t pcap = (out->items[out->size].params_capacity == 0)
+                                    ? 8
+                                    : out->items[out->size].params_capacity * 2;
+                  struct FuncParamReflection *new_params =
+                      (struct FuncParamReflection *)C_CDD_REALLOC(
+                          out->items[out->size].params,
+                          pcap * sizeof(struct FuncParamReflection));
+                  if (!new_params) {
+                    C_CDD_FREE(out->items[out->size].name);
+                    C_CDD_FREE(out->items[out->size].sig);
+                    if (out->items[out->size].doc)
+                      C_CDD_FREE(out->items[out->size].doc);
+                    if (out->items[out->size].params)
+                      C_CDD_FREE(out->items[out->size].params);
+                    rc = CDD_C_ERROR_MEMORY;
+                    goto cleanup;
+                  }
+                  out->items[out->size].params = new_params;
+                  out->items[out->size].params_capacity = pcap;
+                }
+                memset(&out->items[out->size].params[pidx], 0,
+                       sizeof(struct FuncParamReflection));
                 copy_token_span_trimmed(
                     tl, p_start, last_id,
                     out->items[out->size].params[pidx].type,

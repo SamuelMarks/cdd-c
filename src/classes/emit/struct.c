@@ -1,6 +1,6 @@
 /**
  * @file struct.c
- * @brief Implementation of struct lifecycle generation.
+ * @brief Implementation of struct lifecycle C code generation.
  *
  * Updates include:
  * - Integration of `numeric_parser` to handle binary literals.
@@ -18,15 +18,8 @@
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
 #include "c_cdd_export.h"
-#include "classes/parse/cdd_serde.h"
-#include "classes/parse/code2schema.h"
 #include "classes/parse/numeric.h"
-#include "functions/parse/str.h"
-#include "functions/str_includes.h" /* For NUM_LONG_FMT macros if needed, here mostly standard */
 #include "win_compat_sym.h"
-#include <ctype.h>
-#include <errno.h>
-#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
@@ -45,410 +38,6 @@ static const char *kStrDupFunc = "strdup";
 #define CHECK_IO(x)                                                            \
   for (; (x) < 0;)                                                             \
   return CDD_C_ERROR_IO
-
-/**
- * @brief Frees the memory associated with a dynamically allocated string array.
- *
- * @param[in] arr Array of heap-allocated strings.
- * @param[in] n Number of elements in the array.
- */
-static void free_string_array(char **arr, size_t n) {
-  size_t i;
-  for (i = 0; i < n; ++i) {
-    if (arr[i]) {
-      C_CDD_FREE(arr[i]);
-      arr[i] = NULL;
-    }
-  }
-  C_CDD_FREE(arr);
-}
-
-/*
- * @brief Extracts the type name from a JSON Schema `$ref` path.
- *
- * @param[in] ref JSON Schema `$ref` string (e.g.,
- * `"#/components/schemas/Foo"`).
- * @param[out] _out_val Output pointer receiving the extracted type name suffix.
- * @return CDD_C_SUCCESS on success, or error code on failure.
- */
-cdd_c_error_t get_type_from_ref(const char *ref, const char **_out_val) {
-  static char s_ref_buf[16][256];
-  static size_t s_ref_idx = 0;
-  if (ref == NULL) {
-    *_out_val = "";
-    return CDD_C_SUCCESS;
-  }
-  {
-    const char *after = NULL;
-    int needs_san = 0;
-    cdd_c_error_t rc_after = c_cdd_str_after_last(ref, '/', &after);
-    if (rc_after != CDD_C_SUCCESS) {
-      return rc_after;
-    }
-    if (strchr(ref, '/') != NULL && after[0] != '\0') {
-      c2s_needs_identifier_sanitization(after, &needs_san);
-      if (needs_san) {
-        char *san = NULL;
-        if (sanitize_identifier(after, &san) == CDD_C_SUCCESS) {
-          size_t slot = s_ref_idx % 16;
-          s_ref_idx++;
-          CDD_STRCPY(s_ref_buf[slot], sizeof(s_ref_buf[slot]), san);
-          C_CDD_FREE(san);
-          *_out_val = s_ref_buf[slot];
-          return CDD_C_SUCCESS;
-        }
-      }
-    }
-    *_out_val = after;
-    return CDD_C_SUCCESS;
-  }
-}
-
-/*
- * @brief Initializes a dynamic array of struct field descriptors.
- *
- * @param[out] sf Pointer to the StructFields structure to initialize.
- * @return CDD_C_SUCCESS on success, or error code on failure.
- */
-cdd_c_error_t struct_fields_init(struct StructFields *sf) {
-  if (!sf)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  memset(sf, 0, sizeof(*sf));
-  sf->capacity = 8;
-  sf->fields = (struct StructField *)C_CDD_CALLOC(sf->capacity,
-                                                  sizeof(struct StructField));
-  if (!sf->fields) {
-    sf->capacity = 0;
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return CDD_C_ERROR_MEMORY;
-  }
-  return CDD_C_SUCCESS;
-}
-
-/*
- * @brief Releases all memory owned by a StructFields container.
- *
- * @param[in,out] sf Pointer to the StructFields structure to free.
- */
-void struct_fields_free(struct StructFields *sf) {
-  if (sf && sf->fields) {
-    size_t i;
-    for (i = 0; i < sf->size; ++i) {
-      if (sf->fields[i].schema_extra_json) {
-        C_CDD_FREE(sf->fields[i].schema_extra_json);
-        sf->fields[i].schema_extra_json = NULL;
-      }
-      if (sf->fields[i].items_extra_json) {
-        C_CDD_FREE(sf->fields[i].items_extra_json);
-        sf->fields[i].items_extra_json = NULL;
-      }
-      if (sf->fields[i].type_union) {
-        free_string_array(sf->fields[i].type_union, sf->fields[i].n_type_union);
-        sf->fields[i].type_union = NULL;
-        sf->fields[i].n_type_union = 0;
-      }
-      if (sf->fields[i].items_type_union) {
-        free_string_array(sf->fields[i].items_type_union,
-                          sf->fields[i].n_items_type_union);
-        sf->fields[i].items_type_union = NULL;
-        sf->fields[i].n_items_type_union = 0;
-      }
-      if (sf->fields[i].serde_aliases) {
-        free_string_array(sf->fields[i].serde_aliases,
-                          sf->fields[i].n_serde_aliases);
-        sf->fields[i].serde_aliases = NULL;
-        sf->fields[i].n_serde_aliases = 0;
-      }
-      if (sf->fields[i].cli_long_help) {
-        C_CDD_FREE(sf->fields[i].cli_long_help);
-        sf->fields[i].cli_long_help = NULL;
-      }
-      if (sf->fields[i].cli_conflicts_with) {
-        free_string_array(sf->fields[i].cli_conflicts_with,
-                          sf->fields[i].n_cli_conflicts_with);
-        sf->fields[i].cli_conflicts_with = NULL;
-        sf->fields[i].n_cli_conflicts_with = 0;
-      }
-      if (sf->fields[i].cli_requires) {
-        free_string_array(sf->fields[i].cli_requires,
-                          sf->fields[i].n_cli_requires);
-        sf->fields[i].cli_requires = NULL;
-        sf->fields[i].n_cli_requires = 0;
-      }
-      if (sf->fields[i].cli_required_unless) {
-        free_string_array(sf->fields[i].cli_required_unless,
-                          sf->fields[i].n_cli_required_unless);
-        sf->fields[i].cli_required_unless = NULL;
-        sf->fields[i].n_cli_required_unless = 0;
-      }
-    }
-    C_CDD_FREE(sf->fields);
-    sf->fields = NULL;
-  }
-  if (sf) {
-    if (sf->schema_extra_json) {
-      C_CDD_FREE(sf->schema_extra_json);
-      sf->schema_extra_json = NULL;
-    }
-    if (sf->cli_long_about) {
-      C_CDD_FREE(sf->cli_long_about);
-      sf->cli_long_about = NULL;
-    }
-    if (sf->cli_before_help) {
-      C_CDD_FREE(sf->cli_before_help);
-      sf->cli_before_help = NULL;
-    }
-    if (sf->cli_after_help) {
-      C_CDD_FREE(sf->cli_after_help);
-      sf->cli_after_help = NULL;
-    }
-    if (sf->cli_aliases) {
-      free_string_array(sf->cli_aliases, sf->n_cli_aliases);
-      sf->cli_aliases = NULL;
-      sf->n_cli_aliases = 0;
-    }
-    if (sf->union_discriminator) {
-      C_CDD_FREE(sf->union_discriminator);
-      sf->union_discriminator = NULL;
-    }
-    if (sf->union_variants) {
-      size_t i;
-      for (i = 0; i < sf->n_union_variants; ++i) {
-        struct UnionVariantMeta *meta = &sf->union_variants[i];
-        if (meta->required_props) {
-          free_string_array(meta->required_props, meta->n_required_props);
-          meta->required_props = NULL;
-          meta->n_required_props = 0;
-        }
-        if (meta->property_names) {
-          free_string_array(meta->property_names, meta->n_property_names);
-          meta->property_names = NULL;
-          meta->n_property_names = 0;
-        }
-        if (meta->disc_value) {
-          C_CDD_FREE(meta->disc_value);
-          meta->disc_value = NULL;
-        }
-      }
-      C_CDD_FREE(sf->union_variants);
-      sf->union_variants = NULL;
-      sf->n_union_variants = 0;
-    }
-    enum_members_free(&sf->enum_members);
-    sf->is_enum = 0;
-    sf->is_union = 0;
-    sf->union_is_anyof = 0;
-  }
-}
-
-/*
- * @brief Appends a new field descriptor to a StructFields container.
- *
- * @param[in,out] sf Target StructFields container.
- * @param[in] name Field identifier name.
- * @param[in] type Field JSON Schema type string.
- * @param[in] ref Optional `$ref` target or array item type.
- * @param[in] default_val Optional default value literal string.
- * @param[in] bit_width Optional C bit-field width string.
- * @return CDD_C_SUCCESS on success, or error code on failure.
- */
-cdd_c_error_t struct_fields_add(struct StructFields *sf, const char *name,
-                                const char *type, const char *ref,
-                                const char *default_val,
-                                const char *bit_width) {
-  struct StructField *f;
-  if (!sf || !name || !type)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
-  if (sf->size >= sf->capacity) {
-    const size_t new_cap = sf->capacity == 0 ? 8 : sf->capacity * 2;
-    struct StructField *new_arr;
-    new_arr = (struct StructField *)C_CDD_REALLOC(
-        sf->fields, new_cap * sizeof(struct StructField));
-    if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return CDD_C_ERROR_MEMORY;
-    }
-    sf->fields = new_arr;
-    sf->capacity = new_cap;
-  }
-
-  f = &sf->fields[sf->size];
-  /* Zero out new slot to clear constraints/flags */
-  memset(f, 0, sizeof(struct StructField));
-  f->cli_index = -1;
-
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  strncpy_s(f->name, sizeof(f->name), name, _TRUNCATE);
-  strncpy_s(f->type, sizeof(f->type), type, _TRUNCATE);
-  if (ref) {
-    strncpy_s(f->ref, sizeof(f->ref), ref, _TRUNCATE);
-  }
-  if (default_val) {
-    strncpy_s(f->default_val, sizeof(f->default_val), default_val, _TRUNCATE);
-  }
-  if (bit_width) {
-    strncpy_s(f->bit_width, sizeof(f->bit_width), bit_width, _TRUNCATE);
-  }
-#else
-  strncpy(f->name, name, sizeof(f->name) - 1);
-  f->name[sizeof(f->name) - 1] = '\0';
-  strncpy(f->type, type, sizeof(f->type) - 1);
-  f->type[sizeof(f->type) - 1] = '\0';
-  if (ref) {
-    strncpy(f->ref, ref, sizeof(f->ref) - 1);
-    f->ref[sizeof(f->ref) - 1] = '\0';
-  }
-  if (default_val) {
-    strncpy(f->default_val, default_val, sizeof(f->default_val) - 1);
-    f->default_val[sizeof(f->default_val) - 1] = '\0';
-  }
-  if (bit_width) {
-    strncpy(f->bit_width, bit_width, sizeof(f->bit_width) - 1);
-    f->bit_width[sizeof(f->bit_width) - 1] = '\0';
-  }
-#endif
-  sf->size++;
-  return CDD_C_SUCCESS;
-}
-
-/*
- * @brief Finds a struct field descriptor by name.
- *
- * @param[in] sf StructFields container to search.
- * @param[in] name Field identifier name to look up.
- * @param[out] _out_val Output pointer receiving the matching StructField or
- * NULL.
- * @return CDD_C_SUCCESS on success.
- */
-cdd_c_error_t struct_fields_get(const struct StructFields *sf, const char *name,
-                                struct StructField **_out_val) {
-  size_t i;
-  if (!sf || !name) {
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
-  }
-  for (i = 0; i < sf->size; ++i) {
-    if (strcmp(sf->fields[i].name, name) == 0) {
-      *_out_val = &sf->fields[i];
-      return CDD_C_SUCCESS;
-    }
-  }
-  {
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
-  }
-}
-
-/**
- * @brief Appends a unique heap-duplicated string to a dynamic `char **` array.
- *
- * @param[in,out] arr_ptr Pointer to the dynamic string array.
- * @param[in,out] count_ptr Pointer to the element count.
- * @param[in] val Non-empty string to append.
- * @return CDD_C_SUCCESS on success, or error code on failure.
- */
-static cdd_c_error_t append_unique_str_to_array(char ***arr_ptr,
-                                                size_t *count_ptr,
-                                                const char *val) {
-  char **new_arr;
-  char *dup_str = NULL;
-  size_t i;
-  cdd_c_error_t rc;
-  if (!val || !val[0])
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  for (i = 0; i < *count_ptr; ++i) {
-    if ((*arr_ptr)[i] && strcmp((*arr_ptr)[i], val) == 0)
-      return CDD_C_SUCCESS;
-  }
-  rc = c_cdd_strdup(val, &dup_str);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  new_arr = (char **)C_CDD_REALLOC(*arr_ptr, (*count_ptr + 1) * sizeof(char *));
-  if (!new_arr) {
-    C_CDD_FREE(dup_str);
-    return CDD_C_ERROR_MEMORY;
-  }
-  *arr_ptr = new_arr;
-  (*arr_ptr)[*count_ptr] = dup_str;
-  (*count_ptr)++;
-  return CDD_C_SUCCESS;
-}
-
-/*
- * @brief Appends a deserialization alias to a StructField.
- *
- * @param[in,out] f Pointer to the target StructField.
- * @param[in] alias Alternative JSON key string to accept during
- * deserialization.
- * @return CDD_C_SUCCESS on success, or error code on failure.
- */
-cdd_c_error_t struct_field_add_alias(struct StructField *f, const char *alias) {
-  if (!f)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  return append_unique_str_to_array(&f->serde_aliases, &f->n_serde_aliases,
-                                    alias);
-}
-
-/*
- * @brief Appends a CLI subcommand alias to a StructFields container.
- *
- * @param[in,out] sf Pointer to the target StructFields container.
- * @param[in] alias Subcommand alias string to accept.
- * @return CDD_C_SUCCESS on success, or error code on failure.
- */
-cdd_c_error_t struct_fields_add_cli_alias(struct StructFields *sf,
-                                          const char *alias) {
-  if (!sf)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  return append_unique_str_to_array(&sf->cli_aliases, &sf->n_cli_aliases,
-                                    alias);
-}
-
-/*
- * @brief Appends a conflicting CLI field name to a StructField.
- *
- * @param[in,out] f Pointer to the target StructField.
- * @param[in] conflict Name of the conflicting field.
- * @return CDD_C_SUCCESS on success, or error code on failure.
- */
-cdd_c_error_t struct_field_add_cli_conflict(struct StructField *f,
-                                            const char *conflict) {
-  if (!f)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  return append_unique_str_to_array(&f->cli_conflicts_with,
-                                    &f->n_cli_conflicts_with, conflict);
-}
-
-/*
- * @brief Appends a required companion CLI field name to a StructField.
- *
- * @param[in,out] f Pointer to the target StructField.
- * @param[in] req Name of the required field.
- * @return CDD_C_SUCCESS on success, or error code on failure.
- */
-cdd_c_error_t struct_field_add_cli_requires(struct StructField *f,
-                                            const char *req) {
-  if (!f)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  return append_unique_str_to_array(&f->cli_requires, &f->n_cli_requires, req);
-}
-
-/*
- * @brief Appends an alternative satisfying CLI field name (`required_unless`)
- * to a StructField.
- *
- * @param[in,out] f Pointer to the target StructField.
- * @param[in] req Name of the alternative field.
- * @return CDD_C_SUCCESS on success, or error code on failure.
- */
-cdd_c_error_t struct_field_add_cli_required_unless(struct StructField *f,
-                                                   const char *req) {
-  if (!f)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  return append_unique_str_to_array(&f->cli_required_unless,
-                                    &f->n_cli_required_unless, req);
-}
 
 /* --- Generation Implementing --- */
 
@@ -472,8 +61,15 @@ write_struct_cleanup_func(FILE *fp, const char *struct_name,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   for (i = 0; i < sf->size; ++i) {
-    if (strcmp(sf->fields[i].type, "array") == 0)
-      iter_needed = 1;
+    if (strcmp(sf->fields[i].type, "array") == 0) {
+      if (sf->fields[i].fixed_array_len == 0 ||
+          strcmp(sf->fields[i].ref, "string") == 0 ||
+          (strcmp(sf->fields[i].ref, "integer") != 0 &&
+           strcmp(sf->fields[i].ref, "boolean") != 0 &&
+           strcmp(sf->fields[i].ref, "number") != 0)) {
+        iter_needed = 1;
+      }
+    }
   }
 
   if (config && config->guard_macro)
@@ -493,17 +89,48 @@ write_struct_cleanup_func(FILE *fp, const char *struct_name,
     char *r = sf->fields[i].ref;
 
     if (strcmp(t, "string") == 0) {
-      CHECK_IO(
-          FPRINTF_HOOK(fp, "  if (obj->%s) free((void*)obj->%s);\n", n, n));
+      if (sf->fields[i].fixed_array_len == 0 &&
+          !sf->fields[i].is_flexible_array) {
+        CHECK_IO(
+            FPRINTF_HOOK(fp, "  if (obj->%s) free((void*)obj->%s);\n", n, n));
+      }
     } else if (strcmp(t, "object") == 0) {
       {
         const char *tn = NULL;
-        get_type_from_ref(r, &tn);
+        cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
+        if (rc_ref != CDD_C_SUCCESS) {
+          return rc_ref;
+        }
         CHECK_IO(FPRINTF_HOOK(
             fp, "  if (obj->%s) {%s_cleanup(obj->%s); free(obj->%s); }\n", n,
             tn, n, n));
       }
     } else if (strcmp(t, "array") == 0) {
+      if (sf->fields[i].fixed_array_len > 0) {
+        unsigned long flen = (unsigned long)sf->fields[i].fixed_array_len;
+        if (strcmp(r, "string") == 0) {
+          CHECK_IO(FPRINTF_HOOK(fp,
+                                "  for (i = 0; i < %lu; ++i) {\n"
+                                "    if (obj->%s[i]) free(obj->%s[i]);\n"
+                                "  }\n",
+                                flen, n, n));
+        } else if (strcmp(r, "object") == 0 ||
+                   (strcmp(r, "integer") != 0 && strcmp(r, "boolean") != 0 &&
+                    strcmp(r, "number") != 0)) {
+          const char *tn = NULL;
+          cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
+          if (rc_ref != CDD_C_SUCCESS) {
+            return rc_ref;
+          }
+          CHECK_IO(FPRINTF_HOOK(fp,
+                                "  for (i = 0; i < %lu; ++i) {\n"
+                                "    if (obj->%s[i]) { %s_cleanup(obj->%s[i]); "
+                                "free(obj->%s[i]); }\n"
+                                "  }\n",
+                                flen, n, tn, n, n));
+        }
+        continue;
+      }
       CHECK_IO(FPRINTF_HOOK(fp, "  for (i = 0; i < obj->n_%s; ++i) {\n", n));
       if (strcmp(r, "string") == 0) {
         CHECK_IO(FPRINTF_HOOK(fp, "    free(obj->%s[i]);\n", n));
@@ -558,8 +185,11 @@ write_struct_deepcopy_func(FILE *fp, const char *struct_name,
 
   for (i = 0; i < sf->size; ++i) {
     const char *t = sf->fields[i].type;
-    if (strcmp(t, "string") == 0 || strcmp(t, "object") == 0 ||
-        strcmp(t, "array") == 0) {
+    if ((strcmp(t, "string") == 0 && sf->fields[i].fixed_array_len == 0 &&
+         !sf->fields[i].is_flexible_array) ||
+        strcmp(t, "object") == 0 ||
+        (strcmp(t, "array") == 0 && sf->fields[i].fixed_array_len == 0 &&
+         !sf->fields[i].is_flexible_array)) {
       has_ptr_fields = 1;
       break;
     }
@@ -586,9 +216,13 @@ write_struct_deepcopy_func(FILE *fp, const char *struct_name,
     for (i = 0; i < sf->size; ++i) {
       const char *n = sf->fields[i].name;
       const char *t = sf->fields[i].type;
-      if (strcmp(t, "string") == 0 || strcmp(t, "object") == 0) {
+      if ((strcmp(t, "string") == 0 && sf->fields[i].fixed_array_len == 0 &&
+           !sf->fields[i].is_flexible_array) ||
+          strcmp(t, "object") == 0) {
         CHECK_IO(FPRINTF_HOOK(fp, "  (*dest)->%s = NULL;\n", n));
-      } else if (strcmp(t, "array") == 0) {
+      } else if (strcmp(t, "array") == 0 &&
+                 sf->fields[i].fixed_array_len == 0 &&
+                 !sf->fields[i].is_flexible_array) {
         CHECK_IO(FPRINTF_HOOK(fp, "  (*dest)->%s = NULL; (*dest)->n_%s = 0;\n",
                               n, n));
       }
@@ -599,7 +233,8 @@ write_struct_deepcopy_func(FILE *fp, const char *struct_name,
       const char *t = sf->fields[i].type;
       const char *r = sf->fields[i].ref;
 
-      if (strcmp(t, "string") == 0) {
+      if (strcmp(t, "string") == 0 && sf->fields[i].fixed_array_len == 0 &&
+          !sf->fields[i].is_flexible_array) {
         CHECK_IO(FPRINTF_HOOK(fp,
                               "  if (src->%s) {\n"
                               "    (*dest)->%s = %s(src->%s);\n"
@@ -609,7 +244,10 @@ write_struct_deepcopy_func(FILE *fp, const char *struct_name,
                               n, n, kStrDupFunc, n, n, struct_name));
       } else if (strcmp(t, "object") == 0) {
         const char *tn = NULL;
-        get_type_from_ref(r, &tn);
+        cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
+        if (rc_ref != CDD_C_SUCCESS) {
+          return rc_ref;
+        }
         if (tn[0] != '\0') {
           CHECK_IO(FPRINTF_HOOK(
               fp,
@@ -619,7 +257,9 @@ write_struct_deepcopy_func(FILE *fp, const char *struct_name,
               "  }\n",
               n, tn, n, n, struct_name));
         }
-      } else if (strcmp(t, "array") == 0) {
+      } else if (strcmp(t, "array") == 0 &&
+                 sf->fields[i].fixed_array_len == 0 &&
+                 !sf->fields[i].is_flexible_array) {
         if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0) {
           CHECK_IO(FPRINTF_HOOK(
               fp,
@@ -664,7 +304,10 @@ write_struct_deepcopy_func(FILE *fp, const char *struct_name,
         } else if (strcmp(r, "object") != 0 && strcmp(r, "unknown") != 0 &&
                    r[0] != '\0') {
           const char *tn = NULL;
-          get_type_from_ref(r, &tn);
+          cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
+          if (rc_ref != CDD_C_SUCCESS) {
+            return rc_ref;
+          }
           if (tn[0] != '\0') {
             CHECK_IO(FPRINTF_HOOK(
                 fp,
@@ -744,11 +387,19 @@ cdd_c_error_t write_struct_eq_func(FILE *fp, const char *struct_name,
     }
 
     if (strcmp(t, "string") == 0) {
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "  if (a->%s != b->%s && (!a->%s || !b->%s || "
-                            "strcmp(a->%s, b->%s) != 0)) { *out_eq = 0; return "
-                            "CDD_C_SUCCESS; }\n",
-                            n, n, n, n, n, n));
+      if (sf->fields[i].fixed_array_len > 0) {
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "  if (strncmp(a->%s, b->%s, %lu) != 0) { *out_eq = 0; return "
+            "CDD_C_SUCCESS; }\n",
+            n, n, (unsigned long)sf->fields[i].fixed_array_len));
+      } else {
+        CHECK_IO(FPRINTF_HOOK(fp,
+                              "  if (a->%s != b->%s && (!a->%s || !b->%s || "
+                              "strcmp(a->%s, b->%s) != 0)) { *out_eq = 0; "
+                              "return CDD_C_SUCCESS; }\n",
+                              n, n, n, n, n, n));
+      }
     } else if (strcmp(t, "object") == 0) {
       CHECK_IO(
           FPRINTF_HOOK(fp,
@@ -757,11 +408,17 @@ cdd_c_error_t write_struct_eq_func(FILE *fp, const char *struct_name,
                        "(!_t) { *out_eq = 0; return CDD_C_SUCCESS; } }\n",
                        r, n, n));
     } else if (strcmp(t, "array") == 0) {
-      CHECK_IO(FPRINTF_HOOK(
-          fp,
-          "  if (a->n_%s != b->n_%s) { *out_eq = 0; return CDD_C_SUCCESS; }\n",
-          n, n));
-      CHECK_IO(FPRINTF_HOOK(fp, "  for (i = 0; i < a->n_%s; ++i) {\n", n));
+      if (sf->fields[i].fixed_array_len > 0) {
+        CHECK_IO(FPRINTF_HOOK(fp, "  for (i = 0; i < %lu; ++i) {\n",
+                              (unsigned long)sf->fields[i].fixed_array_len));
+      } else {
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "  if (a->n_%s != b->n_%s) { *out_eq = 0; return CDD_C_SUCCESS; "
+            "}\n",
+            n, n));
+        CHECK_IO(FPRINTF_HOOK(fp, "  for (i = 0; i < a->n_%s; ++i) {\n", n));
+      }
       if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0 ||
           strcmp(r, "number") == 0) {
         CHECK_IO(FPRINTF_HOOK(fp,
@@ -844,13 +501,23 @@ write_struct_default_func(FILE *fp, const char *struct_name,
   for (i = 0; i < sf->size; ++i) {
     const char *def = sf->fields[i].default_val;
     if (sf->fields[i].serde_default_fn[0] != '\0') {
-      CHECK_IO(FPRINTF_HOOK(fp, "  rc = %s(&(*out)->%s);\n",
-                            sf->fields[i].serde_default_fn,
-                            sf->fields[i].name));
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "  if (rc != CDD_C_SUCCESS) { %s_cleanup(*out); "
-                            "*out=NULL; return rc; }\n",
-                            struct_name));
+      if (sf->fields[i].bit_width[0] != '\0') {
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "  { int _bf_tmp = 0; rc = %s(&_bf_tmp);\n"
+            "    if (rc != CDD_C_SUCCESS) { %s_cleanup(*out); *out=NULL; "
+            "return rc; }\n"
+            "    (*out)->%s = _bf_tmp; }\n",
+            sf->fields[i].serde_default_fn, struct_name, sf->fields[i].name));
+      } else {
+        CHECK_IO(FPRINTF_HOOK(fp, "  rc = %s(&(*out)->%s);\n",
+                              sf->fields[i].serde_default_fn,
+                              sf->fields[i].name));
+        CHECK_IO(FPRINTF_HOOK(fp,
+                              "  if (rc != CDD_C_SUCCESS) { %s_cleanup(*out); "
+                              "*out=NULL; return rc; }\n",
+                              struct_name));
+      }
     } else if (def[0] != '\0') {
       const char *n = sf->fields[i].name;
       const char *t = sf->fields[i].type;
@@ -861,7 +528,16 @@ write_struct_default_func(FILE *fp, const char *struct_name,
       }
 
       if (strcmp(t, "string") == 0) {
-        if (strcmp(def, "nullptr") == 0) {
+        if (sf->fields[i].fixed_array_len > 0) {
+          unsigned long cap = (unsigned long)sf->fields[i].fixed_array_len;
+          if (strcmp(def, "nullptr") != 0) {
+            CHECK_IO(FPRINTF_HOOK(fp,
+                                  "  strncpy((*out)->%s, %s, %lu);\n"
+                                  "  (*out)->%s[%lu] = '\\0';\n",
+                                  n, def, cap > 0 ? cap - 1 : 0, n,
+                                  cap > 0 ? cap - 1 : 0));
+          }
+        } else if (strcmp(def, "nullptr") == 0) {
           CHECK_IO(FPRINTF_HOOK(fp, "  (*out)->%s = NULL;\n", n));
         } else {
           CHECK_IO(FPRINTF_HOOK(fp, "  (*out)->%s = %s(%s);\n", n, kStrDupFunc,
@@ -873,12 +549,22 @@ write_struct_default_func(FILE *fp, const char *struct_name,
                            n, struct_name));
         }
       } else if (strcmp(t, "enum") == 0) {
-        CHECK_IO(FPRINTF_HOOK(fp, "  rc = %s_from_str(%s, &(*out)->%s);\n", r,
-                              def, n));
-        CHECK_IO(FPRINTF_HOOK(fp,
-                              "  if (rc != CDD_C_SUCCESS) { %s_cleanup(*out); "
-                              "*out=NULL; return rc; }\n",
-                              struct_name));
+        if (sf->fields[i].bit_width[0] != '\0') {
+          CHECK_IO(FPRINTF_HOOK(
+              fp,
+              "  { enum %s _bf_tmp; rc = %s_from_str(%s, &_bf_tmp);\n"
+              "    if (rc != CDD_C_SUCCESS) { %s_cleanup(*out); *out=NULL; "
+              "return rc; }\n"
+              "    (*out)->%s = _bf_tmp; }\n",
+              r, r, def, struct_name, n));
+        } else {
+          CHECK_IO(FPRINTF_HOOK(fp, "  rc = %s_from_str(%s, &(*out)->%s);\n", r,
+                                def, n));
+          CHECK_IO(FPRINTF_HOOK(fp,
+                                "  if (rc != CDD_C_SUCCESS) { "
+                                "%s_cleanup(*out); *out=NULL; return rc; }\n",
+                                struct_name));
+        }
       } else {
         /* Primitives (integer/boolean/number) */
         /* Check for C23 nullptr -> NULL pointer mapping */
@@ -971,11 +657,18 @@ write_struct_debug_func(FILE *fp, const char *struct_name,
     }
 
     if (strcmp(t, "string") == 0) {
-      CHECK_IO(FPRINTF_HOOK(
-          fp,
-          "  fprintf_rc = fprintf(fp, \"  %s: \\\"%%s\\\"\\n\", obj->%s ? "
-          "obj->%s : \"(null)\");\n",
-          n, n, n));
+      if (sf->fields[i].fixed_array_len > 0) {
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "  fprintf_rc = fprintf(fp, \"  %s: \\\"%%s\\\"\\n\", obj->%s);\n",
+            n, n));
+      } else {
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "  fprintf_rc = fprintf(fp, \"  %s: \\\"%%s\\\"\\n\", obj->%s ? "
+            "obj->%s : \"(null)\");\n",
+            n, n, n));
+      }
       CHECK_IO(
           FPRINTF_HOOK(fp, "  if (fprintf_rc < 0) return CDD_C_ERROR_IO;\n"));
     } else if (strcmp(t, "object") == 0) {
@@ -990,7 +683,12 @@ write_struct_debug_func(FILE *fp, const char *struct_name,
           FPRINTF_HOOK(fp, "  fprintf_rc = fprintf(fp, \"  %s: [\\n\");\n", n));
       CHECK_IO(
           FPRINTF_HOOK(fp, "  if (fprintf_rc < 0) return CDD_C_ERROR_IO;\n"));
-      CHECK_IO(FPRINTF_HOOK(fp, "  for (i = 0; i < obj->n_%s; ++i) {\n", n));
+      if (sf->fields[i].fixed_array_len > 0) {
+        CHECK_IO(FPRINTF_HOOK(fp, "  for (i = 0; i < %lu; ++i) {\n",
+                              (unsigned long)sf->fields[i].fixed_array_len));
+      } else {
+        CHECK_IO(FPRINTF_HOOK(fp, "  for (i = 0; i < obj->n_%s; ++i) {\n", n));
+      }
       if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0 ||
           strcmp(r, "enum") == 0) {
         CHECK_IO(FPRINTF_HOOK(
@@ -1091,219 +789,5 @@ write_struct_display_func(FILE *fp, const char *struct_name,
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
 
-  return CDD_C_SUCCESS;
-}
-
-/*
- * @brief Looks up a reflected field descriptor by C member name or wire name.
- *
- * @param[in] ti Runtime type descriptor table.
- * @param[in] name C field name or serialized wire name to look up.
- * @param[out] out_field Output pointer receiving the matching field descriptor.
- * @return CDD_C_SUCCESS if found, CDD_C_ERROR_NOT_FOUND if absent, or
- * CDD_C_ERROR_INVALID_ARGUMENT on NULL arguments.
- */
-cdd_c_error_t cdd_reflect_find_field(const struct cdd_type_info *ti,
-                                     const char *name,
-                                     const struct cdd_field_info **out_field) {
-  size_t i;
-  if (!ti || !name || !out_field)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  *out_field = NULL;
-  for (i = 0; i < ti->n_fields; ++i) {
-    if (strcmp(ti->fields[i].name, name) == 0 ||
-        strcmp(ti->fields[i].wire_name, name) == 0) {
-      *out_field = &ti->fields[i];
-      return CDD_C_SUCCESS;
-    }
-  }
-  return CDD_C_ERROR_NOT_FOUND;
-}
-
-/*
- * @brief Iterates over all fields of a struct instance `obj` using its runtime
- * `cdd_type_info` table and invokes `visitor` with the computed member address.
- *
- * @param[in] obj Pointer to struct instance.
- * @param[in] ti Runtime type descriptor for `obj`.
- * @param[in] visitor Callback invoked for each non-skipped field.
- * @param[in] user_data Opaque context pointer forwarded to `visitor`.
- * @return CDD_C_SUCCESS on success, or the first non-zero error code returned
- * by `visitor`.
- */
-cdd_c_error_t cdd_reflect_visit_fields(const void *obj,
-                                       const struct cdd_type_info *ti,
-                                       cdd_field_visitor_fn visitor,
-                                       void *user_data) {
-  size_t i;
-  if (!obj || !ti || !visitor)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  for (i = 0; i < ti->n_fields; ++i) {
-    const void *field_ptr;
-    cdd_c_error_t rc;
-    if (ti->fields[i].skip)
-      continue;
-    field_ptr =
-        (const void *)((const unsigned char *)obj + ti->fields[i].offset);
-    rc = visitor(&ti->fields[i], field_ptr, user_data);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-  }
-  return CDD_C_SUCCESS;
-}
-
-/*
- * @brief Emits runtime reflection descriptor tables (`struct cdd_field_info[]`
- * and `struct cdd_type_info`) and `<struct_name>_reflect` accessor for a C
- * struct.
- *
- * @param[in] fp File pointer to write to.
- * @param[in] struct_name Name of the struct.
- * @param[in] sf Fields descriptor.
- * @param[in] config Optional configuration options.
- * @return CDD_C_SUCCESS on success, error code on failure.
- */
-cdd_c_error_t
-write_struct_reflect_func(FILE *fp, const char *struct_name,
-                          const struct StructFields *sf,
-                          const struct CodegenStructConfig *config) {
-  size_t i;
-  if (!fp || !struct_name || !sf)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
-  if (config && config->guard_macro)
-    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
-
-  CHECK_IO(FPRINTF_HOOK(
-      fp, "static const struct cdd_field_info %s_fields[] = {\n", struct_name));
-
-  for (i = 0; i < sf->size; ++i) {
-    const struct StructField *f = &sf->fields[i];
-    const char *kind_str = "CDD_FIELD_KIND_UNKNOWN";
-    const char *ref_out = "";
-    char wire_name[128];
-    unsigned int bw = f->bit_width[0] ? (unsigned int)atoi(f->bit_width) : 0U;
-
-    if (cdd_serde_resolve_field_names(sf, i, wire_name, sizeof(wire_name), NULL,
-                                      0) != CDD_C_SUCCESS) {
-      CDD_STRCPY(wire_name, sizeof(wire_name), f->name);
-    }
-    if (f->ref[0] != '\0') {
-      get_type_from_ref(f->ref, &ref_out);
-    }
-    if (strcmp(f->type, "integer") == 0)
-      kind_str = "CDD_FIELD_KIND_INTEGER";
-    else if (strcmp(f->type, "number") == 0)
-      kind_str = "CDD_FIELD_KIND_NUMBER";
-    else if (strcmp(f->type, "boolean") == 0)
-      kind_str = "CDD_FIELD_KIND_BOOLEAN";
-    else if (strcmp(f->type, "string") == 0)
-      kind_str = "CDD_FIELD_KIND_STRING";
-    else if (strcmp(f->type, "enum") == 0)
-      kind_str = "CDD_FIELD_KIND_ENUM";
-    else if (strcmp(f->type, "object") == 0)
-      kind_str = "CDD_FIELD_KIND_OBJECT";
-    else if (strcmp(f->type, "array") == 0)
-      kind_str = "CDD_FIELD_KIND_ARRAY";
-
-    if (bw > 0) {
-      CHECK_IO(FPRINTF_HOOK(
-          fp,
-          "  { \"%s\", \"%s\", \"%s\", \"%s\", %s, 0, 0, 0, %u, %d, %d },\n",
-          f->name, wire_name, f->c_type, ref_out, kind_str, bw, f->required,
-          f->serde_skip));
-    } else if (strcmp(f->type, "array") == 0) {
-      CHECK_IO(FPRINTF_HOOK(
-          fp,
-          "  { \"%s\", \"%s\", \"%s\", \"%s\", %s, offsetof(struct %s, %s), "
-          "sizeof(((struct %s *)0)->%s), offsetof(struct %s, n_%s), 0, %d, %d "
-          "},\n",
-          f->name, wire_name, f->c_type, ref_out, kind_str, struct_name,
-          f->name, struct_name, f->name, struct_name, f->name, f->required,
-          f->serde_skip));
-    } else {
-      CHECK_IO(FPRINTF_HOOK(
-          fp,
-          "  { \"%s\", \"%s\", \"%s\", \"%s\", %s, offsetof(struct %s, %s), "
-          "sizeof(((struct %s *)0)->%s), 0, 0, %d, %d },\n",
-          f->name, wire_name, f->c_type, ref_out, kind_str, struct_name,
-          f->name, struct_name, f->name, f->required, f->serde_skip));
-    }
-  }
-  CHECK_IO(FPRINTF_HOOK(
-      fp,
-      "  { NULL, NULL, NULL, NULL, CDD_FIELD_KIND_UNKNOWN, 0, 0, 0, 0, 0, 0 "
-      "}\n"
-      "};\n"
-      "static const struct cdd_type_info %s_type_info_table = {\n"
-      "  \"%s\", sizeof(struct %s), %d, %s_fields, %lu\n"
-      "};\n"
-      "cdd_c_error_t %s_reflect(const struct cdd_type_info **out) {\n"
-      "  if (!out) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
-      "  *out = &%s_type_info_table;\n"
-      "  return CDD_C_SUCCESS;\n"
-      "}\n",
-      struct_name, struct_name, struct_name, sf->is_union, struct_name,
-      (unsigned long)sf->size, struct_name, struct_name));
-
-  if (config && config->guard_macro)
-    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
-
-  return CDD_C_SUCCESS;
-}
-
-/*
- * @brief Emits C11/C23 `_Generic` polymorphic reflection dispatch macros
- * (`CDD_REFLECT`, `CDD_TO_JSON`, `CDD_CLEANUP`, `CDD_DEBUG`) for a set of
- * struct names.
- *
- * @param[in] fp File pointer to write to.
- * @param[in] struct_names Array of struct names.
- * @param[in] n_structs Number of struct names in the array.
- * @return CDD_C_SUCCESS on success, error code on failure.
- */
-cdd_c_error_t
-write_struct_generic_dispatch_macros(FILE *fp, const char *const *struct_names,
-                                     size_t n_structs) {
-  size_t i;
-  if (!fp || !struct_names || n_structs == 0)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
-  CHECK_IO(FPRINTF_HOOK(
-      fp, "#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L\n"
-          "#define CDD_REFLECT(ptr, out) _Generic((ptr), \\\n"));
-  for (i = 0; i < n_structs; ++i) {
-    if (struct_names[i][0] == '\0')
-      return CDD_C_ERROR_INVALID_ARGUMENT;
-    CHECK_IO(FPRINTF_HOOK(fp, "  const struct %s *: %s_reflect, \\\n",
-                          struct_names[i], struct_names[i]));
-    CHECK_IO(FPRINTF_HOOK(fp, "  struct %s *: %s_reflect%s \\\n",
-                          struct_names[i], struct_names[i],
-                          (i + 1 < n_structs) ? "," : ")(out)"));
-  }
-  CHECK_IO(
-      FPRINTF_HOOK(fp, "#define CDD_TO_JSON(ptr, out) _Generic((ptr), \\\n"));
-  for (i = 0; i < n_structs; ++i) {
-    CHECK_IO(FPRINTF_HOOK(fp, "  const struct %s *: %s_to_json, \\\n",
-                          struct_names[i], struct_names[i]));
-    CHECK_IO(FPRINTF_HOOK(fp, "  struct %s *: %s_to_json%s \\\n",
-                          struct_names[i], struct_names[i],
-                          (i + 1 < n_structs) ? "," : ")(ptr, out)"));
-  }
-  CHECK_IO(FPRINTF_HOOK(fp, "#define CDD_CLEANUP(ptr) _Generic((ptr), \\\n"));
-  for (i = 0; i < n_structs; ++i) {
-    CHECK_IO(FPRINTF_HOOK(fp, "  struct %s *: %s_cleanup%s \\\n",
-                          struct_names[i], struct_names[i],
-                          (i + 1 < n_structs) ? "," : ")(ptr)"));
-  }
-  CHECK_IO(FPRINTF_HOOK(fp, "#define CDD_DEBUG(ptr, fp) _Generic((ptr), \\\n"));
-  for (i = 0; i < n_structs; ++i) {
-    CHECK_IO(FPRINTF_HOOK(fp, "  const struct %s *: %s_debug, \\\n",
-                          struct_names[i], struct_names[i]));
-    CHECK_IO(FPRINTF_HOOK(fp, "  struct %s *: %s_debug%s \\\n", struct_names[i],
-                          struct_names[i],
-                          (i + 1 < n_structs) ? "," : ")(ptr, fp)"));
-  }
-  CHECK_IO(FPRINTF_HOOK(fp, "#endif /* __STDC_VERSION__ >= 201112L */\n"));
   return CDD_C_SUCCESS;
 }

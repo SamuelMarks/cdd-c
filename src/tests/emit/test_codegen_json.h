@@ -1825,6 +1825,22 @@ TEST test_cdd_serde_exhaustive(void) {
                   "/* @cdd skip_deserializing */", ren, sizeof(ren), &sk,
                   &vcase, rf, sizeof(rf), rt, sizeof(rt), NULL, NULL, 0));
     ASSERT_EQ(1, sk);
+    {
+      struct StructField empty_f;
+      const char *long_doc =
+          "/* @cddx @cdd_not_a_tag @from_form(rename = \"ff\") @to_form(rename "
+          "= \"tf\") [[serde::rename = \"sr\"]] #[serde(rename = a[0], "
+          "to_form(rename = \"tf2\"), from_form(rename = \"ff2\"), "
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          " = 1, replace = "
+          "(\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          "bbb\" -> "
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          "))] @cli(case = snake_case, kebab-case) */";
+      memset(&empty_f, 0, sizeof(empty_f));
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_serde_parse_field_comment(long_doc, &empty_f));
+    }
   }
   enum_members_free(&em);
 
