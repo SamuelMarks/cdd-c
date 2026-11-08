@@ -285,9 +285,12 @@ def get_test_coverage():
 
 
 def main():
-    readme_path = os.path.join(os.path.dirname(__file__), "..", "README.md")
-    if not os.path.exists(readme_path):
-        return
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    target_files = [
+        os.path.join(repo_root, "README.md"),
+        os.path.join(repo_root, "ARCHITECTURE.md"),
+        os.path.join(repo_root, "CAPABILITIES.md"),
+    ]
 
     test_cov = None
     if os.name != "nt":
@@ -300,44 +303,51 @@ def main():
 
     doc_color = get_color(doc_cov)
 
-    with open(readme_path, "r", encoding="utf-8", newline="\n") as f:
-        content = f.read()
+    for md_path in target_files:
+        if not os.path.exists(md_path):
+            continue
 
-    if test_cov is not None:
-        test_color = get_color(test_cov)
-        test_badge = f"[![Test Coverage](https://img.shields.io/badge/Test%20Coverage-{test_cov}%25-{test_color}.svg)](#)"
-        test_badge_pattern = r"\[\!\[Test Coverage\]\(.*?\)\]\(.*?\)"
-        if re.search(test_badge_pattern, content):
-            content = re.sub(test_badge_pattern, test_badge, content)
+        with open(md_path, "r", encoding="utf-8", newline="\n") as f:
+            content = f.read()
+
+        if test_cov is not None:
+            test_color = get_color(test_cov)
+            test_badge = f"[![Test Coverage](https://img.shields.io/badge/Test%20Coverage-{test_cov}%25-{test_color}.svg)](#)"
+            test_badge_pattern = r"\[\!\[Test Coverage\]\(.*?\)\]\(.*?\)"
+            if re.search(test_badge_pattern, content):
+                content = re.sub(test_badge_pattern, test_badge, content)
+            else:
+                doc_badge_pattern = r"(\[\!\[Doc Coverage\].*?\]\(.*?\)\n?)"
+                if re.search(doc_badge_pattern, content):
+                    content = re.sub(
+                        doc_badge_pattern,
+                        r"\1" + test_badge + "\n",
+                        content,
+                        count=1,
+                    )
+                elif "[![License]" in content:
+                    content = re.sub(
+                        r"(\[!\[License\].*?\]\(.*?\)\n?)",
+                        r"\1" + test_badge + "\n",
+                        content,
+                        count=1,
+                    )
+
+        doc_badge = f"[![Doc Coverage](https://img.shields.io/badge/Doc%20Coverage-{doc_cov}%25-{doc_color}.svg)](#)"
+        doc_badge_pattern = r"\[\!\[Doc Coverage\]\(.*?\)\]\(.*?\)"
+        if re.search(doc_badge_pattern, content):
+            content = re.sub(doc_badge_pattern, doc_badge, content)
         else:
-            doc_badge_pattern = r"(\[\!\[Doc Coverage\].*?\]\(.*?\)\n?)"
-            if re.search(doc_badge_pattern, content):
-                content = re.sub(
-                    doc_badge_pattern, r"\1" + test_badge + "\n", content, count=1
-                )
-            elif "[![License]" in content:
+            if "[![License]" in content:
                 content = re.sub(
                     r"(\[!\[License\].*?\]\(.*?\)\n?)",
-                    r"\1" + test_badge + "\n",
+                    r"\1" + doc_badge + "\n",
                     content,
                     count=1,
                 )
 
-    doc_badge = f"[![Doc Coverage](https://img.shields.io/badge/Doc%20Coverage-{doc_cov}%25-{doc_color}.svg)](#)"
-    doc_badge_pattern = r"\[\!\[Doc Coverage\]\(.*?\)\]\(.*?\)"
-    if re.search(doc_badge_pattern, content):
-        content = re.sub(doc_badge_pattern, doc_badge, content)
-    else:
-        if "[![License]" in content:
-            content = re.sub(
-                r"(\[!\[License\].*?\]\(.*?\)\n?)",
-                r"\1" + doc_badge + "\n",
-                content,
-                count=1,
-            )
-
-    with open(readme_path, "w", encoding="utf-8", newline="\n") as f:
-        f.write(content)
+        with open(md_path, "w", encoding="utf-8", newline="\n") as f:
+            f.write(content)
 
 
 if __name__ == "__main__":

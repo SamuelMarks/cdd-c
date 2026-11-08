@@ -75,11 +75,12 @@ cdd_c_error_t schema_constraints_add_required(struct SchemaConstraints *sc,
  * structure.
  *
  * @param[in,out] sc Pointer to the SchemaConstraints structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void schema_constraints_free(struct SchemaConstraints *sc) {
+cdd_c_error_t schema_constraints_free(struct SchemaConstraints *sc) {
   size_t i;
   if (!sc)
-    return;
+    return CDD_C_SUCCESS;
   if (sc->required) {
     for (i = 0; i < sc->required_count; i++) {
       if (sc->required[i])
@@ -102,4 +103,5 @@ void schema_constraints_free(struct SchemaConstraints *sc) {
     sc->additional_properties = NULL;
   }
   sc->has_additional_properties = 0;
+  return CDD_C_SUCCESS;
 }

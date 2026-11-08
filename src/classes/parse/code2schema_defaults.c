@@ -117,8 +117,8 @@ cdd_c_error_t c2s_parse_number_default(const char *in, double *out,
  */
 cdd_c_error_t c2s_detect_union_json_type(const JSON_Object *schema_obj,
                                          enum UnionVariantJsonType *_out_val) {
-  const char *type;
-  const JSON_Object *props;
+  const char *type = NULL;
+  JSON_Object *props = NULL;
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!schema_obj) {
@@ -133,7 +133,7 @@ cdd_c_error_t c2s_detect_union_json_type(const JSON_Object *schema_obj,
       return CDD_C_SUCCESS;
     }
   }
-  type = json_object_get_string(schema_obj, "type");
+  cdd_json_object_get_string(schema_obj, "type", &type);
   if (type) {
     if (strcmp(type, "object") == 0) {
       *_out_val = UNION_JSON_OBJECT;
@@ -164,7 +164,7 @@ cdd_c_error_t c2s_detect_union_json_type(const JSON_Object *schema_obj,
       return CDD_C_SUCCESS;
     }
   }
-  props = json_object_get_object(schema_obj, "properties");
+  cdd_json_object_get_object(schema_obj, "properties", &props);
   if (props) {
     *_out_val = UNION_JSON_OBJECT;
     return CDD_C_SUCCESS;

@@ -148,12 +148,12 @@ static cdd_c_error_t find_class_visitor(cdd_cst_node_t *node, void *user_data) {
         if (tok->length == strlen(target_name) &&
             strncmp((const char *)tok->start, target_name, tok->length) == 0) {
           *out_node = node;
-          return 1; /* Stop traversal */
+          return CDD_C_ERROR_UNKNOWN; /* Stop traversal */
         }
       }
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -178,7 +178,7 @@ static cdd_c_error_t find_class_declaration_by_name(cdd_cst_tree_t *tree,
  * @brief Visitor to find a function definition by name.
  * @param[in,out] node The current node.
  * @param[in,out] user_data Pointer to user data.
- * @return 1 to stop traversal, 0 otherwise.
+ * @return CDD_C_ERROR_UNKNOWN to stop traversal, CDD_C_SUCCESS otherwise.
  */
 static cdd_c_error_t find_func_visitor(cdd_cst_node_t *node, void *user_data) {
   struct find_node_ctx_t *ctx = (struct find_node_ctx_t *)user_data;
@@ -193,12 +193,12 @@ static cdd_c_error_t find_func_visitor(cdd_cst_node_t *node, void *user_data) {
         if (tok->length == strlen(target_name) &&
             strncmp((const char *)tok->start, target_name, tok->length) == 0) {
           *out_node = node;
-          return 1; /* Stop traversal */
+          return CDD_C_ERROR_UNKNOWN; /* Stop traversal */
         }
       }
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**

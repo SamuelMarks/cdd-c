@@ -31,7 +31,11 @@ TEST test_openapi_writer_extras_and_edge_branches(void) {
   char *json = NULL;
   cdd_c_error_t rc = 0;
 
-  val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   obj = json_value_get_object(val);
 
   /* 1. merge_schema_extras_object_openapi branches */
@@ -43,8 +47,16 @@ TEST test_openapi_writer_extras_and_edge_branches(void) {
   json_object_set_string(obj, "k1", "orig");
   ASSERT_EQ(CDD_C_SUCCESS, merge_schema_extras_object_openapi(
                                obj, "{\"k1\": \"override\", \"k2\": 42}"));
-  ASSERT_STR_EQ("orig", json_object_get_string(obj, "k1"));
-  ASSERT_EQ(42, (int)json_object_get_number(obj, "k2"));
+  {
+    const char *_cdd_js_1 = NULL;
+    cdd_json_object_get_string(obj, "k1", &_cdd_js_1);
+    ASSERT_STR_EQ("orig", _cdd_js_1);
+  }
+  {
+    double _cdd_jn_1 = 0.0;
+    cdd_json_object_get_number(obj, "k2", &_cdd_jn_1);
+    ASSERT_EQ(42, (int)_cdd_jn_1);
+  }
 
   /* 2. write_multipart_schema with f->type == NULL and f->is_binary == 0 */
   memset(&ref, 0, sizeof(ref));
@@ -132,7 +144,11 @@ TEST test_openapi_writer_direct_oom(void) {
   struct OpenAPI_RequestBody rb;
   int k;
 
-  val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   obj = json_value_get_object(val);
 
   /* 1. clone_json_value OOM */
@@ -271,7 +287,11 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
   char *json = NULL;
   int k;
 
-  val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   obj = json_value_get_object(val);
 
   /* 1. Direct null spec calls */

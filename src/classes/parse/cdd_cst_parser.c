@@ -97,11 +97,12 @@ cdd_c_error_t append_child_node(cdd_cst_node_t *node, cdd_cst_node_t *child) {
  * @brief Free a node and all of its descendants recursively.
  *
  * @param[in,out] node Root CST node to free.
+ * @return CDD_C_SUCCESS.
  */
-void free_node(cdd_cst_node_t *node) {
+cdd_c_error_t free_node(cdd_cst_node_t *node) {
   size_t i;
   if (!node)
-    return;
+    return CDD_C_SUCCESS;
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_NODE) {
       free_node(node->children[i].val.node);
@@ -110,6 +111,7 @@ void free_node(cdd_cst_node_t *node) {
   if (node->children)
     C_CDD_FREE(node->children);
   C_CDD_FREE(node);
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -668,11 +670,12 @@ cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
  * tokens, and string pool.
  *
  * @param[in,out] tree Pointer to the CST tree to free.
+ * @return CDD_C_SUCCESS.
  */
-void cdd_cst_tree_free(cdd_cst_tree_t *tree) {
+cdd_c_error_t cdd_cst_tree_free(cdd_cst_tree_t *tree) {
   size_t i;
   if (!tree)
-    return;
+    return CDD_C_SUCCESS;
   if (tree->root)
     free_node(tree->root);
   if (tree->base_tokens)
@@ -704,4 +707,5 @@ void cdd_cst_tree_free(cdd_cst_tree_t *tree) {
     C_CDD_FREE(tree->string_pool);
   }
   C_CDD_FREE(tree);
+  return CDD_C_SUCCESS;
 }

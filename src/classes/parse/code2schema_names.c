@@ -396,6 +396,7 @@ register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
                            const char *variant_name, const char *suffix,
                            const JSON_Value *schema_val, char **out_name) {
   char *name;
+  int has_val = 0;
 
   if (!root || !schema_val || !out_name)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -408,7 +409,8 @@ register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
       return rc_c2s;
   }
 
-  if (!json_object_has_value(root, name)) {
+  cdd_json_object_has_value(root, name, &has_val);
+  if (!has_val) {
     JSON_Value *copy = NULL;
     {
       cdd_c_error_t rc_c2s = c2s_clone_json_value(schema_val, &copy);
@@ -417,8 +419,8 @@ register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
         return rc_c2s;
       }
     }
-    if (json_object_set_value(root, name, copy) != JSONSuccess) {
-      json_value_free(copy);
+    if (cdd_json_object_set_value(root, name, copy) != CDD_C_SUCCESS) {
+      cdd_json_value_free(copy);
       C_CDD_FREE(name);
       return CDD_C_ERROR_MEMORY;
     }
@@ -444,8 +446,8 @@ cdd_c_error_t discriminator_value_for_variant(const JSON_Object *disc_obj,
                                               const char *schema_name,
                                               const char *ref,
                                               char **_out_val) {
-  const JSON_Object *mapping;
-  size_t i, count;
+  JSON_Object *mapping = NULL;
+  size_t i, count = 0;
   const char *ref_name;
 
   if (!_out_val)
@@ -466,14 +468,16 @@ cdd_c_error_t discriminator_value_for_variant(const JSON_Object *disc_obj,
   if (!disc_obj)
     goto fallback;
 
-  mapping = json_object_get_object(disc_obj, "mapping");
+  cdd_json_object_get_object(disc_obj, "mapping", &mapping);
   if (!mapping)
     goto fallback;
 
-  count = json_object_get_count(mapping);
+  cdd_json_object_get_count(mapping, &count);
   for (i = 0; i < count; ++i) {
-    const char *key = json_object_get_name(mapping, i);
-    const char *val = json_object_get_string(mapping, key);
+    const char *key = NULL;
+    const char *val = NULL;
+    cdd_json_object_get_name(mapping, i, &key);
+    cdd_json_object_get_string(mapping, key, &val);
     if (!val)
       continue;
     if (ref && strcmp(val, ref) == 0) {

@@ -508,6 +508,7 @@ TEST test_macro_evaluator_uncovered(void) {
 
     rc = cdd_macro_evaluate(&ctx, "\"success_str\"", &res);
     cdd_macro_eval_result_free(&res);
+    cdd_macro_eval_result_free(NULL);
 
     rc = cdd_macro_evaluate(&ctx, "   ", &res);
     ASSERT_NEQ(0, rc);

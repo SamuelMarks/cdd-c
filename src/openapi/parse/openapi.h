@@ -34,9 +34,10 @@
 extern "C" {
 #endif /* __cplusplus */
 /* clang-format off */
-#include <parson.h>
 #include <stddef.h>
 
+#include "c_cdd/json_dom.h"
+#include "c_cdd/reflect.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include "classes/emit/struct.h"
@@ -55,17 +56,87 @@ extern C_CDD_EXPORT cdd_c_error_t openapi_spec_init(struct OpenAPI_Spec *spec);
 /**
  * @brief Free a Spec structure and all nested allocations.
  * @param[in] spec Pointer to spec structure to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void openapi_spec_free(struct OpenAPI_Spec *spec);
+extern C_CDD_EXPORT cdd_c_error_t openapi_spec_free(struct OpenAPI_Spec *spec);
 
 /**
  * @brief Free an array of OpenAPI_Server structures and their nested
  * allocations.
  * @param[in] servers Array of server structures to free.
  * @param[in] n_servers Number of elements in the servers array.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void
+extern C_CDD_EXPORT cdd_c_error_t
 openapi_free_servers_array(struct OpenAPI_Server *servers, size_t n_servers);
+
+/**
+ * @brief Deserializes an `OpenAPI_Contact` structure from a `JSON_Object`.
+ *
+ * @param[in] contact_obj Source contact JSON object.
+ * @param[out] out_contact Destination `OpenAPI_Contact` structure.
+ * @return `CDD_C_SUCCESS` on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t OpenAPI_Contact_from_jsonObject(
+    const JSON_Object *contact_obj, struct OpenAPI_Contact *out_contact);
+
+/**
+ * @brief Deserializes an `OpenAPI_License` structure from a `JSON_Object`.
+ *
+ * @param[in] license_obj Source license JSON object.
+ * @param[out] out_license Destination `OpenAPI_License` structure.
+ * @return `CDD_C_SUCCESS` on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t OpenAPI_License_from_jsonObject(
+    const JSON_Object *license_obj, struct OpenAPI_License *out_license);
+
+/**
+ * @brief Deserializes an `OpenAPI_Info` structure from a `JSON_Object`.
+ *
+ * @param[in] info_obj Source info JSON object.
+ * @param[out] out_info Destination `OpenAPI_Info` structure.
+ * @return `CDD_C_SUCCESS` on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t OpenAPI_Info_from_jsonObject(
+    const JSON_Object *info_obj, struct OpenAPI_Info *out_info);
+
+/** @brief Runtime reflection descriptor for `OpenAPI_Contact`. */
+extern C_CDD_EXPORT const struct cdd_type_info OpenAPI_Contact_type_info;
+/** @brief Runtime reflection descriptor for `OpenAPI_License`. */
+extern C_CDD_EXPORT const struct cdd_type_info OpenAPI_License_type_info;
+/** @brief Runtime reflection descriptor for `OpenAPI_Info`. */
+extern C_CDD_EXPORT const struct cdd_type_info OpenAPI_Info_type_info;
+/** @brief Runtime reflection descriptor for `OpenAPI_ExternalDocs`. */
+extern C_CDD_EXPORT const struct cdd_type_info OpenAPI_ExternalDocs_type_info;
+/** @brief Runtime reflection descriptor for `OpenAPI_Tag`. */
+extern C_CDD_EXPORT const struct cdd_type_info OpenAPI_Tag_type_info;
+/** @brief Runtime reflection descriptor for `OpenAPI_ServerVariable`. */
+extern C_CDD_EXPORT const struct cdd_type_info OpenAPI_ServerVariable_type_info;
+/** @brief Runtime reflection descriptor for `OpenAPI_Server`. */
+extern C_CDD_EXPORT const struct cdd_type_info OpenAPI_Server_type_info;
+/** @brief Runtime reflection descriptor for `OpenAPI_Xml`. */
+extern C_CDD_EXPORT const struct cdd_type_info OpenAPI_Xml_type_info;
+/** @brief Runtime reflection descriptor for `OpenAPI_Discriminator`. */
+extern C_CDD_EXPORT const struct cdd_type_info OpenAPI_Discriminator_type_info;
+/** @brief Runtime reflection descriptor for `OpenAPI_OAuthFlow`. */
+extern C_CDD_EXPORT const struct cdd_type_info OpenAPI_OAuthFlow_type_info;
+/** @brief Runtime reflection descriptor for `OpenAPI_Example`. */
+extern C_CDD_EXPORT const struct cdd_type_info OpenAPI_Example_type_info;
+/** @brief Runtime reflection descriptor for `OpenAPI_Link`. */
+extern C_CDD_EXPORT const struct cdd_type_info OpenAPI_Link_type_info;
+
+/**
+ * @brief Table-driven helper to populate reflected `char *` string fields from
+ * a `JSON_Object`.
+ *
+ * @param[in] obj Source JSON object.
+ * @param[in] ti Runtime reflection descriptor.
+ * @param[in,out] target Target C struct pointer.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on allocation
+ * failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t openapi_parse_reflected_strings(
+    const JSON_Object *obj, const struct cdd_type_info *ti, void *target);
 
 /* --- Loader --- */
 
@@ -83,8 +154,9 @@ openapi_doc_registry_init(struct OpenAPI_DocRegistry *registry);
  * Does NOT free the OpenAPI_Spec instances referenced by the registry.
  *
  * @param[in] registry Pointer to registry to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void
+extern C_CDD_EXPORT cdd_c_error_t
 openapi_doc_registry_free(struct OpenAPI_DocRegistry *registry);
 
 /**

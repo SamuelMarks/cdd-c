@@ -21,7 +21,7 @@ extern "C" {
 
 #include "../win_compat_sym.h"
 
-#include <parson.h>
+#include "c_cdd/json_dom.h"
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #ifndef strdup

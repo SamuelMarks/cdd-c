@@ -21,11 +21,12 @@
 static cdd_c_error_t parse_request_body_object_inner(
     const JSON_Object *rb_obj, struct OpenAPI_RequestBody *out_rb,
     struct OpenAPI_Spec *spec, int resolve_refs, const char *op_id) {
-  const char *ref;
-  const char *desc;
-  int required_present;
-  int required_val;
-  const JSON_Object *content;
+  const char *ref = NULL;
+  const char *desc = NULL;
+  int required_present = 0;
+  int required_val = -1;
+  JSON_Object *content = NULL;
+  size_t content_count = 0;
   struct OpenAPI_MediaType *primary = NULL;
   int primary_idx = -1;
   cdd_c_error_t rc;
@@ -33,7 +34,7 @@ static cdd_c_error_t parse_request_body_object_inner(
   if (!rb_obj || !out_rb)
     return CDD_C_SUCCESS;
 
-  ref = json_object_get_string(rb_obj, "$ref");
+  cdd_json_object_get_string(rb_obj, "$ref", &ref);
   if (ref) {
     c_cdd_strdup(ref, &out_rb->ref);
     if (!out_rb->ref)
@@ -47,7 +48,7 @@ static cdd_c_error_t parse_request_body_object_inner(
           return rc;
       }
     }
-    desc = json_object_get_string(rb_obj, "description");
+    cdd_json_object_get_string(rb_obj, "description", &desc);
     if (desc) {
       if (out_rb->description) {
         C_CDD_FREE(out_rb->description);
@@ -60,7 +61,7 @@ static cdd_c_error_t parse_request_body_object_inner(
     return CDD_C_SUCCESS;
   }
 
-  desc = json_object_get_string(rb_obj, "description");
+  cdd_json_object_get_string(rb_obj, "description", &desc);
   if (desc) {
     if (out_rb->description) {
       C_CDD_FREE(out_rb->description);
@@ -71,15 +72,17 @@ static cdd_c_error_t parse_request_body_object_inner(
       return CDD_C_ERROR_MEMORY;
   }
 
-  required_present = json_object_has_value(rb_obj, "required");
-  required_val = json_object_get_boolean(rb_obj, "required");
+  cdd_json_object_has_value(rb_obj, "required", &required_present);
+  cdd_json_object_get_boolean(rb_obj, "required", &required_val);
   if (required_present) {
     out_rb->required_set = 1;
     out_rb->required = (required_val == 1);
   }
 
-  content = json_object_get_object(rb_obj, "content");
-  if (!content || json_object_get_count(content) == 0)
+  cdd_json_object_get_object(rb_obj, "content", &content);
+  if (content)
+    cdd_json_object_get_count(content, &content_count);
+  if (!content || content_count == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   {
     rc = parse_content_object(content, &out_rb->content_media_types,
@@ -104,22 +107,24 @@ static cdd_c_error_t parse_request_body_object_inner(
     if (primary) {
       if (spec && op_id) {
         const JSON_Object *media_obj = NULL;
-        const JSON_Value *schema_val;
-        const JSON_Value *item_schema_val;
-        const JSON_Object *schema_obj;
-        const JSON_Object *item_schema_obj;
+        JSON_Value *schema_val = NULL;
+        JSON_Value *item_schema_val = NULL;
+        JSON_Object *schema_obj = NULL;
+        JSON_Object *item_schema_obj = NULL;
         find_media_object_by_name(content, primary->name, &media_obj);
-        schema_val = json_object_get_value(media_obj, "schema");
-        item_schema_val = json_object_get_value(media_obj, "itemSchema");
-        schema_obj = schema_val ? json_value_get_object(schema_val) : NULL;
-        item_schema_obj =
-            item_schema_val ? json_value_get_object(item_schema_val) : NULL;
+        cdd_json_object_get_value(media_obj, "schema", &schema_val);
+        cdd_json_object_get_value(media_obj, "itemSchema", &item_schema_val);
+        if (schema_val)
+          cdd_json_value_get_object(schema_val, &schema_obj);
+        if (item_schema_val)
+          cdd_json_value_get_object(item_schema_val, &item_schema_obj);
         if (primary->schema_set && schema_obj) {
           if (primary->schema.is_array) {
-            const JSON_Value *items_val =
-                json_object_get_value(schema_obj, "items");
-            const JSON_Object *items_obj =
-                items_val ? json_value_get_object(items_val) : NULL;
+            JSON_Value *items_val = NULL;
+            JSON_Object *items_obj = NULL;
+            cdd_json_object_get_value(schema_obj, "items", &items_val);
+            if (items_val)
+              cdd_json_value_get_object(items_val, &items_obj);
             if (items_obj && schema_object_is_object_like(items_obj)) {
               char *base = NULL;
               char *registered = NULL;
@@ -267,17 +272,17 @@ parse_response_object_inner(const JSON_Object *resp_obj,
                             struct OpenAPI_Response *out_resp,
                             struct OpenAPI_Spec *spec, int resolve_refs,
                             const char *op_id, const char *resp_code) {
-  const char *ref;
-  const char *summary;
-  const char *desc;
-  const JSON_Object *content;
-  const JSON_Object *headers;
-  const JSON_Object *links;
+  const char *ref = NULL;
+  const char *summary = NULL;
+  const char *desc = NULL;
+  JSON_Object *content = NULL;
+  JSON_Object *headers = NULL;
+  JSON_Object *links = NULL;
   cdd_c_error_t rc;
   if (!resp_obj || !out_resp)
     return CDD_C_SUCCESS;
 
-  ref = json_object_get_string(resp_obj, "$ref");
+  cdd_json_object_get_string(resp_obj, "$ref", &ref);
   if (ref) {
     c_cdd_strdup(ref, &out_resp->ref);
     if (!out_resp->ref)
@@ -293,7 +298,7 @@ parse_response_object_inner(const JSON_Object *resp_obj,
     }
   }
 
-  summary = json_object_get_string(resp_obj, "summary");
+  cdd_json_object_get_string(resp_obj, "summary", &summary);
   if (summary) {
     C_CDD_FREE(out_resp->summary);
     out_resp->summary = NULL;
@@ -302,7 +307,7 @@ parse_response_object_inner(const JSON_Object *resp_obj,
       return CDD_C_ERROR_MEMORY;
   }
 
-  desc = json_object_get_string(resp_obj, "description");
+  cdd_json_object_get_string(resp_obj, "description", &desc);
   if (desc) {
     C_CDD_FREE(out_resp->description);
     out_resp->description = NULL;
@@ -321,9 +326,11 @@ parse_response_object_inner(const JSON_Object *resp_obj,
     return CDD_C_SUCCESS;
 
   if (spec && spec->swagger_version) {
-    const JSON_Value *schema_val = json_object_get_value(resp_obj, "schema");
-    const JSON_Object *schema_obj =
-        schema_val ? json_value_get_object(schema_val) : NULL;
+    JSON_Value *schema_val = NULL;
+    JSON_Object *schema_obj = NULL;
+    cdd_json_object_get_value(resp_obj, "schema", &schema_val);
+    if (schema_val)
+      cdd_json_value_get_object(schema_val, &schema_obj);
     if (schema_obj) {
       rc = parse_schema_ref(schema_obj, &out_resp->schema, spec);
       if (rc != CDD_C_SUCCESS)
@@ -332,7 +339,7 @@ parse_response_object_inner(const JSON_Object *resp_obj,
     }
   }
 
-  headers = json_object_get_object(resp_obj, "headers");
+  cdd_json_object_get_object(resp_obj, "headers", &headers);
   if (headers) {
     rc = parse_headers_object(headers, &out_resp->headers, &out_resp->n_headers,
                               spec, resolve_refs, 1);
@@ -340,7 +347,7 @@ parse_response_object_inner(const JSON_Object *resp_obj,
       return rc;
   }
 
-  links = json_object_get_object(resp_obj, "links");
+  cdd_json_object_get_object(resp_obj, "links", &links);
   if (links) {
     rc = parse_links_object(links, &out_resp->links, &out_resp->n_links, spec,
                             resolve_refs);
@@ -348,7 +355,7 @@ parse_response_object_inner(const JSON_Object *resp_obj,
       return rc;
   }
 
-  content = json_object_get_object(resp_obj, "content");
+  cdd_json_object_get_object(resp_obj, "content", &content);
   if (content) {
     struct OpenAPI_MediaType *primary = NULL;
     int primary_idx = -1;
@@ -366,22 +373,24 @@ parse_response_object_inner(const JSON_Object *resp_obj,
     if (primary) {
       if (spec && op_id && resp_code) {
         const JSON_Object *media_obj = NULL;
-        const JSON_Value *schema_val;
-        const JSON_Value *item_schema_val;
-        const JSON_Object *schema_obj;
-        const JSON_Object *item_schema_obj;
+        JSON_Value *schema_val = NULL;
+        JSON_Value *item_schema_val = NULL;
+        JSON_Object *schema_obj = NULL;
+        JSON_Object *item_schema_obj = NULL;
         find_media_object_by_name(content, primary->name, &media_obj);
-        schema_val = json_object_get_value(media_obj, "schema");
-        item_schema_val = json_object_get_value(media_obj, "itemSchema");
-        schema_obj = schema_val ? json_value_get_object(schema_val) : NULL;
-        item_schema_obj =
-            item_schema_val ? json_value_get_object(item_schema_val) : NULL;
+        cdd_json_object_get_value(media_obj, "schema", &schema_val);
+        cdd_json_object_get_value(media_obj, "itemSchema", &item_schema_val);
+        if (schema_val)
+          cdd_json_value_get_object(schema_val, &schema_obj);
+        if (item_schema_val)
+          cdd_json_value_get_object(item_schema_val, &item_schema_obj);
         if (primary->schema_set && schema_obj) {
           if (primary->schema.is_array) {
-            const JSON_Value *items_val =
-                json_object_get_value(schema_obj, "items");
-            const JSON_Object *items_obj =
-                items_val ? json_value_get_object(items_val) : NULL;
+            JSON_Value *items_val = NULL;
+            JSON_Object *items_obj = NULL;
+            cdd_json_object_get_value(schema_obj, "items", &items_val);
+            if (items_val)
+              cdd_json_value_get_object(items_val, &items_obj);
             if (items_obj && schema_object_is_object_like(items_obj)) {
               char *base = NULL;
               char *registered = NULL;
@@ -549,12 +558,12 @@ static cdd_c_error_t parse_responses_inner(const JSON_Object *responses,
                                            struct OpenAPI_Operation *out_op,
                                            struct OpenAPI_Spec *spec,
                                            const char *op_id) {
-  size_t i, count, valid = 0, resp_idx = 0;
+  size_t i, count = 0, valid = 0, resp_idx = 0;
   cdd_c_error_t rc;
   if (!responses || !out_op)
     return CDD_C_SUCCESS;
 
-  count = json_object_get_count(responses);
+  cdd_json_object_get_count(responses, &count);
   if (count == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -563,7 +572,8 @@ static cdd_c_error_t parse_responses_inner(const JSON_Object *responses,
     return rc;
 
   for (i = 0; i < count; ++i) {
-    const char *code = json_object_get_name(responses, i);
+    const char *code = NULL;
+    cdd_json_object_get_name(responses, i, &code);
     if (strncmp(code, "x-", 2) != 0)
       valid++;
   }
@@ -577,10 +587,14 @@ static cdd_c_error_t parse_responses_inner(const JSON_Object *responses,
   out_op->n_responses = valid;
 
   for (i = 0; i < count; ++i) {
-    const char *code = json_object_get_name(responses, i);
-    const JSON_Value *val = json_object_get_value_at(responses, i);
-    const JSON_Object *resp_obj = json_value_get_object(val);
+    const char *code = NULL;
+    JSON_Value *val = NULL;
+    JSON_Object *resp_obj = NULL;
     struct OpenAPI_Response *curr;
+
+    cdd_json_object_get_name(responses, i, &code);
+    cdd_json_object_get_value_at(responses, i, &val);
+    cdd_json_value_get_object(val, &resp_obj);
 
     if (strncmp(code, "x-", 2) == 0)
       continue;
@@ -632,15 +646,15 @@ static cdd_c_error_t
 parse_callback_object_inner(const JSON_Object *cb_obj,
                             struct OpenAPI_Callback *out_cb,
                             struct OpenAPI_Spec *spec, int resolve_refs) {
-  const char *ref;
-  const char *summary;
-  const char *desc;
+  const char *ref = NULL;
+  const char *summary = NULL;
+  const char *desc = NULL;
   cdd_c_error_t rc;
 
   if (!cb_obj || !out_cb)
     return CDD_C_SUCCESS;
 
-  ref = json_object_get_string(cb_obj, "$ref");
+  cdd_json_object_get_string(cb_obj, "$ref", &ref);
   if (ref) {
     c_cdd_strdup(ref, &out_cb->ref);
     if (!out_cb->ref)
@@ -654,7 +668,7 @@ parse_callback_object_inner(const JSON_Object *cb_obj,
           return rc;
       }
     }
-    summary = json_object_get_string(cb_obj, "summary");
+    cdd_json_object_get_string(cb_obj, "summary", &summary);
     if (summary) {
       if (out_cb->summary) {
         C_CDD_FREE(out_cb->summary);
@@ -664,7 +678,7 @@ parse_callback_object_inner(const JSON_Object *cb_obj,
       if (!out_cb->summary)
         return CDD_C_ERROR_MEMORY;
     }
-    desc = json_object_get_string(cb_obj, "description");
+    cdd_json_object_get_string(cb_obj, "description", &desc);
     if (desc) {
       if (out_cb->description) {
         C_CDD_FREE(out_cb->description);
@@ -720,7 +734,7 @@ cdd_c_error_t parse_callbacks_object(const JSON_Object *callbacks,
                                      size_t *out_count,
                                      struct OpenAPI_Spec *spec,
                                      int resolve_refs) {
-  size_t i, count;
+  size_t i, count = 0;
   if (!out_callbacks || !out_count)
     return CDD_C_SUCCESS;
 
@@ -730,7 +744,7 @@ cdd_c_error_t parse_callbacks_object(const JSON_Object *callbacks,
   if (!callbacks)
     return CDD_C_SUCCESS;
 
-  count = json_object_get_count(callbacks);
+  cdd_json_object_get_count(callbacks, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -741,10 +755,13 @@ cdd_c_error_t parse_callbacks_object(const JSON_Object *callbacks,
   *out_count = count;
 
   for (i = 0; i < count; ++i) {
-    const char *name = json_object_get_name(callbacks, i);
-    const JSON_Object *cb_obj =
-        json_value_get_object(json_object_get_value_at(callbacks, i));
+    const char *name = NULL;
+    JSON_Value *val_at = NULL;
+    JSON_Object *cb_obj = NULL;
     struct OpenAPI_Callback *curr = &(*out_callbacks)[i];
+    cdd_json_object_get_name(callbacks, i, &name);
+    cdd_json_object_get_value_at(callbacks, i, &val_at);
+    cdd_json_value_get_object(val_at, &cb_obj);
     c_cdd_strdup(name, &curr->name);
     if (!curr->name) {
       size_t j;

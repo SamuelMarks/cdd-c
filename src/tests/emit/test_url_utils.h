@@ -24,9 +24,11 @@ struct OpenAPI_KV;
 /**
  * @brief Helper function is_pct_encoded_test.
  * @param[in] p Parameter p.
+ * @param[out] out_is_pct Output flag.
  * @return Result status or value.
  */
-extern C_CDD_EXPORT cdd_c_error_t is_pct_encoded_test(const char *p);
+extern C_CDD_EXPORT cdd_c_error_t is_pct_encoded_test(const char *p,
+                                                      int *out_is_pct);
 /**
  * @brief Helper function kv_value_to_string_test.
  * @param[in] kv Parameter kv.
@@ -731,7 +733,9 @@ TEST test_append_str_nulls(void) {
  * @return Greatest test result.
  */
 TEST test_is_pct_encoded_null(void) {
-  ASSERT_EQ(CDD_C_SUCCESS, is_pct_encoded_test(NULL));
+  int is_pct = 1;
+  ASSERT_EQ(CDD_C_SUCCESS, is_pct_encoded_test(NULL, &is_pct));
+  ASSERT_EQ(0, is_pct);
   PASS();
 }
 
@@ -771,12 +775,19 @@ TEST test_url_query_build_form_empty(void) {
  * @return Greatest test result.
  */
 TEST test_is_pct_encoded_branches(void) {
-  ASSERT_EQ(0, is_pct_encoded_test(""));
-  ASSERT_EQ(0, is_pct_encoded_test("%"));
-  ASSERT_EQ(0, is_pct_encoded_test("%1"));
-  ASSERT_EQ(0, is_pct_encoded_test("%G1"));
-  ASSERT_EQ(0, is_pct_encoded_test("%1G"));
-  ASSERT_EQ(1, is_pct_encoded_test("%1A"));
+  int is_pct = 0;
+  ASSERT_EQ(CDD_C_SUCCESS, is_pct_encoded_test("", &is_pct));
+  ASSERT_EQ(0, is_pct);
+  ASSERT_EQ(CDD_C_SUCCESS, is_pct_encoded_test("%", &is_pct));
+  ASSERT_EQ(0, is_pct);
+  ASSERT_EQ(CDD_C_SUCCESS, is_pct_encoded_test("%1", &is_pct));
+  ASSERT_EQ(0, is_pct);
+  ASSERT_EQ(CDD_C_SUCCESS, is_pct_encoded_test("%G1", &is_pct));
+  ASSERT_EQ(0, is_pct);
+  ASSERT_EQ(CDD_C_SUCCESS, is_pct_encoded_test("%1G", &is_pct));
+  ASSERT_EQ(0, is_pct);
+  ASSERT_EQ(CDD_C_SUCCESS, is_pct_encoded_test("%1A", &is_pct));
+  ASSERT_EQ(1, is_pct);
   PASS();
 }
 

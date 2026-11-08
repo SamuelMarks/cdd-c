@@ -19,24 +19,6 @@ extern "C" {
 /* clang-format on */
 
 /**
- * @brief Helper function set_both_parson_allocs_ffi.
- * @param[in,out] malloc_fun Parameter malloc_fun.
- * @param[in,out] free_fun Parameter free_fun.
- */
-static void set_both_parson_allocs_ffi(void *(*malloc_fun)(size_t),
-                                       void (*free_fun)(void *)) {
-  (json_set_allocation_functions)(malloc_fun, free_fun);
-  c2openapi_set_json_allocators(malloc_fun, free_fun);
-}
-#ifdef json_set_allocation_functions
-#undef json_set_allocation_functions
-#endif
-/**
- * @brief Macro json_set_allocation_functions.
- */
-#define json_set_allocation_functions set_both_parson_allocs_ffi
-
-/**
  * @brief Unit test test_cdd_ffi_ir_json_basic.
  * @return Greatest test result.
  */
@@ -338,12 +320,28 @@ TEST test_cdd_ffi_ir_json_exhaustive_oom(void) {
     rc = cdd_ffi_ir_from_json(
         "{\"nodes\":[{\"kind\":0,\"name\":\"f\","
         "\"return_or_base_type\":{\"kind\":0,\"template_args\":[null]},"
-        "\"leading_trivia\":[null,{\"kind\":0,\"text\":\"x\"}]}]}",
+        "\"leading_trivia\":[null,{\"kind\":0,\"text\":\"x\"}],"
+        "\"base_classes\":[null],"
+        "\"macro_expansions\":[null]}]}",
         &triv_ir);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     if (triv_ir) {
       cdd_ffi_ir_free(triv_ir);
       free(triv_ir);
+    }
+  }
+  /* Also test OOM during base_classes cdd_reflect_from_json_object */
+  for (i = 1; i <= 10; ++i) {
+    cdd_ffi_ir_t *bc_ir = NULL;
+    g_cdd_strdup_fail = i;
+    rc = cdd_ffi_ir_from_json(
+        "{\"nodes\":[{\"kind\":1,\"name\":\"S\","
+        "\"base_classes\":[{\"name\":\"Base\",\"access\":\"public\"}]}]}",
+        &bc_ir);
+    g_cdd_strdup_fail = 0;
+    if (bc_ir) {
+      cdd_ffi_ir_free(bc_ir);
+      free(bc_ir);
     }
   }
   /* Also test non-object root JSON for cdd_ffi_ir_from_json */
@@ -388,6 +386,21 @@ TEST test_cdd_ffi_emit_ir_json(void) {
 #ifndef _WIN32
   config.output_dir = "/dev/null/impossible";
   ASSERT_EQ(CDD_C_ERROR_IO, cdd_ffi_emit_ir_json(&ir, &config));
+#endif
+
+#ifdef CDD_BUILD_TESTS
+  config.output_dir = ".";
+  json_set_allocation_functions(mocked_json_malloc, mocked_json_free);
+  {
+    int i;
+    for (i = 1; i < 200; ++i) {
+      g_ffi_extractor_alloc_fail = i;
+      rc = cdd_ffi_emit_ir_json(&ir, &config);
+    }
+    g_ffi_extractor_alloc_fail = 0;
+  }
+  json_set_allocation_functions(malloc, free);
+  remove("ir_dump.json");
 #endif
 
   free(ir.nodes);

@@ -67,11 +67,12 @@ cdd_c_error_t build_info_init(struct ExtractedBuildInfo *info) {
  * @brief Releases memory held by a scraped build-system metadata structure.
  *
  * @param[in,out] info Pointer to the ExtractedBuildInfo structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void build_info_free(struct ExtractedBuildInfo *info) {
+cdd_c_error_t build_info_free(struct ExtractedBuildInfo *info) {
   size_t i;
   if (!info)
-    return;
+    return CDD_C_SUCCESS;
 
   if (info->source_files) {
     for (i = 0; i < info->source_files_n; i++) {
@@ -91,7 +92,7 @@ void build_info_free(struct ExtractedBuildInfo *info) {
     }
     C_CDD_FREE(info->compile_defs);
   }
-  build_info_init(info);
+  return build_info_init(info);
 }
 
 /**

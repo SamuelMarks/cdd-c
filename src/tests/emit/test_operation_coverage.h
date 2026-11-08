@@ -138,12 +138,20 @@ TEST test_operation_100_percent_coverage(void) {
   ASSERT_EQ(CDD_C_SUCCESS, free_param_fields(&param));
 
   /* 3. any_from_json_value */
-  val_null = json_value_init_null();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_null(&_cdd_jv_1);
+    val_null = _cdd_jv_1;
+  }
   ASSERT_EQ(CDD_C_SUCCESS, any_from_json_value(val_null, &any));
   ASSERT_EQ(OA_ANY_NULL, any.type);
   json_value_free(val_null);
 
-  val_obj = json_parse_string("{\"key\": \"value\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"key\": \"value\"}", &_cdd_jv_1);
+    val_obj = _cdd_jv_1;
+  }
   ASSERT(val_obj != NULL);
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, any_from_json_value(val_obj, &any));
@@ -309,7 +317,11 @@ TEST test_operation_100_percent_coverage(void) {
   }
 
   /* 17. any_from_json_value json_serialize failure (line 106) */
-  val_obj = json_parse_string("{\"key\": \"value\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"key\": \"value\"}", &_cdd_jv_1);
+    val_obj = _cdd_jv_1;
+  }
   ASSERT(val_obj != NULL);
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, any_from_json_value(val_obj, &any));

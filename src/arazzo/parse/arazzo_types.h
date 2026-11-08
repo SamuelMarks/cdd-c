@@ -443,16 +443,19 @@ C_CDD_EXPORT cdd_c_error_t arazzo_spec_init(struct Arazzo_Spec *spec);
  * NULL.
  *
  * @param[in,out] spec Pointer to the `Arazzo_Spec` structure to free.
+ * @return `CDD_C_SUCCESS`.
  */
-C_CDD_EXPORT void arazzo_spec_free(struct Arazzo_Spec *spec);
+C_CDD_EXPORT cdd_c_error_t arazzo_spec_free(struct Arazzo_Spec *spec);
 
 /**
  * @brief Releases all dynamically allocated memory inside an
  * `Arazzo_RuntimeExpr`.
  *
  * @param[in,out] expr Pointer to the runtime expression structure to free.
+ * @return `CDD_C_SUCCESS`.
  */
-C_CDD_EXPORT void arazzo_runtime_expr_free(struct Arazzo_RuntimeExpr *expr);
+C_CDD_EXPORT cdd_c_error_t
+arazzo_runtime_expr_free(struct Arazzo_RuntimeExpr *expr);
 
 /**
  * @brief Creates a deep copy of an `Arazzo_RuntimeExpr` structure.
@@ -470,8 +473,10 @@ C_CDD_EXPORT cdd_c_error_t arazzo_runtime_expr_copy(
  * `Arazzo_ExtensionList`.
  *
  * @param[in,out] list Pointer to the extension list to free.
+ * @return `CDD_C_SUCCESS`.
  */
-C_CDD_EXPORT void arazzo_extension_list_free(struct Arazzo_ExtensionList *list);
+C_CDD_EXPORT cdd_c_error_t
+arazzo_extension_list_free(struct Arazzo_ExtensionList *list);
 
 /**
  * @brief Appends a specification extension (`^x-`) to an

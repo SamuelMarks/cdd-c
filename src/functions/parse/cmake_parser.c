@@ -168,11 +168,12 @@ cdd_c_error_t cmake_modifier_add_link_lib(struct CMakeModifier *mod,
  * @brief Releases memory held by a CMake modifier context.
  *
  * @param[in,out] mod Pointer to the CMakeModifier context to free.
+ * @return CDD_C_SUCCESS.
  */
-void cmake_modifier_free(struct CMakeModifier *mod) {
+cdd_c_error_t cmake_modifier_free(struct CMakeModifier *mod) {
   size_t i;
   if (!mod)
-    return;
+    return CDD_C_SUCCESS;
 
   C_CDD_FREE(mod->filepath);
   if (mod->target_name)
@@ -191,6 +192,7 @@ void cmake_modifier_free(struct CMakeModifier *mod) {
     }
     C_CDD_FREE(mod->link_libs);
   }
+  return CDD_C_SUCCESS;
 }
 
 /**

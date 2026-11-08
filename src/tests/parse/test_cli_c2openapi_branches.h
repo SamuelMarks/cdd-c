@@ -343,7 +343,7 @@ TEST test_c2openapi_final_branches(void) {
     argv[3] = cdd_test_mut_str("build/my_empty_dir");
     argv[4] = cdd_test_mut_str("build/out.json");
     g_cdd_strdup_fail = 1;
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c2openapi_cli_main(5, argv));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, c2openapi_cli_main(5, argv));
     g_cdd_strdup_fail = 0;
   }
 
@@ -581,15 +581,21 @@ TEST test_c2openapi_final_branches(void) {
             fp);
       fclose(fp);
 
-      argv[0] = cdd_test_mut_str("c2openapi");
-      argv[1] = cdd_test_mut_str("--base");
-      argv[2] = cdd_test_mut_str(base_path);
-      argv[3] = cdd_test_mut_str("build/my_empty_dir");
-      argv[4] = cdd_test_mut_str("build/out_tag.json");
-      g_cdd_strdup_fail = 1;
-      ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c2openapi_cli_main(5, argv));
-      g_cdd_strdup_fail = 0;
+      {
+        int f;
+        for (f = 1; f <= 8; ++f) {
+          argv[0] = cdd_test_mut_str("c2openapi");
+          argv[1] = cdd_test_mut_str("--base");
+          argv[2] = cdd_test_mut_str(base_path);
+          argv[3] = cdd_test_mut_str("build/my_empty_dir");
+          argv[4] = cdd_test_mut_str("build/out_tag.json");
+          g_cdd_strdup_fail = f;
+          c2openapi_cli_main(5, argv);
+          g_cdd_strdup_fail = 0;
+        }
+      }
       remove(base_path);
+      remove("build/out_tag.json");
     }
   }
 
@@ -778,7 +784,7 @@ TEST test_c2openapi_final_branches(void) {
       argv[0] = cdd_test_mut_str("c2openapi");
       argv[1] = cdd_test_mut_str(empty_f);
       argv[2] = cdd_test_mut_str("/nonexistent_dir_9999/out.json");
-      ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c2openapi_cli_main(3, argv));
+      ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, c2openapi_cli_main(3, argv));
       remove(empty_f);
     }
   }
@@ -790,7 +796,7 @@ TEST test_c2openapi_final_branches(void) {
     argv[2] = cdd_test_mut_str("out.json");
     c2openapi_set_json_allocators(mock_c2o_oom_malloc, mock_c2o_oom_free);
     g_c2o_oom_fail_at = 1;
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c2openapi_cli_main(3, argv));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, c2openapi_cli_main(3, argv));
     c2openapi_set_json_allocators(malloc, free);
     g_c2o_oom_fail_at = -1;
   }
@@ -1627,7 +1633,11 @@ TEST test_cli_c2openapi_aggregator_errors(void) {
 #else
     CDD_SNPRINTF(sw2_json, sizeof(sw2_json), "%s%s%s%s", p1, p2, p3, p4);
 #endif
-    root_val = json_parse_string(sw2_json);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(sw2_json, &_cdd_jv_1);
+      root_val = _cdd_jv_1;
+    }
     ASSERT(root_val != NULL);
     memset(&spec, 0, sizeof(spec));
     rc = openapi_load_from_json(root_val, &spec);

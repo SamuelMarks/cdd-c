@@ -195,8 +195,12 @@ static cdd_c_error_t default_alloc_strdup(const char *str, char **out_str) {
  * @brief Default `free` implementation delegating to standard `free`.
  *
  * @param[in,out] ptr Pointer to free (or `NULL`).
+ * @return `CDD_C_SUCCESS`.
  */
-static void default_alloc_free(void *ptr) { free(ptr); }
+static cdd_c_error_t default_alloc_free(void *ptr) {
+  free(ptr);
+  return CDD_C_SUCCESS;
+}
 
 /**
  * @brief Default `fopen` VFS implementation.
@@ -387,8 +391,11 @@ cdd_c_error_t c_cdd_do_strdup(const char *s, char **out_str) {
  * @brief Frees a memory block through the active allocator context.
  *
  * @param[in,out] p Pointer to free (or `NULL`).
+ * @return `CDD_C_SUCCESS`.
  */
-void c_cdd_do_free(void *p) { g_active_context->allocator.free_fn(p); }
+cdd_c_error_t c_cdd_do_free(void *p) {
+  return g_active_context->allocator.free_fn(p);
+}
 
 /*
  * @brief Initializes `ctx` with the default standard C allocator, VFS, and

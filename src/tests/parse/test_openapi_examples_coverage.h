@@ -214,13 +214,21 @@ TEST test_openapi_examples_parse_all_branches(void) {
   ASSERT_EQ(CDD_C_SUCCESS, parse_example_object(NULL, NULL, NULL, &spec, 0));
 
   /* ex_obj != NULL, out == NULL */
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_example_object(jo, "ex", NULL, &spec, 0));
   json_value_free(jv);
 
   /* name OOM */
-  jv = json_parse_string("{\"value\": \"v\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"value\": \"v\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -231,7 +239,12 @@ TEST test_openapi_examples_parse_all_branches(void) {
   json_value_free(jv);
 
   /* $ref with and without resolve_refs */
-  jv = json_parse_string("{\"$ref\": \"#/components/examples/comp_ex\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"$ref\": \"#/components/examples/comp_ex\"}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_example_object(jo, "name", &ex_dst, &spec, 1));
   free_example(&ex_dst);
@@ -263,7 +276,11 @@ TEST test_openapi_examples_parse_all_branches(void) {
   json_value_free(jv);
 
   /* serializedValue OOM */
-  jv = json_parse_string("{\"serializedValue\": \"ser\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"serializedValue\": \"ser\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -274,7 +291,11 @@ TEST test_openapi_examples_parse_all_branches(void) {
   json_value_free(jv);
 
   /* extensions failure */
-  jv = json_parse_string("{\"value\": 1, \"x-ext\": 1}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"value\": 1, \"x-ext\": 1}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -285,7 +306,11 @@ TEST test_openapi_examples_parse_all_branches(void) {
   json_value_free(jv);
 
   /* dataValue failure */
-  jv = json_parse_string("{\"dataValue\": \"str\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"dataValue\": \"str\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -296,8 +321,13 @@ TEST test_openapi_examples_parse_all_branches(void) {
   json_value_free(jv);
 
   /* summary, description, externalValue */
-  jv = json_parse_string("{\"summary\": \"s\", \"description\": \"d\", "
-                         "\"externalValue\": \"http://ext\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"summary\": \"s\", \"description\": \"d\", "
+                          "\"externalValue\": \"http://ext\"}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
 
   g_cdd_strdup_fail = 1;
@@ -326,14 +356,22 @@ TEST test_openapi_examples_parse_all_branches(void) {
   json_value_free(jv);
 
   /* dataValue and value parsing */
-  jv = json_parse_string("{\"value\": \"v\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"value\": \"v\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_example_object(jo, "ex2", &ex_dst, &spec, 0));
   free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
   json_value_free(jv);
 
-  jv = json_parse_string("{\"dataValue\": \"dv\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"dataValue\": \"dv\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_example_object(jo, "ex3", &ex_dst, &spec, 0));
   free_example(&ex_dst);
@@ -341,8 +379,12 @@ TEST test_openapi_examples_parse_all_branches(void) {
   json_value_free(jv);
 
   /* Validation failure: both value and externalValue */
-  jv = json_parse_string(
-      "{\"value\": \"v\", \"externalValue\": \"http://ext\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"value\": \"v\", \"externalValue\": \"http://ext\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_example_object(jo, NULL, &ex_dst, &spec, 0));
@@ -360,7 +402,11 @@ TEST test_openapi_examples_parse_all_branches(void) {
   ASSERT_EQ(NULL, examples_arr);
   ASSERT_EQ(0, n_examples);
 
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
             parse_examples_object(jo, &examples_arr, &n_examples, &spec, 0));
@@ -368,8 +414,13 @@ TEST test_openapi_examples_parse_all_branches(void) {
   ASSERT_EQ(0, n_examples);
   json_value_free(jv);
 
-  jv = json_parse_string("{\"ex1\": {\"value\": 1}, \"invalid_child\": "
-                         "\"not_obj\", \"ex2\": {\"value\": 2}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"ex1\": {\"value\": 1}, \"invalid_child\": "
+                          "\"not_obj\", \"ex2\": {\"value\": 2}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -391,14 +442,23 @@ TEST test_openapi_examples_parse_all_branches(void) {
             parse_media_examples(NULL, &example_any, &example_set,
                                  &examples_arr, &n_examples, &spec, 0));
 
-  jv = json_parse_string("{\"example\": 1, \"examples\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"example\": 1, \"examples\": {}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_media_examples(jo, &example_any, &example_set, &examples_arr,
                                  &n_examples, &spec, 0));
   json_value_free(jv);
 
-  jv = json_parse_string("{\"examples\": {\"ex\": {\"value\": \"test\"}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"examples\": {\"ex\": {\"value\": \"test\"}}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
             parse_media_examples(jo, &example_any, &example_set, &examples_arr,
@@ -408,7 +468,11 @@ TEST test_openapi_examples_parse_all_branches(void) {
   examples_arr = NULL;
   json_value_free(jv);
 
-  jv = json_parse_string("{\"example\": \"val\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"example\": \"val\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
             parse_media_examples(jo, &example_any, &example_set, &examples_arr,

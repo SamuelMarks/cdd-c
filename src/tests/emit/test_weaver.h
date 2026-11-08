@@ -622,12 +622,10 @@ TEST test_weaver_cov_more(void) {
   struct PatchList patches;
   struct TokenList *tokens = NULL;
   int res;
-  char *out_code = NULL;
 
   /* Test # at the end of file (covers j == tokens->size) */
   const char *src1 = cdd_test_mut_str("#");
   res = tokenize(az_span_create_from_str(src1), &tokens);
-  (void)out_code;
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&patches);

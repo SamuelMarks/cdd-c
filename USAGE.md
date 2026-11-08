@@ -38,7 +38,7 @@ cdd-c serve_json_rpc --port 8080 --listen 127.0.0.1
 
 ## Serde-Style C89 Reflection & Declarative CLI (`structopt` / `clap`) Codegen
 
-Annotate any C89 `struct`, `enum`, or tagged `union` in a header file with `/* @cdd ... */` or `/* @cdd cli(...) */` directives and run `sync_code` (or `code2schema` / `schema2code`) to generate JSON, form, schema, and command-line parsers:
+Annotate any C89 `struct`, `enum`, or tagged `union` in a header file with `/* @cdd ... */` or `/* @cdd cli(...) */` directives and run `cdd-c sync` (or `cdd-c code2schema` / `cdd-c schema2code`) to generate JSON, form, schema, and command-line parsers:
 
 ```c
 /**
@@ -67,14 +67,78 @@ struct DeployConfig {
 };
 ```
 
-Running `sync_code deploy.h deploy.c` generates direct, zero-overhead C89 functions and additive RTTI descriptors:
-- `DeployConfig_to_json` / `DeployConfig_from_json` / `DeployConfig_from_jsonObject`
-- `DeployConfig_from_cli` / `DeployConfig_parse_cli_into` / `DeployConfig_to_cli_argv`
+Running `cdd-c sync deploy.h deploy.c` generates direct, zero-overhead C89 functions and additive RTTI descriptors:
+- `DeployConfig_to_json` / `DeployConfig_from_json` (zero-dependency RFC 8259 cursor/buffer codecs)
+- `DeployConfig_from_cli` / `DeployConfig_parse_cli_into` / `DeployConfig_to_cli_argv` (recursively handling `/* @cdd flatten */` structs and `/* @cdd cli(subcommand) */` tagged unions)
 - `DeployConfig_print_help` / `DeployConfig_print_version` / `DeployConfig_print_completions`
-- `DeployConfig_to_form_urlencoded` / `DeployConfig_from_form_urlencoded`
-- `DeployConfig_default` / `DeployConfig_deepcopy` / `DeployConfig_eq` / `DeployConfig_cleanup` / `DeployConfig_debug`
+- `DeployConfig_to_form_urlencoded` / `DeployConfig_from_form_urlencoded` (with `+` and `%XX` percent-decoding and nested object composition)
+- `DeployConfig_default` / `DeployConfig_deepcopy` / `DeployConfig_eq` / `DeployConfig_cleanup` / `DeployConfig_debug` (for both structs and tagged unions, recursively delegating to child `<Type>_cleanup`, `<Type>_deepcopy`, `<Type>_eq`, and `<Type>_debug`)
 - `DeployConfig_reflect` (`struct cdd_type_info`, `struct cdd_field_info`, `cdd_reflect_visit_fields`, `cdd_reflect_visit_fields_mut`, `cdd_reflect_get_*` / `cdd_reflect_set_*`, `cdd_reflect_array_len` / `cdd_reflect_array_at`)
 - C11/C23 `_Generic` dispatch macros (`CDD_TO_JSON`, `CDD_FROM_JSON`, `CDD_FROM_CLI`, `CDD_TO_CLI_ARGV`, `CDD_TO_FORM`, `CDD_FROM_FORM`, `CDD_EQ`, `CDD_DEEPCOPY`, `CDD_DEFAULT`, `CDD_CLEANUP`, `CDD_DEBUG`, `CDD_REFLECT`)
+
+### End-to-End Lifecycle, CLI, Form, & Zero-Dependency JSON Example
+
+```c
+#include "deploy.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char **argv) {
+  struct DeployConfig *cfg = NULL;
+  struct DeployConfig *copy = NULL;
+  char *json = NULL;
+  char *form = NULL;
+  int is_eq = 0;
+  cdd_c_error_t rc;
+
+  /* 1. Parse CLI argv + environment variables + defaults */
+  rc = DeployConfig_from_cli(argc, argv, &cfg);
+  if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
+
+  /* 2. Deep-copy and verify structural equality (recursively checks AuthOpts) */
+  rc = DeployConfig_deepcopy(cfg, &copy);
+  if (rc != CDD_C_SUCCESS) {
+    rc = DeployConfig_cleanup(cfg);
+    return rc != CDD_C_SUCCESS ? (int)rc : EXIT_FAILURE;
+  }
+  rc = DeployConfig_eq(cfg, copy, &is_eq);
+  if (rc != CDD_C_SUCCESS || !is_eq) {
+    rc = DeployConfig_cleanup(copy);
+    if (rc != CDD_C_SUCCESS) return (int)rc;
+    rc = DeployConfig_cleanup(cfg);
+    return rc != CDD_C_SUCCESS ? (int)rc : EXIT_FAILURE;
+  }
+
+  /* 3. Emit zero-dependency RFC 8259 JSON and URL-encoded form payload */
+  rc = DeployConfig_to_json(cfg, &json);
+  if (rc != CDD_C_SUCCESS) {
+    rc = DeployConfig_cleanup(copy);
+    if (rc != CDD_C_SUCCESS) return (int)rc;
+    rc = DeployConfig_cleanup(cfg);
+    return rc != CDD_C_SUCCESS ? (int)rc : EXIT_FAILURE;
+  }
+  rc = DeployConfig_to_form_urlencoded(cfg, &form);
+  if (rc != CDD_C_SUCCESS) {
+    free(json);
+    rc = DeployConfig_cleanup(copy);
+    if (rc != CDD_C_SUCCESS) return (int)rc;
+    rc = DeployConfig_cleanup(cfg);
+    return rc != CDD_C_SUCCESS ? (int)rc : EXIT_FAILURE;
+  }
+
+  printf("JSON: %s\nForm: %s\n", json, form);
+  free(form);
+  free(json);
+
+  /* 4. Recursive cleanup (automatically calls AuthOpts_cleanup(cfg->auth) and frees cfg) */
+  rc = DeployConfig_cleanup(copy);
+  if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
+  rc = DeployConfig_cleanup(cfg);
+  if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
+
+  return EXIT_SUCCESS;
+}
+```
 
 ---
 

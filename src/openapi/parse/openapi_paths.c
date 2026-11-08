@@ -27,16 +27,17 @@ static cdd_c_error_t parse_paths_object_inner(const JSON_Object *paths_obj,
                                               int require_leading_slash,
                                               int resolve_refs) {
   size_t i, n_paths;
-  size_t raw_count;
+  size_t raw_count = 0;
   size_t out_idx;
 
   if (!paths_obj || !out_paths || !out_count)
     return CDD_C_SUCCESS;
 
-  raw_count = json_object_get_count(paths_obj);
+  cdd_json_object_get_count(paths_obj, &raw_count);
   n_paths = 0;
   for (i = 0; i < raw_count; ++i) {
-    const char *name = json_object_get_name(paths_obj, i);
+    const char *name = NULL;
+    cdd_json_object_get_name(paths_obj, i, &name);
     if (strncmp(name, "x-", 2) == 0)
       continue;
     n_paths++;
@@ -55,12 +56,18 @@ static cdd_c_error_t parse_paths_object_inner(const JSON_Object *paths_obj,
 
   out_idx = 0;
   for (i = 0; i < raw_count; ++i) {
-    const char *route = json_object_get_name(paths_obj, i);
-    const JSON_Value *p_val = json_object_get_value_at(paths_obj, i);
-    const JSON_Object *p_obj = json_value_get_object(p_val);
+    const char *route = NULL;
+    JSON_Value *p_val = NULL;
+    JSON_Object *p_obj = NULL;
     struct OpenAPI_Path *curr_path;
-    size_t n_ops_in_obj = p_obj ? json_object_get_count(p_obj) : 0;
+    size_t n_ops_in_obj = 0;
     size_t k, valid_ops = 0;
+
+    cdd_json_object_get_name(paths_obj, i, &route);
+    cdd_json_object_get_value_at(paths_obj, i, &p_val);
+    cdd_json_value_get_object(p_val, &p_obj);
+    if (p_obj)
+      cdd_json_object_get_count(p_obj, &n_ops_in_obj);
 
     if (strncmp(route, "x-", 2) == 0)
       continue;
@@ -73,13 +80,16 @@ static cdd_c_error_t parse_paths_object_inner(const JSON_Object *paths_obj,
       return CDD_C_ERROR_MEMORY;
 
     if (p_obj) {
-      const char *path_ref = json_object_get_string(p_obj, "$ref");
-      const char *path_summary = json_object_get_string(p_obj, "summary");
-      const char *path_description =
-          json_object_get_string(p_obj, "description");
-      const JSON_Array *path_params =
-          json_object_get_array(p_obj, "parameters");
+      const char *path_ref = NULL;
+      const char *path_summary = NULL;
+      const char *path_description = NULL;
+      JSON_Array *path_params = NULL;
       cdd_c_error_t rc;
+
+      cdd_json_object_get_string(p_obj, "$ref", &path_ref);
+      cdd_json_object_get_string(p_obj, "summary", &path_summary);
+      cdd_json_object_get_string(p_obj, "description", &path_description);
+      cdd_json_object_get_array(p_obj, "parameters", &path_params);
 
       if (path_ref) {
         c_cdd_strdup(path_ref, &curr_path->ref);
@@ -152,9 +162,12 @@ static cdd_c_error_t parse_paths_object_inner(const JSON_Object *paths_obj,
 
       for (k = 0; k < n_ops_in_obj; ++k) {
         cdd_c_error_t err;
-        const char *verb = json_object_get_name(p_obj, k);
-        const JSON_Object *op_obj =
-            json_value_get_object(json_object_get_value_at(p_obj, k));
+        const char *verb = NULL;
+        JSON_Value *op_val = NULL;
+        JSON_Object *op_obj = NULL;
+        cdd_json_object_get_name(p_obj, k, &verb);
+        cdd_json_object_get_value_at(p_obj, k, &op_val);
+        cdd_json_value_get_object(op_val, &op_obj);
         if (strcmp(verb, "parameters") == 0 || strcmp(verb, "servers") == 0 ||
             strcmp(verb, "summary") == 0 || strcmp(verb, "description") == 0 ||
             strcmp(verb, "additionalOperations") == 0 ||
@@ -592,15 +605,15 @@ static cdd_c_error_t parse_operation_inner(const char *verb_str,
                                            struct OpenAPI_Spec *spec,
                                            int is_additional,
                                            const char *route_hint) {
-  const char *op_id;
-  const JSON_Array *params;
-  const JSON_Array *tags;
-  const JSON_Object *req_body, *responses;
-  const char *summary;
-  const char *description;
-  const JSON_Object *ext_docs;
-  int deprecated_present;
-  int deprecated_val;
+  const char *op_id = NULL;
+  JSON_Array *params = NULL;
+  JSON_Array *tags = NULL;
+  JSON_Object *req_body = NULL, *responses = NULL;
+  const char *summary = NULL;
+  const char *description = NULL;
+  JSON_Object *ext_docs = NULL;
+  int deprecated_present = 0;
+  int deprecated_val = -1;
   cdd_c_error_t rc;
 
   if (!verb_str || !op_obj || !out_op)
@@ -618,28 +631,28 @@ static cdd_c_error_t parse_operation_inner(const char *verb_str,
   if (!out_op->method)
     return CDD_C_ERROR_MEMORY;
 
-  op_id = json_object_get_string(op_obj, "operationId");
+  cdd_json_object_get_string(op_obj, "operationId", &op_id);
   c_cdd_strdup(op_id ? op_id : NULL, &out_op->operation_id);
-  summary = json_object_get_string(op_obj, "summary");
+  cdd_json_object_get_string(op_obj, "summary", &summary);
   if (summary) {
     c_cdd_strdup(summary, &out_op->summary);
     if (!out_op->summary)
       return CDD_C_ERROR_MEMORY;
   }
-  description = json_object_get_string(op_obj, "description");
+  cdd_json_object_get_string(op_obj, "description", &description);
   if (description) {
     c_cdd_strdup(description, &out_op->description);
     if (!out_op->description)
       return CDD_C_ERROR_MEMORY;
   }
-  ext_docs = json_object_get_object(op_obj, "externalDocs");
+  cdd_json_object_get_object(op_obj, "externalDocs", &ext_docs);
   if (ext_docs) {
     rc = parse_external_docs(ext_docs, &out_op->external_docs);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
-  deprecated_present = json_object_has_value(op_obj, "deprecated");
-  deprecated_val = json_object_get_boolean(op_obj, "deprecated");
+  cdd_json_object_has_value(op_obj, "deprecated", &deprecated_present);
+  cdd_json_object_get_boolean(op_obj, "deprecated", &deprecated_val);
   if (deprecated_present)
     out_op->deprecated = (deprecated_val == 1);
   rc = parse_security_field(op_obj, "security", &out_op->security,
@@ -651,14 +664,14 @@ static cdd_c_error_t parse_operation_inner(const char *verb_str,
     return rc;
 
   /* 1. Parameters */
-  params = json_object_get_array(op_obj, "parameters");
+  cdd_json_object_get_array(op_obj, "parameters", &params);
   rc = parse_parameters_array(params, &out_op->parameters,
                               &out_op->n_parameters, spec);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
   /* 2. Request Body */
-  req_body = json_object_get_object(op_obj, "requestBody");
+  cdd_json_object_get_object(op_obj, "requestBody", &req_body);
   if (req_body) {
     cdd_c_error_t rc_req;
     struct OpenAPI_RequestBody rb;
@@ -710,15 +723,15 @@ static cdd_c_error_t parse_operation_inner(const char *verb_str,
   }
 
   /* 3. Responses */
-  responses = json_object_get_object(op_obj, "responses");
+  cdd_json_object_get_object(op_obj, "responses", &responses);
   rc = parse_responses(responses, out_op, spec, out_op->operation_id);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
   /* 4. Callbacks */
   {
-    const JSON_Object *callbacks_obj =
-        json_object_get_object(op_obj, "callbacks");
+    JSON_Object *callbacks_obj = NULL;
+    cdd_json_object_get_object(op_obj, "callbacks", &callbacks_obj);
     rc = parse_callbacks_object(callbacks_obj, &out_op->callbacks,
                                 &out_op->n_callbacks, spec, 1);
     if (rc != CDD_C_SUCCESS)
@@ -726,9 +739,10 @@ static cdd_c_error_t parse_operation_inner(const char *verb_str,
   }
 
   /* 5. Tags */
-  tags = json_object_get_array(op_obj, "tags");
+  cdd_json_object_get_array(op_obj, "tags", &tags);
   if (tags) {
-    size_t t_count = json_array_get_count(tags);
+    size_t t_count = 0;
+    cdd_json_array_get_count(tags, &t_count);
     out_op->n_tags = t_count;
     if (t_count > 0) {
       size_t k;
@@ -736,7 +750,8 @@ static cdd_c_error_t parse_operation_inner(const char *verb_str,
       if (!out_op->tags)
         return CDD_C_ERROR_MEMORY;
       for (k = 0; k < t_count; ++k) {
-        const char *t_val = json_array_get_string(tags, k);
+        const char *t_val = NULL;
+        cdd_json_array_get_string(tags, k, &t_val);
         c_cdd_strdup(t_val ? t_val : "", &out_op->tags[k]);
         if (!out_op->tags[k])
           return CDD_C_ERROR_MEMORY;
@@ -786,17 +801,17 @@ static cdd_c_error_t
 parse_additional_operations_inner(const JSON_Object *path_obj,
                                   struct OpenAPI_Path *path,
                                   struct OpenAPI_Spec *spec) {
-  const JSON_Object *add_ops;
-  size_t count, i;
+  JSON_Object *add_ops = NULL;
+  size_t count = 0, i;
 
   if (!path_obj || !path)
     return CDD_C_SUCCESS;
 
-  add_ops = json_object_get_object(path_obj, "additionalOperations");
+  cdd_json_object_get_object(path_obj, "additionalOperations", &add_ops);
   if (!add_ops)
     return CDD_C_SUCCESS;
 
-  count = json_object_get_count(add_ops);
+  cdd_json_object_get_count(add_ops, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -807,10 +822,13 @@ parse_additional_operations_inner(const JSON_Object *path_obj,
   path->n_additional_operations = count;
 
   for (i = 0; i < count; ++i) {
-    const char *method = json_object_get_name(add_ops, i);
-    const JSON_Object *op_obj =
-        json_value_get_object(json_object_get_value_at(add_ops, i));
+    const char *method = NULL;
+    JSON_Value *val_at = NULL;
+    JSON_Object *op_obj = NULL;
     struct OpenAPI_Operation *curr = &path->additional_operations[i];
+    cdd_json_object_get_name(add_ops, i, &method);
+    cdd_json_object_get_value_at(add_ops, i, &val_at);
+    cdd_json_value_get_object(val_at, &op_obj);
     if (is_fixed_operation_method(method))
       return CDD_C_ERROR_INVALID_ARGUMENT;
     {

@@ -29,8 +29,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_parse(az_span source,
  * @brief Free the Concrete Syntax Tree and its constituent structures.
  *
  * @param[in,out] tree Tree to free.
+ * @return CDD_C_SUCCESS.
  */
-C_CDD_EXPORT void cdd_cst_tree_free(cdd_cst_tree_t *tree);
+C_CDD_EXPORT cdd_c_error_t cdd_cst_tree_free(cdd_cst_tree_t *tree);
 
 /**
  * @brief Find the class identifier token for an ancestor class declaration.

@@ -516,8 +516,9 @@ extern C_CDD_EXPORT cdd_c_error_t doc_metadata_init(struct DocMetadata *meta);
  * @brief Free resources within a DocMetadata structure.
  *
  * @param[in] meta The structure to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void doc_metadata_free(struct DocMetadata *meta);
+extern C_CDD_EXPORT cdd_c_error_t doc_metadata_free(struct DocMetadata *meta);
 
 /**
  * @brief Parse a raw comment string into structured metadata.

@@ -38,8 +38,9 @@ extern "C" {
 static cdd_c_error_t test_scan_inc_cb(const struct IncludeInfo *info,
                                       void *user_data) {
   int *count = (int *)user_data;
+  if (!info)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   (*count)++;
-  (void)info;
   return CDD_C_SUCCESS;
 }
 
@@ -52,8 +53,9 @@ static cdd_c_error_t test_scan_inc_cb(const struct IncludeInfo *info,
 static cdd_c_error_t test_scan_inc_abort_cb(const struct IncludeInfo *info,
                                             void *user_data) {
   int *count = (int *)user_data;
+  if (!info)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   (*count)++;
-  (void)info;
   return CDD_C_ERROR_UNKNOWN;
 }
 #endif /* CDD_TEST_PP_SCAN_CB_DEFINED */

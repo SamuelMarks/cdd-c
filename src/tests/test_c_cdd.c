@@ -625,6 +625,7 @@ static void reset_mocks(void) {
           g_str_unquote_malloc_fail = 0;
           /* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
           g_io_calls = 0;
+          json_set_allocation_functions(NULL, NULL);
         }
       }
     }
@@ -636,8 +637,8 @@ static void reset_mocks(void) {
  * @param[in,out] udata Parameter udata.
  */
 static void test_teardown_cb(void *udata) {
-  (void)udata;
-  reset_mocks();
+  if (!udata)
+    reset_mocks();
 }
 
 /**
@@ -647,6 +648,7 @@ static void test_teardown_cb(void *udata) {
 #define RUN_SUITE_RESET(suite)                                                 \
   do {                                                                         \
     reset_mocks();                                                             \
+    SET_TEARDOWN(test_teardown_cb, NULL);                                      \
     RUN_SUITE(suite);                                                          \
   } while (0)
 
@@ -661,9 +663,6 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   if (c_cdd_crt_init_runtime() != CDD_C_SUCCESS)
     return EXIT_FAILURE;
-#if defined(_MSC_VER)
-  json_set_allocation_functions(test_crt_malloc, c_cdd_crt_free);
-#endif
   setvbuf(stdout, NULL, _IONBF, 0);
   atexit(cdd_test_tmpfile_cleanup);
   GREATEST_MAIN_BEGIN();

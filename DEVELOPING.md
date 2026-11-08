@@ -5,7 +5,7 @@ Welcome to `cdd-c` development! To get started:
 ## Prerequisites
 
 - `gcc` or `clang`
-- `cmake` >= 3.10
+- `cmake` >= 3.11
 
 ### Setup
 
@@ -28,7 +28,7 @@ cdd_c_error_t rc;
 rc = my_function();
 if (rc != CDD_C_SUCCESS) {
     /* handle error, printing the nonzero exit code for debug purposes */
-    fprintf(stderr, "Error occurred: %d\n", rc);
+    fprintf(stderr, "Error occurred: %d\n", (int)rc);
     return rc;
 }
 rc = another_function(&my_output);
@@ -53,7 +53,7 @@ We use a modular architecture organized by semantic responsibilities:
 - `src/bin_cdd.c` & `src/functions/parse/main.c` - CLI entry point (`cdd-c`)
 - `src/cdd_api.c` & `src/cdd_api.h` - Public programmatic C SDK
 
-When working on a specific feature, like emitting structs, look into `src/classes/emit/struct.c`.
+When working on a specific feature, like emitting structs and JSON codecs, look into `src/classes/emit/types.c` and `src/classes/emit/json.c`.
 
 ## Testing
 

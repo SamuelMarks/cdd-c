@@ -522,7 +522,6 @@ static cdd_c_error_t apply_updates(const char *filename,
 
   if (rc == CDD_C_SUCCESS) {
     FILE *f = NULL;
-    (void)f;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     if (fopen_s(&f, filename, "w") == 0 && f) {
 #else

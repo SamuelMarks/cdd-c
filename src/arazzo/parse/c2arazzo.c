@@ -19,6 +19,8 @@
 #include "arazzo/parse/arazzo.h"
 #include "arazzo/parse/arazzo_expr.h"
 #include "arazzo/parse/c2arazzo.h"
+#include "cdd_api.h"
+#include "classes/emit/cli_struct.h"
 #include "functions/parse/cst.h"
 #include "functions/parse/fs.h"
 #include "functions/parse/str.h"
@@ -50,13 +52,13 @@ static cdd_c_error_t replace_str(const char *src, char **dst) {
  */
 static cdd_c_error_t parse_str_to_any(const char *raw,
                                       struct OpenAPI_Any *out_any) {
-  JSON_Value *jv;
+  JSON_Value *jv = NULL;
   cdd_c_error_t rc;
   memset(out_any, 0, sizeof(*out_any));
-  jv = json_parse_string(raw);
+  cdd_json_parse_string(raw, &jv);
   if (jv) {
     rc = parse_any_value(jv, out_any);
-    json_value_free(jv);
+    cdd_json_value_free(jv);
     return rc;
   }
   out_any->type = OA_ANY_STRING;
@@ -627,14 +629,16 @@ cdd_c_error_t c2arazzo_apply_doc_metadata(const struct DocMetadata *meta,
           return rc;
       }
       if (meta->workflow_inputs_json) {
-        JSON_Value *in_val = json_parse_string(meta->workflow_inputs_json);
-        if (json_value_get_object(in_val)) {
-          if (parse_schema_ref(json_value_get_object(in_val), &wf->inputs,
-                               NULL) == CDD_C_SUCCESS) {
+        JSON_Value *in_val = NULL;
+        JSON_Object *in_obj = NULL;
+        cdd_json_parse_string(meta->workflow_inputs_json, &in_val);
+        cdd_json_value_get_object(in_val, &in_obj);
+        if (in_obj) {
+          if (parse_schema_ref(in_obj, &wf->inputs, NULL) == CDD_C_SUCCESS) {
             wf->has_inputs = 1;
           }
         }
-        json_value_free(in_val);
+        cdd_json_value_free(in_val);
       }
       if (meta->n_workflow_depends_on > 0) {
         wf->depends_on =
@@ -1051,73 +1055,36 @@ cdd_c_error_t c2arazzo_parse_dir(const char *dir_path,
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 cdd_c_error_t c2arazzo_cli_main(int argc, char **argv) {
-  const char *input = NULL;
-  const char *output = NULL;
-  const char *self_uri = NULL;
-  struct Arazzo_Spec spec;
-  char *json = NULL;
+  cdd_to_arazzo_config_t cfg;
+  const char *sug = NULL;
   int i;
   cdd_c_error_t rc;
 
   if (argc < 1 || !argv) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
+  memset(&cfg, 0, sizeof(cfg));
+  rc = cdd_cli_suggest_closest(argv[0], NULL, 0, &sug);
 
   for (i = 1; i < argc; ++i) {
-    if (strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--input") == 0) {
+    const struct cdd_field_info *f = NULL;
+    const char *flag = argv[i] + (argv[i][1] == '-' ? 2 : 1);
+    if (argv[i][0] == '-' &&
+        cdd_reflect_find_field(&cdd_to_arazzo_config_type_info, flag, &f) ==
+            CDD_C_SUCCESS) {
+      const char *arg_val;
       if (i + 1 >= argc)
         return CDD_C_ERROR_INVALID_ARGUMENT;
-      input = argv[++i];
-    } else if (strcmp(argv[i], "-o") == 0 || strcmp(argv[i], "--output") == 0) {
-      if (i + 1 >= argc)
-        return CDD_C_ERROR_INVALID_ARGUMENT;
-      output = argv[++i];
-    } else if (strcmp(argv[i], "--self") == 0 || strcmp(argv[i], "-s") == 0) {
-      if (i + 1 >= argc)
-        return CDD_C_ERROR_INVALID_ARGUMENT;
-      self_uri = argv[++i];
-    } else if (argv[i][0] != '-') {
-      if (!input)
-        input = argv[i];
-      else if (!output)
-        output = argv[i];
+      arg_val = argv[++i];
+      memcpy((unsigned char *)&cfg + f->offset, &arg_val, sizeof(arg_val));
+    } else {
+      if (!cfg.input)
+        cfg.input = argv[i];
+      else if (!cfg.output)
+        cfg.output = argv[i];
     }
   }
 
-  if (!input) {
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
-  if (!output) {
-    output = "arazzo.json";
-  }
-
-  memset(&spec, 0, sizeof(spec));
-  rc = arazzo_spec_init(&spec);
-  if (rc != CDD_C_SUCCESS) {
-    return rc;
-  }
-
-  rc = c2arazzo_parse_dir(input, &spec);
-  if (rc != CDD_C_SUCCESS) {
-    arazzo_spec_free(&spec);
-    return rc;
-  }
-
-  if (self_uri) {
-    rc = replace_str(self_uri, &spec.self_uri);
-    if (rc != CDD_C_SUCCESS) {
-      arazzo_spec_free(&spec);
-      return rc;
-    }
-  }
-
-  rc = arazzo_write_spec_to_json(&spec, &json);
-  arazzo_spec_free(&spec);
-  if (rc != CDD_C_SUCCESS) {
-    return rc;
-  }
-
-  rc = fs_write_to_file(output, json);
-  C_CDD_FREE(json);
+  rc = cdd_generate_to_arazzo(&cfg);
   return rc;
 }

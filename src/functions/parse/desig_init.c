@@ -61,11 +61,12 @@ cdd_c_error_t desig_init_list_init(struct DesigInitList *list) {
  * @brief Frees a designated initializer list.
  *
  * @param[in,out] list Pointer to the DesigInitList structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void desig_init_list_free(struct DesigInitList *list) {
+cdd_c_error_t desig_init_list_free(struct DesigInitList *list) {
   size_t i;
   if (!list)
-    return;
+    return CDD_C_SUCCESS;
   if (list->sites) {
     for (i = 0; i < list->count; i++) {
       if (list->sites[i].field_name)
@@ -75,7 +76,7 @@ void desig_init_list_free(struct DesigInitList *list) {
     }
     C_CDD_FREE(list->sites);
   }
-  desig_init_list_init(list);
+  return desig_init_list_init(list);
 }
 
 /*

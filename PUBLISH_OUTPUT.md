@@ -26,7 +26,7 @@ jobs:
       - name: Fetch Latest Spec
         run: curl -sL https://api.mybackend.com/openapi.json -o spec.json
       - name: Generate SDK
-        run: ./bin/cdd-c from_openapi to_sdk -i spec.json -o src/models
+        run: ./bin/cdd-c from_openapi to_sdk -i spec.json -o ./generated-sdk
       - name: Commit and Push Changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
@@ -36,4 +36,4 @@ jobs:
 
 ## Distribution
 
-The resulting `src/models` files can either be embedded directly in a consumer repository, or you can commit them into a separate `my-api-client-c` repository that consumer applications fetch via `git submodule` or `CMake FetchContent`.
+The resulting `./generated-sdk` directory (containing `src/client.h`, `src/client.c`, `src/client_models.h`, `src/client_models.c`, and `CMakeLists.txt`) can either be embedded directly in a consumer repository, or you can commit it into a separate `my-api-client-c` repository that consumer applications fetch via `git submodule` or `CMake FetchContent`.

@@ -233,7 +233,7 @@ cdd_c_error_t parse_struct_member_line(const char *line,
     size_t fixed_arr_len = 0;
     char *lbrack = strchr(name, '[');
 
-    if (lbrack && !is_fam) {
+    if (lbrack) {
       fixed_arr_len = (size_t)atoi(lbrack + 1);
       *lbrack = '\0';
     }
@@ -263,8 +263,8 @@ cdd_c_error_t parse_struct_member_line(const char *line,
       }
       if (fixed_arr_len > 0) {
         field->fixed_array_len = fixed_arr_len;
-        CDD_SNPRINTF(field->c_type, sizeof(field->c_type), "%s[%lu]", type_raw,
-                     (unsigned long)fixed_arr_len);
+        CDD_SNPRINTF(field->c_type, sizeof(field->c_type), "%.40s[%lu]",
+                     type_raw, (unsigned long)fixed_arr_len);
       } else {
         CDD_STRCPY(field->c_type, sizeof(field->c_type), type_raw);
       }
@@ -342,11 +342,16 @@ cdd_c_error_t c2s_parse_union_tokens_and_write(const struct TokenList *tl,
                                                size_t *idx,
                                                JSON_Object *schemas_obj,
                                                const char *union_name) {
-  JSON_Value *union_val = json_value_init_object();
-  JSON_Object *union_obj = json_value_get_object(union_val);
-  JSON_Value *oneof_val = json_value_init_array();
-  JSON_Array *oneof_arr = json_value_get_array(oneof_val);
+  JSON_Value *union_val = NULL;
+  JSON_Object *union_obj = NULL;
+  JSON_Value *oneof_val = NULL;
+  JSON_Array *oneof_arr = NULL;
   size_t i = *idx;
+
+  cdd_json_value_init_object(&union_val);
+  cdd_json_value_get_object(union_val, &union_obj);
+  cdd_json_value_init_array(&oneof_val);
+  cdd_json_value_get_array(oneof_val, &oneof_arr);
 
   for (;;) {
     size_t stmt_start;
@@ -392,43 +397,52 @@ cdd_c_error_t c2s_parse_union_tokens_and_write(const struct TokenList *tl,
     if (last_ident && first_tok != last_ident) {
       char typebuf[64] = {0};
       char namebuf[64] = {0};
-      JSON_Value *option_val = json_value_init_object();
-      JSON_Object *option_obj = json_value_get_object(option_val);
-      JSON_Value *props_val = json_value_init_object();
-      JSON_Object *props_obj = json_value_get_object(props_val);
-      JSON_Value *field_val = json_value_init_object();
-      JSON_Object *field_obj = json_value_get_object(field_val);
+      JSON_Value *option_val = NULL;
+      JSON_Object *option_obj = NULL;
+      JSON_Value *props_val = NULL;
+      JSON_Object *props_obj = NULL;
+      JSON_Value *field_val = NULL;
+      JSON_Object *field_obj = NULL;
+
+      cdd_json_value_init_object(&option_val);
+      cdd_json_value_get_object(option_val, &option_obj);
+      cdd_json_value_init_object(&props_val);
+      cdd_json_value_get_object(props_val, &props_obj);
+      cdd_json_value_init_object(&field_val);
+      cdd_json_value_get_object(field_val, &field_obj);
 
       c2s_copy_token_ident(typebuf, first_tok);
       c2s_copy_token_ident(namebuf, last_ident);
 
       if (strcmp(typebuf, "int") == 0)
-        json_object_set_string(field_obj, "type", "integer");
+        cdd_json_object_set_string(field_obj, "type", "integer");
       else if (strcmp(typebuf, "char") == 0)
-        json_object_set_string(field_obj, "type", "string");
+        cdd_json_object_set_string(field_obj, "type", "string");
       else if (strcmp(typebuf, "float") == 0)
-        json_object_set_string(field_obj, "type", "number");
+        cdd_json_object_set_string(field_obj, "type", "number");
       else
-        json_object_set_string(field_obj, "type", "object");
+        cdd_json_object_set_string(field_obj, "type", "object");
 
-      if (json_object_set_value(props_obj, namebuf, field_val) != JSONSuccess)
-        json_value_free(field_val);
-      json_object_set_string(option_obj, "type", "object");
-      if (json_object_set_value(option_obj, "properties", props_val) !=
-          JSONSuccess)
-        json_value_free(props_val);
-      json_object_set_string(option_obj, "title", namebuf);
-      if (json_array_append_value(oneof_arr, option_val) != JSONSuccess)
-        json_value_free(option_val);
+      if (cdd_json_object_set_value(props_obj, namebuf, field_val) !=
+          CDD_C_SUCCESS)
+        cdd_json_value_free(field_val);
+      cdd_json_object_set_string(option_obj, "type", "object");
+      if (cdd_json_object_set_value(option_obj, "properties", props_val) !=
+          CDD_C_SUCCESS)
+        cdd_json_value_free(props_val);
+      cdd_json_object_set_string(option_obj, "title", namebuf);
+      if (cdd_json_array_append_value(oneof_arr, option_val) != CDD_C_SUCCESS)
+        cdd_json_value_free(option_val);
     }
   }
 
   *idx = i;
-  if (json_object_set_value(union_obj, "oneOf", oneof_val) != JSONSuccess)
-    json_value_free(oneof_val);
-  json_object_set_string(union_obj, "type", "object");
-  if (json_object_set_value(schemas_obj, union_name, union_val) != JSONSuccess)
-    json_value_free(union_val);
+  if (cdd_json_object_set_value(union_obj, "oneOf", oneof_val) != CDD_C_SUCCESS)
+    cdd_json_value_free(oneof_val);
+  cdd_json_object_set_string(union_obj, "type", "object");
+  if (cdd_json_object_set_value(schemas_obj, union_name, union_val) !=
+      CDD_C_SUCCESS)
+    cdd_json_value_free(union_val);
 
   return CDD_C_SUCCESS;
 }

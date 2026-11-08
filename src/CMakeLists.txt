@@ -33,6 +33,8 @@ set(Header_Files
         "../include/cdd_cst_transform.h"
         "../include/c_cdd/code_writer.h"
         "../include/c_cdd/context.h"
+        "../include/c_cdd/json_dom.h"
+        "../include/parson.h"
         "../include/routes/parse/cli_cst.h"
         "functions/ffi/cdd_ffi_emit_common.h"
         "classes/parse/cdd_cst_trivia.h"
@@ -224,6 +226,7 @@ set(Source_Files
         "code_writer.c"
         "context.c"
         "cdd_c_error.c"
+        "json_dom.c"
         "functions/ffi/cdd_ffi_emit_common.c"
         "functions/parse/analysis.c"
         "classes/parse/inspector.c"
@@ -644,14 +647,6 @@ target_link_libraries(
         PUBLIC
         c_str_span c_str_span_compiler_flags
 )
-if(NOT TARGET parson)
-    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
-    find_package(parson REQUIRED)
-else ()
-    find_package(parson CONFIG QUIET)
-endif ()
-endif()
-target_link_libraries("${LIBRARY_NAME}" PRIVATE parson::parson)
 
 
 
@@ -730,14 +725,6 @@ set_tests_properties(test_cdd_c_fail PROPERTIES WILL_FAIL TRUE)
 endif()
 endif()
 
-
-if(NOT TARGET parson)
-    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
-    find_package(parson REQUIRED)
-else ()
-    find_package(parson CONFIG QUIET)
-endif ()
-endif()
 
 include(GenerateExportHeader)
 set(_export_file "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}_export.h")

@@ -136,8 +136,9 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_cli_expand_response_files(
  *
  * @param[in] argc Number of arguments in `argv`.
  * @param[in,out] argv Heap-allocated argument vector to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void cdd_cli_free_argv(int argc, char **argv);
+extern C_CDD_EXPORT cdd_c_error_t cdd_cli_free_argv(int argc, char **argv);
 
 /**
  * @brief Emits C prototypes for all generated CLI functions (`_from_cli`,

@@ -26,11 +26,12 @@ C_CDD_EXPORT cdd_c_error_t cdd_lexer_tokenize(az_span source,
                                               cdd_token_list_t **out_list);
 
 /**
- * @brief Free a token list and its associated trivia.
+ * @brief Frees a token list and its associated trivia.
  *
  * @param[in,out] list The token list to free.
+ * @return CDD_C_SUCCESS.
  */
-C_CDD_EXPORT void cdd_lexer_free_token_list(cdd_token_list_t *list);
+C_CDD_EXPORT cdd_c_error_t cdd_lexer_free_token_list(cdd_token_list_t *list);
 
 #ifdef __cplusplus
 }

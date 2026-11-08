@@ -279,15 +279,10 @@ TEST test_cdd_cst_scope_mem(void) {
 #ifdef CDD_BUILD_TESTS
 
 TEST test_cdd_cst_scope_oom(void) {
-  cdd_cst_scope_env_t *env = NULL;
-  cdd_cst_symbol_t *sym = NULL;
-
   {
     cdd_cst_scope_env_t *env2 = NULL;
     cdd_cst_scope_env_init(&env2);
     env2->current_scope = NULL;
-    (void)sym;
-    (void)env;
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               cdd_cst_scope_enter(env2, CDD_CST_SCOPE_BLOCK));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_scope_leave(env2));

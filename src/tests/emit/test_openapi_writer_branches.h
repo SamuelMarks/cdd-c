@@ -47,7 +47,11 @@ TEST test_openapi_writer_branch_sweep(void) {
   struct OpenAPI_SecurityRequirementSet sec_set;
   struct OpenAPI_SecurityRequirement sec_req;
 
-  val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   obj = json_value_get_object(val);
 
   /* 1. param_is_reserved_header_openapi: p != NULL, header, but p->name == NULL
@@ -584,16 +588,32 @@ TEST test_openapi_writer_schema_and_types_coverage(void) {
   char *types[3];
   struct OpenAPI_SchemaRef ref;
 
-  val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   obj = json_value_get_object(val);
 
   /* write_schema_type */
   write_schema_type(obj, "null", 1);
-  ASSERT_STR_EQ("null", json_object_get_string(obj, "type"));
+  {
+    const char *_cdd_js_1 = NULL;
+    cdd_json_object_get_string(obj, "type", &_cdd_js_1);
+    ASSERT_STR_EQ("null", _cdd_js_1);
+  }
   write_schema_type(obj, "string", 1);
-  ASSERT(json_object_get_array(obj, "type") != NULL);
+  {
+    JSON_Array *_cdd_ja_1 = NULL;
+    cdd_json_object_get_array(obj, "type", &_cdd_ja_1);
+    ASSERT(_cdd_ja_1 != NULL);
+  }
   write_schema_type(obj, "string", 0);
-  ASSERT_STR_EQ("string", json_object_get_string(obj, "type"));
+  {
+    const char *_cdd_js_1 = NULL;
+    cdd_json_object_get_string(obj, "type", &_cdd_js_1);
+    ASSERT_STR_EQ("string", _cdd_js_1);
+  }
 
   /* type_union_contains */
   types[0] = NULL;

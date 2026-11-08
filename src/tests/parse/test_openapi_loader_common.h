@@ -32,8 +32,13 @@ extern "C" {
  */
 static cdd_c_error_t load_spec_str(const char *json_str,
                                    struct OpenAPI_Spec *spec) {
-  JSON_Value *dyn = json_parse_string(json_str);
+  JSON_Value *dyn = NULL;
   cdd_c_error_t rc = 0;
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(json_str, &_cdd_jv_1);
+    dyn = _cdd_jv_1;
+  }
   if (!dyn)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   openapi_spec_init(spec);
@@ -56,8 +61,13 @@ static cdd_c_error_t
 load_spec_str_with_context(const char *json_str, const char *retrieval_uri,
                            struct OpenAPI_DocRegistry *registry,
                            struct OpenAPI_Spec *spec) {
-  JSON_Value *dyn = json_parse_string(json_str);
+  JSON_Value *dyn = NULL;
   cdd_c_error_t rc = 0;
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(json_str, &_cdd_jv_1);
+    dyn = _cdd_jv_1;
+  }
   if (!dyn)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   openapi_spec_init(spec);

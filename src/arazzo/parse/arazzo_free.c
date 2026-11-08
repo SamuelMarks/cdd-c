@@ -22,56 +22,66 @@
  * @brief Frees an `Arazzo_ExpressionType` structure's dynamic fields.
  *
  * @param[in,out] et Pointer to the expression type structure.
+ * @return `CDD_C_SUCCESS`.
  */
-static void free_arazzo_expression_type(struct Arazzo_ExpressionType *et) {
+static cdd_c_error_t
+free_arazzo_expression_type(struct Arazzo_ExpressionType *et) {
   C_CDD_FREE(et->version);
   et->version = NULL;
   arazzo_extension_list_free(&et->extensions);
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees an `Arazzo_Criterion` structure's dynamic fields.
  *
  * @param[in,out] crit Pointer to the criterion structure.
+ * @return `CDD_C_SUCCESS`.
  */
-static void free_arazzo_criterion(struct Arazzo_Criterion *crit) {
+static cdd_c_error_t free_arazzo_criterion(struct Arazzo_Criterion *crit) {
   C_CDD_FREE(crit->context);
   C_CDD_FREE(crit->condition);
   free_arazzo_expression_type(&crit->expression_type);
   arazzo_extension_list_free(&crit->extensions);
   memset(crit, 0, sizeof(*crit));
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees an `Arazzo_Selector` structure's dynamic fields.
  *
  * @param[in,out] sel Pointer to the selector structure.
+ * @return `CDD_C_SUCCESS`.
  */
-static void free_arazzo_selector(struct Arazzo_Selector *sel) {
+static cdd_c_error_t free_arazzo_selector(struct Arazzo_Selector *sel) {
   C_CDD_FREE(sel->context);
   C_CDD_FREE(sel->selector);
   free_arazzo_expression_type(&sel->expression_type);
   arazzo_extension_list_free(&sel->extensions);
   memset(sel, 0, sizeof(*sel));
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees an `Arazzo_Reusable` structure's dynamic fields.
  *
  * @param[in,out] r Pointer to the reusable reference structure.
+ * @return `CDD_C_SUCCESS`.
  */
-static void free_arazzo_reusable(struct Arazzo_Reusable *r) {
+static cdd_c_error_t free_arazzo_reusable(struct Arazzo_Reusable *r) {
   C_CDD_FREE(r->reference);
   free_any_value(&r->value);
   memset(r, 0, sizeof(*r));
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees an `Arazzo_Parameter` structure's dynamic fields.
  *
  * @param[in,out] param Pointer to the parameter structure.
+ * @return `CDD_C_SUCCESS`.
  */
-static void free_arazzo_parameter(struct Arazzo_Parameter *param) {
+static cdd_c_error_t free_arazzo_parameter(struct Arazzo_Parameter *param) {
   C_CDD_FREE(param->name);
   free_any_value(&param->value);
   free_arazzo_selector(&param->selector);
@@ -79,6 +89,7 @@ static void free_arazzo_parameter(struct Arazzo_Parameter *param) {
   free_arazzo_reusable(&param->reusable);
   arazzo_extension_list_free(&param->extensions);
   memset(param, 0, sizeof(*param));
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -86,14 +97,16 @@ static void free_arazzo_parameter(struct Arazzo_Parameter *param) {
  *
  * @param[in,out] params Array of parameters (may be NULL).
  * @param[in] n_params Number of parameters.
+ * @return `CDD_C_SUCCESS`.
  */
-static void free_arazzo_parameters_array(struct Arazzo_Parameter *params,
-                                         size_t n_params) {
+static cdd_c_error_t
+free_arazzo_parameters_array(struct Arazzo_Parameter *params, size_t n_params) {
   size_t i;
   for (i = 0; i < n_params; ++i) {
     free_arazzo_parameter(&params[i]);
   }
   C_CDD_FREE(params);
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -101,22 +114,27 @@ static void free_arazzo_parameters_array(struct Arazzo_Parameter *params,
  *
  * @param[in,out] criteria Array of criteria (may be NULL).
  * @param[in] n_criteria Number of criteria.
+ * @return `CDD_C_SUCCESS`.
  */
-static void free_arazzo_criteria_array(struct Arazzo_Criterion *criteria,
-                                       size_t n_criteria) {
+static cdd_c_error_t
+free_arazzo_criteria_array(struct Arazzo_Criterion *criteria,
+                           size_t n_criteria) {
   size_t i;
   for (i = 0; i < n_criteria; ++i) {
     free_arazzo_criterion(&criteria[i]);
   }
   C_CDD_FREE(criteria);
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees an `Arazzo_SuccessAction` structure's dynamic fields.
  *
  * @param[in,out] act Pointer to the success action structure.
+ * @return `CDD_C_SUCCESS`.
  */
-static void free_arazzo_success_action(struct Arazzo_SuccessAction *act) {
+static cdd_c_error_t
+free_arazzo_success_action(struct Arazzo_SuccessAction *act) {
   C_CDD_FREE(act->name);
   C_CDD_FREE(act->workflow_id);
   C_CDD_FREE(act->step_id);
@@ -125,14 +143,17 @@ static void free_arazzo_success_action(struct Arazzo_SuccessAction *act) {
   free_arazzo_reusable(&act->reusable);
   arazzo_extension_list_free(&act->extensions);
   memset(act, 0, sizeof(*act));
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees an `Arazzo_FailureAction` structure's dynamic fields.
  *
  * @param[in,out] act Pointer to the failure action structure.
+ * @return `CDD_C_SUCCESS`.
  */
-static void free_arazzo_failure_action(struct Arazzo_FailureAction *act) {
+static cdd_c_error_t
+free_arazzo_failure_action(struct Arazzo_FailureAction *act) {
   C_CDD_FREE(act->name);
   C_CDD_FREE(act->workflow_id);
   C_CDD_FREE(act->step_id);
@@ -141,6 +162,7 @@ static void free_arazzo_failure_action(struct Arazzo_FailureAction *act) {
   free_arazzo_reusable(&act->reusable);
   arazzo_extension_list_free(&act->extensions);
   memset(act, 0, sizeof(*act));
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -148,9 +170,11 @@ static void free_arazzo_failure_action(struct Arazzo_FailureAction *act) {
  *
  * @param[in,out] outputs Array of output map entries (may be NULL).
  * @param[in] n_outputs Number of output entries.
+ * @return `CDD_C_SUCCESS`.
  */
-static void free_arazzo_outputs_array(struct Arazzo_OutputMapEntry *outputs,
-                                      size_t n_outputs) {
+static cdd_c_error_t
+free_arazzo_outputs_array(struct Arazzo_OutputMapEntry *outputs,
+                          size_t n_outputs) {
   size_t i;
   for (i = 0; i < n_outputs; ++i) {
     C_CDD_FREE(outputs[i].key);
@@ -159,14 +183,16 @@ static void free_arazzo_outputs_array(struct Arazzo_OutputMapEntry *outputs,
     arazzo_runtime_expr_free(&outputs[i].parsed_expr);
   }
   C_CDD_FREE(outputs);
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees an `Arazzo_Step` structure's dynamic fields.
  *
  * @param[in,out] step Pointer to the step structure.
+ * @return `CDD_C_SUCCESS`.
  */
-static void free_arazzo_step(struct Arazzo_Step *step) {
+static cdd_c_error_t free_arazzo_step(struct Arazzo_Step *step) {
   size_t i;
   C_CDD_FREE(step->step_id);
   C_CDD_FREE(step->description);
@@ -201,14 +227,16 @@ static void free_arazzo_step(struct Arazzo_Step *step) {
   free_string_array(step->depends_on, step->n_depends_on);
   arazzo_extension_list_free(&step->extensions);
   memset(step, 0, sizeof(*step));
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees an `Arazzo_Workflow` structure's dynamic fields.
  *
  * @param[in,out] wf Pointer to the workflow structure.
+ * @return `CDD_C_SUCCESS`.
  */
-static void free_arazzo_workflow(struct Arazzo_Workflow *wf) {
+static cdd_c_error_t free_arazzo_workflow(struct Arazzo_Workflow *wf) {
   size_t i;
   C_CDD_FREE(wf->workflow_id);
   C_CDD_FREE(wf->summary);
@@ -231,22 +259,25 @@ static void free_arazzo_workflow(struct Arazzo_Workflow *wf) {
   free_arazzo_parameters_array(wf->parameters, wf->n_parameters);
   arazzo_extension_list_free(&wf->extensions);
   memset(wf, 0, sizeof(*wf));
+  return CDD_C_SUCCESS;
 }
 
 /*
  * @brief Frees all dynamic strings inside an `Arazzo_RuntimeExpr` structure.
  *
  * @param[in,out] expr Pointer to the runtime expression structure to free.
+ * @return `CDD_C_SUCCESS`.
  */
-void arazzo_runtime_expr_free(struct Arazzo_RuntimeExpr *expr) {
+cdd_c_error_t arazzo_runtime_expr_free(struct Arazzo_RuntimeExpr *expr) {
   if (!expr)
-    return;
+    return CDD_C_SUCCESS;
   C_CDD_FREE(expr->raw);
   C_CDD_FREE(expr->source_name);
   C_CDD_FREE(expr->step_or_workflow_id);
   C_CDD_FREE(expr->property_name);
   C_CDD_FREE(expr->json_pointer);
   memset(expr, 0, sizeof(*expr));
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -303,11 +334,12 @@ cdd_c_error_t arazzo_runtime_expr_copy(struct Arazzo_RuntimeExpr *dst,
  * @brief Frees an `Arazzo_ExtensionList` and all its contained key/value pairs.
  *
  * @param[in,out] list Pointer to the extension list to free.
+ * @return `CDD_C_SUCCESS`.
  */
-void arazzo_extension_list_free(struct Arazzo_ExtensionList *list) {
+cdd_c_error_t arazzo_extension_list_free(struct Arazzo_ExtensionList *list) {
   size_t i;
   if (!list)
-    return;
+    return CDD_C_SUCCESS;
   for (i = 0; i < list->count; ++i) {
     C_CDD_FREE(list->items[i].key);
     free_any_value(&list->items[i].val);
@@ -315,6 +347,7 @@ void arazzo_extension_list_free(struct Arazzo_ExtensionList *list) {
   C_CDD_FREE(list->items);
   list->items = NULL;
   list->count = 0;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -382,11 +415,12 @@ cdd_c_error_t arazzo_spec_init(struct Arazzo_Spec *spec) {
  * @brief Frees all heap-allocated memory inside an `Arazzo_Spec` structure.
  *
  * @param[in,out] spec Pointer to the Arazzo specification structure to free.
+ * @return `CDD_C_SUCCESS`.
  */
-void arazzo_spec_free(struct Arazzo_Spec *spec) {
+cdd_c_error_t arazzo_spec_free(struct Arazzo_Spec *spec) {
   size_t i;
   if (!spec)
-    return;
+    return CDD_C_SUCCESS;
 
   C_CDD_FREE(spec->arazzo);
   C_CDD_FREE(spec->self_uri);
@@ -440,6 +474,7 @@ void arazzo_spec_free(struct Arazzo_Spec *spec) {
   arazzo_extension_list_free(&spec->components.extensions);
   arazzo_extension_list_free(&spec->extensions);
   memset(spec, 0, sizeof(*spec));
+  return CDD_C_SUCCESS;
 }
 
 /*

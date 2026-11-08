@@ -281,6 +281,18 @@ endif()
 if(MSVC)
     string(REGEX REPLACE "/W[0-4]" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
     string(REGEX REPLACE "/W[0-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    foreach(_dbg_flag_var CMAKE_C_FLAGS_DEBUG CMAKE_CXX_FLAGS_DEBUG CMAKE_C_FLAGS_RELWITHDEBINFO CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+        if(DEFINED ${_dbg_flag_var})
+            string(REGEX REPLACE "/Z[iI]" "/Z7" ${_dbg_flag_var} "${${_dbg_flag_var}}")
+        endif()
+    endforeach()
+    foreach(_lnk_flag_var CMAKE_EXE_LINKER_FLAGS_DEBUG CMAKE_SHARED_LINKER_FLAGS_DEBUG CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO)
+        if(DEFINED ${_lnk_flag_var})
+            string(REGEX REPLACE "/debug" "" ${_lnk_flag_var} "${${_lnk_flag_var}}")
+            string(REGEX REPLACE "/DEBUG" "" ${_lnk_flag_var} "${${_lnk_flag_var}}")
+            string(REGEX REPLACE "/INCREMENTAL(:YES)?" "/INCREMENTAL:NO" ${_lnk_flag_var} "${${_lnk_flag_var}}")
+        endif()
+    endforeach()
     target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE /W4 /Gy /WX)
 else()
     target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE -Wall -Wextra -Werror -Wpedantic -Wconversion -Wsign-conversion -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wdeclaration-after-statement -pedantic)
@@ -347,7 +359,7 @@ endif()
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
             "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;;-pedantic;;;;;>>"
-            "$<${msvc}:$<BUILD_INTERFACE:-W4;-Zi;;;;;;;;-Gy;>>"
+            "$<${msvc}:$<BUILD_INTERFACE:-W4;-Z7;;;;;;;;-Gy;>>"
     )
     target_link_options(
             "${PROJECT_NAME}_compiler_flags"
@@ -387,7 +399,7 @@ endif()
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
             "$<${gcc_like}:$<BUILD_INTERFACE:;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;-pedantic;;;;;>>"
-            "$<${msvc}:$<BUILD_INTERFACE:-W4;-Zi;;;;;;;;-Gy;>>"
+            "$<${msvc}:$<BUILD_INTERFACE:-W4;-Z7;;;;;;;;-Gy;>>"
     )
 endif ()
 
@@ -513,23 +525,6 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
     # greatest
     FetchDependencyLocalOrArchive(greatest "greatest" "SamuelMarks/greatest")
 
-    # parson
-    if (TARGET parson)
-        message(STATUS "parson already provided by parent")
-    else()
-        set(parson_RESOLVED OFF)
-        if(VCPKG_TOOLCHAIN)
-            find_package(parson CONFIG QUIET)
-            if(parson_FOUND)
-                set(parson_RESOLVED ON)
-            endif()
-        endif()
-        if(NOT parson_RESOLVED)
-            FetchDependencyLocalOrArchive(parson "parson" "SamuelMarks/parson")
-            add_compile_definitions(PARSON_STATIC_DEFINE)
-            set(BUILD_SHARED_LIBS ${_GLOBAL_BSL})
-        endif()
-    endif()
     if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
     if (C_CDD_USE_LIBCURL)
         if(TARGET curl AND NOT TARGET CURL::libcurl)

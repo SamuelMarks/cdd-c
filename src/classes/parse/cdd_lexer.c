@@ -522,11 +522,12 @@ error:
  * trivia chains.
  *
  * @param[in,out] list Pointer to the token list to free.
+ * @return CDD_C_SUCCESS.
  */
-void cdd_lexer_free_token_list(cdd_token_list_t *list) {
+cdd_c_error_t cdd_lexer_free_token_list(cdd_token_list_t *list) {
   size_t i;
   if (!list)
-    return;
+    return CDD_C_SUCCESS;
   if (list->tokens) {
     for (i = 0; i < list->size; i++) {
       cdd_trivia_t *t = list->tokens[i].leading_trivia;
@@ -545,4 +546,5 @@ void cdd_lexer_free_token_list(cdd_token_list_t *list) {
     C_CDD_FREE(list->tokens);
   }
   C_CDD_FREE(list);
+  return CDD_C_SUCCESS;
 }

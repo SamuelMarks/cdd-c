@@ -257,32 +257,36 @@ TEST test_foo_e_full_coverage(void) {
   HazE_cleanup(haz_e);
   haz_e = NULL;
   {
-    JSON_Value *v = json_parse_string("{\"tank\": \"BIG\"}");
-    ASSERT_EQ(0, HazE_from_jsonObject(json_value_get_object(v), &haz_e));
+    JSON_Value *v = NULL;
+    JSON_Object *vo = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("{\"tank\": \"BIG\"}", &v));
+    cdd_json_value_get_object(v, &vo);
+    ASSERT_EQ(0, HazE_from_jsonObject(vo, &haz_e));
     HazE_cleanup(haz_e);
     haz_e = NULL;
-    json_value_free(v);
+    cdd_json_value_free(v);
 
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_jsonObject(NULL, &haz_e));
-    v = json_parse_string("{}");
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-              HazE_from_jsonObject(json_value_get_object(v), NULL));
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-              HazE_from_jsonObject(json_value_get_object(v), &haz_e));
-    json_value_free(v);
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("{}", &v));
+    cdd_json_value_get_object(v, &vo);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_jsonObject(vo, NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_jsonObject(vo, &haz_e));
+    cdd_json_value_free(v);
   }
 
   /* Test FooE_from_jsonObject */
   FooE_cleanup(foo_e);
   foo_e = NULL;
   {
-    JSON_Value *v = json_parse_string("{\"can\": 1}");
-    ASSERT_EQ(0, FooE_from_jsonObject(json_value_get_object(v), &foo_e));
+    JSON_Value *v = NULL;
+    JSON_Object *vo = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("{\"can\": 1}", &v));
+    cdd_json_value_get_object(v, &vo);
+    ASSERT_EQ(0, FooE_from_jsonObject(vo, &foo_e));
     FooE_cleanup(foo_e);
 
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-              FooE_from_jsonObject(json_value_get_object(v), NULL));
-    json_value_free(v);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_from_jsonObject(vo, NULL));
+    cdd_json_value_free(v);
 
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_from_jsonObject(NULL, &foo_e));
   }
@@ -368,15 +372,17 @@ TEST test_foo_e_full_coverage(void) {
     }
 
     {
-      JSON_Value *v =
-          json_parse_string("{\"tank\": \"BIG\", \"bzr\": \"test\"}");
+      JSON_Value *v = NULL;
+      JSON_Object *vo = NULL;
+      cdd_json_parse_string("{\"tank\": \"BIG\", \"bzr\": \"test\"}", &v);
+      cdd_json_value_get_object(v, &vo);
       g_simple_json_fail_alloc = i;
-      rc = HazE_from_jsonObject(json_value_get_object(v), &haz_e2);
+      rc = HazE_from_jsonObject(vo, &haz_e2);
       if (haz_e2) {
         HazE_cleanup(haz_e2);
         haz_e2 = NULL;
       }
-      json_value_free(v);
+      cdd_json_value_free(v);
     }
 
     g_simple_json_fail_alloc = 0;
@@ -422,10 +428,13 @@ TEST test_foo_e_full_coverage(void) {
     }
 
     {
-      JSON_Value *v = json_parse_string(
-          "{\"can\": 1, \"bar\": \"test\", \"haz\": {\"tank\": \"BIG\"}}");
+      JSON_Value *v = NULL;
+      JSON_Object *vo = NULL;
+      cdd_json_parse_string(
+          "{\"can\": 1, \"bar\": \"test\", \"haz\": {\"tank\": \"BIG\"}}", &v);
+      cdd_json_value_get_object(v, &vo);
       g_simple_json_fail_alloc = i;
-      rc = FooE_from_jsonObject(json_value_get_object(v), &foo_e2);
+      rc = FooE_from_jsonObject(vo, &foo_e2);
       if (rc != CDD_C_SUCCESS) {
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
@@ -433,7 +442,7 @@ TEST test_foo_e_full_coverage(void) {
         FooE_cleanup(foo_e2);
         foo_e2 = NULL;
       }
-      json_value_free(v);
+      cdd_json_value_free(v);
     }
 
     HazE_cleanup(haz_e);

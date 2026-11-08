@@ -143,52 +143,167 @@ TEST test_c2openapi_full_flow(void) {
 
   /* 4. Verify JSON */
   {
-    JSON_Value *root = json_parse_file(out_json);
+    JSON_Value *root = NULL;
     JSON_Object *obj;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_file(out_json, &_cdd_jv_1);
+      root = _cdd_jv_1;
+    }
     ASSERT(root != NULL);
     obj = json_value_get_object(root);
 
     /* Check Info */
-    ASSERT_STR_EQ("3.2.0", json_object_get_string(obj, "openapi"));
-    ASSERT_STR_EQ("https://spec.openapis.org/oas/3.1/dialect/base",
-                  json_object_get_string(obj, "jsonSchemaDialect"));
-    ASSERT_STR_EQ("Example API", json_object_dotget_string(obj, "info.title"));
-    ASSERT_STR_EQ("2.1.0", json_object_dotget_string(obj, "info.version"));
-    ASSERT_STR_EQ("Example summary",
-                  json_object_dotget_string(obj, "info.summary"));
-    ASSERT_STR_EQ("Example description",
-                  json_object_dotget_string(obj, "info.description"));
-    ASSERT_STR_EQ("https://example.com/terms",
-                  json_object_dotget_string(obj, "info.termsOfService"));
-    ASSERT_STR_EQ("API Support",
-                  json_object_dotget_string(obj, "info.contact.name"));
-    ASSERT_STR_EQ("https://example.com/support",
-                  json_object_dotget_string(obj, "info.contact.url"));
-    ASSERT_STR_EQ("support@example.com",
-                  json_object_dotget_string(obj, "info.contact.email"));
-    ASSERT_STR_EQ("Apache 2.0",
-                  json_object_dotget_string(obj, "info.license.name"));
-    ASSERT_STR_EQ("Apache-2.0",
-                  json_object_dotget_string(obj, "info.license.identifier"));
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(obj, "openapi", &_cdd_js_1);
+      ASSERT_STR_EQ("3.2.0", _cdd_js_1);
+    }
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(obj, "jsonSchemaDialect", &_cdd_js_1);
+      ASSERT_STR_EQ("https://spec.openapis.org/oas/3.1/dialect/base",
+                    _cdd_js_1);
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      const char *_cdd_js_1 = NULL;
+      if (cdd_json_object_dotget_value(obj, "info.title", &_cdd_jv_1) ==
+              CDD_C_SUCCESS &&
+          _cdd_jv_1 && _cdd_jv_1->type == JSONString)
+        _cdd_js_1 = _cdd_jv_1->string_val;
+      ASSERT_STR_EQ("Example API", _cdd_js_1);
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      const char *_cdd_js_1 = NULL;
+      if (cdd_json_object_dotget_value(obj, "info.version", &_cdd_jv_1) ==
+              CDD_C_SUCCESS &&
+          _cdd_jv_1 && _cdd_jv_1->type == JSONString)
+        _cdd_js_1 = _cdd_jv_1->string_val;
+      ASSERT_STR_EQ("2.1.0", _cdd_js_1);
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      const char *_cdd_js_1 = NULL;
+      if (cdd_json_object_dotget_value(obj, "info.summary", &_cdd_jv_1) ==
+              CDD_C_SUCCESS &&
+          _cdd_jv_1 && _cdd_jv_1->type == JSONString)
+        _cdd_js_1 = _cdd_jv_1->string_val;
+      ASSERT_STR_EQ("Example summary", _cdd_js_1);
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      const char *_cdd_js_1 = NULL;
+      if (cdd_json_object_dotget_value(obj, "info.description", &_cdd_jv_1) ==
+              CDD_C_SUCCESS &&
+          _cdd_jv_1 && _cdd_jv_1->type == JSONString)
+        _cdd_js_1 = _cdd_jv_1->string_val;
+      ASSERT_STR_EQ("Example description", _cdd_js_1);
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      const char *_cdd_js_1 = NULL;
+      if (cdd_json_object_dotget_value(obj, "info.termsOfService",
+                                       &_cdd_jv_1) == CDD_C_SUCCESS &&
+          _cdd_jv_1 && _cdd_jv_1->type == JSONString)
+        _cdd_js_1 = _cdd_jv_1->string_val;
+      ASSERT_STR_EQ("https://example.com/terms", _cdd_js_1);
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      const char *_cdd_js_1 = NULL;
+      if (cdd_json_object_dotget_value(obj, "info.contact.name", &_cdd_jv_1) ==
+              CDD_C_SUCCESS &&
+          _cdd_jv_1 && _cdd_jv_1->type == JSONString)
+        _cdd_js_1 = _cdd_jv_1->string_val;
+      ASSERT_STR_EQ("API Support", _cdd_js_1);
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      const char *_cdd_js_1 = NULL;
+      if (cdd_json_object_dotget_value(obj, "info.contact.url", &_cdd_jv_1) ==
+              CDD_C_SUCCESS &&
+          _cdd_jv_1 && _cdd_jv_1->type == JSONString)
+        _cdd_js_1 = _cdd_jv_1->string_val;
+      ASSERT_STR_EQ("https://example.com/support", _cdd_js_1);
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      const char *_cdd_js_1 = NULL;
+      if (cdd_json_object_dotget_value(obj, "info.contact.email", &_cdd_jv_1) ==
+              CDD_C_SUCCESS &&
+          _cdd_jv_1 && _cdd_jv_1->type == JSONString)
+        _cdd_js_1 = _cdd_jv_1->string_val;
+      ASSERT_STR_EQ("support@example.com", _cdd_js_1);
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      const char *_cdd_js_1 = NULL;
+      if (cdd_json_object_dotget_value(obj, "info.license.name", &_cdd_jv_1) ==
+              CDD_C_SUCCESS &&
+          _cdd_jv_1 && _cdd_jv_1->type == JSONString)
+        _cdd_js_1 = _cdd_jv_1->string_val;
+      ASSERT_STR_EQ("Apache 2.0", _cdd_js_1);
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      const char *_cdd_js_1 = NULL;
+      if (cdd_json_object_dotget_value(obj, "info.license.identifier",
+                                       &_cdd_jv_1) == CDD_C_SUCCESS &&
+          _cdd_jv_1 && _cdd_jv_1->type == JSONString)
+        _cdd_js_1 = _cdd_jv_1->string_val;
+      ASSERT_STR_EQ("Apache-2.0", _cdd_js_1);
+    }
 
     /* Check Components (Struct User) */
     {
-      JSON_Object *comps = json_object_get_object(obj, "components");
+      JSON_Object *comps = NULL;
+      {
+        JSON_Object *_cdd_jo_1 = NULL;
+        cdd_json_object_get_object(obj, "components", &_cdd_jo_1);
+        comps = _cdd_jo_1;
+      }
       ASSERT(comps != NULL);
       {
-        JSON_Object *schemas = json_object_get_object(comps, "schemas");
+        JSON_Object *schemas = NULL;
+        {
+          JSON_Object *_cdd_jo_1 = NULL;
+          cdd_json_object_get_object(comps, "schemas", &_cdd_jo_1);
+          schemas = _cdd_jo_1;
+        }
         ASSERT(schemas != NULL);
         {
-          JSON_Object *user = json_object_get_object(schemas, "User");
+          JSON_Object *user = NULL;
+          {
+            JSON_Object *_cdd_jo_1 = NULL;
+            cdd_json_object_get_object(schemas, "User", &_cdd_jo_1);
+            user = _cdd_jo_1;
+          }
           ASSERT(user != NULL);
           {
-            JSON_Object *props = json_object_get_object(user, "properties");
+            JSON_Object *props = NULL;
+            {
+              JSON_Object *_cdd_jo_1 = NULL;
+              cdd_json_object_get_object(user, "properties", &_cdd_jo_1);
+              props = _cdd_jo_1;
+            }
             ASSERT(props != NULL);
             {
-              JSON_Object *id = json_object_get_object(props, "id");
+              JSON_Object *id = NULL;
+              {
+                JSON_Object *_cdd_jo_1 = NULL;
+                cdd_json_object_get_object(props, "id", &_cdd_jo_1);
+                id = _cdd_jo_1;
+              }
               ASSERT(id != NULL);
               {
-                const char *type = json_object_get_string(id, "type");
+                const char *type = NULL;
+                {
+                  const char *_cdd_js_1 = NULL;
+                  cdd_json_object_get_string(id, "type", &_cdd_js_1);
+                  type = _cdd_js_1;
+                }
 
                 ASSERT_STR_EQ("integer", (type) ? (type) : "NULL");
               }
@@ -200,57 +315,156 @@ TEST test_c2openapi_full_flow(void) {
 
     /* Check GET /users/{id} */
     {
-      JSON_Object *op = json_object_dotget_object(obj, "paths./users/{id}.get");
+      JSON_Object *op = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        JSON_Object *_cdd_jo_1 = NULL;
+        if (cdd_json_object_dotget_value(obj, "paths./users/{id}.get",
+                                         &_cdd_jv_1) == CDD_C_SUCCESS &&
+            _cdd_jv_1 && _cdd_jv_1->type == JSONObject)
+          _cdd_jo_1 = _cdd_jv_1->object_val;
+        op = _cdd_jo_1;
+      }
       ASSERT(op != NULL);
-      ASSERT_STR_EQ("api_get_user", json_object_get_string(op, "operationId"));
+      {
+        const char *_cdd_js_1 = NULL;
+        cdd_json_object_get_string(op, "operationId", &_cdd_js_1);
+        ASSERT_STR_EQ("api_get_user", _cdd_js_1);
+      }
 
       /* Check Param */
       {
-        JSON_Array *params = json_object_get_array(op, "parameters");
-        JSON_Object *p0 = json_array_get_object(params, 0);
-        ASSERT_STR_EQ("id", json_object_get_string(p0, "name"));
-        ASSERT_STR_EQ("path", json_object_get_string(p0, "in"));
+        JSON_Array *params = NULL;
+        JSON_Object *p0 = NULL;
+        {
+          JSON_Array *_cdd_ja_1 = NULL;
+          cdd_json_object_get_array(op, "parameters", &_cdd_ja_1);
+          params = _cdd_ja_1;
+        }
+        p0 = json_array_get_object(params, 0);
+        {
+          const char *_cdd_js_1 = NULL;
+          cdd_json_object_get_string(p0, "name", &_cdd_js_1);
+          ASSERT_STR_EQ("id", _cdd_js_1);
+        }
+        {
+          const char *_cdd_js_1 = NULL;
+          cdd_json_object_get_string(p0, "in", &_cdd_js_1);
+          ASSERT_STR_EQ("path", _cdd_js_1);
+        }
       }
 
       /* Check Response (200 User) from Output Param */
       {
-        JSON_Object *responses = json_object_get_object(op, "responses");
-        JSON_Object *r200 = json_object_get_object(responses, "200");
-        JSON_Object *content = json_object_get_object(r200, "content");
-        JSON_Object *app_json =
-            json_object_get_object(content, "application/json");
-        JSON_Object *schema = json_object_get_object(app_json, "schema");
-        const char *ref = json_object_get_string(schema, "$ref");
+        JSON_Object *responses = NULL;
+        JSON_Object *r200 = NULL;
+        JSON_Object *content = NULL;
+        JSON_Object *app_json = NULL;
+        JSON_Object *schema = NULL;
+        const char *ref = NULL;
+        {
+          JSON_Object *_cdd_jo_1 = NULL;
+          cdd_json_object_get_object(op, "responses", &_cdd_jo_1);
+          responses = _cdd_jo_1;
+        }
+        {
+          JSON_Object *_cdd_jo_1 = NULL;
+          cdd_json_object_get_object(responses, "200", &_cdd_jo_1);
+          r200 = _cdd_jo_1;
+        }
+        {
+          JSON_Object *_cdd_jo_1 = NULL;
+          cdd_json_object_get_object(r200, "content", &_cdd_jo_1);
+          content = _cdd_jo_1;
+        }
+        {
+          JSON_Object *_cdd_jo_1 = NULL;
+          cdd_json_object_get_object(content, "application/json", &_cdd_jo_1);
+          app_json = _cdd_jo_1;
+        }
+        {
+          JSON_Object *_cdd_jo_1 = NULL;
+          cdd_json_object_get_object(app_json, "schema", &_cdd_jo_1);
+          schema = _cdd_jo_1;
+        }
+        {
+          const char *_cdd_js_1 = NULL;
+          cdd_json_object_get_string(schema, "$ref", &_cdd_js_1);
+          ref = _cdd_js_1;
+        }
         ASSERT_STR_EQ("#/components/schemas/User", (ref) ? (ref) : "NULL");
       }
     }
 
     /* Check POST /users */
     {
-      JSON_Object *op = json_object_dotget_object(obj, "paths./users.post");
+      JSON_Object *op = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        JSON_Object *_cdd_jo_1 = NULL;
+        if (cdd_json_object_dotget_value(obj, "paths./users.post",
+                                         &_cdd_jv_1) == CDD_C_SUCCESS &&
+            _cdd_jv_1 && _cdd_jv_1->type == JSONObject)
+          _cdd_jo_1 = _cdd_jv_1->object_val;
+        op = _cdd_jo_1;
+      }
       ASSERT(op != NULL);
       /* Check Request Body */
       {
-        JSON_Object *req_body = json_object_get_object(op, "requestBody");
-        JSON_Object *content = json_object_get_object(req_body, "content");
-        JSON_Object *app_json =
-            json_object_get_object(content, "application/json");
-        JSON_Object *schema = json_object_get_object(app_json, "schema");
-        const char *ref = json_object_get_string(schema, "$ref");
+        JSON_Object *req_body = NULL;
+        JSON_Object *content = NULL;
+        JSON_Object *app_json = NULL;
+        JSON_Object *schema = NULL;
+        const char *ref = NULL;
+        {
+          JSON_Object *_cdd_jo_1 = NULL;
+          cdd_json_object_get_object(op, "requestBody", &_cdd_jo_1);
+          req_body = _cdd_jo_1;
+        }
+        {
+          JSON_Object *_cdd_jo_1 = NULL;
+          cdd_json_object_get_object(req_body, "content", &_cdd_jo_1);
+          content = _cdd_jo_1;
+        }
+        {
+          JSON_Object *_cdd_jo_1 = NULL;
+          cdd_json_object_get_object(content, "application/json", &_cdd_jo_1);
+          app_json = _cdd_jo_1;
+        }
+        {
+          JSON_Object *_cdd_jo_1 = NULL;
+          cdd_json_object_get_object(app_json, "schema", &_cdd_jo_1);
+          schema = _cdd_jo_1;
+        }
+        {
+          const char *_cdd_js_1 = NULL;
+          cdd_json_object_get_string(schema, "$ref", &_cdd_js_1);
+          ref = _cdd_js_1;
+        }
         ASSERT_STR_EQ("#/components/schemas/User", (ref) ? (ref) : "NULL");
       }
 
       /* Check Tags (top-level) */
       {
-        JSON_Array *tags = json_object_get_array(obj, "tags");
+        JSON_Array *tags = NULL;
         JSON_Object *tag_users = NULL;
         JSON_Object *tag_external = NULL;
         size_t t;
+        {
+          JSON_Array *_cdd_ja_1 = NULL;
+          cdd_json_object_get_array(obj, "tags", &_cdd_ja_1);
+          tags = _cdd_ja_1;
+        }
         ASSERT(tags != NULL);
         ASSERT(json_array_get_count(tags) >= 2);
         for (t = 0; t < json_array_get_count(tags); ++t) {
           JSON_Object *tag_obj = json_array_get_object(tags, t);
-          const char *name = json_object_get_string(tag_obj, "name");
+          const char *name = NULL;
+          {
+            const char *_cdd_js_1 = NULL;
+            cdd_json_object_get_string(tag_obj, "name", &_cdd_js_1);
+            name = _cdd_js_1;
+          }
           if (name && strcmp(name, "users") == 0) {
             tag_users = tag_obj;
           } else if (name && strcmp(name, "external") == 0) {
@@ -259,27 +473,74 @@ TEST test_c2openapi_full_flow(void) {
         }
         ASSERT(tag_users != NULL);
         ASSERT(tag_external != NULL);
-        ASSERT_STR_EQ("Users", json_object_get_string(tag_users, "summary"));
-        ASSERT_STR_EQ("User operations",
-                      json_object_get_string(tag_users, "description"));
-        ASSERT_STR_EQ("external", json_object_get_string(tag_users, "parent"));
-        ASSERT_STR_EQ("nav", json_object_get_string(tag_users, "kind"));
-        ASSERT_STR_EQ("https://example.com/docs",
-                      json_object_dotget_string(tag_users, "externalDocs.url"));
-        ASSERT_STR_EQ("More docs", json_object_dotget_string(
-                                       tag_users, "externalDocs.description"));
-        ASSERT_STR_EQ("External",
-                      json_object_get_string(tag_external, "summary"));
-        ASSERT_STR_EQ("External operations",
-                      json_object_get_string(tag_external, "description"));
+        {
+          const char *_cdd_js_1 = NULL;
+          cdd_json_object_get_string(tag_users, "summary", &_cdd_js_1);
+          ASSERT_STR_EQ("Users", _cdd_js_1);
+        }
+        {
+          const char *_cdd_js_1 = NULL;
+          cdd_json_object_get_string(tag_users, "description", &_cdd_js_1);
+          ASSERT_STR_EQ("User operations", _cdd_js_1);
+        }
+        {
+          const char *_cdd_js_1 = NULL;
+          cdd_json_object_get_string(tag_users, "parent", &_cdd_js_1);
+          ASSERT_STR_EQ("external", _cdd_js_1);
+        }
+        {
+          const char *_cdd_js_1 = NULL;
+          cdd_json_object_get_string(tag_users, "kind", &_cdd_js_1);
+          ASSERT_STR_EQ("nav", _cdd_js_1);
+        }
+        {
+          JSON_Value *_cdd_jv_1 = NULL;
+          const char *_cdd_js_1 = NULL;
+          if (cdd_json_object_dotget_value(tag_users, "externalDocs.url",
+                                           &_cdd_jv_1) == CDD_C_SUCCESS &&
+              _cdd_jv_1 && _cdd_jv_1->type == JSONString)
+            _cdd_js_1 = _cdd_jv_1->string_val;
+          ASSERT_STR_EQ("https://example.com/docs", _cdd_js_1);
+        }
+        {
+          JSON_Value *_cdd_jv_1 = NULL;
+          const char *_cdd_js_1 = NULL;
+          if (cdd_json_object_dotget_value(tag_users,
+                                           "externalDocs.description",
+                                           &_cdd_jv_1) == CDD_C_SUCCESS &&
+              _cdd_jv_1 && _cdd_jv_1->type == JSONString)
+            _cdd_js_1 = _cdd_jv_1->string_val;
+          ASSERT_STR_EQ("More docs", _cdd_js_1);
+        }
+        {
+          const char *_cdd_js_1 = NULL;
+          cdd_json_object_get_string(tag_external, "summary", &_cdd_js_1);
+          ASSERT_STR_EQ("External", _cdd_js_1);
+        }
+        {
+          const char *_cdd_js_1 = NULL;
+          cdd_json_object_get_string(tag_external, "description", &_cdd_js_1);
+          ASSERT_STR_EQ("External operations", _cdd_js_1);
+        }
       }
 
       /* Check Webhooks */
       {
-        op = json_object_dotget_object(obj, "webhooks./user-events.post");
+        {
+          JSON_Value *_cdd_jv_1 = NULL;
+          JSON_Object *_cdd_jo_1 = NULL;
+          if (cdd_json_object_dotget_value(obj, "webhooks./user-events.post",
+                                           &_cdd_jv_1) == CDD_C_SUCCESS &&
+              _cdd_jv_1 && _cdd_jv_1->type == JSONObject)
+            _cdd_jo_1 = _cdd_jv_1->object_val;
+          op = _cdd_jo_1;
+        }
         ASSERT(op != NULL);
-        ASSERT_STR_EQ("api_user_event",
-                      json_object_get_string(op, "operationId"));
+        {
+          const char *_cdd_js_1 = NULL;
+          cdd_json_object_get_string(op, "operationId", &_cdd_js_1);
+          ASSERT_STR_EQ("api_user_event", _cdd_js_1);
+        }
       }
     }
 
@@ -400,36 +661,94 @@ TEST test_c2openapi_with_base_spec(void) {
   }
 
   {
-    JSON_Value *root = json_parse_file(out_json);
+    JSON_Value *root = NULL;
     JSON_Object *obj;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_file(out_json, &_cdd_jv_1);
+      root = _cdd_jv_1;
+    }
     ASSERT(root != NULL);
     obj = json_value_get_object(root);
 
-    ASSERT_STR_EQ("3.2.0", json_object_get_string(obj, "openapi"));
-    ASSERT_STR_EQ("https://example.com/openapi.json",
-                  json_object_get_string(obj, "$self"));
-    ASSERT_STR_EQ("https://spec.openapis.org/oas/3.1/dialect/base",
-                  json_object_get_string(obj, "jsonSchemaDialect"));
-    ASSERT_STR_EQ("Base API", json_object_dotget_string(obj, "info.title"));
-    ASSERT_STR_EQ("9.9.9", json_object_dotget_string(obj, "info.version"));
-    ASSERT_STR_EQ(
-        "https://api.example.com/v1",
-        json_object_get_string(
-            json_array_get_object(json_object_get_array(obj, "servers"), 0),
-            "url"));
-    ASSERT_STR_EQ(
-        "User operations",
-        json_object_get_string(
-            json_array_get_object(json_object_get_array(obj, "tags"), 0),
-            "description"));
-    ASSERT_STR_EQ("apiKey",
-                  json_object_dotget_string(
-                      obj, "components.securitySchemes.api_key.type"));
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(obj, "openapi", &_cdd_js_1);
+      ASSERT_STR_EQ("3.2.0", _cdd_js_1);
+    }
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(obj, "$self", &_cdd_js_1);
+      ASSERT_STR_EQ("https://example.com/openapi.json", _cdd_js_1);
+    }
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(obj, "jsonSchemaDialect", &_cdd_js_1);
+      ASSERT_STR_EQ("https://spec.openapis.org/oas/3.1/dialect/base",
+                    _cdd_js_1);
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      const char *_cdd_js_1 = NULL;
+      if (cdd_json_object_dotget_value(obj, "info.title", &_cdd_jv_1) ==
+              CDD_C_SUCCESS &&
+          _cdd_jv_1 && _cdd_jv_1->type == JSONString)
+        _cdd_js_1 = _cdd_jv_1->string_val;
+      ASSERT_STR_EQ("Base API", _cdd_js_1);
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      const char *_cdd_js_1 = NULL;
+      if (cdd_json_object_dotget_value(obj, "info.version", &_cdd_jv_1) ==
+              CDD_C_SUCCESS &&
+          _cdd_jv_1 && _cdd_jv_1->type == JSONString)
+        _cdd_js_1 = _cdd_jv_1->string_val;
+      ASSERT_STR_EQ("9.9.9", _cdd_js_1);
+    }
+    {
+      JSON_Array *_cdd_ja_1 = NULL;
+      const char *_cdd_js_2 = NULL;
+      cdd_json_object_get_array(obj, "servers", &_cdd_ja_1);
+      cdd_json_object_get_string(json_array_get_object(_cdd_ja_1, 0), "url",
+                                 &_cdd_js_2);
+      ASSERT_STR_EQ("https://api.example.com/v1", _cdd_js_2);
+    }
+    {
+      JSON_Array *_cdd_ja_1 = NULL;
+      const char *_cdd_js_2 = NULL;
+      cdd_json_object_get_array(obj, "tags", &_cdd_ja_1);
+      cdd_json_object_get_string(json_array_get_object(_cdd_ja_1, 0),
+                                 "description", &_cdd_js_2);
+      ASSERT_STR_EQ("User operations", _cdd_js_2);
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      const char *_cdd_js_1 = NULL;
+      if (cdd_json_object_dotget_value(
+              obj, "components.securitySchemes.api_key.type", &_cdd_jv_1) ==
+              CDD_C_SUCCESS &&
+          _cdd_jv_1 && _cdd_jv_1->type == JSONString)
+        _cdd_js_1 = _cdd_jv_1->string_val;
+      ASSERT_STR_EQ("apiKey", _cdd_js_1);
+    }
 
     {
-      JSON_Object *op = json_object_dotget_object(obj, "paths./users/{id}.get");
+      JSON_Object *op = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        JSON_Object *_cdd_jo_1 = NULL;
+        if (cdd_json_object_dotget_value(obj, "paths./users/{id}.get",
+                                         &_cdd_jv_1) == CDD_C_SUCCESS &&
+            _cdd_jv_1 && _cdd_jv_1->type == JSONObject)
+          _cdd_jo_1 = _cdd_jv_1->object_val;
+        op = _cdd_jo_1;
+      }
       ASSERT(op != NULL);
-      ASSERT_STR_EQ("api_get_user", json_object_get_string(op, "operationId"));
+      {
+        const char *_cdd_js_1 = NULL;
+        cdd_json_object_get_string(op, "operationId", &_cdd_js_1);
+        ASSERT_STR_EQ("api_get_user", _cdd_js_1);
+      }
     }
 
     json_value_free(root);
@@ -495,12 +814,20 @@ TEST test_c2openapi_with_self_uri(void) {
   }
 
   {
-    JSON_Value *root = json_parse_file(out_json);
+    JSON_Value *root = NULL;
     JSON_Object *obj;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_file(out_json, &_cdd_jv_1);
+      root = _cdd_jv_1;
+    }
     ASSERT(root != NULL);
     obj = json_value_get_object(root);
-    ASSERT_STR_EQ("https://example.com/override.json",
-                  json_object_get_string(obj, "$self"));
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(obj, "$self", &_cdd_js_1);
+      ASSERT_STR_EQ("https://example.com/override.json", _cdd_js_1);
+    }
     json_value_free(root);
   }
 
@@ -575,42 +902,88 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
   }
 
   {
-    JSON_Value *root = json_parse_file(out_json);
+    JSON_Value *root = NULL;
     JSON_Object *obj;
     JSON_Object *scheme;
     JSON_Array *sec_arr;
     JSON_Object *sec_obj;
     JSON_Array *scopes;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_file(out_json, &_cdd_jv_1);
+      root = _cdd_jv_1;
+    }
     ASSERT(root != NULL);
     obj = json_value_get_object(root);
 
-    scheme =
-        json_object_dotget_object(obj, "components.securitySchemes.api_key");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      JSON_Object *_cdd_jo_1 = NULL;
+      if (cdd_json_object_dotget_value(obj,
+                                       "components.securitySchemes.api_key",
+                                       &_cdd_jv_1) == CDD_C_SUCCESS &&
+          _cdd_jv_1 && _cdd_jv_1->type == JSONObject)
+        _cdd_jo_1 = _cdd_jv_1->object_val;
+      scheme = _cdd_jo_1;
+    }
     ASSERT(scheme != NULL);
-    ASSERT_STR_EQ("apiKey", json_object_get_string(scheme, "type"));
-    ASSERT_STR_EQ("X-API-Key", json_object_get_string(scheme, "name"));
-    ASSERT_STR_EQ("header", json_object_get_string(scheme, "in"));
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(scheme, "type", &_cdd_js_1);
+      ASSERT_STR_EQ("apiKey", _cdd_js_1);
+    }
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(scheme, "name", &_cdd_js_1);
+      ASSERT_STR_EQ("X-API-Key", _cdd_js_1);
+    }
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(scheme, "in", &_cdd_js_1);
+      ASSERT_STR_EQ("header", _cdd_js_1);
+    }
 
-    sec_arr = json_object_get_array(obj, "security");
+    {
+      JSON_Array *_cdd_ja_1 = NULL;
+      cdd_json_object_get_array(obj, "security", &_cdd_ja_1);
+      sec_arr = _cdd_ja_1;
+    }
     ASSERT(sec_arr != NULL);
     sec_obj = json_array_get_object(sec_arr, 0);
     ASSERT(sec_obj != NULL);
-    scopes = json_object_get_array(sec_obj, "api_key");
+    {
+      JSON_Array *_cdd_ja_1 = NULL;
+      cdd_json_object_get_array(sec_obj, "api_key", &_cdd_ja_1);
+      scopes = _cdd_ja_1;
+    }
     ASSERT(scopes != NULL);
     ASSERT_EQ(0, json_array_get_count(scopes));
 
-    ASSERT_STR_EQ(
-        "https://api.example.com",
-        json_object_get_string(
-            json_array_get_object(json_object_get_array(obj, "servers"), 0),
-            "url"));
-    ASSERT_STR_EQ(
-        "[name:prod]",
-        json_object_get_string(
-            json_array_get_object(json_object_get_array(obj, "servers"), 0),
-            "description"));
-    ASSERT_STR_EQ("https://docs.example.com",
-                  json_object_dotget_string(obj, "externalDocs.url"));
+    {
+      JSON_Array *_cdd_ja_1 = NULL;
+      const char *_cdd_js_2 = NULL;
+      cdd_json_object_get_array(obj, "servers", &_cdd_ja_1);
+      cdd_json_object_get_string(json_array_get_object(_cdd_ja_1, 0), "url",
+                                 &_cdd_js_2);
+      ASSERT_STR_EQ("https://api.example.com", _cdd_js_2);
+    }
+    {
+      JSON_Array *_cdd_ja_1 = NULL;
+      const char *_cdd_js_2 = NULL;
+      cdd_json_object_get_array(obj, "servers", &_cdd_ja_1);
+      cdd_json_object_get_string(json_array_get_object(_cdd_ja_1, 0),
+                                 "description", &_cdd_js_2);
+      ASSERT_STR_EQ("[name:prod]", _cdd_js_2);
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      const char *_cdd_js_1 = NULL;
+      if (cdd_json_object_dotget_value(obj, "externalDocs.url", &_cdd_jv_1) ==
+              CDD_C_SUCCESS &&
+          _cdd_jv_1 && _cdd_jv_1->type == JSONString)
+        _cdd_js_1 = _cdd_jv_1->string_val;
+      ASSERT_STR_EQ("https://docs.example.com", _cdd_js_1);
+    }
 
     json_value_free(root);
   }

@@ -33,13 +33,15 @@
  * Unreserved characters: ALPHA, DIGIT, "-", ".", "_", "~".
  *
  * @param[in] c Character to inspect.
- * @return Non-zero if unreserved, CDD_C_SUCCESS otherwise.
+ * @param[out] out_is_unreserved Output flag (1 if unreserved, 0 otherwise).
+ * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t is_unreserved(unsigned char c) {
-  if (isalnum(c))
-    return CDD_C_ERROR_UNKNOWN;
-  if (c == '-' || c == '.' || c == '_' || c == '~')
-    return CDD_C_ERROR_UNKNOWN;
+static cdd_c_error_t is_unreserved(unsigned char c, int *out_is_unreserved) {
+  if (isalnum(c) || c == '-' || c == '.' || c == '_' || c == '~') {
+    *out_is_unreserved = 1;
+    return CDD_C_SUCCESS;
+  }
+  *out_is_unreserved = 0;
   return CDD_C_SUCCESS;
 }
 
@@ -47,9 +49,10 @@ static cdd_c_error_t is_unreserved(unsigned char c) {
  * @brief Check if a character is reserved per RFC 3986 Section 2.2.
  *
  * @param[in] c Character to inspect.
- * @return Non-zero if reserved, CDD_C_SUCCESS otherwise.
+ * @param[out] out_is_reserved Output flag (1 if reserved, 0 otherwise).
+ * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t is_reserved(unsigned char c) {
+static cdd_c_error_t is_reserved(unsigned char c, int *out_is_reserved) {
   switch (c) {
   case ':':
   case '/':
@@ -69,8 +72,10 @@ static cdd_c_error_t is_reserved(unsigned char c) {
   case ',':
   case ';':
   case '=':
-    return CDD_C_ERROR_UNKNOWN;
+    *out_is_reserved = 1;
+    return CDD_C_SUCCESS;
   default:
+    *out_is_reserved = 0;
     return CDD_C_SUCCESS;
   }
 }
@@ -79,21 +84,41 @@ static cdd_c_error_t is_reserved(unsigned char c) {
  * @brief Checks if a character is a hexadecimal digit.
  *
  * @param[in] c Character to inspect.
- * @return Non-zero if hexadecimal digit, 0 otherwise.
+ * @param[out] out_is_hex Output flag (1 if hexadecimal digit, 0 otherwise).
+ * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t is_hex(unsigned char c) { return isxdigit(c) ? 1 : 0; }
+static cdd_c_error_t is_hex(unsigned char c, int *out_is_hex) {
+  *out_is_hex = isxdigit(c) ? 1 : 0;
+  return CDD_C_SUCCESS;
+}
 
 /**
  * @brief Checks if a string starts with a valid %HH percent-encoded sequence.
  *
  * @param[in] p String pointer to inspect.
- * @return Non-zero if percent-encoded triple, CDD_C_SUCCESS otherwise.
+ * @param[out] out_is_pct Output flag (1 if percent-encoded triple, 0
+ * otherwise).
+ * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t is_pct_encoded(const char *p) {
-  if (!p)
+static cdd_c_error_t is_pct_encoded(const char *p, int *out_is_pct) {
+  int h1 = 0;
+  int h2 = 0;
+  if (!p) {
+    *out_is_pct = 0;
     return CDD_C_SUCCESS;
-  return (p[0] == '%' && is_hex((unsigned char)p[1]) &&
-          is_hex((unsigned char)p[2]));
+  }
+  if (p[0] != '%') {
+    *out_is_pct = 0;
+    return CDD_C_SUCCESS;
+  }
+  is_hex((unsigned char)p[1], &h1);
+  if (!h1) {
+    *out_is_pct = 0;
+    return CDD_C_SUCCESS;
+  }
+  is_hex((unsigned char)p[2], &h2);
+  *out_is_pct = h2 ? 1 : 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -116,13 +141,17 @@ static cdd_c_error_t to_hex(char code, char *_out_val) {
  * application/x-www-form-urlencoded.
  *
  * @param[in] c Character to inspect.
- * @return Non-zero if unreserved in form encoding, CDD_C_SUCCESS otherwise.
+ * @param[out] out_is_unreserved Output flag (1 if unreserved in form encoding,
+ * 0 otherwise).
+ * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t is_unreserved_form(unsigned char c) {
-  if (isalnum(c))
-    return CDD_C_ERROR_UNKNOWN;
-  if (c == '-' || c == '.' || c == '_' || c == '*')
-    return CDD_C_ERROR_UNKNOWN;
+static cdd_c_error_t is_unreserved_form(unsigned char c,
+                                        int *out_is_unreserved) {
+  if (isalnum(c) || c == '-' || c == '.' || c == '_' || c == '*') {
+    *out_is_unreserved = 1;
+    return CDD_C_SUCCESS;
+  }
+  *out_is_unreserved = 0;
   return CDD_C_SUCCESS;
 }
 
@@ -152,7 +181,9 @@ cdd_c_error_t url_encode(const char *str, char **_out_val) {
 
   /* Pass 1: Calculate required length */
   for (p = str; *p; p++) {
-    if (is_unreserved((unsigned char)*p)) {
+    int unres = 0;
+    is_unreserved((unsigned char)*p, &unres);
+    if (unres) {
       needed_len++;
     } else {
       needed_len += 3; /* %HH */
@@ -170,7 +201,9 @@ cdd_c_error_t url_encode(const char *str, char **_out_val) {
   e = enc;
   for (p = str; *p; p++) {
     unsigned char c = (unsigned char)*p;
-    if (is_unreserved(c)) {
+    int unres = 0;
+    is_unreserved(c, &unres);
+    if (unres) {
       *e++ = *p;
     } else {
       *e++ = '%';
@@ -214,12 +247,20 @@ cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
 
   /* Pass 1: Calculate required length */
   for (p = str; *p; p++) {
-    if (*p == '%' && is_pct_encoded(p)) {
-      needed_len += 3;
-      p += 2;
-      continue;
+    int pct = 0;
+    int unres = 0;
+    int res = 0;
+    if (*p == '%') {
+      is_pct_encoded(p, &pct);
+      if (pct) {
+        needed_len += 3;
+        p += 2;
+        continue;
+      }
     }
-    if (is_unreserved((unsigned char)*p) || is_reserved((unsigned char)*p)) {
+    is_unreserved((unsigned char)*p, &unres);
+    is_reserved((unsigned char)*p, &res);
+    if (unres || res) {
       needed_len++;
     } else {
       needed_len += 3; /* %HH */
@@ -235,13 +276,21 @@ cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
   e = enc;
   for (p = str; *p; p++) {
     unsigned char c = (unsigned char)*p;
-    if (*p == '%' && is_pct_encoded(p)) {
-      *e++ = *p++;
-      *e++ = *p++;
-      *e++ = *p;
-      continue;
+    int pct = 0;
+    int unres = 0;
+    int res = 0;
+    if (*p == '%') {
+      is_pct_encoded(p, &pct);
+      if (pct) {
+        *e++ = *p++;
+        *e++ = *p++;
+        *e++ = *p;
+        continue;
+      }
     }
-    if (is_unreserved(c) || is_reserved(c)) {
+    is_unreserved(c, &unres);
+    is_reserved(c, &res);
+    if (unres || res) {
       *e++ = *p;
     } else {
       *e++ = '%';
@@ -283,9 +332,11 @@ cdd_c_error_t url_encode_form(const char *str, char **_out_val) {
 
   for (p = str; *p; p++) {
     unsigned char c = (unsigned char)*p;
+    int unres_f = 0;
+    is_unreserved_form(c, &unres_f);
     if (c == ' ') {
       needed_len++;
-    } else if (is_unreserved_form(c)) {
+    } else if (unres_f) {
       needed_len++;
     } else {
       needed_len += 3;
@@ -301,9 +352,11 @@ cdd_c_error_t url_encode_form(const char *str, char **_out_val) {
   e = enc;
   for (p = str; *p; p++) {
     unsigned char c = (unsigned char)*p;
+    int unres_f = 0;
+    is_unreserved_form(c, &unres_f);
     if (c == ' ') {
       *e++ = '+';
-    } else if (is_unreserved_form(c)) {
+    } else if (unres_f) {
       *e++ = *p;
     } else {
       *e++ = '%';
@@ -347,12 +400,18 @@ cdd_c_error_t url_encode_form_allow_reserved(const char *str, char **_out_val) {
 
   for (p = str; *p; p++) {
     unsigned char c = (unsigned char)*p;
+    int pct = 0;
+    int unres_f = 0;
+    int res = 0;
+    is_pct_encoded(p, &pct);
+    is_unreserved_form(c, &unres_f);
+    is_reserved(c, &res);
     if (c == ' ') {
       needed_len++;
-    } else if (is_pct_encoded(p)) {
+    } else if (pct) {
       needed_len += 3;
       p += 2;
-    } else if (is_unreserved_form(c) || is_reserved(c)) {
+    } else if (unres_f || res) {
       if (c == '&' || c == '=' || c == '+') {
         needed_len += 3;
       } else {
@@ -372,13 +431,19 @@ cdd_c_error_t url_encode_form_allow_reserved(const char *str, char **_out_val) {
   e = enc;
   for (p = str; *p; p++) {
     unsigned char c = (unsigned char)*p;
+    int pct = 0;
+    int unres_f = 0;
+    int res = 0;
+    is_pct_encoded(p, &pct);
+    is_unreserved_form(c, &unres_f);
+    is_reserved(c, &res);
     if (c == ' ') {
       *e++ = '+';
-    } else if (is_pct_encoded(p)) {
+    } else if (pct) {
       *e++ = *p++;
       *e++ = *p++;
       *e++ = *p;
-    } else if (is_unreserved_form(c) || is_reserved(c)) {
+    } else if (unres_f || res) {
       if (c == '&' || c == '=' || c == '+') {
         *e++ = '%';
         to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
@@ -423,11 +488,12 @@ cdd_c_error_t url_query_init(struct UrlQueryParams *qp) {
  * Frees all key/value strings and the internal array.
  *
  * @param[in,out] qp The query parameters container to free.
+ * @return CDD_C_SUCCESS.
  */
-void url_query_free(struct UrlQueryParams *qp) {
+cdd_c_error_t url_query_free(struct UrlQueryParams *qp) {
   size_t i;
   if (!qp)
-    return;
+    return CDD_C_SUCCESS;
   if (qp->params) {
     for (i = 0; i < qp->count; ++i) {
       if (qp->params[i].key)
@@ -440,6 +506,7 @@ void url_query_free(struct UrlQueryParams *qp) {
   }
   qp->count = 0;
   qp->capacity = 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -928,15 +995,15 @@ oom:
 
 #ifdef CDD_BUILD_TESTS
 
-C_CDD_EXPORT cdd_c_error_t is_pct_encoded_test(const char *p);
+C_CDD_EXPORT cdd_c_error_t is_pct_encoded_test(const char *p, int *out_is_pct);
 C_CDD_EXPORT cdd_c_error_t kv_value_to_string_test(const struct OpenAPI_KV *kv,
                                                    char *buf, size_t buf_len,
                                                    const char **_out_val);
 C_CDD_EXPORT cdd_c_error_t append_str_test(char **buf, size_t *len, size_t *cap,
                                            const char *s);
 
-C_CDD_EXPORT cdd_c_error_t is_pct_encoded_test(const char *p) {
-  return is_pct_encoded(p);
+C_CDD_EXPORT cdd_c_error_t is_pct_encoded_test(const char *p, int *out_is_pct) {
+  return is_pct_encoded(p, out_is_pct);
 }
 C_CDD_EXPORT cdd_c_error_t kv_value_to_string_test(const struct OpenAPI_KV *kv,
                                                    char *buf, size_t buf_len,

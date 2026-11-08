@@ -70,12 +70,14 @@ typedef struct {
  * @brief Frees any dynamically allocated string payload in `tok`.
  *
  * @param[in,out] tok Macro token whose payload will be freed.
+ * @return CDD_C_SUCCESS.
  */
-static void free_tok(macro_tok_t *tok) {
+static cdd_c_error_t free_tok(macro_tok_t *tok) {
   if (tok->kind == TOK_STR || tok->kind == TOK_IDENT) {
     C_CDD_FREE(tok->str_val);
     tok->str_val = NULL;
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -924,10 +926,12 @@ cdd_c_error_t cdd_macro_evaluate(struct PreprocessorContext *ctx,
  *
  * @param[in,out] result Pointer to the evaluated macro result structure to
  * free.
+ * @return CDD_C_SUCCESS.
  */
-void cdd_macro_eval_result_free(cdd_macro_eval_result_t *result) {
-  if (result->str_val) {
+cdd_c_error_t cdd_macro_eval_result_free(cdd_macro_eval_result_t *result) {
+  if (result && result->str_val) {
     C_CDD_FREE(result->str_val);
     result->str_val = NULL;
   }
+  return CDD_C_SUCCESS;
 }

@@ -40,6 +40,9 @@ typedef unsigned __int64 uint64_t;
 #endif
 #endif
 
+#ifndef CDD_INT128_TYPES_DEFINED
+/** @brief Guard indicating 128-bit integer structs are defined. */
+#define CDD_INT128_TYPES_DEFINED
 /**
  * @brief 128-bit unsigned integer structure.
  */
@@ -55,6 +58,7 @@ typedef struct __cdd_int128 {
   uint64_t low; /**< Lower 64 bits */
   int64_t high; /**< Upper 64 bits (signed) */
 } cdd_int128_t;
+#endif /* CDD_INT128_TYPES_DEFINED */
 
 /**
  * @brief Creates a 128-bit unsigned integer from two 64-bit halves.

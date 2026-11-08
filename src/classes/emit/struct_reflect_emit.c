@@ -55,15 +55,15 @@ static cdd_c_error_t bw_skip_ws(const char **p) {
 static cdd_c_error_t bw_parse_primary(const char **p, int *saw_digit,
                                       long *out_val) {
   long v = 0;
-  bw_skip_ws(p);
+  cdd_c_error_t rc = bw_skip_ws(p);
   if (**p == '(') {
     (*p)++;
-    bw_parse_expr(p, saw_digit, &v);
-    bw_skip_ws(p);
+    rc = bw_parse_expr(p, saw_digit, &v);
+    rc = bw_skip_ws(p);
     if (**p == ')')
       (*p)++;
     *out_val = v;
-    return CDD_C_SUCCESS;
+    return rc;
   }
   if (**p == '+') {
     (*p)++;
@@ -71,15 +71,15 @@ static cdd_c_error_t bw_parse_primary(const char **p, int *saw_digit,
   }
   if (**p == '-') {
     (*p)++;
-    bw_parse_primary(p, saw_digit, &v);
+    rc = bw_parse_primary(p, saw_digit, &v);
     *out_val = -v;
-    return CDD_C_SUCCESS;
+    return rc;
   }
   if (**p == '~') {
     (*p)++;
-    bw_parse_primary(p, saw_digit, &v);
+    rc = bw_parse_primary(p, saw_digit, &v);
     *out_val = ~v;
-    return CDD_C_SUCCESS;
+    return rc;
   }
   if (**p == '\'') {
     (*p)++;
@@ -91,50 +91,37 @@ static cdd_c_error_t bw_parse_primary(const char **p, int *saw_digit,
         (*p)++;
     }
     *out_val = v;
-    return CDD_C_SUCCESS;
+    return rc;
   }
   if ((*p)[0] == '0' && ((*p)[1] == 'x' || (*p)[1] == 'X')) {
     (*p) += 2;
     *saw_digit = 1;
     while ((**p >= '0' && **p <= '9') || (**p >= 'a' && **p <= 'f') ||
            (**p >= 'A' && **p <= 'F')) {
-      long d = (**p >= '0' && **p <= '9')
-                   ? (long)(**p - '0')
-                   : ((**p >= 'a' && **p <= 'f') ? (long)(**p - 'a' + 10)
-                                                 : (long)(**p - 'A' + 10));
+      long d = (**p <= '9') ? (long)(**p - '0')
+                            : ((**p >= 'a') ? (long)(**p - 'a' + 10)
+                                            : (long)(**p - 'A' + 10));
       v = v * 16 + d;
       (*p)++;
     }
-    while (**p == 'u' || **p == 'U' || **p == 'l' || **p == 'L')
-      (*p)++;
-    *out_val = v;
-    return CDD_C_SUCCESS;
-  }
-  if ((*p)[0] == '0' && ((*p)[1] == 'b' || (*p)[1] == 'B')) {
+  } else if ((*p)[0] == '0' && ((*p)[1] == 'b' || (*p)[1] == 'B')) {
     (*p) += 2;
     *saw_digit = 1;
     while (**p == '0' || **p == '1') {
       v = v * 2 + (long)(**p - '0');
       (*p)++;
     }
-    while (**p == 'u' || **p == 'U' || **p == 'l' || **p == 'L')
-      (*p)++;
-    *out_val = v;
-    return CDD_C_SUCCESS;
-  }
-  if (**p >= '0' && **p <= '9') {
+  } else if (**p >= '0' && **p <= '9') {
     *saw_digit = 1;
     while (**p >= '0' && **p <= '9') {
       v = v * 10 + (long)(**p - '0');
       (*p)++;
     }
-    while (**p == 'u' || **p == 'U' || **p == 'l' || **p == 'L')
-      (*p)++;
-    *out_val = v;
-    return CDD_C_SUCCESS;
   }
-  *out_val = 0;
-  return CDD_C_SUCCESS;
+  while (**p == 'u' || **p == 'U' || **p == 'l' || **p == 'L')
+    (*p)++;
+  *out_val = v;
+  return rc;
 }
 
 /**
@@ -149,16 +136,16 @@ static cdd_c_error_t bw_parse_primary(const char **p, int *saw_digit,
 static cdd_c_error_t bw_parse_mul(const char **p, int *saw_digit,
                                   long *out_val) {
   long lhs = 0;
-  bw_parse_primary(p, saw_digit, &lhs);
+  cdd_c_error_t rc = bw_parse_primary(p, saw_digit, &lhs);
   for (;;) {
     long rhs = 0;
     char op;
-    bw_skip_ws(p);
+    rc = bw_skip_ws(p);
     op = **p;
     if (op != '*' && op != '/' && op != '%')
       break;
     (*p)++;
-    bw_parse_primary(p, saw_digit, &rhs);
+    rc = bw_parse_primary(p, saw_digit, &rhs);
     if (op == '*')
       lhs *= rhs;
     else if (op == '/' && rhs != 0)
@@ -167,7 +154,7 @@ static cdd_c_error_t bw_parse_mul(const char **p, int *saw_digit,
       lhs %= rhs;
   }
   *out_val = lhs;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -182,23 +169,23 @@ static cdd_c_error_t bw_parse_mul(const char **p, int *saw_digit,
 static cdd_c_error_t bw_parse_add(const char **p, int *saw_digit,
                                   long *out_val) {
   long lhs = 0;
-  bw_parse_mul(p, saw_digit, &lhs);
+  cdd_c_error_t rc = bw_parse_mul(p, saw_digit, &lhs);
   for (;;) {
     long rhs = 0;
     char op;
-    bw_skip_ws(p);
+    rc = bw_skip_ws(p);
     op = **p;
     if (op != '+' && op != '-')
       break;
     (*p)++;
-    bw_parse_mul(p, saw_digit, &rhs);
+    rc = bw_parse_mul(p, saw_digit, &rhs);
     if (op == '+')
       lhs += rhs;
     else
       lhs -= rhs;
   }
   *out_val = lhs;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -213,11 +200,11 @@ static cdd_c_error_t bw_parse_add(const char **p, int *saw_digit,
 static cdd_c_error_t bw_parse_shift(const char **p, int *saw_digit,
                                     long *out_val) {
   long lhs = 0;
-  bw_parse_add(p, saw_digit, &lhs);
+  cdd_c_error_t rc = bw_parse_add(p, saw_digit, &lhs);
   for (;;) {
     long rhs = 0;
     int is_shl = 0;
-    bw_skip_ws(p);
+    rc = bw_skip_ws(p);
     if ((*p)[0] == '<' && (*p)[1] == '<') {
       is_shl = 1;
       (*p) += 2;
@@ -227,14 +214,14 @@ static cdd_c_error_t bw_parse_shift(const char **p, int *saw_digit,
     } else {
       break;
     }
-    bw_parse_add(p, saw_digit, &rhs);
+    rc = bw_parse_add(p, saw_digit, &rhs);
     if (is_shl)
       lhs = lhs << rhs;
     else
       lhs = lhs >> rhs;
   }
   *out_val = lhs;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -249,16 +236,16 @@ static cdd_c_error_t bw_parse_shift(const char **p, int *saw_digit,
 static cdd_c_error_t bw_parse_expr(const char **p, int *saw_digit,
                                    long *out_val) {
   long lhs = 0;
-  bw_parse_shift(p, saw_digit, &lhs);
+  cdd_c_error_t rc = bw_parse_shift(p, saw_digit, &lhs);
   for (;;) {
     long rhs = 0;
     char op;
-    bw_skip_ws(p);
+    rc = bw_skip_ws(p);
     op = **p;
     if (op != '&' && op != '^' && op != '|')
       break;
     (*p)++;
-    bw_parse_shift(p, saw_digit, &rhs);
+    rc = bw_parse_shift(p, saw_digit, &rhs);
     if (op == '&')
       lhs &= rhs;
     else if (op == '^')
@@ -267,7 +254,7 @@ static cdd_c_error_t bw_parse_expr(const char **p, int *saw_digit,
       lhs |= rhs;
   }
   *out_val = lhs;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -284,19 +271,20 @@ cdd_c_error_t cdd_struct_eval_bitwidth_str(const char *bw_str,
   const char *p = bw_str;
   long acc = 0;
   int saw_digit = 0;
+  cdd_c_error_t rc;
 
   *out_bw = 0U;
   if (!bw_str || bw_str[0] == '\0')
     return CDD_C_SUCCESS;
 
-  bw_parse_expr(&p, &saw_digit, &acc);
+  rc = bw_parse_expr(&p, &saw_digit, &acc);
 
   if (saw_digit) {
     *out_bw = (acc > 0) ? (unsigned int)acc : 0U;
   } else {
     *out_bw = 1U;
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -315,8 +303,12 @@ write_struct_reflect_func(FILE *fp, const char *struct_name,
                           const struct StructFields *sf,
                           const struct CodegenStructConfig *config) {
   size_t i;
+  const char *member_prefix;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!fp || !struct_name || !sf)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  member_prefix = sf->is_union ? "data." : "";
 
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
@@ -325,30 +317,31 @@ write_struct_reflect_func(FILE *fp, const char *struct_name,
   for (i = 0; i < sf->size; ++i) {
     const struct StructField *f = &sf->fields[i];
     unsigned int bw = 0U;
-    cdd_struct_eval_bitwidth_str(f->bit_width, &bw);
+    rc = cdd_struct_eval_bitwidth_str(f->bit_width, &bw);
     if (bw > 0 && f->name[0] != '\0') {
       CHECK_IO(FPRINTF_HOOK(
           fp,
           "static cdd_c_error_t %s_get_bf_%s(const void *obj, int *out_val) {\n"
           "  if (!obj || !out_val) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
-          "  *out_val = (int)((const struct %s *)obj)->%s;\n"
+          "  *out_val = (int)((const struct %s *)obj)->%s%s;\n"
           "  return CDD_C_SUCCESS;\n"
           "}\n"
           "static cdd_c_error_t %s_set_bf_%s(void *obj, int val) {\n"
           "  if (!obj) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
-          "  ((struct %s *)obj)->%s = val;\n"
+          "  ((struct %s *)obj)->%s%s = val;\n"
           "  return CDD_C_SUCCESS;\n"
           "}\n",
-          struct_name, f->name, struct_name, f->name, struct_name, f->name,
-          struct_name, f->name));
+          struct_name, f->name, struct_name, member_prefix, f->name,
+          struct_name, f->name, struct_name, member_prefix, f->name));
     }
-    if (f->n_serde_aliases > 0 && f->serde_aliases && f->name[0] != '\0') {
+    if (f->n_serde_aliases > 0 && f->serde_aliases) {
       size_t a_idx;
       CHECK_IO(FPRINTF_HOOK(fp, "static const char *const %s_%s_aliases[] = { ",
                             struct_name, f->name));
       for (a_idx = 0; a_idx < f->n_serde_aliases; ++a_idx) {
         char esc_al[256];
-        cdd_escape_json_c_str(f->serde_aliases[a_idx], esc_al, sizeof(esc_al));
+        rc = cdd_escape_json_c_str(f->serde_aliases[a_idx], esc_al,
+                                   sizeof(esc_al));
         CHECK_IO(
             FPRINTF_HOOK(fp, "\"%s\"%s", esc_al,
                          (a_idx + 1 < f->n_serde_aliases) ? ", " : " };\n"));
@@ -364,7 +357,6 @@ write_struct_reflect_func(FILE *fp, const char *struct_name,
     const char *kind_str = "CDD_FIELD_KIND_UNKNOWN";
     const char *elem_kind_str = "CDD_FIELD_KIND_UNKNOWN";
     const char *ref_out = "";
-    const char *member_prefix = sf->is_union ? "data." : "";
     char wire_name[128];
     char de_wire_name[128];
     char elem_size_expr[192];
@@ -379,11 +371,10 @@ write_struct_reflect_func(FILE *fp, const char *struct_name,
     size_t eff_min_len;
     int eff_has_max_len;
     size_t eff_max_len;
-    cdd_struct_eval_bitwidth_str(f->bit_width, &bw);
+    rc = cdd_struct_eval_bitwidth_str(f->bit_width, &bw);
     is_ptr = ((strcmp(f->type, "string") == 0 && f->fixed_array_len == 0 &&
                !f->is_flexible_array) ||
-              (strcmp(f->type, "object") == 0 &&
-               (f->c_type[0] == '\0' || strchr(f->c_type, '*') != NULL)) ||
+              (strcmp(f->type, "object") == 0 && f->c_type[0] == '\0') ||
               (strcmp(f->type, "array") == 0 && f->fixed_array_len == 0 &&
                !f->is_flexible_array) ||
               f->is_nullable_ptr)
@@ -409,7 +400,7 @@ write_struct_reflect_func(FILE *fp, const char *struct_name,
       CDD_STRCPY(de_wire_name, sizeof(de_wire_name), f->name);
     }
     if (f->ref[0] != '\0') {
-      get_type_from_ref(f->ref, &ref_out);
+      rc = get_type_from_ref(f->ref, &ref_out);
     }
     if (strcmp(f->type, "integer") == 0)
       kind_str = "CDD_FIELD_KIND_INTEGER";
@@ -439,8 +430,7 @@ write_struct_reflect_func(FILE *fp, const char *struct_name,
         elem_kind_str = "CDD_FIELD_KIND_OBJECT";
     }
 
-    if (strcmp(f->type, "array") == 0 && !f->is_flexible_array &&
-        f->name[0] != '\0') {
+    if (strcmp(f->type, "array") == 0 && !f->is_flexible_array) {
       CDD_SNPRINTF(elem_size_expr, sizeof(elem_size_expr),
                    "sizeof(*((struct %s *)0)->%s%s)", struct_name,
                    member_prefix, f->name);
@@ -448,17 +438,17 @@ write_struct_reflect_func(FILE *fp, const char *struct_name,
       CDD_STRCPY(elem_size_expr, sizeof(elem_size_expr), "0");
     }
 
-    if (f->n_serde_aliases > 0 && f->serde_aliases && f->name[0] != '\0') {
+    if (f->n_serde_aliases > 0 && f->serde_aliases) {
       CDD_SNPRINTF(alias_ref, sizeof(alias_ref), "%s_%s_aliases", struct_name,
                    f->name);
     } else {
       CDD_STRCPY(alias_ref, sizeof(alias_ref), "NULL");
     }
 
-    cdd_escape_json_c_str(f->description, esc_doc, sizeof(esc_doc));
-    cdd_escape_json_c_str(f->format, esc_fmt, sizeof(esc_fmt));
-    cdd_escape_json_c_str(f->pattern, esc_pat, sizeof(esc_pat));
-    cdd_escape_json_c_str(f->default_val, esc_def, sizeof(esc_def));
+    rc = cdd_escape_json_c_str(f->description, esc_doc, sizeof(esc_doc));
+    rc = cdd_escape_json_c_str(f->format, esc_fmt, sizeof(esc_fmt));
+    rc = cdd_escape_json_c_str(f->pattern, esc_pat, sizeof(esc_pat));
+    rc = cdd_escape_json_c_str(f->default_val, esc_def, sizeof(esc_def));
 
     if (bw > 0) {
       CHECK_IO(FPRINTF_HOOK(
@@ -479,7 +469,7 @@ write_struct_reflect_func(FILE *fp, const char *struct_name,
           (unsigned long)eff_max_len, f->exclusive_min, f->exclusive_max,
           f->unique_items));
     } else if (strcmp(f->type, "array") == 0 && f->fixed_array_len == 0 &&
-               !f->is_flexible_array && !sf->is_union) {
+               !f->is_flexible_array) {
       CHECK_IO(FPRINTF_HOOK(
           fp,
           "  { \"%s\", \"%s\", \"%s\", \"%s\", %s, offsetof(struct %s, %s%s), "
@@ -573,20 +563,31 @@ write_struct_reflect_func(FILE *fp, const char *struct_name,
       "  if (!out) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
       "  *out = &%s_type_info_table;\n"
       "  return CDD_C_SUCCESS;\n"
-      "}\n"
+      "}\n",
+      struct_name, struct_name));
+  CHECK_IO(FPRINTF_HOOK(
+      fp,
       "#ifdef CDD_REFLECT_AUTO_REGISTER\n"
       "#if defined(__GNUC__) || defined(__clang__)\n"
       "__attribute__((constructor)) static void %s_auto_register(void) {\n"
       "  cdd_reflect_register_type(&%s_type_info_table);\n"
       "}\n"
+      "#elif defined(_MSC_VER)\n"
+      "#pragma section(\".CRT$XCU\", read)\n"
+      "static void __cdecl %s_auto_register(void) {\n"
+      "  cdd_reflect_register_type(&%s_type_info_table);\n"
+      "}\n"
+      "__declspec(allocate(\".CRT$XCU\")) static void (__cdecl "
+      "*%s_auto_reg_ptr)(void) = %s_auto_register;\n"
       "#endif\n"
       "#endif /* CDD_REFLECT_AUTO_REGISTER */\n",
-      struct_name, struct_name, struct_name, struct_name));
+      struct_name, struct_name, struct_name, struct_name, struct_name,
+      struct_name));
 
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
 
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -599,7 +600,7 @@ write_struct_reflect_func(FILE *fp, const char *struct_name,
  */
 static cdd_c_error_t classify_c_type_kind_str(const char *c_type,
                                               const char **out_kind_str) {
-  if (!c_type || c_type[0] == '\0' || strcmp(c_type, "void") == 0) {
+  if (c_type[0] == '\0' || strcmp(c_type, "void") == 0) {
     *out_kind_str = "CDD_FIELD_KIND_UNKNOWN";
   } else if (strstr(c_type, "char") && strstr(c_type, "**")) {
     *out_kind_str = "CDD_FIELD_KIND_ARRAY";
@@ -642,6 +643,9 @@ write_func_reflect_func(FILE *fp, const struct FuncSignature *sig,
   char route_method_lit[128];
   char route_path_lit[256];
   char summary_lit[256];
+  char invoke_ref[160];
+  int can_emit_trampoline = 1;
+  cdd_c_error_t rc;
 
   if (!fp || !sig || !sig->name || sig->name[0] == '\0')
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -649,12 +653,13 @@ write_func_reflect_func(FILE *fp, const struct FuncSignature *sig,
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
 
-  classify_c_type_kind_str(sig->return_type, &ret_kind);
-  cdd_escape_json_c_str(sig->doc ? sig->doc : "", esc_doc, sizeof(esc_doc));
+  rc = classify_c_type_kind_str(sig->return_type, &ret_kind);
+  rc =
+      cdd_escape_json_c_str(sig->doc ? sig->doc : "", esc_doc, sizeof(esc_doc));
 
   if (sig->route_method) {
     char esc_rm[96];
-    cdd_escape_json_c_str(sig->route_method, esc_rm, sizeof(esc_rm));
+    rc = cdd_escape_json_c_str(sig->route_method, esc_rm, sizeof(esc_rm));
     CDD_SNPRINTF(route_method_lit, sizeof(route_method_lit), "\"%s\"", esc_rm);
   } else {
     CDD_STRCPY(route_method_lit, sizeof(route_method_lit), "NULL");
@@ -662,7 +667,7 @@ write_func_reflect_func(FILE *fp, const struct FuncSignature *sig,
 
   if (sig->route_path) {
     char esc_rp[224];
-    cdd_escape_json_c_str(sig->route_path, esc_rp, sizeof(esc_rp));
+    rc = cdd_escape_json_c_str(sig->route_path, esc_rp, sizeof(esc_rp));
     CDD_SNPRINTF(route_path_lit, sizeof(route_path_lit), "\"%s\"", esc_rp);
   } else {
     CDD_STRCPY(route_path_lit, sizeof(route_path_lit), "NULL");
@@ -670,10 +675,61 @@ write_func_reflect_func(FILE *fp, const struct FuncSignature *sig,
 
   if (sig->summary) {
     char esc_sum[224];
-    cdd_escape_json_c_str(sig->summary, esc_sum, sizeof(esc_sum));
+    rc = cdd_escape_json_c_str(sig->summary, esc_sum, sizeof(esc_sum));
     CDD_SNPRINTF(summary_lit, sizeof(summary_lit), "\"%s\"", esc_sum);
   } else {
     CDD_STRCPY(summary_lit, sizeof(summary_lit), "NULL");
+  }
+
+  if (sig->is_variadic || sig->return_type[0] == '\0') {
+    can_emit_trampoline = 0;
+  } else {
+    for (i = 0; i < sig->n_params; ++i) {
+      if (sig->params[i].type[0] == '\0') {
+        can_emit_trampoline = 0;
+        break;
+      }
+    }
+  }
+
+  if (can_emit_trampoline) {
+    int is_void_ret = (strcmp(sig->return_type, "void") == 0) ? 1 : 0;
+    CHECK_IO(FPRINTF_HOOK(
+        fp,
+        "static cdd_c_error_t %s_invoke_trampoline(const void *const *args, "
+        "void *ret_out) {\n",
+        sig->name));
+    if (sig->n_params > 0) {
+      CHECK_IO(FPRINTF_HOOK(
+          fp, "  if (!args) return CDD_C_ERROR_INVALID_ARGUMENT;\n"));
+    } else {
+      CHECK_IO(FPRINTF_HOOK(fp, "  if (!args && 0) return CDD_C_SUCCESS;\n"));
+    }
+    if (is_void_ret) {
+      CHECK_IO(FPRINTF_HOOK(fp, "  if (ret_out) { }\n  %s(", sig->name));
+    } else {
+      CHECK_IO(FPRINTF_HOOK(fp, "  if (ret_out) {\n    *(%s *)ret_out = %s(",
+                            sig->return_type, sig->name));
+    }
+    for (i = 0; i < sig->n_params; ++i) {
+      CHECK_IO(FPRINTF_HOOK(fp, "%s*(const %s *)args[%lu]", (i > 0) ? ", " : "",
+                            sig->params[i].type, (unsigned long)i));
+    }
+    if (is_void_ret) {
+      CHECK_IO(FPRINTF_HOOK(fp, ");\n  return CDD_C_SUCCESS;\n}\n"));
+    } else {
+      CHECK_IO(FPRINTF_HOOK(fp, ");\n  } else {\n    %s(", sig->name));
+      for (i = 0; i < sig->n_params; ++i) {
+        CHECK_IO(FPRINTF_HOOK(fp, "%s*(const %s *)args[%lu]",
+                              (i > 0) ? ", " : "", sig->params[i].type,
+                              (unsigned long)i));
+      }
+      CHECK_IO(FPRINTF_HOOK(fp, ");\n  }\n  return CDD_C_SUCCESS;\n}\n"));
+    }
+    CDD_SNPRINTF(invoke_ref, sizeof(invoke_ref), "%s_invoke_trampoline",
+                 sig->name);
+  } else {
+    CDD_STRCPY(invoke_ref, sizeof(invoke_ref), "NULL");
   }
 
   CHECK_IO(FPRINTF_HOOK(
@@ -691,8 +747,9 @@ write_func_reflect_func(FILE *fp, const struct FuncSignature *sig,
                      : 0;
     int is_nullable = p->has_nullable_flag ? p->is_nullable : is_ptr;
     int req = p->has_required_flag ? p->required : 1;
-    classify_c_type_kind_str(p->type, &p_kind);
-    cdd_escape_json_c_str(p->doc ? p->doc : "", esc_pdoc, sizeof(esc_pdoc));
+    rc = classify_c_type_kind_str(p->type, &p_kind);
+    rc =
+        cdd_escape_json_c_str(p->doc ? p->doc : "", esc_pdoc, sizeof(esc_pdoc));
     CHECK_IO(FPRINTF_HOOK(
         fp, "  { \"%s\", \"%s\", %s, %d, %d, %d, %d, %d, \"%s\" },\n", p->name,
         p->type, p_kind, is_ptr, is_const, is_nullable, is_out, req, esc_pdoc));
@@ -703,7 +760,7 @@ write_func_reflect_func(FILE *fp, const struct FuncSignature *sig,
       "  { NULL, NULL, CDD_FIELD_KIND_UNKNOWN, 0, 0, 0, 0, 0, NULL }\n"
       "};\n"
       "static const struct cdd_func_info %s_func_info_table = {\n"
-      "  \"%s\", \"%s\", %s, %s_params, %lu, \"%s\", %s, %s, %s, %d, %d, NULL\n"
+      "  \"%s\", \"%s\", %s, %s_params, %lu, \"%s\", %s, %s, %s, %d, %d, %s\n"
       "};\n"
       "cdd_c_error_t %s_reflect(const struct cdd_func_info **out) {\n"
       "  if (!out) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
@@ -712,7 +769,8 @@ write_func_reflect_func(FILE *fp, const struct FuncSignature *sig,
       "}\n",
       sig->name, sig->name, sig->return_type, ret_kind, sig->name,
       (unsigned long)sig->n_params, esc_doc, route_method_lit, route_path_lit,
-      summary_lit, sig->is_variadic, sig->is_deprecated, sig->name, sig->name));
+      summary_lit, sig->is_variadic, sig->is_deprecated, invoke_ref, sig->name,
+      sig->name));
   CHECK_IO(FPRINTF_HOOK(
       fp,
       "#ifdef CDD_REFLECT_AUTO_REGISTER\n"
@@ -720,21 +778,29 @@ write_func_reflect_func(FILE *fp, const struct FuncSignature *sig,
       "__attribute__((constructor)) static void %s_auto_register(void) {\n"
       "  cdd_reflect_register_func(&%s_func_info_table);\n"
       "}\n"
+      "#elif defined(_MSC_VER)\n"
+      "#pragma section(\".CRT$XCU\", read)\n"
+      "static void __cdecl %s_auto_register(void) {\n"
+      "  cdd_reflect_register_func(&%s_func_info_table);\n"
+      "}\n"
+      "__declspec(allocate(\".CRT$XCU\")) static void (__cdecl "
+      "*%s_auto_reg_ptr)(void) = %s_auto_register;\n"
       "#endif\n"
       "#endif /* CDD_REFLECT_AUTO_REGISTER */\n",
-      sig->name, sig->name));
+      sig->name, sig->name, sig->name, sig->name, sig->name, sig->name));
 
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
 
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
  * @brief Emits C11/C23 `_Generic` polymorphic reflection dispatch macros
  * (`CDD_REFLECT`, `CDD_TO_JSON`, `CDD_FROM_JSON`, `CDD_FROM_CLI`,
  * `CDD_TO_CLI_ARGV`, `CDD_TO_FORM`, `CDD_FROM_FORM`, `CDD_EQ`,
- * `CDD_DEEPCOPY`, `CDD_DEFAULT`, `CDD_CLEANUP`, `CDD_DEBUG`) for a set of
+ * `CDD_DEEPCOPY`, `CDD_DEFAULT`, `CDD_CLEANUP`, `CDD_DEBUG`,
+ * `CDD_VALIDATE`, `CDD_MERGE_PATCH`, `CDD_APPLY_MERGE_PATCH`) for a set of
  * struct names.
  *
  * @param[in] fp File pointer to write to.
@@ -847,6 +913,34 @@ write_struct_generic_dispatch_macros(FILE *fp, const char *const *struct_names,
     CHECK_IO(FPRINTF_HOOK(fp, "  struct %s *: %s_debug%s \\\n", struct_names[i],
                           struct_names[i],
                           (i + 1 < n_structs) ? "," : ")(ptr, fp)"));
+  }
+  CHECK_IO(FPRINTF_HOOK(fp,
+                        "#define CDD_VALIDATE(ptr) cdd_reflect_validate((ptr), "
+                        "_Generic((ptr), \\\n"));
+  for (i = 0; i < n_structs; ++i) {
+    CHECK_IO(FPRINTF_HOOK(fp, "  const struct %s *: &%s_type_info_table, \\\n",
+                          struct_names[i], struct_names[i]));
+    CHECK_IO(FPRINTF_HOOK(fp, "  struct %s *: &%s_type_info_table%s \\\n",
+                          struct_names[i], struct_names[i],
+                          (i + 1 < n_structs) ? "," : "))"));
+  }
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "#define CDD_MERGE_PATCH(src, dst, out) "
+          "cdd_reflect_merge_patch((src), (dst), _Generic((src), \\\n"));
+  for (i = 0; i < n_structs; ++i) {
+    CHECK_IO(FPRINTF_HOOK(fp, "  const struct %s *: &%s_type_info_table, \\\n",
+                          struct_names[i], struct_names[i]));
+    CHECK_IO(FPRINTF_HOOK(fp, "  struct %s *: &%s_type_info_table%s \\\n",
+                          struct_names[i], struct_names[i],
+                          (i + 1 < n_structs) ? "," : "), (out))"));
+  }
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "#define CDD_APPLY_MERGE_PATCH(target, patch) "
+          "cdd_reflect_apply_merge_patch((target), _Generic((target), \\\n"));
+  for (i = 0; i < n_structs; ++i) {
+    CHECK_IO(FPRINTF_HOOK(fp, "  struct %s *: &%s_type_info_table%s \\\n",
+                          struct_names[i], struct_names[i],
+                          (i + 1 < n_structs) ? "," : "), (patch))"));
   }
   CHECK_IO(FPRINTF_HOOK(fp, "#endif /* __STDC_VERSION__ >= 201112L */\n"));
   return CDD_C_SUCCESS;

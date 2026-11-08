@@ -14,6 +14,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "classes/emit/struct_internal.h"
 #include "emit/test_codegen_struct_reflect_adv.h"
 /* clang-format on */
 
@@ -1273,7 +1274,7 @@ TEST test_reflection_edge_cases_and_oom(void) {
           {
             struct cdd_field_info bf_tmp_f;
             struct cdd_type_info bf_tmp_ti;
-            int bf_dummy = 0, bf_copy_dummy = 0;
+            int bf_dummy = 0;
             void *bf_copy_ptr = NULL;
             memset(&bf_tmp_f, 0, sizeof(bf_tmp_f));
             bf_tmp_f.name = "bf";
@@ -1295,7 +1296,6 @@ TEST test_reflection_edge_cases_and_oom(void) {
             ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_struct_deepcopy(
                                          &bf_dummy, &bf_copy_ptr, &bf_tmp_ti));
             C_CDD_FREE(bf_copy_ptr);
-            (void)bf_copy_dummy;
           }
 
           parent_fields[13].is_flexible_array = 1;
@@ -1570,6 +1570,1718 @@ TEST test_reflection_edge_cases_and_oom(void) {
 
         ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_struct_cleanup(p_cmp, &parent_ti));
         C_CDD_FREE(p_cmp);
+      }
+
+      /* 10. Test cdd_reflect_get/set_uint64_by_path,
+       * cdd_reflect_get/set_bool_by_path, uint64_t > INT64_MAX, grouped regex
+       * patterns, depth >= 16 guard, and cdd_reflect_to_json_schema */
+      {
+        int b_out = 0;
+        uint64_t u_out = 0;
+        uint64_t big_u64 = ((uint64_t)1U << 63) + 1024U;
+        char *schema_json = NULL;
+        struct AdvParent *p_u64 = NULL;
+
+        /* uint64_by_path & bool_by_path */
+        ASSERT_EQ(
+            CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_reflect_get_uint64_by_path(p_def, &parent_ti, "/u64", NULL));
+        ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+                  cdd_reflect_get_uint64_by_path(p_def, &parent_ti, "/missing",
+                                                 &u_out));
+        ASSERT_EQ(
+            CDD_C_ERROR_NOT_FOUND,
+            cdd_reflect_set_uint64_by_path(p_def, &parent_ti, "/missing", 1U));
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_get_uint64_by_path(p_def, &parent_ti,
+                                                 "/dbl_arr/0", &u_out));
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_set_uint64_by_path(p_def, &parent_ti,
+                                                 "/dbl_arr/0", 1U));
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_set_uint64_by_path(
+                                     p_def, &parent_ti, "/u64", big_u64));
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_get_uint64_by_path(
+                                     p_def, &parent_ti, "/u64", &u_out));
+        ASSERT(u_out == big_u64);
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_set_uint64_by_path(
+                                     p_def, &parent_ti, "/int_arr/0", 77U));
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_get_uint64_by_path(
+                                     p_def, &parent_ti, "/int_arr/0", &u_out));
+        ASSERT_EQ(77U, u_out);
+
+        ASSERT_EQ(
+            CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_reflect_get_bool_by_path(p_def, &parent_ti, "/bval", NULL));
+        ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+                  cdd_reflect_get_bool_by_path(p_def, &parent_ti, "/missing",
+                                               &b_out));
+        ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, cdd_reflect_set_bool_by_path(
+                                             p_def, &parent_ti, "/missing", 1));
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_get_bool_by_path(p_def, &parent_ti, "/int_arr/0",
+                                               &b_out));
+        ASSERT_EQ(
+            CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_reflect_set_bool_by_path(p_def, &parent_ti, "/int_arr/0", 1));
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_reflect_set_bool_by_path(p_def, &parent_ti, "/bval", 0));
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_get_bool_by_path(p_def, &parent_ti,
+                                                              "/bval", &b_out));
+        ASSERT_EQ(0, b_out);
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_reflect_array_resize(p_def, &parent_fields[15], 2));
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_set_bool_by_path(
+                                     p_def, &parent_ti, "/bool_arr/1", 1));
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_get_bool_by_path(
+                                     p_def, &parent_ti, "/bool_arr/1", &b_out));
+        ASSERT_EQ(1, b_out);
+
+        /* uint64_t > INT64_MAX validation, eq, and JSON round-trip */
+        parent_fields[1].has_min = 1;
+        parent_fields[1].min_val = 0.0;
+        parent_fields[1].format = "uint64";
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_reflect_validate_field(p_def, &parent_fields[1]));
+        parent_fields[1].format = "int32";
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_validate_field(p_def, &parent_fields[1]));
+        parent_fields[1].format = "uint32";
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_validate_field(p_def, &parent_fields[1]));
+        parent_fields[1].format = NULL;
+        parent_fields[1].has_min = 0;
+
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_struct_deepcopy(
+                                     p_def, (void **)&p_u64, &parent_ti));
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_reflect_struct_eq(p_def, p_u64, &parent_ti, &is_eq));
+        ASSERT_EQ(1, is_eq);
+        p_u64->u64 = 42U;
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_reflect_struct_eq(p_def, p_u64, &parent_ti, &is_eq));
+        ASSERT_EQ(0, is_eq);
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_reflect_to_json(p_def, &parent_ti, &json_out));
+        ASSERT(json_out != NULL);
+        C_CDD_FREE(json_out);
+        ASSERT_EQ(
+            CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_reflect_apply_merge_patch(p_u64, &parent_ti, "{\"u64\":-5}"));
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_apply_merge_patch(
+                                     p_u64, &parent_ti, "{\"u64\":12345}"));
+        ASSERT_EQ(12345U, p_u64->u64);
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_struct_cleanup(p_u64, &parent_ti));
+        C_CDD_FREE(p_u64);
+        p_def->u64 = 100U;
+
+        /* Parenthesized regex groups and quantifiers on groups */
+        parent_fields[10].pattern = "^(foo|bar)+_((ab){2,3})?\\)$";
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_set_string(&p1, &parent_fields[10],
+                                                        "foobar_abab)"));
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_reflect_validate_field(&p1, &parent_fields[10]));
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_reflect_set_string(&p1, &parent_fields[10], "foo_)"));
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_reflect_validate_field(&p1, &parent_fields[10]));
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_reflect_set_string(&p1, &parent_fields[10], "baz_)"));
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_validate_field(&p1, &parent_fields[10]));
+        parent_fields[10].pattern = "^([a-z)]+)\\*$";
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_reflect_set_string(&p1, &parent_fields[10], "ab)*"));
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_reflect_validate_field(&p1, &parent_fields[10]));
+        /* Unbalanced parentheses error branches */
+        parent_fields[10].pattern = "^(abc$";
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_validate_field(&p1, &parent_fields[10]));
+        parent_fields[10].pattern = "^abc)$";
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_validate_field(&p1, &parent_fields[10]));
+        parent_fields[10].pattern = "^(abc){x}$";
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_validate_field(&p1, &parent_fields[10]));
+        parent_fields[10].pattern = NULL;
+
+        /* Depth >= 16 recursion guard in visit_deep, visit_deep_mut, validate
+         */
+        {
+          struct DeepChainNode {
+            struct DeepChainNode *next;
+          } nodes[18];
+          static struct cdd_field_info nf;
+          static struct cdd_type_info nti;
+          int d_idx;
+          int d_cnt = 0;
+          memset(nodes, 0, sizeof(nodes));
+          for (d_idx = 0; d_idx < 17; ++d_idx) {
+            nodes[d_idx].next = &nodes[d_idx + 1];
+          }
+          memset(&nf, 0, sizeof(nf));
+          nf.name = "next";
+          nf.ref_name = "DeepChainNode";
+          nf.kind = CDD_FIELD_KIND_OBJECT;
+          nf.offset = 0;
+          nf.size = sizeof(void *);
+          nf.is_pointer = 1;
+          memset(&nti, 0, sizeof(nti));
+          nti.name = "DeepChainNode";
+          nti.size = sizeof(struct DeepChainNode);
+          nti.fields = &nf;
+          nti.n_fields = 1;
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_register_type(&nti));
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_visit_deep(&nodes[0], &nti,
+                                           test_reflect_visitor_cb, &d_cnt));
+          ASSERT_EQ(16, d_cnt);
+          d_cnt = 0;
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_visit_deep_mut(
+                        &nodes[0], &nti, test_reflect_mut_visitor_cb, &d_cnt));
+          ASSERT_EQ(16, d_cnt);
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_validate(&nodes[0], &nti));
+        }
+
+        /* cdd_reflect_to_json_schema tests */
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_to_json_schema(NULL, &schema_json));
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_to_json_schema(&parent_ti, NULL));
+        parent_fields[0].required = 1;
+        parent_fields[0].doc = "Primary ID";
+        parent_fields[0].deprecated = 1;
+        parent_fields[0].read_only = 1;
+        parent_fields[1].write_only = 1;
+        parent_fields[1].has_min = 1;
+        parent_fields[1].exclusive_min = 1;
+        parent_fields[1].min_val = 0.0;
+        parent_fields[1].has_max = 1;
+        parent_fields[1].exclusive_max = 1;
+        parent_fields[1].max_val = 1000.0;
+        parent_fields[2].skip = 1;
+        parent_fields[10].has_min_len = 1;
+        parent_fields[10].min_len = 1;
+        parent_fields[10].has_max_len = 1;
+        parent_fields[10].max_len = 64;
+        parent_fields[10].pattern = "^[a-z]+$";
+        parent_fields[10].format = "hostname";
+        parent_fields[13].has_min_len = 1;
+        parent_fields[13].min_len = 1;
+        parent_fields[13].has_max_len = 1;
+        parent_fields[13].max_len = 10;
+        parent_fields[13].unique_items = 1;
+        g_cdd_alloc_fail = 1;
+        ASSERT_EQ(CDD_C_ERROR_MEMORY,
+                  cdd_reflect_to_json_schema(&parent_ti, &schema_json));
+        g_cdd_alloc_fail = 0;
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_reflect_to_json_schema(&parent_ti, &schema_json));
+        ASSERT(schema_json != NULL);
+        ASSERT(strstr(schema_json, "\"title\":\"AdvParent\"") != NULL);
+        ASSERT(strstr(schema_json, "\"required\":[\"i64\"]") != NULL);
+        C_CDD_FREE(schema_json);
+        parent_fields[0].required = 0;
+        parent_fields[0].doc = NULL;
+        parent_fields[0].deprecated = 0;
+        parent_fields[0].read_only = 0;
+        parent_fields[1].write_only = 0;
+        parent_fields[1].has_min = 0;
+        parent_fields[1].exclusive_min = 0;
+        parent_fields[1].has_max = 0;
+        parent_fields[1].exclusive_max = 0;
+        parent_fields[2].skip = 0;
+        parent_fields[10].has_min_len = 0;
+        parent_fields[10].has_max_len = 0;
+        parent_fields[10].pattern = NULL;
+        parent_fields[10].format = NULL;
+        parent_fields[13].has_min_len = 0;
+        parent_fields[13].has_max_len = 0;
+        parent_fields[13].unique_items = 0;
+
+        /* Test cdd_reflect_to_form_urlencoded,
+         * cdd_reflect_from_form_urlencoded, cdd_reflect_from_cli, and
+         * cdd_reflect_apply_json_patch */
+        {
+          char *form_out = NULL;
+          struct AdvParent *p_form = NULL;
+          struct AdvParent *p_cli = NULL;
+          const char *cli_argv[8];
+
+          ASSERT_EQ(
+              CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_reflect_to_form_urlencoded(NULL, &parent_ti, &form_out));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_to_form_urlencoded(p_def, NULL, &form_out));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_to_form_urlencoded(p_def, &parent_ti, NULL));
+          g_cdd_alloc_fail = 1;
+          ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_reflect_to_form_urlencoded(
+                                            p_def, &parent_ti, &form_out));
+          g_cdd_alloc_fail = 2;
+          ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_reflect_to_form_urlencoded(
+                                            p_def, &parent_ti, &form_out));
+          g_cdd_alloc_fail = 0;
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_to_form_urlencoded(
+                                       p_def, &parent_ti, &form_out));
+          ASSERT(form_out != NULL);
+
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_from_form_urlencoded(NULL, &parent_ti,
+                                                     (void **)&p_form));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_from_form_urlencoded(form_out, NULL,
+                                                     (void **)&p_form));
+          ASSERT_EQ(
+              CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_reflect_from_form_urlencoded(form_out, &parent_ti, NULL));
+          g_cdd_alloc_fail = 1;
+          ASSERT_EQ(CDD_C_ERROR_MEMORY,
+                    cdd_reflect_from_form_urlencoded(form_out, &parent_ti,
+                                                     (void **)&p_form));
+          g_cdd_alloc_fail = 0;
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_from_form_urlencoded(
+                                       "&&i64=42&num=2.5&bval=true&eval=alpha&"
+                                       "str=hello+world&unknown=1&&",
+                                       &parent_ti, (void **)&p_form));
+          ASSERT(p_form != NULL);
+          ASSERT_EQ(42, p_form->i64);
+          ASSERT_EQ(1, p_form->bval);
+          ASSERT_STR_EQ("hello world", p_form->str);
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_struct_cleanup(p_form, &parent_ti));
+          C_CDD_FREE(p_form);
+          C_CDD_FREE(form_out);
+
+          /* Invalid form scalar values */
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_from_form_urlencoded(
+                        "i64=not_an_int", &parent_ti, (void **)&p_form));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_from_form_urlencoded(
+                        "num=not_a_num", &parent_ti, (void **)&p_form));
+          ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+                    cdd_reflect_from_form_urlencoded(
+                        "eval=bad_enum", &parent_ti, (void **)&p_form));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_from_form_urlencoded(
+                        "inline_child=bad_obj", &parent_ti, (void **)&p_form));
+          parent_fields[9].ref_name = "UnregisteredEnum";
+          ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+                    cdd_reflect_from_form_urlencoded("eval=alpha", &parent_ti,
+                                                     (void **)&p_form));
+          parent_fields[9].ref_name = "AdvEnum";
+
+          /* CLI reflection tests */
+          cli_argv[0] = "prog";
+          cli_argv[1] = "--i64=99";
+          cli_argv[2] = "--bval";
+          cli_argv[3] = "--str";
+          cli_argv[4] = "cli_val";
+          cli_argv[5] = "--unknown=skip";
+          ASSERT_EQ(
+              CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_reflect_from_cli(-1, cli_argv, &parent_ti, (void **)&p_cli));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_from_cli(1, NULL, &parent_ti, (void **)&p_cli));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_from_cli(1, cli_argv, NULL, (void **)&p_cli));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_from_cli(1, cli_argv, &parent_ti, NULL));
+          g_cdd_alloc_fail = 1;
+          ASSERT_EQ(
+              CDD_C_ERROR_MEMORY,
+              cdd_reflect_from_cli(6, cli_argv, &parent_ti, (void **)&p_cli));
+          g_cdd_alloc_fail = 0;
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_from_cli(6, cli_argv, &parent_ti,
+                                                        (void **)&p_cli));
+          ASSERT(p_cli != NULL);
+          ASSERT_EQ(99, p_cli->i64);
+          ASSERT_EQ(1, p_cli->bval);
+          ASSERT_STR_EQ("cli_val", p_cli->str);
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_struct_cleanup(p_cli, &parent_ti));
+          C_CDD_FREE(p_cli);
+
+          cli_argv[0] = "--str";
+          ASSERT_EQ(
+              CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_reflect_from_cli(1, cli_argv, &parent_ti, (void **)&p_cli));
+          cli_argv[0] = "--i64=bad";
+          ASSERT_EQ(
+              CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_reflect_from_cli(1, cli_argv, &parent_ti, (void **)&p_cli));
+
+          /* RFC 6902 JSON Patch tests */
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_apply_json_patch(NULL, &parent_ti, "[]"));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_apply_json_patch(p_def, NULL, "[]"));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_apply_json_patch(p_def, &parent_ti, NULL));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_apply_json_patch(p_def, &parent_ti, "{}"));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_apply_json_patch(p_def, &parent_ti, "[{}]"));
+          ASSERT_EQ(
+              CDD_C_ERROR_NOT_FOUND,
+              cdd_reflect_apply_json_patch(
+                  p_def, &parent_ti,
+                  "[{\"op\":\"replace\",\"path\":\"/nope\",\"value\":1}]"));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_apply_json_patch(
+                        p_def, &parent_ti,
+                        "[{\"op\":\"replace\",\"path\":\"/i64\"}]"));
+          ASSERT_EQ(
+              CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_reflect_apply_json_patch(
+                  p_def, &parent_ti,
+                  "[{\"op\":\"replace\",\"path\":\"/i64\",\"value\":[]}]"));
+          ASSERT_EQ(
+              CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_reflect_apply_json_patch(
+                  p_def, &parent_ti, "[{\"op\":\"test\",\"path\":\"/i64\"}]"));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_apply_json_patch(
+                        p_def, &parent_ti,
+                        "[{\"op\":\"test\",\"path\":\"/i64\",\"value\":[]}]"));
+          ASSERT_EQ(
+              CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_reflect_apply_json_patch(
+                  p_def, &parent_ti, "[{\"op\":\"copy\",\"path\":\"/i64\"}]"));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_apply_json_patch(
+                        p_def, &parent_ti,
+                        "[{\"op\":\"unknown\",\"path\":\"/i64\"}]"));
+          ASSERT_EQ(
+              CDD_C_SUCCESS,
+              cdd_reflect_apply_json_patch(
+                  p_def, &parent_ti,
+                  "[{\"op\":\"replace\",\"path\":\"/i64\",\"value\":321},"
+                  "{\"op\":\"replace\",\"path\":\"/num\",\"value\":9.5},"
+                  "{\"op\":\"replace\",\"path\":\"/bval\",\"value\":true},"
+                  "{\"op\":\"replace\",\"path\":\"/"
+                  "str\",\"value\":\"patched\"}]"));
+          ASSERT_EQ(
+              CDD_C_SUCCESS,
+              cdd_reflect_apply_json_patch(
+                  p_def, &parent_ti,
+                  "[{\"op\":\"test\",\"path\":\"/i64\",\"value\":321},"
+                  "{\"op\":\"test\",\"path\":\"/str\",\"value\":\"patched\"},"
+                  "{\"op\":\"copy\",\"from\":\"/i64\",\"path\":\"/u32\"},"
+                  "{\"op\":\"move\",\"from\":\"/str\",\"path\":\"/inline_child/"
+                  "label\"},"
+                  "{\"op\":\"remove\",\"path\":\"/opt_int\"}]"));
+          ASSERT_EQ(321, p_def->i64);
+          ASSERT_EQ(321U, p_def->u32);
+          ASSERT(p_def->str == NULL);
+          ASSERT_STR_EQ("patched", p_def->inline_child.label);
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_apply_json_patch(
+                        p_def, &parent_ti,
+                        "[{\"op\":\"test\",\"path\":\"/i64\",\"value\":999}]"));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_apply_json_patch(
+                        p_def, &parent_ti,
+                        "[{\"op\":\"test\",\"path\":\"/inline_child/"
+                        "label\",\"value\":\"wrong\"}]"));
+          ASSERT_EQ(
+              CDD_C_SUCCESS,
+              cdd_reflect_apply_json_patch(
+                  p_def, &parent_ti,
+                  "[{\"op\":\"add\",\"path\":\"/dbl_arr/0\",\"value\":7.75}]"));
+
+          /* Cover negative int64 write on uint64 field, non-nullable NULL
+           * pointer in serialize_field_to_json, and resolve_path_mut NULL */
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_set_int64(p_def, &parent_fields[1], -1));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_set_int64_by_path(NULL, &parent_ti, "/i64", 1));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_resolve_path(
+                        p_def, &parent_ti,
+                        "/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                        &res_f, &res_parent, &res_ptr));
+          parent_fields[21].is_nullable = 0;
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_to_json(p_def, &parent_ti, &json_out));
+          C_CDD_FREE(json_out);
+          parent_fields[21].is_nullable = 1;
+
+          /* Cover deepcopy_single_field when child_ti is NULL on object field
+           * and when unknown field kind is compared */
+          parent_fields[11].ref_name = "";
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_struct_deepcopy(
+                                       p_def, (void **)&p_form, &parent_ti));
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_struct_cleanup(p_form, &parent_ti));
+          C_CDD_FREE(p_form);
+          parent_fields[11].ref_name = "AdvChild";
+
+          parent_fields[0].kind = CDD_FIELD_KIND_UNKNOWN;
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_struct_eq(p_def, p_copy, &parent_ti, &is_eq));
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_to_json(p_def, &parent_ti, &json_out));
+          C_CDD_FREE(json_out);
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_from_json("{}", &parent_ti, (void **)&p_form));
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_struct_cleanup(p_form, &parent_ti));
+          C_CDD_FREE(p_form);
+          parent_fields[0].kind = CDD_FIELD_KIND_INTEGER;
+
+          /* Cover oversized bracket segment, hostname trailing '-', '\S' regex
+           * atom, and number enum JSON deserialization */
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_resolve_path(
+                        p_def, &parent_ti,
+                        "/[aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]",
+                        &res_f, &res_parent, &res_ptr));
+
+          parent_fields[10].format = "hostname";
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_set_string(
+                                       p_def, &parent_fields[10], "bad-host-"));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_validate_field(p_def, &parent_fields[10]));
+          parent_fields[10].format = NULL;
+          parent_fields[10].pattern = "^\\S+$";
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_validate_field(p_def, &parent_fields[10]));
+          parent_fields[10].pattern = NULL;
+
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_from_json("{\"eval\":20}", &parent_ti,
+                                          (void **)&p_form));
+          ASSERT_EQ(20, p_form->eval);
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_struct_cleanup(p_form, &parent_ti));
+          C_CDD_FREE(p_form);
+
+          /* Cover pointer uint64 set when *pptr is non-NULL, oversized path
+           * segment without leading '/' */
+          {
+            uint64_t tmp_u64 = 10U;
+            p_def->opt_int = (int *)(void *)&tmp_u64;
+            parent_fields[21].c_type = "uint64_t *";
+            parent_fields[21].size = sizeof(void *);
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_uint64(p_def, &parent_fields[21], 88U));
+            parent_fields[21].c_type = "int *";
+            p_def->opt_int = NULL;
+          }
+
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_resolve_path(
+                        p_def, &parent_ti,
+                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                        &res_f, &res_parent, &res_ptr));
+
+          parent_fields[10].format = "date-time";
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_set_string(p_def, &parent_fields[10],
+                                           "2026-11-06T25:00:00Z"));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_validate_field(p_def, &parent_fields[10]));
+          parent_fields[10].format = NULL;
+
+          /* Cover set_uint64 > max_i64 on narrower field, regex_match_atom at
+           * c == '\0', and ~0 escape in bracket path segment */
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_set_uint64(p_def, &parent_fields[6], big_u64));
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_set_uint64(p_def, &parent_fields[1], big_u64));
+          parent_fields[10].pattern = "^\\d+\\d$";
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_set_string(p_def, &parent_fields[10], "12"));
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_validate_field(p_def, &parent_fields[10]));
+          parent_fields[10].pattern = NULL;
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_resolve_path(p_def, &parent_ti, "/int_arr/[~1]",
+                                             &res_f, &res_parent, &res_ptr));
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_apply_merge_patch(
+                        p_def, &parent_ti, "{\"inline_child\":{\"id\":77}}"));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_set_uint64(NULL, &parent_fields[1], 1U));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_from_json("[]", &parent_ti, (void **)&p_form));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_apply_merge_patch(p_def, &parent_ti, "[]"));
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_resolve_path(
+                                       p_def, &parent_ti, "/inline_child//id",
+                                       &res_f, &res_parent, &res_ptr));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_resolve_path(p_def, NULL, "/i64", &res_f,
+                                             &res_parent, &res_ptr));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_resolve_path(p_def, &parent_ti, NULL, &res_f,
+                                             &res_parent, &res_ptr));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_resolve_path(p_def, &parent_ti, "/int_arr/[0",
+                                             &res_f, &res_parent, &res_ptr));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_resolve_path(p_def, &parent_ti, "/i64", NULL,
+                                             &res_parent, &res_ptr));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_resolve_path(p_def, &parent_ti, "/i64", &res_f,
+                                             NULL, &res_ptr));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_resolve_path(p_def, &parent_ti, "/i64", &res_f,
+                                             &res_parent, NULL));
+          ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+                    cdd_reflect_resolve_path(p_def, &parent_ti, "/~2", &res_f,
+                                             &res_parent, &res_ptr));
+          ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                    cdd_reflect_resolve_path(p_def, &parent_ti, "/[]", &res_f,
+                                             &res_parent, &res_ptr));
+          parent_fields[0].bit_width = 4;
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_resolve_path(p_def, &parent_ti, "/i64", &res_f,
+                                             &res_parent, &res_ptr));
+          ASSERT_EQ((void *)NULL, res_ptr);
+          parent_fields[0].bit_width = 0;
+          {
+            const char *saved_ref = parent_fields[11].ref_name;
+            parent_fields[11].ref_name = NULL;
+            ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+                      cdd_reflect_resolve_path(p_def, &parent_ti,
+                                               "/inline_child/id", &res_f,
+                                               &res_parent, &res_ptr));
+            parent_fields[11].ref_name = saved_ref;
+
+            saved_ref = parent_fields[18].ref_name;
+            parent_fields[18].ref_name = NULL;
+            ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+                      cdd_reflect_resolve_path(p_def, &parent_ti,
+                                               "/val_obj_arr/0/id", &res_f,
+                                               &res_parent, &res_ptr));
+            parent_fields[18].ref_name = "";
+            ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+                      cdd_reflect_resolve_path(p_def, &parent_ti,
+                                               "/val_obj_arr/0/id", &res_f,
+                                               &res_parent, &res_ptr));
+            parent_fields[18].ref_name = saved_ref;
+          }
+          {
+            const char *null_al[2] = {NULL, "valid_al"};
+            struct cdd_enum_variant_info ev_null_al;
+            struct cdd_enum_info ei_null_al;
+            const struct cdd_enum_variant_info *found_ev = NULL;
+            struct cdd_param_info fp_null_name;
+            struct cdd_func_info fi_zero;
+            const struct cdd_param_info *found_fp = NULL;
+            memset(&ev_null_al, 0, sizeof(ev_null_al));
+            memset(&ei_null_al, 0, sizeof(ei_null_al));
+            ev_null_al.name = "V";
+            ev_null_al.wire_name = "v";
+            ev_null_al.aliases = null_al;
+            ev_null_al.n_aliases = 2;
+            ei_null_al.name = "ENullAl";
+            ei_null_al.variants = &ev_null_al;
+            ei_null_al.n_variants = 1;
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_find_enum_variant(
+                                         &ei_null_al, "valid_al", &found_ev));
+            memset(&fp_null_name, 0, sizeof(fp_null_name));
+            memset(&fi_zero, 0, sizeof(fi_zero));
+            fi_zero.name = "f_zero";
+            fi_zero.params = &fp_null_name;
+            fi_zero.n_params = 1;
+            ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+                      cdd_reflect_find_param(&fi_zero, "x", &found_fp));
+            fi_zero.n_params = 0;
+            ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+                      cdd_reflect_invoke_func(&fi_zero, NULL, NULL));
+          }
+          {
+            unsigned int bw_out = 0;
+            FILE *fp_ref = cdd_test_tmpfile_global();
+            struct StructFields sf_ref;
+            struct FuncSignature fsig;
+            struct FuncParamReflection fparams[8];
+            struct CodegenStructConfig cfg_empty;
+            char fn_name_buf[] = "fn_void_zero";
+            int k_io;
+            ASSERT(fp_ref != NULL);
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_struct_eval_bitwidth_str(NULL, &bw_out));
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_struct_eval_bitwidth_str("", &bw_out));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_struct_eval_bitwidth_str("/", &bw_out));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_struct_eval_bitwidth_str(":", &bw_out));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_struct_eval_bitwidth_str("(4", &bw_out));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_struct_eval_bitwidth_str("'", &bw_out));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_struct_eval_bitwidth_str("'a", &bw_out));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_struct_eval_bitwidth_str("0x1aF9uUlL", &bw_out));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_struct_eval_bitwidth_str("0B10", &bw_out));
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_struct_eval_bitwidth_str(
+                                         "8 / 0 + 8 % 0 + 5 % 3", &bw_out));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_struct_eval_bitwidth_str("4 < 1", &bw_out));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_struct_eval_bitwidth_str("4 > 1", &bw_out));
+
+            ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf_ref));
+            ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf_ref, "f1", "string",
+                                                       NULL, NULL, NULL));
+            sf_ref.fields[0].n_serde_aliases = 1;
+            sf_ref.fields[0].serde_aliases = NULL;
+            ASSERT_EQ(CDD_C_SUCCESS, write_struct_reflect_func(
+                                         fp_ref, "RefEdge", &sf_ref, NULL));
+            sf_ref.fields[0].n_serde_aliases = 0;
+            struct_fields_free(&sf_ref);
+
+            memset(&cfg_empty, 0, sizeof(cfg_empty));
+            memset(&fsig, 0, sizeof(fsig));
+            memset(fparams, 0, sizeof(fparams));
+            fsig.name = fn_name_buf;
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      write_func_reflect_func(fp_ref, &fsig, NULL));
+            CDD_STRCPY(fsig.return_type, sizeof(fsig.return_type), "void");
+            for (k_io = 0; k_io < 20; ++k_io) {
+              cdd_c_error_t rc_io;
+              g_fail_io_after = k_io;
+              g_io_calls = 0;
+              rc_io = write_func_reflect_func(fp_ref, &fsig, &cfg_empty);
+              g_fail_io_after = -1;
+              if (rc_io == CDD_C_SUCCESS)
+                break;
+            }
+            fsig.is_variadic = 1;
+            CDD_STRCPY(fparams[0].name, sizeof(fparams[0].name), "p0");
+            CDD_STRCPY(fparams[0].type, sizeof(fparams[0].type), "char");
+            CDD_STRCPY(fparams[1].name, sizeof(fparams[1].name), "p1");
+            CDD_STRCPY(fparams[1].type, sizeof(fparams[1].type), "float");
+            CDD_STRCPY(fparams[2].name, sizeof(fparams[2].name), "p2");
+            CDD_STRCPY(fparams[2].type, sizeof(fparams[2].type), "bool");
+            CDD_STRCPY(fparams[3].name, sizeof(fparams[3].name), "p3");
+            CDD_STRCPY(fparams[3].type, sizeof(fparams[3].type), "union U");
+            CDD_STRCPY(fparams[4].name, sizeof(fparams[4].name), "p4");
+            CDD_STRCPY(fparams[4].type, sizeof(fparams[4].type), "long");
+            CDD_STRCPY(fparams[5].name, sizeof(fparams[5].name), "p5");
+            CDD_STRCPY(fparams[5].type, sizeof(fparams[5].type), "short");
+            CDD_STRCPY(fparams[6].name, sizeof(fparams[6].name), "p6");
+            CDD_STRCPY(fparams[6].type, sizeof(fparams[6].type), "size_t");
+            CDD_STRCPY(fparams[7].name, sizeof(fparams[7].name), "p7");
+            CDD_STRCPY(fparams[7].type, sizeof(fparams[7].type),
+                       "const int **");
+            fsig.params = fparams;
+            fsig.n_params = 8;
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      write_func_reflect_func(fp_ref, &fsig, &cfg_empty));
+            fclose(fp_ref);
+          }
+          {
+            struct LifeEdge {
+              int *ptr_int;
+              int enum_v;
+              char fix_str[8];
+              void *unreg_ptr_obj;
+              int unreg_val_obj;
+              int flex_arr[2];
+              int fix_int_arr[2];
+              char *fix_str_arr[2];
+              void **obj_ptr_arr;
+              size_t n_obj_ptr_arr;
+              const char *str_p;
+              int *dyn_arr;
+              size_t n_dyn_arr;
+              int inline_obj;
+              int scalar_i;
+              struct AdvChild fix_obj_arr[1];
+            };
+            struct cdd_field_info lfields[14];
+            struct cdd_type_info lti;
+            struct cdd_type_info uti;
+            struct cdd_field_info ufield;
+            struct LifeEdge le1, le2;
+            void *l_out = NULL;
+            void *child_null_arr[1] = {NULL};
+            const char *s_arr1[2] = {NULL, "a"};
+            const char *s_arr2[2] = {"a", NULL};
+            int eq_res = 0;
+            int u1[2] = {99, 10};
+            int u2[2] = {99, 10};
+            memset(lfields, 0, sizeof(lfields));
+            memset(&lti, 0, sizeof(lti));
+            memset(&le1, 0, sizeof(le1));
+            memset(&le2, 0, sizeof(le2));
+
+            lfields[0].name = "ptr_int";
+            lfields[0].kind = CDD_FIELD_KIND_INTEGER;
+            lfields[0].is_pointer = 1;
+            lfields[0].default_val = "1";
+            lfields[0].offset = offsetof(struct LifeEdge, ptr_int);
+            lfields[0].size = sizeof(int *);
+
+            lfields[1].name = "enum_v";
+            lfields[1].kind = CDD_FIELD_KIND_ENUM;
+            lfields[1].ref_name = NULL;
+            lfields[1].default_val = "-2";
+            lfields[1].offset = offsetof(struct LifeEdge, enum_v);
+            lfields[1].size = sizeof(int);
+
+            lfields[2].name = "fix_str";
+            lfields[2].kind = CDD_FIELD_KIND_STRING;
+            lfields[2].is_pointer = 0;
+            lfields[2].default_val = "";
+            lfields[2].fixed_array_len = 8;
+            lfields[2].offset = offsetof(struct LifeEdge, fix_str);
+            lfields[2].size = 8;
+
+            lfields[3].name = "unreg_ptr_obj";
+            lfields[3].kind = CDD_FIELD_KIND_OBJECT;
+            lfields[3].is_pointer = 1;
+            lfields[3].ref_name = NULL;
+            lfields[3].offset = offsetof(struct LifeEdge, unreg_ptr_obj);
+            lfields[3].size = sizeof(void *);
+
+            lfields[4].name = "unreg_val_obj";
+            lfields[4].kind = CDD_FIELD_KIND_OBJECT;
+            lfields[4].is_pointer = 0;
+            lfields[4].ref_name = "";
+            lfields[4].offset = offsetof(struct LifeEdge, unreg_val_obj);
+            lfields[4].size = sizeof(int);
+
+            lfields[5].name = "flex_arr";
+            lfields[5].kind = CDD_FIELD_KIND_ARRAY;
+            lfields[5].is_pointer = 0;
+            lfields[5].is_flexible_array = 1;
+            lfields[5].elem_kind = CDD_FIELD_KIND_INTEGER;
+            lfields[5].elem_size = sizeof(int);
+            lfields[5].offset = offsetof(struct LifeEdge, flex_arr);
+
+            lfields[6].name = "fix_int_arr";
+            lfields[6].kind = CDD_FIELD_KIND_ARRAY;
+            lfields[6].fixed_array_len = 2;
+            lfields[6].elem_kind = CDD_FIELD_KIND_INTEGER;
+            lfields[6].elem_size = sizeof(int);
+            lfields[6].offset = offsetof(struct LifeEdge, fix_int_arr);
+            lfields[6].size = sizeof(le1.fix_int_arr);
+
+            lfields[7].name = "obj_ptr_arr";
+            lfields[7].kind = CDD_FIELD_KIND_ARRAY;
+            lfields[7].is_pointer = 1;
+            lfields[7].elem_kind = CDD_FIELD_KIND_OBJECT;
+            lfields[7].elem_size = sizeof(void *);
+            lfields[7].ref_name = "AdvChild";
+            lfields[7].offset = offsetof(struct LifeEdge, obj_ptr_arr);
+            lfields[7].array_len_offset =
+                offsetof(struct LifeEdge, n_obj_ptr_arr);
+            lfields[7].size = sizeof(void *);
+
+            lfields[8].name = "str_p";
+            lfields[8].kind = CDD_FIELD_KIND_STRING;
+            lfields[8].is_pointer = 1;
+            lfields[8].offset = offsetof(struct LifeEdge, str_p);
+            lfields[8].size = sizeof(char *);
+
+            lfields[9].name = "dyn_arr";
+            lfields[9].kind = CDD_FIELD_KIND_ARRAY;
+            lfields[9].is_pointer = 1;
+            lfields[9].elem_kind = CDD_FIELD_KIND_STRING;
+            lfields[9].elem_size = sizeof(char *);
+            lfields[9].offset = offsetof(struct LifeEdge, dyn_arr);
+            lfields[9].array_len_offset = offsetof(struct LifeEdge, n_dyn_arr);
+            lfields[9].size = sizeof(int *);
+
+            lfields[10].name = "fix_str_arr";
+            lfields[10].kind = CDD_FIELD_KIND_ARRAY;
+            lfields[10].fixed_array_len = 2;
+            lfields[10].elem_kind = CDD_FIELD_KIND_STRING;
+            lfields[10].elem_size = sizeof(char *);
+            lfields[10].offset = offsetof(struct LifeEdge, fix_str_arr);
+            lfields[10].size = sizeof(le1.fix_str_arr);
+
+            lfields[11].name = "inline_obj";
+            lfields[11].kind = CDD_FIELD_KIND_OBJECT;
+            lfields[11].is_pointer = 0;
+            lfields[11].ref_name = "";
+            lfields[11].offset = offsetof(struct LifeEdge, inline_obj);
+            lfields[11].size = sizeof(int);
+
+            lfields[12].name = "scalar_i";
+            lfields[12].kind = CDD_FIELD_KIND_INTEGER;
+            lfields[12].offset = offsetof(struct LifeEdge, scalar_i);
+            lfields[12].size = sizeof(int);
+
+            lfields[13].name = "fix_obj_arr";
+            lfields[13].kind = CDD_FIELD_KIND_ARRAY;
+            lfields[13].fixed_array_len = 1;
+            lfields[13].elem_kind = CDD_FIELD_KIND_OBJECT;
+            lfields[13].elem_size = sizeof(struct AdvChild);
+            lfields[13].ref_name = "AdvChild";
+            lfields[13].offset = offsetof(struct LifeEdge, fix_obj_arr);
+            lfields[13].size = sizeof(le1.fix_obj_arr);
+
+            lti.name = "LifeEdge";
+            lti.size = 0;
+            lti.fields = lfields;
+            lti.n_fields = 14;
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_struct_default(&lti, NULL));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_struct_default(&lti, &l_out));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_struct_deepcopy(&le1, NULL, &lti));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_struct_deepcopy(&le1, &l_out, NULL));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_struct_deepcopy(&le1, &l_out, &lti));
+            lti.size = sizeof(struct LifeEdge);
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_struct_default(&lti, &l_out));
+            lfields[1].ref_name = "";
+            C_CDD_FREE(l_out);
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_struct_default(&lti, &l_out));
+            ((struct LifeEdge *)l_out)->unreg_ptr_obj = C_CDD_MALLOC(4);
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_struct_cleanup(l_out, &lti));
+            C_CDD_FREE(l_out);
+
+            le1.unreg_ptr_obj = NULL;
+            le1.obj_ptr_arr = child_null_arr;
+            le1.n_obj_ptr_arr = 1;
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_struct_deepcopy(&le1, &l_out, &lti));
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_struct_cleanup(l_out, &lti));
+            C_CDD_FREE(l_out);
+
+            le1.unreg_ptr_obj = &eq_res;
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_struct_deepcopy(&le1, &l_out, &lti));
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_struct_cleanup(l_out, &lti));
+            C_CDD_FREE(l_out);
+
+            lfields[3].ref_name = "MissingType";
+            ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+                      cdd_reflect_struct_deepcopy(&le1, &l_out, &lti));
+            lfields[3].ref_name = NULL;
+
+            le1.str_p = "hello";
+            le2.str_p = NULL;
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_eq_single_field(
+                                         &le1, &le2, &lfields[8], &eq_res));
+            ASSERT_EQ(0, eq_res);
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_eq_single_field(
+                                         &le2, &le1, &lfields[8], &eq_res));
+            ASSERT_EQ(0, eq_res);
+
+            le1.unreg_ptr_obj = NULL;
+            le2.unreg_ptr_obj = NULL;
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_eq_single_field(
+                                         &le1, &le2, &lfields[3], &eq_res));
+            ASSERT_EQ(1, eq_res);
+            le1.unreg_ptr_obj = &eq_res;
+            le2.unreg_ptr_obj = NULL;
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_eq_single_field(
+                                         &le1, &le2, &lfields[3], &eq_res));
+            ASSERT_EQ(0, eq_res);
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_eq_single_field(
+                                         &le2, &le1, &lfields[3], &eq_res));
+            ASSERT_EQ(0, eq_res);
+
+            *(const char ***)&le1.dyn_arr = s_arr1;
+            le1.n_dyn_arr = 2;
+            *(const char ***)&le2.dyn_arr = s_arr2;
+            le2.n_dyn_arr = 2;
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_eq_single_field(
+                                         &le1, &le2, &lfields[9], &eq_res));
+            ASSERT_EQ(0, eq_res);
+            s_arr1[0] = "a";
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_eq_single_field(
+                                         &le1, &le2, &lfields[9], &eq_res));
+            ASSERT_EQ(0, eq_res);
+
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_struct_eq(&le1, &le2, &lti, NULL));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_struct_eq(&le1, &le1, &lti, &eq_res));
+            ASSERT_EQ(1, eq_res);
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_struct_eq(NULL, &le2, &lti, &eq_res));
+            ASSERT_EQ(0, eq_res);
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_struct_eq(&le1, NULL, &lti, &eq_res));
+            ASSERT_EQ(0, eq_res);
+
+            memset(&ufield, 0, sizeof(ufield));
+            memset(&uti, 0, sizeof(uti));
+            ufield.name = "val";
+            ufield.kind = CDD_FIELD_KIND_INTEGER;
+            ufield.offset = sizeof(int);
+            ufield.size = sizeof(int);
+            uti.name = "UEdge";
+            uti.size = sizeof(u1);
+            uti.is_union = 1;
+            uti.tag_offset = 0;
+            uti.fields = &ufield;
+            uti.n_fields = 1;
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_struct_cleanup(u1, &uti));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_struct_deepcopy(u1, &l_out, &uti));
+            C_CDD_FREE(l_out);
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_struct_eq(u1, u2, &uti, &eq_res));
+            u1[0] = 1;
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_struct_deepcopy(u1, &l_out, &uti));
+            C_CDD_FREE(l_out);
+            u1[0] = 99;
+            {
+              int v_cnt = 0;
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_visit_fields(
+                            u1, &uti, test_reflect_visitor_cb, &v_cnt));
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_visit_fields_mut(
+                            u1, &uti, test_reflect_mut_visitor_cb, &v_cnt));
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_visit_deep_mut(
+                            u1, NULL, test_reflect_mut_visitor_cb, &v_cnt));
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_visit_deep_mut(u1, &uti, NULL, &v_cnt));
+            }
+            {
+              char *u_json = NULL;
+              void *u_obj = NULL;
+              ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_to_json(u1, &uti, &u_json));
+              C_CDD_FREE(u_json);
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_from_json("{}", &uti, &u_obj));
+              C_CDD_FREE(u_obj);
+              ASSERT_EQ(
+                  CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_from_json("{\"val\":\"bad\"}", &uti, &u_obj));
+            }
+          }
+
+          /* 12. Remaining branch coverage for struct.c, struct_reflect_emit.c,
+           * struct_reflect_registry.c, struct_reflect_access.c,
+           * struct_reflect_validate.c, and struct_reflect_json.c */
+          {
+            unsigned int bw_out = 0;
+            FILE *fp_extra = cdd_test_tmpfile_global();
+            struct StructFields sf_ex;
+            struct FuncSignature fsig_ex;
+            struct FuncParamReflection fparam_ex;
+            char fn_ex_name[] = "fn_out_const";
+            size_t sc_w = 0;
+            int sc_u = 0;
+            struct cdd_field_info f_sc;
+            struct cdd_field_info bf_tmp_u32;
+            struct cdd_field_info bf_tmp_s4;
+            int out_i = 0;
+            int64_t out_i64 = 0;
+
+            ASSERT(fp_extra != NULL);
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_struct_eval_bitwidth_str("\t4", &bw_out));
+            ASSERT_EQ(4U, bw_out);
+
+            ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf_ex));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      struct_fields_add(&sf_ex, "fix_children", "array",
+                                        "#/components/schemas/Child", NULL,
+                                        NULL));
+            sf_ex.fields[0].fixed_array_len = 2;
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      struct_fields_add(&sf_ex, "flex_s", "string", NULL, NULL,
+                                        NULL));
+            sf_ex.fields[1].is_flexible_array = 1;
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      struct_fields_add(&sf_ex, "ptr_sub", "object", "Sub",
+                                        NULL, NULL));
+            CDD_STRCPY(sf_ex.fields[2].c_type, sizeof(sf_ex.fields[2].c_type),
+                       "struct Sub *");
+            ASSERT_EQ(CDD_C_SUCCESS, write_struct_deepcopy_func(fp_extra, "ExS",
+                                                                &sf_ex, NULL));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      write_struct_reflect_func(fp_extra, "ExS", &sf_ex, NULL));
+            struct_fields_free(&sf_ex);
+
+            memset(&fsig_ex, 0, sizeof(fsig_ex));
+            memset(&fparam_ex, 0, sizeof(fparam_ex));
+            fsig_ex.name = fn_ex_name;
+            CDD_STRCPY(fsig_ex.return_type, sizeof(fsig_ex.return_type), "int");
+            CDD_STRCPY(fparam_ex.name, sizeof(fparam_ex.name), "out_val");
+            CDD_STRCPY(fparam_ex.type, sizeof(fparam_ex.type), "const char *");
+            fsig_ex.params = &fparam_ex;
+            fsig_ex.n_params = 1;
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      write_func_reflect_func(fp_extra, &fsig_ex, NULL));
+            fclose(fp_extra);
+
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_resolve_path(p_def, &parent_ti, ".i64",
+                                               &res_f, &res_parent, &res_ptr));
+
+            memset(&f_sc, 0, sizeof(f_sc));
+            f_sc.is_pointer = 1;
+            f_sc.c_type = "char *";
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_resolve_field_scalar_width(
+                                         &f_sc, &sc_w, &sc_u));
+            ASSERT_EQ(1U, sc_w);
+            f_sc.c_type = "short *";
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_resolve_field_scalar_width(
+                                         &f_sc, &sc_w, &sc_u));
+            ASSERT_EQ(2U, sc_w);
+
+            p_def->i64 = (int64_t)INT_MIN - 100;
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_get_int(p_def, &parent_fields[0], &out_i));
+            p_def->i64 = 10;
+
+            /* Unsigned 4-bit bitfield in get_int64, 32-bit bitfield bounds */
+            memset(&bf_tmp_s4, 0, sizeof(bf_tmp_s4));
+            bf_tmp_s4.name = "bf_s4";
+            bf_tmp_s4.c_type = "unsigned int";
+            bf_tmp_s4.kind = CDD_FIELD_KIND_INTEGER;
+            bf_tmp_s4.bit_width = 4;
+            bf_tmp_s4.get_bitfield = test_bf_get;
+            bf_tmp_s4.set_bitfield = test_bf_set;
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_get_int64(p_def, &bf_tmp_s4, &out_i64));
+
+            memset(&bf_tmp_u32, 0, sizeof(bf_tmp_u32));
+            bf_tmp_u32.name = "bf_u32";
+            bf_tmp_u32.c_type = "unsigned int";
+            bf_tmp_u32.kind = CDD_FIELD_KIND_INTEGER;
+            bf_tmp_u32.bit_width = 32;
+            bf_tmp_u32.get_bitfield = test_bf_get;
+            bf_tmp_u32.set_bitfield = test_bf_set;
+            ASSERT_EQ(
+                CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_reflect_set_int64(p_def, &bf_tmp_u32, ((int64_t)1 << 33)));
+            bf_tmp_u32.c_type = "int";
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_set_int64(p_def, &bf_tmp_u32,
+                                            (int64_t)INT_MIN - 10));
+
+            /* Narrow integer negative bounds in set_int64 */
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_set_int64(p_def, &parent_fields[3], -1));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_set_int64(p_def, &parent_fields[2], -129));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_set_int64(p_def, &parent_fields[5], -1));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_set_int64(p_def, &parent_fields[4], -40000));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_set_int64(p_def, &parent_fields[6],
+                                            ((int64_t)1 << 33)));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_set_uint64(p_def, NULL, 1U));
+
+            /* Array resize elem_size == 0 & unregistered pointer object shrink
+             */
+            parent_fields[13].elem_size = 0;
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_array_resize(p_def, &parent_fields[13], 1));
+            parent_fields[13].elem_size = sizeof(int);
+
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_array_resize(p_def, &parent_fields[19], 1));
+            p_def->ptr_obj_arr[0] =
+                (struct AdvChild *)C_CDD_CALLOC(1, sizeof(struct AdvChild));
+            parent_fields[19].ref_name = "MissingType";
+            {
+              int dv_cnt = 0;
+              void *saved_pchild = p_def->ptr_child;
+              p_def->ptr_child = NULL;
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_visit_deep_mut(p_def, &parent_ti,
+                                                   test_reflect_mut_visitor_cb,
+                                                   &dv_cnt));
+              p_def->ptr_child = (struct AdvChild *)saved_pchild;
+              parent_fields[11].ref_name = "MissingType";
+              ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_visit_deep(
+                                           p_def, &parent_ti,
+                                           test_reflect_visitor_cb, &dv_cnt));
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_visit_deep_mut(p_def, &parent_ti,
+                                                   test_reflect_mut_visitor_cb,
+                                                   &dv_cnt));
+              ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_validate(p_def, &parent_ti));
+              parent_fields[11].ref_name = "AdvChild";
+            }
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_array_resize(p_def, &parent_fields[19], 0));
+            parent_fields[19].ref_name = "AdvChild";
+
+            /* NULL element in ptr_obj_arr during visit_deep and visit_deep_mut,
+             * and visitor failure inside object array */
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_array_resize(p_def, &parent_fields[19], 2));
+            p_def->ptr_obj_arr[0] = NULL;
+            p_def->ptr_obj_arr[1] =
+                (struct AdvChild *)C_CDD_CALLOC(1, sizeof(struct AdvChild));
+            {
+              int dv_cnt = 0;
+              ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_visit_deep(
+                                           p_def, &parent_ti,
+                                           test_reflect_visitor_cb, &dv_cnt));
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_visit_deep_mut(p_def, &parent_ti,
+                                                   test_reflect_mut_visitor_cb,
+                                                   &dv_cnt));
+              dv_cnt = -22;
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_visit_deep_mut(p_def, &parent_ti,
+                                                   test_reflect_mut_visitor_cb,
+                                                   &dv_cnt));
+            }
+            /* Failing child element inside ptr_obj_arr during validate */
+            child_fields[0].has_min = 1;
+            child_fields[0].min_val = 100.0;
+            p_def->ptr_obj_arr[1]->id = 5;
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate(p_def, &parent_ti));
+            child_fields[0].has_min = 0;
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_array_resize(p_def, &parent_fields[19], 0));
+
+            /* Regex & format validation edge cases */
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10], "a"));
+            parent_fields[10].pattern = "^[]a]$";
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10], "_"));
+            parent_fields[10].pattern = "^[\\w]$";
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10], "-"));
+            parent_fields[10].pattern = "^[\\-]$";
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            parent_fields[10].pattern = "(a)?[b";
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10], "a"));
+            parent_fields[10].pattern = "(a)+[b";
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10], "a\\"));
+            parent_fields[10].pattern = "a\\";
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            parent_fields[10].pattern = "a{x}|b";
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            parent_fields[10].pattern = NULL;
+
+            parent_fields[10].format = "email";
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_set_string(
+                                         p_def, &parent_fields[10], "@b.com"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(
+                CDD_C_SUCCESS,
+                cdd_reflect_set_string(p_def, &parent_fields[10], "a@b@c.com"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_set_string(
+                                         p_def, &parent_fields[10], "a@.com"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_set_string(
+                                         p_def, &parent_fields[10], "a@b."));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+
+            parent_fields[10].format = "date";
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_set_string(
+                                         p_def, &parent_fields[10], "2026"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10],
+                                             "2026X01-01"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10],
+                                             "2026-01X01"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10],
+                                             "2026-00-01"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10],
+                                             "2026-01-00"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10],
+                                             "2026-01-32"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+
+            parent_fields[10].format = "date-time";
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10],
+                                             "2026-01-01T12:00"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10],
+                                             "2026-01-01T12X00:00Z"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10],
+                                             "2026-01-01T12:00X00Z"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10],
+                                             "2026-01-01T12:60:00Z"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10],
+                                             "2026-01-01T12:00:61Z"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+
+            parent_fields[10].format = "ipv4";
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10],
+                                             "0001.1.1.1"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_set_string(
+                                         p_def, &parent_fields[10], "1.2.3"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+
+            parent_fields[10].format = "ipv6";
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10], ":"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+
+            parent_fields[10].format = "uri";
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_set_string(
+                                         p_def, &parent_fields[10], "nocolon"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_set_string(
+                                         p_def, &parent_fields[10], "://foo"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10],
+                                             "1http://foo"));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+
+            parent_fields[10].format = "hostname";
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10], ""));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_set_string(p_def, &parent_fields[10],
+                                             "my-host.example.com"));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_validate_field(p_def, &parent_fields[10]));
+            parent_fields[10].format = NULL;
+
+            /* Integer format & number max-only & enum MissingEnum validation */
+            parent_fields[0].format = "int32";
+            p_def->i64 = 10;
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_validate_field(p_def, &parent_fields[0]));
+            p_def->i64 = (int64_t)INT_MIN - 10;
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[0]));
+            parent_fields[0].format = "uint32";
+            p_def->i64 = 10;
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_validate_field(p_def, &parent_fields[0]));
+            parent_fields[0].format = "uint64";
+            p_def->i64 = -1;
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[0]));
+            p_def->i64 = 10;
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_validate_field(p_def, &parent_fields[0]));
+            parent_fields[0].format = NULL;
+
+            parent_fields[9].ref_name = "MissingEnum";
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_validate_field(p_def, &parent_fields[9]));
+            parent_fields[9].ref_name = "AdvEnum";
+
+            parent_fields[7].has_min = 0;
+            parent_fields[7].has_max = 1;
+            parent_fields[7].max_val = 100.0;
+            p_def->num = 5.0;
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_validate_field(p_def, &parent_fields[7]));
+            parent_fields[7].has_max = 0;
+
+            /* Unique items on str_arr, ptr_obj_arr, and 1-element int_arr */
+            parent_fields[17].unique_items = 1;
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_array_resize(p_def, &parent_fields[17], 0));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_array_resize(p_def, &parent_fields[17], 2));
+            ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                      cdd_reflect_validate_field(p_def, &parent_fields[17]));
+            c_cdd_strdup("s2", &p_def->str_arr[1]);
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_validate_field(p_def, &parent_fields[17]));
+            C_CDD_FREE(p_def->str_arr[1]);
+            p_def->str_arr[1] = NULL;
+            c_cdd_strdup("s1", &p_def->str_arr[0]);
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_validate_field(p_def, &parent_fields[17]));
+            c_cdd_strdup("s2", &p_def->str_arr[1]);
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_validate_field(p_def, &parent_fields[17]));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_array_resize(p_def, &parent_fields[17], 0));
+            parent_fields[17].unique_items = 0;
+
+            parent_fields[19].unique_items = 1;
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_array_resize(p_def, &parent_fields[19], 2));
+            p_def->ptr_obj_arr[0] =
+                (struct AdvChild *)C_CDD_CALLOC(1, sizeof(struct AdvChild));
+            p_def->ptr_obj_arr[1] =
+                (struct AdvChild *)C_CDD_CALLOC(1, sizeof(struct AdvChild));
+            p_def->ptr_obj_arr[0]->id = 1;
+            p_def->ptr_obj_arr[1]->id = 2;
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_validate_field(p_def, &parent_fields[19]));
+            parent_fields[19].ref_name = "MissingType";
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_validate_field(p_def, &parent_fields[19]));
+            parent_fields[19].ref_name = "AdvChild";
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_array_resize(p_def, &parent_fields[19], 0));
+            parent_fields[19].unique_items = 0;
+
+            parent_fields[13].unique_items = 1;
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_array_resize(p_def, &parent_fields[13], 1));
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_validate_field(p_def, &parent_fields[13]));
+            parent_fields[13].unique_items = 0;
+
+            /* JSON, Merge Patch, Schema, Form, CLI, and JSON Patch edge cases
+             */
+            {
+              char *j_str = NULL;
+              void *j_obj = NULL;
+              int dummy_obj = 0;
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_from_json_object(NULL, &parent_ti, p_def));
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_from_json_object(&dummy_obj, NULL, p_def));
+              ASSERT_EQ(
+                  CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_from_json_object(&dummy_obj, &parent_ti, NULL));
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_to_json(p_def, NULL, &j_str));
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_to_json(p_def, &parent_ti, NULL));
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_from_json("{}", NULL, &j_obj));
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_from_json("{}", &parent_ti, NULL));
+              ASSERT_EQ(
+                  CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_reflect_merge_patch(p_def, NULL, &parent_ti, &j_str));
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_merge_patch(p_def, &p1, NULL, &j_str));
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_merge_patch(p_def, &p1, &parent_ti, NULL));
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_apply_merge_patch(p_def, NULL, "{}"));
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_apply_merge_patch(p_def, &parent_ti, NULL));
+
+              /* wire_name == NULL, skip_serializing, skip_deserializing,
+               * enum wire_name == NULL and MissingEnum in to_json & schema */
+              parent_fields[1].skip_serializing = 1;
+              parent_fields[1].skip_deserializing = 1;
+              ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_apply_merge_patch(
+                                           p_def, &parent_ti, "{\"u64\":1}"));
+              parent_fields[0].wire_name = NULL;
+              enum_vars[0].wire_name = NULL;
+              enum_vars[1].skip = 1;
+              p_def->eval = 10;
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_array_resize(p_def, &parent_fields[16], 1));
+              p_def->enum_arr[0] = 10;
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_to_json(p_def, &parent_ti, &j_str));
+              C_CDD_FREE(j_str);
+
+              parent_fields[9].ref_name = "MissingEnum";
+              parent_fields[16].ref_name = "MissingEnum";
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_to_json(p_def, &parent_ti, &j_str));
+              C_CDD_FREE(j_str);
+
+              parent_fields[0].required = 1;
+              parent_fields[1].required = 1;
+              parent_fields[7].has_min = 1;
+              parent_fields[7].exclusive_min = 1;
+              parent_fields[7].has_max = 1;
+              parent_fields[7].exclusive_max = 1;
+              parent_fields[10].has_min_len = 0;
+              parent_fields[10].has_max_len = 0;
+              parent_fields[10].pattern = NULL;
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_to_json_schema(&parent_ti, &j_str));
+              C_CDD_FREE(j_str);
+              parent_fields[7].exclusive_min = 0;
+              parent_fields[7].exclusive_max = 0;
+              parent_fields[9].ref_name = "AdvEnum";
+              parent_fields[16].ref_name = "AdvEnum";
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_to_json_schema(&parent_ti, &j_str));
+              C_CDD_FREE(j_str);
+              parent_fields[0].required = 0;
+              parent_fields[1].required = 0;
+
+              enum_vars[0].wire_name = "alpha";
+              enum_vars[1].skip = 0;
+              parent_fields[7].has_min = 0;
+              parent_fields[7].has_max = 0;
+              parent_fields[1].skip_serializing = 0;
+              parent_fields[1].skip_deserializing = 0;
+
+              /* Schema with no required fields */
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_to_json_schema(&child_ti, &j_str));
+              C_CDD_FREE(j_str);
+
+              /* Merge patch with wire_name == NULL, skip, skip_serializing */
+              parent_fields[2].skip = 1;
+              parent_fields[3].skip_serializing = 1;
+              p_def->i64 = 999;
+              p1.i64 = 111;
+              ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_merge_patch(
+                                           &p1, p_def, &parent_ti, &j_str));
+              C_CDD_FREE(j_str);
+              parent_fields[0].wire_name = "i64";
+              parent_fields[2].skip = 0;
+              parent_fields[3].skip_serializing = 0;
+
+              /* apply_merge_patch with non-object for object field, and
+               * multi-key where first key fails */
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_apply_merge_patch(
+                            p_def, &parent_ti, "{\"inline_child\":123}"));
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_apply_merge_patch(
+                            p_def, &parent_ti, "{\"i64\":\"bad\",\"u64\":2}"));
+
+              /* deserialize_field_from_json edge cases:
+               * - flattened pointer child when NULL and when already non-NULL
+               * - required = 1 with default_val != NULL in from_json
+               * - non-nullable optional pointer field with null in JSON
+               * - non-nullable required pointer field with null in JSON
+               * - opt_int and ptr_child already allocated before merge patch
+               * - ptr_obj_arr with null when element is already NULL
+               * - val_obj_arr with null element (invalid) */
+              parent_fields[12].flatten = 1;
+              ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_apply_merge_patch(
+                                           p_def, &parent_ti, "{\"id\":88}"));
+              ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_apply_merge_patch(
+                                           p_def, &parent_ti, "{\"id\":89}"));
+              parent_fields[12].flatten = 0;
+
+              parent_fields[0].required = 1;
+              parent_fields[0].default_val = "0";
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_from_json("{}", &parent_ti, &j_obj));
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_struct_cleanup(j_obj, &parent_ti));
+              C_CDD_FREE(j_obj);
+              parent_fields[0].required = 0;
+              parent_fields[0].default_val = "42";
+
+              parent_fields[21].required = 0;
+              parent_fields[21].is_nullable = 0;
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_apply_merge_patch(p_def, &parent_ti,
+                                                      "{\"opt_int\":null}"));
+              parent_fields[21].required = 1;
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_apply_merge_patch(p_def, &parent_ti,
+                                                      "{\"opt_int\":null}"));
+              parent_fields[21].required = 0;
+              parent_fields[21].is_nullable = 1;
+
+              p_def->opt_int = (int *)C_CDD_CALLOC(1, sizeof(int));
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_apply_merge_patch(
+                            p_def, &parent_ti,
+                            "{\"opt_int\":7,\"ptr_child\":{\"id\":9},"
+                            "\"ptr_obj_arr\":[null]}"));
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_apply_merge_patch(
+                            p_def, &parent_ti, "{\"ptr_child\":{\"id\":10}}"));
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_apply_merge_patch(
+                            p_def, &parent_ti, "{\"val_obj_arr\":[null]}"));
+
+              /* Form URL-encoded & CLI edge cases */
+              parent_fields[0].wire_name = NULL;
+              parent_fields[2].skip = 1;
+              parent_fields[3].skip_serializing = 1;
+              parent_fields[10].is_pointer = 0;
+              ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_to_form_urlencoded(
+                                           p_def, &parent_ti, &j_str));
+              C_CDD_FREE(j_str);
+              parent_fields[0].wire_name = "i64";
+              parent_fields[2].skip = 0;
+              parent_fields[3].skip_serializing = 0;
+              parent_fields[10].is_pointer = 1;
+
+              ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_from_form_urlencoded(
+                                           "", &parent_ti, &j_obj));
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_struct_cleanup(j_obj, &parent_ti));
+              C_CDD_FREE(j_obj);
+
+              parent_fields[2].skip = 1;
+              parent_fields[3].skip_deserializing = 1;
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_from_form_urlencoded(
+                            "barekey&i8=1&u8=1&bval=1&bval=false&trail",
+                            &parent_ti, &j_obj));
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_struct_cleanup(j_obj, &parent_ti));
+              C_CDD_FREE(j_obj);
+              parent_fields[2].skip = 0;
+              parent_fields[3].skip_deserializing = 0;
+
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_from_form_urlencoded("i64=12x", &parent_ti,
+                                                         &j_obj));
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_from_form_urlencoded("num=1.5x", &parent_ti,
+                                                         &j_obj));
+              {
+                char big_kv[450];
+                memset(big_kv, 'k', 150);
+                big_kv[150] = '=';
+                memset(big_kv + 151, 'v', 280);
+                big_kv[431] = '\0';
+                ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_from_form_urlencoded(
+                                             big_kv, &parent_ti, &j_obj));
+                ASSERT_EQ(CDD_C_SUCCESS,
+                          cdd_reflect_struct_cleanup(j_obj, &parent_ti));
+                C_CDD_FREE(j_obj);
+              }
+
+              {
+                const char *two_al[2] = {"lbl_alias", "lbl_alias2"};
+                child_fields[2].aliases = two_al;
+                child_fields[2].n_aliases = 2;
+                ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_apply_merge_patch(
+                                             &p_def->inline_child, &child_ti,
+                                             "{\"lbl_alias\":\"hi\"}"));
+                child_fields[2].aliases = child_aliases;
+                child_fields[2].n_aliases = 1;
+              }
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_from_cli(1, NULL, &parent_ti, &j_obj));
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_from_cli(0, NULL, &parent_ti, &j_obj));
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_struct_cleanup(j_obj, &parent_ti));
+              C_CDD_FREE(j_obj);
+              {
+                JSON_Value *jv_p = NULL;
+                JSON_Object *jo_p = NULL;
+                ASSERT_EQ(CDD_C_SUCCESS,
+                          cdd_json_parse_string(
+                              "{\"id\":77,\"ptr_child\":{\"id\":78}}", &jv_p));
+                cdd_json_value_get_object(jv_p, &jo_p);
+                parent_fields[12].flatten = 1;
+                ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_from_json_object(
+                                             jo_p, &parent_ti, p_def));
+                parent_fields[12].flatten = 0;
+                ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_from_json_object(
+                                             jo_p, &parent_ti, p_def));
+                cdd_json_value_free(jv_p);
+              }
+              {
+                char big_cli[160];
+                const char *cli_args[2];
+                memset(big_cli, 'a', sizeof(big_cli) - 1);
+                big_cli[0] = '-';
+                big_cli[1] = '-';
+                big_cli[140] = '=';
+                big_cli[sizeof(big_cli) - 1] = '\0';
+                cli_args[0] = NULL;
+                cli_args[1] = big_cli;
+                ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_from_cli(
+                                             2, cli_args, &parent_ti, &j_obj));
+                ASSERT_EQ(CDD_C_SUCCESS,
+                          cdd_reflect_struct_cleanup(j_obj, &parent_ti));
+                C_CDD_FREE(j_obj);
+              }
+
+              /* JSON Patch edge cases */
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_apply_json_patch(p_def, &parent_ti, "bad"));
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_apply_json_patch(p_def, &parent_ti, "{}"));
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_apply_json_patch(p_def, &parent_ti,
+                                                     "[{\"op\":\"add\"}]"));
+              ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_set_string(
+                                           p_def, &parent_fields[10], NULL));
+              ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                        cdd_reflect_apply_json_patch(
+                            p_def, &parent_ti,
+                            "[{\"op\":\"test\",\"path\":\"/str~0name~11\","
+                            "\"value\":\"ok_s\"}]"));
+              ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+                        cdd_reflect_apply_json_patch(
+                            p_def, &parent_ti,
+                            "[{\"op\":\"copy\",\"from\":\"/missing\","
+                            "\"path\":\"/i16\"}]"));
+              ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_set_string(
+                                           p_def, &parent_fields[10], "ok_s"));
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_apply_json_patch(
+                            p_def, &parent_ti,
+                            "[{\"op\":\"test\",\"path\":\"/str~0name~11\","
+                            "\"value\":\"ok_s\"},{\"op\":\"copy\",\"from\":"
+                            "\"/i64\",\"path\":\"/i16\"}]"));
+            }
+          }
+        }
       }
     }
   }

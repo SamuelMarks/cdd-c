@@ -89,10 +89,10 @@ When defining custom C-level logic inside the DSL, we escape the parsing tree us
 ```c
 func hash_password([in] *const char input) {
     body %{
-        if (!input) return 0;
-        uint32_t hash = 5381;
+        unsigned long hash = 5381;
         int c;
-        while ((c = *input++)) hash = ((hash << 5) + hash) + c;
+        if (!input) return 0;
+        while ((c = *input++) != 0) hash = ((hash << 5) + hash) + (unsigned long)c;
         return hash;
     }%
 }
@@ -103,12 +103,12 @@ Instead of traditional `#define` textual replacement, the IR requires identifyin
 When invoking a macro inside a function, explicit annotations tell the parser what tree structure to expect.
 
 ```c
-// Macro definitions
+/* Macro definitions */
 macro_const MAX_RETRIES = 5;
 macro_expr LOG_ERROR(msg) = body %{ fprintf(stderr, "%s", msg) }%;
 
 func attempt_connection() {
-    // Macro Invocation
+    /* Macro Invocation */
     @stmt( LOG_ERROR("Failed to connect!") );
 }
 ```
@@ -120,7 +120,7 @@ Numbers inside the DSL directly support natively parsed prefixes (`0x`, `0b`) an
 enum ConnectionStatus {
     DISCONNECTED = 0,
     CONNECTED = 0x01,
-    TIMEOUT = 1'000'000  // Supported natively!
+    TIMEOUT = 1'000'000  /* Supported natively! */
 }
 ```
 
@@ -130,9 +130,7 @@ In automated toolchains, there may be a requirement to inject trivia without rel
 ```c
 #!ws("\n\n")
 #!comment("/* AUTO-GENERATED - DO NOT EDIT */")
-struct Config {
-    [in] i32 flag;
-}
+func configure_flag([in] i32 flag);
 ```
 
 ## Integrating into cdd-c
@@ -140,10 +138,22 @@ struct Config {
 The DSL parser is fully integrated into the existing `cdd_api.h` pipeline. You can convert any DSL string into a native `cdd_ffi_ir_t` AST and subsequently emit language bindings directly.
 
 ```c
-cdd_generate_bindings_config_t config = {0};
-config.output_dir = "out/";
-config.target_langs = "rust,python,dsl";
+#include "cdd_api.h"
+#include <string.h>
 
-// Generates bindings AND losslessly reconstructs the DSL format!
-cdd_c_error_t rc = cdd_generate_bindings_from_dsl(dsl_source_string, &config);
+cdd_c_error_t emit_from_dsl(const char *dsl_source_string) {
+  cdd_generate_bindings_config_t config;
+  cdd_c_error_t rc;
+
+  memset(&config, 0, sizeof(config));
+  config.output_dir = "out/";
+  config.target_langs = "rust,python,dsl";
+
+  /* Generates bindings AND losslessly reconstructs the DSL format! */
+  rc = cdd_generate_bindings_from_dsl(dsl_source_string, &config);
+  if (rc != CDD_C_SUCCESS) {
+    return rc;
+  }
+  return CDD_C_SUCCESS;
+}
 ```

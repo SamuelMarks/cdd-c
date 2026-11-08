@@ -3,8 +3,8 @@
 <!-- BADGES_START -->
 
 [![License](https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Doc Coverage](https://img.shields.io/badge/doc_coverage-100%25-brightgreen.svg)](#)
-[![Test Coverage](https://img.shields.io/badge/test_coverage-100.0%25-brightgreen.svg)](#)
+[![Test Coverage](https://img.shields.io/badge/Test%20Coverage-100.0%25-brightgreen.svg)](#)
+[![Doc Coverage](https://img.shields.io/badge/Doc%20Coverage-100.0%25-brightgreen.svg)](#)
 [![interactive WASM web demo](https://img.shields.io/badge/interactive-WASM_web_demo-blue.svg)](https://offscale.io/wasm_web_demo)
 
 <!-- BADGES_END -->
@@ -294,7 +294,7 @@ cdd-c audit /path/to/c/project
 ### Bidirectional Struct $\leftrightarrow$ JSON Schema (`code2schema` / `schema2code`)
 
 - **`code2schema <header.h> <schema.json>`**: Statically analyzes C header struct declarations and emits compliant JSON Schema definitions (supporting arrays, nested structs, primitive mappings, and docstrings).
-- **`schema2code <schema.json> <out_dir>`**: Consumes JSON Schema files and generates C struct headers, Parson-based serialization/deserialization routines, and bounds-validation guards.
+- **`schema2code [-gGuardPrefix] <schema.json> <output_file_prefix>`**: Consumes JSON Schema files and generates C struct headers, zero-dependency JSON serialization/deserialization routines, and bounds-validation guards.
 
 ### Documentation Code Matrix (`to_docs_json`)
 
@@ -350,7 +350,9 @@ For build and integration instructions, see [`WASM.md`](WASM.md).
 `cdd-c` brings Rust `serde` and `clap`/`structopt` declarative ergonomics to strict ISO C90 (C89) via structured C89 comment directives (`/* @cdd ... */`, `/* @serde ... */`, `/* @cli ... */`, `/* #[serde(...)] */`, `/* #[command(...)] */`, `/* #[arg(...)] */`) parsed by `src/classes/parse/cdd_serde.c` and emitted by `src/classes/emit/json.c`, `enum.c`, `types.c`, `form.c`, and `cli_struct.c`.
 
 ### Serde Reflection & Rewriting Capabilities (Direct Zero-Overhead Codegen)
-- **Directional Scope Directives**: Scoped container and field directives (`@to_json(...)`, `@from_json(...)`, `@to_cli(...)`, `@from_cli(...)`, `@to_form(...)`, `@from_form(...)`, `#[to_json(...)]`, and C23 `[[cdd::to_json(...)]]`, `[[cdd::from_json(...)]]`, `[[cdd::to_cli(...)]]`, `[[cdd::from_cli(...)]]`) allow independent serialization, deserialization, and CLI renames, case rules, skips (`cli_skip`, `skip_to_cli`, `skip_from_cli`), and custom codec hooks while keeping generated `<Struct>_to_json`, `<Struct>_from_json`, `<Struct>_from_cli`, `<Struct>_to_cli_argv`, `<Struct>_to_form_urlencoded`, and `<Struct>_from_form_urlencoded` functions 100% direct, unrolled, and zero-overhead.
+- **Directional Scope Directives**: Scoped container and field directives (`@to_json(...)`, `@from_json(...)`, `@to_cli(...)`, `@from_cli(...)`, `@to_form(...)`, `@from_form(...)`, `#[to_json(...)]`, and C23 `[[cdd::to_json(...)]]`, `[[cdd::from_json(...)]]`, `[[cdd::to_cli(...)]]`, `[[cdd::from_cli(...)]]`) allow independent serialization, deserialization, and CLI renames, case rules, skips (`cli_skip`, `skip_to_cli`, `skip_from_cli`), and custom codec hooks while keeping generated `<Struct>_to_json`, `<Struct>_from_json`, `<Struct>_to_json_standalone`, `<Struct>_parse_json`, `<Struct>_from_cli`, `<Struct>_to_cli_argv`, `<Struct>_to_form_urlencoded`, and `<Struct>_from_form_urlencoded` functions 100% direct, unrolled, and zero-overhead.
+- **Zero-Dependency UDT JSON & Form URL-Encoded Codecs**: Emits zero-dependency C89 JSON pull-parsers (`<Struct>_from_json` / `<Struct>_parse_json`) and growable-buffer RFC 8259 emitters (`<Struct>_to_json` / `<Struct>_to_json_standalone`), plus percent-decoding (`+` and `%XX`) URL-encoded form codecs (`<Struct>_to_form_urlencoded` / `<Struct>_from_form_urlencoded`).
+- **Recursive Struct & Union Lifecycle Parity**: Both structs and tagged unions generate `<Type>_default`, `<Type>_deepcopy`, `<Type>_eq`, `<Type>_cleanup`, and `<Type>_debug`, recursively delegating to child `<Child>_deepcopy`, `<Child>_eq`, `<Child>_cleanup`, and `<Child>_debug` with strict `cdd_c_error_t` error enum percolation.
 - **Container-Level Directives**: `rename`, `rename_all` / `rename_all_serialize` / `rename_all_deserialize` (`lowercase`, `UPPERCASE`, `PascalCase`, `camelCase`, `snake_case`, `SCREAMING_SNAKE_CASE`, `kebab-case`, `SCREAMING-KEBAB-CASE`, `Train-Case`), `replace_all = ("_" -> "-")`, `prefix`, `suffix`, `deny_unknown_fields`, `default`, `tag`, `content`, and `untagged`.
 - **Field-Level Directives, Inline Fixed Arrays & Bit-Fields**: `rename`, `rename_serialize`, `rename_deserialize`, per-field case overrides, `replace`, repeatable `alias`, `skip`, `skip_serializing`, `skip_deserializing`, `skip_serializing_if` / `skip_if` (`"null"`, `"empty"`, `"zero"`, or custom C predicate function), `flatten`, `default` / `default_fn`, custom `with` / `serialize_with` / `deserialize_with` codec hooks, zero-allocation inline fixed-size arrays (`char buf[N]`, `T arr[N]`), and bit-field members (`int flags : 3;`, `int mode : (1 + 2);`).
 - **Enum & Union Reflection**: Per-variant `rename`, `alias`, `skip`, and `@cdd other` catch-all fallback variant in `_from_str`, plus internal (`tag`), adjacent (`tag` + `content`), external, and `untagged` sum-type union representations.

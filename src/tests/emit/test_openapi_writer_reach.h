@@ -39,7 +39,11 @@ TEST test_openapi_writer_component_returns_and_root_oom(void) {
   char *json = NULL;
   int k_idx;
 
-  val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   obj = json_value_get_object(val);
   names[0] = cdd_test_mut_str("item");
 
@@ -149,7 +153,128 @@ TEST test_openapi_writer_component_returns_and_root_oom(void) {
     ASSERT_WRITER_RC(write_components(obj, &s));
   }
 
-  /* 2. Each root step failure in openapi_write_spec_to_json across k = 0..15 */
+  /* 2. Each root step failure in openapi_write_spec_to_json across k = 0..45 */
+  memset(&s, 0, sizeof(s));
+  s.swagger_version = cdd_test_mut_str("2.0");
+  s.host = cdd_test_mut_str("api.example.com");
+  s.basePath = cdd_test_mut_str("/v1");
+  s.self_uri = cdd_test_mut_str("https://example.com/openapi.json");
+  s.json_schema_dialect =
+      cdd_test_mut_str("https://json-schema.org/draft/2020-12/schema");
+  s.external_docs.url = cdd_test_mut_str("https://example.com/docs");
+  s.external_docs.description = cdd_test_mut_str("Docs");
+  for (k_idx = 0; k_idx < 45; ++k_idx) {
+    g_parson_oom_fail_at = k_idx;
+    ASSERT_WRITER_RC(openapi_write_spec_to_json(&s, &json));
+    if (json) {
+      free(json);
+      json = NULL;
+    }
+  }
+
+  /* Also test extensions_json failure on root and external_docs */
+  memset(&s, 0, sizeof(s));
+  s.extensions_json = cdd_test_mut_str("{\"x-ext\":1}");
+  s.external_docs.url = cdd_test_mut_str("https://example.com/docs");
+  s.external_docs.extensions_json = cdd_test_mut_str("{\"x-ed\":1}");
+  s.info.summary = cdd_test_mut_str("Sum");
+  s.info.extensions_json = cdd_test_mut_str("{\"x-info\":1}");
+  s.info.contact.name = cdd_test_mut_str("Contact");
+  s.info.contact.extensions_json = cdd_test_mut_str("{\"x-con\":1}");
+  s.info.license.name = cdd_test_mut_str("MIT");
+  s.info.license.extensions_json = cdd_test_mut_str("{\"x-lic\":1}");
+  for (k_idx = 0; k_idx < 80; ++k_idx) {
+    g_parson_oom_fail_at = k_idx;
+    ASSERT_WRITER_RC(openapi_write_spec_to_json(&s, &json));
+    if (json) {
+      free(json);
+      json = NULL;
+    }
+  }
+
+  /* Test write_discriminator_object, write_xml_object, write_server_object OOM
+   */
+  {
+    struct OpenAPI_Discriminator disc;
+    struct OpenAPI_DiscriminatorMap dmap;
+    struct OpenAPI_ExternalDocs ed;
+    struct OpenAPI_Spec s_lic;
+    struct OpenAPI_Xml xml;
+    struct OpenAPI_Server srv_oom;
+    memset(&disc, 0, sizeof(disc));
+    memset(&dmap, 0, sizeof(dmap));
+    dmap.value = cdd_test_mut_str("dog");
+    dmap.schema = cdd_test_mut_str("#/components/schemas/Dog");
+    disc.property_name = cdd_test_mut_str("petType");
+    disc.mapping = &dmap;
+    disc.n_mapping = 1;
+    memset(&ed, 0, sizeof(ed));
+    ed.url = cdd_test_mut_str("https://example.com/ed");
+    ed.extensions_json = cdd_test_mut_str("{\"x-ed\":1}");
+    memset(&s_lic, 0, sizeof(s_lic));
+    s_lic.info.license.name = cdd_test_mut_str("MIT");
+    memset(&xml, 0, sizeof(xml));
+    xml.name = cdd_test_mut_str("Pet");
+    memset(&srv_oom, 0, sizeof(srv_oom));
+    srv_oom.url = cdd_test_mut_str("https://example.com");
+    srv_oom.description = cdd_test_mut_str("Srv");
+    for (k_idx = 0; k_idx < 25; ++k_idx) {
+      JSON_Value *tmp_v = NULL;
+      JSON_Object *tmp_o = NULL;
+      g_parson_oom_fail_at = -1;
+      cdd_json_value_init_object(&tmp_v);
+      cdd_json_value_get_object(tmp_v, &tmp_o);
+      g_parson_oom_fail_at = k_idx;
+      write_discriminator_object(tmp_o, &disc, 1);
+      g_parson_oom_fail_at = -1;
+      cdd_json_value_free(tmp_v);
+    }
+    for (k_idx = 0; k_idx < 25; ++k_idx) {
+      JSON_Value *tmp_v = NULL;
+      JSON_Object *tmp_o = NULL;
+      g_parson_oom_fail_at = -1;
+      cdd_json_value_init_object(&tmp_v);
+      cdd_json_value_get_object(tmp_v, &tmp_o);
+      g_parson_oom_fail_at = k_idx;
+      write_external_docs(tmp_o, "externalDocs", &ed);
+      g_parson_oom_fail_at = -1;
+      cdd_json_value_free(tmp_v);
+    }
+    for (k_idx = 0; k_idx < 30; ++k_idx) {
+      JSON_Value *tmp_v = NULL;
+      JSON_Object *tmp_o = NULL;
+      g_parson_oom_fail_at = -1;
+      cdd_json_value_init_object(&tmp_v);
+      cdd_json_value_get_object(tmp_v, &tmp_o);
+      g_parson_oom_fail_at = k_idx;
+      write_info(tmp_o, &s_lic);
+      g_parson_oom_fail_at = -1;
+      cdd_json_value_free(tmp_v);
+    }
+    for (k_idx = 0; k_idx < 15; ++k_idx) {
+      JSON_Value *tmp_v = NULL;
+      JSON_Object *tmp_o = NULL;
+      g_parson_oom_fail_at = -1;
+      cdd_json_value_init_object(&tmp_v);
+      cdd_json_value_get_object(tmp_v, &tmp_o);
+      g_parson_oom_fail_at = k_idx;
+      write_xml_object(tmp_o, &xml, 1);
+      g_parson_oom_fail_at = -1;
+      cdd_json_value_free(tmp_v);
+    }
+    for (k_idx = 0; k_idx < 15; ++k_idx) {
+      JSON_Value *tmp_v = NULL;
+      JSON_Object *tmp_o = NULL;
+      g_parson_oom_fail_at = -1;
+      cdd_json_value_init_object(&tmp_v);
+      cdd_json_value_get_object(tmp_v, &tmp_o);
+      g_parson_oom_fail_at = k_idx;
+      write_server_object(tmp_o, &srv_oom);
+      g_parson_oom_fail_at = -1;
+      cdd_json_value_free(tmp_v);
+    }
+  }
+
   memset(&s, 0, sizeof(s));
   sec_req.scheme = cdd_test_mut_str("oauth2");
   sec_set.requirements = &sec_req;
@@ -157,7 +282,7 @@ TEST test_openapi_writer_component_returns_and_root_oom(void) {
   s.security = &sec_set;
   s.n_security = 1;
   s.security_set = 1;
-  for (k_idx = 0; k_idx < 15; ++k_idx) {
+  for (k_idx = 0; k_idx < 45; ++k_idx) {
     g_parson_oom_fail_at = k_idx;
     ASSERT_WRITER_RC(openapi_write_spec_to_json(&s, &json));
     if (json) {
@@ -170,7 +295,7 @@ TEST test_openapi_writer_component_returns_and_root_oom(void) {
   srv.url = cdd_test_mut_str("https://example.com");
   s.servers = &srv;
   s.n_servers = 1;
-  for (k_idx = 0; k_idx < 15; ++k_idx) {
+  for (k_idx = 0; k_idx < 45; ++k_idx) {
     g_parson_oom_fail_at = k_idx;
     ASSERT_WRITER_RC(openapi_write_spec_to_json(&s, &json));
     if (json) {
@@ -182,7 +307,7 @@ TEST test_openapi_writer_component_returns_and_root_oom(void) {
   memset(&s, 0, sizeof(s));
   s.component_links = &link;
   s.n_component_links = 1;
-  for (k_idx = 0; k_idx < 15; ++k_idx) {
+  for (k_idx = 0; k_idx < 45; ++k_idx) {
     g_parson_oom_fail_at = k_idx;
     ASSERT_WRITER_RC(openapi_write_spec_to_json(&s, &json));
     if (json) {
@@ -194,7 +319,7 @@ TEST test_openapi_writer_component_returns_and_root_oom(void) {
   memset(&s, 0, sizeof(s));
   s.webhooks = &path;
   s.n_webhooks = 1;
-  for (k_idx = 0; k_idx < 15; ++k_idx) {
+  for (k_idx = 0; k_idx < 45; ++k_idx) {
     g_parson_oom_fail_at = k_idx;
     ASSERT_WRITER_RC(openapi_write_spec_to_json(&s, &json));
     if (json) {
@@ -206,7 +331,7 @@ TEST test_openapi_writer_component_returns_and_root_oom(void) {
   memset(&s, 0, sizeof(s));
   s.paths = &path;
   s.n_paths = 1;
-  for (k_idx = 0; k_idx < 15; ++k_idx) {
+  for (k_idx = 0; k_idx < 45; ++k_idx) {
     g_parson_oom_fail_at = k_idx;
     ASSERT_WRITER_RC(openapi_write_spec_to_json(&s, &json));
     if (json) {
@@ -246,7 +371,11 @@ TEST test_openapi_writer_strike_last_19(void) {
   char *json = NULL;
   int k;
 
-  val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   obj = json_value_get_object(val);
   names[0] = cdd_test_mut_str("item");
 
@@ -415,7 +544,11 @@ TEST test_openapi_writer_nail_last_11(void) {
   /* 1. Lines 1643-1644, 1681-1682, 1764-1766 with fresh JSON object each time
    */
   for (k = 0; k < 20; ++k) {
-    val = json_value_init_object();
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      val = _cdd_jv_1;
+    }
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
@@ -424,7 +557,11 @@ TEST test_openapi_writer_nail_last_11(void) {
     json_value_free(val);
   }
   for (k = 0; k < 20; ++k) {
-    val = json_value_init_object();
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      val = _cdd_jv_1;
+    }
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
@@ -433,7 +570,11 @@ TEST test_openapi_writer_nail_last_11(void) {
     json_value_free(val);
   }
   for (k = 0; k < 20; ++k) {
-    val = json_value_init_object();
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      val = _cdd_jv_1;
+    }
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
@@ -452,7 +593,11 @@ TEST test_openapi_writer_nail_last_11(void) {
   op_no_body.n_responses = 1;
 
   for (k = 0; k < 10; ++k) {
-    val = json_value_init_object();
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      val = _cdd_jv_1;
+    }
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
@@ -470,7 +615,11 @@ TEST test_openapi_writer_nail_last_11(void) {
   path_ops.n_operations = 1;
 
   for (k = 0; k < 10; ++k) {
-    val = json_value_init_object();
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      val = _cdd_jv_1;
+    }
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
@@ -508,7 +657,11 @@ TEST test_openapi_writer_nail_last_11(void) {
     memset(srv_dummy, 0, sizeof(srv_dummy));
     path_srv_fail.servers = srv_dummy;
     path_srv_fail.n_servers = 1;
-    val = json_value_init_object();
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      val = _cdd_jv_1;
+    }
     obj = json_value_get_object(val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = 0;

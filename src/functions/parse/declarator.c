@@ -246,10 +246,11 @@ cdd_c_error_t decl_info_init(struct DeclInfo *info) {
  * @brief Frees the memory associated with a DeclType node and its inner chain.
  *
  * @param[in] t Node to free.
+ * @return CDD_C_SUCCESS.
  */
-static void free_decl_type(struct DeclType *t) {
+static cdd_c_error_t free_decl_type(struct DeclType *t) {
   if (!t)
-    return;
+    return CDD_C_SUCCESS;
   free_decl_type(t->inner);
   switch (t->kind) {
   case DECL_BASE:
@@ -270,16 +271,18 @@ static void free_decl_type(struct DeclType *t) {
     break;
   }
   C_CDD_FREE(t);
+  return CDD_C_SUCCESS;
 }
 
 /*
  * @brief Frees resources in a DeclInfo structure.
  *
  * @param[in,out] info Pointer to the DeclInfo structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void decl_info_free(struct DeclInfo *info) {
+cdd_c_error_t decl_info_free(struct DeclInfo *info) {
   if (!info)
-    return;
+    return CDD_C_SUCCESS;
   if (info->identifier) {
     C_CDD_FREE(info->identifier);
     info->identifier = NULL;
@@ -288,6 +291,7 @@ void decl_info_free(struct DeclInfo *info) {
     free_decl_type(info->type);
     info->type = NULL;
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -899,6 +903,9 @@ cdd_c_error_t cdd_test_find_pivot(const struct TokenList *tokens, size_t start,
 /**
  * @brief Frees a DeclType node for unit testing.
  * @param[in] t Node to free.
+ * @return CDD_C_SUCCESS.
  */
-void cdd_test_free_decl_type(struct DeclType *t) { free_decl_type(t); }
+cdd_c_error_t cdd_test_free_decl_type(struct DeclType *t) {
+  return free_decl_type(t);
+}
 #endif

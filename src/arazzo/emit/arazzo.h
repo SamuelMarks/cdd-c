@@ -16,7 +16,7 @@
 #include "arazzo/parse/arazzo_types.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
-#include <parson.h>
+#include "c_cdd/json_dom.h"
 /* clang-format on */
 
 #ifdef __cplusplus
@@ -46,6 +46,37 @@ C_CDD_EXPORT cdd_c_error_t arazzo_write_spec_to_json_value(
  */
 C_CDD_EXPORT cdd_c_error_t
 arazzo_write_spec_to_json(const struct Arazzo_Spec *spec, char **out_json);
+
+/**
+ * @brief Serializes an `Arazzo_Info` structure into a `JSON_Object`.
+ *
+ * @param[in] info Source `Arazzo_Info` structure.
+ * @param[in,out] info_obj Destination `JSON_Object`.
+ * @return `CDD_C_SUCCESS` on success, or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t Arazzo_Info_to_jsonObject(
+    const struct Arazzo_Info *info, JSON_Object *info_obj);
+
+/**
+ * @brief Serializes an `Arazzo_SourceDescription` structure into a
+ * `JSON_Object`.
+ *
+ * @param[in] sd Source `Arazzo_SourceDescription` structure.
+ * @param[in,out] sd_obj Destination `JSON_Object`.
+ * @return `CDD_C_SUCCESS` on success, or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t Arazzo_SourceDescription_to_jsonObject(
+    const struct Arazzo_SourceDescription *sd, JSON_Object *sd_obj);
+
+/**
+ * @brief Serializes an `Arazzo_Criterion` structure into a `JSON_Object`.
+ *
+ * @param[in] crit Source `Arazzo_Criterion` structure.
+ * @param[in,out] cobj Destination `JSON_Object`.
+ * @return `CDD_C_SUCCESS` on success, or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t Arazzo_Criterion_to_jsonObject(
+    const struct Arazzo_Criterion *crit, JSON_Object *cobj);
 
 #ifdef __cplusplus
 }

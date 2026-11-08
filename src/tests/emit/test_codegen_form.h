@@ -155,6 +155,47 @@ TEST test_form_generation_basic(void) {
       struct_fields_free(&sf_bad);
     }
 
+    {
+      struct StructFields sf_no_flat;
+      ASSERT_EQ(0, struct_fields_init(&sf_no_flat));
+      struct_fields_add(&sf_no_flat, "ro_f", "string", NULL, NULL, NULL);
+      sf_no_flat.fields[sf_no_flat.size - 1].read_only = 1;
+      struct_fields_add(&sf_no_flat, "skip_ser", "string", NULL, NULL, NULL);
+      sf_no_flat.fields[sf_no_flat.size - 1].serde_skip_serializing = 1;
+      struct_fields_add(&sf_no_flat, "skip_f", "string", NULL, NULL, NULL);
+      sf_no_flat.fields[sf_no_flat.size - 1].serde_skip = 1;
+      struct_fields_add(&sf_no_flat, "skip_de", "string", NULL, NULL, NULL);
+      sf_no_flat.fields[sf_no_flat.size - 1].serde_skip_deserializing = 1;
+      struct_fields_add(&sf_no_flat, "nested", "object",
+                        "#/components/schemas/Nested", NULL, NULL);
+      ASSERT_EQ(CDD_C_SUCCESS, write_struct_to_form_urlencoded_func(
+                                   tmp, "NoFlatForm", &sf_no_flat));
+      ASSERT_EQ(CDD_C_SUCCESS, write_struct_from_form_urlencoded_func(
+                                   tmp, "NoFlatForm", &sf_no_flat));
+#ifdef CDD_BUILD_TESTS
+      {
+        extern C_CDD_EXPORT int g_cdd_fail_str_after_last;
+        g_cdd_fail_str_after_last = 1;
+        ASSERT_NEQ(CDD_C_SUCCESS, write_struct_from_form_urlencoded_func(
+                                      tmp, "NoFlatForm", &sf_no_flat));
+        g_cdd_fail_str_after_last = 1;
+        ASSERT_NEQ(CDD_C_SUCCESS, write_struct_to_form_urlencoded_func(
+                                      tmp, "NoFlatForm", &sf_no_flat));
+        g_cdd_fail_str_after_last = 1;
+        ASSERT_NEQ(CDD_C_SUCCESS, write_struct_to_form_urlencoded_func(
+                                      tmp, "AuthRequest", &sf));
+        g_cdd_fail_str_after_last = 1;
+        ASSERT_NEQ(CDD_C_SUCCESS, write_struct_from_form_urlencoded_func(
+                                      tmp, "AuthRequest", &sf));
+        g_cdd_fail_str_after_last = 2;
+        ASSERT_NEQ(CDD_C_SUCCESS, write_struct_from_form_urlencoded_func(
+                                      tmp, "AuthRequest", &sf));
+        g_cdd_fail_str_after_last = 0;
+      }
+#endif
+      struct_fields_free(&sf_no_flat);
+    }
+
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);

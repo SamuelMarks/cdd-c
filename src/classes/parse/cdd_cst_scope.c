@@ -54,14 +54,16 @@ cdd_c_error_t cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
  * @brief Frees a linked list of scope symbols.
  *
  * @param[in] sym Head of the symbol linked list to free.
+ * @return CDD_C_SUCCESS.
  */
-static void free_symbols(cdd_cst_symbol_t *sym) {
+static cdd_c_error_t free_symbols(cdd_cst_symbol_t *sym) {
   while (sym) {
     cdd_cst_symbol_t *next = sym->next;
     C_CDD_FREE(sym->name);
     C_CDD_FREE(sym);
     sym = next;
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -69,11 +71,12 @@ static void free_symbols(cdd_cst_symbol_t *sym) {
  * symbols.
  *
  * @param[in] scope Scope to free.
+ * @return CDD_C_SUCCESS.
  */
-static void free_scope(cdd_cst_scope_t *scope) {
+static cdd_c_error_t free_scope(cdd_cst_scope_t *scope) {
   size_t i;
   if (!scope)
-    return;
+    return CDD_C_SUCCESS;
   free_symbols(scope->symbols);
   for (i = 0; i < scope->num_children; i++) {
     free_scope(scope->children[i]);
@@ -81,18 +84,21 @@ static void free_scope(cdd_cst_scope_t *scope) {
   if (scope->children)
     C_CDD_FREE(scope->children);
   C_CDD_FREE(scope);
+  return CDD_C_SUCCESS;
 }
 
 /*
  * @brief Frees a CST lexical scope environment and all scopes within it.
  *
  * @param[in,out] env Pointer to the scope environment to free.
+ * @return CDD_C_SUCCESS.
  */
-void cdd_cst_scope_env_free(cdd_cst_scope_env_t *env) {
+cdd_c_error_t cdd_cst_scope_env_free(cdd_cst_scope_env_t *env) {
   if (!env)
-    return;
+    return CDD_C_SUCCESS;
   free_scope(env->global_scope);
   C_CDD_FREE(env);
+  return CDD_C_SUCCESS;
 }
 
 /*

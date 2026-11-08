@@ -18,7 +18,7 @@
  */
 cdd_c_error_t c2s_collect_string_array(const JSON_Array *arr, char ***out,
                                        size_t *out_count) {
-  size_t i, count;
+  size_t i, count = 0;
   char **vals;
   if (!out || !out_count)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -26,7 +26,7 @@ cdd_c_error_t c2s_collect_string_array(const JSON_Array *arr, char ***out,
   *out_count = 0;
   if (!arr)
     return CDD_C_SUCCESS;
-  count = json_array_get_count(arr);
+  cdd_json_array_get_count(arr, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
   vals = (char **)C_CDD_CALLOC(count, sizeof(char *));
@@ -35,7 +35,8 @@ cdd_c_error_t c2s_collect_string_array(const JSON_Array *arr, char ***out,
     return CDD_C_ERROR_MEMORY;
   }
   for (i = 0; i < count; ++i) {
-    const char *s = json_array_get_string(arr, i);
+    const char *s = NULL;
+    cdd_json_array_get_string(arr, i, &s);
     if (s) {
       {
         cdd_c_error_t rc_c2s = c_cdd_strdup(s, &vals[i]);
@@ -63,19 +64,19 @@ cdd_c_error_t c2s_collect_string_array(const JSON_Array *arr, char ***out,
  */
 cdd_c_error_t c2s_collect_property_names(const JSON_Object *schema_obj,
                                          char ***out, size_t *out_count) {
-  size_t i, count;
+  size_t i, count = 0;
   char **vals;
-  const JSON_Object *props;
+  JSON_Object *props = NULL;
   if (!out || !out_count)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out = NULL;
   *out_count = 0;
   if (!schema_obj)
     return CDD_C_SUCCESS;
-  props = json_object_get_object(schema_obj, "properties");
+  cdd_json_object_get_object(schema_obj, "properties", &props);
   if (!props)
     return CDD_C_SUCCESS;
-  count = json_object_get_count(props);
+  cdd_json_object_get_count(props, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
   vals = (char **)C_CDD_CALLOC(count, sizeof(char *));
@@ -84,7 +85,8 @@ cdd_c_error_t c2s_collect_property_names(const JSON_Object *schema_obj,
     return CDD_C_ERROR_MEMORY;
   }
   for (i = 0; i < count; ++i) {
-    const char *name = json_object_get_name(props, i);
+    const char *name = NULL;
+    cdd_json_object_get_name(props, i, &name);
     {
       cdd_c_error_t rc_c2s = c_cdd_strdup(name, &vals[i]);
       if (rc_c2s != CDD_C_SUCCESS) {

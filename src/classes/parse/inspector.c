@@ -58,11 +58,12 @@ cdd_c_error_t type_def_list_init(struct TypeDefList *list) {
  * @brief Releases memory held by a C type definition list.
  *
  * @param[in,out] list Pointer to the TypeDefList structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void type_def_list_free(struct TypeDefList *list) {
+cdd_c_error_t type_def_list_free(struct TypeDefList *list) {
   size_t i;
   if (!list)
-    return;
+    return CDD_C_SUCCESS;
   if (list->items) {
     for (i = 0; i < list->size; ++i) {
       if (list->items[i].name)
@@ -84,6 +85,7 @@ void type_def_list_free(struct TypeDefList *list) {
   }
   list->size = 0;
   list->capacity = 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -817,11 +819,12 @@ cdd_c_error_t func_sig_list_init(struct FuncSigList *list) {
  * @brief Releases memory held by a C function signature list.
  *
  * @param[in,out] list Pointer to the FuncSigList structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void func_sig_list_free(struct FuncSigList *list) {
+cdd_c_error_t func_sig_list_free(struct FuncSigList *list) {
   size_t i;
   if (!list)
-    return;
+    return CDD_C_SUCCESS;
   if (list->items) {
     for (i = 0; i < list->size; ++i) {
       C_CDD_FREE(list->items[i].name);
@@ -836,6 +839,7 @@ void func_sig_list_free(struct FuncSigList *list) {
   }
   list->size = 0;
   list->capacity = 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -1041,8 +1045,7 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
             } else if (tk == TOKEN_RPAREN) {
               depth--;
             }
-            if ((depth == 1 && tk == TOKEN_COMMA) ||
-                (depth == 0 && tk == TOKEN_RPAREN)) {
+            if ((depth == 1 && tk == TOKEN_COMMA) || depth == 0) {
               size_t p_end = cur;
               size_t last_id = p_end;
               size_t scan_p;

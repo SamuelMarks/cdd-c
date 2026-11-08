@@ -79,9 +79,22 @@ TEST test_schema_codegen_cli_exhaustive_io(void) {
     g_schema_fail_io_after = i;
     g_schema_io_calls = 0;
 
-    root = json_parse_file("test_codegen_schema_io.json");
-    schemas = json_object_get_object(json_value_get_object(root), "components");
-    schemas = json_object_get_object(schemas, "schemas");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_file("test_codegen_schema_io.json", &_cdd_jv_1);
+      root = _cdd_jv_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(json_value_get_object(root), "components",
+                                 &_cdd_jo_1);
+      schemas = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(schemas, "schemas", &_cdd_jo_1);
+      schemas = _cdd_jo_1;
+    }
 
     rc = generate_header("test_codegen_schema_io.json", "out_prefix", schemas,
                          NULL);
@@ -148,10 +161,24 @@ TEST test_schema_codegen_union_arrays(void) {
   ASSERT_EQ(0, rc);
 
   {
-    void *root = json_parse_file(filename);
-    void *schemas =
-        json_object_get_object(json_value_get_object(root), "components");
-    schemas = json_object_get_object(schemas, "schemas");
+    void *root = NULL;
+    void *schemas = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_file(filename, &_cdd_jv_1);
+      root = _cdd_jv_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(json_value_get_object(root), "components",
+                                 &_cdd_jo_1);
+      schemas = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(schemas, "schemas", &_cdd_jo_1);
+      schemas = _cdd_jo_1;
+    }
     rc = generate_header(filename, argv[1], schemas, NULL);
     if (rc == 0)
       rc = generate_source(filename, argv[1], schemas, NULL);
@@ -378,9 +405,22 @@ TEST test_schema_codegen_init_fail(void) {
     fclose(f);
   }
 
-  root = json_parse_file("test_codegen_schema_init.json");
-  schemas = json_object_get_object(json_value_get_object(root), "components");
-  schemas = json_object_get_object(schemas, "schemas");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_file("test_codegen_schema_init.json", &_cdd_jv_1);
+    root = _cdd_jv_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(json_value_get_object(root), "components",
+                               &_cdd_jo_1);
+    schemas = _cdd_jo_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(schemas, "schemas", &_cdd_jo_1);
+    schemas = _cdd_jo_1;
+  }
 
   g_cdd_alloc_fail = 1;
   rc = generate_header("test_out2", "basename", schemas, NULL);
@@ -430,9 +470,22 @@ TEST test_schema_codegen_parse_error(void) {
     fclose(f);
   }
 
-  root = json_parse_file("test_codegen_schema_parse.json");
-  schemas = json_object_get_object(json_value_get_object(root), "components");
-  schemas = json_object_get_object(schemas, "schemas");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_file("test_codegen_schema_parse.json", &_cdd_jv_1);
+    root = _cdd_jv_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(json_value_get_object(root), "components",
+                               &_cdd_jo_1);
+    schemas = _cdd_jo_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(schemas, "schemas", &_cdd_jo_1);
+    schemas = _cdd_jo_1;
+  }
 
   rc = generate_header("test_out", "basename", schemas, NULL);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
@@ -469,9 +522,22 @@ TEST test_schema_codegen_source_fail(void) {
     fclose(f);
   }
 
-  root = json_parse_file("test_codegen_schema_io.json");
-  schemas = json_object_get_object(json_value_get_object(root), "components");
-  schemas = json_object_get_object(schemas, "schemas");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_file("test_codegen_schema_io.json", &_cdd_jv_1);
+    root = _cdd_jv_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(json_value_get_object(root), "components",
+                               &_cdd_jo_1);
+    schemas = _cdd_jo_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(schemas, "schemas", &_cdd_jo_1);
+    schemas = _cdd_jo_1;
+  }
 
   remove("test_out_source.c");
   rmdir("test_out_source.c");
@@ -519,9 +585,22 @@ TEST test_schema_codegen_system_error(void) {
     fclose(f);
   }
 
-  root = json_parse_file("test_codegen_schema_io.json");
-  schemas = json_object_get_object(json_value_get_object(root), "components");
-  schemas = json_object_get_object(schemas, "schemas");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_file("test_codegen_schema_io.json", &_cdd_jv_1);
+    root = _cdd_jv_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(json_value_get_object(root), "components",
+                               &_cdd_jo_1);
+    schemas = _cdd_jo_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(schemas, "schemas", &_cdd_jo_1);
+    schemas = _cdd_jo_1;
+  }
 
   rc = generate_header("/invalid/path/prefix", "basename", schemas, NULL);
   ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
@@ -594,10 +673,23 @@ TEST test_schema_codegen_non_object_no_props(void) {
       "\"SimpleStr\": {\"type\": \"string\"},"
       "\"NoTypeWithProps\": {\"properties\": {\"bar\": {\"type\": \"string\"}}}"
       "}}}";
-  root = json_parse_string(schema_json);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(schema_json, &_cdd_jv_1);
+    root = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, root);
-  schemas = json_object_get_object(json_value_get_object(root), "components");
-  schemas = json_object_get_object(schemas, "schemas");
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(json_value_get_object(root), "components",
+                               &_cdd_jo_1);
+    schemas = _cdd_jo_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(schemas, "schemas", &_cdd_jo_1);
+    schemas = _cdd_jo_1;
+  }
   rc = generate_header("test_simple_str", "test_simple_str", schemas, NULL);
   ASSERT_EQ(0, rc);
   rc = generate_source("test_simple_str", "test_simple_str", schemas, NULL);

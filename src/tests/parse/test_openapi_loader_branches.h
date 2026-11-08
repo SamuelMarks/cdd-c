@@ -148,7 +148,12 @@ TEST test_openapi_loader_uri_and_schema_ref_branches(void) {
         "\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{"
         "\"username\":{\"type\":\"string\"}}}}}}},"
         "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
-    JSON_Value *jv = json_parse_string(array_rb_json);
+    JSON_Value *jv = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(array_rb_json, &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     if (jv) {
       memset(&spec, 0, sizeof(spec));
       rc = openapi_load_from_json(jv, &spec);
@@ -210,9 +215,14 @@ TEST test_openapi_loader_media_type_and_response_examples(void) {
   ASSERT_EQ(CDD_C_SUCCESS, find_media_object_by_name(NULL, NULL, &jo_out));
   ASSERT(jo_out == NULL);
 
-  jv_content = json_parse_string(
-      "{\"application/json\":{\"schema\":{\"type\":\"string\"}},\"text/html; "
-      "charset=utf-8\":{\"schema\":{\"type\":\"string\"}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"application/json\":{\"schema\":{\"type\":\"string\"}},\"text/html; "
+        "charset=utf-8\":{\"schema\":{\"type\":\"string\"}}}",
+        &_cdd_jv_1);
+    jv_content = _cdd_jv_1;
+  }
   if (jv_content) {
     jo_content = json_value_get_object(jv_content);
 
@@ -241,7 +251,11 @@ TEST test_openapi_loader_media_type_and_response_examples(void) {
         "\"string\"},\"examples\":{\"ex1\":{\"value\":\"v1\"},\"ex2\":{"
         "\"value\":"
         "\"v2\"}}}}}}}}}}";
-    jv = json_parse_string(resp_ex_json);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(resp_ex_json, &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     if (jv) {
       memset(&spec, 0, sizeof(spec));
       rc = openapi_load_from_json(jv, &spec);
@@ -267,7 +281,11 @@ TEST test_openapi_loader_media_type_and_response_examples(void) {
         "\"description\":"
         "\"OK\",\"headers\":{\"X-Hdr\":{\"content\":{\"application/json\":{"
         "\"itemSchema\":{\"type\":\"string\"},\"example\":\"abc\"}}}}}}}}}}";
-    jv = json_parse_string(item_schema_json);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(item_schema_json, &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     if (jv) {
       memset(&spec, 0, sizeof(spec));
       rc = openapi_load_from_json(jv, &spec);
@@ -300,11 +318,16 @@ TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
   memset(&sref, 0, sizeof(sref));
   ASSERT_EQ(CDD_C_SUCCESS, parse_schema_ref(NULL, &sref, NULL));
 
-  jv = json_parse_string(
-      "{\"$ref\":\"#/components/schemas/Bar\",\"summary\":\"Bar "
-      "Sum\",\"description\":\"Bar Desc\",\"format\":\"custom\","
-      "\"contentMediaType\":\"text/plain\",\"contentEncoding\":\"utf-8\","
-      "\"externalDocs\":{\"url\":\"http://docs\"}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"$ref\":\"#/components/schemas/Bar\",\"summary\":\"Bar "
+        "Sum\",\"description\":\"Bar Desc\",\"format\":\"custom\","
+        "\"contentMediaType\":\"text/plain\",\"contentEncoding\":\"utf-8\","
+        "\"externalDocs\":{\"url\":\"http://docs\"}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&sref, 0, sizeof(sref));
@@ -321,11 +344,17 @@ TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
     json_value_free(jv);
   }
 
-  jv = json_parse_string(
-      "{\"type\":\"array\",\"items\":{\"type\":\"string\",\"format\":\"byte\","
-      "\"contentMediaType\":\"image/png\",\"contentEncoding\":\"base64\","
-      "\"enum\":[\"a\"],\"examples\":[\"ex\"],\"const\":\"a\",\"default\":"
-      "\"a\"}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"type\":\"array\",\"items\":{\"type\":\"string\",\"format\":"
+        "\"byte\","
+        "\"contentMediaType\":\"image/png\",\"contentEncoding\":\"base64\","
+        "\"enum\":[\"a\"],\"examples\":[\"ex\"],\"const\":\"a\",\"default\":"
+        "\"a\"}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&sref, 0, sizeof(sref));
@@ -350,7 +379,11 @@ TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
         "\"/v1\",\"schemes\":[\"https\",\"http\"],\"consumes\":[\"application/"
         "json\"],\"produces\":[\"application/json\"],\"paths\":{\"/items\":{"
         "\"get\":{\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
-    jv = json_parse_string(swagger2_json);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(swagger2_json, &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     if (jv) {
       memset(&spec, 0, sizeof(spec));
       rc = openapi_load_from_json(jv, &spec);
@@ -376,7 +409,11 @@ TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
         "\"OK\"}}}}}},\"paths\":{\"/items\":{\"$ref\":\"#/components/"
         "pathItems/Item\",\"summary\":\"Overridden "
         "Summary\",\"description\":\"Overridden Description\"}}}";
-    jv = json_parse_string(path_override_json);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(path_override_json, &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     if (jv) {
       memset(&spec, 0, sizeof(spec));
       rc = openapi_load_from_json(jv, &spec);
@@ -391,7 +428,12 @@ TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
 
   /* 4. Root object invalid type for openapi_load_from_json */
   {
-    JSON_Value *jv_int = json_parse_string("123");
+    JSON_Value *jv_int = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("123", &_cdd_jv_1);
+      jv_int = _cdd_jv_1;
+    }
     if (jv_int) {
       memset(&spec, 0, sizeof(spec));
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,

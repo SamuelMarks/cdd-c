@@ -17,20 +17,20 @@
  */
 C_CDD_EXPORT cdd_c_error_t parse_component_parameters(
     const JSON_Object *components, struct OpenAPI_Spec *out) {
-  const JSON_Object *params;
-  size_t count, i;
+  JSON_Object *params = NULL;
+  size_t count = 0, i;
 
   if (!components || !out)
     return CDD_C_SUCCESS;
 
-  params = json_object_get_object(components, "parameters");
+  cdd_json_object_get_object(components, "parameters", &params);
   if (!params)
     return CDD_C_SUCCESS;
 
   if (validate_component_key_map(params) != 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  count = json_object_get_count(params);
+  cdd_json_object_get_count(params, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -42,9 +42,12 @@ C_CDD_EXPORT cdd_c_error_t parse_component_parameters(
     return CDD_C_ERROR_MEMORY;
 
   for (i = 0; i < count; ++i) {
-    const char *name = json_object_get_name(params, i);
-    const JSON_Object *p_obj =
-        json_value_get_object(json_object_get_value_at(params, i));
+    const char *name = NULL;
+    JSON_Value *val_at = NULL;
+    JSON_Object *p_obj = NULL;
+    cdd_json_object_get_name(params, i, &name);
+    cdd_json_object_get_value_at(params, i, &val_at);
+    cdd_json_value_get_object(val_at, &p_obj);
     c_cdd_strdup(name, &out->component_parameter_names[i]);
     if (!out->component_parameter_names[i])
       return CDD_C_ERROR_MEMORY;
@@ -68,20 +71,20 @@ C_CDD_EXPORT cdd_c_error_t parse_component_parameters(
  */
 C_CDD_EXPORT cdd_c_error_t parse_component_responses(
     const JSON_Object *components, struct OpenAPI_Spec *out) {
-  const JSON_Object *responses;
-  size_t count, i;
+  JSON_Object *responses = NULL;
+  size_t count = 0, i;
 
   if (!components || !out)
     return CDD_C_SUCCESS;
 
-  responses = json_object_get_object(components, "responses");
+  cdd_json_object_get_object(components, "responses", &responses);
   if (!responses)
     return CDD_C_SUCCESS;
 
   if (validate_component_key_map(responses) != 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  count = json_object_get_count(responses);
+  cdd_json_object_get_count(responses, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -93,9 +96,12 @@ C_CDD_EXPORT cdd_c_error_t parse_component_responses(
     return CDD_C_ERROR_MEMORY;
 
   for (i = 0; i < count; ++i) {
-    const char *name = json_object_get_name(responses, i);
-    const JSON_Object *r_obj =
-        json_value_get_object(json_object_get_value_at(responses, i));
+    const char *name = NULL;
+    JSON_Value *val_at = NULL;
+    JSON_Object *r_obj = NULL;
+    cdd_json_object_get_name(responses, i, &name);
+    cdd_json_object_get_value_at(responses, i, &val_at);
+    cdd_json_value_get_object(val_at, &r_obj);
     c_cdd_strdup(name, &out->component_response_names[i]);
     if (!out->component_response_names[i])
       return CDD_C_ERROR_MEMORY;
@@ -121,20 +127,20 @@ C_CDD_EXPORT cdd_c_error_t parse_component_responses(
  */
 C_CDD_EXPORT cdd_c_error_t parse_component_headers(
     const JSON_Object *components, struct OpenAPI_Spec *out) {
-  const JSON_Object *headers;
-  size_t count, i;
+  JSON_Object *headers = NULL;
+  size_t count = 0, i;
 
   if (!components || !out)
     return CDD_C_SUCCESS;
 
-  headers = json_object_get_object(components, "headers");
+  cdd_json_object_get_object(components, "headers", &headers);
   if (!headers)
     return CDD_C_SUCCESS;
 
   if (validate_component_key_map(headers) != 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  count = json_object_get_count(headers);
+  cdd_json_object_get_count(headers, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -146,9 +152,12 @@ C_CDD_EXPORT cdd_c_error_t parse_component_headers(
     return CDD_C_ERROR_MEMORY;
 
   for (i = 0; i < count; ++i) {
-    const char *name = json_object_get_name(headers, i);
-    const JSON_Object *h_obj =
-        json_value_get_object(json_object_get_value_at(headers, i));
+    const char *name = NULL;
+    JSON_Value *val_at = NULL;
+    JSON_Object *h_obj = NULL;
+    cdd_json_object_get_name(headers, i, &name);
+    cdd_json_object_get_value_at(headers, i, &val_at);
+    cdd_json_value_get_object(val_at, &h_obj);
     c_cdd_strdup(name, &out->component_header_names[i]);
     if (!out->component_header_names[i])
       return CDD_C_ERROR_MEMORY;
@@ -172,20 +181,20 @@ C_CDD_EXPORT cdd_c_error_t parse_component_headers(
  */
 C_CDD_EXPORT cdd_c_error_t parse_component_request_bodies(
     const JSON_Object *components, struct OpenAPI_Spec *out) {
-  const JSON_Object *bodies;
-  size_t count, i;
+  JSON_Object *bodies = NULL;
+  size_t count = 0, i;
 
   if (!components || !out)
     return CDD_C_SUCCESS;
 
-  bodies = json_object_get_object(components, "requestBodies");
+  cdd_json_object_get_object(components, "requestBodies", &bodies);
   if (!bodies)
     return CDD_C_SUCCESS;
 
   if (validate_component_key_map(bodies) != 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  count = json_object_get_count(bodies);
+  cdd_json_object_get_count(bodies, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -198,9 +207,12 @@ C_CDD_EXPORT cdd_c_error_t parse_component_request_bodies(
     return CDD_C_ERROR_MEMORY;
 
   for (i = 0; i < count; ++i) {
-    const char *name = json_object_get_name(bodies, i);
-    const JSON_Object *rb_obj =
-        json_value_get_object(json_object_get_value_at(bodies, i));
+    const char *name = NULL;
+    JSON_Value *val_at = NULL;
+    JSON_Object *rb_obj = NULL;
+    cdd_json_object_get_name(bodies, i, &name);
+    cdd_json_object_get_value_at(bodies, i, &val_at);
+    cdd_json_value_get_object(val_at, &rb_obj);
     c_cdd_strdup(name, &out->component_request_body_names[i]);
     if (!out->component_request_body_names[i])
       return CDD_C_ERROR_MEMORY;
@@ -226,20 +238,20 @@ C_CDD_EXPORT cdd_c_error_t parse_component_request_bodies(
  */
 C_CDD_EXPORT cdd_c_error_t parse_component_media_types(
     const JSON_Object *components, struct OpenAPI_Spec *out) {
-  const JSON_Object *media_types;
-  size_t count, i;
+  JSON_Object *media_types = NULL;
+  size_t count = 0, i;
 
   if (!components || !out)
     return CDD_C_SUCCESS;
 
-  media_types = json_object_get_object(components, "mediaTypes");
+  cdd_json_object_get_object(components, "mediaTypes", &media_types);
   if (!media_types)
     return CDD_C_SUCCESS;
 
   if (validate_media_type_key_map(media_types) != 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  count = json_object_get_count(media_types);
+  cdd_json_object_get_count(media_types, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -252,10 +264,13 @@ C_CDD_EXPORT cdd_c_error_t parse_component_media_types(
     return CDD_C_ERROR_MEMORY;
 
   for (i = 0; i < count; ++i) {
-    const char *name = json_object_get_name(media_types, i);
-    const JSON_Object *mt_obj =
-        json_value_get_object(json_object_get_value_at(media_types, i));
+    const char *name = NULL;
+    JSON_Value *val_at = NULL;
+    JSON_Object *mt_obj = NULL;
     struct OpenAPI_MediaType *curr = &out->component_media_types[i];
+    cdd_json_object_get_name(media_types, i, &name);
+    cdd_json_object_get_value_at(media_types, i, &val_at);
+    cdd_json_value_get_object(val_at, &mt_obj);
 
     c_cdd_strdup(name, &out->component_media_type_names[i]);
     if (!out->component_media_type_names[i])
@@ -283,20 +298,20 @@ C_CDD_EXPORT cdd_c_error_t parse_component_media_types(
  */
 C_CDD_EXPORT cdd_c_error_t parse_component_examples(
     const JSON_Object *components, struct OpenAPI_Spec *out) {
-  const JSON_Object *examples;
-  size_t count, i;
+  JSON_Object *examples = NULL;
+  size_t count = 0, i;
 
   if (!components || !out)
     return CDD_C_SUCCESS;
 
-  examples = json_object_get_object(components, "examples");
+  cdd_json_object_get_object(components, "examples", &examples);
   if (!examples)
     return CDD_C_SUCCESS;
 
   if (validate_component_key_map(examples) != 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  count = json_object_get_count(examples);
+  cdd_json_object_get_count(examples, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -308,9 +323,12 @@ C_CDD_EXPORT cdd_c_error_t parse_component_examples(
     return CDD_C_ERROR_MEMORY;
 
   for (i = 0; i < count; ++i) {
-    const char *name = json_object_get_name(examples, i);
-    const JSON_Object *ex_obj =
-        json_value_get_object(json_object_get_value_at(examples, i));
+    const char *name = NULL;
+    JSON_Value *val_at = NULL;
+    JSON_Object *ex_obj = NULL;
+    cdd_json_object_get_name(examples, i, &name);
+    cdd_json_object_get_value_at(examples, i, &val_at);
+    cdd_json_value_get_object(val_at, &ex_obj);
     c_cdd_strdup(name, &out->component_example_names[i]);
     if (!out->component_example_names[i])
       return CDD_C_ERROR_MEMORY;
@@ -334,20 +352,20 @@ C_CDD_EXPORT cdd_c_error_t parse_component_examples(
  */
 C_CDD_EXPORT cdd_c_error_t parse_component_links(const JSON_Object *components,
                                                  struct OpenAPI_Spec *out) {
-  const JSON_Object *links;
-  size_t count, i;
+  JSON_Object *links = NULL;
+  size_t count = 0, i;
 
   if (!components || !out)
     return CDD_C_SUCCESS;
 
-  links = json_object_get_object(components, "links");
+  cdd_json_object_get_object(components, "links", &links);
   if (!links)
     return CDD_C_SUCCESS;
 
   if (validate_component_key_map(links) != 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  count = json_object_get_count(links);
+  cdd_json_object_get_count(links, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -358,10 +376,13 @@ C_CDD_EXPORT cdd_c_error_t parse_component_links(const JSON_Object *components,
   out->n_component_links = count;
 
   for (i = 0; i < count; ++i) {
-    const char *name = json_object_get_name(links, i);
-    const JSON_Object *link_obj =
-        json_value_get_object(json_object_get_value_at(links, i));
+    const char *name = NULL;
+    JSON_Value *val_at = NULL;
+    JSON_Object *link_obj = NULL;
     struct OpenAPI_Link *curr = &out->component_links[i];
+    cdd_json_object_get_name(links, i, &name);
+    cdd_json_object_get_value_at(links, i, &val_at);
+    cdd_json_value_get_object(val_at, &link_obj);
     c_cdd_strdup(name, &curr->name);
     if (!curr->name)
       return CDD_C_ERROR_MEMORY;
@@ -384,20 +405,20 @@ C_CDD_EXPORT cdd_c_error_t parse_component_links(const JSON_Object *components,
  */
 C_CDD_EXPORT cdd_c_error_t parse_component_callbacks(
     const JSON_Object *components, struct OpenAPI_Spec *out) {
-  const JSON_Object *callbacks;
-  size_t count, i;
+  JSON_Object *callbacks = NULL;
+  size_t count = 0, i;
 
   if (!components || !out)
     return CDD_C_SUCCESS;
 
-  callbacks = json_object_get_object(components, "callbacks");
+  cdd_json_object_get_object(components, "callbacks", &callbacks);
   if (!callbacks)
     return CDD_C_SUCCESS;
 
   if (validate_component_key_map(callbacks) != 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  count = json_object_get_count(callbacks);
+  cdd_json_object_get_count(callbacks, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -408,10 +429,13 @@ C_CDD_EXPORT cdd_c_error_t parse_component_callbacks(
   out->n_component_callbacks = count;
 
   for (i = 0; i < count; ++i) {
-    const char *name = json_object_get_name(callbacks, i);
-    const JSON_Object *cb_obj =
-        json_value_get_object(json_object_get_value_at(callbacks, i));
+    const char *name = NULL;
+    JSON_Value *val_at = NULL;
+    JSON_Object *cb_obj = NULL;
     struct OpenAPI_Callback *curr = &out->component_callbacks[i];
+    cdd_json_object_get_name(callbacks, i, &name);
+    cdd_json_object_get_value_at(callbacks, i, &val_at);
+    cdd_json_value_get_object(val_at, &cb_obj);
     c_cdd_strdup(name, &curr->name);
     if (!curr->name)
       return CDD_C_ERROR_MEMORY;
@@ -434,14 +458,14 @@ C_CDD_EXPORT cdd_c_error_t parse_component_callbacks(
  */
 C_CDD_EXPORT cdd_c_error_t parse_component_path_items(
     const JSON_Object *components, struct OpenAPI_Spec *out) {
-  const JSON_Object *path_items;
+  JSON_Object *path_items = NULL;
   size_t i;
   cdd_c_error_t rc;
 
   if (!components || !out)
     return CDD_C_SUCCESS;
 
-  path_items = json_object_get_object(components, "pathItems");
+  cdd_json_object_get_object(components, "pathItems", &path_items);
   if (!path_items)
     return CDD_C_SUCCESS;
 
@@ -480,8 +504,8 @@ C_CDD_EXPORT cdd_c_error_t parse_component_path_items(
  */
 C_CDD_EXPORT cdd_c_error_t parse_components(const JSON_Object *components,
                                             struct OpenAPI_Spec *out) {
-  const JSON_Object *schemas;
-  size_t i, count;
+  JSON_Object *schemas = NULL;
+  size_t i, count = 0;
 
   if (!components || !out)
     return CDD_C_SUCCESS;
@@ -519,15 +543,15 @@ C_CDD_EXPORT cdd_c_error_t parse_components(const JSON_Object *components,
       return rc;
   }
 
-  schemas = json_object_get_object(
-      components, out->swagger_version ? "definitions" : "schemas");
+  cdd_json_object_get_object(
+      components, out->swagger_version ? "definitions" : "schemas", &schemas);
   if (!schemas)
     return CDD_C_SUCCESS;
 
   if (validate_component_key_map(schemas) != 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  count = json_object_get_count(schemas);
+  cdd_json_object_get_count(schemas, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -535,11 +559,14 @@ C_CDD_EXPORT cdd_c_error_t parse_components(const JSON_Object *components,
     size_t struct_count = 0;
     size_t raw_count = 0;
     for (i = 0; i < count; ++i) {
-      const JSON_Value *schema_val = json_object_get_value_at(schemas, i);
-      const JSON_Object *schema_obj = json_value_get_object(schema_val);
-      const int is_struct =
-          (int)schema_is_struct_compatible(schema_val, schema_obj);
-      const int needs_raw = (!is_struct) || schema_has_composition(schema_obj);
+      JSON_Value *schema_val = NULL;
+      JSON_Object *schema_obj = NULL;
+      int is_struct;
+      int needs_raw;
+      cdd_json_object_get_value_at(schemas, i, &schema_val);
+      cdd_json_value_get_object(schema_val, &schema_obj);
+      is_struct = (int)schema_is_struct_compatible(schema_val, schema_obj);
+      needs_raw = (!is_struct) || schema_has_composition(schema_obj);
       if (is_struct)
         struct_count++;
       if (needs_raw)
@@ -577,9 +604,12 @@ C_CDD_EXPORT cdd_c_error_t parse_components(const JSON_Object *components,
     size_t struct_idx = 0;
     size_t raw_idx = 0;
     for (i = 0; i < count; ++i) {
-      const char *name = json_object_get_name(schemas, i);
-      const JSON_Value *schema_val = json_object_get_value_at(schemas, i);
-      const JSON_Object *schema_obj = json_value_get_object(schema_val);
+      const char *name = NULL;
+      JSON_Value *schema_val = NULL;
+      JSON_Object *schema_obj = NULL;
+      cdd_json_object_get_name(schemas, i, &name);
+      cdd_json_object_get_value_at(schemas, i, &schema_val);
+      cdd_json_value_get_object(schema_val, &schema_obj);
 
       if (schema_is_struct_compatible(schema_val, schema_obj)) {
         const char *schema_id = NULL;
@@ -588,15 +618,15 @@ C_CDD_EXPORT cdd_c_error_t parse_components(const JSON_Object *components,
         c_cdd_strdup(name, &out->defined_schema_names[struct_idx]);
         if (!out->defined_schema_names[struct_idx])
           return CDD_C_ERROR_MEMORY;
-        schema_id = json_object_get_string(schema_obj, "$id");
+        cdd_json_object_get_string(schema_obj, "$id", &schema_id);
         if (schema_id) {
           c_cdd_strdup(schema_id, &out->defined_schema_ids[struct_idx]);
           if (!out->defined_schema_ids[struct_idx])
             return CDD_C_ERROR_MEMORY;
         }
-        schema_anchor = json_object_get_string(schema_obj, "$anchor");
-        schema_dynamic_anchor =
-            json_object_get_string(schema_obj, "$dynamicAnchor");
+        cdd_json_object_get_string(schema_obj, "$anchor", &schema_anchor);
+        cdd_json_object_get_string(schema_obj, "$dynamicAnchor",
+                                   &schema_dynamic_anchor);
         if (schema_anchor) {
           c_cdd_strdup(schema_anchor, &out->defined_schema_anchors[struct_idx]);
           if (!out->defined_schema_anchors[struct_idx])
@@ -627,11 +657,11 @@ C_CDD_EXPORT cdd_c_error_t parse_components(const JSON_Object *components,
         c_cdd_strdup(name, &out->raw_schema_names[raw_idx]);
         if (!out->raw_schema_names[raw_idx])
           return CDD_C_ERROR_MEMORY;
-        raw_json = json_serialize_to_string(schema_val);
+        cdd_json_serialize_to_string(schema_val, &raw_json);
         if (!raw_json)
           return CDD_C_ERROR_MEMORY;
         c_cdd_strdup(raw_json, &dup_json);
-        json_free_serialized_string(raw_json);
+        cdd_json_free_serialized_string(raw_json);
         if (!dup_json)
           return CDD_C_ERROR_MEMORY;
         out->raw_schema_json[raw_idx] = dup_json;

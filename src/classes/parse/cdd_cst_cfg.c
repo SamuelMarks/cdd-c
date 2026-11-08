@@ -330,11 +330,12 @@ cdd_c_error_t cdd_cst_cfg_build(cdd_cst_node_t *function_node,
  * @brief Frees a Control Flow Graph (CFG) and all of its blocks and edges.
  *
  * @param[in,out] cfg Pointer to the CFG to free.
+ * @return CDD_C_SUCCESS.
  */
-void cdd_cst_cfg_free(cdd_cst_cfg_t *cfg) {
+cdd_c_error_t cdd_cst_cfg_free(cdd_cst_cfg_t *cfg) {
   size_t i;
   if (!cfg)
-    return;
+    return CDD_C_SUCCESS;
 
   for (i = 0; i < cfg->num_blocks; i++) {
     cdd_cst_cfg_block_t *block = cfg->blocks[i];
@@ -358,4 +359,5 @@ void cdd_cst_cfg_free(cdd_cst_cfg_t *cfg) {
   if (cfg->blocks)
     C_CDD_FREE(cfg->blocks);
   C_CDD_FREE(cfg);
+  return CDD_C_SUCCESS;
 }

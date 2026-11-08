@@ -52,9 +52,14 @@ TEST test_openapi_callbacks_coverage(void) {
   spec.component_callbacks[0].name = strdup("MyCb");
   spec.component_callbacks[0].summary = strdup("comp_sum");
 
-  jv =
-      json_parse_string("{\"$ref\":\"#/components/callbacks/"
-                        "MyCb\",\"summary\":\"sum\",\"description\":\"desc\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"$ref\":\"#/components/callbacks/"
+        "MyCb\",\"summary\":\"sum\",\"description\":\"desc\"}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&cb, 0, sizeof(cb));
@@ -80,7 +85,12 @@ TEST test_openapi_callbacks_coverage(void) {
     json_value_free(jv);
 
     /* ref without summary and without description */
-    jv = json_parse_string("{\"$ref\":\"#/components/callbacks/MyCb\"}");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{\"$ref\":\"#/components/callbacks/MyCb\"}",
+                            &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     if (jv) {
       memset(&cb, 0, sizeof(cb));
       ASSERT_EQ(CDD_C_SUCCESS, parse_callback_object(json_value_get_object(jv),
@@ -90,7 +100,12 @@ TEST test_openapi_callbacks_coverage(void) {
     }
   }
 
-  jv = json_parse_string("{\"$ref\":\"#/components/callbacks/NotFound\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"$ref\":\"#/components/callbacks/NotFound\"}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     memset(&cb, 0, sizeof(cb));
     ASSERT_EQ(CDD_C_SUCCESS,
@@ -101,9 +116,14 @@ TEST test_openapi_callbacks_coverage(void) {
   openapi_spec_free(&spec);
 
   /* Callback with paths and extensions */
-  jv =
-      json_parse_string("{\"x-ext\":\"val\",\"{$request.query.url}\":{\"post\":"
-                        "{\"responses\":{\"200\":{\"description\":\"OK\"}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"x-ext\":\"val\",\"{$request.query.url}\":{\"post\":"
+        "{\"responses\":{\"200\":{\"description\":\"OK\"}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&cb, 0, sizeof(cb));
@@ -116,8 +136,13 @@ TEST test_openapi_callbacks_coverage(void) {
   memset(&cb, 0, sizeof(cb));
   cb.summary = strdup("existing_sum");
   cb.description = strdup("existing_desc");
-  jv = json_parse_string("{\"$ref\":\"#/components/callbacks/"
-                         "MyCb\",\"summary\":\"s\",\"description\":\"d\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"$ref\":\"#/components/callbacks/"
+                          "MyCb\",\"summary\":\"s\",\"description\":\"d\"}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     ASSERT_EQ(CDD_C_SUCCESS, parse_callback_object(jo, &cb, NULL, 0));
@@ -126,7 +151,11 @@ TEST test_openapi_callbacks_coverage(void) {
   }
 
   /* Callback with invalid method in paths */
-  jv = json_parse_string("{\"/path\":{\"invalid_method\":{}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"/path\":{\"invalid_method\":{}}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     cdd_c_error_t rc_cb;
     memset(&cb, 0, sizeof(cb));
@@ -139,7 +168,11 @@ TEST test_openapi_callbacks_coverage(void) {
   }
 
   /* 11. parse_callbacks_object */
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     out_cbs = NULL;
     out_cb_count = 0;
@@ -150,7 +183,12 @@ TEST test_openapi_callbacks_coverage(void) {
     json_value_free(jv);
   }
 
-  jv = json_parse_string("{\"cb1\":{\"x-ext\":\"v\"},\"cb2\":123}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"cb1\":{\"x-ext\":\"v\"},\"cb2\":123}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     out_cbs = NULL;
     out_cb_count = 0;
@@ -236,7 +274,11 @@ TEST test_openapi_responses_request_bodies_callbacks_oom(void) {
     spec.component_callbacks[0].name = strdup("MyCb");
 
     for (i = 0; i < n_oom; ++i) {
-      jv = json_parse_string(oom_resps[i]);
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string(oom_resps[i], &_cdd_jv_1);
+        jv = _cdd_jv_1;
+      }
       if (jv) {
         jo = json_value_get_object(jv);
         for (k = 1; k <= 30; ++k) {

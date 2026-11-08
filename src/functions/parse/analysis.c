@@ -58,11 +58,12 @@ cdd_c_error_t allocation_site_list_init(struct AllocationSiteList *list) {
  * @brief Releases memory held by an allocation site list.
  *
  * @param[in,out] list Pointer to the AllocationSiteList structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void allocation_site_list_free(struct AllocationSiteList *list) {
+cdd_c_error_t allocation_site_list_free(struct AllocationSiteList *list) {
   size_t i;
   if (!list)
-    return;
+    return CDD_C_SUCCESS;
   if (list->sites) {
     for (i = 0; i < list->size; ++i) {
       if (list->sites[i].var_name)
@@ -73,6 +74,7 @@ void allocation_site_list_free(struct AllocationSiteList *list) {
   }
   list->size = 0;
   list->capacity = 0;
+  return CDD_C_SUCCESS;
 }
 
 /*

@@ -202,8 +202,9 @@ cdd_c_error_t cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir) {
  * @brief Frees a linked list of `cdd_ffi_trivia_t` nodes.
  *
  * @param[in,out] trivia Head of the trivia chain to free (may be NULL).
+ * @return CDD_C_SUCCESS.
  */
-static void free_trivia_chain(cdd_ffi_trivia_t *trivia) {
+static cdd_c_error_t free_trivia_chain(cdd_ffi_trivia_t *trivia) {
   while (trivia) {
     cdd_ffi_trivia_t *next = trivia->next;
     if (trivia->text)
@@ -211,6 +212,7 @@ static void free_trivia_chain(cdd_ffi_trivia_t *trivia) {
     C_CDD_FREE(trivia);
     trivia = next;
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -218,8 +220,9 @@ static void free_trivia_chain(cdd_ffi_trivia_t *trivia) {
  *
  * @param[in,out] type Pointer to the FFI type structure whose members will be
  * freed.
+ * @return CDD_C_SUCCESS.
  */
-static void free_type_recursive(cdd_ffi_type_t *type) {
+static cdd_c_error_t free_type_recursive(cdd_ffi_type_t *type) {
   if (type->ref_name) {
     C_CDD_FREE(type->ref_name);
     type->ref_name = NULL;
@@ -238,18 +241,20 @@ static void free_type_recursive(cdd_ffi_type_t *type) {
     C_CDD_FREE(type->template_args);
     type->template_args = NULL;
   }
+  return CDD_C_SUCCESS;
 }
 
 /*
  * @brief Frees all memory associated with the FFI IR to guarantee zero-leaks.
  *
  * @param[in,out] ir Pointer to the FFI IR structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
+cdd_c_error_t cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
   size_t i, j;
 
   if (!ir) {
-    return;
+    return CDD_C_SUCCESS;
   }
 
   for (i = 0; i < ir->nodes_count; i++) {
@@ -382,4 +387,5 @@ void cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
   ir->nodes = NULL;
   ir->nodes_count = 0;
   ir->nodes_capacity = 0;
+  return CDD_C_SUCCESS;
 }

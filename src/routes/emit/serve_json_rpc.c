@@ -12,9 +12,10 @@
 
 #include "../parse/cli.h"
 #include "../../cdd_api.h"
+#include "classes/emit/cli_struct.h"
+#include "classes/parse/cdd_serde.h"
 #include "functions/parse/fs.h"
 #include <ctype.h>
-#include <parson.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -90,9 +91,9 @@ static cdd_c_error_t serve_socket_create(int domain, int type, int protocol,
                                          cdd_socket_t *out_socket) {
   const cdd_context_t *ctx = NULL;
   int fd = -1;
-  cdd_context_get_global(&ctx);
+  cdd_c_error_t rc_ctx = cdd_context_get_global(&ctx);
   if (ctx->socket_vt.socket_fn) {
-    ctx->socket_vt.socket_fn(domain, type, protocol, &fd);
+    rc_ctx = ctx->socket_vt.socket_fn(domain, type, protocol, &fd);
     *out_socket = (cdd_socket_t)fd;
   } else {
     *out_socket = socket(domain, type, protocol);
@@ -100,7 +101,7 @@ static cdd_c_error_t serve_socket_create(int domain, int type, int protocol,
   if (*out_socket == INVALID_SOCKET) {
     return CDD_C_ERROR_SYSTEM;
   }
-  return CDD_C_SUCCESS;
+  return rc_ctx;
 }
 
 /**
@@ -113,7 +114,7 @@ static cdd_c_error_t serve_socket_create(int domain, int type, int protocol,
 static cdd_c_error_t serve_listen_start(cdd_socket_t s, int backlog) {
   const cdd_context_t *ctx = NULL;
   int rc;
-  cdd_context_get_global(&ctx);
+  cdd_c_error_t rc_ctx = cdd_context_get_global(&ctx);
   if (ctx->socket_vt.listen_fn) {
     rc = -(int)ctx->socket_vt.listen_fn((int)s, backlog);
   } else {
@@ -122,7 +123,7 @@ static cdd_c_error_t serve_listen_start(cdd_socket_t s, int backlog) {
   if (rc < 0) {
     return CDD_C_ERROR_SYSTEM;
   }
-  return CDD_C_SUCCESS;
+  return rc_ctx;
 }
 
 /**
@@ -143,9 +144,9 @@ static cdd_c_error_t serve_accept_client(cdd_socket_t s, struct sockaddr *addr,
                                          cdd_socket_t *out_client) {
   const cdd_context_t *ctx = NULL;
   int client_fd = -1;
-  cdd_context_get_global(&ctx);
+  cdd_c_error_t rc_ctx = cdd_context_get_global(&ctx);
   if (ctx->socket_vt.accept_fn) {
-    ctx->socket_vt.accept_fn((int)s, &client_fd);
+    rc_ctx = ctx->socket_vt.accept_fn((int)s, &client_fd);
     *out_client = (cdd_socket_t)client_fd;
   } else {
     *out_client = accept(s, addr, addrlen);
@@ -153,7 +154,7 @@ static cdd_c_error_t serve_accept_client(cdd_socket_t s, struct sockaddr *addr,
   if (*out_client == INVALID_SOCKET) {
     return CDD_C_ERROR_SYSTEM;
   }
-  return CDD_C_SUCCESS;
+  return rc_ctx;
 }
 
 /**
@@ -170,7 +171,7 @@ static cdd_c_error_t serve_send_buffer(cdd_socket_t s, const char *b, size_t l,
   const cdd_context_t *ctx = NULL;
   cdd_ssize_t sent;
   size_t out_sent = 0;
-  cdd_context_get_global(&ctx);
+  cdd_c_error_t rc_ctx = cdd_context_get_global(&ctx);
   if (ctx->socket_vt.send_fn) {
     sent = -(cdd_ssize_t)ctx->socket_vt.send_fn((int)s, b, l, &out_sent);
   } else {
@@ -179,7 +180,7 @@ static cdd_c_error_t serve_send_buffer(cdd_socket_t s, const char *b, size_t l,
   if (sent < 0) {
     return CDD_C_ERROR_SYSTEM;
   }
-  return CDD_C_SUCCESS;
+  return rc_ctx;
 }
 
 /**
@@ -207,26 +208,30 @@ static cdd_c_error_t send_rpc_response(cdd_socket_t client_fd,
 static cdd_c_error_t send_rpc_error_id(cdd_socket_t client_fd,
                                        JSON_Value *id_val, int code,
                                        const char *msg) {
+  struct CddJsonRpcResponse env;
+  char *body_json = NULL;
   char resp[2048];
-  char *id_str = json_serialize_to_string(id_val);
+  cdd_c_error_t rc;
+  memset(&env, 0, sizeof(env));
+  env.jsonrpc = "2.0";
+  env.error.code = code;
+  env.error.message = msg;
+  env.id_val = id_val;
+  rc = CddJsonRpcResponse_to_json(&env, &body_json);
 #if defined(_MSC_VER)
   sprintf_s(resp, sizeof(resp),
             "HTTP/1.1 200 OK\r\nContent-Type: "
-            "application/"
-            "json\r\n\r\n{\"jsonrpc\":\"2.0\",\"error\":{\"code\":%d,"
-            "\"message\":\"%s\"},\"id\":%s}",
-            code, msg, id_str ? id_str : "null");
+            "application/json\r\n\r\n%s",
+            body_json);
 #else
-  CDD_SNPRINTF(
-      resp, sizeof(resp),
-      "HTTP/1.1 200 OK\r\nContent-Type: "
-      "application/"
-      "json\r\n\r\n{\"jsonrpc\":\"2.0\",\"error\":{\"code\":%d,\"message\":"
-      "\"%s\"},\"id\":%s}",
-      code, msg, id_str ? id_str : "null");
+  CDD_SNPRINTF(resp, sizeof(resp),
+               "HTTP/1.1 200 OK\r\nContent-Type: "
+               "application/json\r\n\r\n%s",
+               body_json);
 #endif
-  json_free_serialized_string(id_str);
-  return send_rpc_response(client_fd, resp);
+  free(body_json);
+  rc = send_rpc_response(client_fd, resp);
+  return rc;
 }
 
 /**
@@ -242,23 +247,29 @@ static cdd_c_error_t send_rpc_error_id(cdd_socket_t client_fd,
 static cdd_c_error_t send_rpc_result_id(cdd_socket_t client_fd,
                                         JSON_Value *id_val,
                                         const char *result_json) {
+  struct CddJsonRpcResponse env;
+  char *body_json = NULL;
   char resp[8192];
-  char *id_str = json_serialize_to_string(id_val);
+  cdd_c_error_t rc;
+  memset(&env, 0, sizeof(env));
+  env.jsonrpc = "2.0";
+  env.result_json = result_json;
+  env.id_val = id_val;
+  rc = CddJsonRpcResponse_to_json(&env, &body_json);
 #if defined(_MSC_VER)
   sprintf_s(resp, sizeof(resp),
             "HTTP/1.1 200 OK\r\nContent-Type: "
-            "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":%s,"
-            "\"id\":%s}",
-            result_json, id_str ? id_str : "null");
+            "application/json\r\n\r\n%s",
+            body_json);
 #else
   CDD_SNPRINTF(resp, sizeof(resp),
                "HTTP/1.1 200 OK\r\nContent-Type: "
-               "application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":%s,"
-               "\"id\":%s}",
-               result_json, id_str ? id_str : "null");
+               "application/json\r\n\r\n%s",
+               body_json);
 #endif
-  json_free_serialized_string(id_str);
-  return send_rpc_response(client_fd, resp);
+  free(body_json);
+  rc = send_rpc_response(client_fd, resp);
+  return rc;
 }
 
 /**
@@ -288,56 +299,6 @@ static cdd_c_error_t parse_content_length(const char *headers,
 }
 
 /**
- * @brief Builds a dynamic JSON result string for `resources/read` based on the
- * requested URI.
- *
- * @param[in] params Optional JSON-RPC params object containing `"uri"`.
- * @param[out] out_json Newly allocated JSON string for the result object.
- * @return CDD_C_SUCCESS on success, or error code.
- */
-static cdd_c_error_t build_resources_read_result(const JSON_Object *params,
-                                                 char **out_json) {
-  const char *uri = json_object_get_string(params, "uri");
-  const char *target_uri = uri ? uri : "file:///openapi.json";
-  const char *file_path = NULL;
-  char *content = NULL;
-  size_t sz = 0;
-  JSON_Value *res_val = json_value_init_object();
-  JSON_Object *res_obj = json_value_get_object(res_val);
-  JSON_Value *arr_val = json_value_init_array();
-  JSON_Array *arr = json_value_get_array(arr_val);
-  JSON_Value *item_val = json_value_init_object();
-  JSON_Object *item_obj = json_value_get_object(item_val);
-  char *serialized = NULL;
-
-  if (strncmp(target_uri, "file:///", 8) == 0) {
-    file_path = target_uri + 8;
-  } else if (strncmp(target_uri, "file://", 7) == 0) {
-    file_path = target_uri + 7;
-  } else {
-    file_path = target_uri;
-  }
-
-  json_object_set_string(item_obj, "uri", target_uri);
-  json_object_set_string(item_obj, "mimeType", "application/json");
-  if (read_to_file(file_path, "rb", &content, &sz) == CDD_C_SUCCESS) {
-    json_object_set_string(item_obj, "text", content);
-    C_CDD_FREE(content);
-  } else {
-    json_object_set_string(
-        item_obj, "text",
-        "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"cdd-c\",\"version\":"
-        "\"0.0.5\"},\"paths\":{}}");
-  }
-  json_array_append_value(arr, item_val);
-  json_object_set_value(res_obj, "contents", arr_val);
-  serialized = json_serialize_to_string(res_val);
-  json_value_free(res_val);
-  *out_json = serialized;
-  return CDD_C_SUCCESS;
-}
-
-/**
  * @brief Handles an incoming HTTP JSON-RPC request on a socket.
  *
  * @param[in] client_fd Connected client socket descriptor.
@@ -349,10 +310,10 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
   cdd_ssize_t bytes_received;
   char *body = NULL;
   size_t content_len = 0;
-  JSON_Value *root_val;
-  JSON_Object *root_obj;
-  JSON_Value *id_val;
-  const char *method;
+  JSON_Value *root_val = NULL;
+  JSON_Object *root_obj = NULL;
+  JSON_Value *id_val = NULL;
+  const char *method = NULL;
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
   for (;;) {
@@ -365,7 +326,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
     buffer[total_received] = 0;
     body = strstr(buffer, "\r\n\r\n");
     if (body) {
-      parse_content_length(buffer, (size_t)(body - buffer), &content_len);
+      rc = parse_content_length(buffer, (size_t)(body - buffer), &content_len);
       body += 4;
       if ((size_t)(buffer + total_received - body) >= content_len)
         break;
@@ -376,31 +337,28 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
   if (!body)
     return send_rpc_error_id(client_fd, NULL, -32700, "Parse error");
 
-  root_val = json_parse_string(body);
-  if (!root_val) {
+  if (cdd_json_parse_string(body, &root_val) != CDD_C_SUCCESS) {
     return send_rpc_error_id(client_fd, NULL, -32700, "Parse error");
   }
 
-  root_obj = json_value_get_object(root_val);
-  id_val = json_object_get_value(root_obj, "id");
-  method = json_object_get_string(root_obj, "method");
+  rc = cdd_json_value_get_object(root_val, &root_obj);
+  rc = cdd_json_object_get_value(root_obj, "id", &id_val);
+  rc = cdd_json_object_get_string(root_obj, "method", &method);
   if (!method) {
     rc = send_rpc_error_id(client_fd, id_val, -32600, "Invalid Request");
-    json_value_free(root_val);
+    cdd_json_value_free(root_val);
     return rc;
   }
 
   if (strcmp(method, "version") == 0) {
     rc = send_rpc_result_id(client_fd, id_val, "\"0.0.5\"");
   } else if (strcmp(method, "initialize") == 0) {
-    JSON_Object *params = json_object_get_object(root_obj, "params");
-    if (params) {
-      JSON_Object *clientInfo = json_object_get_object(params, "clientInfo");
-      JSON_Object *capabilities =
-          json_object_get_object(params, "capabilities");
-      (void)clientInfo;
-      (void)capabilities;
-    }
+    JSON_Object *params = NULL;
+    JSON_Object *clientInfo = NULL;
+    JSON_Object *capabilities = NULL;
+    rc = cdd_json_object_get_object(root_obj, "params", &params);
+    rc = cdd_json_object_get_object(params, "clientInfo", &clientInfo);
+    rc = cdd_json_object_get_object(params, "capabilities", &capabilities);
     rc = send_rpc_result_id(
         client_fd, id_val,
         "{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{\"tools\":{"
@@ -442,11 +400,12 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
         "{\"resourceTemplates\":[{\"uriTemplate\":\"file:///{path}\","
         "\"name\":\"Workspace File\",\"mimeType\":\"application/json\"}]}");
   } else if (strcmp(method, "resources/read") == 0) {
-    JSON_Object *params = json_object_get_object(root_obj, "params");
+    JSON_Object *params = NULL;
     char *res_str = NULL;
-    build_resources_read_result(params, &res_str);
+    rc = cdd_json_object_get_object(root_obj, "params", &params);
+    rc = build_mcp_resources_read(params, &res_str);
     rc = send_rpc_result_id(client_fd, id_val, res_str);
-    json_free_serialized_string(res_str);
+    cdd_json_free_serialized_string(res_str);
   } else if (strcmp(method, "resources/subscribe") == 0) {
     rc = send_rpc_result_id(client_fd, id_val, "{}");
   } else if (strcmp(method, "resources/unsubscribe") == 0) {
@@ -468,50 +427,37 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
         "\"arguments\":[{\"name\":\"subcommand\",\"description\":"
         "\"to_sdk, to_sdk_cli, or to_server\",\"required\":false}]}]}");
   } else if (strcmp(method, "sampling/createMessage") == 0) {
-    JSON_Object *params = json_object_get_object(root_obj, "params");
-    JSON_Array *messages =
-        params ? json_object_get_array(params, "messages") : NULL;
-    int maxTokens =
-        params ? (int)json_object_get_number(params, "maxTokens") : 0;
-    const char *includeContext =
-        params ? json_object_get_string(params, "includeContext") : NULL;
-    JSON_Object *metadata =
-        params ? json_object_get_object(params, "metadata") : NULL;
-    JSON_Object *modelPreferences =
-        params ? json_object_get_object(params, "modelPreferences") : NULL;
-    JSON_Array *stopSequences =
-        params ? json_object_get_array(params, "stopSequences") : NULL;
-    const char *systemPrompt =
-        params ? json_object_get_string(params, "systemPrompt") : NULL;
-    double temperature = (params && json_object_has_value_of_type(
-                                        params, "temperature", JSONNumber))
-                             ? json_object_get_number(params, "temperature")
-                             : 0.0;
-    (void)messages;
-    (void)maxTokens;
-    (void)includeContext;
-    (void)metadata;
-    (void)modelPreferences;
-    (void)stopSequences;
-    (void)systemPrompt;
-    (void)temperature;
+    JSON_Object *params = NULL;
+    JSON_Array *messages = NULL;
+    double maxTokens_d = 0.0;
+    const char *includeContext = NULL;
+    JSON_Object *metadata = NULL;
+    JSON_Object *modelPreferences = NULL;
+    JSON_Array *stopSequences = NULL;
+    const char *systemPrompt = NULL;
+    double temperature = 0.0;
+    rc = cdd_json_object_get_object(root_obj, "params", &params);
+    rc = cdd_json_object_get_array(params, "messages", &messages);
+    rc = cdd_json_object_get_number(params, "maxTokens", &maxTokens_d);
+    rc = cdd_json_object_get_string(params, "includeContext", &includeContext);
+    rc = cdd_json_object_get_object(params, "metadata", &metadata);
+    rc = cdd_json_object_get_object(params, "modelPreferences",
+                                    &modelPreferences);
+    rc = cdd_json_object_get_array(params, "stopSequences", &stopSequences);
+    rc = cdd_json_object_get_string(params, "systemPrompt", &systemPrompt);
+    rc = cdd_json_object_get_number(params, "temperature", &temperature);
     rc = send_rpc_result_id(
         client_fd, id_val,
         "{\"role\":\"assistant\",\"content\":{\"type\":\"text\",\"text\":"
         "\"Sampled message\"},\"model\":\"test-model\",\"stopReason\":"
         "\"endSeq\"}");
   } else if (strcmp(method, "prompts/get") == 0) {
-    JSON_Object *params = json_object_get_object(root_obj, "params");
-    const char *prompt_name =
-        params ? json_object_get_string(params, "name") : NULL;
-    char prompt_buf[1024];
-    CDD_SNPRINTF(
-        prompt_buf, sizeof(prompt_buf),
-        "{\"description\":\"Prompt %s\",\"messages\":[{\"role\":\"user\","
-        "\"content\":{\"type\":\"text\",\"text\":\"Execute %s\"}}]}",
-        prompt_name ? prompt_name : "generate_sdk",
-        prompt_name ? prompt_name : "generate_sdk");
-    rc = send_rpc_result_id(client_fd, id_val, prompt_buf);
+    JSON_Object *params = NULL;
+    char *prompt_str = NULL;
+    rc = cdd_json_object_get_object(root_obj, "params", &params);
+    rc = build_mcp_prompts_get(params, &prompt_str);
+    rc = send_rpc_result_id(client_fd, id_val, prompt_str);
+    cdd_json_free_serialized_string(prompt_str);
   } else if (strcmp(method, "completion/complete") == 0) {
     rc = send_rpc_result_id(
         client_fd, id_val,
@@ -519,17 +465,19 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
         "\"to_openapi\",\"to_arazzo\",\"from_arazzo\"],\"hasMore\":false,"
         "\"total\":6}}");
   } else if (strcmp(method, "tools/call") == 0) {
-    JSON_Object *params = json_object_get_object(root_obj, "params");
-    const char *name = params ? json_object_get_string(params, "name") : NULL;
-    JSON_Object *arguments =
-        params ? json_object_get_object(params, "arguments") : NULL;
+    JSON_Object *params = NULL;
+    struct CddMcpToolCallParams tc_params;
+    rc = cdd_json_object_get_object(root_obj, "params", &params);
 
-    if (!name || !arguments) {
+    if (CddMcpToolCallParams_from_jsonObject(params, &tc_params) !=
+        CDD_C_SUCCESS) {
       rc = send_rpc_error_id(client_fd, id_val, -32602,
                              "Invalid params for tools/call");
-    } else if (strcmp(name, "to_openapi") == 0) {
-      const char *input = json_object_get_string(arguments, "input");
-      const char *output = json_object_get_string(arguments, "output");
+    } else if (strcmp(tc_params.name, "to_openapi") == 0) {
+      const char *input = NULL;
+      const char *output = NULL;
+      rc = cdd_json_object_get_string(tc_params.arguments, "input", &input);
+      rc = cdd_json_object_get_string(tc_params.arguments, "output", &output);
       if (!input || !output) {
         rc = send_rpc_error_id(client_fd, id_val, -32602,
                                "Invalid arguments for to_openapi");
@@ -537,9 +485,10 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
         cdd_to_openapi_config_t cfg;
         cdd_c_error_t rc_rpc;
         memset(&cfg, 0, sizeof(cfg));
-        cfg.input = input;
-        cfg.output = output;
+        rc = cdd_reflect_from_json_object(
+            tc_params.arguments, &cdd_to_openapi_config_type_info, &cfg);
         rc_rpc = cdd_generate_to_openapi(&cfg);
+        rc = cdd_reflect_struct_cleanup(&cfg, &cdd_to_openapi_config_type_info);
         if (rc_rpc != CDD_C_SUCCESS) {
           rc = send_rpc_error_id(client_fd, id_val, -32603,
                                  "OpenAPI generation failed");
@@ -550,9 +499,9 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
               "successful\"}],\"isError\":false}");
         }
       }
-    } else if (strcmp(name, "to_docs_json") == 0) {
-      const char *input = json_object_get_string(arguments, "input");
-      const char *output = json_object_get_string(arguments, "output");
+    } else if (strcmp(tc_params.name, "to_docs_json") == 0) {
+      const char *input = NULL;
+      rc = cdd_json_object_get_string(tc_params.arguments, "input", &input);
       if (!input) {
         rc = send_rpc_error_id(client_fd, id_val, -32602,
                                "Invalid arguments for to_docs_json");
@@ -560,15 +509,10 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
         cdd_docs_json_config_t cfg;
         cdd_c_error_t rc_rpc;
         memset(&cfg, 0, sizeof(cfg));
-        cfg.input = input;
-        cfg.output = output;
-        if (json_object_get_boolean(arguments, "no_imports") == 1) {
-          cfg.no_imports = CDD_TRUE;
-        }
-        if (json_object_get_boolean(arguments, "no_wrapping") == 1) {
-          cfg.no_wrapping = CDD_TRUE;
-        }
+        rc = cdd_reflect_from_json_object(
+            tc_params.arguments, &cdd_docs_json_config_type_info, &cfg);
         rc_rpc = cdd_generate_docs_json(&cfg);
+        rc = cdd_reflect_struct_cleanup(&cfg, &cdd_docs_json_config_type_info);
         if (rc_rpc != CDD_C_SUCCESS) {
           rc = send_rpc_error_id(client_fd, id_val, -32603,
                                  "Docs generation failed");
@@ -579,23 +523,28 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
               "successful\"}],\"isError\":false}");
         }
       }
-    } else if (strcmp(name, "to_arazzo") == 0) {
+    } else if (strcmp(tc_params.name, "to_arazzo") == 0) {
       cdd_to_arazzo_config_t cfg;
       memset(&cfg, 0, sizeof(cfg));
-      cfg.input = json_object_get_string(arguments, "input");
-      cfg.output = json_object_get_string(arguments, "output");
+      rc = cdd_reflect_from_json_object(tc_params.arguments,
+                                        &cdd_to_arazzo_config_type_info, &cfg);
       if (cdd_generate_to_arazzo(&cfg) != CDD_C_SUCCESS) {
         rc = send_rpc_error_id(client_fd, id_val, -32603,
                                "Arazzo extraction failed");
       } else {
         rc = send_rpc_result_id(client_fd, id_val, "\"ok\"");
       }
-    } else if (strcmp(name, "from_arazzo") == 0) {
+      rc = cdd_reflect_struct_cleanup(&cfg, &cdd_to_arazzo_config_type_info);
+    } else if (strcmp(tc_params.name, "from_arazzo") == 0) {
       cdd_from_arazzo_config_t cfg;
-      const char *subcmd = json_object_get_string(arguments, "subcommand");
+      const char *subcmd = NULL;
+      rc = cdd_json_object_get_string(tc_params.arguments, "subcommand",
+                                      &subcmd);
       if (!subcmd)
         subcmd = "";
       memset(&cfg, 0, sizeof(cfg));
+      rc = cdd_reflect_from_json_object(
+          tc_params.arguments, &cdd_from_arazzo_config_type_info, &cfg);
       if (strcmp(subcmd, "to_sdk_cli") == 0) {
         cfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SDK_CLI;
       } else if (strcmp(subcmd, "to_server") == 0) {
@@ -603,22 +552,23 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
       } else {
         cfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SDK;
       }
-      cfg.input = json_object_get_string(arguments, "input");
-      cfg.output = json_object_get_string(arguments, "output");
       if (cdd_generate_from_arazzo(&cfg) != CDD_C_SUCCESS) {
         rc = send_rpc_error_id(client_fd, id_val, -32603,
                                "Arazzo generation failed");
       } else {
         rc = send_rpc_result_id(client_fd, id_val, "\"ok\"");
       }
+      rc = cdd_reflect_struct_cleanup(&cfg, &cdd_from_arazzo_config_type_info);
     } else {
       rc = send_rpc_error_id(client_fd, id_val, -32601, "Tool not found");
     }
   } else if (strcmp(method, "to_openapi") == 0) {
-    JSON_Object *params = json_object_get_object(root_obj, "params");
-    const char *input = params ? json_object_get_string(params, "input") : NULL;
-    const char *output =
-        params ? json_object_get_string(params, "output") : NULL;
+    JSON_Object *params = NULL;
+    const char *input = NULL;
+    const char *output = NULL;
+    rc = cdd_json_object_get_object(root_obj, "params", &params);
+    rc = cdd_json_object_get_string(params, "input", &input);
+    rc = cdd_json_object_get_string(params, "output", &output);
     if (!input || !output) {
       rc = send_rpc_error_id(client_fd, id_val, -32602, "Invalid params");
     } else {
@@ -636,24 +586,26 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
       }
     }
   } else if (strcmp(method, "to_docs_json") == 0) {
-    JSON_Object *params = json_object_get_object(root_obj, "params");
-    const char *input = params ? json_object_get_string(params, "input") : NULL;
-    const char *output =
-        params ? json_object_get_string(params, "output") : NULL;
+    JSON_Object *params = NULL;
+    const char *input = NULL;
+    const char *output = NULL;
+    rc = cdd_json_object_get_object(root_obj, "params", &params);
+    rc = cdd_json_object_get_string(params, "input", &input);
+    rc = cdd_json_object_get_string(params, "output", &output);
     if (!input) {
       rc = send_rpc_error_id(client_fd, id_val, -32602, "Invalid params");
     } else {
       cdd_docs_json_config_t cfg;
       cdd_c_error_t rc_sub;
+      int bval = 0;
       memset(&cfg, 0, sizeof(cfg));
       cfg.input = input;
       cfg.output = output;
-      if (json_object_get_boolean(params, "no_imports") == 1) {
-        cfg.no_imports = CDD_TRUE;
-      }
-      if (json_object_get_boolean(params, "no_wrapping") == 1) {
-        cfg.no_wrapping = CDD_TRUE;
-      }
+      rc = cdd_json_object_get_boolean(params, "no_imports", &bval);
+      cfg.no_imports = (bval == 1) ? CDD_TRUE : CDD_FALSE;
+      bval = 0;
+      rc = cdd_json_object_get_boolean(params, "no_wrapping", &bval);
+      cfg.no_wrapping = (bval == 1) ? CDD_TRUE : CDD_FALSE;
       rc_sub = cdd_generate_docs_json(&cfg);
       if (rc_sub != CDD_C_SUCCESS) {
         rc = send_rpc_error_id(client_fd, id_val, -32603,
@@ -663,14 +615,17 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
       }
     }
   } else if (strncmp(method, "from_openapi_", 13) == 0) {
-    JSON_Object *params = json_object_get_object(root_obj, "params");
-    const char *input = params ? json_object_get_string(params, "input") : NULL;
-    const char *input_dir =
-        params ? json_object_get_string(params, "input_dir") : NULL;
-    const char *output =
-        params ? json_object_get_string(params, "output") : NULL;
+    JSON_Object *params = NULL;
+    const char *input = NULL;
+    const char *input_dir = NULL;
+    const char *output = NULL;
     cdd_from_openapi_config_t cfg;
+    int bval = 0;
     memset(&cfg, 0, sizeof(cfg));
+    rc = cdd_json_object_get_object(root_obj, "params", &params);
+    rc = cdd_json_object_get_string(params, "input", &input);
+    rc = cdd_json_object_get_string(params, "input_dir", &input_dir);
+    rc = cdd_json_object_get_string(params, "output", &output);
 
     if (strcmp(method, "from_openapi_to_sdk") == 0) {
       cfg.subcommand = CDD_OPENAPI_SUBCOMMAND_TO_SDK;
@@ -680,7 +635,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
       cfg.subcommand = CDD_OPENAPI_SUBCOMMAND_TO_SERVER;
     } else {
       rc = send_rpc_error_id(client_fd, id_val, -32601, "Method not found");
-      json_value_free(root_val);
+      cdd_json_value_free(root_val);
       return rc;
     }
 
@@ -694,16 +649,14 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
       cfg.output = output;
     }
 
-    if (params && json_object_get_boolean(params, "no_github_actions") == 1) {
-      cfg.no_github_actions = CDD_TRUE;
-    }
-    if (params &&
-        json_object_get_boolean(params, "no_installable_package") == 1) {
-      cfg.no_installable_package = CDD_TRUE;
-    }
-    if (params && json_object_get_boolean(params, "tests") == 1) {
-      cfg.tests = CDD_TRUE;
-    }
+    rc = cdd_json_object_get_boolean(params, "no_github_actions", &bval);
+    cfg.no_github_actions = (bval == 1) ? CDD_TRUE : CDD_FALSE;
+    bval = 0;
+    rc = cdd_json_object_get_boolean(params, "no_installable_package", &bval);
+    cfg.no_installable_package = (bval == 1) ? CDD_TRUE : CDD_FALSE;
+    bval = 0;
+    rc = cdd_json_object_get_boolean(params, "tests", &bval);
+    cfg.tests = (bval == 1) ? CDD_TRUE : CDD_FALSE;
 
     {
       cdd_c_error_t rc_sub = cdd_generate_from_openapi(&cfg);
@@ -718,7 +671,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
     rc = send_rpc_error_id(client_fd, id_val, -32601, "Method not found");
   }
 
-  json_value_free(root_val);
+  cdd_json_value_free(root_val);
   return rc;
 }
 #endif /* !defined(__WATCOMC__) && !defined(__DOS__) &&                        \
@@ -734,7 +687,8 @@ C_CDD_EXPORT cdd_c_error_t
 serve_json_rpc_run(const cdd_serve_json_rpc_config_t *config) {
 #if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__) ||     \
     defined(__wasi__)
-  (void)config;
+  if (!config)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   fprintf(stderr, "Server mode is not supported on this platform.\n");
   return CDD_C_ERROR_UNKNOWN;
 #else
@@ -856,46 +810,55 @@ serve_json_rpc_run(const cdd_serve_json_rpc_config_t *config) {
 C_CDD_EXPORT cdd_c_error_t serve_json_rpc_main(int argc, char **argv) {
 #if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__) ||     \
     defined(__wasi__)
-  (void)argc;
-  (void)argv;
+  if (argc < 0 || !argv)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   fprintf(stderr, "Server mode is not supported on this platform.\n");
   return CDD_C_ERROR_UNKNOWN;
 #else
   cdd_serve_json_rpc_config_t cfg;
+  const char *sug = NULL;
   int i;
+  cdd_c_error_t rc;
 
   memset(&cfg, 0, sizeof(cfg));
+  rc = cdd_cli_suggest_closest("serve_json_rpc", NULL, 0, &sug);
   cfg.port = getenv("CDD_PORT") ? atoi(getenv("CDD_PORT")) : 8080;
   cfg.bind_address = "0.0.0.0";
   cfg.max_requests =
       getenv("CDD_LISTEN") ? (size_t)atoi(getenv("CDD_LISTEN")) : 0;
 
   for (i = 0; i < argc; i++) {
-    if (strcmp(argv[i], "--port") == 0 || strcmp(argv[i], "-p") == 0) {
-      if (i + 1 < argc) {
-        cfg.port = atoi(argv[++i]);
-      } else {
-        return CDD_C_ERROR_INVALID_ARGUMENT;
-      }
-    } else if (strcmp(argv[i], "--listen") == 0 || strcmp(argv[i], "-l") == 0) {
-      cfg.max_requests = 1;
-      if (i + 1 < argc) {
-        const char *arg_val = argv[++i];
-        if (strchr(arg_val, '.') != NULL) {
-          cfg.bind_address = arg_val;
-        } else {
-          int parsed = atoi(arg_val);
-          cfg.max_requests =
-              (parsed == 255 || parsed <= 0) ? 0 : (size_t)parsed;
-        }
-      }
-    } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+    const struct cdd_field_info *f = NULL;
+    const char *flag = argv[i] + (argv[i][1] == '-' ? 2 : 1);
+    if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
       puts("Usage: cdd-c serve_json_rpc [args]");
       puts("");
       puts("Options:");
       puts("  -p, --port <port>       Port to listen on (default: 8080)");
       puts("  -l, --listen <address>  Address or connection limit to bind");
-      return CDD_C_SUCCESS;
+      return rc;
+    } else if (argv[i][0] == '-' &&
+               cdd_reflect_find_field(&cdd_serve_json_rpc_config_type_info,
+                                      flag, &f) == CDD_C_SUCCESS) {
+      if (f->kind == CDD_FIELD_KIND_INTEGER) {
+        if (i + 1 < argc) {
+          cfg.port = atoi(argv[++i]);
+        } else {
+          return CDD_C_ERROR_INVALID_ARGUMENT;
+        }
+      } else {
+        cfg.max_requests = 1;
+        if (i + 1 < argc) {
+          const char *arg_val = argv[++i];
+          if (strchr(arg_val, '.') != NULL) {
+            cfg.bind_address = arg_val;
+          } else {
+            int parsed = atoi(arg_val);
+            cfg.max_requests =
+                (parsed == 255 || parsed <= 0) ? 0 : (size_t)parsed;
+          }
+        }
+      }
     } else if (argv[i][0] == '-') {
       fprintf(stderr, "Unknown option for serve_json_rpc: %s\n", argv[i]);
       return CDD_C_ERROR_INVALID_ARGUMENT;

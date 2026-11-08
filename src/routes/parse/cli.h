@@ -189,8 +189,9 @@ extern C_CDD_EXPORT cdd_c_error_t c2openapi_copy_doc_server_variables(
  * @brief Frees heap allocations in an OpenAPI server's variables array.
  *
  * @param[in,out] srv OpenAPI server to clean.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void
+extern C_CDD_EXPORT cdd_c_error_t
 c2openapi_free_openapi_server_variables(struct OpenAPI_Server *srv);
 
 /**
@@ -368,8 +369,9 @@ extern C_CDD_EXPORT cdd_c_error_t c2openapi_parse_c_signature_string(
  * @brief Frees memory allocated within a C2OpenAPI_ParsedSig structure.
  *
  * @param[in,out] sig Parsed signature structure to clean.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void
+extern C_CDD_EXPORT cdd_c_error_t
 c2openapi_free_parsed_sig(struct C2OpenAPI_ParsedSig *sig);
 
 /**

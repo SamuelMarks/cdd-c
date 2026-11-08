@@ -54,8 +54,10 @@ cdd_macro_evaluate(struct PreprocessorContext *ctx, const char *expression,
 /**
  * @brief Frees any allocated memory in the evaluation result.
  * @param[out] result The result to free.
+ * @return CDD_C_SUCCESS.
  */
-C_CDD_EXPORT void cdd_macro_eval_result_free(cdd_macro_eval_result_t *result);
+C_CDD_EXPORT cdd_c_error_t
+cdd_macro_eval_result_free(cdd_macro_eval_result_t *result);
 
 #ifdef __cplusplus
 }

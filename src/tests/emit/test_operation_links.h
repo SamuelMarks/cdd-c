@@ -53,14 +53,22 @@ TEST test_operation_any_from_json_value_oom_and_types(void) {
   memset(&out, 0, sizeof(out));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, any_from_json_value(NULL, NULL));
 
-  jv_str = json_parse_string("\"str\"");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("\"str\"", &_cdd_jv_1);
+    jv_str = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv_str);
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, any_from_json_value(jv_str, &out));
   g_cdd_strdup_fail = 0;
   json_value_free(jv_str);
 
-  jv_obj = json_parse_string("{\"k\": 1}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"k\": 1}", &_cdd_jv_1);
+    jv_obj = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv_obj);
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, any_from_json_value(jv_obj, &out));

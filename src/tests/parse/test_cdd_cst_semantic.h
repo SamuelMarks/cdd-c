@@ -454,7 +454,7 @@ TEST test_cdd_cst_semantic_extract_null(void) {
   /* Test malloc failure in extract_identifier via g_fail_io_after */
   {
     cdd_cst_tree_t *t2 = calloc(1, sizeof(cdd_cst_tree_t));
-    cdd_cst_node_t *r2 = NULL, *decl2 = NULL, *id2 = NULL;
+    cdd_cst_node_t *r2 = NULL, *id2 = NULL;
     cdd_token_t *tok2 = NULL;
     cdd_cst_alloc_node(CDD_CST_DECLARATION, &r2);
     t2->root = r2;
@@ -478,7 +478,6 @@ TEST test_cdd_cst_semantic_extract_null(void) {
     }
     g_fail_io_after = -1;
 
-    (void)decl2;
     cdd_cst_tree_free(t2);
   }
 

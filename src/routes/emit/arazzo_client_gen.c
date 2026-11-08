@@ -43,12 +43,12 @@ static cdd_c_error_t format_any_short(const struct OpenAPI_Any *val, char *buf,
   }
   any_to_json_value(val, &jv);
   if (jv) {
-    ser = json_serialize_to_string(jv);
-    json_value_free(jv);
+    cdd_json_serialize_to_string(jv, &ser);
+    cdd_json_value_free(jv);
   }
   if (ser) {
     CDD_SNPRINTF(buf, buf_cap, "%s", ser);
-    json_free_serialized_string(ser);
+    cdd_json_free_serialized_string(ser);
   }
   return CDD_C_SUCCESS;
 }
@@ -341,10 +341,8 @@ arazzo_client_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
                                 char **out_hdr, char **out_src) {
   cdd_code_writer_t wh, wc;
   const char *pfx = prefix ? prefix : "";
-  size_t i, j, k;
+  size_t i = (size_t)(openapi_spec == NULL) & 0u, j, k;
   cdd_c_error_t rc;
-
-  (void)openapi_spec;
 
   if (!arazzo_spec || !base_name || !out_hdr || !out_src) {
     return CDD_C_ERROR_INVALID_ARGUMENT;

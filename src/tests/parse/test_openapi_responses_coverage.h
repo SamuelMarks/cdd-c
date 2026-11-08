@@ -62,9 +62,14 @@ TEST test_openapi_response_codes_and_refs(void) {
       (struct OpenAPI_Response *)calloc(1, sizeof(struct OpenAPI_Response));
   spec.component_responses[0].description = strdup("comp_resp_desc");
 
-  jv = json_parse_string(
-      "{\"$ref\":\"#/components/responses/"
-      "MyResp\",\"summary\":\"sum\",\"description\":\"override\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"$ref\":\"#/components/responses/"
+        "MyResp\",\"summary\":\"sum\",\"description\":\"override\"}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&resp, 0, sizeof(resp));
@@ -87,7 +92,12 @@ TEST test_openapi_response_codes_and_refs(void) {
     json_value_free(jv);
   }
 
-  jv = json_parse_string("{\"$ref\":\"#/components/responses/NotFound\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"$ref\":\"#/components/responses/NotFound\"}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&resp, 0, sizeof(resp));
@@ -101,11 +111,16 @@ TEST test_openapi_response_codes_and_refs(void) {
   /* 7. Response Swagger 2.0 schema and headers and links */
   memset(&spec, 0, sizeof(spec));
   spec.swagger_version = strdup("2.0");
-  jv = json_parse_string(
-      "{\"description\":\"desc\",\"schema\":{\"type\":\"string\"},"
-      "\"headers\":{\"X-Rate\":{\"description\":\"rate\"}},"
-      "\"links\":{\"GetItem\":{\"operationId\":\"getItem\"}},"
-      "\"x-custom\":\"val\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"description\":\"desc\",\"schema\":{\"type\":\"string\"},"
+        "\"headers\":{\"X-Rate\":{\"description\":\"rate\"}},"
+        "\"links\":{\"GetItem\":{\"operationId\":\"getItem\"}},"
+        "\"x-custom\":\"val\"}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&resp, 0, sizeof(resp));
@@ -119,7 +134,12 @@ TEST test_openapi_response_codes_and_refs(void) {
   }
 
   /* Swagger 2.0 with boolean schema */
-  jv = json_parse_string("{\"description\":\"desc\",\"schema\":true}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"description\":\"desc\",\"schema\":true}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&resp, 0, sizeof(resp));
@@ -130,8 +150,13 @@ TEST test_openapi_response_codes_and_refs(void) {
   }
 
   /* Swagger 2.0 schema error */
-  jv = json_parse_string(
-      "{\"description\":\"d\",\"schema\":{\"$ref\":\"#/definitions/Bad\"}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"description\":\"d\",\"schema\":{\"$ref\":\"#/definitions/Bad\"}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     g_cdd_strdup_fail = 2;
     memset(&resp, 0, sizeof(resp));
@@ -161,10 +186,15 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
 
   /* 8. Response inline schemas, itemSchema, and media ref */
   memset(&spec, 0, sizeof(spec));
-  jv = json_parse_string(
-      "{\"description\":\"desc\",\"content\":{\"application/json\":"
-      "{\"schema\":{\"type\":\"array\",\"items\":{\"type\":\"object\","
-      "\"properties\":{\"k\":{\"type\":\"string\"}}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"description\":\"desc\",\"content\":{\"application/json\":"
+        "{\"schema\":{\"type\":\"array\",\"items\":{\"type\":\"object\","
+        "\"properties\":{\"k\":{\"type\":\"string\"}}}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&resp, 0, sizeof(resp));
@@ -175,8 +205,13 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
   }
 
   /* Array schema without items */
-  jv = json_parse_string("{\"description\":\"d\",\"content\":{\"application/"
-                         "json\":{\"schema\":{\"type\":\"array\"}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"description\":\"d\",\"content\":{\"application/"
+                          "json\":{\"schema\":{\"type\":\"array\"}}}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&resp, 0, sizeof(resp));
@@ -187,9 +222,14 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
   }
 
   /* Properties without type */
-  jv = json_parse_string(
-      "{\"description\":\"d\",\"content\":{\"application/"
-      "json\":{\"schema\":{\"properties\":{\"x\":{\"type\":\"string\"}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"description\":\"d\",\"content\":{\"application/"
+        "json\":{\"schema\":{\"properties\":{\"x\":{\"type\":\"string\"}}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&resp, 0, sizeof(resp));
@@ -222,8 +262,13 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
   }
 
   /* itemSchema boolean true and itemSchema properties without type */
-  jv = json_parse_string("{\"description\":\"d\",\"content\":{\"application/"
-                         "json\":{\"itemSchema\":true}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"description\":\"d\",\"content\":{\"application/"
+                          "json\":{\"itemSchema\":true}}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&resp, 0, sizeof(resp));
@@ -233,9 +278,14 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     json_value_free(jv);
   }
 
-  jv = json_parse_string("{\"description\":\"d\",\"content\":{\"application/"
-                         "json\":{\"itemSchema\":{\"properties\":{\"x\":{"
-                         "\"type\":\"string\"}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"description\":\"d\",\"content\":{\"application/"
+                          "json\":{\"itemSchema\":{\"properties\":{\"x\":{"
+                          "\"type\":\"string\"}}}}}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&resp, 0, sizeof(resp));
@@ -268,9 +318,14 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
   }
 
   /* Non-object schemas in response */
-  jv = json_parse_string(
-      "{\"description\":\"desc\",\"content\":{\"application/json\":"
-      "{\"schema\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"description\":\"desc\",\"content\":{\"application/json\":"
+        "{\"schema\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&resp, 0, sizeof(resp));
@@ -280,9 +335,14 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     json_value_free(jv);
   }
 
-  jv = json_parse_string(
-      "{\"description\":\"desc\",\"content\":{\"application/json\":"
-      "{\"schema\":{\"type\":\"string\"}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"description\":\"desc\",\"content\":{\"application/json\":"
+        "{\"schema\":{\"type\":\"string\"}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&resp, 0, sizeof(resp));
@@ -302,9 +362,14 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     json_value_free(jv);
   }
 
-  jv = json_parse_string(
-      "{\"description\":\"desc\",\"content\":{\"application/json\":"
-      "{\"itemSchema\":{\"type\":\"string\"}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"description\":\"desc\",\"content\":{\"application/json\":"
+        "{\"itemSchema\":{\"type\":\"string\"}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&resp, 0, sizeof(resp));
@@ -315,8 +380,14 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
   }
 
   /* Response with boolean schema and invalid media content */
-  jv = json_parse_string("{\"description\":\"desc\",\"content\":{\"application/"
-                         "json\":{\"schema\":true}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"description\":\"desc\",\"content\":{\"application/"
+        "json\":{\"schema\":true}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&resp, 0, sizeof(resp));
@@ -326,8 +397,13 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     json_value_free(jv);
   }
 
-  jv = json_parse_string(
-      "{\"description\":\"desc\",\"content\":{\"application/json\":123}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"description\":\"desc\",\"content\":{\"application/json\":123}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&resp, 0, sizeof(resp));
@@ -337,10 +413,15 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     json_value_free(jv);
   }
 
-  jv = json_parse_string(
-      "{\"description\":\"desc\",\"content\":{\"application/json\":"
-      "{\"schema\":{\"type\":\"object\",\"properties\":{\"k\":{\"type\":"
-      "\"string\"}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"description\":\"desc\",\"content\":{\"application/json\":"
+        "{\"schema\":{\"type\":\"object\",\"properties\":{\"k\":{\"type\":"
+        "\"string\"}}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&resp, 0, sizeof(resp));
@@ -350,10 +431,15 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     json_value_free(jv);
   }
 
-  jv = json_parse_string(
-      "{\"description\":\"desc\",\"content\":{\"application/json\":"
-      "{\"itemSchema\":{\"type\":\"object\",\"properties\":{\"k\":{\"type\":"
-      "\"string\"}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"description\":\"desc\",\"content\":{\"application/json\":"
+        "{\"itemSchema\":{\"type\":\"object\",\"properties\":{\"k\":{\"type\":"
+        "\"string\"}}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&resp, 0, sizeof(resp));
@@ -363,9 +449,14 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     json_value_free(jv);
   }
 
-  jv = json_parse_string(
-      "{\"description\":\"desc\",\"content\":{\"application/json\":"
-      "{\"$ref\":\"#/components/mediaTypes/Mt\"}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"description\":\"desc\",\"content\":{\"application/json\":"
+        "{\"$ref\":\"#/components/mediaTypes/Mt\"}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&resp, 0, sizeof(resp));
@@ -376,9 +467,15 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
   }
 
   /* Response with examples array and single example */
-  jv = json_parse_string("{\"description\":\"desc\",\"content\":{\"application/"
-                         "json\":{\"schema\":{\"type\":\"string\"},"
-                         "\"examples\":{\"e1\":{\"value\":\"v1\"}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"description\":\"desc\",\"content\":{\"application/"
+        "json\":{\"schema\":{\"type\":\"string\"},"
+        "\"examples\":{\"e1\":{\"value\":\"v1\"}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&resp, 0, sizeof(resp));
@@ -388,9 +485,15 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     json_value_free(jv);
   }
 
-  jv = json_parse_string("{\"description\":\"desc\",\"content\":{\"application/"
-                         "json\":{\"schema\":{\"type\":\"string\"},"
-                         "\"example\":\"val\"}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"description\":\"desc\",\"content\":{\"application/"
+        "json\":{\"schema\":{\"type\":\"string\"},"
+        "\"example\":\"val\"}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&resp, 0, sizeof(resp));
@@ -403,21 +506,34 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
 
   /* 9. parse_responses error and success branches */
   memset(&op, 0, sizeof(op));
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               parse_responses(json_value_get_object(jv), &op, NULL, "op"));
     json_value_free(jv);
   }
 
-  jv = json_parse_string("{\"x-ext\":\"custom\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"x-ext\":\"custom\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               parse_responses(json_value_get_object(jv), &op, NULL, "op"));
     json_value_free(jv);
   }
 
-  jv = json_parse_string("{\"bad_code\":{\"description\":\"desc\"}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"bad_code\":{\"description\":\"desc\"}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               parse_responses(json_value_get_object(jv), &op, NULL, "op"));
@@ -425,7 +541,11 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
   }
 
   /* Responses with non-object response value (resp_obj == NULL) */
-  jv = json_parse_string("{\"200\": 123, \"x-custom\": \"val\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"200\": 123, \"x-custom\": \"val\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     memset(&op, 0, sizeof(op));
     ASSERT_EQ(CDD_C_SUCCESS,
@@ -435,7 +555,11 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
   }
 
   /* Responses without extensions */
-  jv = json_parse_string("{\"200\": {\"description\": \"OK\"}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"200\": {\"description\": \"OK\"}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     memset(&op, 0, sizeof(op));
     ASSERT_EQ(CDD_C_SUCCESS,

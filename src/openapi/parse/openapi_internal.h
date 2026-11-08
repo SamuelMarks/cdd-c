@@ -13,11 +13,11 @@ extern "C" {
 
 /* clang-format off */
 #include <ctype.h>
-#include <parson.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/json_dom.h"
 #include "c_cdd/memory.h"
 #include "c_cdd/safe_crt.h"
 #include "classes/emit/enum.h"
@@ -271,108 +271,126 @@ extern C_CDD_EXPORT cdd_c_error_t collect_extensions(const JSON_Object *obj,
  * @brief Frees the memory associated with any value.
  *
  * @param[in,out] val The OpenAPI_Any value to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void free_any_value(struct OpenAPI_Any *val);
+extern C_CDD_EXPORT cdd_c_error_t free_any_value(struct OpenAPI_Any *val);
 
 /**
  * @brief Frees the memory associated with example.
  *
  * @param[in,out] ex The OpenAPI_Example structure to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void free_example(struct OpenAPI_Example *ex);
+extern C_CDD_EXPORT cdd_c_error_t free_example(struct OpenAPI_Example *ex);
 
 /**
  * @brief Frees the memory associated with link.
  *
  * @param[in,out] link The OpenAPI_Link structure to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void free_link(struct OpenAPI_Link *link);
+extern C_CDD_EXPORT cdd_c_error_t free_link(struct OpenAPI_Link *link);
 
 /**
  * @brief Frees the memory associated with security requirement.
  *
  * @param[in,out] req The OpenAPI_SecurityRequirement structure to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void
+extern C_CDD_EXPORT cdd_c_error_t
 free_security_requirement(struct OpenAPI_SecurityRequirement *req);
 
 /**
  * @brief Frees the memory associated with security requirement set.
  *
  * @param[in,out] set The OpenAPI_SecurityRequirementSet structure to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void
+extern C_CDD_EXPORT cdd_c_error_t
 free_security_requirement_set(struct OpenAPI_SecurityRequirementSet *set);
 
 /**
  * @brief Frees the memory associated with schema ref content.
  *
  * @param[in,out] ref The OpenAPI_SchemaRef structure to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void free_schema_ref_content(struct OpenAPI_SchemaRef *ref);
+extern C_CDD_EXPORT cdd_c_error_t
+free_schema_ref_content(struct OpenAPI_SchemaRef *ref);
 
 /**
  * @brief Frees the memory associated with header.
  *
  * @param[in,out] hdr The OpenAPI_Header structure to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void free_header(struct OpenAPI_Header *hdr);
+extern C_CDD_EXPORT cdd_c_error_t free_header(struct OpenAPI_Header *hdr);
 
 /**
  * @brief Frees the memory associated with encoding.
  *
  * @param[in,out] enc The OpenAPI_Encoding structure to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void free_encoding(struct OpenAPI_Encoding *enc);
+extern C_CDD_EXPORT cdd_c_error_t free_encoding(struct OpenAPI_Encoding *enc);
 
 /**
  * @brief Frees the memory associated with media type.
  *
  * @param[in,out] mt The OpenAPI_MediaType structure to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void free_media_type(struct OpenAPI_MediaType *mt);
+extern C_CDD_EXPORT cdd_c_error_t free_media_type(struct OpenAPI_MediaType *mt);
 
 /**
  * @brief Frees the memory associated with parameter.
  *
  * @param[in,out] param The OpenAPI_Parameter structure to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void free_parameter(struct OpenAPI_Parameter *param);
+extern C_CDD_EXPORT cdd_c_error_t
+free_parameter(struct OpenAPI_Parameter *param);
 
 /**
  * @brief Frees the memory associated with response.
  *
  * @param[in,out] resp The OpenAPI_Response structure to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void free_response(struct OpenAPI_Response *resp);
+extern C_CDD_EXPORT cdd_c_error_t free_response(struct OpenAPI_Response *resp);
 
 /**
  * @brief Frees the memory associated with request body.
  *
  * @param[in,out] rb The OpenAPI_RequestBody structure to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void free_request_body(struct OpenAPI_RequestBody *rb);
+extern C_CDD_EXPORT cdd_c_error_t
+free_request_body(struct OpenAPI_RequestBody *rb);
 
 /**
  * @brief Frees the memory associated with path item.
  *
  * @param[in,out] p The OpenAPI_Path structure to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void free_path_item(struct OpenAPI_Path *p);
+extern C_CDD_EXPORT cdd_c_error_t free_path_item(struct OpenAPI_Path *p);
 
 /**
  * @brief Frees the memory associated with callback.
  *
  * @param[in,out] cb The OpenAPI_Callback structure to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void free_callback(struct OpenAPI_Callback *cb);
+extern C_CDD_EXPORT cdd_c_error_t free_callback(struct OpenAPI_Callback *cb);
 
 /**
  * @brief Frees the memory associated with operation.
  *
  * @param[in,out] op The OpenAPI_Operation structure to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void free_operation(struct OpenAPI_Operation *op);
+extern C_CDD_EXPORT cdd_c_error_t free_operation(struct OpenAPI_Operation *op);
 
 /**
  * @brief Creates a deep copy of any value.

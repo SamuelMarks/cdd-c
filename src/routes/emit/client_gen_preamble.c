@@ -99,6 +99,50 @@ cdd_c_error_t write_source_preamble(FILE *fp, const char *header_name) {
                        "#ifndef strdup\n#define strdup _strdup\n#endif\n"
                        "#endif\n\n"));
 
+  /* Error-returning JSON DOM shims for standalone generated SDKs */
+  CHECK_IO(fprintf(fp, "#ifndef CDD_JSON_DOM_H\n"
+                       "#define cdd_json_parse_string(str, out) (*(out) = "
+                       "json_parse_string(str), (*(out) ? CDD_C_SUCCESS : "
+                       "CDD_C_ERROR_INVALID_ARGUMENT))\n"
+                       "#define cdd_json_value_init_object(out) (*(out) = "
+                       "json_value_init_object(), (*(out) ? CDD_C_SUCCESS : "
+                       "CDD_C_ERROR_MEMORY))\n"
+                       "#define cdd_json_value_init_array(out) (*(out) = "
+                       "json_value_init_array(), (*(out) ? CDD_C_SUCCESS : "
+                       "CDD_C_ERROR_MEMORY))\n"));
+  CHECK_IO(fprintf(fp, "#define cdd_json_value_get_object(val, out) (*(out) = "
+                       "json_value_get_object(val), CDD_C_SUCCESS)\n"
+                       "#define cdd_json_value_get_array(val, out) (*(out) = "
+                       "json_value_get_array(val), CDD_C_SUCCESS)\n"
+                       "#define cdd_json_value_deep_copy(val, out) (*(out) = "
+                       "json_value_deep_copy(val), (*(out) ? CDD_C_SUCCESS : "
+                       "CDD_C_ERROR_MEMORY))\n"
+                       "#define cdd_json_value_free(val) "
+                       "(json_value_free(val), CDD_C_SUCCESS)\n"));
+  CHECK_IO(fprintf(fp,
+                   "#define cdd_json_object_has_value(obj, k, out) (*(out) = "
+                   "json_object_has_value(obj, k), CDD_C_SUCCESS)\n"
+                   "#define cdd_json_object_get_string(obj, k, out) (*(out) = "
+                   "json_object_get_string(obj, k), CDD_C_SUCCESS)\n"
+                   "#define cdd_json_object_get_number(obj, k, out) (*(out) = "
+                   "json_object_get_number(obj, k), CDD_C_SUCCESS)\n"));
+  CHECK_IO(fprintf(fp, "#define cdd_json_object_set_string(obj, k, v) "
+                       "(json_object_set_string(obj, k, v) == JSONSuccess ? "
+                       "CDD_C_SUCCESS : CDD_C_ERROR_MEMORY)\n"
+                       "#define cdd_json_object_set_number(obj, k, v) "
+                       "(json_object_set_number(obj, k, v) == JSONSuccess ? "
+                       "CDD_C_SUCCESS : CDD_C_ERROR_MEMORY)\n"
+                       "#define cdd_json_object_set_value(obj, k, v) "
+                       "(json_object_set_value(obj, k, v) == JSONSuccess ? "
+                       "CDD_C_SUCCESS : CDD_C_ERROR_MEMORY)\n"));
+  CHECK_IO(fprintf(fp, "#define cdd_json_array_append_value(arr, v) "
+                       "(json_array_append_value(arr, v) == JSONSuccess ? "
+                       "CDD_C_SUCCESS : CDD_C_ERROR_MEMORY)\n"
+                       "#define cdd_json_serialize_to_string(val, out) (*(out) "
+                       "= json_serialize_to_string(val), (*(out) ? "
+                       "CDD_C_SUCCESS : CDD_C_ERROR_MEMORY))\n"
+                       "#endif\n\n"));
+
   return CDD_C_SUCCESS;
 }
 
@@ -175,41 +219,52 @@ cdd_c_error_t write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
                    "static cdd_c_error_t ApiError_from_json(const char "
                    "*json, struct ApiError "
                    "**out) {\n"
-                   "  JSON_Value *root;\n"
-                   "  JSON_Object *obj;\n"
+                   "  JSON_Value *root = NULL;\n"
+                   "  JSON_Object *obj = NULL;\n"
                    "  if(!json || !out) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
                    "  *out = calloc(1, sizeof(struct ApiError));\n"
                    "  if(!*out) return CDD_C_ERROR_MEMORY;\n"
                    "  (*out)->raw_body = strdup(json);\n"
-                   "  root = json_parse_string(json);\n"));
+                   "  cdd_json_parse_string(json, &root);\n"));
   CHECK_IO(fprintf(
       c, "  if(!root) return CDD_C_SUCCESS; /* Not JSON, return strict success "
          "but object "
          "only has raw_body */\n"
-         "  obj = json_value_get_object(root);\n"
+         "  cdd_json_value_get_object(root, &obj);\n"
          "  if(obj) {\n"
-         "    if(json_object_has_value(obj, \"type\")) { (*out)->type = "
-         "strdup(json_object_get_string(obj, \"type\")); if(!(*out)->type) { "
-         "json_value_free(root); return CDD_C_ERROR_MEMORY; } }\n"));
+         "    const char *s = NULL;\n"
+         "    int hv = 0;\n"
+         "    double d = 0.0;\n"
+         "    cdd_json_object_has_value(obj, \"type\", &hv);\n"
+         "    if(hv) { cdd_json_object_get_string(obj, \"type\", &s); "
+         "(*out)->type = strdup(s ? s : \"\"); if(!(*out)->type) { "
+         "cdd_json_value_free(root); return CDD_C_ERROR_MEMORY; } }\n"));
   CHECK_IO(fprintf(
-      c, "    if(json_object_has_value(obj, \"title\")) { (*out)->title = "
-         "strdup(json_object_get_string(obj, \"title\")); if(!(*out)->title) { "
-         "json_value_free(root); return CDD_C_ERROR_MEMORY; } }\n"
-         "    if(json_object_has_value(obj, \"detail\")) { (*out)->detail = "
-         "strdup(json_object_get_string(obj, \"detail\")); if(!(*out)->detail) "
-         "{ json_value_free(root); return CDD_C_ERROR_MEMORY; } }\n"));
+      c, "    hv = 0; s = NULL;\n"
+         "    cdd_json_object_has_value(obj, \"title\", &hv);\n"
+         "    if(hv) { cdd_json_object_get_string(obj, \"title\", &s); "
+         "(*out)->title = strdup(s ? s : \"\"); if(!(*out)->title) { "
+         "cdd_json_value_free(root); return CDD_C_ERROR_MEMORY; } }\n"
+         "    hv = 0; s = NULL;\n"
+         "    cdd_json_object_has_value(obj, \"detail\", &hv);\n"
+         "    if(hv) { cdd_json_object_get_string(obj, \"detail\", &s); "
+         "(*out)->detail = strdup(s ? s : \"\"); if(!(*out)->detail) "
+         "{ cdd_json_value_free(root); return CDD_C_ERROR_MEMORY; } }\n"));
   CHECK_IO(fprintf(
-      c,
-      "    if(json_object_has_value(obj, \"instance\")) { (*out)->instance = "
-      "strdup(json_object_get_string(obj, \"instance\")); "
-      "if(!(*out)->instance) { json_value_free(root); return "
-      "CDD_C_ERROR_MEMORY; } }\n"
-      "    if(json_object_has_value(obj, \"status\")) (*out)->status = "
-      "(int)json_object_get_number(obj, \"status\");\n"
-      "  }\n"
-      "  json_value_free(root);\n"
-      "  return CDD_C_SUCCESS;\n"
-      "}\n\n"));
+      c, "    hv = 0; s = NULL;\n"
+         "    cdd_json_object_has_value(obj, \"instance\", &hv);\n"
+         "    if(hv) { cdd_json_object_get_string(obj, \"instance\", &s); "
+         "(*out)->instance = strdup(s ? s : \"\"); "
+         "if(!(*out)->instance) { cdd_json_value_free(root); return "
+         "CDD_C_ERROR_MEMORY; } }\n"
+         "    hv = 0;\n"
+         "    cdd_json_object_has_value(obj, \"status\", &hv);\n"
+         "    if(hv) { cdd_json_object_get_number(obj, \"status\", &d); "
+         "(*out)->status = (int)d; }\n"
+         "  }\n"
+         "  cdd_json_value_free(root);\n"
+         "  return CDD_C_SUCCESS;\n"
+         "}\n\n"));
 
   CHECK_IO(fprintf(c,
                    "cdd_c_error_t %sinit(struct HttpClient *client, const char "

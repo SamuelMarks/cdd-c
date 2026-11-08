@@ -33,15 +33,19 @@ static cdd_c_error_t
 parse_arazzo_extensions(const JSON_Object *obj,
                         struct Arazzo_ExtensionList *ext_list) {
   size_t i;
-  size_t count = json_object_get_count(obj);
+  size_t count = 0;
 
+  cdd_json_object_get_count(obj, &count);
   for (i = 0; i < count; ++i) {
-    const char *name = json_object_get_name(obj, i);
+    const char *name = NULL;
+    cdd_json_object_get_name(obj, i, &name);
     if (strncmp(name, "x-", 2) == 0) {
+      JSON_Value *val_at = NULL;
       struct OpenAPI_Any val;
       cdd_c_error_t rc;
       memset(&val, 0, sizeof(val));
-      rc = parse_any_value(json_object_get_value_at(obj, i), &val);
+      cdd_json_object_get_value_at(obj, i, &val_at);
+      rc = parse_any_value(val_at, &val);
       if (rc == CDD_C_SUCCESS)
         rc = arazzo_extension_list_append(ext_list, name, &val);
       free_any_value(&val);
@@ -63,11 +67,1301 @@ parse_arazzo_extensions(const JSON_Object *obj,
  */
 static cdd_c_error_t dup_opt_json_str(const JSON_Object *obj, const char *key,
                                       char **out_str) {
-  const char *s = json_object_get_string(obj, key);
+  const char *s = NULL;
+  cdd_json_object_get_string(obj, key, &s);
   if (!s)
     return CDD_C_SUCCESS;
   *out_str = C_CDD_STRDUP(s);
   return *out_str ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
+}
+
+/** @brief Reflected fields for `Arazzo_Info`. */
+static const struct cdd_field_info g_arazzo_info_fields[] = {
+    {"title",
+     "title",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_Info, title),
+     sizeof(char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"summary",
+     "summary",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_Info, summary),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"description",
+     "description",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_Info, description),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"version",
+     "version",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_Info, version),
+     sizeof(char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info Arazzo_Info_type_info = {
+    "Arazzo_Info",
+    sizeof(struct Arazzo_Info),
+    0,
+    g_arazzo_info_fields,
+    sizeof(g_arazzo_info_fields) / sizeof(g_arazzo_info_fields[0]),
+    0};
+
+/** @brief Reflected fields for `Arazzo_SourceDescription`. */
+static const struct cdd_field_info g_arazzo_source_description_fields[] = {
+    {"name",
+     "name",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_SourceDescription, name),
+     sizeof(char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"url",
+     "url",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_SourceDescription, url),
+     sizeof(char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info Arazzo_SourceDescription_type_info = {
+    "Arazzo_SourceDescription",
+    sizeof(struct Arazzo_SourceDescription),
+    0,
+    g_arazzo_source_description_fields,
+    sizeof(g_arazzo_source_description_fields) /
+        sizeof(g_arazzo_source_description_fields[0]),
+    0};
+
+/** @brief Reflected fields for `Arazzo_Criterion`. */
+static const struct cdd_field_info g_arazzo_criterion_fields[] = {
+    {"condition",
+     "condition",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_Criterion, condition),
+     sizeof(char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"context",
+     "context",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_Criterion, context),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info Arazzo_Criterion_type_info = {
+    "Arazzo_Criterion",
+    sizeof(struct Arazzo_Criterion),
+    0,
+    g_arazzo_criterion_fields,
+    sizeof(g_arazzo_criterion_fields) / sizeof(g_arazzo_criterion_fields[0]),
+    0};
+
+/** @brief Reflected fields for `Arazzo_Selector`. */
+static const struct cdd_field_info g_arazzo_selector_fields[] = {
+    {"context",
+     "context",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_Selector, context),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"selector",
+     "selector",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_Selector, selector),
+     sizeof(char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info Arazzo_Selector_type_info = {
+    "Arazzo_Selector",
+    sizeof(struct Arazzo_Selector),
+    0,
+    g_arazzo_selector_fields,
+    sizeof(g_arazzo_selector_fields) / sizeof(g_arazzo_selector_fields[0]),
+    0};
+
+/** @brief Reflected fields for `Arazzo_Reusable`. */
+static const struct cdd_field_info g_arazzo_reusable_fields[] = {
+    {"reference",
+     "reference",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_Reusable, reference),
+     sizeof(char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info Arazzo_Reusable_type_info = {
+    "Arazzo_Reusable",
+    sizeof(struct Arazzo_Reusable),
+    0,
+    g_arazzo_reusable_fields,
+    sizeof(g_arazzo_reusable_fields) / sizeof(g_arazzo_reusable_fields[0]),
+    0};
+
+/** @brief Reflected fields for `Arazzo_SuccessAction`. */
+static const struct cdd_field_info g_arazzo_success_action_fields[] = {
+    {"name",
+     "name",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_SuccessAction, name),
+     sizeof(char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"workflow_id",
+     "workflowId",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_SuccessAction, workflow_id),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"step_id",
+     "stepId",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_SuccessAction, step_id),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info Arazzo_SuccessAction_type_info = {
+    "Arazzo_SuccessAction",
+    sizeof(struct Arazzo_SuccessAction),
+    0,
+    g_arazzo_success_action_fields,
+    sizeof(g_arazzo_success_action_fields) /
+        sizeof(g_arazzo_success_action_fields[0]),
+    0};
+
+/** @brief Reflected fields for `Arazzo_FailureAction`. */
+static const struct cdd_field_info g_arazzo_failure_action_fields[] = {
+    {"name",
+     "name",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_FailureAction, name),
+     sizeof(char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"workflow_id",
+     "workflowId",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_FailureAction, workflow_id),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"step_id",
+     "stepId",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_FailureAction, step_id),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info Arazzo_FailureAction_type_info = {
+    "Arazzo_FailureAction",
+    sizeof(struct Arazzo_FailureAction),
+    0,
+    g_arazzo_failure_action_fields,
+    sizeof(g_arazzo_failure_action_fields) /
+        sizeof(g_arazzo_failure_action_fields[0]),
+    0};
+
+/** @brief Reflected fields for `Arazzo_Step`. */
+static const struct cdd_field_info g_arazzo_step_fields[] = {
+    {"step_id",
+     "stepId",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_Step, step_id),
+     sizeof(char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"description",
+     "description",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_Step, description),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"operation_id",
+     "operationId",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_Step, operation_id),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"operation_path",
+     "operationPath",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_Step, operation_path),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"channel_path",
+     "channelPath",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_Step, channel_path),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"workflow_id",
+     "workflowId",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_Step, workflow_id),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"correlation_id",
+     "correlationId",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_Step, correlation_id),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info Arazzo_Step_type_info = {
+    "Arazzo_Step",
+    sizeof(struct Arazzo_Step),
+    0,
+    g_arazzo_step_fields,
+    sizeof(g_arazzo_step_fields) / sizeof(g_arazzo_step_fields[0]),
+    0};
+
+/** @brief Reflected fields for `Arazzo_Workflow`. */
+static const struct cdd_field_info g_arazzo_workflow_fields[] = {
+    {"workflow_id",
+     "workflowId",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_Workflow, workflow_id),
+     sizeof(char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"summary",
+     "summary",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_Workflow, summary),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"description",
+     "description",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct Arazzo_Workflow, description),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info Arazzo_Workflow_type_info = {
+    "Arazzo_Workflow",
+    sizeof(struct Arazzo_Workflow),
+    0,
+    g_arazzo_workflow_fields,
+    sizeof(g_arazzo_workflow_fields) / sizeof(g_arazzo_workflow_fields[0]),
+    0};
+
+/**
+ * @brief Table-driven helper to populate reflected `char *` string fields from
+ * a `JSON_Object`.
+ *
+ * @param[in] obj Source JSON object.
+ * @param[in] ti Runtime reflection descriptor.
+ * @param[in,out] target Target C struct pointer.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
+ */
+static cdd_c_error_t
+arazzo_parse_reflected_strings(const JSON_Object *obj,
+                               const struct cdd_type_info *ti, void *target) {
+  size_t i;
+  for (i = 0; i < ti->n_fields; ++i) {
+    const struct cdd_field_info *f = &ti->fields[i];
+    char *s_out = NULL;
+    cdd_c_error_t rc;
+    memcpy(&s_out, (unsigned char *)target + f->offset, sizeof(s_out));
+    rc = dup_opt_json_str(obj, f->wire_name, &s_out);
+    memcpy((unsigned char *)target + f->offset, &s_out, sizeof(s_out));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -86,16 +1380,20 @@ static cdd_c_error_t
 parse_criterion_or_expr_type(const JSON_Object *obj, const char *type_key,
                              enum Arazzo_CriterionType *out_type,
                              struct Arazzo_ExpressionType *out_et) {
-  const JSON_Value *tval = json_object_get_value(obj, type_key);
+  JSON_Value *tval = NULL;
+  JSON_Value_Type vtype = JSONError;
   cdd_c_error_t rc;
 
+  cdd_json_object_get_value(obj, type_key, &tval);
   if (!tval) {
     *out_type = ARAZZO_CRITERION_SIMPLE;
     return CDD_C_SUCCESS;
   }
 
-  if (json_value_get_type(tval) == JSONString) {
-    const char *tstr = json_value_get_string(tval);
+  cdd_json_value_get_type(tval, &vtype);
+  if (vtype == JSONString) {
+    const char *tstr = NULL;
+    cdd_json_value_get_string(tval, &tstr);
     if (strcmp(tstr, "simple") == 0)
       *out_type = ARAZZO_CRITERION_SIMPLE;
     else if (strcmp(tstr, "regex") == 0)
@@ -109,9 +1407,11 @@ parse_criterion_or_expr_type(const JSON_Object *obj, const char *type_key,
     return CDD_C_SUCCESS;
   }
 
-  if (json_value_get_type(tval) == JSONObject) {
-    const JSON_Object *et_obj = json_value_get_object(tval);
-    const char *dtype = json_object_get_string(et_obj, "type");
+  if (vtype == JSONObject) {
+    JSON_Object *et_obj = NULL;
+    const char *dtype = NULL;
+    cdd_json_value_get_object(tval, &et_obj);
+    cdd_json_object_get_string(et_obj, "type", &dtype);
     if (!dtype)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     *out_type = ARAZZO_CRITERION_EXPRESSION_TYPE;
@@ -133,6 +1433,25 @@ parse_criterion_or_expr_type(const JSON_Object *obj, const char *type_key,
   return CDD_C_ERROR_INVALID_ARGUMENT;
 }
 
+cdd_c_error_t
+Arazzo_Criterion_from_jsonObject(const JSON_Object *cobj,
+                                 struct Arazzo_Criterion *out_crit) {
+  const char *cond = NULL;
+  cdd_c_error_t rc;
+  cdd_json_object_get_string(cobj, "condition", &cond);
+  if (!cobj || !out_crit || !cond)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  rc = arazzo_parse_reflected_strings(cobj, &Arazzo_Criterion_type_info,
+                                      out_crit);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = parse_criterion_or_expr_type(cobj, "type", &out_crit->type,
+                                    &out_crit->expression_type);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  return parse_arazzo_extensions(cobj, &out_crit->extensions);
+}
+
 /**
  * @brief Parses a `JSON_Array` of Criterion Objects.
  *
@@ -145,10 +1464,12 @@ static cdd_c_error_t parse_criteria_array(const JSON_Array *arr,
                                           struct Arazzo_Criterion **out_arr,
                                           size_t *out_count) {
   size_t i;
-  size_t n = arr ? json_array_get_count(arr) : 0;
+  size_t n = 0;
   struct Arazzo_Criterion *items;
   cdd_c_error_t rc;
 
+  if (arr)
+    cdd_json_array_get_count(arr, &n);
   if (n == 0)
     return CDD_C_SUCCESS;
 
@@ -160,20 +1481,9 @@ static cdd_c_error_t parse_criteria_array(const JSON_Array *arr,
   *out_count = n;
 
   for (i = 0; i < n; ++i) {
-    const JSON_Object *cobj = json_array_get_object(arr, i);
-    if (!json_object_get_string(cobj, "condition"))
-      return CDD_C_ERROR_INVALID_ARGUMENT;
-    rc = dup_opt_json_str(cobj, "condition", &items[i].condition);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    rc = dup_opt_json_str(cobj, "context", &items[i].context);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    rc = parse_criterion_or_expr_type(cobj, "type", &items[i].type,
-                                      &items[i].expression_type);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    rc = parse_arazzo_extensions(cobj, &items[i].extensions);
+    JSON_Object *elem_obj = NULL;
+    cdd_json_array_get_object(arr, i, &elem_obj);
+    rc = Arazzo_Criterion_from_jsonObject(elem_obj, &items[i]);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
@@ -190,10 +1500,7 @@ static cdd_c_error_t parse_criteria_array(const JSON_Array *arr,
 static cdd_c_error_t parse_selector_obj(const JSON_Object *sobj,
                                         struct Arazzo_Selector *sel) {
   cdd_c_error_t rc;
-  rc = dup_opt_json_str(sobj, "context", &sel->context);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  rc = dup_opt_json_str(sobj, "selector", &sel->selector);
+  rc = arazzo_parse_reflected_strings(sobj, &Arazzo_Selector_type_info, sel);
   if (rc != CDD_C_SUCCESS)
     return rc;
   rc = parse_criterion_or_expr_type(sobj, "type", &sel->type,
@@ -213,21 +1520,25 @@ static cdd_c_error_t parse_selector_obj(const JSON_Object *sobj,
  */
 static cdd_c_error_t parse_arazzo_param_obj(const JSON_Object *pobj,
                                             struct Arazzo_Parameter *param) {
-  const char *ref_str;
-  const char *in_str;
-  const JSON_Value *vval;
+  const char *ref_str = NULL;
+  const char *in_str = NULL;
+  const char *name_str = NULL;
+  const char *sel_str = NULL;
+  JSON_Value *vval = NULL;
+  JSON_Object *vobj = NULL;
   cdd_c_error_t rc;
 
   if (!pobj)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  ref_str = json_object_get_string(pobj, "reference");
+  cdd_json_object_get_string(pobj, "reference", &ref_str);
   if (ref_str) {
     param->reusable.is_reusable = 1;
-    param->reusable.reference = C_CDD_STRDUP(ref_str);
-    if (!param->reusable.reference)
-      return CDD_C_ERROR_MEMORY;
-    vval = json_object_get_value(pobj, "value");
+    rc = arazzo_parse_reflected_strings(pobj, &Arazzo_Reusable_type_info,
+                                        &param->reusable);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    cdd_json_object_get_value(pobj, "value", &vval);
     if (vval) {
       param->reusable.has_value_override = 1;
       rc = parse_any_value(vval, &param->reusable.value);
@@ -237,25 +1548,27 @@ static cdd_c_error_t parse_arazzo_param_obj(const JSON_Object *pobj,
     return CDD_C_SUCCESS;
   }
 
-  if (!json_object_get_string(pobj, "name") ||
-      !json_object_get_value(pobj, "value"))
+  cdd_json_object_get_string(pobj, "name", &name_str);
+  cdd_json_object_get_value(pobj, "value", &vval);
+  if (!name_str || !vval)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = dup_opt_json_str(pobj, "name", &param->name);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  in_str = json_object_get_string(pobj, "in");
+  cdd_json_object_get_string(pobj, "in", &in_str);
   if (in_str) {
     rc = arazzo_param_in_from_str(in_str, &param->in);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
 
-  vval = json_object_get_value(pobj, "value");
-  if (json_object_get_string(json_value_get_object(vval), "selector")) {
+  cdd_json_value_get_object(vval, &vobj);
+  cdd_json_object_get_string(vobj, "selector", &sel_str);
+  if (sel_str) {
     param->is_selector = 1;
-    rc = parse_selector_obj(json_value_get_object(vval), &param->selector);
+    rc = parse_selector_obj(vobj, &param->selector);
     if (rc != CDD_C_SUCCESS)
       return rc;
   } else {
@@ -285,10 +1598,12 @@ parse_arazzo_params_array(const JSON_Array *arr,
                           struct Arazzo_Parameter **out_arr,
                           size_t *out_count) {
   size_t i;
-  size_t n = arr ? json_array_get_count(arr) : 0;
+  size_t n = 0;
   struct Arazzo_Parameter *items;
   cdd_c_error_t rc;
 
+  if (arr)
+    cdd_json_array_get_count(arr, &n);
   if (n == 0)
     return CDD_C_SUCCESS;
 
@@ -300,7 +1615,9 @@ parse_arazzo_params_array(const JSON_Array *arr,
   *out_count = n;
 
   for (i = 0; i < n; ++i) {
-    rc = parse_arazzo_param_obj(json_array_get_object(arr, i), &items[i]);
+    JSON_Object *elem_obj = NULL;
+    cdd_json_array_get_object(arr, i, &elem_obj);
+    rc = parse_arazzo_param_obj(elem_obj, &items[i]);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
@@ -317,43 +1634,43 @@ parse_arazzo_params_array(const JSON_Array *arr,
 static cdd_c_error_t
 parse_success_action_object(const JSON_Object *aobj,
                             struct Arazzo_SuccessAction *act) {
-  const char *ref_str;
-  const char *type_str;
+  const char *ref_str = NULL;
+  const char *type_str = NULL;
+  const char *name_str = NULL;
+  JSON_Array *params_arr = NULL;
+  JSON_Array *crit_arr = NULL;
   cdd_c_error_t rc;
 
   if (!aobj)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  ref_str = json_object_get_string(aobj, "reference");
+  cdd_json_object_get_string(aobj, "reference", &ref_str);
   if (ref_str) {
     act->reusable.is_reusable = 1;
-    act->reusable.reference = C_CDD_STRDUP(ref_str);
-    return act->reusable.reference ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
+    return arazzo_parse_reflected_strings(aobj, &Arazzo_Reusable_type_info,
+                                          &act->reusable);
   }
 
-  type_str = json_object_get_string(aobj, "type");
-  if (!json_object_get_string(aobj, "name") || !type_str)
+  cdd_json_object_get_string(aobj, "type", &type_str);
+  cdd_json_object_get_string(aobj, "name", &name_str);
+  if (!name_str || !type_str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = arazzo_action_type_from_str(type_str, &act->type);
   if (rc != CDD_C_SUCCESS || act->type == ARAZZO_ACTION_RETRY)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  rc = dup_opt_json_str(aobj, "name", &act->name);
+  rc = arazzo_parse_reflected_strings(aobj, &Arazzo_SuccessAction_type_info,
+                                      act);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  rc = dup_opt_json_str(aobj, "workflowId", &act->workflow_id);
+  cdd_json_object_get_array(aobj, "parameters", &params_arr);
+  rc = parse_arazzo_params_array(params_arr, &act->parameters,
+                                 &act->n_parameters);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  rc = dup_opt_json_str(aobj, "stepId", &act->step_id);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  rc = parse_arazzo_params_array(json_object_get_array(aobj, "parameters"),
-                                 &act->parameters, &act->n_parameters);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  rc = parse_criteria_array(json_object_get_array(aobj, "criteria"),
-                            &act->criteria, &act->n_criteria);
+  cdd_json_object_get_array(aobj, "criteria", &crit_arr);
+  rc = parse_criteria_array(crit_arr, &act->criteria, &act->n_criteria);
   if (rc != CDD_C_SUCCESS)
     return rc;
   return parse_arazzo_extensions(aobj, &act->extensions);
@@ -369,52 +1686,58 @@ parse_success_action_object(const JSON_Object *aobj,
 static cdd_c_error_t
 parse_failure_action_object(const JSON_Object *aobj,
                             struct Arazzo_FailureAction *act) {
-  const char *ref_str;
-  const char *type_str;
+  const char *ref_str = NULL;
+  const char *type_str = NULL;
+  const char *name_str = NULL;
+  JSON_Array *params_arr = NULL;
+  JSON_Array *crit_arr = NULL;
+  int hv = 0;
+  double dv = 0.0;
   cdd_c_error_t rc;
 
   if (!aobj)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  ref_str = json_object_get_string(aobj, "reference");
+  cdd_json_object_get_string(aobj, "reference", &ref_str);
   if (ref_str) {
     act->reusable.is_reusable = 1;
-    act->reusable.reference = C_CDD_STRDUP(ref_str);
-    return act->reusable.reference ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
+    return arazzo_parse_reflected_strings(aobj, &Arazzo_Reusable_type_info,
+                                          &act->reusable);
   }
 
-  type_str = json_object_get_string(aobj, "type");
-  if (!json_object_get_string(aobj, "name") || !type_str)
+  cdd_json_object_get_string(aobj, "type", &type_str);
+  cdd_json_object_get_string(aobj, "name", &name_str);
+  if (!name_str || !type_str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = arazzo_action_type_from_str(type_str, &act->type);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  if (json_object_has_value_of_type(aobj, "retryAfter", JSONNumber)) {
+  cdd_json_object_has_value_of_type(aobj, "retryAfter", JSONNumber, &hv);
+  if (hv) {
     act->has_retry_after = 1;
-    act->retry_after = json_object_get_number(aobj, "retryAfter");
+    cdd_json_object_get_number(aobj, "retryAfter", &act->retry_after);
   }
-  if (json_object_has_value_of_type(aobj, "retryLimit", JSONNumber)) {
+  hv = 0;
+  cdd_json_object_has_value_of_type(aobj, "retryLimit", JSONNumber, &hv);
+  if (hv) {
     act->has_retry_limit = 1;
-    act->retry_limit = (int)json_object_get_number(aobj, "retryLimit");
+    cdd_json_object_get_number(aobj, "retryLimit", &dv);
+    act->retry_limit = (int)dv;
   }
 
-  rc = dup_opt_json_str(aobj, "name", &act->name);
+  rc = arazzo_parse_reflected_strings(aobj, &Arazzo_FailureAction_type_info,
+                                      act);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  rc = dup_opt_json_str(aobj, "workflowId", &act->workflow_id);
+  cdd_json_object_get_array(aobj, "parameters", &params_arr);
+  rc = parse_arazzo_params_array(params_arr, &act->parameters,
+                                 &act->n_parameters);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  rc = dup_opt_json_str(aobj, "stepId", &act->step_id);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  rc = parse_arazzo_params_array(json_object_get_array(aobj, "parameters"),
-                                 &act->parameters, &act->n_parameters);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  rc = parse_criteria_array(json_object_get_array(aobj, "criteria"),
-                            &act->criteria, &act->n_criteria);
+  cdd_json_object_get_array(aobj, "criteria", &crit_arr);
+  rc = parse_criteria_array(crit_arr, &act->criteria, &act->n_criteria);
   if (rc != CDD_C_SUCCESS)
     return rc;
   return parse_arazzo_extensions(aobj, &act->extensions);
@@ -433,10 +1756,12 @@ static cdd_c_error_t parse_outputs_map(const JSON_Object *out_obj,
                                        struct Arazzo_OutputMapEntry **out_arr,
                                        size_t *out_count) {
   size_t i;
-  size_t n = out_obj ? json_object_get_count(out_obj) : 0;
+  size_t n = 0;
   struct Arazzo_OutputMapEntry *items;
   cdd_c_error_t rc;
 
+  if (out_obj)
+    cdd_json_object_get_count(out_obj, &n);
   if (n == 0)
     return CDD_C_SUCCESS;
 
@@ -448,23 +1773,31 @@ static cdd_c_error_t parse_outputs_map(const JSON_Object *out_obj,
   *out_count = n;
 
   for (i = 0; i < n; ++i) {
-    const char *k = json_object_get_name(out_obj, i);
-    const JSON_Value *v = json_object_get_value_at(out_obj, i);
+    const char *k = NULL;
+    JSON_Value *v = NULL;
+    JSON_Value_Type vtype = JSONError;
+    cdd_json_object_get_name(out_obj, i, &k);
+    cdd_json_object_get_value_at(out_obj, i, &v);
     items[i].key = C_CDD_STRDUP(k);
     if (!items[i].key)
       return CDD_C_ERROR_MEMORY;
 
-    if (json_value_get_type(v) == JSONString) {
-      items[i].expression_or_value = C_CDD_STRDUP(json_value_get_string(v));
+    cdd_json_value_get_type(v, &vtype);
+    if (vtype == JSONString) {
+      const char *vs = NULL;
+      cdd_json_value_get_string(v, &vs);
+      items[i].expression_or_value = C_CDD_STRDUP(vs);
       if (!items[i].expression_or_value)
         return CDD_C_ERROR_MEMORY;
       rc = arazzo_runtime_expr_parse(items[i].expression_or_value,
                                      &items[i].parsed_expr);
       if (rc != CDD_C_SUCCESS)
         return rc;
-    } else if (json_value_get_type(v) == JSONObject) {
+    } else if (vtype == JSONObject) {
+      JSON_Object *vobj = NULL;
       items[i].is_selector = 1;
-      rc = parse_selector_obj(json_value_get_object(v), &items[i].selector);
+      cdd_json_value_get_object(v, &vobj);
+      rc = parse_selector_obj(vobj, &items[i].selector);
       if (rc != CDD_C_SUCCESS)
         return rc;
     } else {
@@ -484,37 +1817,27 @@ static cdd_c_error_t parse_outputs_map(const JSON_Object *out_obj,
 static cdd_c_error_t parse_step_object(const JSON_Object *sobj,
                                        struct Arazzo_Step *step) {
   int target_count = 0;
-  const JSON_Object *rb_obj;
-  const JSON_Array *succ_arr;
-  const JSON_Array *fail_arr;
-  const char *act_str;
+  JSON_Object *rb_obj = NULL;
+  JSON_Object *out_obj = NULL;
+  JSON_Array *dep_arr = NULL;
+  JSON_Array *params_arr = NULL;
+  JSON_Array *scrit_arr = NULL;
+  JSON_Array *succ_arr = NULL;
+  JSON_Array *fail_arr = NULL;
+  const char *step_id_str = NULL;
+  const char *act_str = NULL;
+  int hv = 0;
+  double dv = 0.0;
   size_t i;
-  size_t scount;
-  size_t fcount;
+  size_t scount = 0;
+  size_t fcount = 0;
   cdd_c_error_t rc;
 
-  if (!json_object_get_string(sobj, "stepId"))
+  cdd_json_object_get_string(sobj, "stepId", &step_id_str);
+  if (!step_id_str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  rc = dup_opt_json_str(sobj, "stepId", &step->step_id);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  rc = dup_opt_json_str(sobj, "description", &step->description);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  rc = dup_opt_json_str(sobj, "operationId", &step->operation_id);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  rc = dup_opt_json_str(sobj, "operationPath", &step->operation_path);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  rc = dup_opt_json_str(sobj, "channelPath", &step->channel_path);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  rc = dup_opt_json_str(sobj, "workflowId", &step->workflow_id);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  rc = dup_opt_json_str(sobj, "correlationId", &step->correlation_id);
+  rc = arazzo_parse_reflected_strings(sobj, &Arazzo_Step_type_info, step);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
@@ -537,12 +1860,14 @@ static cdd_c_error_t parse_step_object(const JSON_Object *sobj,
   if (target_count != 1)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (json_object_has_value_of_type(sobj, "timeout", JSONNumber)) {
+  cdd_json_object_has_value_of_type(sobj, "timeout", JSONNumber, &hv);
+  if (hv) {
     step->has_timeout = 1;
-    step->timeout_ms = (int)json_object_get_number(sobj, "timeout");
+    cdd_json_object_get_number(sobj, "timeout", &dv);
+    step->timeout_ms = (int)dv;
   }
 
-  act_str = json_object_get_string(sobj, "action");
+  cdd_json_object_get_string(sobj, "action", &act_str);
   if (act_str) {
     if (strcmp(act_str, "send") == 0)
       step->action = ARAZZO_ASYNC_SEND;
@@ -552,30 +1877,35 @@ static cdd_c_error_t parse_step_object(const JSON_Object *sobj,
       return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  if (json_object_get_array(sobj, "dependsOn")) {
-    rc = parse_string_enum_array(json_object_get_array(sobj, "dependsOn"),
-                                 &step->depends_on, &step->n_depends_on);
+  cdd_json_object_get_array(sobj, "dependsOn", &dep_arr);
+  if (dep_arr) {
+    rc = parse_string_enum_array(dep_arr, &step->depends_on,
+                                 &step->n_depends_on);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
 
-  rc = parse_arazzo_params_array(json_object_get_array(sobj, "parameters"),
-                                 &step->parameters, &step->n_parameters);
+  cdd_json_object_get_array(sobj, "parameters", &params_arr);
+  rc = parse_arazzo_params_array(params_arr, &step->parameters,
+                                 &step->n_parameters);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  rb_obj = json_object_get_object(sobj, "requestBody");
+  cdd_json_object_get_object(sobj, "requestBody", &rb_obj);
   if (rb_obj) {
-    const JSON_Array *rep_arr = json_object_get_array(rb_obj, "replacements");
-    size_t rcount = json_array_get_count(rep_arr);
+    JSON_Array *rep_arr = NULL;
+    JSON_Value *pay_val = NULL;
+    size_t rcount = 0;
+    cdd_json_object_get_array(rb_obj, "replacements", &rep_arr);
+    cdd_json_array_get_count(rep_arr, &rcount);
     step->has_request_body = 1;
     rc = dup_opt_json_str(rb_obj, "contentType",
                           &step->request_body.content_type);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    if (json_object_get_value(rb_obj, "payload")) {
-      rc = parse_any_value(json_object_get_value(rb_obj, "payload"),
-                           &step->request_body.payload);
+    cdd_json_object_get_value(rb_obj, "payload", &pay_val);
+    if (pay_val) {
+      rc = parse_any_value(pay_val, &step->request_body.payload);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
@@ -587,11 +1917,15 @@ static cdd_c_error_t parse_step_object(const JSON_Object *sobj,
         return CDD_C_ERROR_MEMORY;
       step->request_body.n_replacements = rcount;
       for (i = 0; i < rcount; ++i) {
-        const JSON_Object *robj = json_array_get_object(rep_arr, i);
+        JSON_Object *robj = NULL;
+        const char *tgt_str = NULL;
+        JSON_Value *rval = NULL;
         struct Arazzo_PayloadReplacement *rep =
             &step->request_body.replacements[i];
-        if (!json_object_get_string(robj, "target") ||
-            !json_object_get_value(robj, "value"))
+        cdd_json_array_get_object(rep_arr, i, &robj);
+        cdd_json_object_get_string(robj, "target", &tgt_str);
+        cdd_json_object_get_value(robj, "value", &rval);
+        if (!tgt_str || !rval)
           return CDD_C_ERROR_INVALID_ARGUMENT;
         rc = dup_opt_json_str(robj, "target", &rep->target);
         if (rc != CDD_C_SUCCESS)
@@ -601,7 +1935,7 @@ static cdd_c_error_t parse_step_object(const JSON_Object *sobj,
                                           &rep->target_expression_type);
         if (rc != CDD_C_SUCCESS)
           return rc;
-        rc = parse_any_value(json_object_get_value(robj, "value"), &rep->value);
+        rc = parse_any_value(rval, &rep->value);
         if (rc != CDD_C_SUCCESS)
           return rc;
         rc = parse_arazzo_extensions(robj, &rep->extensions);
@@ -614,13 +1948,14 @@ static cdd_c_error_t parse_step_object(const JSON_Object *sobj,
       return rc;
   }
 
-  rc = parse_criteria_array(json_object_get_array(sobj, "successCriteria"),
-                            &step->success_criteria, &step->n_success_criteria);
+  cdd_json_object_get_array(sobj, "successCriteria", &scrit_arr);
+  rc = parse_criteria_array(scrit_arr, &step->success_criteria,
+                            &step->n_success_criteria);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  succ_arr = json_object_get_array(sobj, "onSuccess");
-  scount = json_array_get_count(succ_arr);
+  cdd_json_object_get_array(sobj, "onSuccess", &succ_arr);
+  cdd_json_array_get_count(succ_arr, &scount);
   if (scount > 0) {
     step->on_success = (struct Arazzo_SuccessAction *)C_CDD_CALLOC(
         scount, sizeof(struct Arazzo_SuccessAction));
@@ -628,15 +1963,16 @@ static cdd_c_error_t parse_step_object(const JSON_Object *sobj,
       return CDD_C_ERROR_MEMORY;
     step->n_on_success = scount;
     for (i = 0; i < scount; ++i) {
-      rc = parse_success_action_object(json_array_get_object(succ_arr, i),
-                                       &step->on_success[i]);
+      JSON_Object *elem_obj = NULL;
+      cdd_json_array_get_object(succ_arr, i, &elem_obj);
+      rc = parse_success_action_object(elem_obj, &step->on_success[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
 
-  fail_arr = json_object_get_array(sobj, "onFailure");
-  fcount = json_array_get_count(fail_arr);
+  cdd_json_object_get_array(sobj, "onFailure", &fail_arr);
+  cdd_json_array_get_count(fail_arr, &fcount);
   if (fcount > 0) {
     step->on_failure = (struct Arazzo_FailureAction *)C_CDD_CALLOC(
         fcount, sizeof(struct Arazzo_FailureAction));
@@ -644,15 +1980,16 @@ static cdd_c_error_t parse_step_object(const JSON_Object *sobj,
       return CDD_C_ERROR_MEMORY;
     step->n_on_failure = fcount;
     for (i = 0; i < fcount; ++i) {
-      rc = parse_failure_action_object(json_array_get_object(fail_arr, i),
-                                       &step->on_failure[i]);
+      JSON_Object *elem_obj = NULL;
+      cdd_json_array_get_object(fail_arr, i, &elem_obj);
+      rc = parse_failure_action_object(elem_obj, &step->on_failure[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
 
-  rc = parse_outputs_map(json_object_get_object(sobj, "outputs"),
-                         &step->outputs, &step->n_outputs);
+  cdd_json_object_get_object(sobj, "outputs", &out_obj);
+  rc = parse_outputs_map(out_obj, &step->outputs, &step->n_outputs);
   if (rc != CDD_C_SUCCESS)
     return rc;
   return parse_arazzo_extensions(sobj, &step->extensions);
@@ -662,34 +1999,47 @@ static cdd_c_error_t parse_step_object(const JSON_Object *sobj,
  * @brief Parses a single `Source Description Object` from `sd_obj`.
  *
  * @param[in] sd_obj Source JSON object.
- * @param[out] sd Destination source description structure.
+ * @param[out] out_sd Destination source description structure.
  * @return `CDD_C_SUCCESS` on success, or error code.
  */
-static cdd_c_error_t
-parse_source_description_object(const JSON_Object *sd_obj,
-                                struct Arazzo_SourceDescription *sd) {
-  const char *tstr = json_object_get_string(sd_obj, "type");
+cdd_c_error_t Arazzo_SourceDescription_from_jsonObject(
+    const JSON_Object *sd_obj, struct Arazzo_SourceDescription *out_sd) {
+  const char *tstr = NULL;
+  const char *name_str = NULL;
+  const char *url_str = NULL;
   cdd_c_error_t rc;
 
-  if (!json_object_get_string(sd_obj, "name") ||
-      !json_object_get_string(sd_obj, "url"))
+  cdd_json_object_get_string(sd_obj, "type", &tstr);
+  cdd_json_object_get_string(sd_obj, "name", &name_str);
+  cdd_json_object_get_string(sd_obj, "url", &url_str);
+  if (!sd_obj || !out_sd || !name_str || !url_str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (tstr) {
-    rc = arazzo_source_type_from_str(tstr, &sd->type);
+    rc = arazzo_source_type_from_str(tstr, &out_sd->type);
     if (rc != CDD_C_SUCCESS)
       return rc;
   } else {
-    sd->type = ARAZZO_SOURCE_OPENAPI;
+    out_sd->type = ARAZZO_SOURCE_OPENAPI;
   }
 
-  rc = dup_opt_json_str(sd_obj, "name", &sd->name);
+  rc = arazzo_parse_reflected_strings(
+      sd_obj, &Arazzo_SourceDescription_type_info, out_sd);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  rc = dup_opt_json_str(sd_obj, "url", &sd->url);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  return parse_arazzo_extensions(sd_obj, &sd->extensions);
+  return parse_arazzo_extensions(sd_obj, &out_sd->extensions);
+}
+
+cdd_c_error_t Arazzo_Info_from_jsonObject(const JSON_Object *info_obj,
+                                          struct Arazzo_Info *out_info) {
+  cdd_c_error_t rc;
+  if (!info_obj || !out_info)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  rc = arazzo_parse_reflected_strings(info_obj, &Arazzo_Info_type_info,
+                                      out_info);
+  if (rc == CDD_C_SUCCESS)
+    rc = parse_arazzo_extensions(info_obj, &out_info->extensions);
+  return rc;
 }
 
 /**
@@ -701,44 +2051,44 @@ parse_source_description_object(const JSON_Object *sd_obj,
  */
 static cdd_c_error_t parse_workflow_object(const JSON_Object *wobj,
                                            struct Arazzo_Workflow *wf) {
-  const JSON_Array *steps_arr;
-  const JSON_Array *succ_arr;
-  const JSON_Array *fail_arr;
+  const char *wf_id_str = NULL;
+  JSON_Object *in_obj = NULL;
+  JSON_Object *out_obj = NULL;
+  JSON_Array *dep_arr = NULL;
+  JSON_Array *params_arr = NULL;
+  JSON_Array *steps_arr = NULL;
+  JSON_Array *succ_arr = NULL;
+  JSON_Array *fail_arr = NULL;
   size_t i;
-  size_t n_steps;
-  size_t sc;
-  size_t fc;
+  size_t n_steps = 0;
+  size_t sc = 0;
+  size_t fc = 0;
   cdd_c_error_t rc;
 
-  if (!json_object_get_string(wobj, "workflowId"))
+  cdd_json_object_get_string(wobj, "workflowId", &wf_id_str);
+  if (!wf_id_str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  steps_arr = json_object_get_array(wobj, "steps");
-  n_steps = json_array_get_count(steps_arr);
+  cdd_json_object_get_array(wobj, "steps", &steps_arr);
+  cdd_json_array_get_count(steps_arr, &n_steps);
   if (n_steps == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  rc = dup_opt_json_str(wobj, "workflowId", &wf->workflow_id);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  rc = dup_opt_json_str(wobj, "summary", &wf->summary);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  rc = dup_opt_json_str(wobj, "description", &wf->description);
+  rc = arazzo_parse_reflected_strings(wobj, &Arazzo_Workflow_type_info, wf);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  if (json_object_get_object(wobj, "inputs")) {
+  cdd_json_object_get_object(wobj, "inputs", &in_obj);
+  if (in_obj) {
     wf->has_inputs = 1;
-    rc = parse_schema_ref(json_object_get_object(wobj, "inputs"), &wf->inputs,
-                          NULL);
+    rc = parse_schema_ref(in_obj, &wf->inputs, NULL);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
 
-  if (json_object_get_array(wobj, "dependsOn")) {
-    rc = parse_string_enum_array(json_object_get_array(wobj, "dependsOn"),
-                                 &wf->depends_on, &wf->n_depends_on);
+  cdd_json_object_get_array(wobj, "dependsOn", &dep_arr);
+  if (dep_arr) {
+    rc = parse_string_enum_array(dep_arr, &wf->depends_on, &wf->n_depends_on);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
@@ -750,13 +2100,15 @@ static cdd_c_error_t parse_workflow_object(const JSON_Object *wobj,
   wf->n_steps = n_steps;
 
   for (i = 0; i < n_steps; ++i) {
-    rc = parse_step_object(json_array_get_object(steps_arr, i), &wf->steps[i]);
+    JSON_Object *st_obj = NULL;
+    cdd_json_array_get_object(steps_arr, i, &st_obj);
+    rc = parse_step_object(st_obj, &wf->steps[i]);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
 
-  succ_arr = json_object_get_array(wobj, "successActions");
-  sc = json_array_get_count(succ_arr);
+  cdd_json_object_get_array(wobj, "successActions", &succ_arr);
+  cdd_json_array_get_count(succ_arr, &sc);
   if (sc > 0) {
     wf->success_actions = (struct Arazzo_SuccessAction *)C_CDD_CALLOC(
         sc, sizeof(struct Arazzo_SuccessAction));
@@ -764,15 +2116,16 @@ static cdd_c_error_t parse_workflow_object(const JSON_Object *wobj,
       return CDD_C_ERROR_MEMORY;
     wf->n_success_actions = sc;
     for (i = 0; i < sc; ++i) {
-      rc = parse_success_action_object(json_array_get_object(succ_arr, i),
-                                       &wf->success_actions[i]);
+      JSON_Object *elem_obj = NULL;
+      cdd_json_array_get_object(succ_arr, i, &elem_obj);
+      rc = parse_success_action_object(elem_obj, &wf->success_actions[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
 
-  fail_arr = json_object_get_array(wobj, "failureActions");
-  fc = json_array_get_count(fail_arr);
+  cdd_json_object_get_array(wobj, "failureActions", &fail_arr);
+  cdd_json_array_get_count(fail_arr, &fc);
   if (fc > 0) {
     wf->failure_actions = (struct Arazzo_FailureAction *)C_CDD_CALLOC(
         fc, sizeof(struct Arazzo_FailureAction));
@@ -780,19 +2133,21 @@ static cdd_c_error_t parse_workflow_object(const JSON_Object *wobj,
       return CDD_C_ERROR_MEMORY;
     wf->n_failure_actions = fc;
     for (i = 0; i < fc; ++i) {
-      rc = parse_failure_action_object(json_array_get_object(fail_arr, i),
-                                       &wf->failure_actions[i]);
+      JSON_Object *elem_obj = NULL;
+      cdd_json_array_get_object(fail_arr, i, &elem_obj);
+      rc = parse_failure_action_object(elem_obj, &wf->failure_actions[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
 
-  rc = parse_outputs_map(json_object_get_object(wobj, "outputs"), &wf->outputs,
-                         &wf->n_outputs);
+  cdd_json_object_get_object(wobj, "outputs", &out_obj);
+  rc = parse_outputs_map(out_obj, &wf->outputs, &wf->n_outputs);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  rc = parse_arazzo_params_array(json_object_get_array(wobj, "parameters"),
-                                 &wf->parameters, &wf->n_parameters);
+  cdd_json_object_get_array(wobj, "parameters", &params_arr);
+  rc =
+      parse_arazzo_params_array(params_arr, &wf->parameters, &wf->n_parameters);
   if (rc != CDD_C_SUCCESS)
     return rc;
   return parse_arazzo_extensions(wobj, &wf->extensions);
@@ -807,15 +2162,20 @@ static cdd_c_error_t parse_workflow_object(const JSON_Object *wobj,
  */
 static cdd_c_error_t parse_components_object(const JSON_Object *cobj,
                                              struct Arazzo_Components *comp) {
-  const JSON_Object *in_obj = json_object_get_object(cobj, "inputs");
-  const JSON_Object *pm_obj = json_object_get_object(cobj, "parameters");
-  const JSON_Object *sa_obj = json_object_get_object(cobj, "successActions");
-  const JSON_Object *fa_obj = json_object_get_object(cobj, "failureActions");
+  JSON_Object *in_obj = NULL;
+  JSON_Object *pm_obj = NULL;
+  JSON_Object *sa_obj = NULL;
+  JSON_Object *fa_obj = NULL;
   size_t i;
-  size_t n;
+  size_t n = 0;
   cdd_c_error_t rc;
 
-  n = json_object_get_count(in_obj);
+  cdd_json_object_get_object(cobj, "inputs", &in_obj);
+  cdd_json_object_get_object(cobj, "parameters", &pm_obj);
+  cdd_json_object_get_object(cobj, "successActions", &sa_obj);
+  cdd_json_object_get_object(cobj, "failureActions", &fa_obj);
+
+  cdd_json_object_get_count(in_obj, &n);
   if (n > 0) {
     comp->input_keys = (char **)C_CDD_CALLOC(n, sizeof(char *));
     if (!comp->input_keys)
@@ -826,11 +2186,15 @@ static cdd_c_error_t parse_components_object(const JSON_Object *cobj,
       return CDD_C_ERROR_MEMORY;
     comp->n_inputs = n;
     for (i = 0; i < n; ++i) {
-      const JSON_Object *sch_obj =
-          json_value_get_object(json_object_get_value_at(in_obj, i));
+      JSON_Value *val_at = NULL;
+      JSON_Object *sch_obj = NULL;
+      const char *kname = NULL;
+      cdd_json_object_get_value_at(in_obj, i, &val_at);
+      cdd_json_value_get_object(val_at, &sch_obj);
       if (!sch_obj)
         return CDD_C_ERROR_INVALID_ARGUMENT;
-      comp->input_keys[i] = C_CDD_STRDUP(json_object_get_name(in_obj, i));
+      cdd_json_object_get_name(in_obj, i, &kname);
+      comp->input_keys[i] = C_CDD_STRDUP(kname);
       if (!comp->input_keys[i])
         return CDD_C_ERROR_MEMORY;
       rc = parse_schema_ref(sch_obj, &comp->inputs[i], NULL);
@@ -839,7 +2203,8 @@ static cdd_c_error_t parse_components_object(const JSON_Object *cobj,
     }
   }
 
-  n = json_object_get_count(pm_obj);
+  n = 0;
+  cdd_json_object_get_count(pm_obj, &n);
   if (n > 0) {
     comp->parameter_keys = (char **)C_CDD_CALLOC(n, sizeof(char *));
     if (!comp->parameter_keys)
@@ -850,18 +2215,23 @@ static cdd_c_error_t parse_components_object(const JSON_Object *cobj,
       return CDD_C_ERROR_MEMORY;
     comp->n_parameters = n;
     for (i = 0; i < n; ++i) {
-      comp->parameter_keys[i] = C_CDD_STRDUP(json_object_get_name(pm_obj, i));
+      JSON_Value *val_at = NULL;
+      JSON_Object *p_obj = NULL;
+      const char *kname = NULL;
+      cdd_json_object_get_name(pm_obj, i, &kname);
+      comp->parameter_keys[i] = C_CDD_STRDUP(kname);
       if (!comp->parameter_keys[i])
         return CDD_C_ERROR_MEMORY;
-      rc = parse_arazzo_param_obj(
-          json_value_get_object(json_object_get_value_at(pm_obj, i)),
-          &comp->parameters[i]);
+      cdd_json_object_get_value_at(pm_obj, i, &val_at);
+      cdd_json_value_get_object(val_at, &p_obj);
+      rc = parse_arazzo_param_obj(p_obj, &comp->parameters[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
 
-  n = json_object_get_count(sa_obj);
+  n = 0;
+  cdd_json_object_get_count(sa_obj, &n);
   if (n > 0) {
     comp->success_action_keys = (char **)C_CDD_CALLOC(n, sizeof(char *));
     if (!comp->success_action_keys)
@@ -872,19 +2242,23 @@ static cdd_c_error_t parse_components_object(const JSON_Object *cobj,
       return CDD_C_ERROR_MEMORY;
     comp->n_success_actions = n;
     for (i = 0; i < n; ++i) {
-      comp->success_action_keys[i] =
-          C_CDD_STRDUP(json_object_get_name(sa_obj, i));
+      JSON_Value *val_at = NULL;
+      JSON_Object *s_obj = NULL;
+      const char *kname = NULL;
+      cdd_json_object_get_name(sa_obj, i, &kname);
+      comp->success_action_keys[i] = C_CDD_STRDUP(kname);
       if (!comp->success_action_keys[i])
         return CDD_C_ERROR_MEMORY;
-      rc = parse_success_action_object(
-          json_value_get_object(json_object_get_value_at(sa_obj, i)),
-          &comp->success_actions[i]);
+      cdd_json_object_get_value_at(sa_obj, i, &val_at);
+      cdd_json_value_get_object(val_at, &s_obj);
+      rc = parse_success_action_object(s_obj, &comp->success_actions[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
 
-  n = json_object_get_count(fa_obj);
+  n = 0;
+  cdd_json_object_get_count(fa_obj, &n);
   if (n > 0) {
     comp->failure_action_keys = (char **)C_CDD_CALLOC(n, sizeof(char *));
     if (!comp->failure_action_keys)
@@ -895,13 +2269,16 @@ static cdd_c_error_t parse_components_object(const JSON_Object *cobj,
       return CDD_C_ERROR_MEMORY;
     comp->n_failure_actions = n;
     for (i = 0; i < n; ++i) {
-      comp->failure_action_keys[i] =
-          C_CDD_STRDUP(json_object_get_name(fa_obj, i));
+      JSON_Value *val_at = NULL;
+      JSON_Object *f_obj = NULL;
+      const char *kname = NULL;
+      cdd_json_object_get_name(fa_obj, i, &kname);
+      comp->failure_action_keys[i] = C_CDD_STRDUP(kname);
       if (!comp->failure_action_keys[i])
         return CDD_C_ERROR_MEMORY;
-      rc = parse_failure_action_object(
-          json_value_get_object(json_object_get_value_at(fa_obj, i)),
-          &comp->failure_actions[i]);
+      cdd_json_object_get_value_at(fa_obj, i, &val_at);
+      cdd_json_value_get_object(val_at, &f_obj);
+      rc = parse_failure_action_object(f_obj, &comp->failure_actions[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
@@ -1042,27 +2419,27 @@ cdd_c_error_t arazzo_validate_spec(const struct Arazzo_Spec *spec) {
  */
 cdd_c_error_t arazzo_load_from_json_value(const JSON_Value *root,
                                           struct Arazzo_Spec *out_spec) {
-  const JSON_Object *root_obj;
-  const JSON_Object *info_obj;
-  const JSON_Array *sd_arr;
-  const JSON_Array *wf_arr;
-  const JSON_Object *comp_obj;
-  const char *ver_str;
+  JSON_Object *root_obj = NULL;
+  JSON_Object *info_obj = NULL;
+  JSON_Array *sd_arr = NULL;
+  JSON_Array *wf_arr = NULL;
+  JSON_Object *comp_obj = NULL;
+  const char *ver_str = NULL;
   size_t i;
-  size_t n_sd;
-  size_t n_wf;
+  size_t n_sd = 0;
+  size_t n_wf = 0;
   cdd_c_error_t rc;
 
-  root_obj = json_value_get_object(root);
+  cdd_json_value_get_object(root, &root_obj);
   if (!root_obj || !out_spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  ver_str = json_object_get_string(root_obj, "arazzo");
-  info_obj = json_object_get_object(root_obj, "info");
-  sd_arr = json_object_get_array(root_obj, "sourceDescriptions");
-  wf_arr = json_object_get_array(root_obj, "workflows");
+  cdd_json_object_get_string(root_obj, "arazzo", &ver_str);
+  cdd_json_object_get_object(root_obj, "info", &info_obj);
+  cdd_json_object_get_array(root_obj, "sourceDescriptions", &sd_arr);
+  cdd_json_object_get_array(root_obj, "workflows", &wf_arr);
 
-  n_sd = json_array_get_count(sd_arr);
-  n_wf = json_array_get_count(wf_arr);
+  cdd_json_array_get_count(sd_arr, &n_sd);
+  cdd_json_array_get_count(wf_arr, &n_wf);
   if (!ver_str || !info_obj || n_sd == 0 || n_wf == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -1084,15 +2461,7 @@ cdd_c_error_t arazzo_load_from_json_value(const JSON_Value *root,
 
   rc = dup_opt_json_str(root_obj, "$self", &out_spec->self_uri);
   if (rc == CDD_C_SUCCESS)
-    rc = dup_opt_json_str(info_obj, "title", &out_spec->info.title);
-  if (rc == CDD_C_SUCCESS)
-    rc = dup_opt_json_str(info_obj, "summary", &out_spec->info.summary);
-  if (rc == CDD_C_SUCCESS)
-    rc = dup_opt_json_str(info_obj, "description", &out_spec->info.description);
-  if (rc == CDD_C_SUCCESS)
-    rc = dup_opt_json_str(info_obj, "version", &out_spec->info.version);
-  if (rc == CDD_C_SUCCESS)
-    rc = parse_arazzo_extensions(info_obj, &out_spec->info.extensions);
+    rc = Arazzo_Info_from_jsonObject(info_obj, &out_spec->info);
   if (rc == CDD_C_SUCCESS) {
     out_spec->source_descriptions =
         (struct Arazzo_SourceDescription *)C_CDD_CALLOC(
@@ -1106,15 +2475,17 @@ cdd_c_error_t arazzo_load_from_json_value(const JSON_Value *root,
   }
   out_spec->n_source_descriptions = n_sd;
   for (i = 0; i < n_sd; ++i) {
-    rc = parse_source_description_object(json_array_get_object(sd_arr, i),
-                                         &out_spec->source_descriptions[i]);
+    JSON_Object *elem_obj = NULL;
+    cdd_json_array_get_object(sd_arr, i, &elem_obj);
+    rc = Arazzo_SourceDescription_from_jsonObject(
+        elem_obj, &out_spec->source_descriptions[i]);
     if (rc != CDD_C_SUCCESS) {
       arazzo_spec_free(out_spec);
       return rc;
     }
   }
 
-  comp_obj = json_object_get_object(root_obj, "components");
+  cdd_json_object_get_object(root_obj, "components", &comp_obj);
   if (comp_obj) {
     out_spec->has_components = 1;
     rc = parse_components_object(comp_obj, &out_spec->components);
@@ -1132,8 +2503,9 @@ cdd_c_error_t arazzo_load_from_json_value(const JSON_Value *root,
   }
   out_spec->n_workflows = n_wf;
   for (i = 0; i < n_wf; ++i) {
-    rc = parse_workflow_object(json_array_get_object(wf_arr, i),
-                               &out_spec->workflows[i]);
+    JSON_Object *elem_obj = NULL;
+    cdd_json_array_get_object(wf_arr, i, &elem_obj);
+    rc = parse_workflow_object(elem_obj, &out_spec->workflows[i]);
     if (rc != CDD_C_SUCCESS) {
       arazzo_spec_free(out_spec);
       return rc;
@@ -1160,17 +2532,16 @@ cdd_c_error_t arazzo_load_from_json_value(const JSON_Value *root,
  */
 cdd_c_error_t arazzo_load_from_json(const char *json_str,
                                     struct Arazzo_Spec *out_spec) {
-  JSON_Value *root;
+  JSON_Value *root = NULL;
   cdd_c_error_t rc;
 
   if (!json_str || !out_spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  root = json_parse_string(json_str);
-  if (!root)
+  if (cdd_json_parse_string(json_str, &root) != CDD_C_SUCCESS)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = arazzo_load_from_json_value(root, out_spec);
-  json_value_free(root);
+  cdd_json_value_free(root);
   return rc;
 }

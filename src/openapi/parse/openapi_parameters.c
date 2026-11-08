@@ -23,40 +23,41 @@ parse_parameter_object_inner(const JSON_Object *p_obj,
                              struct OpenAPI_Spec *spec, int resolve_refs) {
   char *base = NULL;
   char *registered = NULL;
-  const char *ref;
-  const char *name;
-  const char *in;
-  const char *desc;
-  int req;
-  int deprecated_present;
-  int deprecated_val;
-  int allow_reserved_present;
-  int allow_reserved_val;
-  int allow_empty_present;
-  int allow_empty_val;
-  const JSON_Value *schema_val;
-  const JSON_Object *schema;
-  const JSON_Object *content;
-  const JSON_Object *effective_schema;
-  const JSON_Value *effective_schema_val;
-  const JSON_Object *media_obj;
-  const JSON_Value *media_schema_val;
-  const char *media_type;
-  const char *media_ref;
-  const struct OpenAPI_SchemaRef *resolved_schema;
+  const char *ref = NULL;
+  const char *name = NULL;
+  const char *in = NULL;
+  const char *desc = NULL;
+  int req = -1;
+  int deprecated_present = 0;
+  int deprecated_val = -1;
+  int allow_reserved_present = 0;
+  int allow_reserved_val = -1;
+  int allow_empty_present = 0;
+  int allow_empty_val = -1;
+  JSON_Value *schema_val = NULL;
+  JSON_Object *schema = NULL;
+  JSON_Object *content = NULL;
+  const JSON_Object *effective_schema = NULL;
+  const JSON_Value *effective_schema_val = NULL;
+  JSON_Object *media_obj = NULL;
+  JSON_Value *media_schema_val = NULL;
+  const char *media_type = NULL;
+  const char *media_ref = NULL;
+  const struct OpenAPI_SchemaRef *resolved_schema = NULL;
   struct OpenAPI_SchemaRef parsed_schema = {0};
-  int parsed_schema_set;
-  const char *type;
-  const char *style_str;
-  const char *collection_format;
-  int explode_present;
-  int explode_val;
+  int parsed_schema_set = 0;
+  const char *type = NULL;
+  const char *style_str = NULL;
+  const char *collection_format = NULL;
+  int explode_present = 0;
+  int explode_val = -1;
+  JSON_Object *examples_obj = NULL;
   cdd_c_error_t rc;
 
   if (!p_obj || !out_param)
     return CDD_C_SUCCESS;
 
-  ref = json_object_get_string(p_obj, "$ref");
+  cdd_json_object_get_string(p_obj, "$ref", &ref);
   if (ref) {
     c_cdd_strdup(ref, &out_param->ref);
     if (!out_param->ref)
@@ -70,7 +71,7 @@ parse_parameter_object_inner(const JSON_Object *p_obj,
           return rc;
       }
     }
-    desc = json_object_get_string(p_obj, "description");
+    cdd_json_object_get_string(p_obj, "description", &desc);
     if (desc) {
       C_CDD_FREE(out_param->description);
       out_param->description = NULL;
@@ -81,8 +82,8 @@ parse_parameter_object_inner(const JSON_Object *p_obj,
     return CDD_C_SUCCESS;
   }
 
-  name = json_object_get_string(p_obj, "name");
-  in = json_object_get_string(p_obj, "in");
+  cdd_json_object_get_string(p_obj, "name", &name);
+  cdd_json_object_get_string(p_obj, "in", &in);
   if (!name || !*name || !in)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -93,20 +94,23 @@ parse_parameter_object_inner(const JSON_Object *p_obj,
   if (out_param->in == OA_PARAM_IN_UNKNOWN)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  desc = json_object_get_string(p_obj, "description");
-  req = json_object_get_boolean(p_obj, "required");
+  cdd_json_object_get_string(p_obj, "description", &desc);
+  cdd_json_object_get_boolean(p_obj, "required", &req);
   out_param->required = (req == 1);
-  deprecated_present = json_object_has_value(p_obj, "deprecated");
-  deprecated_val = json_object_get_boolean(p_obj, "deprecated");
-  allow_reserved_present = json_object_has_value(p_obj, "allowReserved");
-  allow_reserved_val = json_object_get_boolean(p_obj, "allowReserved");
-  allow_empty_present = json_object_has_value(p_obj, "allowEmptyValue");
-  allow_empty_val = json_object_get_boolean(p_obj, "allowEmptyValue");
-  schema_val = json_object_get_value(p_obj, "schema");
-  schema = schema_val ? json_value_get_object(schema_val) : NULL;
-  content = json_object_get_object(p_obj, "content");
+  cdd_json_object_has_value(p_obj, "deprecated", &deprecated_present);
+  cdd_json_object_get_boolean(p_obj, "deprecated", &deprecated_val);
+  cdd_json_object_has_value(p_obj, "allowReserved", &allow_reserved_present);
+  cdd_json_object_get_boolean(p_obj, "allowReserved", &allow_reserved_val);
+  cdd_json_object_has_value(p_obj, "allowEmptyValue", &allow_empty_present);
+  cdd_json_object_get_boolean(p_obj, "allowEmptyValue", &allow_empty_val);
+  cdd_json_object_get_value(p_obj, "schema", &schema_val);
+  if (schema_val)
+    cdd_json_value_get_object(schema_val, &schema);
+  cdd_json_object_get_object(p_obj, "content", &content);
   if (content) {
-    if (json_object_get_count(content) != 1)
+    size_t content_count = 0;
+    cdd_json_object_get_count(content, &content_count);
+    if (content_count != 1)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     rc = parse_content_object(content, &out_param->content_media_types,
                               &out_param->n_content_media_types, spec,
@@ -117,10 +121,13 @@ parse_parameter_object_inner(const JSON_Object *p_obj,
   effective_schema = schema;
   effective_schema_val = schema_val;
   if (!effective_schema && spec && spec->swagger_version &&
-      out_param->in != OA_PARAM_IN_BODY &&
-      json_object_has_value(p_obj, "type")) {
-    effective_schema = p_obj;
-    effective_schema_val = json_object_get_wrapping_value(p_obj);
+      out_param->in != OA_PARAM_IN_BODY) {
+    int has_type = 0;
+    cdd_json_object_has_value(p_obj, "type", &has_type);
+    if (has_type) {
+      effective_schema = p_obj;
+      effective_schema_val = p_obj->wrapping_value;
+    }
   }
   media_obj = NULL;
   media_schema_val = NULL;
@@ -129,10 +136,10 @@ parse_parameter_object_inner(const JSON_Object *p_obj,
   resolved_schema = NULL;
   type = NULL;
   parsed_schema_set = 0;
-  style_str = json_object_get_string(p_obj, "style");
-  collection_format = json_object_get_string(p_obj, "collectionFormat");
-  explode_present = json_object_has_value(p_obj, "explode");
-  explode_val = json_object_get_boolean(p_obj, "explode");
+  cdd_json_object_get_string(p_obj, "style", &style_str);
+  cdd_json_object_get_string(p_obj, "collectionFormat", &collection_format);
+  cdd_json_object_has_value(p_obj, "explode", &explode_present);
+  cdd_json_object_get_boolean(p_obj, "explode", &explode_val);
 
   {
     const int has_schema = (schema_val != NULL);
@@ -147,21 +154,21 @@ parse_parameter_object_inner(const JSON_Object *p_obj,
 
   if (content) {
     if (out_param->in == OA_PARAM_IN_QUERYSTRING) {
-      media_obj =
-          json_object_get_object(content, "application/x-www-form-urlencoded");
+      cdd_json_object_get_object(content, "application/x-www-form-urlencoded",
+                                 &media_obj);
       if (media_obj) {
         media_type = "application/x-www-form-urlencoded";
       }
     }
     if (!media_obj) {
-      media_type = json_object_get_name(content, 0);
-      media_obj = json_object_get_object(content, media_type);
+      cdd_json_object_get_name(content, 0, &media_type);
+      cdd_json_object_get_object(content, media_type, &media_obj);
     }
     c_cdd_strdup(media_type, &out_param->content_type);
     if (!out_param->content_type)
       return CDD_C_ERROR_MEMORY;
     if (media_obj) {
-      media_ref = json_object_get_string(media_obj, "$ref");
+      cdd_json_object_get_string(media_obj, "$ref", &media_ref);
       if (media_ref) {
         c_cdd_strdup(media_ref, &out_param->content_ref);
         if (!out_param->content_ref)
@@ -177,16 +184,18 @@ parse_parameter_object_inner(const JSON_Object *p_obj,
           }
         }
       } else {
-        media_schema_val = json_object_get_value(media_obj, "schema");
+        JSON_Object *ms_obj = NULL;
+        cdd_json_object_get_value(media_obj, "schema", &media_schema_val);
         effective_schema_val = media_schema_val;
-        effective_schema =
-            media_schema_val ? json_value_get_object(media_schema_val) : NULL;
+        if (media_schema_val)
+          cdd_json_value_get_object(media_schema_val, &ms_obj);
+        effective_schema = ms_obj;
       }
     }
   }
 
   if (effective_schema)
-    type = json_object_get_string(effective_schema, "type");
+    cdd_json_object_get_string(effective_schema, "type", &type);
 
   if (desc) {
     c_cdd_strdup(desc, &out_param->description);
@@ -206,38 +215,42 @@ parse_parameter_object_inner(const JSON_Object *p_obj,
     out_param->allow_empty_value_set = 1;
     out_param->allow_empty_value = (allow_empty_val == 1);
   }
-  if (resolved_schema) {
-    if (out_param->in != OA_PARAM_IN_QUERYSTRING) {
-      rc = apply_schema_ref_to_param(out_param, resolved_schema);
+  {
+    JSON_Value_Type eff_vtype = JSONError;
+    if (effective_schema_val)
+      cdd_json_value_get_type(effective_schema_val, &eff_vtype);
+    if (resolved_schema) {
+      if (out_param->in != OA_PARAM_IN_QUERYSTRING) {
+        rc = apply_schema_ref_to_param(out_param, resolved_schema);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+      }
+      rc = copy_schema_ref(&out_param->schema, resolved_schema);
       if (rc != CDD_C_SUCCESS)
         return rc;
-    }
-    rc = copy_schema_ref(&out_param->schema, resolved_schema);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    out_param->schema_set = 1;
-  } else if (effective_schema_val &&
-             json_value_get_type(effective_schema_val) == JSONBoolean) {
-    out_param->schema.schema_is_boolean = 1;
-    out_param->schema.schema_boolean_value =
-        json_value_get_boolean(effective_schema_val);
-    out_param->schema_set = 1;
-  } else if (effective_schema) {
-    rc = parse_schema_ref(effective_schema, &parsed_schema, spec);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    parsed_schema_set = 1;
-    if (out_param->in != OA_PARAM_IN_QUERYSTRING) {
-      if (apply_schema_ref_to_param(out_param, &parsed_schema) != 0) {
+      out_param->schema_set = 1;
+    } else if (effective_schema_val && eff_vtype == JSONBoolean) {
+      out_param->schema.schema_is_boolean = 1;
+      cdd_json_value_get_boolean(effective_schema_val,
+                                 &out_param->schema.schema_boolean_value);
+      out_param->schema_set = 1;
+    } else if (effective_schema) {
+      rc = parse_schema_ref(effective_schema, &parsed_schema, spec);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      parsed_schema_set = 1;
+      if (out_param->in != OA_PARAM_IN_QUERYSTRING) {
+        if (apply_schema_ref_to_param(out_param, &parsed_schema) != 0) {
+          free_schema_ref_content(&parsed_schema);
+          return CDD_C_ERROR_MEMORY;
+        }
+      }
+      if (copy_schema_ref(&out_param->schema, &parsed_schema) != 0) {
         free_schema_ref_content(&parsed_schema);
         return CDD_C_ERROR_MEMORY;
       }
+      out_param->schema_set = 1;
     }
-    if (copy_schema_ref(&out_param->schema, &parsed_schema) != 0) {
-      free_schema_ref_content(&parsed_schema);
-      return CDD_C_ERROR_MEMORY;
-    }
-    out_param->schema_set = 1;
   }
 
   if (spec && out_param->in == OA_PARAM_IN_QUERYSTRING &&
@@ -346,9 +359,9 @@ parse_parameter_object_inner(const JSON_Object *p_obj,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  rc = parse_examples_object(json_object_get_object(p_obj, "examples"),
-                             &out_param->examples, &out_param->n_examples, spec,
-                             resolve_refs);
+  cdd_json_object_get_object(p_obj, "examples", &examples_obj);
+  rc = parse_examples_object(examples_obj, &out_param->examples,
+                             &out_param->n_examples, spec, resolve_refs);
   if (rc != CDD_C_SUCCESS) {
     if (parsed_schema_set)
       free_schema_ref_content(&parsed_schema);
@@ -439,7 +452,7 @@ cdd_c_error_t parse_parameters_array(const JSON_Array *arr,
                                      struct OpenAPI_Parameter **out_params,
                                      size_t *out_count,
                                      struct OpenAPI_Spec *spec) {
-  size_t i, count, valid = 0;
+  size_t i, count = 0, valid = 0;
   if (!out_params || !out_count)
     return CDD_C_SUCCESS;
 
@@ -449,7 +462,7 @@ cdd_c_error_t parse_parameters_array(const JSON_Array *arr,
   if (!arr)
     return CDD_C_SUCCESS;
 
-  count = json_array_get_count(arr);
+  cdd_json_array_get_count(arr, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -459,7 +472,8 @@ cdd_c_error_t parse_parameters_array(const JSON_Array *arr,
     return CDD_C_ERROR_MEMORY;
 
   for (i = 0; i < count; ++i) {
-    const JSON_Object *p_obj = json_array_get_object(arr, i);
+    JSON_Object *p_obj = NULL;
+    cdd_json_array_get_object(arr, i, &p_obj);
     if (p_obj) {
       struct OpenAPI_Parameter tmp = {0};
       cdd_c_error_t rc = parse_parameter_object(p_obj, &tmp, spec, 1);

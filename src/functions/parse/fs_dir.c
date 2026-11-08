@@ -250,8 +250,7 @@ cdd_c_error_t tempdir(char **out_path) {
   if (!env || *env == '\0')
     env = getenv("TEMP");
   if (env && *env != '\0') {
-    c_cdd_strdup(env, out_path);
-    return *out_path ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
+    return c_cdd_strdup(env, out_path);
   }
 
 #if defined(_WIN32)
@@ -281,11 +280,10 @@ cdd_c_error_t tempdir(char **out_path) {
 #else
   {
 #ifdef P_tmpdir
-    c_cdd_strdup(P_tmpdir, out_path);
+    return c_cdd_strdup(P_tmpdir, out_path);
 #else
-    c_cdd_strdup("/tmp", out_path);
+    return c_cdd_strdup("/tmp", out_path);
 #endif
-    return *out_path ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   }
 #endif
 }

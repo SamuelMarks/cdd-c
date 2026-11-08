@@ -826,8 +826,7 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_dup(int fd, int *out_fd) {
   if (!out_fd)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 #if defined(__wasi__)
-  (void)fd;
-  *out_fd = -1;
+  *out_fd = (fd >= 0) ? -1 : -1;
 #elif defined(_MSC_VER)
   *out_fd = _dup(fd);
 #else
@@ -846,9 +845,7 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_dup(int fd, int *out_fd) {
 C_CDD_EXPORT cdd_c_error_t c_cdd_crt_dup2(int fd1, int fd2, int *out_rc) {
   int rc = -1;
 #if defined(__wasi__)
-  (void)fd1;
-  (void)fd2;
-  rc = -1;
+  rc = (fd1 >= 0 && fd2 >= 0) ? -1 : -1;
 #elif defined(_MSC_VER)
   rc = _dup2(fd1, fd2);
 #else

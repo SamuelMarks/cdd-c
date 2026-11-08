@@ -38,17 +38,19 @@ cdd_c_error_t refactor_context_init(struct RefactorContext *ctx) {
  * @brief Frees a refactor context.
  *
  * @param[in,out] ctx Pointer to the RefactorContext structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void refactor_context_free(struct RefactorContext *ctx) {
+cdd_c_error_t refactor_context_free(struct RefactorContext *ctx) {
   /* Note: func names and return types are shallow copies/refs in this design,
      owned by the caller (usually orchestrator). We only free the array. */
   if (!ctx)
-    return;
+    return CDD_C_SUCCESS;
   if (ctx->funcs) {
     C_CDD_FREE(ctx->funcs);
     ctx->funcs = NULL;
   }
   ctx->func_count = 0;
+  return CDD_C_SUCCESS;
 }
 
 /*

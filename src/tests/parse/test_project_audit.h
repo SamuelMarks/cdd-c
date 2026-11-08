@@ -271,8 +271,8 @@ TEST test_audit_json_output(void) {
     int f;
     c2openapi_set_json_allocators(mock_audit_parson_malloc,
                                   mock_audit_parson_free);
-    (json_set_allocation_functions)(mock_audit_parson_malloc,
-                                    mock_audit_parson_free);
+    json_set_allocation_functions(mock_audit_parson_malloc,
+                                  mock_audit_parson_free);
     for (f = 0; f <= 45; ++f) {
       g_audit_parson_oom_at = f;
       if (audit_print_json(&stats, &json) == CDD_C_SUCCESS) {
@@ -284,7 +284,7 @@ TEST test_audit_json_output(void) {
       g_audit_parson_oom_at = -1;
     }
     c2openapi_set_json_allocators(malloc, free);
-    (json_set_allocation_functions)(malloc, free);
+    json_set_allocation_functions(malloc, free);
   }
 
   audit_stats_free(&stats);

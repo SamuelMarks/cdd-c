@@ -65,8 +65,9 @@ cdd_c_error_t append_child_node(cdd_cst_node_t *node, cdd_cst_node_t *child);
  * @brief Free a node and all of its descendants recursively.
  *
  * @param[in,out] node Node to free.
+ * @return CDD_C_SUCCESS.
  */
-void free_node(cdd_cst_node_t *node);
+cdd_c_error_t free_node(cdd_cst_node_t *node);
 
 /**
  * @brief Peek next token from parser state without advancing.

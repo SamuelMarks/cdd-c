@@ -260,12 +260,13 @@ cdd_c_error_t make_unique_schema_name(const struct OpenAPI_Spec *spec,
  */
 cdd_c_error_t schema_type_array_includes(const JSON_Array *arr,
                                          const char *type) {
-  size_t i, count;
+  size_t i, count = 0;
   if (!arr || !type)
     return CDD_C_SUCCESS;
-  count = json_array_get_count(arr);
+  cdd_json_array_get_count(arr, &count);
   for (i = 0; i < count; ++i) {
-    const char *val = json_array_get_string(arr, i);
+    const char *val = NULL;
+    cdd_json_array_get_string(arr, i, &val);
     if (val && strcmp(val, type) == 0)
       return CDD_C_ERROR_UNKNOWN;
   }
@@ -280,21 +281,25 @@ cdd_c_error_t schema_type_array_includes(const JSON_Array *arr,
  * otherwise.
  */
 cdd_c_error_t schema_object_is_object_like(const JSON_Object *schema_obj) {
-  const char *type;
-  const JSON_Array *type_arr;
+  const char *type = NULL;
+  JSON_Array *type_arr = NULL;
+  JSON_Object *props_obj = NULL;
+  JSON_Array *all_of = NULL, *any_of = NULL, *one_of = NULL;
   if (!schema_obj)
     return CDD_C_SUCCESS;
-  type = json_object_get_string(schema_obj, "type");
+  cdd_json_object_get_string(schema_obj, "type", &type);
   if (type && strcmp(type, "object") == 0)
     return CDD_C_ERROR_UNKNOWN;
-  type_arr = json_object_get_array(schema_obj, "type");
+  cdd_json_object_get_array(schema_obj, "type", &type_arr);
   if (schema_type_array_includes(type_arr, "object") != CDD_C_SUCCESS)
     return CDD_C_ERROR_UNKNOWN;
-  if (json_object_get_object(schema_obj, "properties"))
+  cdd_json_object_get_object(schema_obj, "properties", &props_obj);
+  if (props_obj)
     return CDD_C_ERROR_UNKNOWN;
-  if (json_object_get_array(schema_obj, "allOf") ||
-      json_object_get_array(schema_obj, "anyOf") ||
-      json_object_get_array(schema_obj, "oneOf"))
+  cdd_json_object_get_array(schema_obj, "allOf", &all_of);
+  cdd_json_object_get_array(schema_obj, "anyOf", &any_of);
+  cdd_json_object_get_array(schema_obj, "oneOf", &one_of);
+  if (all_of || any_of || one_of)
     return CDD_C_ERROR_UNKNOWN;
   return CDD_C_SUCCESS;
 }
@@ -435,15 +440,15 @@ cdd_c_error_t append_raw_schema(struct OpenAPI_Spec *spec, const char *name,
         --g_cdd_fail_raw_schema_serialize == 0)
       raw_json = NULL;
     else
-      raw_json = json_serialize_to_string(schema_val);
+      cdd_json_serialize_to_string(schema_val, &raw_json);
   }
 #else
-  raw_json = json_serialize_to_string(schema_val);
+  cdd_json_serialize_to_string(schema_val, &raw_json);
 #endif
   if (!raw_json)
     return CDD_C_ERROR_MEMORY;
   rc = c_cdd_strdup(raw_json, &dup_json);
-  json_free_serialized_string(raw_json);
+  cdd_json_free_serialized_string(raw_json);
   if (rc != CDD_C_SUCCESS)
     return rc;
 

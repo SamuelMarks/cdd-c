@@ -427,7 +427,7 @@ TEST test_load_header_content_media_type(void) {
       "\"200\":{\"description\":\"ok\",\"headers\":{"
       "\"X-Rate\":{\"content\":{"
       "\"text/plain\":{\"schema\":{\"type\":\"string\"}}"
-      "}}}}}}}}}}}";
+      "}}}}}}}}}";
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
@@ -704,9 +704,19 @@ TEST test_load_schema_root_document_with_id(void) {
                 registry.entries[0].base_uri);
 
   {
-    JSON_Value *val = json_parse_string(spec.schema_root_json);
-    JSON_Object *obj = json_value_get_object(val);
-    ASSERT_STR_EQ("object", json_object_get_string(obj, "type"));
+    JSON_Value *val = NULL;
+    JSON_Object *obj = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(spec.schema_root_json, &_cdd_jv_1);
+      val = _cdd_jv_1;
+    }
+    obj = json_value_get_object(val);
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(obj, "type", &_cdd_js_1);
+      ASSERT_STR_EQ("object", _cdd_js_1);
+    }
     json_value_free(val);
   }
 
@@ -733,7 +743,12 @@ TEST test_load_schema_root_boolean(void) {
   ASSERT_STR_EQ("https://example.com/boolean.json", spec.document_uri);
 
   {
-    JSON_Value *val = json_parse_string(spec.schema_root_json);
+    JSON_Value *val = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(spec.schema_root_json, &_cdd_jv_1);
+      val = _cdd_jv_1;
+    }
     ASSERT_EQ(JSONBoolean, json_value_get_type(val));
     ASSERT_EQ(0, json_value_get_boolean(val));
     json_value_free(val);
@@ -844,8 +859,13 @@ TEST test_openapi_parameters_full_coverage(void) {
   spec.component_parameters[0].name = strdup("resolved_name");
   spec.component_parameters[0].in = OA_PARAM_IN_QUERY;
 
-  jv = json_parse_string("{\"$ref\":\"#/components/parameters/"
-                         "MyParam\",\"description\":\"desc\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"$ref\":\"#/components/parameters/"
+                          "MyParam\",\"description\":\"desc\"}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&param, 0, sizeof(param));
@@ -885,7 +905,11 @@ TEST test_openapi_parameters_full_coverage(void) {
         "\"examples\":{\"b\":{\"value\":\"c\"}}}";
 
     for (i = 0; i < n_bad; ++i) {
-      jv = json_parse_string(bad_params[i]);
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string(bad_params[i], &_cdd_jv_1);
+        jv = _cdd_jv_1;
+      }
       if (jv) {
         jo = json_value_get_object(jv);
         memset(&param, 0, sizeof(param));
@@ -898,7 +922,12 @@ TEST test_openapi_parameters_full_coverage(void) {
   }
 
   /* 5. Boolean schema */
-  jv = json_parse_string("{\"name\":\"b\",\"in\":\"query\",\"schema\":false}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"name\":\"b\",\"in\":\"query\",\"schema\":false}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&param, 0, sizeof(param));
@@ -924,9 +953,14 @@ TEST test_openapi_parameters_full_coverage(void) {
   spec.component_media_types[1].item_schema_set = 1;
   spec.component_media_types[1].item_schema.ref_name = strdup("SchemaRef2");
 
-  jv = json_parse_string(
-      "{\"name\":\"p\",\"in\":\"query\",\"content\":{\"application/json\":"
-      "{\"$ref\":\"#/components/mediaTypes/Mt1\"}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"name\":\"p\",\"in\":\"query\",\"content\":{\"application/json\":"
+        "{\"$ref\":\"#/components/mediaTypes/Mt1\"}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&param, 0, sizeof(param));
@@ -935,9 +969,14 @@ TEST test_openapi_parameters_full_coverage(void) {
     json_value_free(jv);
   }
 
-  jv = json_parse_string(
-      "{\"name\":\"p\",\"in\":\"query\",\"content\":{\"application/json\":"
-      "{\"$ref\":\"#/components/mediaTypes/Mt2\"}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"name\":\"p\",\"in\":\"query\",\"content\":{\"application/json\":"
+        "{\"$ref\":\"#/components/mediaTypes/Mt2\"}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&param, 0, sizeof(param));
@@ -946,9 +985,14 @@ TEST test_openapi_parameters_full_coverage(void) {
     json_value_free(jv);
   }
 
-  jv = json_parse_string(
-      "{\"name\":\"p\",\"in\":\"query\",\"content\":{\"application/json\":"
-      "{\"$ref\":\"#/components/mediaTypes/Mt3\"}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"name\":\"p\",\"in\":\"query\",\"content\":{\"application/json\":"
+        "{\"$ref\":\"#/components/mediaTypes/Mt3\"}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&param, 0, sizeof(param));
@@ -961,8 +1005,13 @@ TEST test_openapi_parameters_full_coverage(void) {
   /* 7. Swagger 2.0 type on parameter without schema */
   memset(&spec, 0, sizeof(spec));
   spec.swagger_version = strdup("2.0");
-  jv = json_parse_string(
-      "{\"name\":\"sw_p\",\"in\":\"query\",\"type\":\"integer\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"name\":\"sw_p\",\"in\":\"query\",\"type\":\"integer\"}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&param, 0, sizeof(param));
@@ -971,8 +1020,12 @@ TEST test_openapi_parameters_full_coverage(void) {
     json_value_free(jv);
   }
 
-  jv = json_parse_string(
-      "{\"name\":\"sw_b\",\"in\":\"body\",\"type\":\"integer\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"name\":\"sw_b\",\"in\":\"body\",\"type\":\"integer\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&param, 0, sizeof(param));
@@ -984,7 +1037,12 @@ TEST test_openapi_parameters_full_coverage(void) {
 
   /* 7b. Ref not found and Querystring variations */
   memset(&spec, 0, sizeof(spec));
-  jv = json_parse_string("{\"$ref\":\"#/components/parameters/NotFound\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"$ref\":\"#/components/parameters/NotFound\"}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&param, 0, sizeof(param));
@@ -994,10 +1052,16 @@ TEST test_openapi_parameters_full_coverage(void) {
   }
 
   /* Querystring with form-urlencoded */
-  jv = json_parse_string(
-      "{\"name\":\"q_form\",\"in\":\"querystring\",\"content\":{\"application/"
-      "x-www-form-urlencoded\":{\"schema\":{\"type\":\"object\","
-      "\"properties\":{\"k\":{\"type\":\"string\"}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"name\":\"q_form\",\"in\":\"querystring\",\"content\":{"
+        "\"application/"
+        "x-www-form-urlencoded\":{\"schema\":{\"type\":\"object\","
+        "\"properties\":{\"k\":{\"type\":\"string\"}}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&param, 0, sizeof(param));
@@ -1007,9 +1071,14 @@ TEST test_openapi_parameters_full_coverage(void) {
   }
 
   /* Querystring with non-object json */
-  jv = json_parse_string(
-      "{\"name\":\"q_str\",\"in\":\"querystring\",\"content\":{\"application/"
-      "json\":{\"schema\":{\"type\":\"string\"}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"name\":\"q_str\",\"in\":\"querystring\",\"content\":{\"application/"
+        "json\":{\"schema\":{\"type\":\"string\"}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&param, 0, sizeof(param));
@@ -1040,7 +1109,11 @@ TEST test_openapi_parameters_full_coverage(void) {
         "{\"schema\":{\"type\":\"string\"},\"example\":\"ex\"}}}";
 
     for (i = 0; i < n_st; ++i) {
-      jv = json_parse_string(styles[i]);
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string(styles[i], &_cdd_jv_1);
+        jv = _cdd_jv_1;
+      }
       if (jv) {
         jo = json_value_get_object(jv);
         memset(&param, 0, sizeof(param));
@@ -1054,7 +1127,11 @@ TEST test_openapi_parameters_full_coverage(void) {
   /* 9. parse_parameters_array edge cases */
   {
     /* Empty array */
-    jv = json_parse_string("[]");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("[]", &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     if (jv) {
       out_params = NULL;
       out_count = 0;
@@ -1066,7 +1143,11 @@ TEST test_openapi_parameters_full_coverage(void) {
     }
 
     /* Array with null / non-object element */
-    jv = json_parse_string("[null, 42]");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("[null, 42]", &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     if (jv) {
       out_params = NULL;
       out_count = 0;
@@ -1078,8 +1159,13 @@ TEST test_openapi_parameters_full_coverage(void) {
     }
 
     /* Array with reserved header parameter only */
-    jv = json_parse_string("[{\"name\":\"Authorization\",\"in\":\"header\","
-                           "\"schema\":{\"type\":\"string\"}}]");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("[{\"name\":\"Authorization\",\"in\":\"header\","
+                            "\"schema\":{\"type\":\"string\"}}]",
+                            &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     if (jv) {
       out_params = NULL;
       out_count = 0;
@@ -1091,10 +1177,15 @@ TEST test_openapi_parameters_full_coverage(void) {
     }
 
     /* Array with reserved header + valid query param (realloc valid < count) */
-    jv = json_parse_string(
-        "[{\"name\":\"Authorization\",\"in\":\"header\","
-        "\"schema\":{\"type\":\"string\"}},{\"name\":\"q\",\"in\":\"query\","
-        "\"schema\":{\"type\":\"string\"}}]");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "[{\"name\":\"Authorization\",\"in\":\"header\","
+          "\"schema\":{\"type\":\"string\"}},{\"name\":\"q\",\"in\":\"query\","
+          "\"schema\":{\"type\":\"string\"}}]",
+          &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     if (jv) {
       out_params = NULL;
       out_count = 0;
@@ -1108,9 +1199,14 @@ TEST test_openapi_parameters_full_coverage(void) {
     }
 
     /* Array with duplicate parameters */
-    jv = json_parse_string(
-        "[{\"name\":\"q\",\"in\":\"query\",\"schema\":{\"type\":\"string\"}},"
-        "{\"name\":\"q\",\"in\":\"query\",\"schema\":{\"type\":\"string\"}}]");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "[{\"name\":\"q\",\"in\":\"query\",\"schema\":{\"type\":\"string\"}},"
+          "{\"name\":\"q\",\"in\":\"query\",\"schema\":{\"type\":\"string\"}}]",
+          &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     if (jv) {
       out_params = NULL;
       out_count = 0;
@@ -1122,7 +1218,12 @@ TEST test_openapi_parameters_full_coverage(void) {
     }
 
     /* Array with invalid parameter */
-    jv = json_parse_string("[{\"name\":\"q\",\"in\":\"unknown\"}]");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("[{\"name\":\"q\",\"in\":\"unknown\"}]",
+                            &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     if (jv) {
       out_params = NULL;
       out_count = 0;
@@ -1134,7 +1235,12 @@ TEST test_openapi_parameters_full_coverage(void) {
     }
 
     /* Array with ref parameter without name */
-    jv = json_parse_string("[{\"$ref\":\"#/components/parameters/NotFound\"}]");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("[{\"$ref\":\"#/components/parameters/NotFound\"}]",
+                            &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     if (jv) {
       out_params = NULL;
       out_count = 0;
@@ -1149,7 +1255,11 @@ TEST test_openapi_parameters_full_coverage(void) {
     }
 
     /* Array with null out_count */
-    jv = json_parse_string("[{\"name\":\"q\",\"in\":\"query\"}]");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("[{\"name\":\"q\",\"in\":\"query\"}]", &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     if (jv) {
       out_params = NULL;
       ASSERT_EQ(CDD_C_SUCCESS, parse_parameters_array(json_value_get_array(jv),
@@ -1162,7 +1272,12 @@ TEST test_openapi_parameters_full_coverage(void) {
    * ref */
   memset(&spec, 0, sizeof(spec));
   spec.swagger_version = strdup("2.0");
-  jv = json_parse_string("{\"name\":\"p_notype\",\"in\":\"query\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"name\":\"p_notype\",\"in\":\"query\"}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&param, 0, sizeof(param));
@@ -1173,10 +1288,16 @@ TEST test_openapi_parameters_full_coverage(void) {
   openapi_spec_free(&spec);
 
   memset(&spec, 0, sizeof(spec));
-  jv = json_parse_string(
-      "{\"name\":\"q_ref\",\"in\":\"querystring\",\"content\":{\"application/"
-      "json\":{\"schema\":{\"type\":\"object\",\"$ref\":\"#/components/schemas/"
-      "Existing\"}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"name\":\"q_ref\",\"in\":\"querystring\",\"content\":{\"application/"
+        "json\":{\"schema\":{\"type\":\"object\",\"$ref\":\"#/components/"
+        "schemas/"
+        "Existing\"}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&param, 0, sizeof(param));
@@ -1193,9 +1314,14 @@ TEST test_openapi_parameters_full_coverage(void) {
   spec.component_media_type_names[0] = strdup("MtEmpty");
   spec.component_media_types =
       (struct OpenAPI_MediaType *)calloc(1, sizeof(struct OpenAPI_MediaType));
-  jv = json_parse_string(
-      "{\"name\":\"p\",\"in\":\"query\",\"content\":{\"application/json\":"
-      "{\"$ref\":\"#/components/mediaTypes/MtEmpty\"}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"name\":\"p\",\"in\":\"query\",\"content\":{\"application/json\":"
+        "{\"$ref\":\"#/components/mediaTypes/MtEmpty\"}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&param, 0, sizeof(param));
@@ -1214,9 +1340,14 @@ TEST test_openapi_parameters_full_coverage(void) {
       (struct OpenAPI_MediaType *)calloc(1, sizeof(struct OpenAPI_MediaType));
   spec.component_media_types[0].schema_set = 1;
   spec.component_media_types[0].schema.ref_name = strdup("QsRef");
-  jv = json_parse_string(
-      "{\"name\":\"p_qs\",\"in\":\"querystring\",\"content\":{\"application/"
-      "json\":{\"$ref\":\"#/components/mediaTypes/MtQs\"}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"name\":\"p_qs\",\"in\":\"querystring\",\"content\":{\"application/"
+        "json\":{\"$ref\":\"#/components/mediaTypes/MtQs\"}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&param, 0, sizeof(param));
@@ -1228,8 +1359,13 @@ TEST test_openapi_parameters_full_coverage(void) {
 
   /* Edge cases: ref with resolve_refs=0, content non-object value, media ref
    * resolve_refs=0 or spec=NULL or NotFound */
-  jv = json_parse_string("{\"$ref\":\"#/components/parameters/"
-                         "MyParam\",\"description\":\"desc\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"$ref\":\"#/components/parameters/"
+                          "MyParam\",\"description\":\"desc\"}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&param, 0, sizeof(param));
@@ -1238,8 +1374,13 @@ TEST test_openapi_parameters_full_coverage(void) {
     json_value_free(jv);
   }
 
-  jv = json_parse_string("{\"name\":\"p\",\"in\":\"query\",\"content\":{"
-                         "\"application/json\":123}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"name\":\"p\",\"in\":\"query\",\"content\":{"
+                          "\"application/json\":123}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&param, 0, sizeof(param));
@@ -1249,9 +1390,14 @@ TEST test_openapi_parameters_full_coverage(void) {
   }
 
   memset(&spec, 0, sizeof(spec));
-  jv = json_parse_string(
-      "{\"name\":\"p\",\"in\":\"query\",\"content\":{\"application/json\":"
-      "{\"$ref\":\"#/components/mediaTypes/NotFound\"}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"name\":\"p\",\"in\":\"query\",\"content\":{\"application/json\":"
+        "{\"$ref\":\"#/components/mediaTypes/NotFound\"}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&param, 0, sizeof(param));
@@ -1270,9 +1416,15 @@ TEST test_openapi_parameters_full_coverage(void) {
   openapi_spec_free(&spec);
 
   memset(&spec, 0, sizeof(spec));
-  jv = json_parse_string(
-      "{\"name\":\"p_prop\",\"in\":\"querystring\",\"content\":{\"application/"
-      "json\":{\"schema\":{\"properties\":{\"a\":{\"type\":\"string\"}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"name\":\"p_prop\",\"in\":\"querystring\",\"content\":{"
+        "\"application/"
+        "json\":{\"schema\":{\"properties\":{\"a\":{\"type\":\"string\"}}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   if (jv) {
     jo = json_value_get_object(jv);
     memset(&param, 0, sizeof(param));
@@ -1320,7 +1472,11 @@ TEST test_openapi_parameters_full_coverage(void) {
     spec.component_media_types[0].schema.ref_name = strdup("SchemaRef1");
 
     for (i = 0; i < n_oom; ++i) {
-      jv = json_parse_string(oom_jsons[i]);
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string(oom_jsons[i], &_cdd_jv_1);
+        jv = _cdd_jv_1;
+      }
       if (jv) {
         jo = json_value_get_object(jv);
         for (k = 1; k <= 30; ++k) {
@@ -1342,7 +1498,11 @@ TEST test_openapi_parameters_full_coverage(void) {
     openapi_spec_free(&spec);
 
     /* Array calloc failure */
-    jv = json_parse_string("[{\"name\":\"q\",\"in\":\"query\"}]");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("[{\"name\":\"q\",\"in\":\"query\"}]", &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     if (jv) {
       g_cdd_alloc_fail = 1;
       out_params = NULL;
@@ -1355,10 +1515,15 @@ TEST test_openapi_parameters_full_coverage(void) {
     }
 
     /* Array shrinking realloc failure (keeps original pointer) */
-    jv = json_parse_string(
-        "[{\"name\":\"Authorization\",\"in\":\"header\","
-        "\"schema\":{\"type\":\"string\"}},{\"name\":\"q\",\"in\":\"query\","
-        "\"schema\":{\"type\":\"string\"}}]");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "[{\"name\":\"Authorization\",\"in\":\"header\","
+          "\"schema\":{\"type\":\"string\"}},{\"name\":\"q\",\"in\":\"query\","
+          "\"schema\":{\"type\":\"string\"}}]",
+          &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     if (jv) {
       g_cdd_alloc_fail = 2;
       out_params = NULL;

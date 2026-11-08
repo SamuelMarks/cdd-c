@@ -99,31 +99,51 @@ TEST test_operation_any_from_json_value(void) {
   ASSERT_EQ(0, any_from_json_value(NULL, &out));
 
   /* Types */
-  jv = json_parse_string("\"hello\"");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("\"hello\"", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_EQ(0, any_from_json_value(jv, &out));
   ASSERT_EQ(OA_ANY_STRING, out.type);
   ASSERT_STR_EQ("hello", out.string);
   free(out.string);
   json_value_free(jv);
 
-  jv = json_parse_string("42.5");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("42.5", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_EQ(0, any_from_json_value(jv, &out));
   ASSERT_EQ(OA_ANY_NUMBER, out.type);
   ASSERT(out.number == 42.5);
   json_value_free(jv);
 
-  jv = json_parse_string("true");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("true", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_EQ(0, any_from_json_value(jv, &out));
   ASSERT_EQ(OA_ANY_BOOL, out.type);
   ASSERT(out.boolean == true);
   json_value_free(jv);
 
-  jv = json_parse_string("null");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("null", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_EQ(0, any_from_json_value(jv, &out));
   ASSERT_EQ(OA_ANY_NULL, out.type);
   json_value_free(jv);
 
-  jv = json_parse_string("{\"a\": 1}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"a\": 1}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_EQ(0, any_from_json_value(jv, &out));
   ASSERT_EQ(OA_ANY_JSON, out.type);
   ASSERT(strstr(out.json, "a") != NULL);

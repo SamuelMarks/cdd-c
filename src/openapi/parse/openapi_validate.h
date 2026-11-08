@@ -13,8 +13,8 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include <parson.h>
 #include <stddef.h>
+#include "c_cdd/json_dom.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include "openapi/parse/openapi_types.h"
@@ -103,11 +103,12 @@ object_has_example_and_examples(const JSON_Object *obj);
  *
  * @param[in] srv Server structure.
  * @param[in] name Variable name to check.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if defined, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_defined Output 1 if defined, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
+ * out_defined is NULL.
  */
-extern C_CDD_EXPORT cdd_c_error_t
-server_variable_defined(const struct OpenAPI_Server *srv, const char *name);
+extern C_CDD_EXPORT cdd_c_error_t server_variable_defined(
+    const struct OpenAPI_Server *srv, const char *name, int *out_defined);
 
 /**
  * @brief Checks if a server variable name has already been seen in a list.
@@ -115,11 +116,14 @@ server_variable_defined(const struct OpenAPI_Server *srv, const char *name);
  * @param[in] seen Array of seen variable names.
  * @param[in] seen_count Number of elements in `seen`.
  * @param[in] name Variable name to check.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if seen, CDD_C_SUCCESS (0) otherwise.
+ * @param[out] out_seen Output 1 if seen, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
+ * out_seen is NULL.
  */
 extern C_CDD_EXPORT cdd_c_error_t server_variable_seen(char **seen,
                                                        size_t seen_count,
-                                                       const char *name);
+                                                       const char *name,
+                                                       int *out_seen);
 
 /**
  * @brief Validates `{var}` placeholders in a Server URL against its `variables`
@@ -149,11 +153,13 @@ extern C_CDD_EXPORT cdd_c_error_t tag_index_by_name(
  * @param[in] idx Starting tag index.
  * @param[in,out] state Visited state array (`0` unvisited, `1` visiting, `2`
  * done).
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if cycle detected, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_has_cycle Output 1 if cycle detected, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
+ * out_has_cycle is NULL.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-detect_tag_cycle(const struct OpenAPI_Spec *spec, size_t idx, int *state);
+detect_tag_cycle(const struct OpenAPI_Spec *spec, size_t idx, int *state,
+                 int *out_has_cycle);
 
 /**
  * @brief Validates that no tag parent cycles exist in `spec->tags`.
@@ -179,8 +185,9 @@ extern C_CDD_EXPORT cdd_c_error_t is_valid_response_code_key(const char *code);
  *
  * @param[in] names Array of allocated name strings.
  * @param[in] count Number of elements.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void free_name_list(char **names, size_t count);
+extern C_CDD_EXPORT cdd_c_error_t free_name_list(char **names, size_t count);
 
 /**
  * @brief Checks if `name` is present in a string array `names`.

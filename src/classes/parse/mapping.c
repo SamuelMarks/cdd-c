@@ -44,8 +44,9 @@ cdd_c_error_t c_mapping_init(struct OpenApiTypeMapping *out) {
  * @brief Releases memory held by a C-to-OpenAPI type mapping table.
  *
  * @param[in,out] out Pointer to the OpenApiTypeMapping structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void c_mapping_free(struct OpenApiTypeMapping *out) {
+cdd_c_error_t c_mapping_free(struct OpenApiTypeMapping *out) {
   if (out) {
     if (out->oa_type)
       C_CDD_FREE(out->oa_type);
@@ -55,6 +56,7 @@ void c_mapping_free(struct OpenApiTypeMapping *out) {
       C_CDD_FREE(out->ref_name);
     memset(out, 0, sizeof(*out));
   }
+  return CDD_C_SUCCESS;
 }
 
 /**

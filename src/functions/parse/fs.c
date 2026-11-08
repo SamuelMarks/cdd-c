@@ -331,8 +331,7 @@ cdd_c_error_t get_basename(const char *path, char **out) {
   if (!out || !path)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (*path == '\0') {
-    c_cdd_strdup(".", out);
-    return *out == NULL ? CDD_C_ERROR_MEMORY : CDD_C_SUCCESS;
+    return c_cdd_strdup(".", out);
   }
 
   p = path + strlen(path) - 1;
@@ -387,8 +386,7 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (*path == '\0') {
-    c_cdd_strdup(".", out);
-    return *out == NULL ? CDD_C_ERROR_MEMORY : CDD_C_SUCCESS;
+    return c_cdd_strdup(".", out);
   }
 
   p = path + strlen(path) - 1;
@@ -416,8 +414,7 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
       return CDD_C_SUCCESS;
     } else {
       /* No separator found, e.g. "foo" -> "." */
-      c_cdd_strdup(".", out);
-      return *out ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
+      return c_cdd_strdup(".", out);
     }
   } else {
     /* If we stopped at a separator, that's the end of dirname.

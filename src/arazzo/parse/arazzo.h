@@ -15,9 +15,10 @@
 
 /* clang-format off */
 #include "arazzo/parse/arazzo_types.h"
+#include "c_cdd/reflect.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
-#include <parson.h>
+#include "c_cdd/json_dom.h"
 /* clang-format on */
 
 #ifdef __cplusplus
@@ -68,6 +69,57 @@ C_CDD_EXPORT cdd_c_error_t arazzo_load_from_json(const char *json_str,
  * invalid.
  */
 C_CDD_EXPORT cdd_c_error_t arazzo_validate_spec(const struct Arazzo_Spec *spec);
+
+/**
+ * @brief Deserializes an `Arazzo_Info` structure from a `JSON_Object`.
+ *
+ * @param[in] info_obj Source `info` JSON object.
+ * @param[out] out_info Destination `Arazzo_Info` structure.
+ * @return `CDD_C_SUCCESS` on success, or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t Arazzo_Info_from_jsonObject(
+    const JSON_Object *info_obj, struct Arazzo_Info *out_info);
+
+/**
+ * @brief Deserializes an `Arazzo_SourceDescription` structure from a
+ * `JSON_Object`.
+ *
+ * @param[in] sd_obj Source description JSON object.
+ * @param[out] out_sd Destination `Arazzo_SourceDescription` structure.
+ * @return `CDD_C_SUCCESS` on success, or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t Arazzo_SourceDescription_from_jsonObject(
+    const JSON_Object *sd_obj, struct Arazzo_SourceDescription *out_sd);
+
+/**
+ * @brief Deserializes an `Arazzo_Criterion` structure from a `JSON_Object`.
+ *
+ * @param[in] cobj Source criterion JSON object.
+ * @param[out] out_crit Destination `Arazzo_Criterion` structure.
+ * @return `CDD_C_SUCCESS` on success, or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t Arazzo_Criterion_from_jsonObject(
+    const JSON_Object *cobj, struct Arazzo_Criterion *out_crit);
+
+/** @brief Runtime reflection descriptor for `Arazzo_Info`. */
+extern C_CDD_EXPORT const struct cdd_type_info Arazzo_Info_type_info;
+/** @brief Runtime reflection descriptor for `Arazzo_SourceDescription`. */
+extern C_CDD_EXPORT const struct cdd_type_info
+    Arazzo_SourceDescription_type_info;
+/** @brief Runtime reflection descriptor for `Arazzo_Criterion`. */
+extern C_CDD_EXPORT const struct cdd_type_info Arazzo_Criterion_type_info;
+/** @brief Runtime reflection descriptor for `Arazzo_Selector`. */
+extern C_CDD_EXPORT const struct cdd_type_info Arazzo_Selector_type_info;
+/** @brief Runtime reflection descriptor for `Arazzo_Reusable`. */
+extern C_CDD_EXPORT const struct cdd_type_info Arazzo_Reusable_type_info;
+/** @brief Runtime reflection descriptor for `Arazzo_SuccessAction`. */
+extern C_CDD_EXPORT const struct cdd_type_info Arazzo_SuccessAction_type_info;
+/** @brief Runtime reflection descriptor for `Arazzo_FailureAction`. */
+extern C_CDD_EXPORT const struct cdd_type_info Arazzo_FailureAction_type_info;
+/** @brief Runtime reflection descriptor for `Arazzo_Step`. */
+extern C_CDD_EXPORT const struct cdd_type_info Arazzo_Step_type_info;
+/** @brief Runtime reflection descriptor for `Arazzo_Workflow`. */
+extern C_CDD_EXPORT const struct cdd_type_info Arazzo_Workflow_type_info;
 
 #ifdef __cplusplus
 }

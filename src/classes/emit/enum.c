@@ -80,11 +80,12 @@ cdd_c_error_t enum_members_init(struct EnumMembers *em) {
  * @brief Free the memory associated with an EnumMembers structure.
  *
  * @param[in,out] em Pointer to the EnumMembers structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void enum_members_free(struct EnumMembers *em) {
+cdd_c_error_t enum_members_free(struct EnumMembers *em) {
   size_t i;
   if (!em)
-    return;
+    return CDD_C_SUCCESS;
   if (em->members) {
     for (i = 0; i < em->size; ++i) {
       if (em->members[i])
@@ -139,6 +140,7 @@ void enum_members_free(struct EnumMembers *em) {
   em->size = 0;
   em->capacity = 0;
   em->serde_other_idx = -1;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -523,18 +525,17 @@ cdd_c_error_t write_enum_reflect_func(FILE *fp, const char *enum_name,
   }
 
   for (i = 0; i < em->size; ++i) {
-    if (em->members[i] && em->n_serde_aliases && em->n_serde_aliases[i] > 0 &&
-        em->serde_aliases && em->serde_aliases[i]) {
+    size_t n_al = em->n_serde_aliases ? em->n_serde_aliases[i] : 0;
+    if (em->members[i] && n_al > 0) {
       size_t a_idx;
       CHECK_IO(FPRINTF_HOOK(fp, "static const char *const %s_%s_aliases[] = { ",
                             enum_name, em->members[i]));
-      for (a_idx = 0; a_idx < em->n_serde_aliases[i]; ++a_idx) {
+      for (a_idx = 0; a_idx < n_al; ++a_idx) {
         char esc_al[256];
         cdd_escape_json_c_str(em->serde_aliases[i][a_idx], esc_al,
                               sizeof(esc_al));
         CHECK_IO(FPRINTF_HOOK(fp, "\"%s\"%s", esc_al,
-                              (a_idx + 1 < em->n_serde_aliases[i]) ? ", "
-                                                                   : " };\n"));
+                              (a_idx + 1 < n_al) ? ", " : " };\n"));
       }
     }
   }
@@ -548,10 +549,7 @@ cdd_c_error_t write_enum_reflect_func(FILE *fp, const char *enum_name,
       char wname[128];
       char esc_wname[256];
       char al_ref[160];
-      size_t n_al =
-          (em->n_serde_aliases && em->serde_aliases && em->serde_aliases[i])
-              ? em->n_serde_aliases[i]
-              : 0;
+      size_t n_al = em->n_serde_aliases ? em->n_serde_aliases[i] : 0;
       int skip_val = (em->serde_skip && em->serde_skip[i]) ? 1 : 0;
       int is_other =
           (em->serde_other_idx >= 0 && (size_t)em->serde_other_idx == i) ? 1
@@ -595,9 +593,16 @@ cdd_c_error_t write_enum_reflect_func(FILE *fp, const char *enum_name,
       "__attribute__((constructor)) static void %s_auto_register(void) {\n"
       "  cdd_reflect_register_enum(&%s_enum_info_table);\n"
       "}\n"
+      "#elif defined(_MSC_VER)\n"
+      "#pragma section(\".CRT$XCU\", read)\n"
+      "static void __cdecl %s_auto_register(void) {\n"
+      "  cdd_reflect_register_enum(&%s_enum_info_table);\n"
+      "}\n"
+      "__declspec(allocate(\".CRT$XCU\")) static void (__cdecl "
+      "*%s_auto_reg_ptr)(void) = %s_auto_register;\n"
       "#endif\n"
       "#endif /* CDD_REFLECT_AUTO_REGISTER */\n",
-      enum_name, enum_name));
+      enum_name, enum_name, enum_name, enum_name, enum_name, enum_name));
 
   if (config && config->guard_macro) {
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n", config->guard_macro));

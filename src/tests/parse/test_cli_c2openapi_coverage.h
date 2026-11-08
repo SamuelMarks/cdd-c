@@ -633,7 +633,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   argv[4] = cdd_test_mut_str("nonexistent.json");
   argv[5] = cdd_test_mut_str("src");
   argv[6] = cdd_test_mut_str("out.json");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c2openapi_cli_main(7, argv));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c2openapi_cli_main(7, argv));
 
   /* 26. generate_bindings_cli_main short options */
   argv[0] = cdd_test_mut_str("bind");
@@ -849,7 +849,7 @@ TEST test_c2openapi_full_coverage_100(void) {
     argv[4] = cdd_test_mut_str("http://dialect_d");
     argv[5] = cdd_test_mut_str("nonexistent_src_dir_99");
     argv[6] = cdd_test_mut_str("out.json");
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c2openapi_cli_main(7, argv));
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, c2openapi_cli_main(7, argv));
   }
 
   /* 41. to_docs_json_cli_main with --no-imports and --no-wrapping */
@@ -988,7 +988,7 @@ TEST test_c2openapi_full_coverage_100(void) {
     argv[3] = cdd_test_mut_str("build/my_empty_dir");
     argv[4] = cdd_test_mut_str("build/out.json");
     g_cdd_strdup_fail = 1;
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c2openapi_cli_main(5, argv));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, c2openapi_cli_main(5, argv));
     g_cdd_strdup_fail = 0;
   }
 
@@ -1117,8 +1117,14 @@ TEST test_c2openapi_full_coverage_100(void) {
      */
     {
       char *out_name = NULL;
-      JSON_Value *jv = json_value_init_object();
-      const JSON_Object *jo = json_value_get_object(jv);
+      JSON_Value *jv = NULL;
+      const JSON_Object *jo = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_value_init_object(&_cdd_jv_1);
+        jv = _cdd_jv_1;
+      }
+      jo = json_value_get_object(jv);
       memset(&spec, 0, sizeof(spec));
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
                 register_inline_schema(&spec, NULL, jo, jv, &out_name));
@@ -1128,14 +1134,20 @@ TEST test_c2openapi_full_coverage_100(void) {
     /* openapi_schemas.c: parse_schema_constraints pattern strdup fail when
      * target->example != NULL and == NULL */
     {
-      JSON_Value *jv =
-          json_parse_string("{\"type\":\"string\",\"example\":\"abc\","
-                            "\"pattern\":\"^[a-z]+$\"}");
-      const JSON_Object *jo = json_value_get_object(jv);
+      JSON_Value *jv = NULL;
+      const JSON_Object *jo = NULL;
       struct SchemaConstraintTarget tgt;
       char *pat = NULL;
       struct OpenAPI_Any ex;
       int ex_set = 0;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("{\"type\":\"string\",\"example\":\"abc\","
+                              "\"pattern\":\"^[a-z]+$\"}",
+                              &_cdd_jv_1);
+        jv = _cdd_jv_1;
+      }
+      jo = json_value_get_object(jv);
       memset(&tgt, 0, sizeof(tgt));
       memset(&ex, 0, sizeof(ex));
       tgt.pattern = &pat;
@@ -1193,9 +1205,19 @@ TEST test_c2openapi_full_coverage_100(void) {
 
     /* operation_body.c: any_from_json_value with JSONArray and JSONObject */
     {
-      JSON_Value *arr_v = json_parse_string("[1,2]");
-      JSON_Value *obj_v = json_parse_string("{\"a\":1}");
+      JSON_Value *arr_v = NULL;
+      JSON_Value *obj_v = NULL;
       struct OpenAPI_Any any_out;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("[1,2]", &_cdd_jv_1);
+        arr_v = _cdd_jv_1;
+      }
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("{\"a\":1}", &_cdd_jv_1);
+        obj_v = _cdd_jv_1;
+      }
       memset(&any_out, 0, sizeof(any_out));
       ASSERT_EQ(CDD_C_SUCCESS, any_from_json_value(arr_v, &any_out));
       free_any_value(&any_out);

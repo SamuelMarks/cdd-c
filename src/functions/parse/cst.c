@@ -483,16 +483,18 @@ cdd_c_error_t parse_tokens(const struct TokenList *tokens,
  * @brief Frees the memory associated with cst node list.
  *
  * @param[in,out] list Pointer to the CstNodeList structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void free_cst_node_list(struct CstNodeList *list) {
+cdd_c_error_t free_cst_node_list(struct CstNodeList *list) {
   if (!list)
-    return;
+    return CDD_C_SUCCESS;
   if (list->nodes) {
     C_CDD_FREE(list->nodes);
     list->nodes = NULL;
   }
   list->size = 0;
   list->capacity = 0;
+  return CDD_C_SUCCESS;
 }
 
 /*

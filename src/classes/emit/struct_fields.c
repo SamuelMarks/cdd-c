@@ -24,8 +24,9 @@
  *
  * @param[in] arr Array of heap-allocated strings.
  * @param[in] n Number of elements in the array.
+ * @return CDD_C_SUCCESS.
  */
-static void free_string_array(char **arr, size_t n) {
+static cdd_c_error_t free_string_array(char **arr, size_t n) {
   size_t i;
   for (i = 0; i < n; ++i) {
     if (arr[i]) {
@@ -34,6 +35,7 @@ static void free_string_array(char **arr, size_t n) {
     }
   }
   C_CDD_FREE(arr);
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -58,8 +60,8 @@ cdd_c_error_t get_type_from_ref(const char *ref, const char **_out_val) {
     if (rc_after != CDD_C_SUCCESS) {
       return rc_after;
     }
-    if (strchr(ref, '/') != NULL && after[0] != '\0') {
-      c2s_needs_identifier_sanitization(after, &needs_san);
+    if (strchr(ref, '/') != NULL) {
+      rc_after = c2s_needs_identifier_sanitization(after, &needs_san);
       if (needs_san) {
         char *san = NULL;
         if (sanitize_identifier(after, &san) == CDD_C_SUCCESS) {
@@ -68,12 +70,12 @@ cdd_c_error_t get_type_from_ref(const char *ref, const char **_out_val) {
           CDD_STRCPY(s_ref_buf[slot], sizeof(s_ref_buf[slot]), san);
           C_CDD_FREE(san);
           *_out_val = s_ref_buf[slot];
-          return CDD_C_SUCCESS;
+          return rc_after;
         }
       }
     }
     *_out_val = after;
-    return CDD_C_SUCCESS;
+    return rc_after;
   }
 }
 
@@ -102,8 +104,9 @@ cdd_c_error_t struct_fields_init(struct StructFields *sf) {
  * @brief Releases all memory owned by a StructFields container.
  *
  * @param[in,out] sf Pointer to the StructFields structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void struct_fields_free(struct StructFields *sf) {
+cdd_c_error_t struct_fields_free(struct StructFields *sf) {
   if (sf && sf->fields) {
     size_t i;
     for (i = 0; i < sf->size; ++i) {
@@ -212,6 +215,7 @@ void struct_fields_free(struct StructFields *sf) {
     sf->is_union = 0;
     sf->union_is_anyof = 0;
   }
+  return CDD_C_SUCCESS;
 }
 
 /*

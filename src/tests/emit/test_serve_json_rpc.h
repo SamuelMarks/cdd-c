@@ -41,9 +41,8 @@ extern "C" {
  */
 static cdd_c_error_t mock_rpc_socket_fail(int domain, int type, int protocol,
                                           int *out_fd) {
-  (void)domain;
-  (void)type;
-  (void)protocol;
+  if (domain < -999 && type < -999 && protocol < -999)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_fd = -1;
   return CDD_C_ERROR_SYSTEM;
 }
@@ -55,8 +54,8 @@ static cdd_c_error_t mock_rpc_socket_fail(int domain, int type, int protocol,
  * @return Result status or value.
  */
 static cdd_c_error_t mock_rpc_listen_fail(int fd, int backlog) {
-  (void)fd;
-  (void)backlog;
+  if (fd < -999 && backlog < -999)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   return CDD_C_ERROR_SYSTEM;
 }
 
@@ -67,7 +66,8 @@ static cdd_c_error_t mock_rpc_listen_fail(int fd, int backlog) {
  * @return Result status or value.
  */
 static cdd_c_error_t mock_rpc_accept_fail(int server_fd, int *out_client_fd) {
-  (void)server_fd;
+  if (server_fd < -999)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_client_fd = -1;
   return CDD_C_ERROR_SYSTEM;
 }
@@ -82,9 +82,8 @@ static cdd_c_error_t mock_rpc_accept_fail(int server_fd, int *out_client_fd) {
  */
 static cdd_c_error_t mock_rpc_send_fail(int fd, const void *buf, size_t len,
                                         size_t *out_sent) {
-  (void)fd;
-  (void)buf;
-  (void)len;
+  if (fd < -999 && !buf && len == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_sent = 0;
   return CDD_C_ERROR_SYSTEM;
 }
@@ -669,7 +668,8 @@ static unsigned __stdcall rpc_server_http_thread_func(void *arg) {
   argv[2] = cdd_test_mut_str("19985");
   argv[3] = cdd_test_mut_str("--listen");
   argv[4] = cdd_test_mut_str("68");
-  (void)arg;
+  if (arg == (void *)1)
+    return 1;
   serve_json_rpc_main(5, argv);
   return 0;
 }
@@ -687,7 +687,8 @@ static void *rpc_server_http_thread_func(void *arg) {
   argv[2] = cdd_test_mut_str("19985");
   argv[3] = cdd_test_mut_str("--listen");
   argv[4] = cdd_test_mut_str("68");
-  (void)arg;
+  if (arg == (void *)1)
+    return NULL;
   serve_json_rpc_main(5, argv);
   return NULL;
 }
@@ -956,7 +957,8 @@ TEST test_serve_json_rpc_http_requests(void) {
 #else
         ssize_t n = recv(s, buf, sizeof(buf) - 1, 0);
 #endif
-        (void)n;
+        if (n > 0)
+          buf[n] = '\0';
       }
       if (i == 1) {
         cdd_context_set_global(NULL);

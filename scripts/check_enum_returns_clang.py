@@ -42,60 +42,23 @@ def is_test_function(name: str) -> bool:
 
 
 def is_math_function(name: str) -> bool:
-    """Checks if a function name typically implies mathematical operations.
+    """Checks if a function name is a comparator or pure mathematical operation.
 
     Args:
         name (str): The name of the function to check.
 
     Returns:
-        bool: True if the function is mathematically oriented, False otherwise.
+        bool: True if the function is a comparator or pure math function, False otherwise.
     """
     if not name:
         return False
     name_lower = name.lower()
-    # Basic heuristic for arithmetic/math/calculating functions
     if (
         name_lower.startswith("compare_")
-        or "cmp" in name_lower
+        or name_lower.endswith("_cmp")
         or name_lower.startswith("sort_")
     ):
         return True
-    math_keywords = [
-        "add",
-        "sub",
-        "mul",
-        "div",
-        "calc",
-        "math",
-        "compute",
-        "sum",
-        "pow",
-        "sqrt",
-        "abs",
-    ]
-    return any(kw in name_lower for kw in math_keywords)
-
-
-def is_memory_management_function(name: str) -> bool:
-    """Checks if a function name implies memory cleanup (destroy/free).
-
-    Args:
-        name (str): The name of the function to check.
-
-    Returns:
-        bool: True if the function is a destroy or free function, False otherwise.
-    """
-    if not name:
-        return False
-    name_lower = name.lower()
-    for kw in ["destroy", "free"]:
-        if (
-            name_lower == kw
-            or name_lower.startswith(f"{kw}_")
-            or name_lower.endswith(f"_{kw}")
-            or f"_{kw}_" in name_lower
-        ):
-            return True
     return False
 
 
@@ -295,12 +258,6 @@ def check_file(
                         TypeKind.UCHAR,
                     ]:
                         continue
-
-                # Check for exception: memory management functions (destroy/free) returning void
-                if canon_type.kind == TypeKind.VOID and is_memory_management_function(
-                    cursor.spelling
-                ):
-                    continue
 
                 # Check for exception: test functions
                 if use_default_exceptions and is_test_function(cursor.spelling):

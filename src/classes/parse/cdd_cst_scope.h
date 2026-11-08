@@ -80,8 +80,9 @@ cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env);
 /**
  * @brief Free a scope environment.
  * @param[in,out] env The environment to free.
+ * @return CDD_C_SUCCESS.
  */
-C_CDD_EXPORT void cdd_cst_scope_env_free(cdd_cst_scope_env_t *env);
+C_CDD_EXPORT cdd_c_error_t cdd_cst_scope_env_free(cdd_cst_scope_env_t *env);
 
 /**
  * @brief Push a new scope.

@@ -69,8 +69,9 @@ extern C_CDD_EXPORT cdd_c_error_t vla_site_list_init(struct VLASiteList *list);
  * @brief Free resources associated with a VLA site list.
  *
  * @param[in,out] list The VLA site list to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void vla_site_list_free(struct VLASiteList *list);
+extern C_CDD_EXPORT cdd_c_error_t vla_site_list_free(struct VLASiteList *list);
 
 /**
  * @brief Scan a token stream to detect VLAs.

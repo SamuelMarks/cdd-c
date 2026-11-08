@@ -60,8 +60,9 @@ extern C_CDD_EXPORT cdd_c_error_t patch_list_init(struct PatchList *list);
  * Does not free the `struct PatchList` pointer itself.
  *
  * @param[in] list The list to free. Safe to pass NULL.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void patch_list_free(struct PatchList *list);
+extern C_CDD_EXPORT cdd_c_error_t patch_list_free(struct PatchList *list);
 
 /**
  * @brief Add a replacement patch to the list.

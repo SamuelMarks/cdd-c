@@ -4,7 +4,7 @@ cdd-c: C (C89) ⇄ OpenAPI
 [![License](https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![interactive WASM web demo](https://img.shields.io/badge/interactive-WASM_web_demo-blue.svg)](https://offscale.io/wasm_web_demo)
 [![CI](https://github.com/SamuelMarks/cdd-c/actions/workflows/ci.yml/badge.svg)](https://github.com/SamuelMarks/cdd-c/actions)
-[![Test Coverage](https://img.shields.io/badge/Test%20Coverage-99.9%25-brightgreen.svg)](#)
+[![Test Coverage](https://img.shields.io/badge/Test%20Coverage-100.0%25-brightgreen.svg)](#)
 [![Doc Coverage](https://img.shields.io/badge/Doc%20Coverage-100.0%25-brightgreen.svg)](#)
 
 **cdd-c** compiles **[OpenAPI](https://spec.openapis.org/oas/latest.html) / [Swagger](https://spec.openapis.org/oas/v2.0.html) / [Arazzo](https://spec.openapis.org/arazzo/latest.html)** to and from **C (C89)** (servers, client SDKs, CLIs, database schemas, tests, mocks, and docs), updating your existing code in-place without overwriting your edits.
@@ -164,8 +164,9 @@ cdd-c from_arazzo to_sdk_cli -i workflow.arazzo.json -o ./workflow-cli --tests
 cdd-c from_arazzo to_server -i workflow.arazzo.json -o ./workflow-server --tests
 cdd-c to_arazzo -i ./workflows -o extracted.arazzo.json
 
-# Synchronize codebase models, routes, tests, docs, and OpenAPI in-place
-cdd-c sync -i ./src -o openapi.json
+# Synchronize C header and implementation files or OpenAPI specs in-place
+cdd-c sync src/client.h src/client.c
+cdd-c sync_openapi -i openapi.json -f src/client.c
 
 # Generate documentation-ready C (C89) code snippets JSON for an OpenAPI spec
 cdd-c to_docs_json --no-imports --no-wrapping -i spec.json -o docs.json
@@ -186,52 +187,54 @@ Link against `libc_cdd` and include `cdd_api.h` and `functions/emit/sync.h` to i
 #include "functions/emit/sync.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 int main(void) {
   cdd_from_openapi_config_t sdk_cfg;
   cdd_to_openapi_config_t oas_cfg;
   cdd_from_arazzo_config_t arazzo_cfg;
   cdd_docs_json_config_t docs_cfg;
-  char *docs_json = NULL;
+  char *sync_argv[2];
   cdd_c_error_t rc;
 
   /* 1. Generate a C89 Client SDK + contract tests from an OpenAPI 3.2.0 spec */
-  sdk_cfg.subcommand = "to_sdk";
+  memset(&sdk_cfg, 0, sizeof(sdk_cfg));
+  sdk_cfg.subcommand = CDD_OPENAPI_SUBCOMMAND_TO_SDK;
   sdk_cfg.input = "openapi.json";
-  sdk_cfg.input_dir = NULL;
   sdk_cfg.output = "./generated_sdk";
-  sdk_cfg.no_github_actions = 0;
-  sdk_cfg.no_installable_package = 0;
-  sdk_cfg.generate_tests = 1;
+  sdk_cfg.tests = 1;
   rc = cdd_generate_from_openapi(&sdk_cfg);
   if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
 
   /* 2. Extract an OpenAPI 3.2.0 specification from C source/header files */
-  oas_cfg.input_dir = "./src";
+  memset(&oas_cfg, 0, sizeof(oas_cfg));
+  oas_cfg.input = "./src";
   oas_cfg.output = "./extracted_openapi.json";
   rc = cdd_generate_to_openapi(&oas_cfg);
   if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
 
   /* 3. Compile Arazzo 1.1.0 multi-step workflows into C SDK orchestrators */
-  arazzo_cfg.subcommand = "to_sdk";
+  memset(&arazzo_cfg, 0, sizeof(arazzo_cfg));
+  arazzo_cfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SDK;
   arazzo_cfg.input = "petstore.arazzo.json";
   arazzo_cfg.output = "./workflows";
   rc = cdd_generate_from_arazzo(&arazzo_cfg);
   if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
 
   /* 4. Synchronize C implementation and header files in-place via CST diffing */
-  rc = sync_file("src/client.h", "src/client.c");
+  sync_argv[0] = "src/client.h";
+  sync_argv[1] = "src/client.c";
+  rc = sync_code_main(2, sync_argv);
   if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
 
-  /* 5. Generate documentation-ready C code snippets JSON in-memory */
+  /* 5. Generate documentation-ready C code snippets JSON */
+  memset(&docs_cfg, 0, sizeof(docs_cfg));
   docs_cfg.input = "openapi.json";
+  docs_cfg.output = "./docs.json";
   docs_cfg.no_imports = 0;
   docs_cfg.no_wrapping = 0;
-  rc = cdd_generate_docs_json(&docs_cfg, &docs_json);
-  if (rc == CDD_C_SUCCESS && docs_json != NULL) {
-    printf("%s\n", docs_json);
-    free(docs_json);
-  }
+  rc = cdd_generate_docs_json(&docs_cfg);
+  if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
 
   return EXIT_SUCCESS;
 }
@@ -239,11 +242,11 @@ int main(void) {
 
 #### 2. Generated Client SDK Usage (`from_openapi to_sdk`)
 
-When you run `cdd-c from_openapi to_sdk -i petstore.json -o ./sdk`, `cdd-c` emits an idiomatic, strictly typed C89 client library (`petstore_client.h`, `petstore_models.h`, and JSON codecs) backed by pluggable native transports (WinHTTP, WinInet, Apple CFNetwork, Android/Java JNI, libcurl, Libuv, or PicoHTTPParser):
+When you run `cdd-c from_openapi to_sdk -i petstore.json -o ./sdk`, `cdd-c` emits an idiomatic, strictly typed C89 client library (`src/client.h`, `src/client_models.h`, and JSON codecs) backed by pluggable native transports (WinHTTP, WinInet, Apple CFNetwork, Android/Java JNI, libcurl, Libuv, or PicoHTTPParser):
 
 ```c
-#include "petstore_client.h"
-#include "petstore_models.h"
+#include "client.h"
+#include "client_models.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -254,24 +257,25 @@ int main(void) {
   cdd_c_error_t rc;
 
   /* Initialize HTTP client & configure Bearer token authentication */
-  rc = api_init(&client, "https://petstore3.swagger.io/api/v3");
+  rc = init(&client, "https://petstore3.swagger.io/api/v3");
   if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
   client.bearer_token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...";
 
   /* Execute typed operation: GET /pet/{petId} */
-  rc = api_pet_getPetById(&client, 42, &pet, &api_err);
+  rc = pet_getPetById(&client, 42, &pet, &api_err);
   if (rc == CDD_C_SUCCESS && pet != NULL) {
     printf("Fetched pet: id=%d, name=%s\n", pet->id,
            pet->name ? pet->name : "(unnamed)");
-    Pet_cleanup(pet);
-    free(pet);
+    rc = Pet_cleanup(pet);
+    if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
   } else if (api_err != NULL) {
-    fprintf(stderr, "API error (HTTP %d)\n", api_err->status_code);
-    ApiError_cleanup(api_err);
-    free(api_err);
+    fprintf(stderr, "API error (HTTP %d): %s\n", api_err->status,
+            api_err->detail ? api_err->detail : "");
+    rc = ApiError_cleanup(api_err);
+    if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
   }
 
-  api_cleanup(&client);
+  cleanup(&client);
   return rc == CDD_C_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 ```
@@ -293,7 +297,7 @@ make test
 #### Prerequisites
 
 - **C89 / C90 or later compiler**: `clang`, `gcc`, or `MSVC` (`cl.exe`)
-- **CMake**: `>= 3.10` (or `>= 3.14` when using `FetchContent`)
+- **CMake**: `>= 3.11` (or `>= 3.14` when using `FetchContent`)
 - **Optional**: `vcpkg` (manifest mode via `vcpkg.json`), `emsdk` / `wasi-sdk` (for WebAssembly builds), `doxygen` (for API documentation), `gcovr` / `llvm-cov` (for coverage verification)
 
 #### Building Directly with CMake
@@ -301,7 +305,7 @@ make test
 ```sh
 cmake -S . -B build_cmake -DCMAKE_BUILD_TYPE=Release
 cmake --build build_cmake --config Release
-./build_cmake/cdd-c --version
+./build_cmake/bin/cdd-c --version
 ```
 
 #### Running the Test Suite & Coverage
@@ -598,7 +602,7 @@ In addition to the unified `from_openapi` and `to_openapi` subcommands, `cdd-c` 
 
 - **`cdd-c c2openapi [--base <openapi.json>] [--self <uri>] [--dialect <uri>] <src_dir> <out.json>`**: Directly extract OpenAPI 3.2.0 specifications from C source directories, merging into an optional `--base` specification and setting `$self` and `jsonSchemaDialect` URIs.
 - **`cdd-c code2schema <header.h> <schema.json>`**: Parse C structs, enums, and bitfields from a C header into a standalone JSON Schema (Draft 2020-12).
-- **`cdd-c schema2code [-gGuardPrefix] <schema.json> <output_file_prefix>`**: Compile a standalone JSON Schema into C89 structs, enums, array helpers, and Parson JSON serialization/deserialization codecs.
+- **`cdd-c schema2code [-gGuardPrefix] <schema.json> <output_file_prefix>`**: Compile a standalone JSON Schema into C89 structs, enums, array helpers, and zero-dependency JSON serialization/deserialization codecs.
 - **`cdd-c generate_build_system <cmake> <out_dir> <project_name> [test_file]`**: Generate cross-platform `CMakeLists.txt` build scaffolding with automatic platform networking detection (`ws2_32`, `wininet`, `winhttp`, `CFNetwork`, `libcurl`).
 
 ### 5. `c-orm` Database Schema, Migration & Multi-Tier Mock Server Integration
@@ -649,7 +653,6 @@ Annotate any strict ISO C89 `struct` with `@cdd` comment directives for JSON ser
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <parson.h>
 #include "cdd_c_error.h"
 
 /**
@@ -705,6 +708,7 @@ When you run `cdd-c sync` (or `sync_code_main("deploy_config.h", "deploy_config.
 
 ```c
 /* Lifecycle, Reflection & Data-Class Helpers */
+struct cdd_type_info;
 extern cdd_c_error_t DeployConfig_cleanup(struct DeployConfig *obj);
 extern cdd_c_error_t DeployConfig_deepcopy(const struct DeployConfig *src,
                                            struct DeployConfig **dest);
@@ -716,13 +720,17 @@ extern cdd_c_error_t DeployConfig_debug(const struct DeployConfig *obj,
                                         FILE *stream);
 extern cdd_c_error_t DeployConfig_reflect(const struct cdd_type_info **out);
 
-/* Serde JSON Codecs (to_json / from_json) */
+/* Zero-Dependency Serde JSON Codecs (to_json / from_json) */
 extern cdd_c_error_t DeployConfig_to_json(const struct DeployConfig *obj,
                                           char **const json);
-extern cdd_c_error_t DeployConfig_from_jsonObject(const JSON_Object *jsonObject,
-                                                  struct DeployConfig **const out);
 extern cdd_c_error_t DeployConfig_from_json(const char *json,
                                             struct DeployConfig **const out);
+
+/* Form URL-Encoded Codecs (to_form_urlencoded / from_form_urlencoded) */
+extern cdd_c_error_t DeployConfig_to_form_urlencoded(const struct DeployConfig *obj,
+                                                     char **out);
+extern cdd_c_error_t DeployConfig_from_form_urlencoded(const char *form_str,
+                                                       struct DeployConfig **out);
 
 /* Declarative CLI Parser, Serializer, Help & Completions (to_cli / from_cli) */
 extern cdd_c_error_t DeployConfig_print_version(const char *prog_name,
@@ -744,73 +752,136 @@ extern cdd_c_error_t DeployConfig_to_cli_argv(const struct DeployConfig *obj,
 
 ###### B. Synchronized C89 Implementation (`deploy_config.c`)
 
-`cdd-c` generates and maintains strict ANSI C89 implementations for every codec and CLI entrypoint:
+`cdd-c` generates and maintains strict, zero-dependency ANSI C89 implementations for every codec and CLI entrypoint:
 
 ```c
-/* 1. JSON Serialization: applies rename ("service-name"), camelCase
- *    ("replicaPort", "enableTls", "manifestPath"), skip (internal_ctx),
- *    and skip_serializing_if ("zero" / "null") */
+/* 1. Zero-Dependency JSON Serialization: applies rename ("service-name"),
+ *    camelCase ("replicaPort", "enableTls", "manifestPath"), RFC 8259
+ *    string escaping, skip (internal_ctx), and skip_serializing_if ("zero" / "null") */
 cdd_c_error_t DeployConfig_to_json(const struct DeployConfig *obj,
-                                   char **const json) {
-  int rc;
-  if (obj == NULL || json == NULL) return CDD_C_ERROR_INVALID_ARGUMENT;
-  rc = c89stringutils_jasprintf(json, "{");
-  if (rc < 0 || *json == NULL) return CDD_C_ERROR_MEMORY;
+                                   char **const out_json) {
+  struct _cdd_json_buf _b;
+  char _nb[32];
+  cdd_c_error_t _rc;
+  if (obj == NULL || out_json == NULL) return CDD_C_ERROR_INVALID_ARGUMENT;
+  _b.data = NULL; _b.len = 0; _b.cap = 0;
 
-  if (obj->service_name)
-    rc = c89stringutils_jasprintf(json, "\"service-name\": \"%s\"",
-                                  obj->service_name);
-  else
-    rc = c89stringutils_jasprintf(json, "\"service-name\": null");
-  if (rc < 0 || *json == NULL) return CDD_C_ERROR_MEMORY;
+  _rc = _cdd_json_buf_append(&_b, "{\"service-name\":", 16);
+  if (_rc != CDD_C_SUCCESS) { free(_b.data); return _rc; }
+  _rc = _cdd_json_buf_append_escaped(&_b, obj->service_name);
+  if (_rc != CDD_C_SUCCESS) { free(_b.data); return _rc; }
 
-  rc = c89stringutils_jasprintf(json, ",");
-  if (rc < 0 || *json == NULL) return CDD_C_ERROR_MEMORY;
-  rc = c89stringutils_jasprintf(json, "\"replicaPort\": %d",
-                                obj->replica_port);
-  if (rc < 0 || *json == NULL) return CDD_C_ERROR_MEMORY;
+  _rc = _cdd_json_buf_append(&_b, ",\"replicaPort\":", 15);
+  if (_rc != CDD_C_SUCCESS) { free(_b.data); return _rc; }
+#if defined(_MSC_VER)
+  sprintf_s(_nb, sizeof(_nb), "%d", obj->replica_port);
+#else
+  sprintf(_nb, "%d", obj->replica_port);
+#endif
+  _rc = _cdd_json_buf_append(&_b, _nb, strlen(_nb));
+  if (_rc != CDD_C_SUCCESS) { free(_b.data); return _rc; }
 
   if (obj->verbose != 0) {
-    rc = c89stringutils_jasprintf(json, ",");
-    if (rc < 0 || *json == NULL) return CDD_C_ERROR_MEMORY;
-    rc = c89stringutils_jasprintf(json, "\"verbose\": %d", obj->verbose);
-    if (rc < 0 || *json == NULL) return CDD_C_ERROR_MEMORY;
+    _rc = _cdd_json_buf_append(&_b, ",\"verbose\":", 11);
+    if (_rc != CDD_C_SUCCESS) { free(_b.data); return _rc; }
+#if defined(_MSC_VER)
+    sprintf_s(_nb, sizeof(_nb), "%d", obj->verbose);
+#else
+    sprintf(_nb, "%d", obj->verbose);
+#endif
+    _rc = _cdd_json_buf_append(&_b, _nb, strlen(_nb));
+    if (_rc != CDD_C_SUCCESS) { free(_b.data); return _rc; }
   }
 
-  rc = c89stringutils_jasprintf(json, ",");
-  if (rc < 0 || *json == NULL) return CDD_C_ERROR_MEMORY;
-  rc = c89stringutils_jasprintf(json, "\"enableTls\": %s",
-                                obj->enable_tls ? "true" : "false");
-  if (rc < 0 || *json == NULL) return CDD_C_ERROR_MEMORY;
+  _rc = _cdd_json_buf_append(&_b, ",\"enableTls\":", 13);
+  if (_rc != CDD_C_SUCCESS) { free(_b.data); return _rc; }
+  _rc = _cdd_json_buf_append(&_b, obj->enable_tls ? "true" : "false",
+                             obj->enable_tls ? 4 : 5);
+  if (_rc != CDD_C_SUCCESS) { free(_b.data); return _rc; }
 
   if (obj->manifest_path != NULL) {
-    rc = c89stringutils_jasprintf(json, ",");
-    if (rc < 0 || *json == NULL) return CDD_C_ERROR_MEMORY;
-    if (obj->manifest_path)
-      rc = c89stringutils_jasprintf(json, "\"manifestPath\": \"%s\"",
-                                    obj->manifest_path);
-    else
-      rc = c89stringutils_jasprintf(json, "\"manifestPath\": null");
-    if (rc < 0 || *json == NULL) return CDD_C_ERROR_MEMORY;
+    _rc = _cdd_json_buf_append(&_b, ",\"manifestPath\":", 16);
+    if (_rc != CDD_C_SUCCESS) { free(_b.data); return _rc; }
+    _rc = _cdd_json_buf_append_escaped(&_b, obj->manifest_path);
+    if (_rc != CDD_C_SUCCESS) { free(_b.data); return _rc; }
   }
 
-  rc = c89stringutils_jasprintf(json, "}");
-  if (rc < 0 || *json == NULL) return CDD_C_ERROR_MEMORY;
+  _rc = _cdd_json_buf_append(&_b, "}", 1);
+  if (_rc != CDD_C_SUCCESS) { free(_b.data); return _rc; }
+  *out_json = _b.data;
   return CDD_C_SUCCESS;
 }
 
-/* 2. JSON Deserialization: enforces deny_unknown_fields, resolves
- *    "service-name" + alias "service", and populates defaults */
+/* 2. Zero-Dependency JSON Pull-Deserialization: single-pass cursor scanner
+ *    enforcing deny_unknown_fields, resolving "service-name" + alias "service",
+ *    unescaping RFC 8259 strings, and populating defaults */
 cdd_c_error_t DeployConfig_from_json(const char *json,
                                      struct DeployConfig **const out) {
-  JSON_Value *val;
+  struct DeployConfig *ret = NULL;
+  const char *p = json;
+  char *endp = NULL;
+  char *key = NULL;
+  char *val = NULL;
+  int has_service_name = 0;
+  int has_manifest_path = 0;
   cdd_c_error_t rc;
+
   if (!json || !out) return CDD_C_ERROR_INVALID_ARGUMENT;
-  val = json_parse_string(json);
-  if (!val) return CDD_C_ERROR_INVALID_JSON;
-  rc = DeployConfig_from_jsonObject(json_value_get_object(val), out);
-  json_value_free(val);
-  return rc;
+  rc = DeployConfig_default(&ret);
+  if (rc != CDD_C_SUCCESS) return rc;
+
+  _cdd_json_skip_ws(&p);
+  if (*p != '{') { DeployConfig_cleanup(ret); return CDD_C_ERROR_PARSE; }
+  p++;
+  while (*p) {
+    _cdd_json_skip_ws(&p);
+    if (*p == '}') { p++; break; }
+    if (*p == ',') { p++; _cdd_json_skip_ws(&p); }
+    rc = _cdd_json_unescape_str(&p, &key);
+    if (rc != CDD_C_SUCCESS) { DeployConfig_cleanup(ret); return rc; }
+    _cdd_json_skip_ws(&p);
+    if (*p != ':') { free(key); DeployConfig_cleanup(ret); return CDD_C_ERROR_PARSE; }
+    p++;
+    _cdd_json_skip_ws(&p);
+
+    if (strcmp(key, "service-name") == 0 || strcmp(key, "service") == 0) {
+      rc = _cdd_json_unescape_str(&p, &val);
+      if (rc != CDD_C_SUCCESS) { free(key); DeployConfig_cleanup(ret); return rc; }
+      free(ret->service_name);
+      ret->service_name = val;
+      has_service_name = 1;
+    } else if (strcmp(key, "replicaPort") == 0) {
+      ret->replica_port = (int)strtol(p, &endp, 10);
+      p = endp;
+    } else if (strcmp(key, "verbose") == 0) {
+      ret->verbose = (int)strtol(p, &endp, 10);
+      p = endp;
+    } else if (strcmp(key, "enableTls") == 0) {
+      ret->enable_tls = (strncmp(p, "true", 4) == 0) ? 1 : 0;
+      rc = _cdd_json_skip_value(&p);
+      if (rc != CDD_C_SUCCESS) { free(key); DeployConfig_cleanup(ret); return rc; }
+    } else if (strcmp(key, "manifestPath") == 0) {
+      rc = _cdd_json_unescape_str(&p, &val);
+      if (rc != CDD_C_SUCCESS) { free(key); DeployConfig_cleanup(ret); return rc; }
+      free(ret->manifest_path);
+      ret->manifest_path = val;
+      has_manifest_path = 1;
+    } else {
+      /* deny_unknown_fields */
+      free(key);
+      DeployConfig_cleanup(ret);
+      return CDD_C_ERROR_INVALID_ARGUMENT;
+    }
+    free(key);
+    key = NULL;
+  }
+
+  if (!has_service_name || !has_manifest_path) {
+    DeployConfig_cleanup(ret);
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+  *out = ret;
+  return CDD_C_SUCCESS;
 }
 
 /* 3. CLI Parsing & Roundtrip Argv Emission (from_cli / to_cli_argv):
@@ -823,6 +894,7 @@ cdd_c_error_t run_deploy_cli(int argc, char **argv) {
   int out_argc = 0;
   char **out_argv = NULL;
   cdd_c_error_t rc;
+  cdd_c_error_t clean_rc;
 
   /* Parse CLI flags, environment variables, and defaults into struct */
   rc = DeployConfig_from_cli(argc, argv, &cfg);
@@ -831,7 +903,8 @@ cdd_c_error_t run_deploy_cli(int argc, char **argv) {
   /* Serialize the parsed CLI struct directly to camelCase JSON */
   rc = DeployConfig_to_json(cfg, &json_str);
   if (rc != CDD_C_SUCCESS) {
-    DeployConfig_cleanup(cfg);
+    clean_rc = DeployConfig_cleanup(cfg);
+    if (clean_rc != CDD_C_SUCCESS) return clean_rc;
     return rc;
   }
 
@@ -839,13 +912,20 @@ cdd_c_error_t run_deploy_cli(int argc, char **argv) {
   rc = DeployConfig_to_cli_argv(cfg, &out_argc, &out_argv);
   if (rc != CDD_C_SUCCESS) {
     free(json_str);
-    DeployConfig_cleanup(cfg);
+    clean_rc = DeployConfig_cleanup(cfg);
+    if (clean_rc != CDD_C_SUCCESS) return clean_rc;
     return rc;
   }
 
   rc = cdd_cli_free_argv(out_argc, out_argv);
+  if (rc != CDD_C_SUCCESS) {
+    free(json_str);
+    clean_rc = DeployConfig_cleanup(cfg);
+    if (clean_rc != CDD_C_SUCCESS) return clean_rc;
+    return rc;
+  }
   free(json_str);
-  DeployConfig_cleanup(cfg);
+  rc = DeployConfig_cleanup(cfg);
   return rc;
 }
 ```

@@ -69,8 +69,9 @@ extern C_CDD_EXPORT cdd_c_error_t vcpkg_builder_init(
  * @brief Free resources associated with a vcpkg manifest builder.
  *
  * @param[in,out] builder The vcpkg manifest builder to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void
+extern C_CDD_EXPORT cdd_c_error_t
 vcpkg_builder_free(struct VcpkgManifestBuilder *builder);
 
 /**

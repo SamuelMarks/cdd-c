@@ -10,10 +10,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/json_dom.h"
 #include "c_cdd/memory.h"
 #include "cdd_c_error.h"
 #include <c_cdd_stdbool.h>
-#include <parson.h>
 #include <c_cdd_export.h>
 #include "classes/emit/struct.h"
 #include "functions/emit/codegen.h"
@@ -237,8 +237,10 @@ extern C_CDD_EXPORT cdd_c_error_t parse_type_union_array_code2schema(
  *
  * @param[in,out] arr The string array to free.
  * @param[in] n The number of initialized elements in the array.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void free_string_array_code2schema(char **arr, size_t n);
+extern C_CDD_EXPORT cdd_c_error_t free_string_array_code2schema(char **arr,
+                                                                size_t n);
 
 /**
  * @brief Deep copies an array of string pointers into a new allocated array.

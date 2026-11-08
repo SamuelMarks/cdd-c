@@ -42,6 +42,7 @@ write_union_to_json_func(FILE *fp, const char *union_name,
                          const struct StructFields *sf,
                          const struct CodegenTypesConfig *config) {
   size_t i;
+  cdd_c_error_t rc_esc = CDD_C_SUCCESS;
 
   if (!fp || !union_name || !sf)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -81,9 +82,10 @@ write_union_to_json_func(FILE *fp, const char *union_name,
     if (disc_tag && disc_tag[0] != '\0' && sf->serde_content[0] != '\0' &&
         !sf->serde_untagged) {
       char esc_tag[128], esc_val[128], esc_cnt[128];
-      cdd_escape_json_c_str(disc_tag, esc_tag, sizeof(esc_tag));
-      cdd_escape_json_c_str(disc_val, esc_val, sizeof(esc_val));
-      cdd_escape_json_c_str(sf->serde_content, esc_cnt, sizeof(esc_cnt));
+      rc_esc = cdd_escape_json_c_str(disc_tag, esc_tag, sizeof(esc_tag));
+      rc_esc = cdd_escape_json_c_str(disc_val, esc_val, sizeof(esc_val));
+      rc_esc =
+          cdd_escape_json_c_str(sf->serde_content, esc_cnt, sizeof(esc_cnt));
       CHECK_IO(FPRINTF_HOOK(fp,
                             "      rc = c89stringutils_jasprintf(json, "
                             "\"{\\\"%s\\\":\\\"%s\\\",\\\"%s\\\":\");\n"
@@ -116,7 +118,9 @@ write_union_to_json_func(FILE *fp, const char *union_name,
       CHECK_IO(FPRINTF_HOOK(fp, "      } else { rc = c89stringutils_jasprintf("
                                 "json, \"null\"); }\n"));
     } else if (strcmp(type, "enum") == 0) {
-      get_type_from_ref(ref, &ref_type);
+      cdd_c_error_t rc_ref = get_type_from_ref(ref, &ref_type);
+      if (rc_ref != CDD_C_SUCCESS)
+        return rc_ref;
       CHECK_IO(FPRINTF_HOOK(
           fp,
           "      { char *s = NULL; rc = %s_to_str(obj->data.%s, "
@@ -126,12 +130,14 @@ write_union_to_json_func(FILE *fp, const char *union_name,
                                 "\"\\\"%%s\\\"\", s); free(s); "
                                 "}\n"));
     } else if (strcmp(type, "object") == 0) {
-      get_type_from_ref(ref, &ref_type);
+      cdd_c_error_t rc_ref = get_type_from_ref(ref, &ref_type);
+      if (rc_ref != CDD_C_SUCCESS)
+        return rc_ref;
       if (sf->serde_tag[0] != '\0' && sf->serde_content[0] == '\0' &&
           !sf->serde_untagged) {
         char esc_tag[128], esc_val[128];
-        cdd_escape_json_c_str(sf->serde_tag, esc_tag, sizeof(esc_tag));
-        cdd_escape_json_c_str(disc_val, esc_val, sizeof(esc_val));
+        rc_esc = cdd_escape_json_c_str(sf->serde_tag, esc_tag, sizeof(esc_tag));
+        rc_esc = cdd_escape_json_c_str(disc_val, esc_val, sizeof(esc_val));
         CHECK_IO(FPRINTF_HOOK(
             fp,
             "      {\n"
@@ -207,7 +213,9 @@ write_union_to_json_func(FILE *fp, const char *union_name,
             "obj->data.%s.%s[i]);\n",
             name, name));
       } else {
-        get_type_from_ref(ref, &ref_type);
+        cdd_c_error_t rc_ref = get_type_from_ref(ref, &ref_type);
+        if (rc_ref != CDD_C_SUCCESS)
+          return rc_ref;
         CHECK_IO(FPRINTF_HOOK(
             fp,
             "          {\n"
@@ -249,7 +257,7 @@ write_union_to_json_func(FILE *fp, const char *union_name,
   if (config && config->json_guard)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->json_guard));
 
-  return CDD_C_SUCCESS;
+  return rc_esc;
 }
 
 /*
@@ -268,6 +276,7 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
   size_t i;
   int needs_nested_rc = 0;
   const char *disc_tag;
+  cdd_c_error_t rc_esc = CDD_C_SUCCESS;
 
   if (!fp || !union_name || !sf)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -301,7 +310,7 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
 
   if (!sf->serde_untagged && disc_tag && disc_tag[0]) {
     char esc_tag[128];
-    cdd_escape_json_c_str(disc_tag, esc_tag, sizeof(esc_tag));
+    rc_esc = cdd_escape_json_c_str(disc_tag, esc_tag, sizeof(esc_tag));
     CHECK_IO(FPRINTF_HOOK(
         fp,
         "  {\n"
@@ -328,14 +337,14 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
         continue;
       if (strcmp(type, "object") != 0 && sf->serde_content[0] == '\0')
         continue;
-      cdd_escape_json_c_str(disc_val, esc_dval, sizeof(esc_dval));
+      rc_esc = cdd_escape_json_c_str(disc_val, esc_dval, sizeof(esc_dval));
       CHECK_IO(
           FPRINTF_HOOK(fp, "      if (strcmp(disc, \"%s\") == 0", esc_dval));
       for (a_idx = 0; a_idx < vf->n_serde_aliases; ++a_idx) {
         if (vf->serde_aliases[a_idx]) {
           char esc_al[128];
-          cdd_escape_json_c_str(vf->serde_aliases[a_idx], esc_al,
-                                sizeof(esc_al));
+          rc_esc = cdd_escape_json_c_str(vf->serde_aliases[a_idx], esc_al,
+                                         sizeof(esc_al));
           CHECK_IO(FPRINTF_HOOK(fp, " || strcmp(disc, \"%s\") == 0", esc_al));
         }
       }
@@ -344,9 +353,12 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
           FPRINTF_HOOK(fp, "        ret->tag = %s_%s;\n", union_name, name));
       if (sf->serde_content[0] != '\0') {
         char esc_cnt[128];
-        cdd_escape_json_c_str(sf->serde_content, esc_cnt, sizeof(esc_cnt));
+        rc_esc =
+            cdd_escape_json_c_str(sf->serde_content, esc_cnt, sizeof(esc_cnt));
         if (strcmp(type, "object") == 0) {
-          get_type_from_ref(ref, &ref_type);
+          cdd_c_error_t rc_ref = get_type_from_ref(ref, &ref_type);
+          if (rc_ref != CDD_C_SUCCESS)
+            return rc_ref;
           CHECK_IO(FPRINTF_HOOK(
               fp,
               "        rc = %s_from_jsonObject(json_object_get_object("
@@ -383,7 +395,9 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
                                   "        return CDD_C_SUCCESS;\n"
                                   "      }\n"));
       } else {
-        get_type_from_ref(ref, &ref_type);
+        cdd_c_error_t rc_ref = get_type_from_ref(ref, &ref_type);
+        if (rc_ref != CDD_C_SUCCESS)
+          return rc_ref;
         CHECK_IO(FPRINTF_HOOK(
             fp,
             "        rc = %s_from_jsonObject(jsonObject, "
@@ -404,9 +418,12 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
       const char *type = sf->fields[i].type;
       const char *ref = sf->fields[i].ref;
       const char *ref_type = NULL;
+      cdd_c_error_t rc_ref;
       if (strcmp(type, "object") != 0)
         continue;
-      get_type_from_ref(ref, &ref_type);
+      rc_ref = get_type_from_ref(ref, &ref_type);
+      if (rc_ref != CDD_C_SUCCESS)
+        return rc_ref;
       CHECK_IO(
           FPRINTF_HOOK(fp,
                        "  if (%s_from_jsonObject(jsonObject, &ret->data.%s) == "
@@ -490,9 +507,12 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
     const char *type = sf->fields[i].type;
     const char *ref = sf->fields[i].ref;
     const char *ref_type = NULL;
+    cdd_c_error_t rc_ref;
     if (strcmp(type, "object") != 0)
       continue;
-    get_type_from_ref(ref, &ref_type);
+    rc_ref = get_type_from_ref(ref, &ref_type);
+    if (rc_ref != CDD_C_SUCCESS)
+      return rc_ref;
     CHECK_IO(FPRINTF_HOOK(fp, "    case %lu:\n", (unsigned long)i));
     CHECK_IO(FPRINTF_HOOK(fp, "      ret->tag = %s_%s;\n", union_name, name));
     CHECK_IO(FPRINTF_HOOK(
@@ -515,7 +535,7 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
   if (config && config->json_guard)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->json_guard));
 
-  return CDD_C_SUCCESS;
+  return rc_esc;
 }
 
 /*
@@ -735,18 +755,19 @@ write_union_from_json_func(FILE *fp, const char *union_name,
           "&ret->data.%s.%s[i]);\n"
           "            if (rc != CDD_C_SUCCESS) {\n",
           name, name, ref, name, name, ref, name, name));
-      CHECK_IO(FPRINTF_HOOK(
-          fp,
-          "              size_t j;\n"
-          "              for (j = 0; j < i; ++j) { "
-          "%s_cleanup(ret->data.%s.%s[j]); free(ret->data.%s.%s[j]); }\n"
-          "              free(ret->data.%s.%s);\n"
-          "              free(ret);\n"
-          "              json_value_free(val);\n"
-          "              return rc;\n"
-          "            }\n"
-          "          }\n",
-          ref, name, name, name, name, name, name));
+      CHECK_IO(
+          FPRINTF_HOOK(fp,
+                       "              size_t j;\n"
+                       "              for (j = 0; j < i; ++j) { "
+                       "if (ret->data.%s.%s[j]) %s_cleanup(ret->data.%s.%s[j]);"
+                       " }\n"
+                       "              free(ret->data.%s.%s);\n"
+                       "              free(ret);\n"
+                       "              json_value_free(val);\n"
+                       "              return rc;\n"
+                       "            }\n"
+                       "          }\n",
+                       name, name, ref, name, name, name, name));
     }
     CHECK_IO(FPRINTF_HOOK(fp, "        }\n"
                               "        *out = ret;\n"
@@ -974,14 +995,19 @@ write_union_cleanup_func(FILE *fp, const char *union_name,
     if (strcmp(sf->fields[i].type, "string") == 0) {
       CHECK_IO(FPRINTF_HOOK(fp, "      free((void*)obj->data.%s);\n", name));
     } else if (strcmp(sf->fields[i].type, "object") == 0) {
-      get_type_from_ref(sf->fields[i].ref, &ref_type);
-      CHECK_IO(FPRINTF_HOOK(fp, "      %s_cleanup(obj->data.%s);\n", ref_type,
-                            name));
+      cdd_c_error_t rc_ref = get_type_from_ref(sf->fields[i].ref, &ref_type);
+      if (rc_ref != CDD_C_SUCCESS)
+        return rc_ref;
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "      if (obj->data.%s) { cdd_c_error_t _rc = "
+          "%s_cleanup(obj->data.%s); if (_rc != CDD_C_SUCCESS) return _rc; }\n",
+          name, ref_type, name));
     } else if (strcmp(sf->fields[i].type, "array") == 0) {
       const char *r = sf->fields[i].ref;
       if (strcmp(r, "string") == 0 ||
           (strcmp(r, "integer") != 0 && strcmp(r, "boolean") != 0 &&
-           strcmp(r, "number") != 0)) {
+           strcmp(r, "number") != 0 && strcmp(r, "enum") != 0)) {
         CHECK_IO(FPRINTF_HOOK(
             fp, "      for (i = 0; i < obj->data.%s.n_%s; ++i) {\n", name,
             name));
@@ -989,11 +1015,15 @@ write_union_cleanup_func(FILE *fp, const char *union_name,
           CHECK_IO(FPRINTF_HOOK(fp, "        free(obj->data.%s.%s[i]);\n", name,
                                 name));
         } else {
-          get_type_from_ref(r, &ref_type);
-          CHECK_IO(FPRINTF_HOOK(fp,
-                                "        %s_cleanup(obj->data.%s.%s[i]);\n"
-                                "        free(obj->data.%s.%s[i]);\n",
-                                ref_type, name, name, name, name));
+          cdd_c_error_t rc_ref = get_type_from_ref(r, &ref_type);
+          if (rc_ref != CDD_C_SUCCESS)
+            return rc_ref;
+          CHECK_IO(FPRINTF_HOOK(
+              fp,
+              "        if (obj->data.%s.%s[i]) { cdd_c_error_t _rc = "
+              "%s_cleanup(obj->data.%s.%s[i]); if (_rc != CDD_C_SUCCESS) "
+              "return _rc; }\n",
+              name, name, ref_type, name, name));
         }
         CHECK_IO(FPRINTF_HOOK(fp, "      }\n"));
       }
@@ -1005,6 +1035,395 @@ write_union_cleanup_func(FILE *fp, const char *union_name,
   CHECK_IO(FPRINTF_HOOK(
       fp,
       "    default: break;\n  }\n  free(obj);\n  return CDD_C_SUCCESS;\n}\n"));
+
+  if (config && config->utils_guard)
+    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->utils_guard));
+
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Emits C source code for union default initialization func.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] union_name Name of the union type.
+ * @param[in] sf Struct fields descriptor container for the union variants.
+ * @param[in] config Optional code generation configuration.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+cdd_c_error_t
+write_union_default_func(FILE *fp, const char *union_name,
+                         const struct StructFields *sf,
+                         const struct CodegenTypesConfig *config) {
+  if (!fp || !union_name || !sf)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  if (config && config->utils_guard)
+    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->utils_guard));
+
+  CHECK_IO(FPRINTF_HOOK(fp,
+                        "cdd_c_error_t %s_default(struct %s **out) {\n"
+                        "  if (!out) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+                        "  *out = calloc(1, sizeof(struct %s));\n"
+                        "  if (!*out) return CDD_C_ERROR_MEMORY;\n"
+                        "  (*out)->tag = %s_UNKNOWN;\n"
+                        "  return CDD_C_SUCCESS;\n"
+                        "}\n",
+                        union_name, union_name, union_name, union_name));
+
+  if (config && config->utils_guard)
+    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->utils_guard));
+
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Emits C source code for union deepcopy func.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] union_name Name of the union type.
+ * @param[in] sf Struct fields descriptor container for the union variants.
+ * @param[in] config Optional code generation configuration.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+cdd_c_error_t
+write_union_deepcopy_func(FILE *fp, const char *union_name,
+                          const struct StructFields *sf,
+                          const struct CodegenTypesConfig *config) {
+  size_t i;
+  if (!fp || !union_name || !sf)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  if (config && config->utils_guard)
+    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->utils_guard));
+
+  CHECK_IO(FPRINTF_HOOK(
+      fp,
+      "cdd_c_error_t %s_deepcopy(const struct %s *src, struct %s **dest) {\n"
+      "  if (!dest) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+      "  if (!src) { *dest = NULL; return CDD_C_SUCCESS; }\n"
+      "  *dest = calloc(1, sizeof(struct %s));\n"
+      "  if (!*dest) return CDD_C_ERROR_MEMORY;\n"
+      "  (*dest)->tag = src->tag;\n"
+      "  switch (src->tag) {\n",
+      union_name, union_name, union_name, union_name));
+
+  for (i = 0; i < sf->size; ++i) {
+    const char *name = sf->fields[i].name;
+    const char *type = sf->fields[i].type;
+    const char *ref = sf->fields[i].ref;
+    const char *ref_type = NULL;
+
+    CHECK_IO(FPRINTF_HOOK(fp, "    case %s_%s:\n", union_name, name));
+    if (strcmp(type, "string") == 0) {
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "      if (src->data.%s) {\n"
+          "        (*dest)->data.%s = strdup(src->data.%s);\n"
+          "        if (!(*dest)->data.%s) { free(*dest); *dest = NULL; return "
+          "CDD_C_ERROR_MEMORY; }\n"
+          "      }\n",
+          name, name, name, name));
+    } else if (strcmp(type, "object") == 0) {
+      cdd_c_error_t rc_ref = get_type_from_ref(ref, &ref_type);
+      if (rc_ref != CDD_C_SUCCESS)
+        return rc_ref;
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "      if (src->data.%s) {\n"
+          "        cdd_c_error_t _rc = %s_deepcopy(src->data.%s, "
+          "&(*dest)->data.%s);\n"
+          "        if (_rc != CDD_C_SUCCESS) { free(*dest); *dest = NULL; "
+          "return _rc; }\n"
+          "      }\n",
+          name, ref_type, name, name));
+    } else if (strcmp(type, "array") == 0) {
+      CHECK_IO(FPRINTF_HOOK(
+          fp, "      if (src->data.%s.%s && src->data.%s.n_%s > 0) {\n", name,
+          name, name, name));
+      if (strcmp(ref, "integer") == 0 || strcmp(ref, "boolean") == 0 ||
+          strcmp(ref, "enum") == 0) {
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "        (*dest)->data.%s.%s = malloc(src->data.%s.n_%s * "
+            "sizeof(int));\n"
+            "        if (!(*dest)->data.%s.%s) { free(*dest); *dest = NULL; "
+            "return CDD_C_ERROR_MEMORY; }\n"
+            "        memcpy((*dest)->data.%s.%s, src->data.%s.%s, "
+            "src->data.%s.n_%s * sizeof(int));\n"
+            "        (*dest)->data.%s.n_%s = src->data.%s.n_%s;\n",
+            name, name, name, name, name, name, name, name, name, name, name,
+            name, name, name, name, name));
+      } else if (strcmp(ref, "number") == 0) {
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "        (*dest)->data.%s.%s = malloc(src->data.%s.n_%s * "
+            "sizeof(double));\n"
+            "        if (!(*dest)->data.%s.%s) { free(*dest); *dest = NULL; "
+            "return CDD_C_ERROR_MEMORY; }\n"
+            "        memcpy((*dest)->data.%s.%s, src->data.%s.%s, "
+            "src->data.%s.n_%s * sizeof(double));\n"
+            "        (*dest)->data.%s.n_%s = src->data.%s.n_%s;\n",
+            name, name, name, name, name, name, name, name, name, name, name,
+            name, name, name, name, name));
+      } else if (strcmp(ref, "string") == 0) {
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "        size_t _i;\n"
+            "        (*dest)->data.%s.%s = calloc(src->data.%s.n_%s, "
+            "sizeof(char *));\n"
+            "        if (!(*dest)->data.%s.%s) { free(*dest); *dest = NULL; "
+            "return CDD_C_ERROR_MEMORY; }\n"
+            "        (*dest)->data.%s.n_%s = src->data.%s.n_%s;\n",
+            name, name, name, name, name, name, name, name, name, name));
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "        for (_i = 0; _i < src->data.%s.n_%s; ++_i) {\n"
+            "          if (src->data.%s.%s[_i]) {\n"
+            "            (*dest)->data.%s.%s[_i] = "
+            "strdup(src->data.%s.%s[_i]);\n"
+            "            if (!(*dest)->data.%s.%s[_i]) { %s_cleanup(*dest); "
+            "*dest = NULL; return CDD_C_ERROR_MEMORY; }\n"
+            "          }\n"
+            "        }\n",
+            name, name, name, name, name, name, name, name, name, name,
+            union_name));
+      } else {
+        cdd_c_error_t rc_ref = get_type_from_ref(ref, &ref_type);
+        if (rc_ref != CDD_C_SUCCESS)
+          return rc_ref;
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "        size_t _i;\n"
+            "        (*dest)->data.%s.%s = calloc(src->data.%s.n_%s, "
+            "sizeof(struct %s *));\n"
+            "        if (!(*dest)->data.%s.%s) { free(*dest); *dest = NULL; "
+            "return CDD_C_ERROR_MEMORY; }\n"
+            "        (*dest)->data.%s.n_%s = src->data.%s.n_%s;\n",
+            name, name, name, name, ref_type, name, name, name, name, name,
+            name));
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "        for (_i = 0; _i < src->data.%s.n_%s; ++_i) {\n"
+            "          if (src->data.%s.%s[_i]) {\n"
+            "            cdd_c_error_t _rc = "
+            "%s_deepcopy(src->data.%s.%s[_i], &(*dest)->data.%s.%s[_i]);\n"
+            "            if (_rc != CDD_C_SUCCESS) { %s_cleanup(*dest); "
+            "*dest = NULL; return _rc; }\n"
+            "          }\n"
+            "        }\n",
+            name, name, name, name, ref_type, name, name, name, name,
+            union_name));
+      }
+      CHECK_IO(FPRINTF_HOOK(fp, "      }\n"));
+    } else if (strcmp(type, "null") != 0) {
+      CHECK_IO(FPRINTF_HOOK(fp, "      (*dest)->data.%s = src->data.%s;\n",
+                            name, name));
+    }
+    CHECK_IO(FPRINTF_HOOK(fp, "      break;\n"));
+  }
+
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "    default: break;\n  }\n  return CDD_C_SUCCESS;\n}\n"));
+
+  if (config && config->utils_guard)
+    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->utils_guard));
+
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Emits C source code for union equality comparison func.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] union_name Name of the union type.
+ * @param[in] sf Struct fields descriptor container for the union variants.
+ * @param[in] config Optional code generation configuration.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+cdd_c_error_t write_union_eq_func(FILE *fp, const char *union_name,
+                                  const struct StructFields *sf,
+                                  const struct CodegenTypesConfig *config) {
+  size_t i;
+  if (!fp || !union_name || !sf)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  if (config && config->utils_guard)
+    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->utils_guard));
+
+  CHECK_IO(FPRINTF_HOOK(
+      fp,
+      "cdd_c_error_t %s_eq(const struct %s *a, const struct %s *b, int "
+      "*out_eq) {\n"
+      "  if (!out_eq) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+      "  if (a == b) { *out_eq = 1; return CDD_C_SUCCESS; }\n"
+      "  if (!a || !b || a->tag != b->tag) { *out_eq = 0; return "
+      "CDD_C_SUCCESS; }\n"
+      "  switch (a->tag) {\n",
+      union_name, union_name, union_name));
+
+  for (i = 0; i < sf->size; ++i) {
+    const char *name = sf->fields[i].name;
+    const char *type = sf->fields[i].type;
+    const char *ref = sf->fields[i].ref;
+    const char *ref_type = NULL;
+
+    CHECK_IO(FPRINTF_HOOK(fp, "    case %s_%s:\n", union_name, name));
+    if (strcmp(type, "string") == 0) {
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "      if (a->data.%s != b->data.%s && (!a->data.%s || !b->data.%s "
+          "|| strcmp(a->data.%s, b->data.%s) != 0)) { *out_eq = 0; return "
+          "CDD_C_SUCCESS; }\n",
+          name, name, name, name, name, name));
+    } else if (strcmp(type, "object") == 0) {
+      cdd_c_error_t rc_ref = get_type_from_ref(ref, &ref_type);
+      if (rc_ref != CDD_C_SUCCESS)
+        return rc_ref;
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "      { int _t = 0; cdd_c_error_t _rc = %s_eq(a->data.%s, "
+          "b->data.%s, &_t); if (_rc != CDD_C_SUCCESS) return _rc; if (!_t) { "
+          "*out_eq = 0; return CDD_C_SUCCESS; } }\n",
+          ref_type, name, name));
+    } else if (strcmp(type, "array") == 0) {
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "      {\n"
+          "        size_t _i;\n"
+          "        if (a->data.%s.n_%s != b->data.%s.n_%s) { *out_eq = 0; "
+          "return CDD_C_SUCCESS; }\n"
+          "        for (_i = 0; _i < a->data.%s.n_%s; ++_i) {\n",
+          name, name, name, name, name, name));
+      if (strcmp(ref, "integer") == 0 || strcmp(ref, "boolean") == 0 ||
+          strcmp(ref, "number") == 0 || strcmp(ref, "enum") == 0) {
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "          if (a->data.%s.%s[_i] != b->data.%s.%s[_i]) { *out_eq = "
+            "0; return CDD_C_SUCCESS; }\n",
+            name, name, name, name));
+      } else if (strcmp(ref, "string") == 0) {
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "          if (a->data.%s.%s[_i] != b->data.%s.%s[_i] && "
+            "(!a->data.%s.%s[_i] || !b->data.%s.%s[_i] || "
+            "strcmp(a->data.%s.%s[_i], b->data.%s.%s[_i]) != 0)) { *out_eq = "
+            "0; return CDD_C_SUCCESS; }\n",
+            name, name, name, name, name, name, name, name, name, name, name,
+            name));
+      } else {
+        cdd_c_error_t rc_ref = get_type_from_ref(ref, &ref_type);
+        if (rc_ref != CDD_C_SUCCESS)
+          return rc_ref;
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "          { int _t = 0; cdd_c_error_t _rc = "
+            "%s_eq(a->data.%s.%s[_i], b->data.%s.%s[_i], &_t); if (_rc != "
+            "CDD_C_SUCCESS) return _rc; if (!_t) { *out_eq = 0; return "
+            "CDD_C_SUCCESS; } }\n",
+            ref_type, name, name, name, name));
+      }
+      CHECK_IO(FPRINTF_HOOK(fp, "        }\n      }\n"));
+    } else if (strcmp(type, "null") != 0) {
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "      if (a->data.%s != b->data.%s) { *out_eq = 0; return "
+          "CDD_C_SUCCESS; }\n",
+          name, name));
+    }
+    CHECK_IO(FPRINTF_HOOK(fp, "      break;\n"));
+  }
+
+  CHECK_IO(FPRINTF_HOOK(fp, "    default: break;\n  }\n  *out_eq = 1;\n  "
+                            "return CDD_C_SUCCESS;\n}\n"));
+
+  if (config && config->utils_guard)
+    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->utils_guard));
+
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Emits C source code for union debug print func.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] union_name Name of the union type.
+ * @param[in] sf Struct fields descriptor container for the union variants.
+ * @param[in] config Optional code generation configuration.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+cdd_c_error_t write_union_debug_func(FILE *fp, const char *union_name,
+                                     const struct StructFields *sf,
+                                     const struct CodegenTypesConfig *config) {
+  size_t i;
+  if (!fp || !union_name || !sf)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  if (config && config->utils_guard)
+    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->utils_guard));
+
+  CHECK_IO(
+      FPRINTF_HOOK(fp,
+                   "cdd_c_error_t %s_debug(const struct %s *obj, FILE *fp) {\n"
+                   "  if (!fp) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+                   "  if (!obj) { if (fprintf(fp, \"(null)\\n\") < 0) return "
+                   "CDD_C_ERROR_IO; return CDD_C_SUCCESS; }\n"
+                   "  switch (obj->tag) {\n",
+                   union_name, union_name));
+
+  for (i = 0; i < sf->size; ++i) {
+    const char *name = sf->fields[i].name;
+    const char *type = sf->fields[i].type;
+    const char *ref = sf->fields[i].ref;
+    const char *ref_type = NULL;
+
+    CHECK_IO(FPRINTF_HOOK(fp, "    case %s_%s:\n", union_name, name));
+    if (strcmp(type, "integer") == 0 || strcmp(type, "boolean") == 0) {
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "      if (fprintf(fp, \"%s::%s(%%d)\\n\", obj->data.%s) < 0) return "
+          "CDD_C_ERROR_IO;\n",
+          union_name, name, name));
+    } else if (strcmp(type, "number") == 0) {
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "      if (fprintf(fp, \"%s::%s(%%g)\\n\", obj->data.%s) < 0) return "
+          "CDD_C_ERROR_IO;\n",
+          union_name, name, name));
+    } else if (strcmp(type, "string") == 0) {
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "      if (fprintf(fp, \"%s::%s(\\\"%%s\\\")\\n\", obj->data.%s ? "
+          "obj->data.%s : \"(null)\") < 0) return CDD_C_ERROR_IO;\n",
+          union_name, name, name, name));
+    } else if (strcmp(type, "object") == 0) {
+      cdd_c_error_t rc_ref = get_type_from_ref(ref, &ref_type);
+      if (rc_ref != CDD_C_SUCCESS)
+        return rc_ref;
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "      if (fprintf(fp, \"%s::%s:\\n\") < 0) return CDD_C_ERROR_IO;\n"
+          "      { cdd_c_error_t _rc = %s_debug(obj->data.%s, fp); if (_rc != "
+          "CDD_C_SUCCESS) return _rc; }\n",
+          union_name, name, ref_type, name));
+    } else {
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "      if (fprintf(fp, \"%s::%s\\n\") < 0) return CDD_C_ERROR_IO;\n",
+          union_name, name));
+    }
+    CHECK_IO(FPRINTF_HOOK(fp, "      break;\n"));
+  }
+
+  CHECK_IO(FPRINTF_HOOK(
+      fp,
+      "    default:\n"
+      "      if (fprintf(fp, \"%s::UNKNOWN\\n\") < 0) return CDD_C_ERROR_IO;\n"
+      "      break;\n"
+      "  }\n"
+      "  return CDD_C_SUCCESS;\n"
+      "}\n",
+      union_name));
 
   if (config && config->utils_guard)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->utils_guard));

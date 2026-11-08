@@ -448,36 +448,137 @@ static cdd_c_error_t next_path_segment(const char **p, char *seg_buf,
                                        size_t seg_cap) {
   size_t len = 0;
   const char *cur = *p;
-  while (*cur == '/' || *cur == '.')
-    cur++;
+  int in_bracket = 0;
   if (*cur == '[') {
+    in_bracket = 1;
     cur++;
-    while (*cur != '\0' && *cur != ']') {
-      if (len + 1 >= seg_cap)
-        return CDD_C_ERROR_INVALID_ARGUMENT;
-      seg_buf[len++] = *cur++;
+  }
+  for (; *cur != '\0'; cur++) {
+    if (in_bracket) {
+      if (*cur == ']')
+        break;
+    } else if (*cur == '/' || *cur == '.' || *cur == '[') {
+      break;
     }
-    if (*cur != ']' || len == 0)
+    if (len + 1 >= seg_cap)
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    cur++;
-    seg_buf[len] = '\0';
-    *p = cur;
-    return CDD_C_SUCCESS;
-  }
-  while (*cur != '\0' && *cur != '/' && *cur != '.' && *cur != '[') {
-    if (cur[0] == '~' && (cur[1] == '0' || cur[1] == '1')) {
-      if (len + 1 >= seg_cap)
-        return CDD_C_ERROR_INVALID_ARGUMENT;
+    if (*cur == '~' && (cur[1] == '0' || cur[1] == '1')) {
       seg_buf[len++] = (cur[1] == '0') ? '~' : '/';
-      cur += 2;
+      cur++;
     } else {
-      if (len + 1 >= seg_cap)
-        return CDD_C_ERROR_INVALID_ARGUMENT;
-      seg_buf[len++] = *cur++;
+      seg_buf[len++] = *cur;
     }
   }
+  *p = cur + (in_bracket && *cur == ']' ? 1 : 0);
   seg_buf[len] = '\0';
-  *p = cur;
+  return (in_bracket && (*cur != ']' || len == 0))
+             ? CDD_C_ERROR_INVALID_ARGUMENT
+             : CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Resolves a dot-path or RFC 6901 JSON Pointer path to a mutable field
+ * address and descriptor within a reflected struct instance.
+ *
+ * @param[in,out] obj Root struct instance.
+ * @param[in] ti Root runtime type descriptor.
+ * @param[in] path Dot-separated or slash-separated field path.
+ * @param[out] out_field Optional output pointer receiving the leaf field info.
+ * @param[out] out_parent_obj Optional output pointer receiving the parent
+ * struct instance.
+ * @param[out] out_field_ptr Optional output pointer receiving the leaf field
+ * memory address.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+static cdd_c_error_t resolve_path_mut(void *obj, const struct cdd_type_info *ti,
+                                      const char *path,
+                                      const struct cdd_field_info **out_field,
+                                      void **out_parent_obj,
+                                      void **out_field_ptr) {
+  const char *p = path;
+  void *cur_obj = obj;
+  const struct cdd_type_info *cur_ti = ti;
+  const struct cdd_field_info *cur_field = NULL;
+  void *parent_obj = NULL;
+  void *cur_ptr = NULL;
+  cdd_c_error_t rc;
+
+  if (!obj || !ti || !path)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  while (*p == '/' || *p == '.')
+    p++;
+  if (*p == '\0')
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  for (;;) {
+    char seg[128];
+    rc = next_path_segment(&p, seg, sizeof(seg));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+
+    rc = cdd_reflect_find_field(cur_ti, seg, &cur_field);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+
+    parent_obj = cur_obj;
+    cur_ptr = (cur_field->bit_width > 0)
+                  ? NULL
+                  : (void *)((unsigned char *)cur_obj + cur_field->offset);
+
+    while (*p == '/' || *p == '.')
+      p++;
+    if (*p == '\0')
+      break;
+
+    if (cur_field->kind == CDD_FIELD_KIND_OBJECT) {
+      if (!cur_field->ref_name || cur_field->ref_name[0] == '\0')
+        return CDD_C_ERROR_NOT_FOUND;
+      rc = cdd_reflect_type_by_name(cur_field->ref_name, &cur_ti);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      cur_obj = cur_field->is_pointer ? *(void **)cur_ptr : cur_ptr;
+      if (!cur_obj)
+        return CDD_C_ERROR_NOT_FOUND;
+    } else if (cur_field->kind == CDD_FIELD_KIND_ARRAY) {
+      char idx_seg[64];
+      size_t idx = 0;
+      size_t k;
+      void *elem_ptr = NULL;
+      rc = next_path_segment(&p, idx_seg, sizeof(idx_seg));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      for (k = 0; idx_seg[k] != '\0'; ++k) {
+        if (!isdigit((unsigned char)idx_seg[k]))
+          return CDD_C_ERROR_INVALID_ARGUMENT;
+        idx = idx * 10 + (size_t)(idx_seg[k] - '0');
+      }
+      rc = cdd_reflect_array_at_mut(cur_obj, cur_field, idx, &elem_ptr);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      cur_ptr = elem_ptr;
+      while (*p == '/' || *p == '.')
+        p++;
+      if (*p == '\0')
+        break;
+      if (cur_field->elem_kind != CDD_FIELD_KIND_OBJECT ||
+          !cur_field->ref_name || cur_field->ref_name[0] == '\0')
+        return CDD_C_ERROR_NOT_FOUND;
+      rc = cdd_reflect_type_by_name(cur_field->ref_name, &cur_ti);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      cur_obj = (cur_field->elem_size == sizeof(void *)) ? *(void **)elem_ptr
+                                                         : elem_ptr;
+      if (!cur_obj)
+        return CDD_C_ERROR_NOT_FOUND;
+    } else {
+      return CDD_C_ERROR_NOT_FOUND;
+    }
+  }
+
+  *out_field = cur_field;
+  *out_parent_obj = parent_obj;
+  *out_field_ptr = cur_ptr;
   return CDD_C_SUCCESS;
 }
 
@@ -502,97 +603,25 @@ cdd_c_error_t cdd_reflect_resolve_path(const void *obj,
                                        const struct cdd_field_info **out_field,
                                        const void **out_parent_obj,
                                        const void **out_field_ptr) {
-  const char *p = path;
-  const void *cur_obj = obj;
-  const struct cdd_type_info *cur_ti = ti;
-  const struct cdd_field_info *cur_field = NULL;
-  const void *parent_obj = NULL;
-  const void *cur_ptr = NULL;
+  void *mut_parent = NULL;
+  void *mut_field = NULL;
+  union {
+    const void *c_ptr;
+    void *m_ptr;
+  } u_root;
   cdd_c_error_t rc;
-
-  if (!obj || !ti || !path || !out_field || !out_parent_obj || !out_field_ptr)
+  if (!out_field || !out_parent_obj || !out_field_ptr)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-
   *out_field = NULL;
   *out_parent_obj = NULL;
   *out_field_ptr = NULL;
-
-  while (*p == '/' || *p == '.')
-    p++;
-  if (*p == '\0')
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
-  while (*p != '\0') {
-    char seg[128];
-    rc = next_path_segment(&p, seg, sizeof(seg));
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-
-    rc = cdd_reflect_find_field(cur_ti, seg, &cur_field);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-
-    parent_obj = cur_obj;
-    cur_ptr = (cur_field->bit_width > 0)
-                  ? NULL
-                  : (const void *)((const unsigned char *)cur_obj +
-                                   cur_field->offset);
-
-    while (*p == '/' || *p == '.')
-      p++;
-    if (*p == '\0')
-      break;
-
-    if (cur_field->kind == CDD_FIELD_KIND_OBJECT) {
-      if (!cur_field->ref_name || cur_field->ref_name[0] == '\0' || !cur_ptr)
-        return CDD_C_ERROR_NOT_FOUND;
-      rc = cdd_reflect_type_by_name(cur_field->ref_name, &cur_ti);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
-      cur_obj = cur_field->is_pointer ? *(const void *const *)cur_ptr : cur_ptr;
-      if (!cur_obj)
-        return CDD_C_ERROR_NOT_FOUND;
-    } else if (cur_field->kind == CDD_FIELD_KIND_ARRAY) {
-      char idx_seg[64];
-      size_t idx = 0;
-      size_t k;
-      const void *elem_ptr = NULL;
-      rc = next_path_segment(&p, idx_seg, sizeof(idx_seg));
-      if (rc != CDD_C_SUCCESS)
-        return rc;
-      for (k = 0; idx_seg[k] != '\0'; ++k) {
-        if (!isdigit((unsigned char)idx_seg[k]))
-          return CDD_C_ERROR_INVALID_ARGUMENT;
-        idx = idx * 10 + (size_t)(idx_seg[k] - '0');
-      }
-      rc = cdd_reflect_array_at(cur_obj, cur_field, idx, &elem_ptr);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
-      cur_ptr = elem_ptr;
-      while (*p == '/' || *p == '.')
-        p++;
-      if (*p == '\0')
-        break;
-      if (cur_field->elem_kind != CDD_FIELD_KIND_OBJECT ||
-          !cur_field->ref_name || cur_field->ref_name[0] == '\0')
-        return CDD_C_ERROR_NOT_FOUND;
-      rc = cdd_reflect_type_by_name(cur_field->ref_name, &cur_ti);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
-      cur_obj = (cur_field->elem_size == sizeof(void *) &&
-                 cur_ti->size != sizeof(void *))
-                    ? *(const void *const *)elem_ptr
-                    : elem_ptr;
-      if (!cur_obj)
-        return CDD_C_ERROR_NOT_FOUND;
-    } else {
-      return CDD_C_ERROR_NOT_FOUND;
-    }
-  }
-
-  *out_field = cur_field;
-  *out_parent_obj = parent_obj;
-  *out_field_ptr = cur_ptr;
+  u_root.c_ptr = obj;
+  rc = resolve_path_mut(u_root.m_ptr, ti, path, out_field, &mut_parent,
+                        &mut_field);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  *out_parent_obj = mut_parent;
+  *out_field_ptr = mut_field;
   return CDD_C_SUCCESS;
 }
 
@@ -620,10 +649,6 @@ cdd_c_error_t cdd_reflect_get_int64_by_path(const void *obj,
     return rc;
   if (f->kind == CDD_FIELD_KIND_ARRAY) {
     struct cdd_field_info elem_f;
-    if (f->elem_kind != CDD_FIELD_KIND_INTEGER &&
-        f->elem_kind != CDD_FIELD_KIND_BOOLEAN &&
-        f->elem_kind != CDD_FIELD_KIND_ENUM)
-      return CDD_C_ERROR_INVALID_ARGUMENT;
     memset(&elem_f, 0, sizeof(elem_f));
     elem_f.kind = f->elem_kind;
     elem_f.size = f->elem_size;
@@ -645,31 +670,147 @@ cdd_c_error_t cdd_reflect_set_int64_by_path(void *obj,
                                             const struct cdd_type_info *ti,
                                             const char *path, int64_t val) {
   const struct cdd_field_info *f = NULL;
-  const void *parent_obj = NULL;
-  const void *field_ptr = NULL;
-  void *mut_parent;
+  void *mut_parent = NULL;
+  void *mut_field = NULL;
   cdd_c_error_t rc =
-      cdd_reflect_resolve_path(obj, ti, path, &f, &parent_obj, &field_ptr);
+      resolve_path_mut(obj, ti, path, &f, &mut_parent, &mut_field);
   if (rc != CDD_C_SUCCESS)
     return rc;
   if (f->kind == CDD_FIELD_KIND_ARRAY) {
     struct cdd_field_info elem_f;
-    void *mut_elem =
-        (void *)((unsigned char *)obj + ((const unsigned char *)field_ptr -
-                                         (const unsigned char *)obj));
-    if (f->elem_kind != CDD_FIELD_KIND_INTEGER &&
-        f->elem_kind != CDD_FIELD_KIND_BOOLEAN &&
-        f->elem_kind != CDD_FIELD_KIND_ENUM)
-      return CDD_C_ERROR_INVALID_ARGUMENT;
     memset(&elem_f, 0, sizeof(elem_f));
     elem_f.kind = f->elem_kind;
     elem_f.size = f->elem_size;
-    return cdd_reflect_set_int64(mut_elem, &elem_f, val);
+    return cdd_reflect_set_int64(mut_field, &elem_f, val);
   }
-  mut_parent =
-      (void *)((unsigned char *)obj + ((const unsigned char *)parent_obj -
-                                       (const unsigned char *)obj));
   return cdd_reflect_set_int64(mut_parent, f, val);
+}
+
+/*
+ * @brief Reads an unsigned 64-bit integer value at a nested reflection path.
+ *
+ * @param[in] obj Pointer to root struct instance.
+ * @param[in] ti Runtime type descriptor for `obj`.
+ * @param[in] path JSON Pointer or dot/bracket path.
+ * @param[out] out_val Output unsigned 64-bit integer value.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+cdd_c_error_t cdd_reflect_get_uint64_by_path(const void *obj,
+                                             const struct cdd_type_info *ti,
+                                             const char *path,
+                                             uint64_t *out_val) {
+  const struct cdd_field_info *f = NULL;
+  const void *parent_obj = NULL;
+  const void *field_ptr = NULL;
+  cdd_c_error_t rc;
+  if (!out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  rc = cdd_reflect_resolve_path(obj, ti, path, &f, &parent_obj, &field_ptr);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  if (f->kind == CDD_FIELD_KIND_ARRAY) {
+    struct cdd_field_info elem_f;
+    memset(&elem_f, 0, sizeof(elem_f));
+    elem_f.kind = f->elem_kind;
+    elem_f.size = f->elem_size;
+    elem_f.c_type = f->c_type;
+    return cdd_reflect_get_uint64(field_ptr, &elem_f, out_val);
+  }
+  return cdd_reflect_get_uint64(parent_obj, f, out_val);
+}
+
+/*
+ * @brief Writes an unsigned 64-bit integer value at a nested reflection path.
+ *
+ * @param[in,out] obj Mutable pointer to root struct instance.
+ * @param[in] ti Runtime type descriptor for `obj`.
+ * @param[in] path JSON Pointer or dot/bracket path.
+ * @param[in] val Unsigned 64-bit integer value to store.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+cdd_c_error_t cdd_reflect_set_uint64_by_path(void *obj,
+                                             const struct cdd_type_info *ti,
+                                             const char *path, uint64_t val) {
+  const struct cdd_field_info *f = NULL;
+  void *mut_parent = NULL;
+  void *mut_field = NULL;
+  cdd_c_error_t rc =
+      resolve_path_mut(obj, ti, path, &f, &mut_parent, &mut_field);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  if (f->kind == CDD_FIELD_KIND_ARRAY) {
+    struct cdd_field_info elem_f;
+    memset(&elem_f, 0, sizeof(elem_f));
+    elem_f.kind = f->elem_kind;
+    elem_f.size = f->elem_size;
+    elem_f.c_type = f->c_type;
+    return cdd_reflect_set_uint64(mut_field, &elem_f, val);
+  }
+  return cdd_reflect_set_uint64(mut_parent, f, val);
+}
+
+/*
+ * @brief Reads a boolean value (`0` or `1`) at a nested reflection path.
+ *
+ * @param[in] obj Pointer to root struct instance.
+ * @param[in] ti Runtime type descriptor for `obj`.
+ * @param[in] path JSON Pointer or dot/bracket path.
+ * @param[out] out_val Output boolean value (`0` or `1`).
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+cdd_c_error_t cdd_reflect_get_bool_by_path(const void *obj,
+                                           const struct cdd_type_info *ti,
+                                           const char *path, int *out_val) {
+  const struct cdd_field_info *f = NULL;
+  const void *parent_obj = NULL;
+  const void *field_ptr = NULL;
+  cdd_c_error_t rc;
+  if (!out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  rc = cdd_reflect_resolve_path(obj, ti, path, &f, &parent_obj, &field_ptr);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  if (f->kind == CDD_FIELD_KIND_ARRAY) {
+    struct cdd_field_info elem_f;
+    if (f->elem_kind != CDD_FIELD_KIND_BOOLEAN)
+      return CDD_C_ERROR_INVALID_ARGUMENT;
+    memset(&elem_f, 0, sizeof(elem_f));
+    elem_f.kind = CDD_FIELD_KIND_BOOLEAN;
+    elem_f.size = f->elem_size;
+    return cdd_reflect_get_bool(field_ptr, &elem_f, out_val);
+  }
+  return cdd_reflect_get_bool(parent_obj, f, out_val);
+}
+
+/*
+ * @brief Writes a boolean value (`0` or `1`) at a nested reflection path.
+ *
+ * @param[in,out] obj Mutable pointer to root struct instance.
+ * @param[in] ti Runtime type descriptor for `obj`.
+ * @param[in] path JSON Pointer or dot/bracket path.
+ * @param[in] val Boolean value to store (`0` or non-zero).
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+cdd_c_error_t cdd_reflect_set_bool_by_path(void *obj,
+                                           const struct cdd_type_info *ti,
+                                           const char *path, int val) {
+  const struct cdd_field_info *f = NULL;
+  void *mut_parent = NULL;
+  void *mut_field = NULL;
+  cdd_c_error_t rc =
+      resolve_path_mut(obj, ti, path, &f, &mut_parent, &mut_field);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  if (f->kind == CDD_FIELD_KIND_ARRAY) {
+    struct cdd_field_info elem_f;
+    if (f->elem_kind != CDD_FIELD_KIND_BOOLEAN)
+      return CDD_C_ERROR_INVALID_ARGUMENT;
+    memset(&elem_f, 0, sizeof(elem_f));
+    elem_f.kind = CDD_FIELD_KIND_BOOLEAN;
+    elem_f.size = f->elem_size;
+    return cdd_reflect_set_bool(mut_field, &elem_f, val);
+  }
+  return cdd_reflect_set_bool(mut_parent, f, val);
 }
 
 /*
@@ -719,28 +860,21 @@ cdd_c_error_t cdd_reflect_set_double_by_path(void *obj,
                                              const struct cdd_type_info *ti,
                                              const char *path, double val) {
   const struct cdd_field_info *f = NULL;
-  const void *parent_obj = NULL;
-  const void *field_ptr = NULL;
-  void *mut_parent;
+  void *mut_parent = NULL;
+  void *mut_field = NULL;
   cdd_c_error_t rc =
-      cdd_reflect_resolve_path(obj, ti, path, &f, &parent_obj, &field_ptr);
+      resolve_path_mut(obj, ti, path, &f, &mut_parent, &mut_field);
   if (rc != CDD_C_SUCCESS)
     return rc;
   if (f->kind == CDD_FIELD_KIND_ARRAY) {
     struct cdd_field_info elem_f;
-    void *mut_elem =
-        (void *)((unsigned char *)obj + ((const unsigned char *)field_ptr -
-                                         (const unsigned char *)obj));
     if (f->elem_kind != CDD_FIELD_KIND_NUMBER)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     memset(&elem_f, 0, sizeof(elem_f));
     elem_f.kind = CDD_FIELD_KIND_NUMBER;
     elem_f.size = f->elem_size;
-    return cdd_reflect_set_double(mut_elem, &elem_f, val);
+    return cdd_reflect_set_double(mut_field, &elem_f, val);
   }
-  mut_parent =
-      (void *)((unsigned char *)obj + ((const unsigned char *)parent_obj -
-                                       (const unsigned char *)obj));
   return cdd_reflect_set_double(mut_parent, f, val);
 }
 
@@ -793,29 +927,22 @@ cdd_c_error_t cdd_reflect_set_string_by_path(void *obj,
                                              const char *path,
                                              const char *val) {
   const struct cdd_field_info *f = NULL;
-  const void *parent_obj = NULL;
-  const void *field_ptr = NULL;
-  void *mut_parent;
+  void *mut_parent = NULL;
+  void *mut_field = NULL;
   cdd_c_error_t rc =
-      cdd_reflect_resolve_path(obj, ti, path, &f, &parent_obj, &field_ptr);
+      resolve_path_mut(obj, ti, path, &f, &mut_parent, &mut_field);
   if (rc != CDD_C_SUCCESS)
     return rc;
   if (f->kind == CDD_FIELD_KIND_ARRAY) {
     struct cdd_field_info elem_f;
-    void *mut_elem =
-        (void *)((unsigned char *)obj + ((const unsigned char *)field_ptr -
-                                         (const unsigned char *)obj));
     if (f->elem_kind != CDD_FIELD_KIND_STRING)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     memset(&elem_f, 0, sizeof(elem_f));
     elem_f.kind = CDD_FIELD_KIND_STRING;
     elem_f.size = f->elem_size;
     elem_f.is_pointer = (f->elem_size == sizeof(char *)) ? 1 : 0;
-    return cdd_reflect_set_string(mut_elem, &elem_f, val);
+    return cdd_reflect_set_string(mut_field, &elem_f, val);
   }
-  mut_parent =
-      (void *)((unsigned char *)obj + ((const unsigned char *)parent_obj -
-                                       (const unsigned char *)obj));
   return cdd_reflect_set_string(mut_parent, f, val);
 }
 

@@ -526,23 +526,25 @@ cdd_c_error_t merge_struct_fields(struct StructFields *dest,
 cdd_c_error_t apply_allof_to_struct_fields(const JSON_Array *all_of,
                                            struct StructFields *dest,
                                            const JSON_Object *root) {
-  size_t i, count;
+  size_t i, count = 0;
 
   if (!all_of || !dest)
     return CDD_C_SUCCESS;
 
-  count = json_array_get_count(all_of);
+  cdd_json_array_get_count(all_of, &count);
   for (i = 0; i < count; ++i) {
-    const JSON_Object *sub = json_array_get_object(all_of, i);
-    const JSON_Object *resolved = sub;
-    const char *ref;
+    JSON_Object *sub = NULL;
+    const JSON_Object *resolved = NULL;
+    const char *ref = NULL;
     struct StructFields tmp;
     cdd_c_error_t rc;
 
+    cdd_json_array_get_object(all_of, i, &sub);
+    resolved = sub;
     if (!sub)
       continue;
 
-    ref = json_object_get_string(sub, "$ref");
+    cdd_json_object_get_string(sub, "$ref", &ref);
     if (ref && root) {
       cdd_c_error_t rc_c2s = resolve_schema_ref_object(root, ref, &resolved);
       if (rc_c2s != CDD_C_SUCCESS)

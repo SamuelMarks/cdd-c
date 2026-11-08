@@ -55,10 +55,11 @@ static cdd_c_error_t test_va_arg_helper(cdd_int128_t *out, int count,
                                         int is_signed, ...) {
   va_list ap;
   cdd_c_error_t rc;
+  if (count <= 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   va_start(ap, is_signed);
   rc = CDD_VA_ARG_INT128_INTO(ap, is_signed, out);
   va_end(ap);
-  (void)count;
   return rc;
 }
 

@@ -68,7 +68,11 @@ TEST test_schema_constraints_roundtrip(void) {
       34,  100, 101, 102, 97,  117, 108, 116, 34,  58,  116, 114, 117, 101, 125,
       125, 125, 0};
 
-  val = json_parse_string(schema);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(schema, &_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   ASSERT(val != NULL);
   obj = json_value_get_object(val);
   ASSERT(obj != NULL);
@@ -145,55 +149,147 @@ TEST test_schema_constraints_roundtrip(void) {
     JSON_Object *test_obj;
     JSON_Object *props;
     JSON_Object *score_prop;
-    schemas_val = json_value_init_object();
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      schemas_val = _cdd_jv_1;
+    }
     schemas_obj = json_value_get_object(schemas_val);
     ASSERT_EQ(0, write_struct_to_json_schema(schemas_obj, "Test", &sf));
 
-    test_obj = json_object_get_object(schemas_obj, "Test");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(schemas_obj, "Test", &_cdd_jo_1);
+      test_obj = _cdd_jo_1;
+    }
     ASSERT(test_obj != NULL);
-    props = json_object_get_object(test_obj, "properties");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(test_obj, "properties", &_cdd_jo_1);
+      props = _cdd_jo_1;
+    }
     ASSERT(props != NULL);
 
-    score_prop = json_object_get_object(props, "score");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(props, "score", &_cdd_jo_1);
+      score_prop = _cdd_jo_1;
+    }
     ASSERT(score_prop != NULL);
     ASSERT(json_object_has_value(score_prop, "exclusiveMinimum"));
     ASSERT(json_object_has_value(score_prop, "exclusiveMaximum"));
     {
       double ex_min;
       double ex_max;
-      ex_min = json_object_get_number(score_prop, "exclusiveMinimum");
-      ex_max = json_object_get_number(score_prop, "exclusiveMaximum");
+      {
+        double _cdd_jn_1 = 0.0;
+        cdd_json_object_get_number(score_prop, "exclusiveMinimum", &_cdd_jn_1);
+        ex_min = _cdd_jn_1;
+      }
+      {
+        double _cdd_jn_1 = 0.0;
+        cdd_json_object_get_number(score_prop, "exclusiveMaximum", &_cdd_jn_1);
+        ex_max = _cdd_jn_1;
+      }
       ASSERT(ex_min > 3.4 && ex_min < 3.6);
       ASSERT(ex_max > 9.2 && ex_max < 9.3);
     }
     {
       double def_num;
-      def_num = json_object_get_number(score_prop, "default");
+      {
+        double _cdd_jn_1 = 0.0;
+        cdd_json_object_get_number(score_prop, "default", &_cdd_jn_1);
+        def_num = _cdd_jn_1;
+      }
       ASSERT(def_num > 0.49 && def_num < 0.51);
     }
 
-    age_prop = json_object_get_object(props, "age");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(props, "age", &_cdd_jo_1);
+      age_prop = _cdd_jo_1;
+    }
     ASSERT(age_prop != NULL);
-    ASSERT_EQ(18, (int)json_object_get_number(age_prop, "minimum"));
-    ASSERT_EQ(65, (int)json_object_get_number(age_prop, "exclusiveMaximum"));
-    ASSERT_EQ(21, (int)json_object_get_number(age_prop, "default"));
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(age_prop, "minimum", &_cdd_jn_1);
+      ASSERT_EQ(18, (int)_cdd_jn_1);
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(age_prop, "exclusiveMaximum", &_cdd_jn_1);
+      ASSERT_EQ(65, (int)_cdd_jn_1);
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(age_prop, "default", &_cdd_jn_1);
+      ASSERT_EQ(21, (int)_cdd_jn_1);
+    }
 
-    name_prop = json_object_get_object(props, "name");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(props, "name", &_cdd_jo_1);
+      name_prop = _cdd_jo_1;
+    }
     ASSERT(name_prop != NULL);
-    ASSERT_EQ(2, (int)json_object_get_number(name_prop, "minLength"));
-    ASSERT_EQ(10, (int)json_object_get_number(name_prop, "maxLength"));
-    ASSERT_STR_EQ("^[A-Z]+$", json_object_get_string(name_prop, "pattern"));
-    ASSERT_STR_EQ("Bob", json_object_get_string(name_prop, "default"));
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(name_prop, "minLength", &_cdd_jn_1);
+      ASSERT_EQ(2, (int)_cdd_jn_1);
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(name_prop, "maxLength", &_cdd_jn_1);
+      ASSERT_EQ(10, (int)_cdd_jn_1);
+    }
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(name_prop, "pattern", &_cdd_js_1);
+      ASSERT_STR_EQ("^[A-Z]+$", _cdd_js_1);
+    }
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(name_prop, "default", &_cdd_js_1);
+      ASSERT_STR_EQ("Bob", _cdd_js_1);
+    }
 
-    enabled_prop = json_object_get_object(props, "enabled");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(props, "enabled", &_cdd_jo_1);
+      enabled_prop = _cdd_jo_1;
+    }
     ASSERT(enabled_prop != NULL);
-    ASSERT_EQ(1, json_object_get_boolean(enabled_prop, "default"));
+    {
+      int _cdd_jb_1 = -1;
+      if (cdd_json_object_get_boolean(enabled_prop, "default", &_cdd_jb_1) !=
+          CDD_C_SUCCESS)
+        _cdd_jb_1 = -1;
+      ASSERT_EQ(1, _cdd_jb_1);
+    }
 
-    tags_prop = json_object_get_object(props, "tags");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(props, "tags", &_cdd_jo_1);
+      tags_prop = _cdd_jo_1;
+    }
     ASSERT(tags_prop != NULL);
-    ASSERT_EQ(1, (int)json_object_get_number(tags_prop, "minItems"));
-    ASSERT_EQ(3, (int)json_object_get_number(tags_prop, "maxItems"));
-    ASSERT_EQ(1, json_object_get_boolean(tags_prop, "uniqueItems"));
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(tags_prop, "minItems", &_cdd_jn_1);
+      ASSERT_EQ(1, (int)_cdd_jn_1);
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(tags_prop, "maxItems", &_cdd_jn_1);
+      ASSERT_EQ(3, (int)_cdd_jn_1);
+    }
+    {
+      int _cdd_jb_1 = -1;
+      if (cdd_json_object_get_boolean(tags_prop, "uniqueItems", &_cdd_jb_1) !=
+          CDD_C_SUCCESS)
+        _cdd_jb_1 = -1;
+      ASSERT_EQ(1, _cdd_jb_1);
+    }
 
     json_value_free(schemas_val);
   }
@@ -235,7 +331,11 @@ TEST test_schema_annotations_roundtrip(void) {
       112, 114, 101, 99,  97,  116, 101, 100, 34,  58,  116, 114, 117, 101, 125,
       125, 125, 0};
 
-  val = json_parse_string(schema);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(schema, &_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   ASSERT(val != NULL);
   obj = json_value_get_object(val);
   ASSERT(obj != NULL);
@@ -280,39 +380,98 @@ TEST test_schema_annotations_roundtrip(void) {
     JSON_Object *schemas_obj;
     JSON_Object *annot;
     JSON_Object *props;
-    schemas_val = json_value_init_object();
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      schemas_val = _cdd_jv_1;
+    }
     schemas_obj = json_value_get_object(schemas_val);
     ASSERT_EQ(0, write_struct_to_json_schema(schemas_obj, "Annotated", &sf));
 
-    annot = json_object_get_object(schemas_obj, "Annotated");
-    props = json_object_get_object(annot, "properties");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(schemas_obj, "Annotated", &_cdd_jo_1);
+      annot = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(annot, "properties", &_cdd_jo_1);
+      props = _cdd_jo_1;
+    }
     ASSERT(props != NULL);
 
     {
       JSON_Object *id_prop;
-      id_prop = json_object_get_object(props, "id");
+      {
+        JSON_Object *_cdd_jo_1 = NULL;
+        cdd_json_object_get_object(props, "id", &_cdd_jo_1);
+        id_prop = _cdd_jo_1;
+      }
       ASSERT(id_prop != NULL);
-      ASSERT_STR_EQ("uuid", json_object_get_string(id_prop, "format"));
-      ASSERT_STR_EQ("User ID", json_object_get_string(id_prop, "description"));
+      {
+        const char *_cdd_js_1 = NULL;
+        cdd_json_object_get_string(id_prop, "format", &_cdd_js_1);
+        ASSERT_STR_EQ("uuid", _cdd_js_1);
+      }
+      {
+        const char *_cdd_js_1 = NULL;
+        cdd_json_object_get_string(id_prop, "description", &_cdd_js_1);
+        ASSERT_STR_EQ("User ID", _cdd_js_1);
+      }
       ASSERT(json_object_has_value(id_prop, "deprecated"));
-      ASSERT_EQ(0, json_object_get_boolean(id_prop, "deprecated"));
+      {
+        int _cdd_jb_1 = -1;
+        if (cdd_json_object_get_boolean(id_prop, "deprecated", &_cdd_jb_1) !=
+            CDD_C_SUCCESS)
+          _cdd_jb_1 = -1;
+        ASSERT_EQ(0, _cdd_jb_1);
+      }
     }
 
     {
       JSON_Object *secret_prop;
-      secret_prop = json_object_get_object(props, "secret");
+      {
+        JSON_Object *_cdd_jo_1 = NULL;
+        cdd_json_object_get_object(props, "secret", &_cdd_jo_1);
+        secret_prop = _cdd_jo_1;
+      }
       ASSERT(secret_prop != NULL);
-      ASSERT_STR_EQ("Secret",
-                    json_object_get_string(secret_prop, "description"));
-      ASSERT_EQ(1, json_object_get_boolean(secret_prop, "writeOnly"));
+      {
+        const char *_cdd_js_1 = NULL;
+        cdd_json_object_get_string(secret_prop, "description", &_cdd_js_1);
+        ASSERT_STR_EQ("Secret", _cdd_js_1);
+      }
+      {
+        int _cdd_jb_1 = -1;
+        if (cdd_json_object_get_boolean(secret_prop, "writeOnly", &_cdd_jb_1) !=
+            CDD_C_SUCCESS)
+          _cdd_jb_1 = -1;
+        ASSERT_EQ(1, _cdd_jb_1);
+      }
     }
 
     {
       JSON_Object *readme_prop;
-      readme_prop = json_object_get_object(props, "readme");
+      {
+        JSON_Object *_cdd_jo_1 = NULL;
+        cdd_json_object_get_object(props, "readme", &_cdd_jo_1);
+        readme_prop = _cdd_jo_1;
+      }
       ASSERT(readme_prop != NULL);
-      ASSERT_EQ(1, json_object_get_boolean(readme_prop, "readOnly"));
-      ASSERT_EQ(1, json_object_get_boolean(readme_prop, "deprecated"));
+      {
+        int _cdd_jb_1 = -1;
+        if (cdd_json_object_get_boolean(readme_prop, "readOnly", &_cdd_jb_1) !=
+            CDD_C_SUCCESS)
+          _cdd_jb_1 = -1;
+        ASSERT_EQ(1, _cdd_jb_1);
+      }
+      {
+        int _cdd_jb_1 = -1;
+        if (cdd_json_object_get_boolean(readme_prop, "deprecated",
+                                        &_cdd_jb_1) != CDD_C_SUCCESS)
+          _cdd_jb_1 = -1;
+        ASSERT_EQ(1, _cdd_jb_1);
+      }
     }
 
     json_value_free(schemas_val);
@@ -355,8 +514,16 @@ TEST test_schema_allof_merge(void) {
       101, 120, 116, 114, 97,  34,  58,  123, 34,  116, 121, 112, 101, 34,  58,
       34,  115, 116, 114, 105, 110, 103, 34,  125, 125, 125, 0};
 
-  root_val = json_parse_string(schemas);
-  schema_val = json_parse_string(schema);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(schemas, &_cdd_jv_1);
+    root_val = _cdd_jv_1;
+  }
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(schema, &_cdd_jv_1);
+    schema_val = _cdd_jv_1;
+  }
   ASSERT(root_val != NULL);
   ASSERT(schema_val != NULL);
 
@@ -427,7 +594,11 @@ TEST test_schema_anyof_first_object(void) {
       "]"
       "}";
 
-  schema_val = json_parse_string(schema);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(schema, &_cdd_jv_1);
+    schema_val = _cdd_jv_1;
+  }
   ASSERT(schema_val != NULL);
 
   {
@@ -466,7 +637,11 @@ TEST test_schema_oneof_first_object(void) {
       "]"
       "}";
 
-  schema_val = json_parse_string(schema);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(schema, &_cdd_jv_1);
+    schema_val = _cdd_jv_1;
+  }
   ASSERT(schema_val != NULL);
 
   {
@@ -531,7 +706,11 @@ TEST test_schema_keyword_passthrough(void) {
       110, 34,  58,  34,  94,  91,  97,  45,  122, 93,  43,  36,  34,  125, 125,
       125, 125, 0};
 
-  val = json_parse_string(schema);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(schema, &_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   ASSERT(val != NULL);
   obj = json_value_get_object(val);
   ASSERT(obj != NULL);
@@ -543,80 +722,154 @@ TEST test_schema_keyword_passthrough(void) {
     JSON_Value *schemas_val;
     JSON_Object *schemas_obj;
     JSON_Object *spec;
-    schemas_val = json_value_init_object();
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      schemas_val = _cdd_jv_1;
+    }
     schemas_obj = json_value_get_object(schemas_val);
     ASSERT_EQ(0, write_struct_to_json_schema(schemas_obj, "Spec", &sf));
 
-    spec = json_object_get_object(schemas_obj, "Spec");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(schemas_obj, "Spec", &_cdd_jo_1);
+      spec = _cdd_jo_1;
+    }
     ASSERT(spec != NULL);
     ASSERT(json_object_has_value(spec, "additionalProperties"));
-    ASSERT_EQ(0, json_object_get_boolean(spec, "additionalProperties"));
+    {
+      int _cdd_jb_1 = -1;
+      if (cdd_json_object_get_boolean(spec, "additionalProperties",
+                                      &_cdd_jb_1) != CDD_C_SUCCESS)
+        _cdd_jb_1 = -1;
+      ASSERT_EQ(0, _cdd_jb_1);
+    }
 
     {
-
-      JSON_Object *pattern_props;
-      (void)pattern_props;
-      pattern_props = json_object_get_object(spec, "patternProperties");
-      /* ASSERT(pattern_props != NULL); */
-      /* pat_schema = json_object_get_object(pattern_props, "^x-");
-      ASSERT(pat_schema != NULL);
-  (void)pat_schema;
-      ASSERT_STR_EQ("string", json_object_get_string(pat_schema, "type")); */
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(spec, "patternProperties", &_cdd_jo_1);
     }
 
     {
       JSON_Object *defs;
       JSON_Object *extra;
-      defs = json_object_get_object(spec, "$defs");
+      {
+        JSON_Object *_cdd_jo_1 = NULL;
+        cdd_json_object_get_object(spec, "$defs", &_cdd_jo_1);
+        defs = _cdd_jo_1;
+      }
       ASSERT(defs != NULL);
-      extra = json_object_get_object(defs, "Extra");
+      {
+        JSON_Object *_cdd_jo_1 = NULL;
+        cdd_json_object_get_object(defs, "Extra", &_cdd_jo_1);
+        extra = _cdd_jo_1;
+      }
       ASSERT(extra != NULL);
-      ASSERT_STR_EQ("string", json_object_get_string(extra, "type"));
+      {
+        const char *_cdd_js_1 = NULL;
+        cdd_json_object_get_string(extra, "type", &_cdd_js_1);
+        ASSERT_STR_EQ("string", _cdd_js_1);
+      }
     }
 
-    ASSERT(json_object_get_object(spec, "not") != NULL);
-    ASSERT(json_object_get_object(spec, "if") != NULL);
-    ASSERT(json_object_get_object(spec, "then") != NULL);
-    ASSERT(json_object_get_object(spec, "else") != NULL);
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(spec, "not", &_cdd_jo_1);
+      ASSERT(_cdd_jo_1 != NULL);
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(spec, "if", &_cdd_jo_1);
+      ASSERT(_cdd_jo_1 != NULL);
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(spec, "then", &_cdd_jo_1);
+      ASSERT(_cdd_jo_1 != NULL);
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(spec, "else", &_cdd_jo_1);
+      ASSERT(_cdd_jo_1 != NULL);
+    }
 
     {
       JSON_Object *props;
       JSON_Object *name_prop;
       JSON_Object *meta_prop;
       JSON_Object *tags_prop;
-      props = json_object_get_object(spec, "properties");
+      {
+        JSON_Object *_cdd_jo_1 = NULL;
+        cdd_json_object_get_object(spec, "properties", &_cdd_jo_1);
+        props = _cdd_jo_1;
+      }
       ASSERT(props != NULL);
 
-      name_prop = json_object_get_object(props, "name");
+      {
+        JSON_Object *_cdd_jo_1 = NULL;
+        cdd_json_object_get_object(props, "name", &_cdd_jo_1);
+        name_prop = _cdd_jo_1;
+      }
       ASSERT(name_prop != NULL);
       {
         JSON_Array *enum_arr;
-        enum_arr = json_object_get_array(name_prop, "enum");
+        {
+          JSON_Array *_cdd_ja_1 = NULL;
+          cdd_json_object_get_array(name_prop, "enum", &_cdd_ja_1);
+          enum_arr = _cdd_ja_1;
+        }
         ASSERT(enum_arr != NULL);
         ASSERT_EQ(2, (int)json_array_get_count(enum_arr));
         ASSERT_STR_EQ("A", json_array_get_string(enum_arr, 0));
         ASSERT_STR_EQ("B", json_array_get_string(enum_arr, 1));
       }
-      ASSERT_STR_EQ("Name", json_object_get_string(name_prop, "title"));
+      {
+        const char *_cdd_js_1 = NULL;
+        cdd_json_object_get_string(name_prop, "title", &_cdd_js_1);
+        ASSERT_STR_EQ("Name", _cdd_js_1);
+      }
 
-      meta_prop = json_object_get_object(props, "meta");
+      {
+        JSON_Object *_cdd_jo_1 = NULL;
+        cdd_json_object_get_object(props, "meta", &_cdd_jo_1);
+        meta_prop = _cdd_jo_1;
+      }
       ASSERT(meta_prop != NULL);
       {
         JSON_Object *meta_additional;
-        meta_additional =
-            json_object_get_object(meta_prop, "additionalProperties");
+        {
+          JSON_Object *_cdd_jo_1 = NULL;
+          cdd_json_object_get_object(meta_prop, "additionalProperties",
+                                     &_cdd_jo_1);
+          meta_additional = _cdd_jo_1;
+        }
         ASSERT(meta_additional != NULL);
-        ASSERT_STR_EQ("string",
-                      json_object_get_string(meta_additional, "type"));
+        {
+          const char *_cdd_js_1 = NULL;
+          cdd_json_object_get_string(meta_additional, "type", &_cdd_js_1);
+          ASSERT_STR_EQ("string", _cdd_js_1);
+        }
       }
 
-      tags_prop = json_object_get_object(props, "tags");
+      {
+        JSON_Object *_cdd_jo_1 = NULL;
+        cdd_json_object_get_object(props, "tags", &_cdd_jo_1);
+        tags_prop = _cdd_jo_1;
+      }
       ASSERT(tags_prop != NULL);
       {
         JSON_Object *items;
-        items = json_object_get_object(tags_prop, "items");
+        {
+          JSON_Object *_cdd_jo_1 = NULL;
+          cdd_json_object_get_object(tags_prop, "items", &_cdd_jo_1);
+          items = _cdd_jo_1;
+        }
         ASSERT(items != NULL);
-        ASSERT_STR_EQ("^[a-z]+$", json_object_get_string(items, "pattern"));
+        {
+          const char *_cdd_js_1 = NULL;
+          cdd_json_object_get_string(items, "pattern", &_cdd_js_1);
+          ASSERT_STR_EQ("^[a-z]+$", _cdd_js_1);
+        }
       }
     }
 
@@ -653,7 +906,11 @@ TEST test_schema_allof_keyword_merge(void) {
       121, 112, 101, 34,  58,  34,  115, 116, 114, 105, 110, 103, 34,  44,  34,
       120, 45,  98,  101, 116, 97,  34,  58,  49,  125, 125, 125, 93,  125, 0};
 
-  schema_val = json_parse_string(schema);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(schema, &_cdd_jv_1);
+    schema_val = _cdd_jv_1;
+  }
   ASSERT(schema_val != NULL);
 
   {
@@ -665,7 +922,11 @@ TEST test_schema_allof_keyword_merge(void) {
     ASSERT_EQ(0, struct_fields_init(&sf));
     ASSERT_EQ(0, json_object_to_struct_fields(schema_obj, &sf, NULL));
 
-    schemas_val = json_value_init_object();
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      schemas_val = _cdd_jv_1;
+    }
     schemas_obj = json_value_get_object(schemas_val);
     ASSERT_EQ(0, write_struct_to_json_schema(schemas_obj, "Merged", &sf));
 
@@ -674,23 +935,29 @@ TEST test_schema_allof_keyword_merge(void) {
 
       JSON_Object *props;
       JSON_Object *id_prop;
-      JSON_Object *pattern_props;
-      (void)pattern_props;
-      merged = json_object_get_object(schemas_obj, "Merged");
+      {
+        JSON_Object *_cdd_jo_1 = NULL;
+        cdd_json_object_get_object(schemas_obj, "Merged", &_cdd_jo_1);
+        merged = _cdd_jo_1;
+      }
       ASSERT(merged != NULL);
-      /* ASSERT(json_object_has_value(merged, "additionalProperties"));
-  (void)pat_schema;
-      ASSERT_EQ(0, json_object_get_boolean(merged, "additionalProperties")); */
 
-      pattern_props = json_object_get_object(merged, "patternProperties");
-      /* ASSERT(pattern_props != NULL); */
-      /* pat_schema = json_object_get_object(pattern_props, "^x-");
-      ASSERT(pat_schema != NULL);
-      ASSERT_STR_EQ("string", json_object_get_string(pat_schema, "type")); */
+      {
+        JSON_Object *_cdd_jo_1 = NULL;
+        cdd_json_object_get_object(merged, "patternProperties", &_cdd_jo_1);
+      }
 
-      props = json_object_get_object(merged, "properties");
+      {
+        JSON_Object *_cdd_jo_1 = NULL;
+        cdd_json_object_get_object(merged, "properties", &_cdd_jo_1);
+        props = _cdd_jo_1;
+      }
       ASSERT(props != NULL);
-      id_prop = json_object_get_object(props, "id");
+      {
+        JSON_Object *_cdd_jo_1 = NULL;
+        cdd_json_object_get_object(props, "id", &_cdd_jo_1);
+        id_prop = _cdd_jo_1;
+      }
       ASSERT(id_prop != NULL);
       /* ASSERT(json_object_has_value(id_prop, "x-alpha"));
       ASSERT_EQ(1, json_object_get_boolean(id_prop, "x-alpha"));
@@ -728,7 +995,11 @@ TEST test_schema_type_union_roundtrip(void) {
       "}"
       "}";
 
-  val = json_parse_string(schema);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(schema, &_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   ASSERT(val != NULL);
   obj = json_value_get_object(val);
   ASSERT(obj != NULL);
@@ -773,21 +1044,41 @@ TEST test_schema_type_union_roundtrip(void) {
     JSON_Object *schemas_obj;
     JSON_Object *union_obj;
     JSON_Object *props;
-    schemas_val = json_value_init_object();
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      schemas_val = _cdd_jv_1;
+    }
     schemas_obj = json_value_get_object(schemas_val);
     ASSERT_EQ(0, write_struct_to_json_schema(schemas_obj, "Union", &sf));
 
-    union_obj = json_object_get_object(schemas_obj, "Union");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(schemas_obj, "Union", &_cdd_jo_1);
+      union_obj = _cdd_jo_1;
+    }
     ASSERT(union_obj != NULL);
-    props = json_object_get_object(union_obj, "properties");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(union_obj, "properties", &_cdd_jo_1);
+      props = _cdd_jo_1;
+    }
     ASSERT(props != NULL);
 
     {
       JSON_Object *name_prop;
       JSON_Array *type_arr;
-      name_prop = json_object_get_object(props, "name");
+      {
+        JSON_Object *_cdd_jo_1 = NULL;
+        cdd_json_object_get_object(props, "name", &_cdd_jo_1);
+        name_prop = _cdd_jo_1;
+      }
       ASSERT(name_prop != NULL);
-      type_arr = json_object_get_array(name_prop, "type");
+      {
+        JSON_Array *_cdd_ja_1 = NULL;
+        cdd_json_object_get_array(name_prop, "type", &_cdd_ja_1);
+        type_arr = _cdd_ja_1;
+      }
       ASSERT(type_arr != NULL);
       ASSERT_EQ(2, (int)json_array_get_count(type_arr));
       ASSERT_STR_EQ("string", json_array_get_string(type_arr, 0));
@@ -797,9 +1088,17 @@ TEST test_schema_type_union_roundtrip(void) {
     {
       JSON_Object *age_prop;
       JSON_Array *type_arr;
-      age_prop = json_object_get_object(props, "age");
+      {
+        JSON_Object *_cdd_jo_1 = NULL;
+        cdd_json_object_get_object(props, "age", &_cdd_jo_1);
+        age_prop = _cdd_jo_1;
+      }
       ASSERT(age_prop != NULL);
-      type_arr = json_object_get_array(age_prop, "type");
+      {
+        JSON_Array *_cdd_ja_1 = NULL;
+        cdd_json_object_get_array(age_prop, "type", &_cdd_ja_1);
+        type_arr = _cdd_ja_1;
+      }
       ASSERT(type_arr != NULL);
       ASSERT_EQ(2, (int)json_array_get_count(type_arr));
       ASSERT_STR_EQ("integer", json_array_get_string(type_arr, 0));
@@ -810,11 +1109,23 @@ TEST test_schema_type_union_roundtrip(void) {
       JSON_Object *tags_prop;
       JSON_Object *items;
       JSON_Array *type_arr;
-      tags_prop = json_object_get_object(props, "tags");
+      {
+        JSON_Object *_cdd_jo_1 = NULL;
+        cdd_json_object_get_object(props, "tags", &_cdd_jo_1);
+        tags_prop = _cdd_jo_1;
+      }
       ASSERT(tags_prop != NULL);
-      items = json_object_get_object(tags_prop, "items");
+      {
+        JSON_Object *_cdd_jo_1 = NULL;
+        cdd_json_object_get_object(tags_prop, "items", &_cdd_jo_1);
+        items = _cdd_jo_1;
+      }
       ASSERT(items != NULL);
-      type_arr = json_object_get_array(items, "type");
+      {
+        JSON_Array *_cdd_ja_1 = NULL;
+        cdd_json_object_get_array(items, "type", &_cdd_ja_1);
+        type_arr = _cdd_ja_1;
+      }
       ASSERT(type_arr != NULL);
       ASSERT_EQ(2, (int)json_array_get_count(type_arr));
       ASSERT_STR_EQ("string", json_array_get_string(type_arr, 0));

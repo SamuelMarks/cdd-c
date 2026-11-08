@@ -21,17 +21,19 @@
 cdd_c_error_t openapi_load_from_json_internal(
     const JSON_Value *root, struct OpenAPI_Spec *out, const char *retrieval_uri,
     struct OpenAPI_DocRegistry *registry) {
-  JSON_Object *root_obj;
-  const JSON_Object *paths_obj;
-  const JSON_Object *webhooks_obj;
-  JSON_Object *comps_obj;
+  JSON_Object *root_obj = NULL;
+  JSON_Value_Type root_type = JSONError;
+  JSON_Object *paths_obj = NULL;
+  JSON_Object *webhooks_obj = NULL;
+  JSON_Object *comps_obj = NULL;
   cdd_c_error_t rc;
 
   if (!root || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  root_obj = json_value_get_object(root);
-  if (!root_obj && json_value_get_type(root) != JSONBoolean)
+  cdd_json_value_get_object(root, &root_obj);
+  cdd_json_value_get_type(root, &root_type);
+  if (!root_obj && root_type != JSONBoolean)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   out->doc_registry = registry;
@@ -42,10 +44,12 @@ cdd_c_error_t openapi_load_from_json_internal(
   }
 
   {
-    const char *version =
-        root_obj ? json_object_get_string(root_obj, "openapi") : NULL;
-    const char *swagger_version =
-        root_obj ? json_object_get_string(root_obj, "swagger") : NULL;
+    const char *version = NULL;
+    const char *swagger_version = NULL;
+    if (root_obj) {
+      cdd_json_object_get_string(root_obj, "openapi", &version);
+      cdd_json_object_get_string(root_obj, "swagger", &swagger_version);
+    }
     if (!version && !swagger_version) {
       if (!root_is_schema_document(root, root_obj)) {
         openapi_spec_free(out);
@@ -53,8 +57,9 @@ cdd_c_error_t openapi_load_from_json_internal(
       }
       out->is_schema_document = 1;
       {
-        const char *schema_id =
-            root_obj ? json_object_get_string(root_obj, "$id") : NULL;
+        const char *schema_id = NULL;
+        if (root_obj)
+          cdd_json_object_get_string(root_obj, "$id", &schema_id);
         if ((schema_id && *schema_id) || out->retrieval_uri != NULL) {
           rc = compute_document_uri(schema_id, out->retrieval_uri,
                                     &out->document_uri);
@@ -98,14 +103,14 @@ cdd_c_error_t openapi_load_from_json_internal(
     }
 
     if (out->swagger_version) {
-      const char *host;
-      const char *basePath;
-      JSON_Array *schemes_arr;
-      JSON_Array *consumes_arr;
-      JSON_Array *produces_arr;
+      const char *host = NULL;
+      const char *basePath = NULL;
+      JSON_Array *schemes_arr = NULL;
+      JSON_Array *consumes_arr = NULL;
+      JSON_Array *produces_arr = NULL;
       size_t i;
 
-      host = json_object_get_string(root_obj, "host");
+      cdd_json_object_get_string(root_obj, "host", &host);
       if (host) {
         rc = c_cdd_strdup(host, &out->host);
         if (rc != CDD_C_SUCCESS) {
@@ -113,7 +118,7 @@ cdd_c_error_t openapi_load_from_json_internal(
           return rc;
         }
       }
-      basePath = json_object_get_string(root_obj, "basePath");
+      cdd_json_object_get_string(root_obj, "basePath", &basePath);
       if (basePath) {
         rc = c_cdd_strdup(basePath, &out->basePath);
         if (rc != CDD_C_SUCCESS) {
@@ -122,51 +127,54 @@ cdd_c_error_t openapi_load_from_json_internal(
         }
       }
 
-      schemes_arr = json_object_get_array(root_obj, "schemes");
+      cdd_json_object_get_array(root_obj, "schemes", &schemes_arr);
       if (schemes_arr) {
-        out->n_schemes = json_array_get_count(schemes_arr);
+        cdd_json_array_get_count(schemes_arr, &out->n_schemes);
         out->schemes = (char **)C_CDD_CALLOC(out->n_schemes, sizeof(char *));
         if (!out->schemes) {
           openapi_spec_free(out);
           return CDD_C_ERROR_MEMORY;
         }
         for (i = 0; i < out->n_schemes; i++) {
-          rc = c_cdd_strdup(json_array_get_string(schemes_arr, i),
-                            &out->schemes[i]);
+          const char *s_str = NULL;
+          cdd_json_array_get_string(schemes_arr, i, &s_str);
+          rc = c_cdd_strdup(s_str, &out->schemes[i]);
           if (rc != CDD_C_SUCCESS) {
             openapi_spec_free(out);
             return rc;
           }
         }
       }
-      consumes_arr = json_object_get_array(root_obj, "consumes");
+      cdd_json_object_get_array(root_obj, "consumes", &consumes_arr);
       if (consumes_arr) {
-        out->n_consumes = json_array_get_count(consumes_arr);
+        cdd_json_array_get_count(consumes_arr, &out->n_consumes);
         out->consumes = (char **)C_CDD_CALLOC(out->n_consumes, sizeof(char *));
         if (!out->consumes) {
           openapi_spec_free(out);
           return CDD_C_ERROR_MEMORY;
         }
         for (i = 0; i < out->n_consumes; i++) {
-          rc = c_cdd_strdup(json_array_get_string(consumes_arr, i),
-                            &out->consumes[i]);
+          const char *c_str = NULL;
+          cdd_json_array_get_string(consumes_arr, i, &c_str);
+          rc = c_cdd_strdup(c_str, &out->consumes[i]);
           if (rc != CDD_C_SUCCESS) {
             openapi_spec_free(out);
             return rc;
           }
         }
       }
-      produces_arr = json_object_get_array(root_obj, "produces");
+      cdd_json_object_get_array(root_obj, "produces", &produces_arr);
       if (produces_arr) {
-        out->n_produces = json_array_get_count(produces_arr);
+        cdd_json_array_get_count(produces_arr, &out->n_produces);
         out->produces = (char **)C_CDD_CALLOC(out->n_produces, sizeof(char *));
         if (!out->produces) {
           openapi_spec_free(out);
           return CDD_C_ERROR_MEMORY;
         }
         for (i = 0; i < out->n_produces; i++) {
-          rc = c_cdd_strdup(json_array_get_string(produces_arr, i),
-                            &out->produces[i]);
+          const char *p_str = NULL;
+          cdd_json_array_get_string(produces_arr, i, &p_str);
+          rc = c_cdd_strdup(p_str, &out->produces[i]);
           if (rc != CDD_C_SUCCESS) {
             openapi_spec_free(out);
             return rc;
@@ -176,7 +184,8 @@ cdd_c_error_t openapi_load_from_json_internal(
     }
 
     {
-      const char *self_uri = json_object_get_string(root_obj, "$self");
+      const char *self_uri = NULL;
+      cdd_json_object_get_string(root_obj, "$self", &self_uri);
       if (self_uri) {
         rc = c_cdd_strdup(self_uri, &out->self_uri);
         if (rc != CDD_C_SUCCESS) {
@@ -190,12 +199,12 @@ cdd_c_error_t openapi_load_from_json_internal(
                                 &out->document_uri);
       if (rc != CDD_C_SUCCESS) {
         openapi_spec_free(out);
-        return CDD_C_ERROR_MEMORY;
+        return rc;
       }
     }
     {
-      const char *dialect =
-          json_object_get_string(root_obj, "jsonSchemaDialect");
+      const char *dialect = NULL;
+      cdd_json_object_get_string(root_obj, "jsonSchemaDialect", &dialect);
       if (dialect) {
         rc = c_cdd_strdup(dialect, &out->json_schema_dialect);
         if (rc != CDD_C_SUCCESS) {
@@ -217,8 +226,8 @@ cdd_c_error_t openapi_load_from_json_internal(
     }
     /* info check removed */
     {
-      const JSON_Object *ext_docs =
-          json_object_get_object(root_obj, "externalDocs");
+      JSON_Object *ext_docs = NULL;
+      cdd_json_object_get_object(root_obj, "externalDocs", &ext_docs);
       if (ext_docs) {
         cdd_c_error_t rc_ext =
             parse_external_docs(ext_docs, &out->external_docs);
@@ -252,11 +261,12 @@ cdd_c_error_t openapi_load_from_json_internal(
       return rc;
     }
 
-    paths_obj = json_object_get_object(root_obj, "paths");
-    webhooks_obj = json_object_get_object(root_obj, "webhooks");
-    comps_obj = out->swagger_version
-                    ? root_obj
-                    : json_object_get_object(root_obj, "components");
+    cdd_json_object_get_object(root_obj, "paths", &paths_obj);
+    cdd_json_object_get_object(root_obj, "webhooks", &webhooks_obj);
+    if (out->swagger_version)
+      comps_obj = root_obj;
+    else
+      cdd_json_object_get_object(root_obj, "components", &comps_obj);
     if (paths_obj) {
       {
         cdd_c_error_t _rc =
@@ -295,15 +305,19 @@ cdd_c_error_t openapi_load_from_json_internal(
     /* Load Schemas First */
     if (comps_obj) {
       int has_oauth2 = 0;
-      const JSON_Object *schemes =
-          json_object_get_object(comps_obj, "securitySchemes");
+      JSON_Object *schemes = NULL;
+      cdd_json_object_get_object(comps_obj, "securitySchemes", &schemes);
       if (schemes) {
-        size_t scount = json_object_get_count(schemes);
+        size_t scount = 0;
         size_t sk;
+        cdd_json_object_get_count(schemes, &scount);
         for (sk = 0; sk < scount; ++sk) {
-          const JSON_Object *sec_obj =
-              json_value_get_object(json_object_get_value_at(schemes, sk));
-          const char *type = json_object_get_string(sec_obj, "type");
+          JSON_Value *sec_val = NULL;
+          JSON_Object *sec_obj = NULL;
+          const char *type = NULL;
+          cdd_json_object_get_value_at(schemes, sk, &sec_val);
+          cdd_json_value_get_object(sec_val, &sec_obj);
+          cdd_json_object_get_string(sec_obj, "type", &type);
           if (type && strcmp(type, "oauth2") == 0) {
             has_oauth2 = 1;
             break;
@@ -312,26 +326,29 @@ cdd_c_error_t openapi_load_from_json_internal(
       }
       if (has_oauth2) {
         JSON_Object *mut_comps = comps_obj;
-        JSON_Object *schemas = json_object_get_object(mut_comps, "schemas");
+        JSON_Object *schemas = NULL;
+        int has_val = 0;
+        cdd_json_object_get_object(mut_comps, "schemas", &schemas);
         if (!schemas) {
-          JSON_Value *schemas_val;
+          JSON_Value *schemas_val = NULL;
 #ifdef CDD_BUILD_TESTS
           if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0)
             schemas_val = NULL;
           else
 #endif
-            schemas_val = json_value_init_object();
+            cdd_json_value_init_object(&schemas_val);
           if (!schemas_val) {
             openapi_spec_free(out);
             return CDD_C_ERROR_MEMORY;
           }
-          json_object_set_value(mut_comps, "schemas", schemas_val);
-          schemas = json_object_get_object(mut_comps, "schemas");
+          cdd_json_object_set_value_safe(mut_comps, "schemas", schemas_val);
+          cdd_json_object_get_object(mut_comps, "schemas", &schemas);
         }
-        if (!json_object_has_value(schemas, "OAuth2TokenRequest")) {
-          json_object_set_value(
-              schemas, "OAuth2TokenRequest",
-              json_parse_string("{\"type\":\"object\",\"properties\":{"
+        has_val = 0;
+        cdd_json_object_has_value(schemas, "OAuth2TokenRequest", &has_val);
+        if (!has_val) {
+          JSON_Value *parsed_val = NULL;
+          cdd_json_parse_string("{\"type\":\"object\",\"properties\":{"
                                 "\"grant_type\":{\"type\":"
                                 "\"string\",\"enum\":[\"password\","
                                 "\"authorization_code\","
@@ -348,72 +365,88 @@ cdd_c_error_t openapi_load_from_json_internal(
                                 "\"string\"},\"code\":{"
                                 "\"type\":\"string\"},\"redirect_uri\":{"
                                 "\"type\":\"string\"}},"
-                                "\"required\":[\"grant_type\"]}"));
+                                "\"required\":[\"grant_type\"]}",
+                                &parsed_val);
+          cdd_json_object_set_value_safe(schemas, "OAuth2TokenRequest",
+                                         parsed_val);
         }
-        if (!json_object_has_value(schemas, "OAuth2TokenResponse")) {
-          json_object_set_value(
-              schemas, "OAuth2TokenResponse",
-              json_parse_string(
-                  "{\"type\":\"object\",\"properties\":{\"access_token\":"
-                  "{"
-                  "\"type\":\"string\"},\"token_type\":{\"type\":"
-                  "\"string\"},"
-                  "\"expires_in\":{\"type\":\"integer\"},\"refresh_"
-                  "token\":{"
-                  "\"type\":\"string\"},\"scope\":{\"type\":\"string\"}},"
-                  "\"required\":[\"access_token\",\"token_type\"]}"));
+        has_val = 0;
+        cdd_json_object_has_value(schemas, "OAuth2TokenResponse", &has_val);
+        if (!has_val) {
+          JSON_Value *parsed_val = NULL;
+          cdd_json_parse_string(
+              "{\"type\":\"object\",\"properties\":{\"access_token\":"
+              "{"
+              "\"type\":\"string\"},\"token_type\":{\"type\":"
+              "\"string\"},"
+              "\"expires_in\":{\"type\":\"integer\"},\"refresh_"
+              "token\":{"
+              "\"type\":\"string\"},\"scope\":{\"type\":\"string\"}},"
+              "\"required\":[\"access_token\",\"token_type\"]}",
+              &parsed_val);
+          cdd_json_object_set_value_safe(schemas, "OAuth2TokenResponse",
+                                         parsed_val);
         }
-        if (!json_object_has_value(schemas, "OAuth2Client")) {
-          json_object_set_value(
-              schemas, "OAuth2Client",
-              json_parse_string(
-                  "{\"type\":\"object\",\"properties\":{\"client_id\":{"
-                  "\"type\":"
-                  "\"string\",\"description\":\"[UNIQUE]\"},\"client_"
-                  "secret_"
-                  "hash\":{\"type\":\"string\",\"writeOnly\":true},"
-                  "\"redirect_uris\":{\"type\":\"array\",\"items\":{"
-                  "\"type\":"
-                  "\"string\"}},\"grant_types\":{\"type\":\"array\","
-                  "\"items\":{"
-                  "\"type\":\"string\"}}},\"required\":[\"client_id\","
-                  "\"client_"
-                  "secret_hash\"]"
-                  "}"));
+        has_val = 0;
+        cdd_json_object_has_value(schemas, "OAuth2Client", &has_val);
+        if (!has_val) {
+          JSON_Value *parsed_val = NULL;
+          cdd_json_parse_string(
+              "{\"type\":\"object\",\"properties\":{\"client_id\":{"
+              "\"type\":"
+              "\"string\",\"description\":\"[UNIQUE]\"},\"client_"
+              "secret_"
+              "hash\":{\"type\":\"string\",\"writeOnly\":true},"
+              "\"redirect_uris\":{\"type\":\"array\",\"items\":{"
+              "\"type\":"
+              "\"string\"}},\"grant_types\":{\"type\":\"array\","
+              "\"items\":{"
+              "\"type\":\"string\"}}},\"required\":[\"client_id\","
+              "\"client_"
+              "secret_hash\"]"
+              "}",
+              &parsed_val);
+          cdd_json_object_set_value_safe(schemas, "OAuth2Client", parsed_val);
         }
-        if (!json_object_has_value(schemas, "OAuth2User")) {
-          json_object_set_value(
-              schemas, "OAuth2User",
-              json_parse_string(
-                  "{\"type\":\"object\",\"properties\":{\"username\":{"
-                  "\"type\":"
-                  "\"string\",\"description\":\"[UNIQUE]\"},\"password_"
-                  "hash\":{"
-                  "\"type\":\"string\",\"writeOnly\":true},"
-                  "\"created_at\":{\"type\":\"integer\",\"format\":"
-                  "\"int64\"}},"
-                  "\"required\":[\"username\",\"password_hash\"]"
-                  "}"));
+        has_val = 0;
+        cdd_json_object_has_value(schemas, "OAuth2User", &has_val);
+        if (!has_val) {
+          JSON_Value *parsed_val = NULL;
+          cdd_json_parse_string(
+              "{\"type\":\"object\",\"properties\":{\"username\":{"
+              "\"type\":"
+              "\"string\",\"description\":\"[UNIQUE]\"},\"password_"
+              "hash\":{"
+              "\"type\":\"string\",\"writeOnly\":true},"
+              "\"created_at\":{\"type\":\"integer\",\"format\":"
+              "\"int64\"}},"
+              "\"required\":[\"username\",\"password_hash\"]"
+              "}",
+              &parsed_val);
+          cdd_json_object_set_value_safe(schemas, "OAuth2User", parsed_val);
         }
-        if (!json_object_has_value(schemas, "OAuth2Token")) {
-          json_object_set_value(
-              schemas, "OAuth2Token",
-              json_parse_string(
-                  "{\"type\":\"object\",\"properties\":{\"access_token\":"
-                  "{"
-                  "\"type\":"
-                  "\"string\",\"description\":\"[UNIQUE]\"},\"refresh_"
-                  "token\":{"
-                  "\"type\":\"string\",\"description\":\"[UNIQUE]\"},"
-                  "\"expires_at\":{\"type\":\"integer\",\"format\":"
-                  "\"int64\"},"
-                  "\"client_id\":{\"type\":\"integer\",\"description\":"
-                  "\"[FK="
-                  "OAuth2Client]\"},\"user_id\":{\"type\":\"integer\","
-                  "\"description\":\"[FK=OAuth2User]\"}},\"required\":["
-                  "\"access_"
-                  "token\"]"
-                  "}"));
+        has_val = 0;
+        cdd_json_object_has_value(schemas, "OAuth2Token", &has_val);
+        if (!has_val) {
+          JSON_Value *parsed_val = NULL;
+          cdd_json_parse_string(
+              "{\"type\":\"object\",\"properties\":{\"access_token\":"
+              "{"
+              "\"type\":"
+              "\"string\",\"description\":\"[UNIQUE]\"},\"refresh_"
+              "token\":{"
+              "\"type\":\"string\",\"description\":\"[UNIQUE]\"},"
+              "\"expires_at\":{\"type\":\"integer\",\"format\":"
+              "\"int64\"},"
+              "\"client_id\":{\"type\":\"integer\",\"description\":"
+              "\"[FK="
+              "OAuth2Client]\"},\"user_id\":{\"type\":\"integer\","
+              "\"description\":\"[FK=OAuth2User]\"}},\"required\":["
+              "\"access_"
+              "token\"]"
+              "}",
+              &parsed_val);
+          cdd_json_object_set_value_safe(schemas, "OAuth2Token", parsed_val);
         }
       }
       rc = parse_components(comps_obj, out);

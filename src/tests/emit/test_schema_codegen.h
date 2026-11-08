@@ -464,18 +464,25 @@ TEST test_schema_codegen_enum_output(void) {
   /* Test x-cdd-c-name, sanitized schema names, and OOM in generate_header /
    * generate_source */
   {
-    JSON_Value *root_v = json_parse_string(
-        "{"
-        "\"My-Enum\":{\"type\":\"string\",\"enum\":[\"A\"]},"
-        "\"My-Obj\":{\"type\":\"object\",\"x-cdd-rename\":\"CustomWire\","
-        "\"properties\":{\"x\":{\"type\":\"integer\"}}},"
-        "\"ExtName\":{\"type\":\"object\",\"x-cdd-c-name\":\"ExplicitCName\","
-        "\"properties\":{\"y\":{\"type\":\"integer\"}}},"
-        "\"EmptyExt\":{\"type\":\"object\",\"x-cdd-c-name\":\"\","
-        "\"properties\":{\"z\":{\"type\":\"integer\"}}}"
-        "}");
-    JSON_Object *schemas_obj = json_value_get_object(root_v);
+    JSON_Value *root_v = NULL;
+    JSON_Object *schemas_obj = NULL;
     int f_alloc;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{"
+          "\"My-Enum\":{\"type\":\"string\",\"enum\":[\"A\"]},"
+          "\"My-Obj\":{\"type\":\"object\",\"x-cdd-rename\":\"CustomWire\","
+          "\"properties\":{\"x\":{\"type\":\"integer\"}}},"
+          "\"ExtName\":{\"type\":\"object\",\"x-cdd-c-name\":\"ExplicitCName\","
+          "\"properties\":{\"y\":{\"type\":\"integer\"}}},"
+          "\"EmptyExt\":{\"type\":\"object\",\"x-cdd-c-name\":\"\","
+          "\"properties\":{\"z\":{\"type\":\"integer\"}}}"
+          "}",
+          &_cdd_jv_1);
+      root_v = _cdd_jv_1;
+    }
+    schemas_obj = json_value_get_object(root_v);
 
     for (f_alloc = 1; f_alloc <= 15; ++f_alloc) {
       g_cdd_alloc_fail = f_alloc;

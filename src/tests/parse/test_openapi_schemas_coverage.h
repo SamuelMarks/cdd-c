@@ -50,27 +50,43 @@ TEST test_openapi_schemas_type_and_constraints(void) {
   ASSERT_EQ(CDD_C_SUCCESS, parse_schema_type(NULL, NULL, &type_val));
   ASSERT_EQ(NULL, type_val);
 
-  jv = json_parse_string("{\"type\": \"integer\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"type\": \"integer\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_schema_type(jo, &nullable, &type_val));
   ASSERT_STR_EQ("integer", type_val);
   ASSERT_EQ(0, nullable);
   json_value_free(jv);
 
-  jv = json_parse_string("{\"type\": 123}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"type\": 123}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_schema_type(jo, &nullable, &type_val));
   ASSERT_EQ(NULL, type_val);
   json_value_free(jv);
 
-  jv = json_parse_string("{\"type\": [\"string\", \"null\"]}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"type\": [\"string\", \"null\"]}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_schema_type(jo, &nullable, &type_val));
   ASSERT_STR_EQ("string", type_val);
   ASSERT_EQ(1, nullable);
   json_value_free(jv);
 
-  jv = json_parse_string("{\"type\": [\"null\"]}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"type\": [\"null\"]}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_schema_type(jo, &nullable, &type_val));
   ASSERT_STR_EQ("null", type_val);
@@ -79,14 +95,22 @@ TEST test_openapi_schemas_type_and_constraints(void) {
   ASSERT_EQ(NULL, type_val);
   json_value_free(jv);
 
-  jv = json_parse_string("{\"type\": []}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"type\": []}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_schema_type(jo, &nullable, &type_val));
   ASSERT_EQ(NULL, type_val);
   ASSERT_EQ(0, nullable);
   json_value_free(jv);
 
-  jv = json_parse_string("{\"type\": [123, \"boolean\"]}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"type\": [123, \"boolean\"]}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_schema_type(jo, NULL, &type_val));
   ASSERT_STR_EQ("boolean", type_val);
@@ -117,11 +141,16 @@ TEST test_openapi_schemas_type_and_constraints(void) {
   target.max_items = &max_items;
   target.unique_items = &unique_items;
 
-  jv = json_parse_string(
-      "{\"example\": \"ex\", \"minimum\": 1.5, \"exclusiveMinimum\": true, "
-      "\"maximum\": 10.0, \"exclusiveMaximum\": false, \"minLength\": 2, "
-      "\"maxLength\": 20, \"pattern\": \"^[a-z]+$\", \"minItems\": 1, "
-      "\"maxItems\": 5, \"uniqueItems\": true}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"example\": \"ex\", \"minimum\": 1.5, \"exclusiveMinimum\": true, "
+        "\"maximum\": 10.0, \"exclusiveMaximum\": false, \"minLength\": 2, "
+        "\"maxLength\": 20, \"pattern\": \"^[a-z]+$\", \"minItems\": 1, "
+        "\"maxItems\": 5, \"uniqueItems\": true}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_schema_constraints(jo, NULL));
   ASSERT_EQ(CDD_C_SUCCESS, parse_schema_constraints(jo, &target));
@@ -154,8 +183,12 @@ TEST test_openapi_schemas_type_and_constraints(void) {
   json_value_free(jv);
 
   /* Test exclusiveMinimum / exclusiveMaximum as numeric (OpenAPI 3.1) */
-  jv = json_parse_string(
-      "{\"exclusiveMinimum\": 0.5, \"exclusiveMaximum\": 99.5}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"exclusiveMinimum\": 0.5, \"exclusiveMaximum\": 99.5}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_schema_constraints(jo, &target));
   ASSERT_EQ(1, *target.exclusive_min);
@@ -163,8 +196,13 @@ TEST test_openapi_schemas_type_and_constraints(void) {
   json_value_free(jv);
 
   /* Test exclusiveMinimum / exclusiveMaximum false */
-  jv = json_parse_string("{\"minimum\": 1.0, \"exclusiveMinimum\": false, "
-                         "\"maximum\": 10.0, \"exclusiveMaximum\": false}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"minimum\": 1.0, \"exclusiveMinimum\": false, "
+                          "\"maximum\": 10.0, \"exclusiveMaximum\": false}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   target.exclusive_min = &exclusive_min;
   target.exclusive_max = &exclusive_max;
@@ -173,16 +211,26 @@ TEST test_openapi_schemas_type_and_constraints(void) {
 
   /* Test exclusiveMinimum / exclusiveMaximum with target exclusive_min/max NULL
    */
-  jv = json_parse_string("{\"minimum\": 1.0, \"exclusiveMinimum\": 0.5, "
-                         "\"maximum\": 10.0, \"exclusiveMaximum\": 9.5}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"minimum\": 1.0, \"exclusiveMinimum\": 0.5, "
+                          "\"maximum\": 10.0, \"exclusiveMaximum\": 9.5}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   target.exclusive_min = NULL;
   target.exclusive_max = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, parse_schema_constraints(jo, &target));
   json_value_free(jv);
 
-  jv = json_parse_string("{\"minimum\": 1.0, \"exclusiveMinimum\": true, "
-                         "\"maximum\": 10.0, \"exclusiveMaximum\": true}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"minimum\": 1.0, \"exclusiveMinimum\": true, "
+                          "\"maximum\": 10.0, \"exclusiveMaximum\": true}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   target.exclusive_min = NULL;
   target.exclusive_max = NULL;
@@ -197,8 +245,13 @@ TEST test_openapi_schemas_type_and_constraints(void) {
   target.has_max_len = &has_max_len;
   target.has_min_items = &has_min_items;
   target.has_max_items = &has_max_items;
-  jv = json_parse_string("{\"minimum\": 1, \"maximum\": 2, \"minLength\": 1, "
-                         "\"maxLength\": 5, \"minItems\": 1, \"maxItems\": 2}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"minimum\": 1, \"maximum\": 2, \"minLength\": 1, "
+                          "\"maxLength\": 5, \"minItems\": 1, \"maxItems\": 2}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_schema_constraints(jo, &target));
   json_value_free(jv);
@@ -210,8 +263,13 @@ TEST test_openapi_schemas_type_and_constraints(void) {
   target.max_len = &max_len;
   target.min_items = &min_items;
   target.max_items = &max_items;
-  jv = json_parse_string("{\"minimum\": 1, \"maximum\": 2, \"minLength\": 1, "
-                         "\"maxLength\": 5, \"minItems\": 1, \"maxItems\": 2}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"minimum\": 1, \"maximum\": 2, \"minLength\": 1, "
+                          "\"maxLength\": 5, \"minItems\": 1, \"maxItems\": 2}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_schema_constraints(jo, &target));
   json_value_free(jv);
@@ -220,7 +278,11 @@ TEST test_openapi_schemas_type_and_constraints(void) {
   memset(&target, 0, sizeof(target));
   target.example = &example_val;
   target.example_set = &example_set;
-  jv = json_parse_string("{\"example\": \"ex\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"example\": \"ex\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_schema_constraints(jo, &target));
@@ -228,7 +290,11 @@ TEST test_openapi_schemas_type_and_constraints(void) {
   json_value_free(jv);
 
   /* pattern OOM */
-  jv = json_parse_string("{\"pattern\": \"test\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"pattern\": \"test\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   target.pattern = &pattern;
   g_cdd_strdup_fail = 1;
@@ -239,10 +305,15 @@ TEST test_openapi_schemas_type_and_constraints(void) {
 
   /* Target with null internal pointers */
   memset(&target, 0, sizeof(target));
-  jv =
-      json_parse_string("{\"minimum\": 1, \"maximum\": 2, \"minLength\": 1, "
-                        "\"maxLength\": 5, \"pattern\": \"abc\", \"minItems\": "
-                        "1, \"maxItems\": 2, \"uniqueItems\": true}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"minimum\": 1, \"maximum\": 2, \"minLength\": 1, "
+        "\"maxLength\": 5, \"pattern\": \"abc\", \"minItems\": "
+        "1, \"maxItems\": 2, \"uniqueItems\": true}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_schema_constraints(jo, &target));
   json_value_free(jv);
@@ -279,19 +350,31 @@ TEST test_openapi_schemas_enums_and_refs(void) {
   ASSERT_EQ(NULL, enum_out);
   ASSERT_EQ(0, enum_count);
 
-  jv = json_parse_string("[]");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("[]", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ja = json_value_get_array(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_string_enum_array(ja, &enum_out, &enum_count));
   ASSERT_EQ(NULL, enum_out);
   json_value_free(jv);
 
-  jv = json_parse_string("[\"a\", 123]");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("[\"a\", 123]", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ja = json_value_get_array(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_string_enum_array(ja, &enum_out, &enum_count));
   ASSERT_EQ(NULL, enum_out);
   json_value_free(jv);
 
-  jv = json_parse_string("[\"a\", \"b\"]");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("[\"a\", \"b\"]", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ja = json_value_get_array(jv);
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -349,86 +432,154 @@ TEST test_openapi_schemas_enums_and_refs(void) {
 
   /* 5. schema_is_string_enum_only */
   ASSERT_EQ(CDD_C_SUCCESS, schema_is_string_enum_only(NULL));
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, schema_is_string_enum_only(jo));
   json_value_free(jv);
 
-  jv = json_parse_string("{\"enum\": []}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"enum\": []}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, schema_is_string_enum_only(jo));
   json_value_free(jv);
 
-  jv = json_parse_string("{\"enum\": [\"a\"], \"type\": \"integer\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"enum\": [\"a\"], \"type\": \"integer\"}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, schema_is_string_enum_only(jo));
   json_value_free(jv);
 
-  jv = json_parse_string("{\"enum\": [123], \"type\": \"string\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"enum\": [123], \"type\": \"string\"}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, schema_is_string_enum_only(jo));
   json_value_free(jv);
 
-  jv = json_parse_string("{\"enum\": [\"x\", \"y\"], \"type\": \"string\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"enum\": [\"x\", \"y\"], \"type\": \"string\"}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, schema_is_string_enum_only(jo));
   json_value_free(jv);
 
   /* 6. schema_is_struct_compatible */
   ASSERT_EQ(CDD_C_SUCCESS, schema_is_struct_compatible(NULL, NULL));
-  jv = json_parse_string("true");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("true", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_EQ(CDD_C_SUCCESS,
             schema_is_struct_compatible(jv, (JSON_Object *)(size_t)1));
   json_value_free(jv);
 
-  jv = json_parse_string("{\"enum\": [\"x\"], \"type\": \"string\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"enum\": [\"x\"], \"type\": \"string\"}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, schema_is_struct_compatible(jv, jo));
   json_value_free(jv);
 
-  jv = json_parse_string("{\"type\": \"object\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"type\": \"object\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(1, schema_is_struct_compatible(jv, jo));
   json_value_free(jv);
 
-  jv = json_parse_string("{\"type\": \"string\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"type\": \"string\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(0, schema_is_struct_compatible(jv, jo));
   json_value_free(jv);
 
-  jv = json_parse_string("{\"properties\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"properties\": {}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, schema_is_struct_compatible(jv, jo));
   json_value_free(jv);
 
-  jv = json_parse_string("{\"allOf\": []}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"allOf\": []}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, schema_is_struct_compatible(jv, jo));
   json_value_free(jv);
 
-  jv = json_parse_string("{\"anyOf\": []}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"anyOf\": []}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, schema_is_struct_compatible(jv, jo));
   json_value_free(jv);
 
-  jv = json_parse_string("{\"oneOf\": []}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"oneOf\": []}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, schema_is_struct_compatible(jv, jo));
   json_value_free(jv);
 
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, schema_is_struct_compatible(jv, jo));
   json_value_free(jv);
 
   /* 7. schema_has_composition */
   ASSERT_EQ(0, schema_has_composition(NULL));
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(0, schema_has_composition(jo));
   json_value_free(jv);
 
-  jv = json_parse_string("{\"allOf\": []}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"allOf\": []}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_NEQ(0, schema_has_composition(jo));
   json_value_free(jv);
@@ -436,7 +587,11 @@ TEST test_openapi_schemas_enums_and_refs(void) {
   /* 8. parse_schema_array_ref */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_schema_array_ref(NULL, NULL, NULL, &spec));
-  jv = json_parse_string("[]");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("[]", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ja = json_value_get_array(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_schema_array_ref(ja, &schema_refs,
                                                   &schema_refs_count, &spec));
@@ -444,7 +599,12 @@ TEST test_openapi_schemas_enums_and_refs(void) {
   ASSERT_EQ(0, schema_refs_count);
   json_value_free(jv);
 
-  jv = json_parse_string("[{\"type\": \"string\"}, {\"type\": \"integer\"}]");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("[{\"type\": \"string\"}, {\"type\": \"integer\"}]",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ja = json_value_get_array(jv);
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(
@@ -476,7 +636,11 @@ TEST test_openapi_schemas_enums_and_refs(void) {
   /* 9. parse_schema_ref_ptr */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_schema_ref_ptr(NULL, NULL, &spec));
-  jv = json_parse_string("{\"type\": \"string\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"type\": \"string\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_schema_ref_ptr(jo, NULL, &spec));

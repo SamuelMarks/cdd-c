@@ -482,11 +482,17 @@ TEST test_cli_codegen_and_schema_roundtrip(void) {
   struct StructFields sf;
   struct StructFields sf_loaded;
   struct CodegenCliConfig cli_cfg;
-  JSON_Value *root_val = json_value_init_object();
-  JSON_Object *schemas_obj = json_value_get_object(root_val);
+  JSON_Value *root_val = NULL;
+  JSON_Object *schemas_obj = NULL;
   FILE *fp;
   long sz;
   char *code = NULL;
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    root_val = _cdd_jv_1;
+  }
+  schemas_obj = json_value_get_object(root_val);
 
   ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
   ASSERT_EQ(
@@ -567,9 +573,13 @@ TEST test_cli_codegen_and_schema_roundtrip(void) {
   ASSERT_EQ(CDD_C_SUCCESS,
             write_struct_to_json_schema(schemas_obj, "DemoCli", &sf));
   ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf_loaded));
-  ASSERT_EQ(CDD_C_SUCCESS, json_object_to_struct_fields_ex(
-                               json_object_get_object(schemas_obj, "DemoCli"),
-                               &sf_loaded, schemas_obj, "DemoCli"));
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(schemas_obj, "DemoCli", &_cdd_jo_1);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              json_object_to_struct_fields_ex(_cdd_jo_1, &sf_loaded,
+                                              schemas_obj, "DemoCli"));
+  }
 
   ASSERT_EQ(1, sf_loaded.is_cli_command);
   ASSERT_STR_EQ("demo", sf_loaded.cli_name);
@@ -1352,8 +1362,14 @@ TEST test_cli_struct_exhaustive(void) {
               write_struct_print_help_func(fp, "RichCliMissSub", &sf, &cfg));
     ASSERT_EQ(CDD_C_SUCCESS, write_struct_cli_parse_into_func(
                                  fp, "RichCliMissSub", &sf, &cfg));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              write_struct_to_cli_argv_func(fp, "RichCliMissSub", &sf, &cfg));
     CDD_STRCPY(sf.fields[4].ref, sizeof(sf.fields[4].ref),
                "#/definitions/SubCmd");
+    usf.fields[0].cli_skip_to_cli = 1;
+    ASSERT_EQ(CDD_C_SUCCESS, write_struct_to_cli_argv_func(
+                                 fp, "RichCliSkipVarToCli", &sf, &cfg));
+    usf.fields[0].cli_skip_to_cli = 0;
 
     /* Test enum with cli_rename_all == NONE and NULL
      * serde_skip/cli_hidden/serde_names */
@@ -1392,6 +1408,8 @@ TEST test_cli_struct_exhaustive(void) {
       if (rc_io == CDD_C_SUCCESS)
         break;
     }
+    ASSERT_EQ(CDD_C_SUCCESS,
+              write_struct_print_help_func(fp, "RichCli2", &sf, &cfg));
     ASSERT_EQ(CDD_C_SUCCESS,
               write_struct_print_completions_func(fp, "RichCli2", &sf, &cfg));
     ASSERT_EQ(CDD_C_SUCCESS,
@@ -1468,6 +1486,11 @@ TEST test_cli_struct_exhaustive(void) {
     g_cdd_fail_str_after_last = 2;
     ASSERT_NEQ(CDD_C_SUCCESS, write_struct_cli_parse_into_func(
                                   fp, "EFail", &sf_enum_fail, NULL));
+    sf_enum_fail.fields[0].cli_positional = 0;
+    sf_enum_fail.fields[0].serde_flatten = 1;
+    g_cdd_fail_str_after_last = 1;
+    ASSERT_NEQ(CDD_C_SUCCESS,
+               write_struct_to_cli_argv_func(fp, "EFail", &sf_enum_fail, NULL));
     g_cdd_fail_str_after_last = 0;
     struct_fields_free(&sf_enum_fail);
   }
@@ -1608,11 +1631,19 @@ TEST test_directional_scope_directives_and_cli_skip(void) {
   fclose(fp);
   sf.cli_allow_windows_slash_flags = 0;
 
-  root_val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    root_val = _cdd_jv_1;
+  }
   schemas_obj = json_value_get_object(root_val);
   ASSERT_EQ(CDD_C_SUCCESS,
             write_struct_to_json_schema(schemas_obj, "ScopedCli", &sf));
-  schema_obj = json_object_get_object(schemas_obj, "ScopedCli");
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(schemas_obj, "ScopedCli", &_cdd_jo_1);
+    schema_obj = _cdd_jo_1;
+  }
   ASSERT(schema_obj != NULL);
 
   ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf_roundtrip));

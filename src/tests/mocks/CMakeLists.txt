@@ -25,20 +25,6 @@ endif ()
 endif()
 target_link_libraries("${LIBRARY_NAME}" PUBLIC "${PROJECT_NAME}" "c89stringutils" "c89stringutils_compiler_flags" "${PROJECT_NAME}_compiler_flags")
 
-if(NOT TARGET parson)
-    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
-    find_package(parson REQUIRED)
-else ()
-    find_package(parson CONFIG REQUIRED)
-endif ()
-endif()
-target_link_libraries("${LIBRARY_NAME}" PUBLIC parson::parson)
-target_include_directories(
-        "${LIBRARY_NAME}"
-        PRIVATE
-        ${parson_INCLUDE_DIRS}
-)
-
 target_include_directories(
         "${LIBRARY_NAME}"
         PUBLIC
@@ -65,11 +51,6 @@ set_target_properties(
 
 add_executable(mocks "parse/main.c")
 target_link_libraries(mocks "${LIBRARY_NAME}")
-target_include_directories(
-        "${LIBRARY_NAME}"
-        PRIVATE
-        ${parson_INCLUDE_DIRS}
-)
 
 target_include_directories(
         "${LIBRARY_NAME}"

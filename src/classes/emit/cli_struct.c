@@ -444,14 +444,15 @@ cdd_c_error_t cdd_cli_expand_response_files(int argc, char **argv,
  * @brief Frees an argument vector allocated by `cdd_cli_expand_response_files`
  * or `<Struct>_to_cli_argv`.
  */
-void cdd_cli_free_argv(int argc, char **argv) {
+cdd_c_error_t cdd_cli_free_argv(int argc, char **argv) {
   int i;
   if (!argv)
-    return;
+    return CDD_C_SUCCESS;
   for (i = 0; i < argc; ++i) {
     C_CDD_FREE(argv[i]);
   }
   C_CDD_FREE(argv);
+  return CDD_C_SUCCESS;
 }
 
 /*

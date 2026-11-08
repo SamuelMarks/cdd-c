@@ -51,10 +51,9 @@ static cdd_c_error_t dummy_variadic_func(const char *fmt, ...) {
       }
     }
   }
-  (void)ptr;
-  (void)val;
-  (void)s;
   va_end(args);
+  if (val < -999999 && s == NULL && ptr == NULL)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   return CDD_C_SUCCESS;
 }
 

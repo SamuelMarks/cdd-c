@@ -401,13 +401,27 @@ TEST test_write_struct_declaration_h_io_fail(void) {
   struct_fields_add(&sf, "a_b", "array", "boolean", NULL, NULL);
   struct_fields_add(&sf, "a_r", "array", "R", NULL, NULL);
   struct_fields_add(&sf, "v", "void", NULL, NULL, NULL);
+  struct_fields_add(&sf, "fa_s", "array", "string", NULL, NULL);
+  sf.fields[sf.size - 1].fixed_array_len = 4;
+  struct_fields_add(&sf, "fa_i", "array", "integer", NULL, NULL);
+  sf.fields[sf.size - 1].fixed_array_len = 4;
+  struct_fields_add(&sf, "fa_b", "array", "boolean", NULL, NULL);
+  sf.fields[sf.size - 1].fixed_array_len = 4;
+  struct_fields_add(&sf, "fa_n", "array", "number", NULL, NULL);
+  sf.fields[sf.size - 1].fixed_array_len = 4;
+  struct_fields_add(&sf, "fa_r", "array", "R", NULL, NULL);
+  sf.fields[sf.size - 1].fixed_array_len = 4;
+  struct_fields_add(&sf, "fs", "string", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].fixed_array_len = 16;
+  struct_fields_add(&sf, "bi", "integer", NULL, NULL, "4");
+  struct_fields_add(&sf, "bb", "boolean", NULL, NULL, "1");
   cfg.json_guard = cdd_test_mut_str("JSON_G");
   cfg.utils_guard = cdd_test_mut_str("UTILS_G");
 
   ASSERT(tmp);
   {
     int j;
-    for (j = 0; j < 200; j++) {
+    for (j = 0; j < 250; j++) {
       g_fail_io_after = j;
       g_io_calls = 0;
       rc = write_struct_declaration_h(tmp, "S", &sf, &cfg);
@@ -864,7 +878,12 @@ TEST test_codegen_serde_cli_exhaustive(void) {
     sf_io2.fields[5].serde_has_default = 1;
     CDD_STRCPY(sf_io2.fields[5].serde_default_fn,
                sizeof(sf_io2.fields[5].serde_default_fn), "dff");
-    for (j = 0; j < 80; ++j) {
+    struct_fields_add(&sf_io2, "f_cliskip", "integer", NULL, NULL, NULL);
+    sf_io2.fields[6].cli_skip = 1;
+    struct_fields_add(&sf_io2, "f_cliskip_tf", "integer", NULL, NULL, NULL);
+    sf_io2.fields[7].cli_skip_to_cli = 1;
+    sf_io2.fields[7].cli_skip_from_cli = 1;
+    for (j = 0; j < 100; ++j) {
       g_fail_io_after = j;
       g_io_calls = 0;
       rc = write_struct_declaration_h(tmp, "S_Io2", &sf_io2, NULL);
@@ -1024,6 +1043,21 @@ TEST test_codegen_serde_cli_exhaustive(void) {
         break;
       case 25:
         struct_field_add_cli_requires(&s_perm.fields[0], "rq");
+        break;
+      case 26:
+        s_perm.fields[0].cli_skip = 1;
+        break;
+      case 27:
+        s_perm.fields[0].cli_skip_to_cli = 1;
+        break;
+      case 28:
+        s_perm.fields[0].cli_skip_from_cli = 1;
+        break;
+      case 29:
+        s_perm.fields[0].cli_short = 's';
+        s_perm.fields[0].cli_skip = 1;
+        s_perm.fields[0].cli_skip_to_cli = 1;
+        s_perm.fields[0].cli_skip_from_cli = 1;
         break;
       default:
         break;

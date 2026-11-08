@@ -720,6 +720,100 @@ TEST test_c2openapi_remaining_edge_cases(void) {
     rc = c2openapi_spec_add_security_scheme(&spec, &sec_doc);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   }
+
+  /* c2openapi_register_types OOM for struct and enum */
+  {
+    struct TypeDefList tdl;
+    struct TypeDefinition td_item;
+    struct StructFields sf_src;
+    struct EnumMembers em_src;
+    int f_idx;
+
+    struct_fields_init(&sf_src);
+    for (f_idx = 0; f_idx < 9; ++f_idx) {
+      char fname[16];
+      CDD_SNPRINTF(fname, sizeof(fname), "f%d", f_idx);
+      struct_fields_add(&sf_src, fname, "integer", NULL, NULL, NULL);
+    }
+
+    memset(&td_item, 0, sizeof(td_item));
+    td_item.kind = KIND_STRUCT;
+    td_item.name = cdd_test_mut_str("OomRegStruct");
+    td_item.details.struct_fields = &sf_src;
+    tdl.items = &td_item;
+    tdl.size = 1;
+    tdl.capacity = 1;
+
+    /* Fail struct_fields_init inside c2openapi_register_types (alloc #4) */
+    {
+      struct OpenAPI_Spec reg_spec;
+      openapi_spec_init(&reg_spec);
+      g_cdd_alloc_fail = 4;
+      rc = c2openapi_register_types(&reg_spec, &tdl);
+      g_cdd_alloc_fail = 0;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+      reg_spec.n_defined_schemas = 0;
+      C_CDD_FREE(reg_spec.defined_schema_names[0]);
+      openapi_spec_free(&reg_spec);
+    }
+
+    /* Fail struct_fields_add realloc inside c2openapi_register_types (alloc #5)
+     */
+    {
+      struct OpenAPI_Spec reg_spec;
+      openapi_spec_init(&reg_spec);
+      g_cdd_alloc_fail = 5;
+      rc = c2openapi_register_types(&reg_spec, &tdl);
+      g_cdd_alloc_fail = 0;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+      openapi_spec_free(&reg_spec);
+    }
+    struct_fields_free(&sf_src);
+
+    /* Now test KIND_ENUM OOM in c2openapi_register_types */
+    enum_members_init(&em_src);
+    enum_members_add(&em_src, "EV1");
+    memset(&td_item, 0, sizeof(td_item));
+    td_item.kind = KIND_ENUM;
+    td_item.name = cdd_test_mut_str("OomRegEnum");
+    td_item.details.enum_members = &em_src;
+
+    /* Fail struct_fields_init on KIND_ENUM (alloc #4) */
+    {
+      struct OpenAPI_Spec reg_spec;
+      openapi_spec_init(&reg_spec);
+      g_cdd_alloc_fail = 4;
+      rc = c2openapi_register_types(&reg_spec, &tdl);
+      g_cdd_alloc_fail = 0;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+      reg_spec.n_defined_schemas = 0;
+      C_CDD_FREE(reg_spec.defined_schema_names[0]);
+      openapi_spec_free(&reg_spec);
+    }
+
+    /* Fail enum_members_init on KIND_ENUM (alloc #5) */
+    {
+      struct OpenAPI_Spec reg_spec;
+      openapi_spec_init(&reg_spec);
+      g_cdd_alloc_fail = 5;
+      rc = c2openapi_register_types(&reg_spec, &tdl);
+      g_cdd_alloc_fail = 0;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+      openapi_spec_free(&reg_spec);
+    }
+
+    /* Fail enum_members_add strdup on KIND_ENUM (strdup #2) */
+    {
+      struct OpenAPI_Spec reg_spec;
+      openapi_spec_init(&reg_spec);
+      g_cdd_strdup_fail = 2;
+      rc = c2openapi_register_types(&reg_spec, &tdl);
+      g_cdd_strdup_fail = 0;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+      openapi_spec_free(&reg_spec);
+    }
+    enum_members_free(&em_src);
+  }
   openapi_spec_free(&spec);
   PASS();
 }

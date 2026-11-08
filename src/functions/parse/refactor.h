@@ -35,8 +35,10 @@ refactor_context_init(struct RefactorContext *ctx);
 /**
  * @brief Free resources in refactor context.
  * @param[in] ctx The context.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void refactor_context_free(struct RefactorContext *ctx);
+extern C_CDD_EXPORT cdd_c_error_t
+refactor_context_free(struct RefactorContext *ctx);
 
 /**
  * @brief Add a function to the refactoring list.

@@ -36,8 +36,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_percolate_errors(
   size_t i, j;
   cdd_c_error_t rc;
   cdd_token_t **modified_funcs = NULL;
-  size_t num_modified = 0;
-  (void)config;
+  size_t num_modified = (size_t)(config == NULL) & 0u;
 
   if (!tree || !tree->root)
     return CDD_C_ERROR_INVALID_ARGUMENT;

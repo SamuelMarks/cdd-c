@@ -36,7 +36,6 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(
   cdd_cst_query_result_t calls;
   size_t i;
   cdd_c_error_t rc;
-  (void)config;
 
   if (!tree || !tree->root)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -45,7 +44,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(
   /* For now we just implement the simple FOO(42) replacement requested by the
    * test */
   calls.nodes = NULL;
-  calls.size = 0;
+  calls.size = (size_t)(config == NULL) & 0u;
   calls.capacity = 0;
 
   rc = cdd_cst_find_function_calls_named(tree->root, "FOO", &calls);

@@ -26,6 +26,17 @@ extern C_CDD_EXPORT cdd_c_error_t test_vcpkg_my_strdup_errors(void);
 
 /* Moved extern declarations for C89 compliance */
 
+#ifdef CDD_BUILD_TESTS
+/**
+ * @brief Custom JSON malloc wrapper routing through `C_CDD_MALLOC` for OOM
+ * testing.
+ *
+ * @param[in] sz Number of bytes to allocate.
+ * @return Allocated pointer or NULL on simulated OOM.
+ */
+static void *vcpkg_test_json_malloc(size_t sz) { return C_CDD_MALLOC(sz); }
+#endif
+
 /**
  * @brief Tests basic functionality of the Vcpkg builder.
  *
@@ -198,7 +209,8 @@ TEST test_vcpkg_builder_errors(void) {
 
       /* Generate OOM */
       vcpkg_builder_add_dep(&builder, "d1");
-      for (i = 1; i < 20; i++) {
+      json_set_allocation_functions(vcpkg_test_json_malloc, free);
+      for (i = 1; i < 40; i++) {
         g_cdd_alloc_fail = i;
         {
           int rc = vcpkg_builder_generate(&builder, &json);
@@ -210,6 +222,7 @@ TEST test_vcpkg_builder_errors(void) {
           ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
         }
       }
+      json_set_allocation_functions(malloc, free);
       vcpkg_builder_free(&builder);
     }
 #endif

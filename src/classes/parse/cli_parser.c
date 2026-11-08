@@ -62,11 +62,12 @@ cdd_c_error_t cli_command_init(struct CliCommand *cmd) {
  * @brief Releases memory associated with a parsed CLI command descriptor.
  *
  * @param[in,out] cmd Pointer to the CliCommand structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void cli_command_free(struct CliCommand *cmd) {
+cdd_c_error_t cli_command_free(struct CliCommand *cmd) {
   size_t i;
   if (!cmd)
-    return;
+    return CDD_C_SUCCESS;
   if (cmd->name)
     C_CDD_FREE(cmd->name);
   if (cmd->version)
@@ -101,6 +102,7 @@ void cli_command_free(struct CliCommand *cmd) {
     C_CDD_FREE(cmd->subcommands);
   }
   memset(cmd, 0, sizeof(*cmd));
+  return CDD_C_SUCCESS;
 }
 
 /**

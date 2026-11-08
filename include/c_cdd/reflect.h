@@ -741,6 +741,56 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_reflect_set_int64_by_path(
     void *obj, const struct cdd_type_info *ti, const char *path, int64_t val);
 
 /**
+ * @brief Reads an unsigned 64-bit integer value at a nested reflection path.
+ *
+ * @param[in] obj Pointer to root struct instance.
+ * @param[in] ti Runtime type descriptor for `obj`.
+ * @param[in] path JSON Pointer or dot/bracket path.
+ * @param[out] out_val Output unsigned 64-bit integer value.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_reflect_get_uint64_by_path(const void *obj, const struct cdd_type_info *ti,
+                               const char *path, uint64_t *out_val);
+
+/**
+ * @brief Writes an unsigned 64-bit integer value at a nested reflection path.
+ *
+ * @param[in,out] obj Mutable pointer to root struct instance.
+ * @param[in] ti Runtime type descriptor for `obj`.
+ * @param[in] path JSON Pointer or dot/bracket path.
+ * @param[in] val Unsigned 64-bit integer value to store.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_reflect_set_uint64_by_path(
+    void *obj, const struct cdd_type_info *ti, const char *path, uint64_t val);
+
+/**
+ * @brief Reads a boolean value (`0` or `1`) at a nested reflection path.
+ *
+ * @param[in] obj Pointer to root struct instance.
+ * @param[in] ti Runtime type descriptor for `obj`.
+ * @param[in] path JSON Pointer or dot/bracket path.
+ * @param[out] out_val Output boolean value (`0` or `1`).
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_reflect_get_bool_by_path(const void *obj, const struct cdd_type_info *ti,
+                             const char *path, int *out_val);
+
+/**
+ * @brief Writes a boolean value (`0` or `1`) at a nested reflection path.
+ *
+ * @param[in,out] obj Mutable pointer to root struct instance.
+ * @param[in] ti Runtime type descriptor for `obj`.
+ * @param[in] path JSON Pointer or dot/bracket path.
+ * @param[in] val Boolean value to store (`0` or non-zero).
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_reflect_set_bool_by_path(
+    void *obj, const struct cdd_type_info *ti, const char *path, int val);
+
+/**
  * @brief Reads a floating-point value (`double`) at a nested reflection path.
  *
  * @param[in] obj Pointer to root struct instance.
@@ -870,6 +920,18 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_reflect_from_json(
     const char *json_str, const struct cdd_type_info *ti, void **out_obj);
 
 /**
+ * @brief Populates an existing struct instance `obj` in-place from a
+ * `JSON_Object` driven purely by its runtime `cdd_type_info` table.
+ *
+ * @param[in] jobj Source JSON object (as `const void *` for header decoupling).
+ * @param[in] ti Runtime type descriptor.
+ * @param[in,out] obj Target struct instance to populate.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_reflect_from_json_object(
+    const void *jobj, const struct cdd_type_info *ti, void *obj);
+
+/**
  * @brief Computes an RFC 7396 JSON Merge Patch string representing the changes
  * from `source` to `target` for a reflected struct type `ti`.
  *
@@ -894,6 +956,75 @@ cdd_reflect_merge_patch(const void *source, const void *target,
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 extern C_CDD_EXPORT cdd_c_error_t cdd_reflect_apply_merge_patch(
+    void *target, const struct cdd_type_info *ti, const char *patch_json);
+
+/**
+ * @brief Generates an OpenAPI 3.2.0 / JSON Schema Draft 2020-12 object string
+ * directly from a runtime `cdd_type_info` descriptor table.
+ *
+ * @param[in] ti Runtime type descriptor.
+ * @param[out] out_schema_json Output pointer receiving the heap-allocated JSON
+ * Schema string.
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_MEMORY on allocation failure,
+ * or CDD_C_ERROR_INVALID_ARGUMENT on NULL arguments.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_reflect_to_json_schema(
+    const struct cdd_type_info *ti, char **out_schema_json);
+
+/**
+ * @brief Serializes a reflected struct instance `obj` into an
+ * `application/x-www-form-urlencoded` query string (`key=value&...`) driven
+ * by its runtime `cdd_type_info` table.
+ *
+ * @param[in] obj Pointer to struct instance.
+ * @param[in] ti Runtime type descriptor for `obj`.
+ * @param[out] out_form Output pointer receiving the heap-allocated form string.
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_MEMORY on allocation failure,
+ * or CDD_C_ERROR_INVALID_ARGUMENT on NULL arguments.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_reflect_to_form_urlencoded(
+    const void *obj, const struct cdd_type_info *ti, char **out_form);
+
+/**
+ * @brief Deserializes an `application/x-www-form-urlencoded` string
+ * (`key=value&...`) into a newly allocated struct instance `*out_obj` driven by
+ * `ti`.
+ *
+ * @param[in] form_str NUL-terminated form-urlencoded string.
+ * @param[in] ti Runtime type descriptor.
+ * @param[out] out_obj Output pointer receiving the allocated struct instance.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_reflect_from_form_urlencoded(
+    const char *form_str, const struct cdd_type_info *ti, void **out_obj);
+
+/**
+ * @brief Parses CLI `argc`/`argv` flags (`--<field> <val>` or
+ * `--<field>=<val>`) into a newly allocated struct instance `*out_obj` driven
+ * by `ti`.
+ *
+ * @param[in] argc Argument count.
+ * @param[in] argv Argument vector.
+ * @param[in] ti Runtime type descriptor.
+ * @param[out] out_obj Output pointer receiving the allocated struct instance.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_reflect_from_cli(int argc, const char *const *argv,
+                     const struct cdd_type_info *ti, void **out_obj);
+
+/**
+ * @brief Applies an RFC 6902 JSON Patch array (`[{"op": "add"|"remove"|
+ * "replace"|"move"|"copy"|"test", "path": "/...", "value": ...}]`) onto a
+ * mutable reflected struct instance `target`.
+ *
+ * @param[in,out] target Mutable struct instance to patch.
+ * @param[in] ti Runtime type descriptor for `target`.
+ * @param[in] patch_json NUL-terminated RFC 6902 JSON Patch array string.
+ * @return CDD_C_SUCCESS on success, or error code on invalid patch or failed
+ * `test` assertion.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_reflect_apply_json_patch(
     void *target, const struct cdd_type_info *ti, const char *patch_json);
 
 /**

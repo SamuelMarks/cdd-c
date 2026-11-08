@@ -40,11 +40,12 @@ cdd_c_error_t doc_metadata_init(struct DocMetadata *meta) {
  * structure.
  *
  * @param[in,out] meta Pointer to the DocMetadata structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void doc_metadata_free(struct DocMetadata *meta) {
+cdd_c_error_t doc_metadata_free(struct DocMetadata *meta) {
   size_t i;
   if (!meta)
-    return;
+    return CDD_C_SUCCESS;
 
   if (meta->route)
     C_CDD_FREE(meta->route);
@@ -292,6 +293,7 @@ void doc_metadata_free(struct DocMetadata *meta) {
   doc_free_arazzo_metadata(meta);
 
   memset(meta, 0, sizeof(*meta));
+  return CDD_C_SUCCESS;
 }
 
 /*

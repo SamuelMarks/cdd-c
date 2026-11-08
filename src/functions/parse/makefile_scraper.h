@@ -48,8 +48,10 @@ build_info_init(struct ExtractedBuildInfo *info);
  * @brief Free resources in a build info structure.
  *
  * @param[in,out] info The build info structure to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void build_info_free(struct ExtractedBuildInfo *info);
+extern C_CDD_EXPORT cdd_c_error_t
+build_info_free(struct ExtractedBuildInfo *info);
 
 /**
  * @brief Scrape a Makefile for build properties.

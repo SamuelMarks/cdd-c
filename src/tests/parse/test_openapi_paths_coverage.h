@@ -362,7 +362,11 @@ TEST test_openapi_paths_parsing_branches(void) {
   memset(&op, 0, sizeof(op));
 
   /* 1. parse_paths_object NULL args */
-  jv = json_parse_string("{\"/users\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"/users\": {}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
             parse_paths_object(NULL, &paths, &n_paths, &spec, 1, 1));
@@ -371,7 +375,11 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* Path without leading slash when require_leading_slash == 0 */
-  jv = json_parse_string("{\"users\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"users\": {}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
             parse_paths_object(jo, &paths, &n_paths, &spec, 0, 0));
@@ -384,7 +392,11 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* Path item whose value is not an object */
-  jv = json_parse_string("{\"/empty\": 123}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"/empty\": 123}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
             parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
@@ -397,7 +409,11 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* 2. empty object */
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
             parse_paths_object(jo, &paths, &n_paths, &spec, 1, 1));
@@ -405,7 +421,11 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* 3. paths calloc failure */
-  jv = json_parse_string("{\"/users\": {\"summary\": \"Users\"}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"/users\": {\"summary\": \"Users\"}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -414,7 +434,12 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* 4. non-root path with template character (e.g. callback with {) */
-  jv = json_parse_string("{\"/users/{id}\": {\"summary\": \"Users\"}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"/users/{id}\": {\"summary\": \"Users\"}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
             parse_paths_object(jo, &paths, &n_paths, &spec, 0, 0));
@@ -427,9 +452,14 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* 5. path item with parameters allocation failure */
-  jv = json_parse_string(
-      "{\"/users\": {\"parameters\": [{\"name\": \"id\", \"in\": "
-      "\"path\", \"required\": true}]}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"/users\": {\"parameters\": [{\"name\": \"id\", \"in\": "
+        "\"path\", \"required\": true}]}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   g_cdd_alloc_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -438,8 +468,13 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* 6. path item with servers allocation failure */
-  jv = json_parse_string("{\"/users\": {\"servers\": [{\"url\": "
-                         "\"https://api.example.com\"}]}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"/users\": {\"servers\": [{\"url\": "
+                          "\"https://api.example.com\"}]}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   g_cdd_alloc_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -448,14 +483,23 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* 7. path item with invalid operation error */
-  jv = json_parse_string("{\"/users\": {\"get\": {\"responses\": {}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"/users\": {\"get\": {\"responses\": {}}}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS,
              parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
   json_value_free(jv);
 
   /* 8. path item with extensions */
-  jv = json_parse_string("{\"/users\": {\"x-internal\": true}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"/users\": {\"x-internal\": true}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
             parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
@@ -468,9 +512,14 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* 8b. path item with summary and get */
-  jv = json_parse_string(
-      "{\"/users\": {\"summary\": \"Users\", \"get\": {\"responses\": "
-      "{\"200\": {\"description\": \"OK\"}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"/users\": {\"summary\": \"Users\", \"get\": {\"responses\": "
+        "{\"200\": {\"description\": \"OK\"}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
             parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
@@ -487,21 +536,34 @@ TEST test_openapi_paths_parsing_branches(void) {
   ASSERT_EQ(CDD_C_SUCCESS, parse_additional_operations(jo, NULL, &spec));
 
   /* 10. parse_additional_operations empty object */
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_additional_operations(jo, &path, &spec));
   json_value_free(jv);
 
   /* 10b. additionalOperations empty object */
-  jv = json_parse_string("{\"additionalOperations\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"additionalOperations\": {}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_additional_operations(jo, &path, &spec));
   json_value_free(jv);
 
   /* 11. parse_additional_operations alloc failure */
-  jv = json_parse_string(
-      "{\"additionalOperations\": {\"customMethod\": {\"responses\": {\"200\": "
-      "{\"description\": \"OK\"}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"additionalOperations\": {\"customMethod\": "
+                          "{\"responses\": {\"200\": "
+                          "{\"description\": \"OK\"}}}}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_additional_operations(jo, &path, &spec));
@@ -510,23 +572,38 @@ TEST test_openapi_paths_parsing_branches(void) {
 
   /* 11b. additionalOperations invalid operation */
   path.route = cdd_test_mut_str("/test-route");
-  jv = json_parse_string(
-      "{\"additionalOperations\": {\"customMethod\": {\"responses\": {}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"additionalOperations\": {\"customMethod\": {\"responses\": {}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_additional_operations(jo, &path, &spec));
   json_value_free(jv);
   path.route = cdd_test_mut_str("");
-  jv = json_parse_string(
-      "{\"additionalOperations\": {\"customMethod\": {\"responses\": {}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"additionalOperations\": {\"customMethod\": {\"responses\": {}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_additional_operations(jo, &path, &spec));
   json_value_free(jv);
   path.route = NULL;
 
   /* 12. parse_additional_operations valid custom method */
-  jv = json_parse_string(
-      "{\"additionalOperations\": {\"customMethod\": {\"responses\": {\"200\": "
-      "{\"description\": \"OK\"}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"additionalOperations\": {\"customMethod\": "
+                          "{\"responses\": {\"200\": "
+                          "{\"description\": \"OK\"}}}}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_additional_operations(jo, &path, &spec));
   free_path_item(&path);
@@ -534,7 +611,12 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* 13. parse_operation with request body error */
-  jv = json_parse_string("{\"requestBody\": {\"description\": \"desc\"}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"requestBody\": {\"description\": \"desc\"}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -543,9 +625,14 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* 13b. parse_operation with request body schema copy error */
-  jv = json_parse_string(
-      "{\"requestBody\": {\"content\": {\"application/json\": {\"schema\": "
-      "{\"type\": \"string\"}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"requestBody\": {\"content\": {\"application/json\": {\"schema\": "
+        "{\"type\": \"string\"}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 2;
   ASSERT_NEQ(CDD_C_SUCCESS, parse_operation("post", jo, &op, &spec, 0, NULL));
@@ -553,7 +640,11 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* 14. parse_operation with tags alloc failure */
-  jv = json_parse_string("{\"tags\": [\"mytag\"]}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"tags\": [\"mytag\"]}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -562,9 +653,14 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* 15. $ref with summary strdup fail (line 108) */
-  jv = json_parse_string(
-      "{\"/users\": {\"$ref\": \"#/components/pathItems/Users\", \"summary\": "
-      "\"Sum\"}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"/users\": {\"$ref\": "
+                          "\"#/components/pathItems/Users\", \"summary\": "
+                          "\"Sum\"}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   for (i = 1; i <= 5; ++i) {
     g_cdd_strdup_fail = (int)i;
@@ -582,9 +678,14 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* 16. $ref with description strdup fail (line 117) */
-  jv = json_parse_string(
-      "{\"/users\": {\"$ref\": \"#/components/pathItems/Users\", "
-      "\"description\": \"Desc\"}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"/users\": {\"$ref\": \"#/components/pathItems/Users\", "
+        "\"description\": \"Desc\"}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   for (i = 1; i <= 5; ++i) {
     g_cdd_strdup_fail = (int)i;
@@ -602,7 +703,11 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* 17. collect_extensions strdup fail (line 140) */
-  jv = json_parse_string("{\"/users\": {\"x-custom\": 123}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"/users\": {\"x-custom\": 123}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -611,8 +716,13 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* 18. parse_operation requestBody extensions_json */
-  jv = json_parse_string("{\"requestBody\": {\"content\": "
-                         "{\"application/json\": {}}, \"x-custom\": 123}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"requestBody\": {\"content\": "
+                          "{\"application/json\": {}}, \"x-custom\": 123}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   for (i = 1; i <= 8; ++i) {
     g_cdd_strdup_fail = (int)i;
@@ -624,7 +734,11 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* 19. parse_operation invalid args */
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_operation(NULL, jo, &op, &spec, 0, NULL));
@@ -632,7 +746,11 @@ TEST test_openapi_paths_parsing_branches(void) {
             parse_operation("get", jo, NULL, &spec, 0, NULL));
 
   /* 20. parse_operation empty tags array */
-  jv2 = json_parse_string("{\"tags\": []}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"tags\": []}", &_cdd_jv_1);
+    jv2 = _cdd_jv_1;
+  }
   jo2 = json_value_get_object(jv2);
   memset(&op, 0, sizeof(op));
   ASSERT_EQ(CDD_C_SUCCESS, parse_operation("get", jo2, &op, &spec, 0, NULL));
@@ -640,7 +758,11 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv2);
 
   /* 21. parse_operation tag with null/non-string item */
-  jv2 = json_parse_string("{\"tags\": [123]}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"tags\": [123]}", &_cdd_jv_1);
+    jv2 = _cdd_jv_1;
+  }
   jo2 = json_value_get_object(jv2);
   memset(&op, 0, sizeof(op));
   ASSERT_EQ(CDD_C_SUCCESS, parse_operation("get", jo2, &op, &spec, 0, NULL));
@@ -649,8 +771,13 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* 22. path_ref with spec == NULL and resolve_refs == 1 */
-  jv = json_parse_string(
-      "{\"/users\": {\"$ref\": \"#/components/pathItems/Users\"}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"/users\": {\"$ref\": \"#/components/pathItems/Users\"}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
             parse_paths_object(jo, &paths, &n_paths, NULL, 1, 1));
@@ -663,9 +790,14 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* 23. path item with $ref and get */
-  jv = json_parse_string(
-      "{\"/users\": {\"$ref\": \"#/components/pathItems/Users\", \"get\": "
-      "{\"responses\": {\"200\": {\"description\": \"OK\"}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"/users\": {\"$ref\": \"#/components/pathItems/Users\", \"get\": "
+        "{\"responses\": {\"200\": {\"description\": \"OK\"}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
             parse_paths_object(jo, &paths, &n_paths, &spec, 1, 0));
@@ -678,8 +810,13 @@ TEST test_openapi_paths_parsing_branches(void) {
   json_value_free(jv);
 
   /* 24. parse_operation requestBody with $ref */
-  jv = json_parse_string(
-      "{\"requestBody\": {\"$ref\": \"#/components/requestBodies/MyBody\"}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"requestBody\": {\"$ref\": \"#/components/requestBodies/MyBody\"}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&op, 0, sizeof(op));
   ASSERT_EQ(CDD_C_SUCCESS, parse_operation("post", jo, &op, &spec, 0, NULL));
@@ -691,8 +828,13 @@ TEST test_openapi_paths_parsing_branches(void) {
    * (parsed_schema_set == 0) */
   {
     struct OpenAPI_Parameter param_unk;
-    jv = json_parse_string(
-        "{\"name\": \"p\", \"in\": \"query\", \"style\": \"unknown_style\"}");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\"name\": \"p\", \"in\": \"query\", \"style\": \"unknown_style\"}",
+          &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     jo = json_value_get_object(jv);
     memset(&param_unk, 0, sizeof(param_unk));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,

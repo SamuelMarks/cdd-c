@@ -139,8 +139,9 @@ copy_any_value_local(struct OpenAPI_Any *dst, const struct OpenAPI_Any *src);
  * @brief Frees members of an OpenAPI Any value structure.
  *
  * @param[in,out] val Pointer to OpenAPI_Any whose contents should be freed.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void free_any_value_local(struct OpenAPI_Any *val);
+extern C_CDD_EXPORT cdd_c_error_t free_any_value_local(struct OpenAPI_Any *val);
 
 /**
  * @brief Finds a documented parameter by name.
@@ -158,8 +159,9 @@ extern C_CDD_EXPORT cdd_c_error_t find_doc_param(const struct DocMetadata *doc,
  * @brief Frees server variable members within an OpenAPI Server structure.
  *
  * @param[in,out] srv Pointer to OpenAPI_Server whose variables should be freed.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void
+extern C_CDD_EXPORT cdd_c_error_t
 free_openapi_server_variables_op(struct OpenAPI_Server *srv);
 
 /**

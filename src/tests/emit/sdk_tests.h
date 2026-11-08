@@ -68,10 +68,11 @@ mock_fprintf(FILE *fp, const char *fmt, ...) {
  * @param[in] x Macro argument x.
  */
 #define CHECK_IO(x)                                                            \
-  if ((x) < 0) {                                                               \
-    return CDD_C_ERROR_IO;                                                     \
-  } else                                                                       \
-    (void)0
+  do {                                                                         \
+    if ((x) < 0) {                                                             \
+      return CDD_C_ERROR_IO;                                                   \
+    }                                                                          \
+  } while (0)
 
 /* --- Helper to write a test for a single operation --- */
 /**

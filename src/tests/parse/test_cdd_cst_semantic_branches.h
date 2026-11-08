@@ -276,8 +276,8 @@ TEST test_cdd_cst_semantic_missing_branches_4(void) {
   cdd_cst_scope_env_t *env = NULL;
 
   cdd_cst_node_t *root = NULL;
-  cdd_cst_node_t *decl1 = NULL, *decl2 = NULL;
-  cdd_cst_node_t *id_node1 = NULL, *id_node2 = NULL;
+  cdd_cst_node_t *decl1 = NULL;
+  cdd_cst_node_t *id_node1 = NULL;
   cdd_token_t *tok1 = calloc(1, sizeof(cdd_token_t));
 
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
@@ -305,8 +305,6 @@ TEST test_cdd_cst_semantic_missing_branches_4(void) {
     for (i = 1; i < 6; ++i) {
       g_cdd_alloc_fail = i;
       rc = cdd_cst_build_semantic_info(tree, &env);
-      (void)id_node2;
-      (void)decl2;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
     g_cdd_alloc_fail = 0;
@@ -394,7 +392,6 @@ TEST test_cdd_cst_semantic_missing_branches_5(void) {
  */
 TEST test_cdd_cst_semantic_missing_branches_6(void) {
   cdd_c_error_t rc;
-  char *name = NULL;
   cdd_cst_node_t *decl1 = NULL, *id_node1 = NULL;
 
   /* Missing branch 35: extract_identifier recursion failure bubble up */
@@ -429,7 +426,6 @@ TEST test_cdd_cst_semantic_missing_branches_6(void) {
         cdd_cst_scope_env_t *env = NULL;
         g_cdd_alloc_fail = 1;
         rc = cdd_cst_build_semantic_info(tree, &env);
-        (void)name;
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
         g_cdd_alloc_fail = 0;
 
@@ -447,11 +443,10 @@ TEST test_cdd_cst_semantic_missing_branches_6(void) {
  */
 TEST test_cdd_cst_semantic_missing_branches_7(void) {
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
-  cdd_cst_scope_env_t *env = NULL;
 
   cdd_cst_node_t *root = NULL;
-  cdd_cst_node_t *decl1 = NULL, *decl2 = NULL;
-  cdd_cst_node_t *id_node1 = NULL, *id_node2 = NULL;
+  cdd_cst_node_t *decl1 = NULL;
+  cdd_cst_node_t *id_node1 = NULL;
   cdd_token_t *tok1 = calloc(1, sizeof(cdd_token_t));
 
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
@@ -468,9 +463,6 @@ TEST test_cdd_cst_semantic_missing_branches_7(void) {
 
   cdd_cst_tree_free(tree);
   free(tok1);
-  (void)id_node2;
-  (void)decl2;
-  (void)env;
   PASS();
 }
 
@@ -480,7 +472,6 @@ TEST test_cdd_cst_semantic_missing_branches_7(void) {
  */
 TEST test_cdd_cst_semantic_missing_branches_8(void) {
   cdd_c_error_t rc;
-  char *name = NULL;
 
   cdd_cst_node_t *decl1 = NULL, *child1 = NULL, *child2 = NULL,
                  *id_node1 = NULL;
@@ -513,7 +504,6 @@ TEST test_cdd_cst_semantic_missing_branches_8(void) {
     {
       cdd_cst_scope_env_t *env = NULL;
       rc = cdd_cst_build_semantic_info(tree, &env);
-      (void)name;
       ASSERT_EQ(CDD_C_SUCCESS, rc);
 
       cdd_cst_scope_env_free(env);
@@ -530,7 +520,6 @@ TEST test_cdd_cst_semantic_missing_branches_8(void) {
  */
 TEST test_cdd_cst_semantic_missing_branches_9(void) {
   cdd_c_error_t rc;
-  char *name = NULL;
   cdd_cst_node_t *decl1 = NULL, *child1 = NULL, *child2 = NULL;
 
   cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
@@ -560,7 +549,6 @@ TEST test_cdd_cst_semantic_missing_branches_9(void) {
         {
           cdd_cst_scope_env_t *env = NULL;
           rc = cdd_cst_build_semantic_info(tree, &env);
-          (void)name;
           ASSERT_EQ(CDD_C_SUCCESS, rc);
 
           /* also test when child2 fails with something other than NOT_FOUND and

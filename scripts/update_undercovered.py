@@ -107,6 +107,7 @@ categories = [
         "Core Library API (`src/`)",
         lambda fn: fn.startswith("src/") and fn.count("/") == 1,
     ),
+    ("Arazzo (`src/arazzo/`)", lambda fn: fn.startswith("src/arazzo/")),
     ("CST Classes (`src/classes/`)", lambda fn: fn.startswith("src/classes/")),
     ("Docstrings (`src/docstrings/`)", lambda fn: fn.startswith("src/docstrings/")),
     ("Functions (`src/functions/`)", lambda fn: fn.startswith("src/functions/")),

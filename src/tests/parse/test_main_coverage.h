@@ -358,6 +358,7 @@ TEST test_main_coverage_cdd_main(void) {
   char *argv_ver[2];
   char *argv_help[2];
   char *argv_err[2];
+  char *argv_typo[2];
 
   argv_ver[0] = cdd_test_mut_str("cdd-c");
   argv_ver[1] = cdd_test_mut_str("--version");
@@ -365,9 +366,12 @@ TEST test_main_coverage_cdd_main(void) {
   argv_help[1] = cdd_test_mut_str("--help");
   argv_err[0] = cdd_test_mut_str("cdd-c");
   argv_err[1] = cdd_test_mut_str("unknown");
+  argv_typo[0] = cdd_test_mut_str("cdd-c");
+  argv_typo[1] = cdd_test_mut_str("audti");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_main(2, argv_ver));
   ASSERT_EQ(CDD_C_SUCCESS, cdd_main(2, argv_help));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_main(2, argv_err));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_main(2, argv_typo));
   PASS();
 }
 

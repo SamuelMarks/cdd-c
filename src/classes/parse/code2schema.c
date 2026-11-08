@@ -179,18 +179,25 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
   size_t content_sz = 0;
   struct TokenList *tl = NULL;
   size_t i = 0;
-  JSON_Value *root = json_value_init_object();
-  JSON_Object *root_obj = json_value_get_object(root);
-  JSON_Value *schemas_val = json_value_init_object();
-  JSON_Object *schemas_obj = json_value_get_object(schemas_val);
-  JSON_Value *comp_val = json_value_init_object();
-  JSON_Object *comp_obj = json_value_get_object(comp_val);
+  JSON_Value *root = NULL;
+  JSON_Object *root_obj = NULL;
+  JSON_Value *schemas_val = NULL;
+  JSON_Object *schemas_obj = NULL;
+  JSON_Value *comp_val = NULL;
+  JSON_Object *comp_obj = NULL;
   cdd_c_error_t ret_rc = CDD_C_SUCCESS;
 
+  cdd_json_value_init_object(&root);
+  cdd_json_value_get_object(root, &root_obj);
+  cdd_json_value_init_object(&schemas_val);
+  cdd_json_value_get_object(schemas_val, &schemas_obj);
+  cdd_json_value_init_object(&comp_val);
+  cdd_json_value_get_object(comp_val, &comp_obj);
+
   if (argc != 2 || !argv || !argv[0] || !argv[1]) {
-    json_value_free(root);
-    json_value_free(schemas_val);
-    json_value_free(comp_val);
+    cdd_json_value_free(root);
+    cdd_json_value_free(schemas_val);
+    cdd_json_value_free(comp_val);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
@@ -201,22 +208,24 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
   fp = fopen(argv[0], "r");
 #endif
   if (!fp) {
-    json_value_free(root);
-    json_value_free(schemas_val);
-    json_value_free(comp_val);
+    cdd_json_value_free(root);
+    cdd_json_value_free(schemas_val);
+    cdd_json_value_free(comp_val);
     return CDD_C_ERROR_IO;
   }
 
-  if (json_object_set_value(comp_obj, "schemas", schemas_val) != JSONSuccess) {
-    json_value_free(schemas_val);
-    json_value_free(comp_val);
-    json_value_free(root);
+  if (cdd_json_object_set_value(comp_obj, "schemas", schemas_val) !=
+      CDD_C_SUCCESS) {
+    cdd_json_value_free(schemas_val);
+    cdd_json_value_free(comp_val);
+    cdd_json_value_free(root);
     fclose(fp);
     return CDD_C_ERROR_MEMORY;
   }
-  if (json_object_set_value(root_obj, "components", comp_val) != JSONSuccess) {
-    json_value_free(comp_val);
-    json_value_free(root);
+  if (cdd_json_object_set_value(root_obj, "components", comp_val) !=
+      CDD_C_SUCCESS) {
+    cdd_json_value_free(comp_val);
+    cdd_json_value_free(root);
     fclose(fp);
     return CDD_C_ERROR_MEMORY;
   }
@@ -606,7 +615,7 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
     }
   }
 
-  if (json_serialize_to_file_pretty(root, argv[1]) != JSONSuccess) {
+  if (cdd_json_serialize_to_file_pretty(root, argv[1]) != CDD_C_SUCCESS) {
     ret_rc = CDD_C_ERROR_IO;
     goto cleanup;
   }
@@ -617,6 +626,6 @@ cleanup:
     free_token_list(tl);
   if (content)
     C_CDD_FREE(content);
-  json_value_free(root);
+  cdd_json_value_free(root);
   return ret_rc;
 }

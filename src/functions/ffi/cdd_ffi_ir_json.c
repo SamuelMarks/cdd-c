@@ -5,34 +5,447 @@
 /* clang-format off */
 #include "../../include/cdd_c_error.h"
 #include "../../include/ffi/cdd_ffi_ir.h"
+#include "../../include/c_cdd/json_dom.h"
 #include "../../include/c_cdd/memory.h"
+#include "../../include/c_cdd/reflect.h"
 #include "../../include/c_cdd/safe_crt.h"
-#include "parson.h"
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
 
-/** @brief Safely sets a JSON object property and frees the value on failure */
-#define json_object_set_value(obj, name, val)                                  \
-  do {                                                                         \
-    JSON_Value *_cdd_jv = (val);                                               \
-    if ((json_object_set_value)((obj), (name), _cdd_jv) != JSONSuccess)        \
-      json_value_free(_cdd_jv);                                                \
-  } while (0)
-/** @brief Safely appends a JSON array element and frees the value on failure */
-#define json_array_append_value(arr, val)                                      \
-  do {                                                                         \
-    JSON_Value *_cdd_jv = (val);                                               \
-    if ((json_array_append_value)((arr), _cdd_jv) != JSONSuccess)              \
-      json_value_free(_cdd_jv);                                                \
-  } while (0)
+/** @brief Reflected fields for `struct cdd_ffi_number_t`. */
+static const struct cdd_field_info g_cdd_ffi_number_fields[] = {
+    {"raw_spelling",
+     "raw_spelling",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct cdd_ffi_number_t, raw_spelling),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"prefix",
+     "prefix",
+     "int",
+     NULL,
+     CDD_FIELD_KIND_INTEGER,
+     offsetof(struct cdd_ffi_number_t, prefix),
+     sizeof(cdd_ffi_number_prefix_t),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"has_separators",
+     "has_separators",
+     "int",
+     NULL,
+     CDD_FIELD_KIND_INTEGER,
+     offsetof(struct cdd_ffi_number_t, has_separators),
+     sizeof(int),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+/** @brief Runtime reflection descriptor for `struct cdd_ffi_number_t`. */
+static const struct cdd_type_info g_cdd_ffi_number_type_info = {
+    "cdd_ffi_number_t",
+    sizeof(struct cdd_ffi_number_t),
+    0,
+    g_cdd_ffi_number_fields,
+    sizeof(g_cdd_ffi_number_fields) / sizeof(g_cdd_ffi_number_fields[0]),
+    0};
+
+/** @brief Reflected fields for `struct cdd_ffi_macro_expansion_t`. */
+static const struct cdd_field_info g_cdd_ffi_macro_expansion_fields[] = {
+    {"macro_name",
+     "macro_name",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct cdd_ffi_macro_expansion_t, macro_name),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"raw_args",
+     "raw_args",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct cdd_ffi_macro_expansion_t, raw_args),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"expanded_text",
+     "expanded_text",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct cdd_ffi_macro_expansion_t, expanded_text),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+/** @brief Runtime reflection descriptor for `struct cdd_ffi_macro_expansion_t`.
+ */
+static const struct cdd_type_info g_cdd_ffi_macro_expansion_type_info = {
+    "cdd_ffi_macro_expansion_t",
+    sizeof(struct cdd_ffi_macro_expansion_t),
+    0,
+    g_cdd_ffi_macro_expansion_fields,
+    sizeof(g_cdd_ffi_macro_expansion_fields) /
+        sizeof(g_cdd_ffi_macro_expansion_fields[0]),
+    0};
+
+/** @brief Reflected fields for `cdd_ffi_base_class_t`. */
+static const struct cdd_field_info g_cdd_ffi_base_class_fields[] = {
+    {"name",
+     "name",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(cdd_ffi_base_class_t, name),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"is_virtual",
+     "is_virtual",
+     "int",
+     NULL,
+     CDD_FIELD_KIND_INTEGER,
+     offsetof(cdd_ffi_base_class_t, is_virtual),
+     sizeof(int),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"access",
+     "access",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(cdd_ffi_base_class_t, access),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+/** @brief Runtime reflection descriptor for `cdd_ffi_base_class_t`. */
+static const struct cdd_type_info g_cdd_ffi_base_class_type_info = {
+    "cdd_ffi_base_class_t",
+    sizeof(cdd_ffi_base_class_t),
+    0,
+    g_cdd_ffi_base_class_fields,
+    sizeof(g_cdd_ffi_base_class_fields) /
+        sizeof(g_cdd_ffi_base_class_fields[0]),
+    0};
 
 /** @brief Sets a string property on a JSON object or returns CDD_C_ERROR_MEMORY
  */
 #define SET_STR(o, k, v)                                                       \
   do {                                                                         \
     if (set_string((o), (k), (v)) != CDD_C_SUCCESS) {                          \
-      json_value_free(val);                                                    \
+      cdd_json_value_free(val);                                                \
       return CDD_C_ERROR_MEMORY;                                               \
     }                                                                          \
   } while (0)
@@ -41,10 +454,86 @@
 #define SET_INT(o, k, v)                                                       \
   do {                                                                         \
     if (set_int((o), (k), (v)) != CDD_C_SUCCESS) {                             \
-      json_value_free(val);                                                    \
+      cdd_json_value_free(val);                                                \
       return CDD_C_ERROR_MEMORY;                                               \
     }                                                                          \
   } while (0)
+
+/**
+ * @brief Helper to read a number property from a JSON_Object with 0.0 default.
+ *
+ * @param[in] obj JSON_Object to read from.
+ * @param[in] name Key name.
+ * @param[out] out_num Output number.
+ * @return CDD_C_SUCCESS on success.
+ */
+static cdd_c_error_t get_num_opt(const JSON_Object *obj, const char *name,
+                                 double *out_num) {
+  *out_num = 0.0;
+  cdd_json_object_get_number(obj, name, out_num);
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Helper to read a string property from a JSON_Object with NULL default.
+ *
+ * @param[in] obj JSON_Object to read from.
+ * @param[in] name Key name.
+ * @param[out] out_str Output string pointer.
+ * @return CDD_C_SUCCESS on success.
+ */
+static cdd_c_error_t get_str_opt(const JSON_Object *obj, const char *name,
+                                 const char **out_str) {
+  *out_str = NULL;
+  cdd_json_object_get_string(obj, name, out_str);
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Helper to read an object property from a JSON_Object with NULL
+ * default.
+ *
+ * @param[in] obj JSON_Object to read from.
+ * @param[in] name Key name.
+ * @param[out] out_obj Output JSON_Object pointer.
+ * @return CDD_C_SUCCESS on success.
+ */
+static cdd_c_error_t get_obj_opt(const JSON_Object *obj, const char *name,
+                                 JSON_Object **out_obj) {
+  *out_obj = NULL;
+  cdd_json_object_get_object(obj, name, out_obj);
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Helper to read an array property from a JSON_Object with NULL default.
+ *
+ * @param[in] obj JSON_Object to read from.
+ * @param[in] name Key name.
+ * @param[out] out_arr Output JSON_Array pointer.
+ * @return CDD_C_SUCCESS on success.
+ */
+static cdd_c_error_t get_arr_opt(const JSON_Object *obj, const char *name,
+                                 JSON_Array **out_arr) {
+  *out_arr = NULL;
+  cdd_json_object_get_array(obj, name, out_arr);
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Helper to check if a JSON_Object has a property.
+ *
+ * @param[in] obj JSON_Object to inspect.
+ * @param[in] name Key name.
+ * @param[out] out_has Output 1 if present, 0 otherwise.
+ * @return CDD_C_SUCCESS on success.
+ */
+static cdd_c_error_t has_val_opt(const JSON_Object *obj, const char *name,
+                                 int *out_has) {
+  *out_has = 0;
+  cdd_json_object_has_value(obj, name, out_has);
+  return CDD_C_SUCCESS;
+}
 
 /**
  * @brief Sets a string property on a Parson `JSON_Object` if `val` is non-NULL.
@@ -57,7 +546,7 @@
 static cdd_c_error_t set_string(JSON_Object *obj, const char *name,
                                 const char *val) {
   if (val) {
-    if (json_object_set_string(obj, name, val) != JSONSuccess) {
+    if (cdd_json_object_set_string(obj, name, val) != CDD_C_SUCCESS) {
       return CDD_C_ERROR_UNKNOWN;
     }
   }
@@ -73,7 +562,7 @@ static cdd_c_error_t set_string(JSON_Object *obj, const char *name,
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_UNKNOWN` on failure.
  */
 static cdd_c_error_t set_int(JSON_Object *obj, const char *name, int val) {
-  if (json_object_set_number(obj, name, (double)val) != JSONSuccess) {
+  if (cdd_json_object_set_number(obj, name, (double)val) != CDD_C_SUCCESS) {
     return CDD_C_ERROR_UNKNOWN;
   }
   return CDD_C_SUCCESS;
@@ -88,19 +577,27 @@ static cdd_c_error_t set_int(JSON_Object *obj, const char *name, int val) {
  */
 static cdd_c_error_t trivia_to_json(const cdd_ffi_trivia_t *trivia,
                                     JSON_Value **out_val) {
-  JSON_Value *val = json_value_init_array();
-  JSON_Array *arr = json_value_get_array(val);
+  JSON_Value *val = NULL;
+  JSON_Array *arr = NULL;
   const cdd_ffi_trivia_t *curr = trivia;
+  if (cdd_json_value_init_array(&val) != CDD_C_SUCCESS)
+    return CDD_C_ERROR_MEMORY;
+  cdd_json_value_get_array(val, &arr);
   while (curr) {
-    JSON_Value *t_val = json_value_init_object();
-    JSON_Object *t_obj = json_value_get_object(t_val);
-    set_int(t_obj, "kind", (int)curr->kind);
-    if (set_string(t_obj, "text", curr->text) != CDD_C_SUCCESS) {
-      json_value_free(t_val);
-      json_value_free(val);
+    JSON_Value *t_val = NULL;
+    JSON_Object *t_obj = NULL;
+    if (cdd_json_value_init_object(&t_val) != CDD_C_SUCCESS) {
+      cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
-    json_array_append_value(arr, t_val);
+    cdd_json_value_get_object(t_val, &t_obj);
+    if (set_int(t_obj, "kind", (int)curr->kind) != CDD_C_SUCCESS ||
+        set_string(t_obj, "text", curr->text) != CDD_C_SUCCESS ||
+        cdd_json_array_append_value(arr, t_val) != CDD_C_SUCCESS) {
+      cdd_json_value_free(t_val);
+      cdd_json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
+    }
     curr = curr->next;
   }
   *out_val = val;
@@ -116,15 +613,14 @@ static cdd_c_error_t trivia_to_json(const cdd_ffi_trivia_t *trivia,
  */
 static cdd_c_error_t number_to_json(const struct cdd_ffi_number_t *num,
                                     JSON_Value **out_val) {
-  JSON_Value *val;
-  JSON_Object *obj;
-  val = json_value_init_object();
-  obj = json_value_get_object(val);
-  SET_STR(obj, "raw_spelling", num->raw_spelling);
-  set_int(obj, "prefix", (int)num->prefix);
-  SET_INT(obj, "has_separators", num->has_separators);
-  *out_val = val;
-  return CDD_C_SUCCESS;
+  char *jstr = NULL;
+  cdd_c_error_t rc =
+      cdd_reflect_to_json(num, &g_cdd_ffi_number_type_info, &jstr);
+  if (rc != CDD_C_SUCCESS)
+    return CDD_C_ERROR_MEMORY;
+  rc = cdd_json_parse_string(jstr, out_val);
+  C_CDD_FREE(jstr);
+  return rc == CDD_C_SUCCESS ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
 /**
@@ -137,13 +633,14 @@ static cdd_c_error_t number_to_json(const struct cdd_ffi_number_t *num,
 static cdd_c_error_t
 macro_expansion_to_json(const struct cdd_ffi_macro_expansion_t *m,
                         JSON_Value **out_val) {
-  JSON_Value *val = json_value_init_object();
-  JSON_Object *obj = json_value_get_object(val);
-  SET_STR(obj, "macro_name", m->macro_name);
-  SET_STR(obj, "raw_args", m->raw_args);
-  SET_STR(obj, "expanded_text", m->expanded_text);
-  *out_val = val;
-  return CDD_C_SUCCESS;
+  char *jstr = NULL;
+  cdd_c_error_t rc =
+      cdd_reflect_to_json(m, &g_cdd_ffi_macro_expansion_type_info, &jstr);
+  if (rc != CDD_C_SUCCESS)
+    return CDD_C_ERROR_MEMORY;
+  rc = cdd_json_parse_string(jstr, out_val);
+  C_CDD_FREE(jstr);
+  return rc == CDD_C_SUCCESS ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
 /**
@@ -155,50 +652,71 @@ macro_expansion_to_json(const struct cdd_ffi_macro_expansion_t *m,
  */
 static cdd_c_error_t type_to_json(const cdd_ffi_type_t *type,
                                   JSON_Value **out_val) {
-  JSON_Value *val = json_value_init_object();
-  JSON_Object *obj = json_value_get_object(val);
+  JSON_Value *val = NULL;
+  JSON_Object *obj = NULL;
+  if (cdd_json_value_init_object(&val) != CDD_C_SUCCESS)
+    return CDD_C_ERROR_MEMORY;
+  cdd_json_value_get_object(val, &obj);
 
-  set_int(obj, "kind", (int)type->kind);
+  SET_INT(obj, "kind", (int)type->kind);
   SET_INT(obj, "is_const", type->is_const);
   SET_INT(obj, "pointer_depth", type->pointer_depth);
   SET_STR(obj, "ref_name", type->ref_name);
   if (type->array_size != -1) {
-    json_object_set_number(obj, "array_size", (double)type->array_size);
+    SET_INT(obj, "array_size", (int)type->array_size);
   }
 
   if (type->template_args) {
-    JSON_Value *arr_val = json_value_init_array();
-    JSON_Array *arr = json_value_get_array(arr_val);
+    JSON_Value *arr_val = NULL;
+    JSON_Array *arr = NULL;
     size_t i;
+    if (cdd_json_value_init_array(&arr_val) != CDD_C_SUCCESS) {
+      cdd_json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
+    }
+    cdd_json_value_get_array(arr_val, &arr);
     for (i = 0; i < type->template_args_count; ++i) {
       JSON_Value *t_val = NULL;
       cdd_c_error_t rc = type_to_json(&type->template_args[i], &t_val);
-      if (rc != CDD_C_SUCCESS) {
-        json_value_free(arr_val);
-        json_value_free(val);
-        return rc;
+      if (rc != CDD_C_SUCCESS ||
+          cdd_json_array_append_value(arr, t_val) != CDD_C_SUCCESS) {
+        if (t_val)
+          cdd_json_value_free(t_val);
+        cdd_json_value_free(arr_val);
+        cdd_json_value_free(val);
+        return CDD_C_ERROR_MEMORY;
       }
-      json_array_append_value(arr, t_val);
     }
-    json_object_set_value(obj, "template_args", arr_val);
+    if (cdd_json_object_set_value(obj, "template_args", arr_val) !=
+        CDD_C_SUCCESS) {
+      cdd_json_value_free(arr_val);
+      cdd_json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
+    }
   }
   if (type->leading_trivia) {
     JSON_Value *t_val = NULL;
     cdd_c_error_t rc = trivia_to_json(type->leading_trivia, &t_val);
-    if (rc != CDD_C_SUCCESS) {
-      json_value_free(val);
-      return rc;
+    if (rc != CDD_C_SUCCESS ||
+        cdd_json_object_set_value(obj, "leading_trivia", t_val) !=
+            CDD_C_SUCCESS) {
+      if (t_val)
+        cdd_json_value_free(t_val);
+      cdd_json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
     }
-    json_object_set_value(obj, "leading_trivia", t_val);
   }
   if (type->trailing_trivia) {
     JSON_Value *t_val = NULL;
     cdd_c_error_t rc = trivia_to_json(type->trailing_trivia, &t_val);
-    if (rc != CDD_C_SUCCESS) {
-      json_value_free(val);
-      return rc;
+    if (rc != CDD_C_SUCCESS ||
+        cdd_json_object_set_value(obj, "trailing_trivia", t_val) !=
+            CDD_C_SUCCESS) {
+      if (t_val)
+        cdd_json_value_free(t_val);
+      cdd_json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
     }
-    json_object_set_value(obj, "trailing_trivia", t_val);
   }
   SET_STR(obj, "raw_spelling", type->raw_spelling);
   *out_val = val;
@@ -214,39 +732,50 @@ static cdd_c_error_t type_to_json(const cdd_ffi_type_t *type,
  */
 static cdd_c_error_t field_to_json(const cdd_ffi_field_t *field,
                                    JSON_Value **out_val) {
-  JSON_Value *val = json_value_init_object();
-  JSON_Object *obj = json_value_get_object(val);
+  JSON_Value *val = NULL;
+  JSON_Object *obj = NULL;
+  if (cdd_json_value_init_object(&val) != CDD_C_SUCCESS)
+    return CDD_C_ERROR_MEMORY;
+  cdd_json_value_get_object(val, &obj);
 
   SET_STR(obj, "name", field->name);
   {
     JSON_Value *t_val = NULL;
     cdd_c_error_t rc = type_to_json(&field->type, &t_val);
-    if (rc != CDD_C_SUCCESS) {
-      json_value_free(val);
-      return rc;
+    if (rc != CDD_C_SUCCESS ||
+        cdd_json_object_set_value(obj, "type", t_val) != CDD_C_SUCCESS) {
+      if (t_val)
+        cdd_json_value_free(t_val);
+      cdd_json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
     }
-    json_object_set_value(obj, "type", t_val);
   }
   SET_STR(obj, "doc", field->doc);
-  set_int(obj, "intent", (int)field->intent);
+  SET_INT(obj, "intent", (int)field->intent);
   SET_STR(obj, "array_length_ref", field->array_length_ref);
   if (field->leading_trivia) {
     JSON_Value *t_val = NULL;
     cdd_c_error_t rc = trivia_to_json(field->leading_trivia, &t_val);
-    if (rc != CDD_C_SUCCESS) {
-      json_value_free(val);
-      return rc;
+    if (rc != CDD_C_SUCCESS ||
+        cdd_json_object_set_value(obj, "leading_trivia", t_val) !=
+            CDD_C_SUCCESS) {
+      if (t_val)
+        cdd_json_value_free(t_val);
+      cdd_json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
     }
-    json_object_set_value(obj, "leading_trivia", t_val);
   }
   if (field->trailing_trivia) {
     JSON_Value *t_val = NULL;
     cdd_c_error_t rc = trivia_to_json(field->trailing_trivia, &t_val);
-    if (rc != CDD_C_SUCCESS) {
-      json_value_free(val);
-      return rc;
+    if (rc != CDD_C_SUCCESS ||
+        cdd_json_object_set_value(obj, "trailing_trivia", t_val) !=
+            CDD_C_SUCCESS) {
+      if (t_val)
+        cdd_json_value_free(t_val);
+      cdd_json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
     }
-    json_object_set_value(obj, "trailing_trivia", t_val);
   }
   *out_val = val;
   return CDD_C_SUCCESS;
@@ -261,171 +790,240 @@ static cdd_c_error_t field_to_json(const cdd_ffi_field_t *field,
  */
 static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
                                   JSON_Value **out_val) {
-  JSON_Value *val = json_value_init_object();
-  JSON_Object *obj = json_value_get_object(val);
+  JSON_Value *val = NULL;
+  JSON_Object *obj = NULL;
   size_t i;
 
-  set_int(obj, "kind", (int)node->kind);
+  if (cdd_json_value_init_object(&val) != CDD_C_SUCCESS)
+    return CDD_C_ERROR_MEMORY;
+  cdd_json_value_get_object(val, &obj);
+
+  SET_INT(obj, "kind", (int)node->kind);
   SET_STR(obj, "name", node->name);
   SET_STR(obj, "doc", node->doc);
 
   if (node->fields) {
-    JSON_Value *arr_val = json_value_init_array();
-    JSON_Array *arr = json_value_get_array(arr_val);
+    JSON_Value *arr_val = NULL;
+    JSON_Array *arr = NULL;
+    if (cdd_json_value_init_array(&arr_val) != CDD_C_SUCCESS) {
+      cdd_json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
+    }
+    cdd_json_value_get_array(arr_val, &arr);
     for (i = 0; i < node->fields_count; ++i) {
-      {
-        JSON_Value *f_val = NULL;
-        cdd_c_error_t rc = field_to_json(&node->fields[i], &f_val);
-        if (rc != CDD_C_SUCCESS) {
-          json_value_free(arr_val);
-          json_value_free(val);
-          return rc;
-        }
-        json_array_append_value(arr, f_val);
+      JSON_Value *f_val = NULL;
+      cdd_c_error_t rc = field_to_json(&node->fields[i], &f_val);
+      if (rc != CDD_C_SUCCESS ||
+          cdd_json_array_append_value(arr, f_val) != CDD_C_SUCCESS) {
+        if (f_val)
+          cdd_json_value_free(f_val);
+        cdd_json_value_free(arr_val);
+        cdd_json_value_free(val);
+        return CDD_C_ERROR_MEMORY;
       }
     }
-    json_object_set_value(obj, "fields", arr_val);
+    if (cdd_json_object_set_value(obj, "fields", arr_val) != CDD_C_SUCCESS) {
+      cdd_json_value_free(arr_val);
+      cdd_json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
+    }
   }
 
   if (node->base_classes) {
-    JSON_Value *arr_val = json_value_init_array();
-    JSON_Array *arr = json_value_get_array(arr_val);
+    JSON_Value *arr_val = NULL;
+    JSON_Array *arr = NULL;
+    if (cdd_json_value_init_array(&arr_val) != CDD_C_SUCCESS) {
+      cdd_json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
+    }
+    cdd_json_value_get_array(arr_val, &arr);
     for (i = 0; i < node->base_classes_count; ++i) {
-      JSON_Value *bc_val = json_value_init_object();
-      JSON_Object *bc_obj = json_value_get_object(bc_val);
-      if (set_string(bc_obj, "name", node->base_classes[i].name) !=
-              CDD_C_SUCCESS ||
-          set_int(bc_obj, "is_virtual", node->base_classes[i].is_virtual) !=
-              CDD_C_SUCCESS ||
-          set_string(bc_obj, "access", node->base_classes[i].access) !=
-              CDD_C_SUCCESS) {
-        json_value_free(bc_val);
-        json_value_free(arr_val);
-        json_value_free(val);
+      JSON_Value *bc_val = NULL;
+      char *bc_str = NULL;
+      if (cdd_reflect_to_json(&node->base_classes[i],
+                              &g_cdd_ffi_base_class_type_info,
+                              &bc_str) != CDD_C_SUCCESS ||
+          cdd_json_parse_string(bc_str, &bc_val) != CDD_C_SUCCESS) {
+        if (bc_str)
+          C_CDD_FREE(bc_str);
+        cdd_json_value_free(arr_val);
+        cdd_json_value_free(val);
         return CDD_C_ERROR_MEMORY;
       }
-      json_array_append_value(arr, bc_val);
+      C_CDD_FREE(bc_str);
+      if (cdd_json_array_append_value(arr, bc_val) != CDD_C_SUCCESS) {
+        cdd_json_value_free(bc_val);
+        cdd_json_value_free(arr_val);
+        cdd_json_value_free(val);
+        return CDD_C_ERROR_MEMORY;
+      }
     }
-    json_object_set_value(obj, "base_classes", arr_val);
+    if (cdd_json_object_set_value(obj, "base_classes", arr_val) !=
+        CDD_C_SUCCESS) {
+      cdd_json_value_free(arr_val);
+      cdd_json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
+    }
   }
 
   if (node->variants) {
-    JSON_Value *arr_val = json_value_init_array();
-    JSON_Array *arr = json_value_get_array(arr_val);
+    JSON_Value *arr_val = NULL;
+    JSON_Array *arr = NULL;
+    if (cdd_json_value_init_array(&arr_val) != CDD_C_SUCCESS) {
+      cdd_json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
+    }
+    cdd_json_value_get_array(arr_val, &arr);
     for (i = 0; i < node->variants_count; ++i) {
-      JSON_Value *v_val = json_value_init_object();
-      JSON_Object *v_obj = json_value_get_object(v_val);
+      JSON_Value *v_val = NULL;
+      JSON_Object *v_obj = NULL;
+      if (cdd_json_value_init_object(&v_val) != CDD_C_SUCCESS) {
+        cdd_json_value_free(arr_val);
+        cdd_json_value_free(val);
+        return CDD_C_ERROR_MEMORY;
+      }
+      cdd_json_value_get_object(v_val, &v_obj);
       if (set_string(v_obj, "name", node->variants[i].name) != CDD_C_SUCCESS ||
           set_string(v_obj, "value", node->variants[i].value) !=
               CDD_C_SUCCESS ||
           set_string(v_obj, "doc", node->variants[i].doc) != CDD_C_SUCCESS) {
-        json_value_free(v_val);
-        json_value_free(arr_val);
-        json_value_free(val);
+        cdd_json_value_free(v_val);
+        cdd_json_value_free(arr_val);
+        cdd_json_value_free(val);
         return CDD_C_ERROR_MEMORY;
       }
       if (node->variants[i].number_details) {
         JSON_Value *n_val = NULL;
         cdd_c_error_t rc =
             number_to_json(node->variants[i].number_details, &n_val);
-        if (rc != CDD_C_SUCCESS) {
-          json_value_free(v_val);
-          json_value_free(arr_val);
-          json_value_free(val);
-          return rc;
+        if (rc != CDD_C_SUCCESS ||
+            cdd_json_object_set_value(v_obj, "number_details", n_val) !=
+                CDD_C_SUCCESS) {
+          if (n_val)
+            cdd_json_value_free(n_val);
+          cdd_json_value_free(v_val);
+          cdd_json_value_free(arr_val);
+          cdd_json_value_free(val);
+          return CDD_C_ERROR_MEMORY;
         }
-        json_object_set_value(v_obj, "number_details", n_val);
       }
       if (node->variants[i].leading_trivia) {
         JSON_Value *t_val = NULL;
         cdd_c_error_t rc =
             trivia_to_json(node->variants[i].leading_trivia, &t_val);
-        if (rc != CDD_C_SUCCESS) {
-          json_value_free(v_val);
-          json_value_free(arr_val);
-          json_value_free(val);
-          return rc;
+        if (rc != CDD_C_SUCCESS ||
+            cdd_json_object_set_value(v_obj, "leading_trivia", t_val) !=
+                CDD_C_SUCCESS) {
+          if (t_val)
+            cdd_json_value_free(t_val);
+          cdd_json_value_free(v_val);
+          cdd_json_value_free(arr_val);
+          cdd_json_value_free(val);
+          return CDD_C_ERROR_MEMORY;
         }
-        json_object_set_value(v_obj, "leading_trivia", t_val);
       }
       if (node->variants[i].trailing_trivia) {
         JSON_Value *t_val = NULL;
         cdd_c_error_t rc =
             trivia_to_json(node->variants[i].trailing_trivia, &t_val);
-        if (rc != CDD_C_SUCCESS) {
-          json_value_free(v_val);
-          json_value_free(arr_val);
-          json_value_free(val);
-          return rc;
+        if (rc != CDD_C_SUCCESS ||
+            cdd_json_object_set_value(v_obj, "trailing_trivia", t_val) !=
+                CDD_C_SUCCESS) {
+          if (t_val)
+            cdd_json_value_free(t_val);
+          cdd_json_value_free(v_val);
+          cdd_json_value_free(arr_val);
+          cdd_json_value_free(val);
+          return CDD_C_ERROR_MEMORY;
         }
-        json_object_set_value(v_obj, "trailing_trivia", t_val);
       }
       if (set_string(v_obj, "raw_spelling", node->variants[i].raw_spelling) !=
-          CDD_C_SUCCESS) {
-        json_value_free(v_val);
-        json_value_free(arr_val);
-        json_value_free(val);
+              CDD_C_SUCCESS ||
+          cdd_json_array_append_value(arr, v_val) != CDD_C_SUCCESS) {
+        cdd_json_value_free(v_val);
+        cdd_json_value_free(arr_val);
+        cdd_json_value_free(val);
         return CDD_C_ERROR_MEMORY;
       }
-      json_array_append_value(arr, v_val);
     }
-    json_object_set_value(obj, "variants", arr_val);
+    if (cdd_json_object_set_value(obj, "variants", arr_val) != CDD_C_SUCCESS) {
+      cdd_json_value_free(arr_val);
+      cdd_json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
+    }
   }
 
   if (node->macro_expansions) {
-    JSON_Value *arr_val = json_value_init_array();
-    JSON_Array *arr = json_value_get_array(arr_val);
+    JSON_Value *arr_val = NULL;
+    JSON_Array *arr = NULL;
+    if (cdd_json_value_init_array(&arr_val) != CDD_C_SUCCESS) {
+      cdd_json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
+    }
+    cdd_json_value_get_array(arr_val, &arr);
     for (i = 0; i < node->macro_expansions_count; ++i) {
-      {
-        JSON_Value *m_val = NULL;
-        cdd_c_error_t rc =
-            macro_expansion_to_json(&node->macro_expansions[i], &m_val);
-        if (rc != CDD_C_SUCCESS) {
-          json_value_free(arr_val);
-          json_value_free(val);
-          return rc;
-        }
-        json_array_append_value(arr, m_val);
+      JSON_Value *m_val = NULL;
+      cdd_c_error_t rc =
+          macro_expansion_to_json(&node->macro_expansions[i], &m_val);
+      if (rc != CDD_C_SUCCESS ||
+          cdd_json_array_append_value(arr, m_val) != CDD_C_SUCCESS) {
+        if (m_val)
+          cdd_json_value_free(m_val);
+        cdd_json_value_free(arr_val);
+        cdd_json_value_free(val);
+        return CDD_C_ERROR_MEMORY;
       }
     }
-    json_object_set_value(obj, "macro_expansions", arr_val);
+    if (cdd_json_object_set_value(obj, "macro_expansions", arr_val) !=
+        CDD_C_SUCCESS) {
+      cdd_json_value_free(arr_val);
+      cdd_json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
+    }
   }
 
   if (node->kind == CDD_FFI_NODE_FUNCTION ||
       node->kind == CDD_FFI_NODE_TYPEDEF) {
-    {
-      JSON_Value *t_val = NULL;
-      cdd_c_error_t rc = type_to_json(&node->return_or_base_type, &t_val);
-      if (rc != CDD_C_SUCCESS) {
-        json_value_free(val);
-        return rc;
-      }
-      json_object_set_value(obj, "return_or_base_type", t_val);
+    JSON_Value *t_val = NULL;
+    cdd_c_error_t rc = type_to_json(&node->return_or_base_type, &t_val);
+    if (rc != CDD_C_SUCCESS ||
+        cdd_json_object_set_value(obj, "return_or_base_type", t_val) !=
+            CDD_C_SUCCESS) {
+      if (t_val)
+        cdd_json_value_free(t_val);
+      cdd_json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
     }
   }
 
   SET_STR(obj, "evaluated_value", node->evaluated_value);
-  set_int(obj, "inferred_type", (int)node->inferred_type);
+  SET_INT(obj, "inferred_type", (int)node->inferred_type);
   SET_INT(obj, "requires_gil_release", node->requires_gil_release);
   SET_INT(obj, "is_variadic", node->is_variadic);
 
   if (node->leading_trivia) {
     JSON_Value *t_val = NULL;
     cdd_c_error_t rc = trivia_to_json(node->leading_trivia, &t_val);
-    if (rc != CDD_C_SUCCESS) {
-      json_value_free(val);
-      return rc;
+    if (rc != CDD_C_SUCCESS ||
+        cdd_json_object_set_value(obj, "leading_trivia", t_val) !=
+            CDD_C_SUCCESS) {
+      if (t_val)
+        cdd_json_value_free(t_val);
+      cdd_json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
     }
-    json_object_set_value(obj, "leading_trivia", t_val);
   }
   if (node->trailing_trivia) {
     JSON_Value *t_val = NULL;
     cdd_c_error_t rc = trivia_to_json(node->trailing_trivia, &t_val);
-    if (rc != CDD_C_SUCCESS) {
-      json_value_free(val);
-      return rc;
+    if (rc != CDD_C_SUCCESS ||
+        cdd_json_object_set_value(obj, "trailing_trivia", t_val) !=
+            CDD_C_SUCCESS) {
+      if (t_val)
+        cdd_json_value_free(t_val);
+      cdd_json_value_free(val);
+      return CDD_C_ERROR_MEMORY;
     }
-    json_object_set_value(obj, "trailing_trivia", t_val);
   }
   SET_STR(obj, "raw_body", node->raw_body);
   *out_val = val;
@@ -442,44 +1040,52 @@ static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_to_json(const cdd_ffi_ir_t *ir,
                                               char **out_json) {
-  JSON_Value *root_val;
-  JSON_Object *root_obj;
-  JSON_Value *nodes_val;
-  JSON_Array *nodes_arr;
+  JSON_Value *root_val = NULL;
+  JSON_Object *root_obj = NULL;
+  JSON_Value *nodes_val = NULL;
+  JSON_Array *nodes_arr = NULL;
   size_t i;
-  char *serialized;
+  char *serialized = NULL;
 
   if (!ir || !out_json) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  root_val = json_value_init_object();
-  root_obj = json_value_get_object(root_val);
-
-  nodes_val = json_value_init_array();
-  nodes_arr = json_value_get_array(nodes_val);
+  if (cdd_json_value_init_object(&root_val) != CDD_C_SUCCESS)
+    return CDD_C_ERROR_UNKNOWN;
+  cdd_json_value_get_object(root_val, &root_obj);
+  if (cdd_json_value_init_array(&nodes_val) != CDD_C_SUCCESS) {
+    cdd_json_value_free(root_val);
+    return CDD_C_ERROR_UNKNOWN;
+  }
+  cdd_json_value_get_array(nodes_val, &nodes_arr);
 
   for (i = 0; i < ir->nodes_count; ++i) {
-    {
-      JSON_Value *n_val = NULL;
-      cdd_c_error_t rc = node_to_json(&ir->nodes[i], &n_val);
-      if (rc != CDD_C_SUCCESS) {
-        json_value_free(nodes_val);
-        json_value_free(root_val);
-        return rc;
-      }
-      json_array_append_value(nodes_arr, n_val);
+    JSON_Value *n_val = NULL;
+    cdd_c_error_t rc = node_to_json(&ir->nodes[i], &n_val);
+    if (rc != CDD_C_SUCCESS ||
+        cdd_json_array_append_value(nodes_arr, n_val) != CDD_C_SUCCESS) {
+      if (n_val)
+        cdd_json_value_free(n_val);
+      cdd_json_value_free(nodes_val);
+      cdd_json_value_free(root_val);
+      return rc != CDD_C_SUCCESS ? rc : CDD_C_ERROR_MEMORY;
     }
   }
 
-  json_object_set_value(root_obj, "nodes", nodes_val);
-
-  serialized = json_serialize_to_string_pretty(root_val);
-  json_value_free(root_val);
-
-  if (!serialized) {
+  if (cdd_json_object_set_value(root_obj, "nodes", nodes_val) !=
+      CDD_C_SUCCESS) {
+    cdd_json_value_free(nodes_val);
+    cdd_json_value_free(root_val);
     return CDD_C_ERROR_UNKNOWN;
   }
+
+  if (cdd_json_serialize_to_string_pretty(root_val, &serialized) !=
+      CDD_C_SUCCESS) {
+    cdd_json_value_free(root_val);
+    return CDD_C_ERROR_UNKNOWN;
+  }
+  cdd_json_value_free(root_val);
 
   *out_json = serialized;
   return CDD_C_SUCCESS;
@@ -510,13 +1116,16 @@ static cdd_c_error_t strdup_safe(const char *in, char **out) {
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
  */
 static cdd_c_error_t parse_trivia(JSON_Array *arr, cdd_ffi_trivia_t **out) {
-  size_t i, count;
+  size_t i, count = 0;
   cdd_ffi_trivia_t *head = NULL, *tail = NULL, *node = NULL;
   if (!arr)
     return CDD_C_SUCCESS;
-  count = json_array_get_count(arr);
+  cdd_json_array_get_count(arr, &count);
   for (i = 0; i < count; ++i) {
-    JSON_Object *obj = json_array_get_object(arr, i);
+    JSON_Object *obj = NULL;
+    double d_val = 0.0;
+    const char *s_val = NULL;
+    cdd_json_array_get_object(arr, i, &obj);
     if (!obj)
       continue;
     node = C_CDD_CALLOC(1, sizeof(cdd_ffi_trivia_t));
@@ -524,9 +1133,10 @@ static cdd_c_error_t parse_trivia(JSON_Array *arr, cdd_ffi_trivia_t **out) {
       *out = head;
       return CDD_C_ERROR_MEMORY;
     }
-    node->kind = (cdd_ffi_trivia_kind_t)json_object_get_number(obj, "kind");
-    if (strdup_safe(json_object_get_string(obj, "text"), &node->text) !=
-        CDD_C_SUCCESS) {
+    get_num_opt(obj, "kind", &d_val);
+    node->kind = (cdd_ffi_trivia_kind_t)d_val;
+    get_str_opt(obj, "text", &s_val);
+    if (strdup_safe(s_val, &node->text) != CDD_C_SUCCESS) {
       C_CDD_FREE(node);
       *out = head;
       return CDD_C_ERROR_MEMORY;
@@ -559,14 +1169,12 @@ static cdd_c_error_t parse_number(JSON_Object *obj,
   num = C_CDD_CALLOC(1, sizeof(struct cdd_ffi_number_t));
   if (!num)
     return CDD_C_ERROR_MEMORY;
-  rc = strdup_safe(json_object_get_string(obj, "raw_spelling"),
-                   &num->raw_spelling);
+  rc = cdd_reflect_from_json_object(obj, &g_cdd_ffi_number_type_info, num);
   if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(num->raw_spelling);
     C_CDD_FREE(num);
     return rc;
   }
-  num->prefix = (cdd_ffi_number_prefix_t)json_object_get_number(obj, "prefix");
-  num->has_separators = (int)json_object_get_number(obj, "has_separators");
   *out = num;
   return CDD_C_SUCCESS;
 }
@@ -580,18 +1188,10 @@ static cdd_c_error_t parse_number(JSON_Object *obj,
  */
 static cdd_c_error_t
 parse_macro_expansion(JSON_Object *obj, struct cdd_ffi_macro_expansion_t *m) {
-  cdd_c_error_t rc;
-  rc = strdup_safe(json_object_get_string(obj, "macro_name"), &m->macro_name);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  rc = strdup_safe(json_object_get_string(obj, "raw_args"), &m->raw_args);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  rc = strdup_safe(json_object_get_string(obj, "expanded_text"),
-                   &m->expanded_text);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  return CDD_C_SUCCESS;
+  if (!obj)
+    return CDD_C_SUCCESS;
+  return cdd_reflect_from_json_object(obj, &g_cdd_ffi_macro_expansion_type_info,
+                                      m);
 }
 
 /**
@@ -602,7 +1202,11 @@ parse_macro_expansion(JSON_Object *obj, struct cdd_ffi_macro_expansion_t *m) {
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
  */
 static cdd_c_error_t parse_type(JSON_Object *obj, cdd_ffi_type_t *type) {
-  JSON_Array *t_arr;
+  JSON_Array *t_arr = NULL;
+  JSON_Array *tr_arr = NULL;
+  const char *s_val = NULL;
+  double d_val = 0.0;
+  int has_v = 0;
   size_t i;
   cdd_c_error_t rc;
 
@@ -612,44 +1216,59 @@ static cdd_c_error_t parse_type(JSON_Object *obj, cdd_ffi_type_t *type) {
   if (!obj)
     return CDD_C_SUCCESS;
 
-  if (json_object_has_value(obj, "kind"))
-    type->kind = (cdd_ffi_primitive_kind_t)json_object_get_number(obj, "kind");
-  if (json_object_has_value(obj, "is_const"))
-    type->is_const = (int)json_object_get_number(obj, "is_const");
-  if (json_object_has_value(obj, "pointer_depth"))
-    type->pointer_depth = (int)json_object_get_number(obj, "pointer_depth");
-  if (json_object_has_value(obj, "array_size"))
-    type->array_size = (long)json_object_get_number(obj, "array_size");
+  has_val_opt(obj, "kind", &has_v);
+  if (has_v) {
+    get_num_opt(obj, "kind", &d_val);
+    type->kind = (cdd_ffi_primitive_kind_t)d_val;
+  }
+  has_val_opt(obj, "is_const", &has_v);
+  if (has_v) {
+    get_num_opt(obj, "is_const", &d_val);
+    type->is_const = (int)d_val;
+  }
+  has_val_opt(obj, "pointer_depth", &has_v);
+  if (has_v) {
+    get_num_opt(obj, "pointer_depth", &d_val);
+    type->pointer_depth = (int)d_val;
+  }
+  has_val_opt(obj, "array_size", &has_v);
+  if (has_v) {
+    get_num_opt(obj, "array_size", &d_val);
+    type->array_size = (long)d_val;
+  }
 
-  rc = strdup_safe(json_object_get_string(obj, "ref_name"), &type->ref_name);
+  get_str_opt(obj, "ref_name", &s_val);
+  rc = strdup_safe(s_val, &type->ref_name);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  t_arr = json_object_get_array(obj, "template_args");
+  get_arr_opt(obj, "template_args", &t_arr);
   if (t_arr) {
-    type->template_args_count = json_array_get_count(t_arr);
+    cdd_json_array_get_count(t_arr, &type->template_args_count);
     type->template_args =
         C_CDD_CALLOC(type->template_args_count, sizeof(cdd_ffi_type_t));
     if (!type->template_args)
       return CDD_C_ERROR_MEMORY;
     for (i = 0; i < type->template_args_count; ++i) {
-      rc = parse_type(json_array_get_object(t_arr, i), &type->template_args[i]);
+      JSON_Object *sub_obj = NULL;
+      cdd_json_array_get_object(t_arr, i, &sub_obj);
+      rc = parse_type(sub_obj, &type->template_args[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
 
-  rc = parse_trivia(json_object_get_array(obj, "leading_trivia"),
-                    &type->leading_trivia);
+  get_arr_opt(obj, "leading_trivia", &tr_arr);
+  rc = parse_trivia(tr_arr, &type->leading_trivia);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  rc = parse_trivia(json_object_get_array(obj, "trailing_trivia"),
-                    &type->trailing_trivia);
+  get_arr_opt(obj, "trailing_trivia", &tr_arr);
+  rc = parse_trivia(tr_arr, &type->trailing_trivia);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  rc = strdup_safe(json_object_get_string(obj, "raw_spelling"),
-                   &type->raw_spelling);
+  get_str_opt(obj, "raw_spelling", &s_val);
+  rc = strdup_safe(s_val, &type->raw_spelling);
   if (rc != CDD_C_SUCCESS)
     return rc;
   return CDD_C_SUCCESS;
@@ -663,36 +1282,46 @@ static cdd_c_error_t parse_type(JSON_Object *obj, cdd_ffi_type_t *type) {
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
  */
 static cdd_c_error_t parse_field(JSON_Object *obj, cdd_ffi_field_t *field) {
+  const char *s_val = NULL;
+  double d_val = 0.0;
+  int has_v = 0;
+  JSON_Object *sub_obj = NULL;
+  JSON_Array *tr_arr = NULL;
   cdd_c_error_t rc;
   memset(field, 0, sizeof(cdd_ffi_field_t));
 
-  rc = strdup_safe(json_object_get_string(obj, "name"), &field->name);
+  get_str_opt(obj, "name", &s_val);
+  rc = strdup_safe(s_val, &field->name);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  rc = strdup_safe(json_object_get_string(obj, "doc"), &field->doc);
+  get_str_opt(obj, "doc", &s_val);
+  rc = strdup_safe(s_val, &field->doc);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  rc = strdup_safe(json_object_get_string(obj, "array_length_ref"),
-                   &field->array_length_ref);
+  get_str_opt(obj, "array_length_ref", &s_val);
+  rc = strdup_safe(s_val, &field->array_length_ref);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  if (json_object_has_value(obj, "intent"))
-    field->intent =
-        (cdd_ffi_param_intent_t)json_object_get_number(obj, "intent");
+  has_val_opt(obj, "intent", &has_v);
+  if (has_v) {
+    get_num_opt(obj, "intent", &d_val);
+    field->intent = (cdd_ffi_param_intent_t)d_val;
+  }
 
-  rc = parse_type(json_object_get_object(obj, "type"), &field->type);
+  get_obj_opt(obj, "type", &sub_obj);
+  rc = parse_type(sub_obj, &field->type);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  rc = parse_trivia(json_object_get_array(obj, "leading_trivia"),
-                    &field->leading_trivia);
+  get_arr_opt(obj, "leading_trivia", &tr_arr);
+  rc = parse_trivia(tr_arr, &field->leading_trivia);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  rc = parse_trivia(json_object_get_array(obj, "trailing_trivia"),
-                    &field->trailing_trivia);
+  get_arr_opt(obj, "trailing_trivia", &tr_arr);
+  rc = parse_trivia(tr_arr, &field->trailing_trivia);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
@@ -708,145 +1337,165 @@ static cdd_c_error_t parse_field(JSON_Object *obj, cdd_ffi_field_t *field) {
  */
 static cdd_c_error_t parse_node(JSON_Object *obj, cdd_ffi_ir_node_t *node) {
   cdd_c_error_t rc;
-  JSON_Array *arr;
+  JSON_Array *arr = NULL;
+  const char *s_val = NULL;
+  double d_val = 0.0;
+  int has_v = 0;
   size_t i;
 
   memset(node, 0, sizeof(cdd_ffi_ir_node_t));
 
-  if (json_object_has_value(obj, "kind"))
-    node->kind = (cdd_ffi_node_kind_t)json_object_get_number(obj, "kind");
+  has_val_opt(obj, "kind", &has_v);
+  if (has_v) {
+    get_num_opt(obj, "kind", &d_val);
+    node->kind = (cdd_ffi_node_kind_t)d_val;
+  }
 
-  rc = strdup_safe(json_object_get_string(obj, "name"), &node->name);
+  get_str_opt(obj, "name", &s_val);
+  rc = strdup_safe(s_val, &node->name);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  rc = strdup_safe(json_object_get_string(obj, "doc"), &node->doc);
+  get_str_opt(obj, "doc", &s_val);
+  rc = strdup_safe(s_val, &node->doc);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  arr = json_object_get_array(obj, "fields");
+  get_arr_opt(obj, "fields", &arr);
   if (arr) {
-    node->fields_count = json_array_get_count(arr);
+    cdd_json_array_get_count(arr, &node->fields_count);
     node->fields = C_CDD_CALLOC(node->fields_count, sizeof(cdd_ffi_field_t));
     if (!node->fields)
       return CDD_C_ERROR_MEMORY;
     for (i = 0; i < node->fields_count; ++i) {
-      rc = parse_field(json_array_get_object(arr, i), &node->fields[i]);
+      JSON_Object *f_obj = NULL;
+      cdd_json_array_get_object(arr, i, &f_obj);
+      rc = parse_field(f_obj, &node->fields[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
 
-  arr = json_object_get_array(obj, "base_classes");
+  get_arr_opt(obj, "base_classes", &arr);
   if (arr) {
-    node->base_classes_count = json_array_get_count(arr);
+    cdd_json_array_get_count(arr, &node->base_classes_count);
     node->base_classes =
         C_CDD_CALLOC(node->base_classes_count, sizeof(cdd_ffi_base_class_t));
     if (!node->base_classes)
       return CDD_C_ERROR_MEMORY;
     for (i = 0; i < node->base_classes_count; ++i) {
-      JSON_Object *bc_obj = json_array_get_object(arr, i);
-      rc = strdup_safe(json_object_get_string(bc_obj, "name"),
-                       &node->base_classes[i].name);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
-      rc = strdup_safe(json_object_get_string(bc_obj, "access"),
-                       &node->base_classes[i].access);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
-      if (json_object_has_value(bc_obj, "is_virtual"))
-        node->base_classes[i].is_virtual =
-            (int)json_object_get_number(bc_obj, "is_virtual");
+      JSON_Object *bc_obj = NULL;
+      cdd_json_array_get_object(arr, i, &bc_obj);
+      if (bc_obj) {
+        rc = cdd_reflect_from_json_object(
+            bc_obj, &g_cdd_ffi_base_class_type_info, &node->base_classes[i]);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+      }
     }
   }
 
-  arr = json_object_get_array(obj, "variants");
+  get_arr_opt(obj, "variants", &arr);
   if (arr) {
-    node->variants_count = json_array_get_count(arr);
+    cdd_json_array_get_count(arr, &node->variants_count);
     node->variants =
         C_CDD_CALLOC(node->variants_count, sizeof(cdd_ffi_enum_variant_t));
     if (!node->variants)
       return CDD_C_ERROR_MEMORY;
     for (i = 0; i < node->variants_count; ++i) {
-      JSON_Object *v_obj = json_array_get_object(arr, i);
-      rc = strdup_safe(json_object_get_string(v_obj, "name"),
-                       &node->variants[i].name);
+      JSON_Object *v_obj = NULL;
+      JSON_Object *nd_obj = NULL;
+      JSON_Array *tr_arr = NULL;
+      cdd_json_array_get_object(arr, i, &v_obj);
+      get_str_opt(v_obj, "name", &s_val);
+      rc = strdup_safe(s_val, &node->variants[i].name);
       if (rc != CDD_C_SUCCESS)
         return rc;
-      rc = strdup_safe(json_object_get_string(v_obj, "value"),
-                       &node->variants[i].value);
+      get_str_opt(v_obj, "value", &s_val);
+      rc = strdup_safe(s_val, &node->variants[i].value);
       if (rc != CDD_C_SUCCESS)
         return rc;
-      rc = strdup_safe(json_object_get_string(v_obj, "doc"),
-                       &node->variants[i].doc);
+      get_str_opt(v_obj, "doc", &s_val);
+      rc = strdup_safe(s_val, &node->variants[i].doc);
       if (rc != CDD_C_SUCCESS)
         return rc;
-      rc = strdup_safe(json_object_get_string(v_obj, "raw_spelling"),
-                       &node->variants[i].raw_spelling);
+      get_str_opt(v_obj, "raw_spelling", &s_val);
+      rc = strdup_safe(s_val, &node->variants[i].raw_spelling);
       if (rc != CDD_C_SUCCESS)
         return rc;
 
-      rc = parse_number(json_object_get_object(v_obj, "number_details"),
-                        &node->variants[i].number_details);
+      get_obj_opt(v_obj, "number_details", &nd_obj);
+      rc = parse_number(nd_obj, &node->variants[i].number_details);
       if (rc != CDD_C_SUCCESS)
         return rc;
-      rc = parse_trivia(json_object_get_array(v_obj, "leading_trivia"),
-                        &node->variants[i].leading_trivia);
+      get_arr_opt(v_obj, "leading_trivia", &tr_arr);
+      rc = parse_trivia(tr_arr, &node->variants[i].leading_trivia);
       if (rc != CDD_C_SUCCESS)
         return rc;
-      rc = parse_trivia(json_object_get_array(v_obj, "trailing_trivia"),
-                        &node->variants[i].trailing_trivia);
+      get_arr_opt(v_obj, "trailing_trivia", &tr_arr);
+      rc = parse_trivia(tr_arr, &node->variants[i].trailing_trivia);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
 
-  arr = json_object_get_array(obj, "macro_expansions");
+  get_arr_opt(obj, "macro_expansions", &arr);
   if (arr) {
-    node->macro_expansions_count = json_array_get_count(arr);
+    cdd_json_array_get_count(arr, &node->macro_expansions_count);
     node->macro_expansions = C_CDD_CALLOC(
         node->macro_expansions_count, sizeof(struct cdd_ffi_macro_expansion_t));
     if (!node->macro_expansions)
       return CDD_C_ERROR_MEMORY;
     for (i = 0; i < node->macro_expansions_count; ++i) {
-      rc = parse_macro_expansion(json_array_get_object(arr, i),
-                                 &node->macro_expansions[i]);
+      JSON_Object *m_obj = NULL;
+      cdd_json_array_get_object(arr, i, &m_obj);
+      rc = parse_macro_expansion(m_obj, &node->macro_expansions[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
 
-  if (json_object_has_value(obj, "return_or_base_type")) {
-    rc = parse_type(json_object_get_object(obj, "return_or_base_type"),
-                    &node->return_or_base_type);
+  has_val_opt(obj, "return_or_base_type", &has_v);
+  if (has_v) {
+    JSON_Object *rt_obj = NULL;
+    get_obj_opt(obj, "return_or_base_type", &rt_obj);
+    rc = parse_type(rt_obj, &node->return_or_base_type);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
 
-  rc = strdup_safe(json_object_get_string(obj, "evaluated_value"),
-                   &node->evaluated_value);
+  get_str_opt(obj, "evaluated_value", &s_val);
+  rc = strdup_safe(s_val, &node->evaluated_value);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  if (json_object_has_value(obj, "inferred_type"))
-    node->inferred_type =
-        (cdd_ffi_macro_type_t)json_object_get_number(obj, "inferred_type");
-  if (json_object_has_value(obj, "requires_gil_release"))
-    node->requires_gil_release =
-        (int)json_object_get_number(obj, "requires_gil_release");
-  if (json_object_has_value(obj, "is_variadic"))
-    node->is_variadic = (int)json_object_get_number(obj, "is_variadic");
+  has_val_opt(obj, "inferred_type", &has_v);
+  if (has_v) {
+    get_num_opt(obj, "inferred_type", &d_val);
+    node->inferred_type = (cdd_ffi_macro_type_t)d_val;
+  }
+  has_val_opt(obj, "requires_gil_release", &has_v);
+  if (has_v) {
+    get_num_opt(obj, "requires_gil_release", &d_val);
+    node->requires_gil_release = (int)d_val;
+  }
+  has_val_opt(obj, "is_variadic", &has_v);
+  if (has_v) {
+    get_num_opt(obj, "is_variadic", &d_val);
+    node->is_variadic = (int)d_val;
+  }
 
-  rc = parse_trivia(json_object_get_array(obj, "leading_trivia"),
-                    &node->leading_trivia);
+  get_arr_opt(obj, "leading_trivia", &arr);
+  rc = parse_trivia(arr, &node->leading_trivia);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  rc = parse_trivia(json_object_get_array(obj, "trailing_trivia"),
-                    &node->trailing_trivia);
+  get_arr_opt(obj, "trailing_trivia", &arr);
+  rc = parse_trivia(arr, &node->trailing_trivia);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  rc = strdup_safe(json_object_get_string(obj, "raw_body"), &node->raw_body);
+  get_str_opt(obj, "raw_body", &s_val);
+  rc = strdup_safe(s_val, &node->raw_body);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
@@ -865,9 +1514,9 @@ static cdd_c_error_t parse_node(JSON_Object *obj, cdd_ffi_ir_node_t *node) {
  */
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_from_json(const char *json_str,
                                                 cdd_ffi_ir_t **out_ir) {
-  JSON_Value *root_val;
-  JSON_Object *root_obj;
-  JSON_Array *nodes_arr;
+  JSON_Value *root_val = NULL;
+  JSON_Object *root_obj = NULL;
+  JSON_Array *nodes_arr = NULL;
   cdd_ffi_ir_t *ir;
   size_t i;
   cdd_c_error_t rc;
@@ -876,48 +1525,48 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_from_json(const char *json_str,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  root_val = json_parse_string(json_str);
-  if (!root_val) {
+  if (cdd_json_parse_string(json_str, &root_val) != CDD_C_SUCCESS) {
     return CDD_C_ERROR_PARSE;
   }
 
-  root_obj = json_value_get_object(root_val);
-  if (!root_obj) {
-    json_value_free(root_val);
+  if (cdd_json_value_get_object(root_val, &root_obj) != CDD_C_SUCCESS) {
+    cdd_json_value_free(root_val);
     return CDD_C_ERROR_PARSE;
   }
 
   ir = C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
   if (!ir) {
-    json_value_free(root_val);
+    cdd_json_value_free(root_val);
     return CDD_C_ERROR_MEMORY;
   }
 
-  nodes_arr = json_object_get_array(root_obj, "nodes");
+  get_arr_opt(root_obj, "nodes", &nodes_arr);
   if (nodes_arr) {
-    ir->nodes_count = json_array_get_count(nodes_arr);
+    cdd_json_array_get_count(nodes_arr, &ir->nodes_count);
     ir->nodes_capacity = ir->nodes_count;
     if (ir->nodes_count > 0) {
       ir->nodes = C_CDD_CALLOC(ir->nodes_count, sizeof(cdd_ffi_ir_node_t));
       if (!ir->nodes) {
         C_CDD_FREE(ir);
-        json_value_free(root_val);
+        cdd_json_value_free(root_val);
         return CDD_C_ERROR_MEMORY;
       }
 
       for (i = 0; i < ir->nodes_count; ++i) {
-        rc = parse_node(json_array_get_object(nodes_arr, i), &ir->nodes[i]);
+        JSON_Object *n_obj = NULL;
+        cdd_json_array_get_object(nodes_arr, i, &n_obj);
+        rc = parse_node(n_obj, &ir->nodes[i]);
         if (rc != CDD_C_SUCCESS) {
           cdd_ffi_ir_free(ir);
           C_CDD_FREE(ir);
-          json_value_free(root_val);
+          cdd_json_value_free(root_val);
           return rc;
         }
       }
     }
   }
 
-  json_value_free(root_val);
+  cdd_json_value_free(root_val);
   *out_ir = ir;
   return CDD_C_SUCCESS;
 }

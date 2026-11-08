@@ -49,7 +49,8 @@ write_root_array_cleanup_func(FILE *fp, const char *name, const char *item_type,
     /* Simple flat array */
     CHECK_IO(FPRINTF_HOOK(fp,
                           "cdd_c_error_t %s_cleanup(int *in, size_t len) {\n"
-                          "  (void)len; free(in); return CDD_C_SUCCESS;\n}\n",
+                          "  if (len == 0 && !in) return CDD_C_SUCCESS;\n"
+                          "  free(in); return CDD_C_SUCCESS;\n}\n",
                           name));
   } else if (strcmp(item_type, "string") == 0) {
     /* Array of pointers to strings */
@@ -65,22 +66,28 @@ write_root_array_cleanup_func(FILE *fp, const char *name, const char *item_type,
   } else if (strcmp(item_type, "object") == 0) {
     /* Array of pointers to structs */
     const char *tn = NULL;
-    get_type_from_ref(item_ref, &tn);
-    CHECK_IO(
-        FPRINTF_HOOK(fp,
-                     "cdd_c_error_t %s_cleanup(struct %s **in, size_t len) {\n"
-                     "  size_t i;\n"
-                     "  if (!in) return CDD_C_SUCCESS;\n"
-                     "  for(i=0; i<len; ++i) %s_cleanup(in[i]);\n"
-                     "  free(in);\n"
-                     "  return CDD_C_SUCCESS;\n"
-                     "}\n",
-                     name, tn, tn));
+    cdd_c_error_t rc_ref = get_type_from_ref(item_ref, &tn);
+    if (rc_ref != CDD_C_SUCCESS)
+      return rc_ref;
+    CHECK_IO(FPRINTF_HOOK(
+        fp,
+        "cdd_c_error_t %s_cleanup(struct %s **in, size_t len) {\n"
+        "  size_t i;\n"
+        "  if (!in) return CDD_C_SUCCESS;\n"
+        "  for(i=0; i<len; ++i) {\n"
+        "    if (in[i]) { cdd_c_error_t _rc = %s_cleanup(in[i]); if (_rc != "
+        "CDD_C_SUCCESS) return _rc; }\n"
+        "  }\n"
+        "  free(in);\n"
+        "  return CDD_C_SUCCESS;\n"
+        "}\n",
+        name, tn, tn));
   } else {
     /* Fallback generic void* */
     CHECK_IO(FPRINTF_HOOK(fp,
                           "cdd_c_error_t %s_cleanup(void *in, size_t len) { "
-                          "(void)len; free(in); return CDD_C_SUCCESS; }\n",
+                          "if (len == 0 && !in) return CDD_C_SUCCESS; "
+                          "free(in); return CDD_C_SUCCESS; }\n",
                           name));
   }
 
@@ -123,7 +130,9 @@ write_root_array_to_json_func(FILE *fp, const char *name, const char *item_type,
   } else if (strcmp(item_type, "object") == 0) {
     {
       const char *tn = NULL;
-      get_type_from_ref(item_ref, &tn);
+      cdd_c_error_t rc_ref = get_type_from_ref(item_ref, &tn);
+      if (rc_ref != CDD_C_SUCCESS)
+        return rc_ref;
       CHECK_IO(FPRINTF_HOOK(
           fp,
           "cdd_c_error_t %s_to_json(struct %s **const in, size_t len, char "
@@ -156,7 +165,9 @@ write_root_array_to_json_func(FILE *fp, const char *name, const char *item_type,
                               "\"\\\"%%s\\\"\", in[i]);\n"));
   } else if (strcmp(item_type, "object") == 0) {
     const char *tn = NULL;
-    get_type_from_ref(item_ref, &tn);
+    cdd_c_error_t rc_ref = get_type_from_ref(item_ref, &tn);
+    if (rc_ref != CDD_C_SUCCESS)
+      return rc_ref;
     CHECK_IO(FPRINTF_HOOK(
         fp,
         "    {\n"
@@ -215,7 +226,9 @@ write_root_array_from_json_func(FILE *fp, const char *name,
         name));
   } else if (strcmp(item_type, "object") == 0) {
     const char *tn = NULL;
-    get_type_from_ref(item_ref, &tn);
+    cdd_c_error_t rc_ref = get_type_from_ref(item_ref, &tn);
+    if (rc_ref != CDD_C_SUCCESS)
+      return rc_ref;
     CHECK_IO(FPRINTF_HOOK(fp,
                           "cdd_c_error_t %s_from_json(const char *json, struct "
                           "%s ***out, size_t "
@@ -253,7 +266,9 @@ write_root_array_from_json_func(FILE *fp, const char *name,
     CHECK_IO(FPRINTF_HOOK(fp, "  *out = calloc(count, sizeof(char *));\n"));
   } else if (strcmp(item_type, "object") == 0) {
     const char *tn = NULL;
-    get_type_from_ref(item_ref, &tn);
+    cdd_c_error_t rc_ref = get_type_from_ref(item_ref, &tn);
+    if (rc_ref != CDD_C_SUCCESS)
+      return rc_ref;
     CHECK_IO(
         FPRINTF_HOOK(fp, "  *out = calloc(count, sizeof(struct %s*));\n", tn));
   }
@@ -279,14 +294,16 @@ write_root_array_from_json_func(FILE *fp, const char *name,
                           "    }\n"));
   } else if (strcmp(item_type, "object") == 0) {
     const char *tn = NULL;
-    get_type_from_ref(item_ref, &tn);
+    cdd_c_error_t rc_ref = get_type_from_ref(item_ref, &tn);
+    if (rc_ref != CDD_C_SUCCESS)
+      return rc_ref;
     CHECK_IO(FPRINTF_HOOK(
         fp,
         "    int rc = %s_from_jsonObject(json_array_get_object(arr, i), "
         "&(*out)[i]);\n"
         "    if (rc != CDD_C_SUCCESS) {\n"
         "      size_t j;\n"
-        "      for(j=0; j<i; j++) %s_cleanup((*out)[j]);\n"
+        "      for(j=0; j<i; j++) if ((*out)[j]) %s_cleanup((*out)[j]);\n"
         "      free(*out); *out=NULL; json_value_free(val); return rc;\n"
         "    }\n",
         tn, tn));

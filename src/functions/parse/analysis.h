@@ -98,8 +98,9 @@ allocation_site_list_init(struct AllocationSiteList *list);
  * Frees any `var_name` strings and the array itself.
  *
  * @param[in] list The list to clean up. Safe to call on NULL.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void
+extern C_CDD_EXPORT cdd_c_error_t
 allocation_site_list_free(struct AllocationSiteList *list);
 
 /**

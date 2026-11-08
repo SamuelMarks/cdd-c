@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/json_dom.h"
 #include "c_cdd/log.h"
 #include "c_cdd/safe_crt.h"
 #include "functions/parse/tokenizer.h"
@@ -112,11 +113,12 @@ cdd_c_error_t vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
  * @brief Releases memory held by a vcpkg manifest builder context.
  *
  * @param[in,out] builder Pointer to the VcpkgManifestBuilder structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void vcpkg_builder_free(struct VcpkgManifestBuilder *builder) {
+cdd_c_error_t vcpkg_builder_free(struct VcpkgManifestBuilder *builder) {
   size_t i;
   if (!builder)
-    return;
+    return CDD_C_SUCCESS;
 
   if (builder->project_name)
     C_CDD_FREE(builder->project_name);
@@ -132,6 +134,7 @@ void vcpkg_builder_free(struct VcpkgManifestBuilder *builder) {
     }
     C_CDD_FREE(builder->deps);
   }
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -280,74 +283,76 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
  */
 cdd_c_error_t vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
                                      char **out_json) {
-  char *json = NULL;
-  size_t cap = 1024;
-  size_t len = 0;
+  JSON_Value *root_val = NULL;
+  JSON_Object *root_obj = NULL;
+  char *ser = NULL;
+  char *res = NULL;
+  cdd_c_error_t rc;
   size_t i;
 
   if (!builder || !out_json)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  json = (char *)C_CDD_MALLOC(cap);
-  if (!json) {
+  rc = cdd_json_value_init_object(&root_val);
+  if (rc != CDD_C_SUCCESS) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
+  cdd_json_value_get_object(root_val, &root_obj);
 
-  /* Basic manual string builder without heavy dependencies */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  len += _snprintf_s(json + len, cap - len, _TRUNCATE,
-                     "{\n  \"name\": \"%s\",\n  \"version-string\": \"%s\",\n  "
-                     "\"description\": \"%s\"",
-                     builder->project_name, builder->version_string,
-                     builder->description);
-#else
-  len += (size_t)CDD_SNPRINTF(
-      json + len, cap - len,
-      "{\n  \"name\": \"%s\",\n  \"version-string\": \"%s\",\n  "
-      "\"description\": \"%s\"",
-      builder->project_name, builder->version_string, builder->description);
-#endif
-
-  if (builder->deps_count > 0) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    len += _snprintf_s(json + len, cap - len, _TRUNCATE,
-                       ",\n  \"dependencies\": [\n");
-#else
-    len += (size_t)CDD_SNPRINTF(json + len, cap - len,
-                                ",\n  \"dependencies\": [\n");
-#endif
-    for (i = 0; i < builder->deps_count; i++) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-      len += _snprintf_s(json + len, cap - len, _TRUNCATE, "    \"%s\"%s\\n",
-                         builder->deps[i].name,
-                         i == builder->deps_count - 1 ? "" : ",");
-#else
-      len += (size_t)CDD_SNPRINTF(json + len, cap - len, "    \"%s\"%s\\n",
-                                  builder->deps[i].name,
-                                  i == builder->deps_count - 1 ? "" : ",");
-#endif
-    }
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    len += _snprintf_s(json + len, cap - len, _TRUNCATE, "  ]\\n");
-#else
-    len += (size_t)CDD_SNPRINTF(json + len, cap - len, "  ]\\n");
-#endif
-  } else {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    len += _snprintf_s(json + len, cap - len, _TRUNCATE, "\\n");
-#else
-    len += (size_t)CDD_SNPRINTF(json + len, cap - len, "\\n");
-#endif
+  rc = cdd_json_object_set_string(root_obj, "name", builder->project_name);
+  if (rc != CDD_C_SUCCESS) {
+    cdd_json_value_free(root_val);
+    return rc;
+  }
+  rc = cdd_json_object_set_string(root_obj, "version-string",
+                                  builder->version_string);
+  if (rc != CDD_C_SUCCESS) {
+    cdd_json_value_free(root_val);
+    return rc;
+  }
+  rc =
+      cdd_json_object_set_string(root_obj, "description", builder->description);
+  if (rc != CDD_C_SUCCESS) {
+    cdd_json_value_free(root_val);
+    return rc;
   }
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  len += _snprintf_s(json + len, cap - len, _TRUNCATE, "}\n");
-#else
-  len += (size_t)CDD_SNPRINTF(json + len, cap - len, "}\n");
-#endif
+  if (builder->deps_count > 0) {
+    JSON_Value *deps_val = NULL;
+    JSON_Array *deps_arr = NULL;
+    rc = cdd_json_value_init_array(&deps_val);
+    if (rc != CDD_C_SUCCESS) {
+      cdd_json_value_free(root_val);
+      return CDD_C_ERROR_MEMORY;
+    }
+    cdd_json_value_get_array(deps_val, &deps_arr);
+    for (i = 0; i < builder->deps_count; i++) {
+      rc = cdd_json_array_append_string(deps_arr, builder->deps[i].name);
+      if (rc != CDD_C_SUCCESS) {
+        cdd_json_value_free(deps_val);
+        cdd_json_value_free(root_val);
+        return rc;
+      }
+    }
+    if (cdd_json_object_set_value(root_obj, "dependencies", deps_val) !=
+        CDD_C_SUCCESS) {
+      cdd_json_value_free(deps_val);
+      cdd_json_value_free(root_val);
+      return CDD_C_ERROR_MEMORY;
+    }
+  }
 
-  *out_json = json;
+  *out_json = NULL;
+  rc = cdd_json_serialize_to_string_pretty(root_val, &ser);
+  cdd_json_value_free(root_val);
+  if (rc != CDD_C_SUCCESS)
+    return CDD_C_ERROR_MEMORY;
+  rc = my_strdup(ser, &res);
+  cdd_json_free_serialized_string(ser);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  *out_json = res;
   return CDD_C_SUCCESS;
 }
 

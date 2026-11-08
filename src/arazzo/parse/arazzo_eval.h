@@ -18,7 +18,7 @@
 #include "arazzo/parse/arazzo_types.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
-#include <parson.h>
+#include "c_cdd/json_dom.h"
 /* clang-format on */
 
 #ifdef __cplusplus

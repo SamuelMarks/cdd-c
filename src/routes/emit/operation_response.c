@@ -71,9 +71,10 @@ cdd_c_error_t is_reserved_header_name(const char *name, int *out_is_reserved) {
 cdd_c_error_t parse_link_params_json(const char *json,
                                      struct OpenAPI_LinkParam **out,
                                      size_t *out_count) {
-  JSON_Value *val;
-  JSON_Object *obj;
-  size_t count, i;
+  JSON_Value *val = NULL;
+  JSON_Object *obj = NULL;
+  JSON_Value_Type vtype = JSONError;
+  size_t count = 0, i;
   cdd_c_error_t rc;
 
   if (out)
@@ -83,48 +84,52 @@ cdd_c_error_t parse_link_params_json(const char *json,
   if (!json || !out || !out_count)
     return CDD_C_SUCCESS;
 
-  val = json_parse_string(json);
+  cdd_json_parse_string(json, &val);
   if (!val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (json_value_get_type(val) != JSONObject) {
-    json_value_free(val);
+  cdd_json_value_get_type(val, &vtype);
+  if (vtype != JSONObject) {
+    cdd_json_value_free(val);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  obj = json_value_get_object(val);
-  count = json_object_get_count(obj);
+  cdd_json_value_get_object(val, &obj);
+  cdd_json_object_get_count(obj, &count);
   if (count == 0) {
-    json_value_free(val);
+    cdd_json_value_free(val);
     return CDD_C_SUCCESS;
   }
 
   *out = (struct OpenAPI_LinkParam *)C_CDD_CALLOC(
       count, sizeof(struct OpenAPI_LinkParam));
   if (!*out) {
-    json_value_free(val);
+    cdd_json_value_free(val);
     return CDD_C_ERROR_MEMORY;
   }
   *out_count = count;
 
   for (i = 0; i < count; ++i) {
-    const char *name = json_object_get_name(obj, i);
-    const JSON_Value *v = json_object_get_value_at(obj, i);
+    const char *name = NULL;
+    JSON_Value *v = NULL;
     struct OpenAPI_LinkParam *lp = &(*out)[i];
+
+    cdd_json_object_get_name(obj, i, &name);
+    cdd_json_object_get_value_at(obj, i, &v);
 
     rc = c_cdd_strdup(name, &lp->name);
     if (rc != CDD_C_SUCCESS) {
-      json_value_free(val);
+      cdd_json_value_free(val);
       goto cleanup;
     }
     rc = any_from_json_value(v, &lp->value);
     if (rc != CDD_C_SUCCESS) {
-      json_value_free(val);
+      cdd_json_value_free(val);
       goto cleanup;
     }
   }
 
-  json_value_free(val);
+  cdd_json_value_free(val);
   return CDD_C_SUCCESS;
 
 cleanup: {
@@ -312,8 +317,9 @@ cdd_c_error_t ensure_response_for_code(struct OpenAPI_Operation *op,
  * @brief Frees header fields.
  *
  * @param[in,out] hdr The OpenAPI_Header structure whose fields are freed.
+ * @return CDD_C_SUCCESS.
  */
-static void free_header_fields(struct OpenAPI_Header *hdr) {
+static cdd_c_error_t free_header_fields(struct OpenAPI_Header *hdr) {
   C_CDD_FREE(hdr->name);
   hdr->name = NULL;
   if (hdr->description) {
@@ -340,6 +346,7 @@ static void free_header_fields(struct OpenAPI_Header *hdr) {
     C_CDD_FREE(hdr->schema.format);
     hdr->schema.format = NULL;
   }
+  return CDD_C_SUCCESS;
 }
 
 /**

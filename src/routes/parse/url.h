@@ -154,8 +154,9 @@ extern C_CDD_EXPORT cdd_c_error_t url_query_init(struct UrlQueryParams *qp);
  * Frees all key/value strings and the internal array.
  *
  * @param[in,out] qp The query parameters container to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void url_query_free(struct UrlQueryParams *qp);
+extern C_CDD_EXPORT cdd_c_error_t url_query_free(struct UrlQueryParams *qp);
 
 /**
  * @brief Add a key-value pair to the query container.

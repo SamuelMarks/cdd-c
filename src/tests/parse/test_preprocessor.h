@@ -602,8 +602,8 @@ TEST test_pp_include_next(void) {
 static cdd_c_error_t abort_cb(const struct IncludeInfo *info, void *user_data) {
   int *called;
   called = (int *)user_data;
-  (*called)++;
-  (void)info;
+  if (info)
+    (*called)++;
   return 1; /* Abort on first */
 }
 

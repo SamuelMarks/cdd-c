@@ -82,8 +82,9 @@ extern C_CDD_EXPORT cdd_c_error_t init_list_init(struct InitList *list);
  * @brief Free an InitList and all its contents (recursive).
  *
  * @param[in] list Pointer to the list to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void init_list_free(struct InitList *list);
+extern C_CDD_EXPORT cdd_c_error_t init_list_free(struct InitList *list);
 
 /**
  * @brief Parse a token range representing an initializer.

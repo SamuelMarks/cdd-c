@@ -94,18 +94,20 @@ cdd_c_error_t init_list_init(struct InitList *list) {
  * @brief Releases memory owned by an initializer value node.
  *
  * @param[in,out] val Initializer value node to free.
+ * @return CDD_C_SUCCESS.
  */
-static void init_value_free(struct InitValue *val);
+static cdd_c_error_t init_value_free(struct InitValue *val);
 
 /*
  * @brief Releases all elements in an initializer list container.
  *
  * @param[in,out] list Pointer to the InitList structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void init_list_free(struct InitList *list) {
+cdd_c_error_t init_list_free(struct InitList *list) {
   size_t i;
   if (!list)
-    return;
+    return CDD_C_SUCCESS;
   if (list->items) {
     for (i = 0; i < list->count; ++i) {
       if (list->items[i].designator)
@@ -120,20 +122,23 @@ void init_list_free(struct InitList *list) {
   }
   list->count = 0;
   list->capacity = 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Releases memory owned by an initializer value node.
  *
  * @param[in,out] val Initializer value node to free.
+ * @return CDD_C_SUCCESS.
  */
-static void init_value_free(struct InitValue *val) {
+static cdd_c_error_t init_value_free(struct InitValue *val) {
   if (val->kind == INIT_KIND_SCALAR) {
     C_CDD_FREE(val->data.scalar);
   } else {
     init_list_free(val->data.compound);
     C_CDD_FREE(val->data.compound);
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -194,10 +199,12 @@ static cdd_c_error_t skip_ws(const struct TokenList *tokens, size_t idx,
  * @brief Checks if a token kind starts a C99 designator (`.` or `[`).
  *
  * @param[in] k Token kind to test.
- * @return Non-zero if designator start, 0 otherwise.
+ * @param[out] out_is_start Output flag (1 if designator start, 0 otherwise).
+ * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t is_designator_start(enum TokenKind k) {
-  return (k == TOKEN_DOT || k == TOKEN_LBRACKET);
+static cdd_c_error_t is_designator_start(enum TokenKind k, int *out_is_start) {
+  *out_is_start = (k == TOKEN_DOT || k == TOKEN_LBRACKET) ? 1 : 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -357,12 +364,17 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
     }
 
     /* Check designator: starts with . or [ */
-    if (is_designator_start(tokens->tokens[i].kind)) {
-      size_t next_after_desig;
-      rc = parse_designator(tokens, i, end_idx, &desig_str, &next_after_desig);
-      if (rc != CDD_C_SUCCESS)
-        goto error;
-      i = next_after_desig;
+    {
+      int is_desig = 0;
+      is_designator_start(tokens->tokens[i].kind, &is_desig);
+      if (is_desig) {
+        size_t next_after_desig;
+        rc =
+            parse_designator(tokens, i, end_idx, &desig_str, &next_after_desig);
+        if (rc != CDD_C_SUCCESS)
+          goto error;
+        i = next_after_desig;
+      }
     }
 
     rc = skip_ws(tokens, i, end_idx, &i);

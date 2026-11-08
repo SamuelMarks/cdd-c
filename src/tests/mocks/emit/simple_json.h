@@ -53,7 +53,7 @@ typedef unsigned char bool;
 
 #include <stdio.h>
 
-#include <parson.h>
+#include "c_cdd/json_dom.h"
 
 #include "simple_mocks_export.h"
 /* clang-format on */

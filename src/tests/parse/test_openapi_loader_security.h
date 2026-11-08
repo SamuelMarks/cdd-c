@@ -990,11 +990,22 @@ TEST test_openapi_loader_security_branches(void) {
 
   /* 12. Direct parse_security_schemes failure tests */
   {
-    JSON_Value *jv_api =
-        json_parse_string("{\"securitySchemes\":{\"apiAuth\":{\"type\":"
-                          "\"apiKey\",\"name\":\"k\",\"in\":\"header\"}}}");
-    JSON_Value *jv_sw2 = json_parse_string(
-        "{\"securityDefinitions\":{\"basicAuth\":{\"type\":\"basic\"}}}");
+    JSON_Value *jv_api = NULL;
+    JSON_Value *jv_sw2 = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{\"securitySchemes\":{\"apiAuth\":{\"type\":"
+                            "\"apiKey\",\"name\":\"k\",\"in\":\"header\"}}}",
+                            &_cdd_jv_1);
+      jv_api = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\"securityDefinitions\":{\"basicAuth\":{\"type\":\"basic\"}}}",
+          &_cdd_jv_1);
+      jv_sw2 = _cdd_jv_1;
+    }
 
     if (jv_api) {
       JSON_Object *jo = json_value_get_object(jv_api);
@@ -1021,9 +1032,15 @@ TEST test_openapi_loader_security_branches(void) {
     }
 
     {
-      JSON_Value *jv_ext =
-          json_parse_string("{\"securitySchemes\":{\"s1\":{\"type\":\"apiKey\","
-                            "\"name\":\"k\",\"in\":\"header\",\"x-s\":1}}}");
+      JSON_Value *jv_ext = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string(
+            "{\"securitySchemes\":{\"s1\":{\"type\":\"apiKey\","
+            "\"name\":\"k\",\"in\":\"header\",\"x-s\":1}}}",
+            &_cdd_jv_1);
+        jv_ext = _cdd_jv_1;
+      }
       if (jv_ext) {
         cdd_c_error_t rc_ext;
         memset(&spec, 0, sizeof(spec));
@@ -1052,8 +1069,14 @@ TEST test_openapi_loader_security_branches(void) {
 
   /* 13. Direct parse_security_field failure tests */
   {
-    JSON_Value *jv_sec = json_parse_string(
-        "{\"security\":[{\"sec1\":[\"read\"],\"x-sec\":\"val\"}]}");
+    JSON_Value *jv_sec = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\"security\":[{\"sec1\":[\"read\"],\"x-sec\":\"val\"}]}",
+          &_cdd_jv_1);
+      jv_sec = _cdd_jv_1;
+    }
     if (jv_sec) {
       struct OpenAPI_SecurityRequirementSet *out_reqs = NULL;
       size_t out_cnt = 0;
@@ -1080,13 +1103,34 @@ TEST test_openapi_loader_security_branches(void) {
 
   /* 14. Additional branch coverage for openapi_security.c */
   {
-    JSON_Value *jv_sw2_noflow = json_parse_string(
-        "{\"securityDefinitions\":{\"oauth\":{\"type\":\"oauth2\"}}}");
-    JSON_Value *jv_notype =
-        json_parse_string("{\"securitySchemes\":{\"noType\":{}}}");
-    JSON_Value *jv_reqs = json_parse_string(
-        "[{\"x-only\":\"val\"},{\"sec\":null},{\"sec\":[123]}]");
-    JSON_Value *jv_obj = json_parse_string("{\"sec\":[]}");
+    JSON_Value *jv_sw2_noflow = NULL;
+    JSON_Value *jv_notype = NULL;
+    JSON_Value *jv_reqs = NULL;
+    JSON_Value *jv_obj = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\"securityDefinitions\":{\"oauth\":{\"type\":\"oauth2\"}}}",
+          &_cdd_jv_1);
+      jv_sw2_noflow = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{\"securitySchemes\":{\"noType\":{}}}",
+                            &_cdd_jv_1);
+      jv_notype = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "[{\"x-only\":\"val\"},{\"sec\":null},{\"sec\":[123]}]", &_cdd_jv_1);
+      jv_reqs = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{\"sec\":[]}", &_cdd_jv_1);
+      jv_obj = _cdd_jv_1;
+    }
 
     if (jv_sw2_noflow) {
       struct OpenAPI_Spec spec_sw2;
@@ -1128,18 +1172,40 @@ TEST test_openapi_loader_security_branches(void) {
     }
 
     {
-      JSON_Value *jv_empty_key =
-          json_parse_string("{\"securitySchemes\":{\"api\":{\"type\":"
-                            "\"apiKey\",\"in\":\"header\","
-                            "\"name\":\"\"}}}");
-      JSON_Value *jv_empty_sch =
-          json_parse_string("{\"securitySchemes\":{\"http\":{\"type\":\"http\","
-                            "\"scheme\":\"\"}}}");
-      JSON_Value *jv_empty_oid = json_parse_string(
-          "{\"securitySchemes\":{\"oid\":{\"type\":\"openIdConnect\","
-          "\"openIdConnectUrl\":\"\"}}}");
-      JSON_Value *jv_non_obj = json_parse_string("[123]");
+      JSON_Value *jv_empty_key = NULL;
+      JSON_Value *jv_empty_sch = NULL;
+      JSON_Value *jv_empty_oid = NULL;
+      JSON_Value *jv_non_obj = NULL;
       struct OpenAPI_Spec s_dummy;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("{\"securitySchemes\":{\"api\":{\"type\":"
+                              "\"apiKey\",\"in\":\"header\","
+                              "\"name\":\"\"}}}",
+                              &_cdd_jv_1);
+        jv_empty_key = _cdd_jv_1;
+      }
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string(
+            "{\"securitySchemes\":{\"http\":{\"type\":\"http\","
+            "\"scheme\":\"\"}}}",
+            &_cdd_jv_1);
+        jv_empty_sch = _cdd_jv_1;
+      }
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string(
+            "{\"securitySchemes\":{\"oid\":{\"type\":\"openIdConnect\","
+            "\"openIdConnectUrl\":\"\"}}}",
+            &_cdd_jv_1);
+        jv_empty_oid = _cdd_jv_1;
+      }
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("[123]", &_cdd_jv_1);
+        jv_non_obj = _cdd_jv_1;
+      }
 
       if (jv_empty_key) {
         memset(&s_dummy, 0, sizeof(s_dummy));

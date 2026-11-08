@@ -102,11 +102,12 @@ cdd_c_error_t openapi_doc_registry_init(struct OpenAPI_DocRegistry *registry) {
  * Does NOT free the OpenAPI_Spec instances referenced by the registry.
  *
  * @param[in] registry Pointer to registry to free.
+ * @return CDD_C_SUCCESS.
  */
-void openapi_doc_registry_free(struct OpenAPI_DocRegistry *registry) {
+cdd_c_error_t openapi_doc_registry_free(struct OpenAPI_DocRegistry *registry) {
   size_t i;
   if (!registry)
-    return;
+    return CDD_C_SUCCESS;
   if (registry->entries) {
     for (i = 0; i < registry->count; ++i) {
       C_CDD_FREE(registry->entries[i].base_uri);
@@ -116,6 +117,7 @@ void openapi_doc_registry_free(struct OpenAPI_DocRegistry *registry) {
   registry->entries = NULL;
   registry->count = 0;
   registry->capacity = 0;
+  return CDD_C_SUCCESS;
 }
 
 /**

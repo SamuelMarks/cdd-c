@@ -20,6 +20,7 @@
 #include "c_cdd_export.h"
 #include "cdd_api.h"
 #include "c_cdd/memory.h"
+#include "classes/emit/cli_struct.h"
 #include "classes/emit/schema_codegen.h"
 #include "classes/parse/code2schema.h"
 #include "functions/emit/build_system.h"
@@ -39,8 +40,6 @@
 #include "routes/parse/cli.h" /* New entry */
 #include "routes/parse/cli_cst.h"
 #include "tests/emit/schema2tests.h"
-
-#include <parson.h>
 /* clang-format on */
 
 C_CDD_EXPORT cdd_c_error_t print_version(void);
@@ -112,7 +111,7 @@ C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv) {
   cdd_c_error_t rc;
   if (argc != 1 || !argv)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  audit_stats_init(&stats);
+  rc = audit_stats_init(&stats);
   rc = audit_project(argv[0], &stats);
   audit_stats_free(&stats);
   return rc;
@@ -200,10 +199,13 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
   cdd_from_openapi_config_t api_cfg;
   const char *subcmd_str = "to_sdk";
   const char *env_val;
+  const char *sug = NULL;
   int has_subcommand = 0;
   int i;
+  cdd_c_error_t rc;
 
   memset(&api_cfg, 0, sizeof(api_cfg));
+  rc = cdd_cli_suggest_closest("from_openapi", NULL, 0, &sug);
   api_cfg.subcommand = CDD_OPENAPI_SUBCOMMAND_TO_SDK;
   env_val = getenv("CDD_INPUT");
   api_cfg.input = env_val ? env_val : getenv("INPUT_FILE");
@@ -235,6 +237,8 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
   }
 
   for (i = 1; i < argc; i++) {
+    const struct cdd_field_info *f = NULL;
+    const char *flag = argv[i] + (argv[i][1] == '-' ? 2 : 1);
     if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
       if (has_subcommand) {
         printf("Usage: cdd-c from_openapi %s [args]\n\n", subcmd_str);
@@ -267,23 +271,17 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
       puts("  --no-installable-package  Do not generate build system files "
            "(e.g. CMakeLists.txt)");
       puts("  --tests                   Generate composable tests and mocks");
-      return CDD_C_SUCCESS;
-    } else if ((strcmp(argv[i], "-i") == 0 ||
-                strcmp(argv[i], "--input") == 0) &&
-               i + 1 < argc) {
-      api_cfg.input = argv[++i];
-    } else if (strcmp(argv[i], "--input-dir") == 0 && i + 1 < argc) {
-      api_cfg.input_dir = argv[++i];
-    } else if ((strcmp(argv[i], "-o") == 0 ||
-                strcmp(argv[i], "--output") == 0) &&
-               i + 1 < argc) {
-      api_cfg.output = argv[++i];
-    } else if (strcmp(argv[i], "--no-github-actions") == 0) {
-      api_cfg.no_github_actions = CDD_TRUE;
-    } else if (strcmp(argv[i], "--no-installable-package") == 0) {
-      api_cfg.no_installable_package = CDD_TRUE;
-    } else if (strcmp(argv[i], "--tests") == 0) {
-      api_cfg.tests = CDD_TRUE;
+      return rc;
+    } else if (cdd_reflect_find_field(&cdd_from_openapi_config_type_info, flag,
+                                      &f) == CDD_C_SUCCESS) {
+      if (f->kind == CDD_FIELD_KIND_BOOLEAN) {
+        c_cdd_bool_t bval = CDD_TRUE;
+        memcpy((unsigned char *)&api_cfg + f->offset, &bval, sizeof(bval));
+      } else if (i + 1 < argc) {
+        const char *arg_val = argv[++i];
+        memcpy((unsigned char *)&api_cfg + f->offset, &arg_val,
+               sizeof(arg_val));
+      }
     }
   }
 
@@ -304,9 +302,12 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
 C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
   cdd_to_openapi_config_t api_cfg;
   const char *env_val;
+  const char *sug = NULL;
   int i;
+  cdd_c_error_t rc;
 
   memset(&api_cfg, 0, sizeof(api_cfg));
+  rc = cdd_cli_suggest_closest("to_openapi", NULL, 0, &sug);
   env_val = getenv("CDD_INPUT");
   api_cfg.input = env_val ? env_val : getenv("INPUT_DIR");
   env_val = getenv("CDD_OUTPUT");
@@ -315,6 +316,8 @@ C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
   api_cfg.output = env_val ? env_val : "openapi.json";
 
   for (i = 0; i < argc; i++) {
+    const struct cdd_field_info *f = NULL;
+    const char *flag = argv[i] + (argv[i][1] == '-' ? 2 : 1);
     if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
       puts("Usage: cdd-c to_openapi [args]");
       puts("");
@@ -323,15 +326,12 @@ C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
           "  -i, --input <dir>       Input directory containing C source code");
       puts("  -o, --output <out.json> Output OpenAPI spec file (default: "
            "openapi.json)");
-      return CDD_C_SUCCESS;
-    } else if ((strcmp(argv[i], "-i") == 0 ||
-                strcmp(argv[i], "--input") == 0) &&
+      return rc;
+    } else if (cdd_reflect_find_field(&cdd_to_openapi_config_type_info, flag,
+                                      &f) == CDD_C_SUCCESS &&
                i + 1 < argc) {
-      api_cfg.input = argv[++i];
-    } else if ((strcmp(argv[i], "-o") == 0 ||
-                strcmp(argv[i], "--output") == 0) &&
-               i + 1 < argc) {
-      api_cfg.output = argv[++i];
+      const char *arg_val = argv[++i];
+      memcpy((unsigned char *)&api_cfg + f->offset, &arg_val, sizeof(arg_val));
     }
   }
 
@@ -348,9 +348,12 @@ C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
  */
 C_CDD_EXPORT cdd_c_error_t from_arazzo_cli_main(int argc, char **argv) {
   cdd_from_arazzo_config_t cfg;
+  const char *sug = NULL;
   int i;
+  cdd_c_error_t rc;
 
   memset(&cfg, 0, sizeof(cfg));
+  rc = cdd_cli_suggest_closest("from_arazzo", NULL, 0, &sug);
   cfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SDK;
 
   if (argc >= 2 && argv[1][0] != '-') {
@@ -370,20 +373,17 @@ C_CDD_EXPORT cdd_c_error_t from_arazzo_cli_main(int argc, char **argv) {
   }
 
   for (i = 1; i < argc; ++i) {
+    const struct cdd_field_info *f = NULL;
+    const char *flag = argv[i] + (argv[i][1] == '-' ? 2 : 1);
     if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
       puts("Usage: cdd-c from_arazzo [to_sdk|to_sdk_cli|to_server] -i "
            "<arazzo.json> [-o <output>]");
-      return CDD_C_SUCCESS;
-    } else if (((strcmp(argv[i], "-i") == 0 ||
-                 strcmp(argv[i], "--input") == 0) != 0) &
+      return rc;
+    } else if ((cdd_reflect_find_field(&cdd_from_arazzo_config_type_info, flag,
+                                       &f) == CDD_C_SUCCESS) &
                (i + 1 < argc)) {
-      cfg.input = argv[++i];
-    } else if ((strcmp(argv[i], "--openapi") == 0) & (i + 1 < argc)) {
-      cfg.openapi_input = argv[++i];
-    } else if (((strcmp(argv[i], "-o") == 0 ||
-                 strcmp(argv[i], "--output") == 0) != 0) &
-               (i + 1 < argc)) {
-      cfg.output = argv[++i];
+      const char *arg_val = argv[++i];
+      memcpy((unsigned char *)&cfg + f->offset, &arg_val, sizeof(arg_val));
     }
   }
 
@@ -424,7 +424,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {
   const char *cmd;
 
   if (argc < 2) {
-    print_help(argc > 0 ? argv[0] : "cdd-c");
+    rc = print_help(argc > 0 ? argv[0] : "cdd-c");
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
@@ -525,7 +525,26 @@ C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {
       /* Keep previous behavior stub */
       return CDD_C_ERROR_INVALID_ARGUMENT;
     }
-    fprintf(stderr, "Error: Unknown or incomplete command: %s\n", cmd);
+    {
+      static const char *const k_top_cmds[] = {
+          "from_openapi", "to_openapi",     "to_docs_json",
+          "bind",         "serve_json_rpc", "mcp",
+          "from_arazzo",  "to_arazzo",      "c2arazzo",
+          "audit",        "c2openapi",      "standardize-gnu",
+          "transformer",  "code2schema",    "generate_build_system",
+          "schema2code"};
+      const char *sug = NULL;
+      rc = cdd_cli_suggest_closest(
+          cmd, k_top_cmds, sizeof(k_top_cmds) / sizeof(k_top_cmds[0]), &sug);
+      if (sug) {
+        fprintf(
+            stderr,
+            "Error: Unknown or incomplete command: %s (did you mean '%s'?)\n",
+            cmd, sug);
+      } else {
+        fprintf(stderr, "Error: Unknown or incomplete command: %s\n", cmd);
+      }
+    }
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 

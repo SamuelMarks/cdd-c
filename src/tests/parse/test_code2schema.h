@@ -948,12 +948,24 @@ TEST test_hostile_openapi_property_and_schema_names(void) {
         "\"1st\","
         "\"true\",\"foo bar\",\"\",\"a-b\",\"a_b\",\"a.b\",\"UNKNOWN\"]}}";
     CDD_SNPRINTF(json_buf, sizeof(json_buf), "%s%s%s", p1, p2, p3);
-    root_val = json_parse_string(json_buf);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(json_buf, &_cdd_jv_1);
+      root_val = _cdd_jv_1;
+    }
   }
   ASSERT(root_val != NULL);
   schemas_obj = json_value_get_object(root_val);
-  hostile_obj = json_object_get_object(schemas_obj, "Hostile-Schema");
-  enum_obj = json_object_get_object(schemas_obj, "Hostile-Enum");
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(schemas_obj, "Hostile-Schema", &_cdd_jo_1);
+    hostile_obj = _cdd_jo_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(schemas_obj, "Hostile-Enum", &_cdd_jo_1);
+    enum_obj = _cdd_jo_1;
+  }
   ASSERT(hostile_obj != NULL);
   ASSERT(enum_obj != NULL);
 
@@ -1038,40 +1050,145 @@ TEST test_hostile_openapi_property_and_schema_names(void) {
   c2s_argv[1] = (char *)(size_t)out_schema_file;
   ASSERT_EQ(CDD_C_SUCCESS, code2schema_main(2, c2s_argv));
 
-  rt_val = json_parse_file(out_schema_file);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_file(out_schema_file, &_cdd_jv_1);
+    rt_val = _cdd_jv_1;
+  }
   ASSERT(rt_val != NULL);
-  rt_schemas = json_object_get_object(
-      json_object_get_object(json_value_get_object(rt_val), "components"),
-      "schemas");
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    JSON_Object *_cdd_jo_2 = NULL;
+    cdd_json_object_get_object(json_value_get_object(rt_val), "components",
+                               &_cdd_jo_1);
+    cdd_json_object_get_object(_cdd_jo_1, "schemas", &_cdd_jo_2);
+    rt_schemas = _cdd_jo_2;
+  }
   ASSERT(rt_schemas != NULL);
-  rt_hostile = json_object_get_object(rt_schemas, "Hostile-Schema");
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(rt_schemas, "Hostile-Schema", &_cdd_jo_1);
+    rt_hostile = _cdd_jo_1;
+  }
   ASSERT(rt_hostile != NULL);
-  rt_props = json_object_get_object(rt_hostile, "properties");
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(rt_hostile, "properties", &_cdd_jo_1);
+    rt_props = _cdd_jo_1;
+  }
   ASSERT(rt_props != NULL);
-  ASSERT(json_object_get_object(rt_props, "0") != NULL);
-  ASSERT(json_object_get_object(rt_props, "123-abc") != NULL);
-  ASSERT(json_object_get_object(rt_props, "first name") != NULL);
-  ASSERT(json_object_get_object(rt_props, "content-type") != NULL);
-  ASSERT(json_object_get_object(rt_props, "io.k8s.pod") != NULL);
-  ASSERT(json_object_get_object(rt_props, "application/json") != NULL);
-  ASSERT(json_object_get_object(rt_props, "foo-bar") != NULL);
-  ASSERT(json_object_get_object(rt_props, "foo_bar") != NULL);
-  ASSERT(json_object_get_object(rt_props, "foo bar") != NULL);
-  ASSERT(json_object_get_object(rt_props, "foo.bar") != NULL);
-  ASSERT(json_object_get_object(rt_props, "default") != NULL);
-  ASSERT(json_object_get_object(rt_props, "class") != NULL);
-  ASSERT(json_object_get_object(rt_props, "items") != NULL);
-  ASSERT(json_object_get_object(rt_props, "n_items") != NULL);
-  ASSERT(json_object_get_object(rt_props, "a*/b") != NULL);
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(rt_props, "0", &_cdd_jo_1);
+    ASSERT(_cdd_jo_1 != NULL);
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(rt_props, "123-abc", &_cdd_jo_1);
+    ASSERT(_cdd_jo_1 != NULL);
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(rt_props, "first name", &_cdd_jo_1);
+    ASSERT(_cdd_jo_1 != NULL);
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(rt_props, "content-type", &_cdd_jo_1);
+    ASSERT(_cdd_jo_1 != NULL);
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(rt_props, "io.k8s.pod", &_cdd_jo_1);
+    ASSERT(_cdd_jo_1 != NULL);
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(rt_props, "application/json", &_cdd_jo_1);
+    ASSERT(_cdd_jo_1 != NULL);
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(rt_props, "foo-bar", &_cdd_jo_1);
+    ASSERT(_cdd_jo_1 != NULL);
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(rt_props, "foo_bar", &_cdd_jo_1);
+    ASSERT(_cdd_jo_1 != NULL);
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(rt_props, "foo bar", &_cdd_jo_1);
+    ASSERT(_cdd_jo_1 != NULL);
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(rt_props, "foo.bar", &_cdd_jo_1);
+    ASSERT(_cdd_jo_1 != NULL);
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(rt_props, "default", &_cdd_jo_1);
+    ASSERT(_cdd_jo_1 != NULL);
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(rt_props, "class", &_cdd_jo_1);
+    ASSERT(_cdd_jo_1 != NULL);
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(rt_props, "items", &_cdd_jo_1);
+    ASSERT(_cdd_jo_1 != NULL);
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(rt_props, "n_items", &_cdd_jo_1);
+    ASSERT(_cdd_jo_1 != NULL);
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(rt_props, "a*/b", &_cdd_jo_1);
+    ASSERT(_cdd_jo_1 != NULL);
+  }
 
-  rt_enum = json_object_get_object(rt_schemas, "Hostile-Enum");
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(rt_schemas, "Hostile-Enum", &_cdd_jo_1);
+    rt_enum = _cdd_jo_1;
+  }
   ASSERT(rt_enum != NULL);
-  rt_enum_arr = json_object_get_array(rt_enum, "enum");
+  {
+    JSON_Array *_cdd_ja_1 = NULL;
+    cdd_json_object_get_array(rt_enum, "enum", &_cdd_ja_1);
+    rt_enum_arr = _cdd_ja_1;
+  }
   ASSERT(rt_enum_arr != NULL);
   ASSERT_STR_EQ("in-progress", json_array_get_string(rt_enum_arr, 0));
   ASSERT_STR_EQ("1st", json_array_get_string(rt_enum_arr, 1));
   ASSERT_STR_EQ("true", json_array_get_string(rt_enum_arr, 2));
   ASSERT_STR_EQ("foo bar", json_array_get_string(rt_enum_arr, 3));
+
+  /* Also test x-cdd-enum-cli-hidden containing a non-string element alongside a
+   * valid string element */
+  {
+    JSON_Value *ed_val = NULL;
+    JSON_Value *eh_val = NULL;
+    JSON_Array *eh_arr = NULL;
+    struct StructFields enum_sf2;
+    cdd_json_value_init_object(&ed_val);
+    cdd_json_object_set_value(rt_enum, "x-cdd-enum-cli-descriptions", ed_val);
+    cdd_json_value_init_array(&eh_val);
+    cdd_json_value_get_array(eh_val, &eh_arr);
+    cdd_json_array_append_number(eh_arr, 42.0);
+    cdd_json_array_append_string(eh_arr, "in_progress");
+    cdd_json_object_set_value(rt_enum, "x-cdd-enum-cli-hidden", eh_val);
+    ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&enum_sf2));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              json_object_to_struct_fields(rt_enum, &enum_sf2, NULL));
+    struct_fields_free(&enum_sf2);
+  }
 
   json_value_free(rt_val);
   struct_fields_free(&sf);

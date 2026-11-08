@@ -64,8 +64,9 @@ C_CDD_EXPORT cdd_c_error_t cli_command_init(struct CliCommand *cmd);
  * @brief Free resources associated with a CLI Command IR.
  *
  * @param[in,out] cmd Pointer to the CLI command structure to free.
+ * @return CDD_C_SUCCESS.
  */
-C_CDD_EXPORT void cli_command_free(struct CliCommand *cmd);
+C_CDD_EXPORT cdd_c_error_t cli_command_free(struct CliCommand *cmd);
 
 /**
  * @brief Parses an AST/CST to extract CLI options and arguments.

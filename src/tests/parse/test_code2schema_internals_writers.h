@@ -37,13 +37,19 @@ extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
  * @return TEST_PASSED on success.
  */
 TEST test_code2schema_constraint_writers(void) {
-  JSON_Value *val = json_value_init_object();
-  JSON_Object *obj = json_value_get_object(val);
+  JSON_Value *val = NULL;
+  JSON_Object *obj = NULL;
   struct StructField f;
   char u_str[16];
   char u_null[16];
   char *union_types[2];
   cdd_c_error_t rc = 0;
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
+  obj = json_value_get_object(val);
 
   CDD_STRCPY(u_str, sizeof(u_str), "string");
   CDD_STRCPY(u_null, sizeof(u_null), "null");
@@ -74,7 +80,13 @@ TEST test_code2schema_constraint_writers(void) {
   CDD_STRCPY(f.default_val, sizeof(f.default_val), "true");
   rc = c2s_write_default_value(obj, &f);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  ASSERT_EQ(1, json_object_get_boolean(obj, "default"));
+  {
+    int _cdd_jb_1 = -1;
+    if (cdd_json_object_get_boolean(obj, "default", &_cdd_jb_1) !=
+        CDD_C_SUCCESS)
+      _cdd_jb_1 = -1;
+    ASSERT_EQ(1, _cdd_jb_1);
+  }
 
   /* numeric constraints: min & max */
   CDD_STRCPY(f.type, sizeof(f.type), "integer");
@@ -86,8 +98,16 @@ TEST test_code2schema_constraint_writers(void) {
   f.exclusive_max = 0;
   rc = c2s_write_numeric_constraints(obj, &f);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  ASSERT_EQ(10, json_object_get_number(obj, "exclusiveMinimum"));
-  ASSERT_EQ(100, json_object_get_number(obj, "maximum"));
+  {
+    double _cdd_jn_1 = 0.0;
+    cdd_json_object_get_number(obj, "exclusiveMinimum", &_cdd_jn_1);
+    ASSERT_EQ(10, _cdd_jn_1);
+  }
+  {
+    double _cdd_jn_1 = 0.0;
+    cdd_json_object_get_number(obj, "maximum", &_cdd_jn_1);
+    ASSERT_EQ(100, _cdd_jn_1);
+  }
 
   /* string constraints */
   CDD_STRCPY(f.type, sizeof(f.type), "string");
@@ -98,9 +118,21 @@ TEST test_code2schema_constraint_writers(void) {
   CDD_STRCPY(f.pattern, sizeof(f.pattern), "^[A-Z]+$");
   rc = c2s_write_string_constraints(obj, &f);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  ASSERT_EQ(5, json_object_get_number(obj, "minLength"));
-  ASSERT_EQ(25, json_object_get_number(obj, "maxLength"));
-  ASSERT_STR_EQ("^[A-Z]+$", json_object_get_string(obj, "pattern"));
+  {
+    double _cdd_jn_1 = 0.0;
+    cdd_json_object_get_number(obj, "minLength", &_cdd_jn_1);
+    ASSERT_EQ(5, _cdd_jn_1);
+  }
+  {
+    double _cdd_jn_1 = 0.0;
+    cdd_json_object_get_number(obj, "maxLength", &_cdd_jn_1);
+    ASSERT_EQ(25, _cdd_jn_1);
+  }
+  {
+    const char *_cdd_js_1 = NULL;
+    cdd_json_object_get_string(obj, "pattern", &_cdd_js_1);
+    ASSERT_STR_EQ("^[A-Z]+$", _cdd_js_1);
+  }
 
   /* array constraints */
   CDD_STRCPY(f.type, sizeof(f.type), "array");
@@ -111,9 +143,23 @@ TEST test_code2schema_constraint_writers(void) {
   f.unique_items = 1;
   rc = c2s_write_array_constraints(obj, &f);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  ASSERT_EQ(2, json_object_get_number(obj, "minItems"));
-  ASSERT_EQ(10, json_object_get_number(obj, "maxItems"));
-  ASSERT_EQ(1, json_object_get_boolean(obj, "uniqueItems"));
+  {
+    double _cdd_jn_1 = 0.0;
+    cdd_json_object_get_number(obj, "minItems", &_cdd_jn_1);
+    ASSERT_EQ(2, _cdd_jn_1);
+  }
+  {
+    double _cdd_jn_1 = 0.0;
+    cdd_json_object_get_number(obj, "maxItems", &_cdd_jn_1);
+    ASSERT_EQ(10, _cdd_jn_1);
+  }
+  {
+    int _cdd_jb_1 = -1;
+    if (cdd_json_object_get_boolean(obj, "uniqueItems", &_cdd_jb_1) !=
+        CDD_C_SUCCESS)
+      _cdd_jb_1 = -1;
+    ASSERT_EQ(1, _cdd_jb_1);
+  }
 
   /* write_type_union */
   rc = c2s_write_type_union(NULL, "string", NULL, 0);
@@ -121,11 +167,19 @@ TEST test_code2schema_constraint_writers(void) {
 
   rc = c2s_write_type_union(obj, "string", union_types, 2);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  ASSERT(json_object_get_array(obj, "type") != NULL);
+  {
+    JSON_Array *_cdd_ja_1 = NULL;
+    cdd_json_object_get_array(obj, "type", &_cdd_ja_1);
+    ASSERT(_cdd_ja_1 != NULL);
+  }
 
   rc = c2s_write_type_union(obj, "boolean", NULL, 0);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  ASSERT_STR_EQ("boolean", json_object_get_string(obj, "type"));
+  {
+    const char *_cdd_js_1 = NULL;
+    cdd_json_object_get_string(obj, "type", &_cdd_js_1);
+    ASSERT_STR_EQ("boolean", _cdd_js_1);
+  }
 
   json_value_free(val);
   PASS();
@@ -277,13 +331,23 @@ TEST test_code2schema_allof_and_unions(void) {
   rc = apply_allof_to_struct_fields(NULL, NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-  root_val = json_parse_string("{\"Base\":{\"type\":\"object\",\"properties\":{"
-                               "\"id\":{\"type\":\"integer\"}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"Base\":{\"type\":\"object\",\"properties\":{"
+                          "\"id\":{\"type\":\"integer\"}}}}",
+                          &_cdd_jv_1);
+    root_val = _cdd_jv_1;
+  }
   root = json_value_get_object(root_val);
 
-  allof_val = json_parse_string(
-      "[{\"$ref\":\"#/components/schemas/"
-      "Base\"},{\"properties\":{\"name\":{\"type\":\"string\"}}}]");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "[{\"$ref\":\"#/components/schemas/"
+        "Base\"},{\"properties\":{\"name\":{\"type\":\"string\"}}}]",
+        &_cdd_jv_1);
+    allof_val = _cdd_jv_1;
+  }
   allof_arr = json_value_get_array(allof_val);
 
   rc = struct_fields_init(&sf);
@@ -300,8 +364,12 @@ TEST test_code2schema_allof_and_unions(void) {
   rc = apply_union_to_struct_fields_fallback(NULL, NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-  union_val =
-      json_parse_string("[{\"type\":\"string\"},{\"type\":\"integer\"}]");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("[{\"type\":\"string\"},{\"type\":\"integer\"}]",
+                          &_cdd_jv_1);
+    union_val = _cdd_jv_1;
+  }
   union_arr = json_value_get_array(union_val);
 
   rc = struct_fields_init(&sf);
@@ -395,10 +463,16 @@ TEST test_code2schema_parse_struct_member_line_internals(void) {
  * @return TEST_PASSED on success.
  */
 TEST test_code2schema_write_struct_to_json_schema_internals(void) {
-  JSON_Value *schemas_val = json_value_init_object();
-  JSON_Object *schemas_obj = json_value_get_object(schemas_val);
+  JSON_Value *schemas_val = NULL;
+  JSON_Object *schemas_obj = NULL;
   struct StructFields sf;
   cdd_c_error_t rc = 0;
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    schemas_val = _cdd_jv_1;
+  }
+  schemas_obj = json_value_get_object(schemas_val);
 
   /* Invalid argument NULL checks */
   rc = write_struct_to_json_schema(NULL, NULL, NULL);
@@ -417,7 +491,11 @@ TEST test_code2schema_write_struct_to_json_schema_internals(void) {
 
   rc = write_struct_to_json_schema(schemas_obj, "UserStatus", &sf);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  ASSERT(json_object_get_object(schemas_obj, "UserStatus") != NULL);
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(schemas_obj, "UserStatus", &_cdd_jo_1);
+    ASSERT(_cdd_jo_1 != NULL);
+  }
 
   struct_fields_free(&sf);
 
@@ -443,7 +521,11 @@ TEST test_code2schema_write_struct_to_json_schema_internals(void) {
 
   rc = write_struct_to_json_schema(schemas_obj, "Container", &sf);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  ASSERT(json_object_get_object(schemas_obj, "Container") != NULL);
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(schemas_obj, "Container", &_cdd_jo_1);
+    ASSERT(_cdd_jo_1 != NULL);
+  }
 
   struct_fields_free(&sf);
   json_value_free(schemas_val);
@@ -528,12 +610,23 @@ TEST test_code2schema_make_unique_variant_name_fallbacks(void) {
  * @return TEST_PASSED on success.
  */
 TEST test_code2schema_register_inline_schema_branches(void) {
-  JSON_Value *root_val = json_value_init_object();
-  JSON_Object *root = json_value_get_object(root_val);
-  JSON_Value *schema_val = json_parse_string("{\"type\":\"string\"}");
+  JSON_Value *root_val = NULL;
+  JSON_Object *root = NULL;
+  JSON_Value *schema_val = NULL;
   char *name1 = NULL;
   char *name2 = NULL;
   cdd_c_error_t rc = 0;
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    root_val = _cdd_jv_1;
+  }
+  root = json_value_get_object(root_val);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"type\":\"string\"}", &_cdd_jv_1);
+    schema_val = _cdd_jv_1;
+  }
 
   /* Invalid arguments */
   rc = register_inline_schema_c2s(NULL, "Schema", "Variant", NULL, schema_val,
@@ -575,19 +668,29 @@ TEST test_code2schema_register_inline_schema_branches(void) {
  * @return TEST_PASSED on success.
  */
 TEST test_code2schema_allof_and_fallback_branches(void) {
-  JSON_Value *root_val = json_value_init_object();
-  JSON_Object *root = json_value_get_object(root_val);
+  JSON_Value *root_val = NULL;
+  JSON_Object *root = NULL;
   JSON_Value *arr_val;
   JSON_Array *arr;
   struct StructFields sf;
   cdd_c_error_t rc = 0;
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    root_val = _cdd_jv_1;
+  }
+  root = json_value_get_object(root_val);
 
   rc = struct_fields_init(&sf);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Array with non-object (integer 42) and unresolved ref */
-  arr_val =
-      json_parse_string("[42, {\"$ref\":\"#/components/schemas/Unresolved\"}]");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "[42, {\"$ref\":\"#/components/schemas/Unresolved\"}]", &_cdd_jv_1);
+    arr_val = _cdd_jv_1;
+  }
   arr = json_value_get_array(arr_val);
 
   rc = apply_allof_to_struct_fields(arr, &sf, root);
@@ -615,11 +718,17 @@ TEST test_code2schema_allof_and_fallback_branches(void) {
  * @return TEST_PASSED on success.
  */
 TEST test_code2schema_collect_property_names_empty(void) {
-  JSON_Value *val = json_parse_string("{\"properties\":{}}");
-  JSON_Object *obj = json_value_get_object(val);
+  JSON_Value *val = NULL;
+  JSON_Object *obj = NULL;
   char **names = NULL;
   size_t count = 0;
   cdd_c_error_t rc = 0;
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"properties\":{}}", &_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
+  obj = json_value_get_object(val);
 
   rc = c2s_collect_property_names(obj, &names, &count);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -719,11 +828,16 @@ TEST test_code2schema_merge_struct_field_bounds_and_unions(void) {
  * @return TEST_PASSED on success.
  */
 TEST test_code2schema_discriminator_more_branches(void) {
-  JSON_Value *disc_val =
-      json_parse_string("{\"mapping\":{\"dog\":\"DogClass\"}}");
-  JSON_Object *disc_obj = json_value_get_object(disc_val);
+  JSON_Value *disc_val = NULL;
+  JSON_Object *disc_obj = NULL;
   char *out = NULL;
   cdd_c_error_t rc = 0;
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"mapping\":{\"dog\":\"DogClass\"}}", &_cdd_jv_1);
+    disc_val = _cdd_jv_1;
+  }
+  disc_obj = json_value_get_object(disc_val);
 
   /* Match by ref_name (after last slash) */
   rc = discriminator_value_for_variant(disc_obj, NULL,
@@ -763,9 +877,15 @@ TEST test_code2schema_discriminator_more_branches(void) {
  */
 TEST test_code2schema_c2s_parse_union_and_write_internals(void) {
   FILE *fp = tmpfile();
-  JSON_Value *val = json_value_init_object();
-  JSON_Object *obj = json_value_get_object(val);
+  JSON_Value *val = NULL;
+  JSON_Object *obj = NULL;
   cdd_c_error_t rc = 0;
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
+  obj = json_value_get_object(val);
 
   ASSERT(fp != NULL);
   fputs("\n   \n  int id;\n  char str_val;\n  float num_val;\n  char* name;\n  "

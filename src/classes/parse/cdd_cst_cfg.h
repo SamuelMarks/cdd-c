@@ -85,8 +85,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_cfg_build(cdd_cst_node_t *function_node,
 /**
  * @brief Frees a CFG and all its blocks and edges.
  * @param[in,out] cfg The CFG to free.
+ * @return CDD_C_SUCCESS.
  */
-C_CDD_EXPORT void cdd_cst_cfg_free(cdd_cst_cfg_t *cfg);
+C_CDD_EXPORT cdd_c_error_t cdd_cst_cfg_free(cdd_cst_cfg_t *cfg);
 
 #ifdef __cplusplus
 }

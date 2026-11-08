@@ -42,8 +42,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
  * @brief Frees a token list.
  *
  * @param[in,out] list The token list to free.
+ * @return CDD_C_SUCCESS.
  */
-C_CDD_EXPORT void cdd_dsl_token_list_free(cdd_dsl_token_list_t *list);
+C_CDD_EXPORT cdd_c_error_t cdd_dsl_token_list_free(cdd_dsl_token_list_t *list);
 
 #ifdef __cplusplus
 }

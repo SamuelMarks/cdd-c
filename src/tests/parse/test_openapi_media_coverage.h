@@ -144,9 +144,15 @@ TEST test_openapi_media_type_helpers_branches(void) {
     ASSERT_EQ(CDD_C_SUCCESS, find_media_object_by_name(NULL, NULL, &found));
     ASSERT_EQ(NULL, found);
 
-    jv = json_parse_string(
-        "{\"application/json\": {\"schema\": {\"type\": \"string\"}}, "
-        "\"text/plain; charset=utf-8\": {\"schema\": {\"type\": \"string\"}}}");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\"application/json\": {\"schema\": {\"type\": \"string\"}}, "
+          "\"text/plain; charset=utf-8\": {\"schema\": {\"type\": "
+          "\"string\"}}}",
+          &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     ASSERT(jv != NULL);
     jo = json_value_get_object(jv);
 
@@ -192,7 +198,12 @@ TEST test_openapi_media_type_and_content_parse_branches(void) {
   ASSERT_EQ(CDD_C_SUCCESS, parse_media_type_object(NULL, &mt, &spec, 0));
   ASSERT_EQ(CDD_C_SUCCESS, parse_media_type_object(NULL, NULL, &spec, 0));
 
-  jv = json_parse_string("{\"encoding\": {}, \"prefixEncoding\": []}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"encoding\": {}, \"prefixEncoding\": []}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_media_type_object(jo, NULL, &spec, 0));
   memset(&mt, 0, sizeof(mt));
@@ -200,7 +211,12 @@ TEST test_openapi_media_type_and_content_parse_branches(void) {
             parse_media_type_object(jo, &mt, &spec, 0));
   json_value_free(jv);
 
-  jv = json_parse_string("{\"encoding\": {}, \"itemEncoding\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"encoding\": {}, \"itemEncoding\": {}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&mt, 0, sizeof(mt));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -208,7 +224,12 @@ TEST test_openapi_media_type_and_content_parse_branches(void) {
   json_value_free(jv);
 
   /* $ref with and without resolution */
-  jv = json_parse_string("{\"$ref\": \"#/components/mediaTypes/comp_mt\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"$ref\": \"#/components/mediaTypes/comp_mt\"}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&mt, 0, sizeof(mt));
   ASSERT_EQ(CDD_C_SUCCESS, parse_media_type_object(jo, &mt, &spec, 1));
@@ -222,7 +243,12 @@ TEST test_openapi_media_type_and_content_parse_branches(void) {
   json_value_free(jv);
 
   /* $ref with missing component */
-  jv = json_parse_string("{\"$ref\": \"#/components/mediaTypes/missing\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"$ref\": \"#/components/mediaTypes/missing\"}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&mt, 0, sizeof(mt));
   ASSERT_EQ(CDD_C_SUCCESS, parse_media_type_object(jo, &mt, &spec, 1));
@@ -236,7 +262,12 @@ TEST test_openapi_media_type_and_content_parse_branches(void) {
   json_value_free(jv);
 
   /* schema boolean vs object vs other */
-  jv = json_parse_string("{\"schema\": true, \"itemSchema\": false}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"schema\": true, \"itemSchema\": false}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&mt, 0, sizeof(mt));
   ASSERT_EQ(CDD_C_SUCCESS, parse_media_type_object(jo, &mt, &spec, 0));
@@ -247,7 +278,12 @@ TEST test_openapi_media_type_and_content_parse_branches(void) {
   free_media_type(&mt);
   json_value_free(jv);
 
-  jv = json_parse_string("{\"schema\": \"non_obj\", \"itemSchema\": 123}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"schema\": \"non_obj\", \"itemSchema\": 123}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&mt, 0, sizeof(mt));
   ASSERT_EQ(CDD_C_SUCCESS, parse_media_type_object(jo, &mt, &spec, 0));
@@ -255,8 +291,12 @@ TEST test_openapi_media_type_and_content_parse_branches(void) {
   json_value_free(jv);
 
   /* itemEncoding with OOM and success */
-  jv = json_parse_string(
-      "{\"itemEncoding\": {\"contentType\": \"text/plain\"}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"itemEncoding\": {\"contentType\": \"text/plain\"}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&mt, 0, sizeof(mt));
   g_cdd_alloc_fail = 1;
@@ -268,8 +308,13 @@ TEST test_openapi_media_type_and_content_parse_branches(void) {
   json_value_free(jv);
 
   /* itemEncoding error branch */
-  jv = json_parse_string(
-      "{\"itemEncoding\": {\"encoding\": {}, \"prefixEncoding\": []}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"itemEncoding\": {\"encoding\": {}, \"prefixEncoding\": []}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&mt, 0, sizeof(mt));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -278,8 +323,13 @@ TEST test_openapi_media_type_and_content_parse_branches(void) {
   json_value_free(jv);
 
   /* prefixEncoding error branch */
-  jv = json_parse_string(
-      "{\"prefixEncoding\": [{\"encoding\": {}, \"prefixEncoding\": []}]}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"prefixEncoding\": [{\"encoding\": {}, \"prefixEncoding\": []}]}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&mt, 0, sizeof(mt));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -288,7 +338,11 @@ TEST test_openapi_media_type_and_content_parse_branches(void) {
   json_value_free(jv);
 
   /* collect_extensions failure */
-  jv = json_parse_string("{\"x-ext\": \"val\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"x-ext\": \"val\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&mt, 0, sizeof(mt));
   g_cdd_strdup_fail = 1;
@@ -306,7 +360,11 @@ TEST test_openapi_media_type_and_content_parse_branches(void) {
   ASSERT_EQ(NULL, out_mts);
   ASSERT_EQ(0, out_count);
 
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
             parse_content_object(jo, &out_mts, &out_count, &spec, 0));
@@ -315,7 +373,11 @@ TEST test_openapi_media_type_and_content_parse_branches(void) {
   json_value_free(jv);
 
   /* Content with non-object values -> valid == 0 */
-  jv = json_parse_string("{\"application/json\": \"not_an_obj\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"application/json\": \"not_an_obj\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
             parse_content_object(jo, &out_mts, &out_count, &spec, 0));
@@ -324,7 +386,11 @@ TEST test_openapi_media_type_and_content_parse_branches(void) {
   json_value_free(jv);
 
   /* Content OOM on calloc */
-  jv = json_parse_string("{\"application/json\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"application/json\": {}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -339,8 +405,13 @@ TEST test_openapi_media_type_and_content_parse_branches(void) {
 
   /* Content with child parse error */
   json_value_free(jv);
-  jv = json_parse_string(
-      "{\"application/json\": {\"encoding\": {}, \"prefixEncoding\": []}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"application/json\": {\"encoding\": {}, \"prefixEncoding\": []}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_content_object(jo, &out_mts, &out_count, &spec, 0));

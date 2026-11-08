@@ -53,8 +53,10 @@ c_mapping_init(struct OpenApiTypeMapping *out);
 /**
  * @brief Free resources in a mapping result.
  * @param[in] out The structure to clean.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void c_mapping_free(struct OpenApiTypeMapping *out);
+extern C_CDD_EXPORT cdd_c_error_t
+c_mapping_free(struct OpenApiTypeMapping *out);
 
 /**
  * @brief Map a C type string to an OpenAPI Schema definition.

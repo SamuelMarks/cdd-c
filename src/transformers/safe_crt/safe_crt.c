@@ -34,8 +34,9 @@ emit_ctx_t *g_msc_ctx = NULL;
 
 /**
  * @brief Frees all memory allocated in the safe CRT arena.
+ * @return CDD_C_SUCCESS.
  */
-void arena_free_all(void) {
+cdd_c_error_t arena_free_all(void) {
   safe_crt_arena_t *node = global_arena;
   while (node) {
     safe_crt_arena_t *next = node->next;
@@ -43,6 +44,7 @@ void arena_free_all(void) {
     node = next;
   }
   global_arena = NULL;
+  return CDD_C_SUCCESS;
 }
 
 /**

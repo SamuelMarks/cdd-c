@@ -102,8 +102,10 @@ write_struct_cleanup_func(FILE *fp, const char *struct_name,
           return rc_ref;
         }
         CHECK_IO(FPRINTF_HOOK(
-            fp, "  if (obj->%s) {%s_cleanup(obj->%s); free(obj->%s); }\n", n,
-            tn, n, n));
+            fp,
+            "  if (obj->%s) { cdd_c_error_t _rc = %s_cleanup(obj->%s); if (_rc "
+            "!= CDD_C_SUCCESS) return _rc; }\n",
+            n, tn, n));
       }
     } else if (strcmp(t, "array") == 0) {
       if (sf->fields[i].fixed_array_len > 0) {
@@ -116,18 +118,20 @@ write_struct_cleanup_func(FILE *fp, const char *struct_name,
                                 flen, n, n));
         } else if (strcmp(r, "object") == 0 ||
                    (strcmp(r, "integer") != 0 && strcmp(r, "boolean") != 0 &&
-                    strcmp(r, "number") != 0)) {
+                    strcmp(r, "number") != 0 && strcmp(r, "enum") != 0)) {
           const char *tn = NULL;
           cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
           if (rc_ref != CDD_C_SUCCESS) {
             return rc_ref;
           }
-          CHECK_IO(FPRINTF_HOOK(fp,
-                                "  for (i = 0; i < %lu; ++i) {\n"
-                                "    if (obj->%s[i]) { %s_cleanup(obj->%s[i]); "
-                                "free(obj->%s[i]); }\n"
-                                "  }\n",
-                                flen, n, tn, n, n));
+          CHECK_IO(FPRINTF_HOOK(
+              fp,
+              "  for (i = 0; i < %lu; ++i) {\n"
+              "    if (obj->%s[i]) { cdd_c_error_t _rc = "
+              "%s_cleanup(obj->%s[i]); if (_rc != CDD_C_SUCCESS) return _rc; "
+              "}\n"
+              "  }\n",
+              flen, n, tn, n));
         }
         continue;
       }
@@ -136,7 +140,7 @@ write_struct_cleanup_func(FILE *fp, const char *struct_name,
         CHECK_IO(FPRINTF_HOOK(fp, "    free(obj->%s[i]);\n", n));
       } else if (strcmp(r, "object") == 0 ||
                  (strcmp(r, "integer") != 0 && strcmp(r, "boolean") != 0 &&
-                  strcmp(r, "number") != 0)) {
+                  strcmp(r, "number") != 0 && strcmp(r, "enum") != 0)) {
         {
           const char *tn = NULL;
           cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
@@ -145,7 +149,11 @@ write_struct_cleanup_func(FILE *fp, const char *struct_name,
             return rc_ref;
           }
           io_rc = FPRINTF_HOOK(
-              fp, "    %s_cleanup(obj->%s[i]); free(obj->%s[i]);\n", tn, n, n);
+              fp,
+              "    if (obj->%s[i]) { cdd_c_error_t _rc = "
+              "%s_cleanup(obj->%s[i]); if (_rc != CDD_C_SUCCESS) return _rc; "
+              "}\n",
+              n, tn, n);
           CHECK_IO(io_rc);
         }
       }
@@ -185,11 +193,16 @@ write_struct_deepcopy_func(FILE *fp, const char *struct_name,
 
   for (i = 0; i < sf->size; ++i) {
     const char *t = sf->fields[i].type;
+    const char *r = sf->fields[i].ref;
     if ((strcmp(t, "string") == 0 && sf->fields[i].fixed_array_len == 0 &&
          !sf->fields[i].is_flexible_array) ||
         strcmp(t, "object") == 0 ||
-        (strcmp(t, "array") == 0 && sf->fields[i].fixed_array_len == 0 &&
-         !sf->fields[i].is_flexible_array)) {
+        (strcmp(t, "array") == 0 && !sf->fields[i].is_flexible_array &&
+         (sf->fields[i].fixed_array_len == 0 || strcmp(r, "string") == 0 ||
+          (strcmp(r, "integer") != 0 && strcmp(r, "boolean") != 0 &&
+           strcmp(r, "number") != 0 && strcmp(r, "enum") != 0 &&
+           strcmp(r, "object") != 0 && strcmp(r, "unknown") != 0 &&
+           r[0] != '\0')))) {
       has_ptr_fields = 1;
       break;
     }
@@ -216,15 +229,24 @@ write_struct_deepcopy_func(FILE *fp, const char *struct_name,
     for (i = 0; i < sf->size; ++i) {
       const char *n = sf->fields[i].name;
       const char *t = sf->fields[i].type;
+      const char *r = sf->fields[i].ref;
       if ((strcmp(t, "string") == 0 && sf->fields[i].fixed_array_len == 0 &&
            !sf->fields[i].is_flexible_array) ||
           strcmp(t, "object") == 0) {
         CHECK_IO(FPRINTF_HOOK(fp, "  (*dest)->%s = NULL;\n", n));
-      } else if (strcmp(t, "array") == 0 &&
-                 sf->fields[i].fixed_array_len == 0 &&
-                 !sf->fields[i].is_flexible_array) {
-        CHECK_IO(FPRINTF_HOOK(fp, "  (*dest)->%s = NULL; (*dest)->n_%s = 0;\n",
-                              n, n));
+      } else if (strcmp(t, "array") == 0 && !sf->fields[i].is_flexible_array) {
+        if (sf->fields[i].fixed_array_len > 0) {
+          if (strcmp(r, "string") == 0 ||
+              (strcmp(r, "integer") != 0 && strcmp(r, "boolean") != 0 &&
+               strcmp(r, "number") != 0 && strcmp(r, "enum") != 0 &&
+               strcmp(r, "unknown") != 0 && r[0] != '\0')) {
+            CHECK_IO(FPRINTF_HOOK(
+                fp, "  memset((*dest)->%s, 0, sizeof((*dest)->%s));\n", n, n));
+          }
+        } else {
+          CHECK_IO(FPRINTF_HOOK(
+              fp, "  (*dest)->%s = NULL; (*dest)->n_%s = 0;\n", n, n));
+        }
       }
     }
 
@@ -248,19 +270,57 @@ write_struct_deepcopy_func(FILE *fp, const char *struct_name,
         if (rc_ref != CDD_C_SUCCESS) {
           return rc_ref;
         }
-        if (tn[0] != '\0') {
-          CHECK_IO(FPRINTF_HOOK(
-              fp,
-              "  if (src->%s) {\n"
-              "    if (%s_deepcopy(src->%s, &(*dest)->%s) != 0) { "
-              "%s_cleanup(*dest); *dest=NULL; return CDD_C_ERROR_MEMORY; }\n"
-              "  }\n",
-              n, tn, n, n, struct_name));
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "  if (src->%s) {\n"
+            "    if (%s_deepcopy(src->%s, &(*dest)->%s) != 0) { "
+            "%s_cleanup(*dest); *dest=NULL; return CDD_C_ERROR_MEMORY; }\n"
+            "  }\n",
+            n, tn, n, n, struct_name));
+      } else if (strcmp(t, "array") == 0 && !sf->fields[i].is_flexible_array) {
+        if (sf->fields[i].fixed_array_len > 0) {
+          unsigned long flen = (unsigned long)sf->fields[i].fixed_array_len;
+          if (strcmp(r, "string") == 0) {
+            CHECK_IO(FPRINTF_HOOK(
+                fp,
+                "  {\n"
+                "    size_t _i;\n"
+                "    for (_i = 0; _i < %lu; ++_i) {\n"
+                "      if (src->%s[_i]) {\n"
+                "        (*dest)->%s[_i] = %s(src->%s[_i]);\n"
+                "        if (!(*dest)->%s[_i]) { %s_cleanup(*dest); "
+                "*dest=NULL; return CDD_C_ERROR_MEMORY; }\n"
+                "      }\n"
+                "    }\n"
+                "  }\n",
+                flen, n, n, kStrDupFunc, n, n, struct_name));
+          } else if (strcmp(r, "integer") != 0 && strcmp(r, "boolean") != 0 &&
+                     strcmp(r, "number") != 0 && strcmp(r, "enum") != 0 &&
+                     strcmp(r, "object") != 0 && strcmp(r, "unknown") != 0 &&
+                     r[0] != '\0') {
+            const char *tn = NULL;
+            cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
+            if (rc_ref != CDD_C_SUCCESS) {
+              return rc_ref;
+            }
+            CHECK_IO(FPRINTF_HOOK(
+                fp,
+                "  {\n"
+                "    size_t _i;\n"
+                "    for (_i = 0; _i < %lu; ++_i) {\n"
+                "      if (src->%s[_i]) {\n"
+                "        if (%s_deepcopy(src->%s[_i], &(*dest)->%s[_i]) != "
+                "0) { %s_cleanup(*dest); *dest=NULL; return "
+                "CDD_C_ERROR_MEMORY; }\n"
+                "      }\n"
+                "    }\n"
+                "  }\n",
+                flen, n, tn, n, n, struct_name));
+          }
+          continue;
         }
-      } else if (strcmp(t, "array") == 0 &&
-                 sf->fields[i].fixed_array_len == 0 &&
-                 !sf->fields[i].is_flexible_array) {
-        if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0) {
+        if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0 ||
+            strcmp(r, "enum") == 0) {
           CHECK_IO(FPRINTF_HOOK(
               fp,
               "  if (src->%s && src->n_%s > 0) {\n"
@@ -308,26 +368,24 @@ write_struct_deepcopy_func(FILE *fp, const char *struct_name,
           if (rc_ref != CDD_C_SUCCESS) {
             return rc_ref;
           }
-          if (tn[0] != '\0') {
-            CHECK_IO(FPRINTF_HOOK(
-                fp,
-                "  if (src->%s && src->n_%s > 0) {\n"
-                "    size_t _i;\n"
-                "    (*dest)->%s = calloc(src->n_%s, sizeof(struct %s *));\n"
-                "    if (!(*dest)->%s) { %s_cleanup(*dest); *dest=NULL; return "
-                "CDD_C_ERROR_MEMORY; }\n"
-                "    (*dest)->n_%s = src->n_%s;\n"
-                "    for (_i = 0; _i < src->n_%s; ++_i) {\n"
-                "      if (src->%s[_i]) {\n"
-                "        if (%s_deepcopy(src->%s[_i], &(*dest)->%s[_i]) != 0) "
-                "{ %s_cleanup(*dest); *dest=NULL; return CDD_C_ERROR_MEMORY; "
-                "}\n"
-                "      }\n"
-                "    }\n"
-                "  }\n",
-                n, n, n, n, tn, n, struct_name, n, n, n, n, tn, n, n,
-                struct_name));
-          }
+          CHECK_IO(FPRINTF_HOOK(
+              fp,
+              "  if (src->%s && src->n_%s > 0) {\n"
+              "    size_t _i;\n"
+              "    (*dest)->%s = calloc(src->n_%s, sizeof(struct %s *));\n"
+              "    if (!(*dest)->%s) { %s_cleanup(*dest); *dest=NULL; return "
+              "CDD_C_ERROR_MEMORY; }\n"
+              "    (*dest)->n_%s = src->n_%s;\n"
+              "    for (_i = 0; _i < src->n_%s; ++_i) {\n"
+              "      if (src->%s[_i]) {\n"
+              "        if (%s_deepcopy(src->%s[_i], &(*dest)->%s[_i]) != 0) "
+              "{ %s_cleanup(*dest); *dest=NULL; return CDD_C_ERROR_MEMORY; "
+              "}\n"
+              "      }\n"
+              "    }\n"
+              "  }\n",
+              n, n, n, n, tn, n, struct_name, n, n, n, n, tn, n, n,
+              struct_name));
         }
       }
     }
@@ -420,16 +478,18 @@ cdd_c_error_t write_struct_eq_func(FILE *fp, const char *struct_name,
         CHECK_IO(FPRINTF_HOOK(fp, "  for (i = 0; i < a->n_%s; ++i) {\n", n));
       }
       if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0 ||
-          strcmp(r, "number") == 0) {
+          strcmp(r, "number") == 0 || strcmp(r, "enum") == 0) {
         CHECK_IO(FPRINTF_HOOK(fp,
                               "    if (a->%s[i] != b->%s[i]) { *out_eq = 0; "
                               "return CDD_C_SUCCESS; }\n",
                               n, n));
       } else if (strcmp(r, "string") == 0) {
-        CHECK_IO(FPRINTF_HOOK(fp,
-                              "    if (strcmp(a->%s[i], b->%s[i]) != 0) { "
-                              "*out_eq = 0; return CDD_C_SUCCESS; }\n",
-                              n, n));
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "    if (a->%s[i] != b->%s[i] && (!a->%s[i] || !b->%s[i] || "
+            "strcmp(a->%s[i], b->%s[i]) != 0)) { "
+            "*out_eq = 0; return CDD_C_SUCCESS; }\n",
+            n, n, n, n, n, n));
       } else {
         CHECK_IO(FPRINTF_HOOK(
             fp,
@@ -534,8 +594,7 @@ write_struct_default_func(FILE *fp, const char *struct_name,
             CHECK_IO(FPRINTF_HOOK(fp,
                                   "  strncpy((*out)->%s, %s, %lu);\n"
                                   "  (*out)->%s[%lu] = '\\0';\n",
-                                  n, def, cap > 0 ? cap - 1 : 0, n,
-                                  cap > 0 ? cap - 1 : 0));
+                                  n, def, cap - 1, n, cap - 1));
           }
         } else if (strcmp(def, "nullptr") == 0) {
           CHECK_IO(FPRINTF_HOOK(fp, "  (*out)->%s = NULL;\n", n));

@@ -120,26 +120,26 @@ cdd_c_error_t c2s_key_in_list(const char *key, const char **list, size_t count,
  */
 cdd_c_error_t c2s_clone_json_value(const JSON_Value *val,
                                    JSON_Value **_out_val) {
-  char *serialized;
-  JSON_Value *copy;
+  char *serialized = NULL;
+  JSON_Value *copy = NULL;
 
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = NULL;
   if (!val)
     return CDD_C_SUCCESS;
-  serialized = json_serialize_to_string(val);
+  cdd_json_serialize_to_string(val, &serialized);
 #ifdef CDD_BUILD_TESTS
   if (g_cdd_fail_json_serialize) {
     g_cdd_fail_json_serialize = 0;
-    json_free_serialized_string(serialized);
+    cdd_json_free_serialized_string(serialized);
     serialized = NULL;
   }
 #endif
   if (!serialized)
     return CDD_C_ERROR_MEMORY;
-  copy = json_parse_string(serialized);
-  json_free_serialized_string(serialized);
+  cdd_json_parse_string(serialized, &copy);
+  cdd_json_free_serialized_string(serialized);
   if (!copy)
     return CDD_C_ERROR_MEMORY;
   *_out_val = copy;
@@ -154,11 +154,12 @@ cdd_c_error_t c2s_clone_json_value(const JSON_Value *val,
  *
  * @param[in,out] arr Array of dynamically allocated strings to free.
  * @param[in] n Number of elements in `arr`.
+ * @return CDD_C_SUCCESS.
  */
-void free_string_array_code2schema(char **arr, size_t n) {
+cdd_c_error_t free_string_array_code2schema(char **arr, size_t n) {
   size_t i;
   if (!arr)
-    return;
+    return CDD_C_SUCCESS;
   for (i = 0; i < n; ++i) {
     if (arr[i]) {
       C_CDD_FREE(arr[i]);
@@ -166,6 +167,7 @@ void free_string_array_code2schema(char **arr, size_t n) {
     }
   }
   C_CDD_FREE(arr);
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -238,7 +240,7 @@ cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
                                                  size_t *out_count,
                                                  const char **out_primary,
                                                  int *out_nullable) {
-  size_t i, count, n = 0;
+  size_t i, count = 0, n = 0;
   char **types;
   const char *primary = NULL;
 
@@ -254,7 +256,7 @@ cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
   if (!arr)
     return CDD_C_SUCCESS;
 
-  count = json_array_get_count(arr);
+  cdd_json_array_get_count(arr, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -265,7 +267,8 @@ cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
   }
 
   for (i = 0; i < count; ++i) {
-    const char *t = json_array_get_string(arr, i);
+    const char *t = NULL;
+    cdd_json_array_get_string(arr, i, &t);
     if (!t)
       continue;
     {

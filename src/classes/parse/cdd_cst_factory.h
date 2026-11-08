@@ -74,8 +74,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_append_child_token(cdd_cst_node_t *parent,
 /**
  * @brief Recursively frees a node and all of its descendant nodes.
  * @param[in,out] node The node to free.
+ * @return CDD_C_SUCCESS.
  */
-C_CDD_EXPORT void cdd_cst_free_node(cdd_cst_node_t *node);
+C_CDD_EXPORT cdd_c_error_t cdd_cst_free_node(cdd_cst_node_t *node);
 
 /**
  * @brief Formats a C code snippet via printf-style format string and parses it
@@ -102,8 +103,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
  * child nodes.
  *
  * @param[in] node The CST node to free.
+ * @return CDD_C_SUCCESS.
  */
-C_CDD_EXPORT void cdd_cst_free_node_only(cdd_cst_node_t *node);
+C_CDD_EXPORT cdd_c_error_t cdd_cst_free_node_only(cdd_cst_node_t *node);
 
 #ifdef __cplusplus
 }

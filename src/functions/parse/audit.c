@@ -22,7 +22,7 @@
 #include "openapi/emit/openapi.h"
 #include <c89stringutils_string_extras.h>
 #include <ctype.h>
-#include <parson.h>
+#include "c_cdd/json_dom.h"
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
@@ -50,11 +50,12 @@ cdd_c_error_t audit_stats_init(struct AuditStats *stats) {
  * @brief Releases memory held by codebase audit statistics.
  *
  * @param[in,out] stats Pointer to the AuditStats structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void audit_stats_free(struct AuditStats *stats) {
+cdd_c_error_t audit_stats_free(struct AuditStats *stats) {
   size_t i;
   if (!stats)
-    return;
+    return CDD_C_SUCCESS;
   if (stats->violations.items) {
     for (i = 0; i < stats->violations.size; i++) {
       C_CDD_FREE(stats->violations.items[i].file_path);
@@ -66,6 +67,7 @@ void audit_stats_free(struct AuditStats *stats) {
   }
   stats->violations.size = 0;
   stats->violations.capacity = 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -319,16 +321,16 @@ cdd_c_error_t audit_project(const char *root_path, struct AuditStats *stats) {
 }
 
 /**
- * @brief Accumulates a Parson `JSON_Status` into a sticky `cdd_c_error_t`
+ * @brief Accumulates a `cdd_c_error_t` into a sticky `cdd_c_error_t`
  * state.
  *
- * @param[in] st Parson status (`JSONSuccess` or `JSONFailure`).
+ * @param[in] st Error status (`CDD_C_SUCCESS` or error code).
  * @param[in,out] rc Sticky error code updated to `CDD_C_ERROR_MEMORY` on
  * failure.
  * @return The updated `*rc`.
  */
-static cdd_c_error_t audit_check_json(JSON_Status st, cdd_c_error_t *rc) {
-  if (st != JSONSuccess)
+static cdd_c_error_t audit_check_json(cdd_c_error_t st, cdd_c_error_t *rc) {
+  if (st != CDD_C_SUCCESS)
     *rc = CDD_C_ERROR_MEMORY;
   return *rc;
 }
@@ -377,7 +379,7 @@ static cdd_c_error_t audit_append_val(JSON_Array *arr, JSON_Value *val,
 cdd_c_error_t audit_print_json(const struct AuditStats *stats,
                                char **out_json) {
   JSON_Value *root_val = NULL;
-  JSON_Object *root_obj;
+  JSON_Object *root_obj = NULL;
   char *str = NULL;
   size_t i;
   cdd_c_error_t rc = CDD_C_SUCCESS;
@@ -385,58 +387,67 @@ cdd_c_error_t audit_print_json(const struct AuditStats *stats,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  root_val = json_value_init_object();
+  cdd_json_value_init_object(&root_val);
   if (!root_val) {
     *out_json = NULL;
     return CDD_C_ERROR_MEMORY;
   }
 
-  root_obj = json_value_get_object(root_val);
+  cdd_json_value_get_object(root_val, &root_obj);
 
   {
-    JSON_Value *summary_val = json_value_init_object();
-    JSON_Object *summary_obj = json_value_get_object(summary_val);
+    JSON_Value *summary_val = NULL;
+    JSON_Object *summary_obj = NULL;
+    cdd_json_value_init_object(&summary_val);
+    cdd_json_value_get_object(summary_val, &summary_obj);
 
-    audit_check_json(json_object_set_number(summary_obj, "files_scanned",
-                                            (double)stats->files_scanned),
-                     &rc);
-    audit_check_json(json_object_set_number(summary_obj, "allocations_checked",
-                                            (double)stats->allocations_checked),
+    audit_check_json(cdd_json_object_set_number(summary_obj, "files_scanned",
+                                                (double)stats->files_scanned),
                      &rc);
     audit_check_json(
-        json_object_set_number(summary_obj, "allocations_unchecked",
-                               (double)stats->allocations_unchecked),
+        cdd_json_object_set_number(summary_obj, "allocations_checked",
+                                   (double)stats->allocations_checked),
         &rc);
     audit_check_json(
-        json_object_set_number(summary_obj, "functions_returning_alloc",
-                               (double)stats->functions_returning_alloc),
+        cdd_json_object_set_number(summary_obj, "allocations_unchecked",
+                                   (double)stats->allocations_unchecked),
+        &rc);
+    audit_check_json(
+        cdd_json_object_set_number(summary_obj, "functions_returning_alloc",
+                                   (double)stats->functions_returning_alloc),
         &rc);
 
     audit_set_val(root_obj, "summary", summary_val, &rc);
   }
 
   {
-    JSON_Value *violations_val = json_value_init_array();
-    JSON_Array *violations_arr = json_value_get_array(violations_val);
+    JSON_Value *violations_val = NULL;
+    JSON_Array *violations_arr = NULL;
+    cdd_json_value_init_array(&violations_val);
+    cdd_json_value_get_array(violations_val, &violations_arr);
 
     for (i = 0; i < stats->violations.size; ++i) {
       struct AuditViolation *v = &stats->violations.items[i];
-      JSON_Value *v_val = json_value_init_object();
-      JSON_Object *v_obj = json_value_get_object(v_val);
+      JSON_Value *v_val = NULL;
+      JSON_Object *v_obj = NULL;
+      cdd_json_value_init_object(&v_val);
+      cdd_json_value_get_object(v_val, &v_obj);
 
-      audit_check_json(json_object_set_string(v_obj, "file", v->file_path),
+      audit_check_json(cdd_json_object_set_string(v_obj, "file", v->file_path),
                        &rc);
-      audit_check_json(json_object_set_number(v_obj, "line", (double)v->line),
-                       &rc);
-      audit_check_json(json_object_set_number(v_obj, "col", (double)v->col),
+      audit_check_json(
+          cdd_json_object_set_number(v_obj, "line", (double)v->line), &rc);
+      audit_check_json(cdd_json_object_set_number(v_obj, "col", (double)v->col),
                        &rc);
       if (v->variable_name)
         audit_check_json(
-            json_object_set_string(v_obj, "variable", v->variable_name), &rc);
+            cdd_json_object_set_string(v_obj, "variable", v->variable_name),
+            &rc);
       else
-        audit_check_json(json_object_set_null(v_obj, "variable"), &rc);
+        audit_check_json(cdd_json_object_set_null(v_obj, "variable"), &rc);
       audit_check_json(
-          json_object_set_string(v_obj, "allocator", v->allocator_name), &rc);
+          cdd_json_object_set_string(v_obj, "allocator", v->allocator_name),
+          &rc);
 
       audit_append_val(violations_arr, v_val, &rc);
     }
@@ -444,8 +455,8 @@ cdd_c_error_t audit_print_json(const struct AuditStats *stats,
   }
 
   if (rc == CDD_C_SUCCESS)
-    str = json_serialize_to_string_pretty(root_val);
-  json_value_free(root_val);
+    cdd_json_serialize_to_string_pretty(root_val, &str);
+  cdd_json_value_free(root_val);
   if (!str) {
     *out_json = NULL;
     return CDD_C_ERROR_MEMORY;

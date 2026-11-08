@@ -50,15 +50,45 @@ TEST test_writer_schema_items_type_union(void) {
     JSON_Object *paths;
     JSON_Array *params;
     JSON_Array *type_arr;
-    root = json_parse_string(json);
-    paths = json_object_get_object(json_value_get_object(root), "paths");
-    p_item = json_object_get_object(paths, "/test/route");
-    params = json_object_get_array(json_object_get_object(p_item, "get"),
-                                   "parameters");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(json, &_cdd_jv_1);
+      root = _cdd_jv_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(json_value_get_object(root), "paths",
+                                 &_cdd_jo_1);
+      paths = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(paths, "/test/route", &_cdd_jo_1);
+      p_item = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      JSON_Array *_cdd_ja_2 = NULL;
+      cdd_json_object_get_object(p_item, "get", &_cdd_jo_1);
+      cdd_json_object_get_array(_cdd_jo_1, "parameters", &_cdd_ja_2);
+      params = _cdd_ja_2;
+    }
     p0 = json_array_get_object(params, 0);
-    schema = json_object_get_object(p0, "schema");
-    items = json_object_get_object(schema, "items");
-    type_arr = json_value_get_array(json_object_get_value(items, "type"));
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(p0, "schema", &_cdd_jo_1);
+      schema = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(schema, "items", &_cdd_jo_1);
+      items = _cdd_jo_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_object_get_value(items, "type", &_cdd_jv_1);
+      type_arr = json_value_get_array(_cdd_jv_1);
+    }
     ASSERT(type_arr != NULL);
     ASSERT_EQ(2, json_array_get_count(type_arr));
     ASSERT_STR_EQ("string", json_array_get_string(type_arr, 0));
@@ -99,13 +129,35 @@ TEST test_writer_schema_boolean(void) {
     JSON_Value *schema_val;
     JSON_Object *paths;
     JSON_Array *params;
-    root = json_parse_string(json);
-    paths = json_object_get_object(json_value_get_object(root), "paths");
-    p_item = json_object_get_object(paths, "/test/route");
-    params = json_object_get_array(json_object_get_object(p_item, "get"),
-                                   "parameters");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(json, &_cdd_jv_1);
+      root = _cdd_jv_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(json_value_get_object(root), "paths",
+                                 &_cdd_jo_1);
+      paths = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(paths, "/test/route", &_cdd_jo_1);
+      p_item = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      JSON_Array *_cdd_ja_2 = NULL;
+      cdd_json_object_get_object(p_item, "get", &_cdd_jo_1);
+      cdd_json_object_get_array(_cdd_jo_1, "parameters", &_cdd_ja_2);
+      params = _cdd_ja_2;
+    }
     p0 = json_array_get_object(params, 0);
-    schema_val = json_object_get_value(p0, "schema");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_object_get_value(p0, "schema", &_cdd_jv_1);
+      schema_val = _cdd_jv_1;
+    }
     ASSERT(schema_val != NULL);
     ASSERT_EQ(JSONBoolean, json_value_get_type(schema_val));
     ASSERT_EQ(1, json_value_get_boolean(schema_val));
@@ -152,14 +204,40 @@ TEST test_writer_schema_numeric_enum(void) {
     JSON_Array *enum_arr;
     JSON_Object *paths;
     JSON_Array *params;
-    root = json_parse_string(json);
-    paths = json_object_get_object(json_value_get_object(root), "paths");
-    p_item = json_object_get_object(paths, "/test/route");
-    params = json_object_get_array(json_object_get_object(p_item, "get"),
-                                   "parameters");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(json, &_cdd_jv_1);
+      root = _cdd_jv_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(json_value_get_object(root), "paths",
+                                 &_cdd_jo_1);
+      paths = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(paths, "/test/route", &_cdd_jo_1);
+      p_item = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      JSON_Array *_cdd_ja_2 = NULL;
+      cdd_json_object_get_object(p_item, "get", &_cdd_jo_1);
+      cdd_json_object_get_array(_cdd_jo_1, "parameters", &_cdd_ja_2);
+      params = _cdd_ja_2;
+    }
     p0 = json_array_get_object(params, 0);
-    schema = json_object_get_object(p0, "schema");
-    enum_arr = json_object_get_array(schema, "enum");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(p0, "schema", &_cdd_jo_1);
+      schema = _cdd_jo_1;
+    }
+    {
+      JSON_Array *_cdd_ja_1 = NULL;
+      cdd_json_object_get_array(schema, "enum", &_cdd_ja_1);
+      enum_arr = _cdd_ja_1;
+    }
     ASSERT(enum_arr != NULL);
     ASSERT_EQ(2, json_array_get_count(enum_arr));
     ASSERT_EQ(1.0, json_array_get_number(enum_arr, 0));
@@ -209,15 +287,45 @@ TEST test_writer_schema_items_examples(void) {
     JSON_Array *examples;
     JSON_Object *paths;
     JSON_Array *params;
-    root = json_parse_string(json);
-    paths = json_object_get_object(json_value_get_object(root), "paths");
-    p_item = json_object_get_object(paths, "/test/route");
-    params = json_object_get_array(json_object_get_object(p_item, "get"),
-                                   "parameters");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(json, &_cdd_jv_1);
+      root = _cdd_jv_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(json_value_get_object(root), "paths",
+                                 &_cdd_jo_1);
+      paths = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(paths, "/test/route", &_cdd_jo_1);
+      p_item = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      JSON_Array *_cdd_ja_2 = NULL;
+      cdd_json_object_get_object(p_item, "get", &_cdd_jo_1);
+      cdd_json_object_get_array(_cdd_jo_1, "parameters", &_cdd_ja_2);
+      params = _cdd_ja_2;
+    }
     p0 = json_array_get_object(params, 0);
-    schema = json_object_get_object(p0, "schema");
-    items = json_object_get_object(schema, "items");
-    examples = json_object_get_array(items, "examples");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(p0, "schema", &_cdd_jo_1);
+      schema = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(schema, "items", &_cdd_jo_1);
+      items = _cdd_jo_1;
+    }
+    {
+      JSON_Array *_cdd_ja_1 = NULL;
+      cdd_json_object_get_array(items, "examples", &_cdd_ja_1);
+      examples = _cdd_ja_1;
+    }
     ASSERT(examples != NULL);
     ASSERT_EQ(2, json_array_get_count(examples));
     ASSERT_STR_EQ("a", json_array_get_string(examples, 0));
@@ -260,14 +368,40 @@ TEST test_writer_schema_items_boolean(void) {
     JSON_Value *items_val;
     JSON_Object *paths;
     JSON_Array *params;
-    root = json_parse_string(json);
-    paths = json_object_get_object(json_value_get_object(root), "paths");
-    p_item = json_object_get_object(paths, "/test/route");
-    params = json_object_get_array(json_object_get_object(p_item, "get"),
-                                   "parameters");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(json, &_cdd_jv_1);
+      root = _cdd_jv_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(json_value_get_object(root), "paths",
+                                 &_cdd_jo_1);
+      paths = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(paths, "/test/route", &_cdd_jo_1);
+      p_item = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      JSON_Array *_cdd_ja_2 = NULL;
+      cdd_json_object_get_object(p_item, "get", &_cdd_jo_1);
+      cdd_json_object_get_array(_cdd_jo_1, "parameters", &_cdd_ja_2);
+      params = _cdd_ja_2;
+    }
     p0 = json_array_get_object(params, 0);
-    schema = json_object_get_object(p0, "schema");
-    items_val = json_object_get_value(schema, "items");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(p0, "schema", &_cdd_jo_1);
+      schema = _cdd_jo_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_object_get_value(schema, "items", &_cdd_jv_1);
+      items_val = _cdd_jv_1;
+    }
     ASSERT(items_val != NULL);
     ASSERT_EQ(JSONBoolean, json_value_get_type(items_val));
     ASSERT_EQ(0, json_value_get_boolean(items_val));
@@ -314,16 +448,50 @@ TEST test_writer_schema_example_and_numeric_constraints(void) {
     JSON_Object *schema;
     JSON_Object *paths;
     JSON_Array *params;
-    root = json_parse_string(json);
-    paths = json_object_get_object(json_value_get_object(root), "paths");
-    p_item = json_object_get_object(paths, "/test/route");
-    params = json_object_get_array(json_object_get_object(p_item, "get"),
-                                   "parameters");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(json, &_cdd_jv_1);
+      root = _cdd_jv_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(json_value_get_object(root), "paths",
+                                 &_cdd_jo_1);
+      paths = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(paths, "/test/route", &_cdd_jo_1);
+      p_item = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      JSON_Array *_cdd_ja_2 = NULL;
+      cdd_json_object_get_object(p_item, "get", &_cdd_jo_1);
+      cdd_json_object_get_array(_cdd_jo_1, "parameters", &_cdd_ja_2);
+      params = _cdd_ja_2;
+    }
     p0 = json_array_get_object(params, 0);
-    schema = json_object_get_object(p0, "schema");
-    ASSERT_EQ(1.0, json_object_get_number(schema, "minimum"));
-    ASSERT_EQ(9.0, json_object_get_number(schema, "exclusiveMaximum"));
-    ASSERT_EQ(2.5, json_object_get_number(schema, "example"));
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(p0, "schema", &_cdd_jo_1);
+      schema = _cdd_jo_1;
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(schema, "minimum", &_cdd_jn_1);
+      ASSERT_EQ(1.0, _cdd_jn_1);
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(schema, "exclusiveMaximum", &_cdd_jn_1);
+      ASSERT_EQ(9.0, _cdd_jn_1);
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(schema, "example", &_cdd_jn_1);
+      ASSERT_EQ(2.5, _cdd_jn_1);
+    }
     json_value_free(root);
   }
 
@@ -374,21 +542,77 @@ TEST test_writer_schema_array_constraints_and_items_example(void) {
     JSON_Object *items;
     JSON_Object *paths;
     JSON_Array *params;
-    root = json_parse_string(json);
-    paths = json_object_get_object(json_value_get_object(root), "paths");
-    p_item = json_object_get_object(paths, "/test/route");
-    params = json_object_get_array(json_object_get_object(p_item, "get"),
-                                   "parameters");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(json, &_cdd_jv_1);
+      root = _cdd_jv_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(json_value_get_object(root), "paths",
+                                 &_cdd_jo_1);
+      paths = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(paths, "/test/route", &_cdd_jo_1);
+      p_item = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      JSON_Array *_cdd_ja_2 = NULL;
+      cdd_json_object_get_object(p_item, "get", &_cdd_jo_1);
+      cdd_json_object_get_array(_cdd_jo_1, "parameters", &_cdd_ja_2);
+      params = _cdd_ja_2;
+    }
     p0 = json_array_get_object(params, 0);
-    schema = json_object_get_object(p0, "schema");
-    items = json_object_get_object(schema, "items");
-    ASSERT_EQ(1.0, json_object_get_number(schema, "minItems"));
-    ASSERT_EQ(3.0, json_object_get_number(schema, "maxItems"));
-    ASSERT_EQ(1, json_object_get_boolean(schema, "uniqueItems"));
-    ASSERT_EQ(2.0, json_object_get_number(items, "minLength"));
-    ASSERT_EQ(5.0, json_object_get_number(items, "maxLength"));
-    ASSERT_STR_EQ("^[a-z]+$", json_object_get_string(items, "pattern"));
-    ASSERT_STR_EQ("ab", json_object_get_string(items, "example"));
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(p0, "schema", &_cdd_jo_1);
+      schema = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(schema, "items", &_cdd_jo_1);
+      items = _cdd_jo_1;
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(schema, "minItems", &_cdd_jn_1);
+      ASSERT_EQ(1.0, _cdd_jn_1);
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(schema, "maxItems", &_cdd_jn_1);
+      ASSERT_EQ(3.0, _cdd_jn_1);
+    }
+    {
+      int _cdd_jb_1 = -1;
+      if (cdd_json_object_get_boolean(schema, "uniqueItems", &_cdd_jb_1) !=
+          CDD_C_SUCCESS)
+        _cdd_jb_1 = -1;
+      ASSERT_EQ(1, _cdd_jb_1);
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(items, "minLength", &_cdd_jn_1);
+      ASSERT_EQ(2.0, _cdd_jn_1);
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(items, "maxLength", &_cdd_jn_1);
+      ASSERT_EQ(5.0, _cdd_jn_1);
+    }
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(items, "pattern", &_cdd_js_1);
+      ASSERT_STR_EQ("^[a-z]+$", _cdd_js_1);
+    }
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(items, "example", &_cdd_js_1);
+      ASSERT_STR_EQ("ab", _cdd_js_1);
+    }
     json_value_free(root);
   }
 
@@ -432,20 +656,66 @@ TEST test_writer_inline_schema_items_const_default_and_extras(void) {
     JSON_Object *param0;
     JSON_Object *schema;
     JSON_Object *items;
-    root = json_parse_string(out_json);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(out_json, &_cdd_jv_1);
+      root = _cdd_jv_1;
+    }
     root_obj = json_value_get_object(root);
-    paths = json_object_get_object(root_obj, "paths");
-    path = json_object_get_object(paths, "/q");
-    get = json_object_get_object(path, "get");
-    params = json_object_get_array(get, "parameters");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(root_obj, "paths", &_cdd_jo_1);
+      paths = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(paths, "/q", &_cdd_jo_1);
+      path = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(path, "get", &_cdd_jo_1);
+      get = _cdd_jo_1;
+    }
+    {
+      JSON_Array *_cdd_ja_1 = NULL;
+      cdd_json_object_get_array(get, "parameters", &_cdd_ja_1);
+      params = _cdd_ja_1;
+    }
     param0 = json_array_get_object(params, 0);
-    schema = json_object_get_object(param0, "schema");
-    items = json_object_get_object(schema, "items");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(param0, "schema", &_cdd_jo_1);
+      schema = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(schema, "items", &_cdd_jo_1);
+      items = _cdd_jo_1;
+    }
 
-    ASSERT_EQ(1, json_object_get_boolean(schema, "x-top"));
-    ASSERT_STR_EQ("x", json_object_get_string(items, "const"));
-    ASSERT_STR_EQ("y", json_object_get_string(items, "default"));
-    ASSERT_EQ(99, (int)json_object_get_number(items, "x-custom"));
+    {
+      int _cdd_jb_1 = -1;
+      if (cdd_json_object_get_boolean(schema, "x-top", &_cdd_jb_1) !=
+          CDD_C_SUCCESS)
+        _cdd_jb_1 = -1;
+      ASSERT_EQ(1, _cdd_jb_1);
+    }
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(items, "const", &_cdd_js_1);
+      ASSERT_STR_EQ("x", _cdd_js_1);
+    }
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(items, "default", &_cdd_js_1);
+      ASSERT_STR_EQ("y", _cdd_js_1);
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(items, "x-custom", &_cdd_jn_1);
+      ASSERT_EQ(99, (int)_cdd_jn_1);
+    }
 
     json_value_free(root);
   }
@@ -617,52 +887,218 @@ TEST test_writer_extensions_non_schema(void) {
     JSON_Array *security_arr;
     JSON_Object *security_obj;
     JSON_Object *ext_docs_obj;
-    root = json_parse_string(json);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(json, &_cdd_jv_1);
+      root = _cdd_jv_1;
+    }
     root_obj = json_value_get_object(root);
-    info_obj = json_object_get_object(root_obj, "info");
-    contact_obj = json_object_get_object(info_obj, "contact");
-    license_obj = json_object_get_object(info_obj, "license");
-    ext_docs_obj = json_object_get_object(root_obj, "externalDocs");
-    tags_arr = json_object_get_array(root_obj, "tags");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(root_obj, "info", &_cdd_jo_1);
+      info_obj = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(info_obj, "contact", &_cdd_jo_1);
+      contact_obj = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(info_obj, "license", &_cdd_jo_1);
+      license_obj = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(root_obj, "externalDocs", &_cdd_jo_1);
+      ext_docs_obj = _cdd_jo_1;
+    }
+    {
+      JSON_Array *_cdd_ja_1 = NULL;
+      cdd_json_object_get_array(root_obj, "tags", &_cdd_ja_1);
+      tags_arr = _cdd_ja_1;
+    }
     tag_obj = json_array_get_object(tags_arr, 0);
-    paths = json_object_get_object(root_obj, "paths");
-    path_obj = json_object_get_object(paths, "/test/route");
-    op_obj = json_object_get_object(path_obj, "get");
-    rb_op_obj = json_object_get_object(op_obj, "requestBody");
-    params_arr = json_object_get_array(op_obj, "parameters");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(root_obj, "paths", &_cdd_jo_1);
+      paths = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(paths, "/test/route", &_cdd_jo_1);
+      path_obj = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(path_obj, "get", &_cdd_jo_1);
+      op_obj = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(op_obj, "requestBody", &_cdd_jo_1);
+      rb_op_obj = _cdd_jo_1;
+    }
+    {
+      JSON_Array *_cdd_ja_1 = NULL;
+      cdd_json_object_get_array(op_obj, "parameters", &_cdd_ja_1);
+      params_arr = _cdd_ja_1;
+    }
     param_obj = json_array_get_object(params_arr, 0);
-    responses = json_object_get_object(op_obj, "responses");
-    resp_obj = json_object_get_object(responses, "200");
-    callbacks = json_object_get_object(op_obj, "callbacks");
-    cb_obj = json_object_get_object(callbacks, "onEvent");
-    components = json_object_get_object(root_obj, "components");
-    sec = json_object_get_object(components, "securitySchemes");
-    scheme_obj = json_object_get_object(sec, "oauth");
-    flows = json_object_get_object(scheme_obj, "flows");
-    flow_obj = json_object_get_object(flows, "password");
-    rbs = json_object_get_object(components, "requestBodies");
-    rb_obj = json_object_get_object(rbs, "CompRB");
-    security_arr = json_object_get_array(root_obj, "security");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(op_obj, "responses", &_cdd_jo_1);
+      responses = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(responses, "200", &_cdd_jo_1);
+      resp_obj = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(op_obj, "callbacks", &_cdd_jo_1);
+      callbacks = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(callbacks, "onEvent", &_cdd_jo_1);
+      cb_obj = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(root_obj, "components", &_cdd_jo_1);
+      components = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(components, "securitySchemes", &_cdd_jo_1);
+      sec = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(sec, "oauth", &_cdd_jo_1);
+      scheme_obj = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(scheme_obj, "flows", &_cdd_jo_1);
+      flows = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(flows, "password", &_cdd_jo_1);
+      flow_obj = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(components, "requestBodies", &_cdd_jo_1);
+      rbs = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(rbs, "CompRB", &_cdd_jo_1);
+      rb_obj = _cdd_jo_1;
+    }
+    {
+      JSON_Array *_cdd_ja_1 = NULL;
+      cdd_json_object_get_array(root_obj, "security", &_cdd_ja_1);
+      security_arr = _cdd_ja_1;
+    }
     security_obj = json_array_get_object(security_arr, 0);
 
-    ASSERT_EQ(1, (int)json_object_get_number(root_obj, "x-root"));
-    ASSERT_STR_EQ("info", json_object_get_string(info_obj, "x-info"));
-    ASSERT_EQ(1, json_object_get_boolean(contact_obj, "x-contact"));
-    ASSERT_STR_EQ("lic", json_object_get_string(license_obj, "x-license"));
-    ASSERT_STR_EQ("ext", json_object_get_string(ext_docs_obj, "x-ext"));
-    ASSERT_STR_EQ("tag", json_object_get_string(tag_obj, "x-tag"));
-    ASSERT_EQ(6, (int)json_object_get_number(path_obj, "x-path"));
-    ASSERT_EQ(7, (int)json_object_get_number(op_obj, "x-op"));
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(root_obj, "x-root", &_cdd_jn_1);
+      ASSERT_EQ(1, (int)_cdd_jn_1);
+    }
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(info_obj, "x-info", &_cdd_js_1);
+      ASSERT_STR_EQ("info", _cdd_js_1);
+    }
+    {
+      int _cdd_jb_1 = -1;
+      if (cdd_json_object_get_boolean(contact_obj, "x-contact", &_cdd_jb_1) !=
+          CDD_C_SUCCESS)
+        _cdd_jb_1 = -1;
+      ASSERT_EQ(1, _cdd_jb_1);
+    }
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(license_obj, "x-license", &_cdd_js_1);
+      ASSERT_STR_EQ("lic", _cdd_js_1);
+    }
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(ext_docs_obj, "x-ext", &_cdd_js_1);
+      ASSERT_STR_EQ("ext", _cdd_js_1);
+    }
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(tag_obj, "x-tag", &_cdd_js_1);
+      ASSERT_STR_EQ("tag", _cdd_js_1);
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(path_obj, "x-path", &_cdd_jn_1);
+      ASSERT_EQ(6, (int)_cdd_jn_1);
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(op_obj, "x-op", &_cdd_jn_1);
+      ASSERT_EQ(7, (int)_cdd_jn_1);
+    }
     ASSERT(rb_op_obj != NULL);
-    ASSERT_EQ(1, json_object_get_boolean(rb_op_obj, "x-rb-op"));
-    ASSERT_STR_EQ("param", json_object_get_string(param_obj, "x-param"));
-    ASSERT_EQ(1, json_object_get_boolean(resp_obj, "x-resp"));
-    ASSERT_EQ(1, (int)json_object_get_number(responses, "x-responses"));
-    ASSERT_STR_EQ("cb", json_object_get_string(cb_obj, "x-cb"));
-    ASSERT_EQ(1, (int)json_object_get_number(scheme_obj, "x-sec"));
-    ASSERT_EQ(1, (int)json_object_get_number(flow_obj, "x-flow"));
-    ASSERT_EQ(1, (int)json_object_get_number(rb_obj, "x-rb"));
-    ASSERT_EQ(1, (int)json_object_get_number(security_obj, "x-sec-req"));
+    {
+      int _cdd_jb_1 = -1;
+      if (cdd_json_object_get_boolean(rb_op_obj, "x-rb-op", &_cdd_jb_1) !=
+          CDD_C_SUCCESS)
+        _cdd_jb_1 = -1;
+      ASSERT_EQ(1, _cdd_jb_1);
+    }
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(param_obj, "x-param", &_cdd_js_1);
+      ASSERT_STR_EQ("param", _cdd_js_1);
+    }
+    {
+      int _cdd_jb_1 = -1;
+      if (cdd_json_object_get_boolean(resp_obj, "x-resp", &_cdd_jb_1) !=
+          CDD_C_SUCCESS)
+        _cdd_jb_1 = -1;
+      ASSERT_EQ(1, _cdd_jb_1);
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(responses, "x-responses", &_cdd_jn_1);
+      ASSERT_EQ(1, (int)_cdd_jn_1);
+    }
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(cb_obj, "x-cb", &_cdd_js_1);
+      ASSERT_STR_EQ("cb", _cdd_js_1);
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(scheme_obj, "x-sec", &_cdd_jn_1);
+      ASSERT_EQ(1, (int)_cdd_jn_1);
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(flow_obj, "x-flow", &_cdd_jn_1);
+      ASSERT_EQ(1, (int)_cdd_jn_1);
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(rb_obj, "x-rb", &_cdd_jn_1);
+      ASSERT_EQ(1, (int)_cdd_jn_1);
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(security_obj, "x-sec-req", &_cdd_jn_1);
+      ASSERT_EQ(1, (int)_cdd_jn_1);
+    }
 
     json_value_free(root);
   }

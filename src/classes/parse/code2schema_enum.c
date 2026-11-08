@@ -17,18 +17,19 @@
  */
 cdd_c_error_t json_array_to_enum_members(const JSON_Array *enum_arr,
                                          struct EnumMembers *em) {
-  size_t i, count;
+  size_t i, count = 0;
   if (!enum_arr || !em)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  count = json_array_get_count(enum_arr);
+  cdd_json_array_get_count(enum_arr, &count);
   for (i = 0; i < count; i++) {
-    const char *s = json_array_get_string(enum_arr, i);
+    const char *s = NULL;
     char *clean = NULL;
     char final_name[64];
     size_t k;
     int dup = 0;
     int needs_san = 0;
     const char *wire_override = NULL;
+    cdd_json_array_get_string(enum_arr, i, &s);
     if (!s)
       continue;
     c2s_needs_identifier_sanitization(s, &needs_san);
@@ -91,9 +92,9 @@ cdd_c_error_t json_array_to_enum_members(const JSON_Array *enum_arr,
 cdd_c_error_t schema_object_is_string_enum(const JSON_Object *schema_obj,
                                            const JSON_Array **enum_arr_out,
                                            int *out_is_enum) {
-  const JSON_Array *enum_arr;
-  size_t i, count;
-  const char *type;
+  JSON_Array *enum_arr = NULL;
+  size_t i, count = 0;
+  const char *type = NULL;
 
   if (enum_arr_out)
     *enum_arr_out = NULL;
@@ -103,20 +104,22 @@ cdd_c_error_t schema_object_is_string_enum(const JSON_Object *schema_obj,
   if (!schema_obj)
     return CDD_C_SUCCESS;
 
-  enum_arr = json_object_get_array(schema_obj, "enum");
+  cdd_json_object_get_array(schema_obj, "enum", &enum_arr);
   if (!enum_arr)
     return CDD_C_SUCCESS;
 
-  count = json_array_get_count(enum_arr);
+  cdd_json_array_get_count(enum_arr, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
-  type = json_object_get_string(schema_obj, "type");
+  cdd_json_object_get_string(schema_obj, "type", &type);
   if (type && strcmp(type, "string") != 0)
     return CDD_C_SUCCESS;
 
   for (i = 0; i < count; ++i) {
-    if (!json_array_get_string(enum_arr, i))
+    const char *s = NULL;
+    cdd_json_array_get_string(enum_arr, i, &s);
+    if (!s)
       return CDD_C_SUCCESS;
   }
 
@@ -139,7 +142,7 @@ cdd_c_error_t ref_points_to_string_enum(const JSON_Object *root,
                                         const char *ref,
                                         int *out_points_to_enum) {
   const char *name;
-  const JSON_Object *schema_obj;
+  JSON_Object *schema_obj = NULL;
   if (!out_points_to_enum)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_points_to_enum = 0;
@@ -153,7 +156,7 @@ cdd_c_error_t ref_points_to_string_enum(const JSON_Object *root,
   }
   if (!*name)
     return CDD_C_SUCCESS;
-  schema_obj = json_object_get_object(root, name);
+  cdd_json_object_get_object(root, name, &schema_obj);
   if (!schema_obj)
     return CDD_C_SUCCESS;
   return schema_object_is_string_enum(schema_obj, NULL, out_points_to_enum);
@@ -171,15 +174,16 @@ cdd_c_error_t ref_points_to_string_enum(const JSON_Object *root,
  */
 cdd_c_error_t required_name_in_list(const JSON_Array *required,
                                     const char *name, int *out_in_list) {
-  size_t i, count;
+  size_t i, count = 0;
   if (!out_in_list)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_in_list = 0;
   if (!required || !name)
     return CDD_C_SUCCESS;
-  count = json_array_get_count(required);
+  cdd_json_array_get_count(required, &count);
   for (i = 0; i < count; ++i) {
-    const char *req_name = json_array_get_string(required, i);
+    const char *req_name = NULL;
+    cdd_json_array_get_string(required, i, &req_name);
     if (req_name && strcmp(req_name, name) == 0) {
       *out_in_list = 1;
       return CDD_C_SUCCESS;
@@ -201,6 +205,7 @@ cdd_c_error_t resolve_schema_ref_object(const JSON_Object *root,
                                         const char *ref,
                                         const JSON_Object **_out_val) {
   const char *name;
+  JSON_Object *found_obj = NULL;
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!root || !ref) {
@@ -217,8 +222,7 @@ cdd_c_error_t resolve_schema_ref_object(const JSON_Object *root,
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
-  {
-    *_out_val = json_object_get_object(root, name);
-    return CDD_C_SUCCESS;
-  }
+  cdd_json_object_get_object(root, name, &found_obj);
+  *_out_val = found_obj;
+  return CDD_C_SUCCESS;
 }

@@ -58,11 +58,12 @@ cdd_c_error_t patch_list_init(struct PatchList *list) {
  * @brief Releases all memory associated with a patch list.
  *
  * @param[in,out] list Pointer to the PatchList structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void patch_list_free(struct PatchList *list) {
+cdd_c_error_t patch_list_free(struct PatchList *list) {
   size_t i;
   if (!list)
-    return;
+    return CDD_C_SUCCESS;
   if (list->patches) {
     for (i = 0; i < list->size; ++i) {
       if (list->patches[i].text) {
@@ -74,6 +75,7 @@ void patch_list_free(struct PatchList *list) {
   }
   list->size = 0;
   list->capacity = 0;
+  return CDD_C_SUCCESS;
 }
 
 /*

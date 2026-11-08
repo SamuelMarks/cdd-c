@@ -30,9 +30,9 @@
  */
 cdd_c_error_t any_from_json_value(const JSON_Value *val,
                                   struct OpenAPI_Any *out) {
-  JSON_Value_Type t;
-  const char *s;
-  char *json_str;
+  JSON_Value_Type t = JSONError;
+  const char *s = NULL;
+  char *json_str = NULL;
   cdd_c_error_t rc;
 
   if (!out)
@@ -42,10 +42,10 @@ cdd_c_error_t any_from_json_value(const JSON_Value *val,
   if (!val)
     return CDD_C_SUCCESS;
 
-  t = json_value_get_type(val);
+  cdd_json_value_get_type(val, &t);
   switch (t) {
   case JSONString:
-    s = json_value_get_string(val);
+    cdd_json_value_get_string(val, &s);
     out->type = OA_ANY_STRING;
     rc = c_cdd_strdup(s, &out->string);
     if (rc != CDD_C_SUCCESS)
@@ -53,18 +53,18 @@ cdd_c_error_t any_from_json_value(const JSON_Value *val,
     return CDD_C_SUCCESS;
   case JSONNumber:
     out->type = OA_ANY_NUMBER;
-    out->number = json_value_get_number(val);
+    cdd_json_value_get_number(val, &out->number);
     return CDD_C_SUCCESS;
   case JSONBoolean:
     out->type = OA_ANY_BOOL;
-    out->boolean = json_value_get_boolean(val);
+    cdd_json_value_get_boolean(val, &out->boolean);
     return CDD_C_SUCCESS;
   case JSONObject:
   case JSONArray:
-    json_str = json_serialize_to_string(val);
+    cdd_json_serialize_to_string(val, &json_str);
     out->type = OA_ANY_JSON;
     rc = c_cdd_strdup(json_str, &out->json);
-    json_free_serialized_string(json_str);
+    cdd_json_free_serialized_string(json_str);
     if (rc != CDD_C_SUCCESS)
       return rc;
     return CDD_C_SUCCESS;
@@ -82,7 +82,7 @@ cdd_c_error_t any_from_json_value(const JSON_Value *val,
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t parse_example_any(const char *example, struct OpenAPI_Any *out) {
-  JSON_Value *val;
+  JSON_Value *val = NULL;
   cdd_c_error_t rc;
 
   if (!out)
@@ -92,7 +92,7 @@ cdd_c_error_t parse_example_any(const char *example, struct OpenAPI_Any *out) {
   if (!example)
     return CDD_C_SUCCESS;
 
-  val = json_parse_string(example);
+  cdd_json_parse_string(example, &val);
   if (!val) {
     out->type = OA_ANY_STRING;
     rc = c_cdd_strdup(example, &out->string);
@@ -102,7 +102,7 @@ cdd_c_error_t parse_example_any(const char *example, struct OpenAPI_Any *out) {
   }
 
   rc = any_from_json_value(val, out);
-  json_value_free(val);
+  cdd_json_value_free(val);
   return rc;
 }
 
@@ -110,10 +110,11 @@ cdd_c_error_t parse_example_any(const char *example, struct OpenAPI_Any *out) {
  * @brief Frees members of an OpenAPI Any value structure.
  *
  * @param[in,out] val Pointer to OpenAPI_Any whose contents should be freed.
+ * @return CDD_C_SUCCESS.
  */
-void free_any_value_local(struct OpenAPI_Any *val) {
+cdd_c_error_t free_any_value_local(struct OpenAPI_Any *val) {
   if (!val)
-    return;
+    return CDD_C_SUCCESS;
   if (val->type == OA_ANY_STRING) {
     if (val->string)
       C_CDD_FREE(val->string);
@@ -122,6 +123,7 @@ void free_any_value_local(struct OpenAPI_Any *val) {
       C_CDD_FREE(val->json);
   }
   memset(val, 0, sizeof(*val));
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -166,11 +168,12 @@ cdd_c_error_t copy_any_value_local(struct OpenAPI_Any *dst,
  * @brief Frees server variable members within an OpenAPI Server structure.
  *
  * @param[in,out] srv Pointer to OpenAPI_Server whose variables should be freed.
+ * @return CDD_C_SUCCESS.
  */
-void free_openapi_server_variables_op(struct OpenAPI_Server *srv) {
+cdd_c_error_t free_openapi_server_variables_op(struct OpenAPI_Server *srv) {
   size_t i;
   if (!srv || !srv->variables)
-    return;
+    return CDD_C_SUCCESS;
   for (i = 0; i < srv->n_variables; ++i) {
     size_t e;
     struct OpenAPI_ServerVariable *var = &srv->variables[i];
@@ -190,6 +193,7 @@ void free_openapi_server_variables_op(struct OpenAPI_Server *srv) {
   C_CDD_FREE(srv->variables);
   srv->variables = NULL;
   srv->n_variables = 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -342,8 +346,9 @@ cdd_c_error_t schema_ref_has_data_basic(const struct OpenAPI_SchemaRef *ref,
  *
  * @param[in,out] ref The OpenAPI_SchemaRef structure whose basic fields are
  * freed.
+ * @return CDD_C_SUCCESS.
  */
-static void free_schema_ref_fields(struct OpenAPI_SchemaRef *ref) {
+static cdd_c_error_t free_schema_ref_fields(struct OpenAPI_SchemaRef *ref) {
   if (ref->ref_name) {
     C_CDD_FREE(ref->ref_name);
     ref->ref_name = NULL;
@@ -364,6 +369,7 @@ static void free_schema_ref_fields(struct OpenAPI_SchemaRef *ref) {
     C_CDD_FREE(ref->format);
     ref->format = NULL;
   }
+  return CDD_C_SUCCESS;
 }
 
 /**

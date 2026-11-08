@@ -139,8 +139,9 @@ extern C_CDD_EXPORT cdd_c_error_t enum_members_init(struct EnumMembers *em);
  *
  * @param[in] em Pointer to the container. Safe to call on NULL or zeroed
  * structs.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void enum_members_free(struct EnumMembers *em);
+extern C_CDD_EXPORT cdd_c_error_t enum_members_free(struct EnumMembers *em);
 
 /**
  * @brief Add a member to the EnumMembers container.

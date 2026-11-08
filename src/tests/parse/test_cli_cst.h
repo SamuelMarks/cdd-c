@@ -206,7 +206,6 @@ TEST test_cli_cst_errors(void) {
  * @return The result of the test.
  */
 TEST test_cli_standardize_gnu(void) {
-  int argc = 7;
   char *argv[8];
   int rc;
 
@@ -221,7 +220,6 @@ TEST test_cli_standardize_gnu(void) {
   /* void foo */
 
   /* Test no args */
-  (void)argc;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cli_standardize_gnu_main(0, argv));
 
   /* Test help */
@@ -310,14 +308,9 @@ extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail;
  * @return The result of the test.
  */
 TEST test_cli_cst_process_errors(void) {
-  char *argv_audit[4];
   char *argv_fix[4];
   /* void foo */
 
-  argv_audit[0] = cdd_test_mut_str("extern_c");
-  argv_audit[1] = cdd_test_mut_str("--audit");
-  argv_audit[2] = cdd_test_mut_str("test_cli_cst_file.h");
-  argv_audit[3] = NULL;
   argv_fix[0] = cdd_test_mut_str("extern_c");
   argv_fix[1] = cdd_test_mut_str("--fix");
   argv_fix[2] = cdd_test_mut_str("test_cli_cst_file.h");
@@ -331,7 +324,6 @@ TEST test_cli_cst_process_errors(void) {
     for (i = 1; i <= 500; i++) {
       g_cdd_alloc_fail = i;
       cli_cst_transformer_main(3, argv_fix);
-      (void)argv_audit;
     }
     g_cdd_alloc_fail = 0;
 

@@ -66,8 +66,9 @@ static cdd_c_error_t parsed_sig_init(struct ParsedSig *sig) {
  * @brief Free ParsedSig resources.
  *
  * @param[in,out] sig Pointer to the `ParsedSig` structure to free.
+ * @return CDD_C_SUCCESS.
  */
-static void parsed_sig_C_CDD_FREE(struct ParsedSig *sig) {
+static cdd_c_error_t parsed_sig_C_CDD_FREE(struct ParsedSig *sig) {
   if (sig->attributes)
     C_CDD_FREE(sig->attributes);
   if (sig->storage)
@@ -80,6 +81,7 @@ static void parsed_sig_C_CDD_FREE(struct ParsedSig *sig) {
     C_CDD_FREE(sig->args);
   if (sig->k_r_decls)
     C_CDD_FREE(sig->k_r_decls);
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -122,18 +124,21 @@ static cdd_c_error_t join_tokens(const struct TokenList *tokens, size_t start,
  * @brief Check if token is a storage class specifier.
  *
  * @param[in] tok Token to inspect.
- * @return Non-zero (`CDD_C_ERROR_UNKNOWN`) if storage specifier, 0
- * (`CDD_C_SUCCESS`) otherwise.
+ * @param[out] out_is_storage Output flag (1 if storage specifier, 0 otherwise).
+ * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t is_storage_specifier(const struct Token *tok) {
+static cdd_c_error_t is_storage_specifier(const struct Token *tok,
+                                          int *out_is_storage) {
   switch (tok->kind) {
   case TOKEN_KEYWORD_STATIC:
   case TOKEN_KEYWORD_EXTERN:
   case TOKEN_KEYWORD_INLINE:
   case TOKEN_KEYWORD_NORETURN:
   case TOKEN_KEYWORD_THREAD_LOCAL:
-    return CDD_C_ERROR_UNKNOWN;
+    *out_is_storage = 1;
+    return CDD_C_SUCCESS;
   default:
+    *out_is_storage = 0;
     return CDD_C_SUCCESS;
   }
 }
@@ -298,16 +303,20 @@ C_CDD_EXPORT cdd_c_error_t test_check_is_void(const struct TokenList *tokens,
  * @param[in] tokens Token list.
  * @param[in] start Inclusive start token index.
  * @param[in] end Exclusive end token index.
- * @return Non-zero (`CDD_C_ERROR_UNKNOWN`) if meaningful tokens exist, 0
- * (`CDD_C_SUCCESS`) otherwise.
+ * @param[out] out_has_tokens Output flag (1 if meaningful tokens exist, 0
+ * otherwise).
+ * @return CDD_C_SUCCESS on success.
  */
 static cdd_c_error_t has_meaningful_tokens(const struct TokenList *tokens,
-                                           size_t start, size_t end) {
+                                           size_t start, size_t end,
+                                           int *out_has_tokens) {
   size_t i;
+  *out_has_tokens = 0;
   for (i = start; i < end; ++i) {
     if (tokens->tokens[i].kind != TOKEN_WHITESPACE &&
         tokens->tokens[i].kind != TOKEN_COMMENT) {
-      return CDD_C_ERROR_UNKNOWN;
+      *out_has_tokens = 1;
+      return CDD_C_SUCCESS;
     }
   }
   return CDD_C_SUCCESS;
@@ -384,11 +393,15 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
         i++;
         continue;
       }
-      if (is_storage_specifier(&tokens->tokens[i])) {
-        found_storage = 1;
-        i++;
-      } else {
-        break; /* Found type or name */
+      {
+        int is_stor = 0;
+        is_storage_specifier(&tokens->tokens[i], &is_stor);
+        if (is_stor) {
+          found_storage = 1;
+          i++;
+        } else {
+          break; /* Found type or name */
+        }
       }
     }
     storage_end_idx = i;
@@ -508,7 +521,9 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
 
   /* 6. Extract K&R Declarations (if any) */
   if (rparen_idx + 1 < tokens->size) {
-    if (has_meaningful_tokens(tokens, rparen_idx + 1, tokens->size)) {
+    int has_toks = 0;
+    has_meaningful_tokens(tokens, rparen_idx + 1, tokens->size, &has_toks);
+    if (has_toks) {
       rc = join_tokens(tokens, rparen_idx + 1, tokens->size, &sig.k_r_decls);
       if (rc)
         goto cleanup;

@@ -86,8 +86,8 @@ TEST test_generated_obj_array_logic(void) {
   /* Verify loop for object parsing */
   /* Expect: rc = Item_from_jsonObject(..., &ret->items[i]); */
   ASSERT(strstr(output_buf,
-                "rc = Item_from_jsonObject(json_array_get_object(arr, "
-                "i), &ret->items[i]);"));
+                "cdd_json_array_get_object(arr, i, &_elem_obj);\n        rc = "
+                "Item_from_jsonObject(_elem_obj, &ret->items[i]);"));
 
   /* Verify cleanup on error */
   ASSERT(strstr(output_buf, "Container_cleanup(ret);"));

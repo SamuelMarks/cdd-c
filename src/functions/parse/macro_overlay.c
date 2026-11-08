@@ -45,11 +45,12 @@ cdd_c_error_t macro_overlay_list_init(struct MacroOverlayList *list) {
  * @brief Frees a macro overlay list.
  *
  * @param[in,out] list Pointer to the MacroOverlayList structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void macro_overlay_list_free(struct MacroOverlayList *list) {
+cdd_c_error_t macro_overlay_list_free(struct MacroOverlayList *list) {
   size_t i;
   if (!list)
-    return;
+    return CDD_C_SUCCESS;
   if (list->nodes) {
     for (i = 0; i < list->size; ++i) {
       if (list->nodes[i].expanded_ast) {
@@ -62,6 +63,7 @@ void macro_overlay_list_free(struct MacroOverlayList *list) {
   list->nodes = NULL;
   list->size = 0;
   list->capacity = 0;
+  return CDD_C_SUCCESS;
 }
 
 /**

@@ -39,11 +39,23 @@ TEST test_arazzo_eval_json_pointer(void) {
   JSON_Array *cd_arr;
   const JSON_Value *out = NULL;
 
-  root_val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    root_val = _cdd_jv_1;
+  }
   root_obj = json_value_get_object(root_val);
-  ab_val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    ab_val = _cdd_jv_1;
+  }
   ab_obj = json_value_get_object(ab_val);
-  cd_val = json_value_init_array();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_array(&_cdd_jv_1);
+    cd_val = _cdd_jv_1;
+  }
   cd_arr = json_value_get_array(cd_val);
 
   json_array_append_string(cd_arr, "first");
@@ -126,14 +138,33 @@ TEST test_arazzo_eval_jsonpath_and_xpath(void) {
   CDD_SNPRINTF(unterm_xml, sizeof(unterm_xml), "<order id=%cunterminated>",
                '"');
 
-  root_val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    root_val = _cdd_jv_1;
+  }
   root_obj = json_value_get_object(root_val);
-  store_val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    store_val = _cdd_jv_1;
+  }
   store_obj = json_value_get_object(store_val);
-  book_arr_val = json_value_init_array();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_array(&_cdd_jv_1);
+    book_arr_val = _cdd_jv_1;
+  }
   book_arr = json_value_get_array(book_arr_val);
-  b0_val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    b0_val = _cdd_jv_1;
+  }
   json_object_set_string(json_value_get_object(b0_val), "title", "C89");
+  json_object_set_number(json_value_get_object(b0_val), "price", 8.5);
+  json_object_set_boolean(json_value_get_object(b0_val), "in_stock", 1);
+  json_object_set_null(json_value_get_object(b0_val), "deleted");
   json_array_append_value(book_arr, b0_val);
   json_object_set_value(store_obj, "book", book_arr_val);
   json_object_set_value(root_obj, "store", store_val);
@@ -159,12 +190,97 @@ TEST test_arazzo_eval_jsonpath_and_xpath(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             arazzo_eval_jsonpath(root_val, "$['key'bad]", &out));
 
-  /* Filter and slice selectors return NOT_SUPPORTED */
+  /* Filter and slice selectors */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            arazzo_eval_jsonpath(root_val,
+                                 "$.store.book[?(@.price < 10)].title", &out));
+  ASSERT_STR_EQ("C89", json_value_get_string(out));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            arazzo_eval_jsonpath(
+                root_val, "$.store.book[?(@.price <= 8.5)].title", &out));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            arazzo_eval_jsonpath(root_val, "$.store.book[?(@.price > 5)].title",
+                                 &out));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            arazzo_eval_jsonpath(
+                root_val, "$.store.book[?(@.price >= 8.5)].title", &out));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            arazzo_eval_jsonpath(
+                root_val, "$.store.book[?(@.price == 8.5)].title", &out));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            arazzo_eval_jsonpath(root_val,
+                                 "$.store.book[?(@.price != 99)].title", &out));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            arazzo_eval_jsonpath(
+                root_val, "$.store.book[?(@.title == 'C89')].title", &out));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            arazzo_eval_jsonpath(
+                root_val, "$.store.book[?(@.title != 'C99')].title", &out));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            arazzo_eval_jsonpath(
+                root_val, "$.store.book[?(@.in_stock == true)].title", &out));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            arazzo_eval_jsonpath(
+                root_val, "$.store.book[?(@.in_stock != false)].title", &out));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            arazzo_eval_jsonpath(
+                root_val, "$.store.book[?(@.deleted == null)].title", &out));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            arazzo_eval_jsonpath(
+                root_val, "$.store.book[?(@.deleted != null)].title", &out));
+  ASSERT_EQ(
+      CDD_C_ERROR_NOT_FOUND,
+      arazzo_eval_jsonpath(root_val, "$.store.book[?(@.price > 100)]", &out));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            arazzo_eval_jsonpath(root_val, "$.store[?(@.price < 10)]", &out));
   ASSERT_EQ(
       CDD_C_ERROR_NOT_SUPPORTED,
-      arazzo_eval_jsonpath(root_val, "$.store.book[?(@.price < 10)]", &out));
+      arazzo_eval_jsonpath(root_val, "$.store.book[?(@.fn() < 10)]", &out));
+  ASSERT_EQ(
+      CDD_C_ERROR_NOT_SUPPORTED,
+      arazzo_eval_jsonpath(root_val, "$.store.book[?(price < 10)]", &out));
+  ASSERT_EQ(
+      CDD_C_ERROR_NOT_SUPPORTED,
+      arazzo_eval_jsonpath(root_val, "$.store.book[?(@.price ~= 10)]", &out));
   ASSERT_EQ(CDD_C_ERROR_NOT_SUPPORTED,
-            arazzo_eval_jsonpath(root_val, "$.store.book[0:1]", &out));
+            arazzo_eval_jsonpath(root_val,
+                                 "$.store.book[?(@.price == @.other)]", &out));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            arazzo_eval_jsonpath(root_val,
+                                 "$.store.book[?(@.title == 'unterm)]", &out));
+  ASSERT_EQ(
+      CDD_C_ERROR_INVALID_ARGUMENT,
+      arazzo_eval_jsonpath(root_val, "$.store.book[?(@.price == -)]", &out));
+  ASSERT_EQ(
+      CDD_C_ERROR_INVALID_ARGUMENT,
+      arazzo_eval_jsonpath(root_val, "$.store.book[?(@.price == 8.5]", &out));
+  ASSERT_EQ(CDD_C_ERROR_NOT_SUPPORTED,
+            arazzo_eval_jsonpath(root_val,
+                                 "$.store.book[?@.price == 8.5 extra]", &out));
+
+  ASSERT_EQ(CDD_C_SUCCESS,
+            arazzo_eval_jsonpath(root_val, "$.store.book[0:1].title", &out));
+  ASSERT_STR_EQ("C89", json_value_get_string(out));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            arazzo_eval_jsonpath(root_val, "$.store.book[:1:1].title", &out));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            arazzo_eval_jsonpath(root_val, "$.store.book[-1:].title", &out));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            arazzo_eval_jsonpath(root_val, "$.store.book[-5:5:].title", &out));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            arazzo_eval_jsonpath(root_val, "$.store.book[1:2]", &out));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            arazzo_eval_jsonpath(root_val, "$.store.book[0:-1]", &out));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            arazzo_eval_jsonpath(root_val, "$.store[0:1]", &out));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            arazzo_eval_jsonpath(root_val, "$.store.book[0:abc]", &out));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            arazzo_eval_jsonpath(root_val, "$.store.book[0:1:0]", &out));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            arazzo_eval_jsonpath(root_val, "$.store.book[0:1:abc]", &out));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            arazzo_eval_jsonpath(root_val, "$.store.book[0:1:1extra]", &out));
 
   /* Dot, bracketed keys, wildcards, and negative array indices */
   ASSERT_EQ(CDD_C_SUCCESS,
@@ -198,7 +314,11 @@ TEST test_arazzo_eval_jsonpath_and_xpath(void) {
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
             arazzo_eval_jsonpath(root_val, "$.store.book[-5]", &out));
 
-  empty_obj_val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    empty_obj_val = _cdd_jv_1;
+  }
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
             arazzo_eval_jsonpath(empty_obj_val, "$.*", &out));
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
@@ -293,7 +413,11 @@ TEST test_arazzo_eval_runtime_expr_all_roots(void) {
   JSON_Object *root_obj;
   char *out = NULL;
 
-  root_val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    root_val = _cdd_jv_1;
+  }
   root_obj = json_value_get_object(root_val);
   json_object_dotset_string(root_obj, "req_h.Authorization", "Bearer abc");
   json_object_dotset_number(root_obj, "req_q.page", 2);
@@ -320,20 +444,76 @@ TEST test_arazzo_eval_runtime_expr_all_roots(void) {
   ctx.method = "POST";
   ctx.status_code = 201;
   ctx.self_uri = "https://api.petstore.io/arazzo.json";
-  ctx.req_headers = json_object_get_object(root_obj, "req_h");
-  ctx.req_query = json_object_get_object(root_obj, "req_q");
-  ctx.req_path = json_object_get_object(root_obj, "req_p");
-  ctx.req_body = json_object_get_value(root_obj, "req_b");
-  ctx.resp_headers = json_object_get_object(root_obj, "resp_h");
-  ctx.resp_body = json_object_get_value(root_obj, "resp_b");
-  ctx.msg_header = json_object_get_value(root_obj, "msg_h");
-  ctx.msg_payload = json_object_get_value(root_obj, "msg_p");
-  ctx.inputs = json_object_get_object(root_obj, "inputs");
-  ctx.outputs = json_object_get_object(root_obj, "outputs");
-  ctx.steps = json_object_get_object(root_obj, "steps");
-  ctx.workflows = json_object_get_object(root_obj, "workflows");
-  ctx.sources = json_object_get_object(root_obj, "sources");
-  ctx.components = json_object_get_object(root_obj, "components");
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(root_obj, "req_h", &_cdd_jo_1);
+    ctx.req_headers = _cdd_jo_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(root_obj, "req_q", &_cdd_jo_1);
+    ctx.req_query = _cdd_jo_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(root_obj, "req_p", &_cdd_jo_1);
+    ctx.req_path = _cdd_jo_1;
+  }
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_object_get_value(root_obj, "req_b", &_cdd_jv_1);
+    ctx.req_body = _cdd_jv_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(root_obj, "resp_h", &_cdd_jo_1);
+    ctx.resp_headers = _cdd_jo_1;
+  }
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_object_get_value(root_obj, "resp_b", &_cdd_jv_1);
+    ctx.resp_body = _cdd_jv_1;
+  }
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_object_get_value(root_obj, "msg_h", &_cdd_jv_1);
+    ctx.msg_header = _cdd_jv_1;
+  }
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_object_get_value(root_obj, "msg_p", &_cdd_jv_1);
+    ctx.msg_payload = _cdd_jv_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(root_obj, "inputs", &_cdd_jo_1);
+    ctx.inputs = _cdd_jo_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(root_obj, "outputs", &_cdd_jo_1);
+    ctx.outputs = _cdd_jo_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(root_obj, "steps", &_cdd_jo_1);
+    ctx.steps = _cdd_jo_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(root_obj, "workflows", &_cdd_jo_1);
+    ctx.workflows = _cdd_jo_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(root_obj, "sources", &_cdd_jo_1);
+    ctx.sources = _cdd_jo_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(root_obj, "components", &_cdd_jo_1);
+    ctx.components = _cdd_jo_1;
+  }
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             arazzo_eval_runtime_expr_to_str(NULL, &ctx, &out));
@@ -614,11 +794,19 @@ TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
   CDD_SNPRINTF(xml_doc, sizeof(xml_doc), "<order id=%c7%c><ok>1</ok></order>",
                '"', '"');
 
-  resp_val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    resp_val = _cdd_jv_1;
+  }
   json_object_set_string(json_value_get_object(resp_val), "status", "active");
   json_object_set_string(json_value_get_object(resp_val), "xml", xml_doc);
 
-  inputs_val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    inputs_val = _cdd_jv_1;
+  }
   json_object_set_string(json_value_get_object(inputs_val), "newName", "Rex");
 
   memset(&ctx, 0, sizeof(ctx));
@@ -940,13 +1128,21 @@ TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
             arazzo_eval_selector(&sel, &ctx, &out_str));
 
   /* Payload replacements (including ~0/~1 unescaping and JSONArray targets) */
-  payload_val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    payload_val = _cdd_jv_1;
+  }
   json_object_dotset_string(json_value_get_object(payload_val), "pet.a/b~c",
                             "old");
   json_object_set_number(json_value_get_object(payload_val), "count", 1);
   json_object_set_boolean(json_value_get_object(payload_val), "active", 0);
   json_object_set_string(json_value_get_object(payload_val), "extra", "x");
-  items_arr_val = json_value_init_array();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_array(&_cdd_jv_1);
+    items_arr_val = _cdd_jv_1;
+  }
   json_array_append_string(json_value_get_array(items_arr_val), "old0");
   json_array_append_number(json_value_get_array(items_arr_val), 0);
   json_array_append_boolean(json_value_get_array(items_arr_val), 0);
@@ -1001,14 +1197,27 @@ TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_apply_payload_replacements(payload_val, reps, 8, &ctx));
-  ASSERT_STR_EQ("Rex", json_object_get_string(
-                           json_object_get_object(
-                               json_value_get_object(payload_val), "pet"),
-                           "a/b~c"));
-  ASSERT_EQ(5, (int)json_object_get_number(json_value_get_object(payload_val),
-                                           "count"));
-  ASSERT_EQ(
-      1, json_object_get_boolean(json_value_get_object(payload_val), "active"));
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    const char *_cdd_js_2 = NULL;
+    cdd_json_object_get_object(json_value_get_object(payload_val), "pet",
+                               &_cdd_jo_1);
+    cdd_json_object_get_string(_cdd_jo_1, "a/b~c", &_cdd_js_2);
+    ASSERT_STR_EQ("Rex", _cdd_js_2);
+  }
+  {
+    double _cdd_jn_1 = 0.0;
+    cdd_json_object_get_number(json_value_get_object(payload_val), "count",
+                               &_cdd_jn_1);
+    ASSERT_EQ(5, (int)_cdd_jn_1);
+  }
+  {
+    int _cdd_jb_1 = -1;
+    if (cdd_json_object_get_boolean(json_value_get_object(payload_val),
+                                    "active", &_cdd_jb_1) != CDD_C_SUCCESS)
+      _cdd_jb_1 = -1;
+    ASSERT_EQ(1, _cdd_jb_1);
+  }
   ASSERT_STR_EQ("Rex",
                 json_array_get_string(json_value_get_array(items_arr_val), 0));
   ASSERT_EQ(99,

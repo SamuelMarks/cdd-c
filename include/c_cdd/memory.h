@@ -95,8 +95,9 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_do_strdup(const char *s, char **out_str);
  * @brief Frees a memory block through the active allocator context.
  *
  * @param[in,out] p Pointer to free (or `NULL`).
+ * @return `CDD_C_SUCCESS` on success.
  */
-C_CDD_EXPORT void c_cdd_do_free(void *p);
+C_CDD_EXPORT cdd_c_error_t c_cdd_do_free(void *p);
 
 /** @brief Allocates sz bytes of memory with optional test fault injection */
 #define c_cdd_malloc(sz)                                                       \

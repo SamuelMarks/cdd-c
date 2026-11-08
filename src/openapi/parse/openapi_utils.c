@@ -315,12 +315,13 @@ cdd_c_error_t media_type_key_is_valid(const char *name) {
  * @return CDD_C_SUCCESS if all keys are valid, or CDD_C_ERROR_INVALID_ARGUMENT.
  */
 cdd_c_error_t validate_component_key_map(const JSON_Object *obj) {
-  size_t i, count;
+  size_t i, count = 0;
   if (!obj)
     return CDD_C_SUCCESS;
-  count = json_object_get_count(obj);
+  cdd_json_object_get_count(obj, &count);
   for (i = 0; i < count; ++i) {
-    const char *name = json_object_get_name(obj, i);
+    const char *name = NULL;
+    cdd_json_object_get_name(obj, i, &name);
     if (!component_key_is_valid(name))
       return CDD_C_ERROR_INVALID_ARGUMENT;
   }
@@ -334,12 +335,13 @@ cdd_c_error_t validate_component_key_map(const JSON_Object *obj) {
  * @return CDD_C_SUCCESS if all keys are valid, or CDD_C_ERROR_INVALID_ARGUMENT.
  */
 cdd_c_error_t validate_media_type_key_map(const JSON_Object *obj) {
-  size_t i, count;
+  size_t i, count = 0;
   if (!obj)
     return CDD_C_SUCCESS;
-  count = json_object_get_count(obj);
+  cdd_json_object_get_count(obj, &count);
   for (i = 0; i < count; ++i) {
-    const char *name = json_object_get_name(obj, i);
+    const char *name = NULL;
+    cdd_json_object_get_name(obj, i, &name);
     if (!media_type_key_is_valid(name))
       return CDD_C_ERROR_INVALID_ARGUMENT;
   }
@@ -546,29 +548,29 @@ cdd_c_error_t parse_xml_node_type(const char *node_type,
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_any_value(const JSON_Value *val, struct OpenAPI_Any *out) {
-  JSON_Value_Type t;
-  const char *s;
-  char *json_str;
+  JSON_Value_Type t = JSONError;
+  const char *s = NULL;
+  char *json_str = NULL;
   cdd_c_error_t rc;
 
   if (!val || !out)
     return CDD_C_SUCCESS;
 
-  t = json_value_get_type(val);
+  cdd_json_value_get_type(val, &t);
   out->type = OA_ANY_UNSET;
 
   if (t == JSONString) {
-    s = json_value_get_string(val);
+    cdd_json_value_get_string(val, &s);
     out->type = OA_ANY_STRING;
     rc = c_cdd_strdup(s, &out->string);
     if (rc != CDD_C_SUCCESS)
       return rc;
   } else if (t == JSONNumber) {
     out->type = OA_ANY_NUMBER;
-    out->number = json_value_get_number(val);
+    cdd_json_value_get_number(val, &out->number);
   } else if (t == JSONBoolean) {
     out->type = OA_ANY_BOOL;
-    out->boolean = json_value_get_boolean(val);
+    cdd_json_value_get_boolean(val, &out->boolean);
   } else if (t == JSONNull) {
     out->type = OA_ANY_NULL;
   } else {
@@ -578,16 +580,16 @@ cdd_c_error_t parse_any_value(const JSON_Value *val, struct OpenAPI_Any *out) {
       if (g_cdd_fail_any_serialize && --g_cdd_fail_any_serialize == 0)
         json_str = NULL;
       else
-        json_str = json_serialize_to_string(val);
+        cdd_json_serialize_to_string(val, &json_str);
     }
 #else
-    json_str = json_serialize_to_string(val);
+    cdd_json_serialize_to_string(val, &json_str);
 #endif
     if (!json_str)
       return CDD_C_ERROR_MEMORY;
     out->type = OA_ANY_JSON;
     rc = c_cdd_strdup(json_str, &out->json);
-    json_free_serialized_string(json_str);
+    cdd_json_free_serialized_string(json_str);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
@@ -606,14 +608,16 @@ cdd_c_error_t parse_any_value(const JSON_Value *val, struct OpenAPI_Any *out) {
  */
 cdd_c_error_t parse_any_field(const JSON_Object *obj, const char *key,
                               struct OpenAPI_Any *out, int *out_set) {
-  const JSON_Value *val;
+  JSON_Value *val = NULL;
+  int has_val = 0;
   cdd_c_error_t rc;
 
   if (!obj || !key || !out || !out_set)
     return CDD_C_SUCCESS;
-  if (!json_object_has_value(obj, key))
+  cdd_json_object_has_value(obj, key, &has_val);
+  if (!has_val)
     return CDD_C_SUCCESS;
-  val = json_object_get_value(obj, key);
+  cdd_json_object_get_value(obj, key, &val);
   rc = parse_any_value(val, out);
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -631,7 +635,7 @@ cdd_c_error_t parse_any_field(const JSON_Object *obj, const char *key,
  */
 cdd_c_error_t parse_any_array(const JSON_Array *arr, struct OpenAPI_Any **out,
                               size_t *out_count) {
-  size_t i, count;
+  size_t i, count = 0;
 
   if (!out || !out_count)
     return CDD_C_SUCCESS;
@@ -640,7 +644,7 @@ cdd_c_error_t parse_any_array(const JSON_Array *arr, struct OpenAPI_Any **out,
   if (!arr)
     return CDD_C_SUCCESS;
 
-  count = json_array_get_count(arr);
+  cdd_json_array_get_count(arr, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -650,7 +654,8 @@ cdd_c_error_t parse_any_array(const JSON_Array *arr, struct OpenAPI_Any **out,
   *out_count = count;
 
   for (i = 0; i < count; ++i) {
-    const JSON_Value *val = json_array_get_value(arr, i);
+    JSON_Value *val = NULL;
+    cdd_json_array_get_value(arr, i, &val);
     if (parse_any_value(val, &(*out)[i]) != CDD_C_SUCCESS) {
       size_t j;
       for (j = 0; j < i; ++j)
@@ -703,8 +708,8 @@ cdd_c_error_t is_extension_key(const char *key) {
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
-  char *serialized;
-  JSON_Value *copy;
+  char *serialized = NULL;
+  JSON_Value *copy = NULL;
 
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -720,10 +725,10 @@ cdd_c_error_t clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
         --g_cdd_fail_clone_json_serialize == 0)
       serialized = NULL;
     else
-      serialized = json_serialize_to_string(val);
+      cdd_json_serialize_to_string(val, &serialized);
   }
 #else
-  serialized = json_serialize_to_string(val);
+  cdd_json_serialize_to_string(val, &serialized);
 #endif
   if (!serialized) {
     *_out_val = NULL;
@@ -735,12 +740,12 @@ cdd_c_error_t clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
     if (g_cdd_fail_clone_json_parse && --g_cdd_fail_clone_json_parse == 0)
       copy = NULL;
     else
-      copy = json_parse_string(serialized);
+      cdd_json_parse_string(serialized, &copy);
   }
 #else
-  copy = json_parse_string(serialized);
+  cdd_json_parse_string(serialized, &copy);
 #endif
-  json_free_serialized_string(serialized);
+  cdd_json_free_serialized_string(serialized);
   if (!copy) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -761,10 +766,10 @@ cdd_c_error_t clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
 cdd_c_error_t collect_schema_extras(const JSON_Object *obj,
                                     const char **skip_keys, size_t skip_count,
                                     char **out_json) {
-  JSON_Value *extras_val;
-  JSON_Object *extras_obj;
-  size_t i, count;
-  char *serialized;
+  JSON_Value *extras_val = NULL;
+  JSON_Object *extras_obj = NULL;
+  size_t i, count = 0, extras_count = 0;
+  char *serialized = NULL;
   cdd_c_error_t rc;
 
   if (out_json)
@@ -778,44 +783,46 @@ cdd_c_error_t collect_schema_extras(const JSON_Object *obj,
     if (g_cdd_fail_extras_init && --g_cdd_fail_extras_init == 0)
       extras_val = NULL;
     else
-      extras_val = json_value_init_object();
+      cdd_json_value_init_object(&extras_val);
   }
 #else
-  extras_val = json_value_init_object();
+  cdd_json_value_init_object(&extras_val);
 #endif
   if (!extras_val)
     return CDD_C_ERROR_MEMORY;
-  extras_obj = json_value_get_object(extras_val);
+  cdd_json_value_get_object(extras_val, &extras_obj);
 
-  count = json_object_get_count(obj);
+  cdd_json_object_get_count(obj, &count);
   for (i = 0; i < count; ++i) {
-    const char *key = json_object_get_name(obj, i);
-    const JSON_Value *val;
+    const char *key = NULL;
+    JSON_Value *val = NULL;
     JSON_Value *copy = NULL;
 
+    cdd_json_object_get_name(obj, i, &key);
     if (key_in_list(key, skip_keys, skip_count) != CDD_C_SUCCESS)
       continue;
-    val = json_object_get_value(obj, key);
+    cdd_json_object_get_value(obj, key, &val);
     rc = clone_json_value(val, &copy);
     if (rc != CDD_C_SUCCESS) {
-      json_value_free(extras_val);
+      cdd_json_value_free(extras_val);
       return rc;
     }
 #ifdef CDD_BUILD_TESTS
     {
       extern C_CDD_EXPORT volatile int g_cdd_fail_json_set_value;
       if (g_cdd_fail_json_set_value && --g_cdd_fail_json_set_value == 0) {
-        json_value_free(copy);
-        json_value_free(extras_val);
+        cdd_json_value_free(copy);
+        cdd_json_value_free(extras_val);
         return CDD_C_ERROR_MEMORY;
       }
     }
 #endif
-    json_object_set_value(extras_obj, key, copy);
+    cdd_json_object_set_value_safe(extras_obj, key, copy);
   }
 
-  if (json_object_get_count(extras_obj) == 0) {
-    json_value_free(extras_val);
+  cdd_json_object_get_count(extras_obj, &extras_count);
+  if (extras_count == 0) {
+    cdd_json_value_free(extras_val);
     return CDD_C_SUCCESS;
   }
 
@@ -825,18 +832,18 @@ cdd_c_error_t collect_schema_extras(const JSON_Object *obj,
     if (g_cdd_fail_extras_serialize && --g_cdd_fail_extras_serialize == 0)
       serialized = NULL;
     else
-      serialized = json_serialize_to_string(extras_val);
+      cdd_json_serialize_to_string(extras_val, &serialized);
   }
 #else
-  serialized = json_serialize_to_string(extras_val);
+  cdd_json_serialize_to_string(extras_val, &serialized);
 #endif
   if (!serialized) {
-    json_value_free(extras_val);
+    cdd_json_value_free(extras_val);
     return CDD_C_ERROR_MEMORY;
   }
   rc = c_cdd_strdup(serialized, out_json);
-  json_free_serialized_string(serialized);
-  json_value_free(extras_val);
+  cdd_json_free_serialized_string(serialized);
+  cdd_json_value_free(extras_val);
   return rc;
 }
 
@@ -848,10 +855,10 @@ cdd_c_error_t collect_schema_extras(const JSON_Object *obj,
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t collect_extensions(const JSON_Object *obj, char **out_json) {
-  JSON_Value *extras_val;
-  JSON_Object *extras_obj;
-  size_t i, count;
-  char *serialized;
+  JSON_Value *extras_val = NULL;
+  JSON_Object *extras_obj = NULL;
+  size_t i, count = 0, extras_count = 0;
+  char *serialized = NULL;
   cdd_c_error_t rc;
 
   if (out_json)
@@ -865,43 +872,45 @@ cdd_c_error_t collect_extensions(const JSON_Object *obj, char **out_json) {
     if (g_cdd_fail_extensions_init && --g_cdd_fail_extensions_init == 0)
       extras_val = NULL;
     else
-      extras_val = json_value_init_object();
+      cdd_json_value_init_object(&extras_val);
   }
 #else
-  extras_val = json_value_init_object();
+  cdd_json_value_init_object(&extras_val);
 #endif
   if (!extras_val)
     return CDD_C_ERROR_MEMORY;
-  extras_obj = json_value_get_object(extras_val);
+  cdd_json_value_get_object(extras_val, &extras_obj);
 
-  count = json_object_get_count(obj);
+  cdd_json_object_get_count(obj, &count);
   for (i = 0; i < count; ++i) {
-    const char *key = json_object_get_name(obj, i);
-    const JSON_Value *val;
+    const char *key = NULL;
+    JSON_Value *val = NULL;
     JSON_Value *copy = NULL;
+    cdd_json_object_get_name(obj, i, &key);
     if (is_extension_key(key) == CDD_C_SUCCESS)
       continue;
-    val = json_object_get_value(obj, key);
+    cdd_json_object_get_value(obj, key, &val);
     rc = clone_json_value(val, &copy);
     if (rc != CDD_C_SUCCESS) {
-      json_value_free(extras_val);
+      cdd_json_value_free(extras_val);
       return rc;
     }
 #ifdef CDD_BUILD_TESTS
     {
       extern C_CDD_EXPORT volatile int g_cdd_fail_json_set_value;
       if (g_cdd_fail_json_set_value && --g_cdd_fail_json_set_value == 0) {
-        json_value_free(copy);
-        json_value_free(extras_val);
+        cdd_json_value_free(copy);
+        cdd_json_value_free(extras_val);
         return CDD_C_ERROR_MEMORY;
       }
     }
 #endif
-    json_object_set_value(extras_obj, key, copy);
+    cdd_json_object_set_value_safe(extras_obj, key, copy);
   }
 
-  if (json_object_get_count(extras_obj) == 0) {
-    json_value_free(extras_val);
+  cdd_json_object_get_count(extras_obj, &extras_count);
+  if (extras_count == 0) {
+    cdd_json_value_free(extras_val);
     return CDD_C_SUCCESS;
   }
 
@@ -912,18 +921,18 @@ cdd_c_error_t collect_extensions(const JSON_Object *obj, char **out_json) {
         --g_cdd_fail_extensions_serialize == 0)
       serialized = NULL;
     else
-      serialized = json_serialize_to_string(extras_val);
+      cdd_json_serialize_to_string(extras_val, &serialized);
   }
 #else
-  serialized = json_serialize_to_string(extras_val);
+  cdd_json_serialize_to_string(extras_val, &serialized);
 #endif
   if (!serialized) {
-    json_value_free(extras_val);
+    cdd_json_value_free(extras_val);
     return CDD_C_ERROR_MEMORY;
   }
   rc = c_cdd_strdup(serialized, out_json);
-  json_free_serialized_string(serialized);
-  json_value_free(extras_val);
+  cdd_json_free_serialized_string(serialized);
+  cdd_json_value_free(extras_val);
   return rc;
 }
 
@@ -986,10 +995,12 @@ cdd_c_error_t example_fields_valid(const struct OpenAPI_Example *ex) {
  * otherwise.
  */
 cdd_c_error_t object_has_example_and_examples(const JSON_Object *obj) {
+  int has_ex = 0, has_exs = 0;
   if (!obj)
     return CDD_C_SUCCESS;
-  if (json_object_has_value(obj, "example") &&
-      json_object_has_value(obj, "examples")) {
+  cdd_json_object_has_value(obj, "example", &has_ex);
+  cdd_json_object_has_value(obj, "examples", &has_exs);
+  if (has_ex && has_exs) {
     return CDD_C_ERROR_UNKNOWN;
   }
   return CDD_C_SUCCESS;

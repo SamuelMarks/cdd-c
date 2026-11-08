@@ -135,8 +135,10 @@ pp_context_init(struct PreprocessorContext *ctx);
  * @brief Free resources associated with the context.
  *
  * @param[in] ctx Pointer to the context.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void pp_context_free(struct PreprocessorContext *ctx);
+extern C_CDD_EXPORT cdd_c_error_t
+pp_context_free(struct PreprocessorContext *ctx);
 
 /**
  * @brief Add a search path to the context.
@@ -219,8 +221,10 @@ extern C_CDD_EXPORT cdd_c_error_t pp_eval_expression(
  * @brief Release memory within EmbedParams structure.
  *
  * @param[in] params Pointer to struct to clean.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void pp_embed_params_free(struct EmbedParams *params);
+extern C_CDD_EXPORT cdd_c_error_t
+pp_embed_params_free(struct EmbedParams *params);
 
 /**
  * @brief Joins a directory and file name into a path string.
@@ -375,8 +379,9 @@ extern C_CDD_EXPORT cdd_c_error_t pp_preprocessor_peek(struct ExprState *s,
  * @brief Free heap allocations inside a MacroDef structure.
  *
  * @param[in,out] def Pointer to macro definition to clean.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void pp_free_macro_def(struct MacroDef *def);
+extern C_CDD_EXPORT cdd_c_error_t pp_free_macro_def(struct MacroDef *def);
 
 /**
  * @brief Adds a macro definition internally to the preprocessor context.

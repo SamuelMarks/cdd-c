@@ -36,7 +36,11 @@ static cdd_c_error_t load_spec_string(const char *json,
   int rc = 0;
   if (!json || !spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  root = json_parse_string(json);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(json, &_cdd_jv_1);
+    root = _cdd_jv_1;
+  }
   if (!root)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   openapi_spec_init(spec);
@@ -140,26 +144,79 @@ TEST test_writer_enum_and_required(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *root_obj = json_value_get_object(root);
-    JSON_Object *components = json_object_get_object(root_obj, "components");
-    JSON_Object *schemas_obj = json_object_get_object(components, "schemas");
-    JSON_Object *color = json_object_get_object(schemas_obj, "Color");
-    JSON_Object *car = json_object_get_object(schemas_obj, "Car");
-    JSON_Array *enum_arr = json_object_get_array(color, "enum");
-    JSON_Array *req_arr = json_object_get_array(car, "required");
-    JSON_Object *props = json_object_get_object(car, "properties");
-    JSON_Object *color_prop = json_object_get_object(props, "color");
+    JSON_Value *root = NULL;
+    JSON_Object *root_obj = NULL;
+    JSON_Object *components = NULL;
+    JSON_Object *schemas_obj = NULL;
+    JSON_Object *color = NULL;
+    JSON_Object *car = NULL;
+    JSON_Array *enum_arr = NULL;
+    JSON_Array *req_arr = NULL;
+    JSON_Object *props = NULL;
+    JSON_Object *color_prop = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(json, &_cdd_jv_1);
+      root = _cdd_jv_1;
+    }
+    root_obj = json_value_get_object(root);
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(root_obj, "components", &_cdd_jo_1);
+      components = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(components, "schemas", &_cdd_jo_1);
+      schemas_obj = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(schemas_obj, "Color", &_cdd_jo_1);
+      color = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(schemas_obj, "Car", &_cdd_jo_1);
+      car = _cdd_jo_1;
+    }
+    {
+      JSON_Array *_cdd_ja_1 = NULL;
+      cdd_json_object_get_array(color, "enum", &_cdd_ja_1);
+      enum_arr = _cdd_ja_1;
+    }
+    {
+      JSON_Array *_cdd_ja_1 = NULL;
+      cdd_json_object_get_array(car, "required", &_cdd_ja_1);
+      req_arr = _cdd_ja_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(car, "properties", &_cdd_jo_1);
+      props = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(props, "color", &_cdd_jo_1);
+      color_prop = _cdd_jo_1;
+    }
 
-    ASSERT_STR_EQ("string", json_object_get_string(color, "type"));
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(color, "type", &_cdd_js_1);
+      ASSERT_STR_EQ("string", _cdd_js_1);
+    }
     ASSERT_EQ(2, json_array_get_count(enum_arr));
     ASSERT_STR_EQ("RED", json_array_get_string(enum_arr, 0));
     ASSERT_STR_EQ("GREEN", json_array_get_string(enum_arr, 1));
 
     ASSERT_EQ(1, json_array_get_count(req_arr));
     ASSERT_STR_EQ("color", json_array_get_string(req_arr, 0));
-    ASSERT_STR_EQ("#/components/schemas/Color",
-                  json_object_get_string(color_prop, "$ref"));
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(color_prop, "$ref", &_cdd_js_1);
+      ASSERT_STR_EQ("#/components/schemas/Color", _cdd_js_1);
+    }
 
     json_value_free(root);
   }

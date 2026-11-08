@@ -15,10 +15,10 @@
 extern "C" {
 #endif /* __cplusplus */
 /* clang-format off */
+#include "c_cdd/json_dom.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include "openapi/parse/openapi.h"
-#include "parson.h"
 /* clang-format on */
 
 /**
@@ -851,6 +851,48 @@ extern C_CDD_EXPORT cdd_c_error_t write_tags(JSON_Object *root_obj,
  */
 extern C_CDD_EXPORT cdd_c_error_t
 write_webhooks(JSON_Object *root_obj, const struct OpenAPI_Spec *spec);
+
+/**
+ * @brief Serializes an `OpenAPI_Contact` structure into a `JSON_Object`.
+ *
+ * @param[in] contact Source `OpenAPI_Contact` structure.
+ * @param[in,out] contact_obj Destination `JSON_Object`.
+ * @return `CDD_C_SUCCESS` on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t OpenAPI_Contact_to_jsonObject(
+    const struct OpenAPI_Contact *contact, JSON_Object *contact_obj);
+
+/**
+ * @brief Serializes an `OpenAPI_License` structure into a `JSON_Object`.
+ *
+ * @param[in] license Source `OpenAPI_License` structure.
+ * @param[in,out] license_obj Destination `JSON_Object`.
+ * @return `CDD_C_SUCCESS` on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t OpenAPI_License_to_jsonObject(
+    const struct OpenAPI_License *license, JSON_Object *license_obj);
+
+/**
+ * @brief Serializes an `OpenAPI_Info` structure into a `JSON_Object`.
+ *
+ * @param[in] info Source `OpenAPI_Info` structure.
+ * @param[in,out] info_obj Destination `JSON_Object`.
+ * @return `CDD_C_SUCCESS` on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t OpenAPI_Info_to_jsonObject(
+    const struct OpenAPI_Info *info, JSON_Object *info_obj);
+
+/**
+ * @brief Table-driven helper to serialize reflected `char *` string fields into
+ * a `JSON_Object`.
+ *
+ * @param[in,out] obj Destination JSON object.
+ * @param[in] ti Runtime reflection descriptor.
+ * @param[in] src Source C struct pointer.
+ * @return `CDD_C_SUCCESS` on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t openapi_emit_reflected_strings(
+    JSON_Object *obj, const struct cdd_type_info *ti, const void *src);
 
 #ifdef __cplusplus
 }

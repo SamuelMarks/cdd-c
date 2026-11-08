@@ -32,8 +32,13 @@ extern "C" {
  * @return Result status or value.
  */
 static cdd_c_error_t load_spec(const char *json, struct OpenAPI_Spec *spec) {
-  JSON_Value *dyn = json_parse_string(json);
+  JSON_Value *dyn = NULL;
   int rc = 0;
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(json, &_cdd_jv_1);
+    dyn = _cdd_jv_1;
+  }
   if (!dyn)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = openapi_spec_init(spec);

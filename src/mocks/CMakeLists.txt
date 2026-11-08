@@ -19,21 +19,7 @@ else ()
     find_package(c89stringutils CONFIG REQUIRED)
 endif ()
 endif()
-target_link_libraries("${LIBRARY_NAME}" PUBLIC "c89stringutils" "c89stringutils_compiler_flags")
-
-if(NOT TARGET parson)
-    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
-    find_package(parson REQUIRED)
-else ()
-    find_package(parson CONFIG REQUIRED)
-endif ()
-endif()
-target_link_libraries("${LIBRARY_NAME}" PRIVATE parson::parson)
-target_include_directories(
-        "${LIBRARY_NAME}"
-        PRIVATE
-        ${parson_INCLUDE_DIRS}
-)
+target_link_libraries("${LIBRARY_NAME}" PUBLIC "${PROJECT_NAME}" "c89stringutils" "c89stringutils_compiler_flags")
 
 target_include_directories(
         "${LIBRARY_NAME}"
@@ -46,6 +32,7 @@ target_include_directories(
         "${LIBRARY_NAME}"
         PRIVATE
         "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>"
+        "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
 )
 set_target_properties(
         "${LIBRARY_NAME}"
@@ -56,8 +43,3 @@ set_target_properties(
 
 add_executable(mocks "parse/main.c")
 target_link_libraries(mocks "${LIBRARY_NAME}")
-target_include_directories(
-        "${LIBRARY_NAME}"
-        PRIVATE
-        ${parson_INCLUDE_DIRS}
-)

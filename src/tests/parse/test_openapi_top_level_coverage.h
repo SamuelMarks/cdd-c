@@ -45,7 +45,11 @@ TEST test_openapi_null_and_invalid_args(void) {
   rc = openapi_load_from_json(NULL, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
-  jv_str = json_parse_string("\"string_not_obj\"");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("\"string_not_obj\"", &_cdd_jv_1);
+    jv_str = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv_str);
   rc = openapi_load_from_json(jv_str, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -56,7 +60,11 @@ TEST test_openapi_null_and_invalid_args(void) {
   json_value_free(jv_str);
 
   /* Boolean schema document */
-  jv_bool = json_value_init_boolean(1);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_boolean(1, &_cdd_jv_1);
+    jv_bool = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv_bool);
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv_bool, &spec);
@@ -65,8 +73,13 @@ TEST test_openapi_null_and_invalid_args(void) {
   json_value_free(jv_bool);
 
   /* Test empty retrieval_uri string */
-  jv_str = json_parse_string("{\"openapi\": \"3.0.0\", \"info\": {\"title\": "
-                             "\"T\", \"version\": \"1\"}, \"paths\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"openapi\": \"3.0.0\", \"info\": {\"title\": "
+                          "\"T\", \"version\": \"1\"}, \"paths\": {}}",
+                          &_cdd_jv_1);
+    jv_str = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv_str);
   rc = openapi_load_from_json_with_context(jv_str, "", &spec, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -556,7 +569,11 @@ TEST test_openapi_schema_document_extra_branches(void) {
   openapi_doc_registry_init(&reg);
 
   /* Schema doc with empty $id and non-empty retrieval_uri */
-  jv = json_parse_string("{\"$id\": \"\", \"type\": \"object\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"$id\": \"\", \"type\": \"object\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json_with_context(jv, "http://example.com/schema.json",
@@ -573,8 +590,13 @@ TEST test_openapi_schema_document_extra_branches(void) {
   json_value_free(jv);
 
   /* Schema doc compute_document_uri OOM failure */
-  jv = json_parse_string(
-      "{\"$id\": \"http://example.com/id.json\", \"type\": \"object\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"$id\": \"http://example.com/id.json\", \"type\": \"object\"}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   g_cdd_strdup_fail = 1;
@@ -585,7 +607,11 @@ TEST test_openapi_schema_document_extra_branches(void) {
 
   /* Schema doc store_schema_root_json OOM failure (no $id and no retrieval_uri)
    */
-  jv = json_parse_string("{\"type\": \"object\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"type\": \"object\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   g_cdd_strdup_fail = 1;
@@ -617,7 +643,11 @@ TEST test_openapi_swagger_oom_and_specs(void) {
       " \"produces\": [\"application/json\"],"
       " \"paths\": {}}";
 
-  jv = json_parse_string(swag_json);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(swag_json, &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
 
   /* Normal success */
@@ -715,7 +745,11 @@ TEST test_openapi_oauth2_and_extensions_branches(void) {
       " \"components\": {\"securitySchemes\": {\"oauth\": {\"type\": "
       "\"oauth2\", \"flows\": {\"implicit\": {\"authorizationUrl\": "
       "\"https://auth.com\", \"scopes\": {}}}}}}}";
-  jv = json_parse_string(oauth2_no_schemas);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(oauth2_no_schemas, &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
@@ -736,7 +770,11 @@ TEST test_openapi_oauth2_and_extensions_branches(void) {
       "\"jsonSchemaDialect\": "
       "\"https://json-schema.org/draft/2020-12/schema\", \"info\": {\"title\": "
       "\"T\", \"version\": \"1.0\"}, \"paths\": {}}";
-  jv = json_parse_string(self_and_dialect);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(self_and_dialect, &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
 
   /* OOM on $self */
@@ -756,9 +794,14 @@ TEST test_openapi_oauth2_and_extensions_branches(void) {
   json_value_free(jv);
 
   /* Root extensions failure */
-  jv = json_parse_string(
-      "{\"openapi\": \"3.1.0\", \"info\": {\"title\": \"T\", \"version\": "
-      "\"1.0\"}, \"x-custom\": \"val\", \"paths\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"openapi\": \"3.1.0\", \"info\": {\"title\": \"T\", \"version\": "
+        "\"1.0\"}, \"x-custom\": \"val\", \"paths\": {}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   g_cdd_fail_extensions_init = 1;
@@ -772,7 +815,11 @@ TEST test_openapi_oauth2_and_extensions_branches(void) {
       "{\"openapi\": \"3.1.0\", \"info\": {\"title\": \"T\", \"version\": "
       "\"1.0\"}, \"paths\": {\"x-paths-custom\": \"val\", \"/p\": {\"get\": "
       "{\"responses\": {\"200\": {\"description\": \"ok\"}}}}}}";
-  jv = json_parse_string(paths_ext);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(paths_ext, &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   g_cdd_fail_extensions_init = 3;
@@ -786,7 +833,11 @@ TEST test_openapi_oauth2_and_extensions_branches(void) {
       "{\"openapi\": \"3.1.0\", \"info\": {\"title\": \"T\", \"version\": "
       "\"1.0\"}, \"webhooks\": {\"x-web-custom\": \"val\", \"hook\": "
       "{\"post\": {\"responses\": {\"200\": {\"description\": \"ok\"}}}}}}";
-  jv = json_parse_string(webhooks_ext);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(webhooks_ext, &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   g_cdd_fail_extensions_init = 3;
@@ -799,7 +850,11 @@ TEST test_openapi_oauth2_and_extensions_branches(void) {
   comps_ext =
       "{\"openapi\": \"3.1.0\", \"info\": {\"title\": \"T\", \"version\": "
       "\"1.0\"}, \"components\": {\"x-comp-custom\": \"val\"}}";
-  jv = json_parse_string(comps_ext);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(comps_ext, &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   g_cdd_fail_extensions_init = 3;
@@ -822,8 +877,13 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   cdd_c_error_t rc = 0;
 
   /* No paths, webhooks, or components */
-  jv = json_parse_string("{\"openapi\": \"3.1.0\", \"info\": {\"title\": "
-                         "\"NoPaths\", \"version\": \"1.0\"}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"openapi\": \"3.1.0\", \"info\": {\"title\": "
+                          "\"NoPaths\", \"version\": \"1.0\"}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
@@ -831,13 +891,18 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   json_value_free(jv);
 
   /* Path template collision */
-  jv = json_parse_string(
-      "{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"T\", \"version\": "
-      "\"1.0\"},"
-      " \"paths\": {\"/users/{id}\": {\"get\": {\"responses\": {\"200\": "
-      "{\"description\": \"ok\"}}}},"
-      "            \"/users/{name}\": {\"get\": {\"responses\": {\"200\": "
-      "{\"description\": \"ok\"}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"T\", \"version\": "
+        "\"1.0\"},"
+        " \"paths\": {\"/users/{id}\": {\"get\": {\"responses\": {\"200\": "
+        "{\"description\": \"ok\"}}}},"
+        "            \"/users/{name}\": {\"get\": {\"responses\": {\"200\": "
+        "{\"description\": \"ok\"}}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
@@ -845,17 +910,22 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   json_value_free(jv);
 
   /* Query string usage error in paths: multiple querystring params */
-  jv = json_parse_string(
-      "{\"openapi\": \"3.2.0\", \"info\": {\"title\": \"T\", \"version\": "
-      "\"1.0\"},"
-      " \"paths\": {\"/users\": {\"parameters\": ["
-      "  {\"name\": \"qs1\", \"in\": \"querystring\", \"content\": "
-      "{\"application/x-www-form-urlencoded\": {\"schema\": {\"type\": "
-      "\"object\"}}}},"
-      "  {\"name\": \"qs2\", \"in\": \"querystring\", \"content\": "
-      "{\"application/x-www-form-urlencoded\": {\"schema\": {\"type\": "
-      "\"object\"}}}}"
-      " ], \"get\": {\"responses\": {\"200\": {\"description\": \"ok\"}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"openapi\": \"3.2.0\", \"info\": {\"title\": \"T\", \"version\": "
+        "\"1.0\"},"
+        " \"paths\": {\"/users\": {\"parameters\": ["
+        "  {\"name\": \"qs1\", \"in\": \"querystring\", \"content\": "
+        "{\"application/x-www-form-urlencoded\": {\"schema\": {\"type\": "
+        "\"object\"}}}},"
+        "  {\"name\": \"qs2\", \"in\": \"querystring\", \"content\": "
+        "{\"application/x-www-form-urlencoded\": {\"schema\": {\"type\": "
+        "\"object\"}}}}"
+        " ], \"get\": {\"responses\": {\"200\": {\"description\": \"ok\"}}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
@@ -863,17 +933,23 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   json_value_free(jv);
 
   /* Query string usage in webhooks: multiple querystring params */
-  jv = json_parse_string(
-      "{\"openapi\": \"3.2.0\", \"info\": {\"title\": \"T\", \"version\": "
-      "\"1.0\"},"
-      " \"webhooks\": {\"webhook\": {\"parameters\": ["
-      "  {\"name\": \"qs1\", \"in\": \"querystring\", \"content\": "
-      "{\"application/x-www-form-urlencoded\": {\"schema\": {\"type\": "
-      "\"object\"}}}},"
-      "  {\"name\": \"qs2\", \"in\": \"querystring\", \"content\": "
-      "{\"application/x-www-form-urlencoded\": {\"schema\": {\"type\": "
-      "\"object\"}}}}"
-      " ], \"post\": {\"responses\": {\"200\": {\"description\": \"ok\"}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"openapi\": \"3.2.0\", \"info\": {\"title\": \"T\", \"version\": "
+        "\"1.0\"},"
+        " \"webhooks\": {\"webhook\": {\"parameters\": ["
+        "  {\"name\": \"qs1\", \"in\": \"querystring\", \"content\": "
+        "{\"application/x-www-form-urlencoded\": {\"schema\": {\"type\": "
+        "\"object\"}}}},"
+        "  {\"name\": \"qs2\", \"in\": \"querystring\", \"content\": "
+        "{\"application/x-www-form-urlencoded\": {\"schema\": {\"type\": "
+        "\"object\"}}}}"
+        " ], \"post\": {\"responses\": {\"200\": {\"description\": "
+        "\"ok\"}}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
@@ -881,19 +957,25 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   json_value_free(jv);
 
   /* Query string usage in component_path_items: multiple querystring params */
-  jv = json_parse_string(
-      "{\"openapi\": \"3.2.0\", \"info\": {\"title\": \"T\", \"version\": "
-      "\"1.0\"},"
-      " \"paths\": {\"/ok\": {\"get\": {\"responses\": {\"200\": "
-      "{\"description\": \"ok\"}}}}},"
-      " \"components\": {\"pathItems\": {\"item\": {\"parameters\": ["
-      "  {\"name\": \"qs1\", \"in\": \"querystring\", \"content\": "
-      "{\"application/x-www-form-urlencoded\": {\"schema\": {\"type\": "
-      "\"object\"}}}},"
-      "  {\"name\": \"qs2\", \"in\": \"querystring\", \"content\": "
-      "{\"application/x-www-form-urlencoded\": {\"schema\": {\"type\": "
-      "\"object\"}}}}"
-      " ], \"get\": {\"responses\": {\"200\": {\"description\": \"ok\"}}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"openapi\": \"3.2.0\", \"info\": {\"title\": \"T\", \"version\": "
+        "\"1.0\"},"
+        " \"paths\": {\"/ok\": {\"get\": {\"responses\": {\"200\": "
+        "{\"description\": \"ok\"}}}}},"
+        " \"components\": {\"pathItems\": {\"item\": {\"parameters\": ["
+        "  {\"name\": \"qs1\", \"in\": \"querystring\", \"content\": "
+        "{\"application/x-www-form-urlencoded\": {\"schema\": {\"type\": "
+        "\"object\"}}}},"
+        "  {\"name\": \"qs2\", \"in\": \"querystring\", \"content\": "
+        "{\"application/x-www-form-urlencoded\": {\"schema\": {\"type\": "
+        "\"object\"}}}}"
+        " ], \"get\": {\"responses\": {\"200\": {\"description\": "
+        "\"ok\"}}}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
@@ -901,15 +983,20 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   json_value_free(jv);
 
   /* Query string violation in path callbacks */
-  jv = json_parse_string(
-      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
-      "\"paths\":{\"/"
-      "p\":{\"get\":{\"callbacks\":{\"myCb\":{\"{$url}\":{\"parameters\":["
-      "{\"name\":\"q1\",\"in\":\"querystring\",\"content\":{\"application/"
-      "x-www-form-urlencoded\":{\"schema\":{}}}},"
-      "{\"name\":\"q2\",\"in\":\"querystring\",\"content\":{\"application/"
-      "x-www-form-urlencoded\":{\"schema\":{}}}}],"
-      "\"post\":{}}}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
+        "\"paths\":{\"/"
+        "p\":{\"get\":{\"callbacks\":{\"myCb\":{\"{$url}\":{\"parameters\":["
+        "{\"name\":\"q1\",\"in\":\"querystring\",\"content\":{\"application/"
+        "x-www-form-urlencoded\":{\"schema\":{}}}},"
+        "{\"name\":\"q2\",\"in\":\"querystring\",\"content\":{\"application/"
+        "x-www-form-urlencoded\":{\"schema\":{}}}}],"
+        "\"post\":{}}}}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
@@ -917,15 +1004,21 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   json_value_free(jv);
 
   /* Query string violation in webhook callbacks */
-  jv = json_parse_string(
-      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
-      "\"webhooks\":{\"hook\":{\"post\":{\"callbacks\":{\"myCb\":{\"{$url}\":{"
-      "\"parameters\":["
-      "{\"name\":\"q1\",\"in\":\"querystring\",\"content\":{\"application/"
-      "x-www-form-urlencoded\":{\"schema\":{}}}},"
-      "{\"name\":\"q2\",\"in\":\"querystring\",\"content\":{\"application/"
-      "x-www-form-urlencoded\":{\"schema\":{}}}}],"
-      "\"post\":{}}}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
+        "\"webhooks\":{\"hook\":{\"post\":{\"callbacks\":{\"myCb\":{\"{$url}\":"
+        "{"
+        "\"parameters\":["
+        "{\"name\":\"q1\",\"in\":\"querystring\",\"content\":{\"application/"
+        "x-www-form-urlencoded\":{\"schema\":{}}}},"
+        "{\"name\":\"q2\",\"in\":\"querystring\",\"content\":{\"application/"
+        "x-www-form-urlencoded\":{\"schema\":{}}}}],"
+        "\"post\":{}}}}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
@@ -933,16 +1026,21 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   json_value_free(jv);
 
   /* Query string violation in component path item callbacks */
-  jv = json_parse_string(
-      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
-      "\"paths\":{\"/ok\":{}},"
-      "\"components\":{\"pathItems\":{\"item\":{\"get\":{\"callbacks\":{"
-      "\"myCb\":{\"{$url}\":{\"parameters\":["
-      "{\"name\":\"q1\",\"in\":\"querystring\",\"content\":{\"application/"
-      "x-www-form-urlencoded\":{\"schema\":{}}}},"
-      "{\"name\":\"q2\",\"in\":\"querystring\",\"content\":{\"application/"
-      "x-www-form-urlencoded\":{\"schema\":{}}}}],"
-      "\"post\":{}}}}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
+        "\"paths\":{\"/ok\":{}},"
+        "\"components\":{\"pathItems\":{\"item\":{\"get\":{\"callbacks\":{"
+        "\"myCb\":{\"{$url}\":{\"parameters\":["
+        "{\"name\":\"q1\",\"in\":\"querystring\",\"content\":{\"application/"
+        "x-www-form-urlencoded\":{\"schema\":{}}}},"
+        "{\"name\":\"q2\",\"in\":\"querystring\",\"content\":{\"application/"
+        "x-www-form-urlencoded\":{\"schema\":{}}}}],"
+        "\"post\":{}}}}}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
@@ -950,15 +1048,20 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   json_value_free(jv);
 
   /* Query string violation in component callbacks */
-  jv = json_parse_string(
-      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
-      "\"paths\":{\"/ok\":{}},"
-      "\"components\":{\"callbacks\":{\"myCb\":{\"{$url}\":{\"parameters\":["
-      "{\"name\":\"q1\",\"in\":\"querystring\",\"content\":{\"application/"
-      "x-www-form-urlencoded\":{\"schema\":{}}}},"
-      "{\"name\":\"q2\",\"in\":\"querystring\",\"content\":{\"application/"
-      "x-www-form-urlencoded\":{\"schema\":{}}}}],"
-      "\"post\":{}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
+        "\"paths\":{\"/ok\":{}},"
+        "\"components\":{\"callbacks\":{\"myCb\":{\"{$url}\":{\"parameters\":["
+        "{\"name\":\"q1\",\"in\":\"querystring\",\"content\":{\"application/"
+        "x-www-form-urlencoded\":{\"schema\":{}}}},"
+        "{\"name\":\"q2\",\"in\":\"querystring\",\"content\":{\"application/"
+        "x-www-form-urlencoded\":{\"schema\":{}}}}],"
+        "\"post\":{}}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
@@ -966,13 +1069,18 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   json_value_free(jv);
 
   /* Duplicate operationId validation failure */
-  jv = json_parse_string(
-      "{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"T\", \"version\": "
-      "\"1.0\"},"
-      " \"paths\": {\"/a\": {\"get\": {\"operationId\": \"dupOp\", "
-      "\"responses\": {\"200\": {\"description\": \"ok\"}}}},"
-      "            \"/b\": {\"post\": {\"operationId\": \"dupOp\", "
-      "\"responses\": {\"200\": {\"description\": \"ok\"}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"T\", \"version\": "
+        "\"1.0\"},"
+        " \"paths\": {\"/a\": {\"get\": {\"operationId\": \"dupOp\", "
+        "\"responses\": {\"200\": {\"description\": \"ok\"}}}},"
+        "            \"/b\": {\"post\": {\"operationId\": \"dupOp\", "
+        "\"responses\": {\"200\": {\"description\": \"ok\"}}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
@@ -981,10 +1089,15 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
 
   /* Registry add failure with OpenAPI spec (duplicate self_uri in registry) */
   openapi_doc_registry_init(&reg);
-  jv = json_parse_string(
-      "{\"openapi\": \"3.0.0\", \"$self\": \"http://example.com/api.json\","
-      " \"info\": {\"title\": \"RegTest\", \"version\": \"1.0\"},"
-      " \"paths\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"openapi\": \"3.0.0\", \"$self\": \"http://example.com/api.json\","
+        " \"info\": {\"title\": \"RegTest\", \"version\": \"1.0\"},"
+        " \"paths\": {}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json_with_context(jv, NULL, &spec, &reg);

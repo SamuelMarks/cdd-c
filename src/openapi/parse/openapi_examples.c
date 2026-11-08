@@ -130,11 +130,7 @@ static cdd_c_error_t parse_example_object_inner(const JSON_Object *ex_obj,
                                                 struct OpenAPI_Example *out,
                                                 const struct OpenAPI_Spec *spec,
                                                 int resolve_refs) {
-  const char *ref;
-  const char *summary;
-  const char *desc;
-  const char *serialized;
-  const char *external;
+  const char *ref = NULL;
   cdd_c_error_t rc;
 
   if (!ex_obj || !out)
@@ -146,7 +142,7 @@ static cdd_c_error_t parse_example_object_inner(const JSON_Object *ex_obj,
       return CDD_C_ERROR_MEMORY;
   }
 
-  ref = json_object_get_string(ex_obj, "$ref");
+  cdd_json_object_get_string(ex_obj, "$ref", &ref);
   if (ref) {
     c_cdd_strdup(ref, &out->ref);
     if (!out->ref)
@@ -162,22 +158,9 @@ static cdd_c_error_t parse_example_object_inner(const JSON_Object *ex_obj,
     }
   }
 
-  summary = json_object_get_string(ex_obj, "summary");
-  if (summary) {
-    C_CDD_FREE(out->summary);
-    out->summary = NULL;
-    c_cdd_strdup(summary, &out->summary);
-    if (!out->summary)
-      return CDD_C_ERROR_MEMORY;
-  }
-  desc = json_object_get_string(ex_obj, "description");
-  if (desc) {
-    C_CDD_FREE(out->description);
-    out->description = NULL;
-    c_cdd_strdup(desc, &out->description);
-    if (!out->description)
-      return CDD_C_ERROR_MEMORY;
-  }
+  rc = openapi_parse_reflected_strings(ex_obj, &OpenAPI_Example_type_info, out);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (!ref) {
     rc = collect_extensions(ex_obj, &out->extensions_json);
     if (rc != CDD_C_SUCCESS)
@@ -191,23 +174,6 @@ static cdd_c_error_t parse_example_object_inner(const JSON_Object *ex_obj,
   rc = parse_any_field(ex_obj, "value", &out->value, &out->value_set);
   if (rc != CDD_C_SUCCESS)
     return rc;
-
-  serialized = json_object_get_string(ex_obj, "serializedValue");
-  if (serialized) {
-    C_CDD_FREE(out->serialized_value);
-    out->serialized_value = NULL;
-    c_cdd_strdup(serialized, &out->serialized_value);
-    if (!out->serialized_value)
-      return CDD_C_ERROR_MEMORY;
-  }
-  external = json_object_get_string(ex_obj, "externalValue");
-  if (external) {
-    C_CDD_FREE(out->external_value);
-    out->external_value = NULL;
-    c_cdd_strdup(external, &out->external_value);
-    if (!out->external_value)
-      return CDD_C_ERROR_MEMORY;
-  }
 
   if (!out->ref && !example_fields_valid(out))
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -251,7 +217,7 @@ cdd_c_error_t parse_examples_object(const JSON_Object *examples,
                                     size_t *out_count,
                                     const struct OpenAPI_Spec *spec,
                                     int resolve_refs) {
-  size_t count, i;
+  size_t count = 0, i;
 
   if (!out || !out_count) {
     return CDD_C_SUCCESS;
@@ -262,7 +228,7 @@ cdd_c_error_t parse_examples_object(const JSON_Object *examples,
   if (!examples)
     return CDD_C_SUCCESS;
 
-  count = json_object_get_count(examples);
+  cdd_json_object_get_count(examples, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -273,9 +239,12 @@ cdd_c_error_t parse_examples_object(const JSON_Object *examples,
   *out_count = count;
 
   for (i = 0; i < count; ++i) {
-    const char *name = json_object_get_name(examples, i);
-    const JSON_Object *ex_obj =
-        json_value_get_object(json_object_get_value_at(examples, i));
+    const char *name = NULL;
+    JSON_Value *val_at = NULL;
+    JSON_Object *ex_obj = NULL;
+    cdd_json_object_get_name(examples, i, &name);
+    cdd_json_object_get_value_at(examples, i, &val_at);
+    cdd_json_value_get_object(val_at, &ex_obj);
     if (ex_obj) {
       cdd_c_error_t rc =
           parse_example_object(ex_obj, name, &(*out)[i], spec, resolve_refs);
@@ -310,7 +279,7 @@ parse_media_examples(const JSON_Object *media_obj, struct OpenAPI_Any *example,
                      int *example_set, struct OpenAPI_Example **examples,
                      size_t *n_examples, const struct OpenAPI_Spec *spec,
                      int resolve_refs) {
-  const JSON_Object *examples_obj;
+  JSON_Object *examples_obj = NULL;
   cdd_c_error_t rc;
 
   if (!media_obj)
@@ -318,7 +287,7 @@ parse_media_examples(const JSON_Object *media_obj, struct OpenAPI_Any *example,
   if (object_has_example_and_examples(media_obj))
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  examples_obj = json_object_get_object(media_obj, "examples");
+  cdd_json_object_get_object(media_obj, "examples", &examples_obj);
   if (examples_obj) {
     return parse_examples_object(examples_obj, examples, n_examples, spec,
                                  resolve_refs);
@@ -340,14 +309,14 @@ parse_media_examples(const JSON_Object *media_obj, struct OpenAPI_Any *example,
 cdd_c_error_t parse_oauth_scopes(const JSON_Object *scopes_obj,
                                  struct OpenAPI_OAuthScope **out,
                                  size_t *out_count) {
-  size_t count, i;
+  size_t count = 0, i;
   if (!out || !out_count)
     return CDD_C_SUCCESS;
   *out = NULL;
   *out_count = 0;
   if (!scopes_obj)
     return CDD_C_SUCCESS;
-  count = json_object_get_count(scopes_obj);
+  cdd_json_object_get_count(scopes_obj, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
   *out = (struct OpenAPI_OAuthScope *)C_CDD_CALLOC(
@@ -356,8 +325,10 @@ cdd_c_error_t parse_oauth_scopes(const JSON_Object *scopes_obj,
     return CDD_C_ERROR_MEMORY;
   *out_count = count;
   for (i = 0; i < count; ++i) {
-    const char *name = json_object_get_name(scopes_obj, i);
-    const char *desc = json_object_get_string(scopes_obj, name);
+    const char *name = NULL;
+    const char *desc = NULL;
+    cdd_json_object_get_name(scopes_obj, i, &name);
+    cdd_json_object_get_string(scopes_obj, name, &desc);
     c_cdd_strdup(name, &(*out)[i].name);
     if (!(*out)[i].name) {
       size_t j;
@@ -398,10 +369,10 @@ cdd_c_error_t parse_oauth_scopes(const JSON_Object *scopes_obj,
 static cdd_c_error_t
 parse_oauth_flows_inner(const JSON_Object *flows_obj,
                         struct OpenAPI_SecurityScheme *out) {
-  size_t count, i;
+  size_t count = 0, i;
   if (!flows_obj || !out)
     return CDD_C_SUCCESS;
-  count = json_object_get_count(flows_obj);
+  cdd_json_object_get_count(flows_obj, &count);
   if (count == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   out->flows = (struct OpenAPI_OAuthFlow *)C_CDD_CALLOC(
@@ -410,24 +381,33 @@ parse_oauth_flows_inner(const JSON_Object *flows_obj,
     return CDD_C_ERROR_MEMORY;
   out->n_flows = count;
   for (i = 0; i < count; ++i) {
-    const char *name = json_object_get_name(flows_obj, i);
-    const JSON_Object *flow_obj =
-        json_value_get_object(json_object_get_value_at(flows_obj, i));
+    const char *name = NULL;
+    JSON_Value *val_at = NULL;
+    JSON_Object *flow_obj = NULL;
     struct OpenAPI_OAuthFlow *flow = &out->flows[i];
+    cdd_json_object_get_name(flows_obj, i, &name);
+    cdd_json_object_get_value_at(flows_obj, i, &val_at);
+    cdd_json_value_get_object(val_at, &flow_obj);
     parse_oauth_flow_type(name, &flow->type);
     if (!flow_obj)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     {
-      const char *authorization_url =
-          json_object_get_string(flow_obj, "authorizationUrl");
-      const char *token_url = json_object_get_string(flow_obj, "tokenUrl");
-      const char *refresh_url = json_object_get_string(flow_obj, "refreshUrl");
-      const char *device_authorization_url =
-          json_object_get_string(flow_obj, "deviceAuthorizationUrl");
-      const int scopes_present = json_object_has_value(flow_obj, "scopes");
-      const JSON_Object *scopes_obj =
-          json_object_get_object(flow_obj, "scopes");
+      const char *authorization_url = NULL;
+      const char *token_url = NULL;
+      const char *refresh_url = NULL;
+      const char *device_authorization_url = NULL;
+      int scopes_present = 0;
+      JSON_Object *scopes_obj = NULL;
       cdd_c_error_t rc;
+
+      cdd_json_object_get_string(flow_obj, "authorizationUrl",
+                                 &authorization_url);
+      cdd_json_object_get_string(flow_obj, "tokenUrl", &token_url);
+      cdd_json_object_get_string(flow_obj, "refreshUrl", &refresh_url);
+      cdd_json_object_get_string(flow_obj, "deviceAuthorizationUrl",
+                                 &device_authorization_url);
+      cdd_json_object_has_value(flow_obj, "scopes", &scopes_present);
+      cdd_json_object_get_object(flow_obj, "scopes", &scopes_obj);
 
       if (!scopes_present || !scopes_obj)
         return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -457,26 +437,10 @@ parse_oauth_flows_inner(const JSON_Object *flows_obj,
         return CDD_C_ERROR_INVALID_ARGUMENT;
       }
 
-      if (authorization_url) {
-        c_cdd_strdup(authorization_url, &flow->authorization_url);
-        if (!flow->authorization_url)
-          return CDD_C_ERROR_MEMORY;
-      }
-      if (token_url) {
-        c_cdd_strdup(token_url, &flow->token_url);
-        if (!flow->token_url)
-          return CDD_C_ERROR_MEMORY;
-      }
-      if (refresh_url) {
-        c_cdd_strdup(refresh_url, &flow->refresh_url);
-        if (!flow->refresh_url)
-          return CDD_C_ERROR_MEMORY;
-      }
-      if (device_authorization_url) {
-        c_cdd_strdup(device_authorization_url, &flow->device_authorization_url);
-        if (!flow->device_authorization_url)
-          return CDD_C_ERROR_MEMORY;
-      }
+      rc = openapi_parse_reflected_strings(flow_obj,
+                                           &OpenAPI_OAuthFlow_type_info, flow);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       rc = parse_oauth_scopes(scopes_obj, &flow->scopes, &flow->n_scopes);
       if (rc != CDD_C_SUCCESS)
         return rc;

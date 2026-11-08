@@ -27,9 +27,10 @@
  *
  * @param[in,out] params Array of parameters to free.
  * @param[in] n_params Number of parameters in the array.
+ * @return CDD_C_SUCCESS.
  */
-static void free_doc_arazzo_params(struct DocArazzoParam *params,
-                                   size_t n_params) {
+static cdd_c_error_t free_doc_arazzo_params(struct DocArazzoParam *params,
+                                            size_t n_params) {
   size_t i;
   for (i = 0; i < n_params; ++i) {
     C_CDD_FREE(params[i].name);
@@ -38,6 +39,7 @@ static void free_doc_arazzo_params(struct DocArazzoParam *params,
     C_CDD_FREE(params[i].reference);
   }
   C_CDD_FREE(params);
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -45,14 +47,17 @@ static void free_doc_arazzo_params(struct DocArazzoParam *params,
  *
  * @param[in,out] kvs Array of key-value pairs to free.
  * @param[in] n_kvs Number of key-value pairs in the array.
+ * @return CDD_C_SUCCESS.
  */
-static void free_doc_arazzo_kvs(struct DocArazzoKeyVal *kvs, size_t n_kvs) {
+static cdd_c_error_t free_doc_arazzo_kvs(struct DocArazzoKeyVal *kvs,
+                                         size_t n_kvs) {
   size_t i;
   for (i = 0; i < n_kvs; ++i) {
     C_CDD_FREE(kvs[i].key);
     C_CDD_FREE(kvs[i].value);
   }
   C_CDD_FREE(kvs);
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -60,9 +65,10 @@ static void free_doc_arazzo_kvs(struct DocArazzoKeyVal *kvs, size_t n_kvs) {
  *
  * @param[in,out] actions Array of actions to free.
  * @param[in] n_actions Number of actions in the array.
+ * @return CDD_C_SUCCESS.
  */
-static void free_doc_arazzo_actions(struct DocArazzoAction *actions,
-                                    size_t n_actions) {
+static cdd_c_error_t free_doc_arazzo_actions(struct DocArazzoAction *actions,
+                                             size_t n_actions) {
   size_t i;
   for (i = 0; i < n_actions; ++i) {
     C_CDD_FREE(actions[i].name);
@@ -72,6 +78,7 @@ static void free_doc_arazzo_actions(struct DocArazzoAction *actions,
     C_CDD_FREE(actions[i].reference);
   }
   C_CDD_FREE(actions);
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -79,11 +86,12 @@ static void free_doc_arazzo_actions(struct DocArazzoAction *actions,
  *
  * @param[in,out] meta Pointer to the DocMetadata structure whose Arazzo fields
  * should be freed.
+ * @return CDD_C_SUCCESS.
  */
-void doc_free_arazzo_metadata(struct DocMetadata *meta) {
+cdd_c_error_t doc_free_arazzo_metadata(struct DocMetadata *meta) {
   size_t i, j;
   if (!meta) {
-    return;
+    return CDD_C_SUCCESS;
   }
   C_CDD_FREE(meta->arazzo_version);
   C_CDD_FREE(meta->self_uri);
@@ -146,6 +154,7 @@ void doc_free_arazzo_metadata(struct DocMetadata *meta) {
   C_CDD_FREE(meta->arazzo_components);
 
   free_doc_arazzo_kvs(meta->arazzo_extensions, meta->n_arazzo_extensions);
+  return CDD_C_SUCCESS;
 }
 
 /**

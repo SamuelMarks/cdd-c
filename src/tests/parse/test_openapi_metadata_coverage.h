@@ -138,7 +138,11 @@ TEST test_openapi_metadata_parse_info_branches(void) {
   rc = parse_info(NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-  jv = json_parse_string("{\"not_info\": 123}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"not_info\": 123}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   rc = parse_info(jo, NULL);
@@ -149,28 +153,33 @@ TEST test_openapi_metadata_parse_info_branches(void) {
   json_value_free(jv);
 
   /* parse_info with full fields */
-  jv = json_parse_string(
-      "{\n"
-      "  \"info\": {\n"
-      "    \"title\": \"My API\",\n"
-      "    \"summary\": \"API Summary\",\n"
-      "    \"description\": \"API Description\",\n"
-      "    \"termsOfService\": \"http://example.com/terms\",\n"
-      "    \"version\": \"1.0.0\",\n"
-      "    \"x-ext\": \"custom\",\n"
-      "    \"contact\": {\n"
-      "      \"name\": \"Support\",\n"
-      "      \"url\": \"http://example.com/contact\",\n"
-      "      \"email\": \"support@example.com\",\n"
-      "      \"x-contact\": 1\n"
-      "    },\n"
-      "    \"license\": {\n"
-      "      \"name\": \"Apache 2.0\",\n"
-      "      \"url\": \"http://example.com/license\",\n"
-      "      \"x-lic\": 2\n"
-      "    }\n"
-      "  }\n"
-      "}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\n"
+        "  \"info\": {\n"
+        "    \"title\": \"My API\",\n"
+        "    \"summary\": \"API Summary\",\n"
+        "    \"description\": \"API Description\",\n"
+        "    \"termsOfService\": \"http://example.com/terms\",\n"
+        "    \"version\": \"1.0.0\",\n"
+        "    \"x-ext\": \"custom\",\n"
+        "    \"contact\": {\n"
+        "      \"name\": \"Support\",\n"
+        "      \"url\": \"http://example.com/contact\",\n"
+        "      \"email\": \"support@example.com\",\n"
+        "      \"x-contact\": 1\n"
+        "    },\n"
+        "    \"license\": {\n"
+        "      \"name\": \"Apache 2.0\",\n"
+        "      \"url\": \"http://example.com/license\",\n"
+        "      \"x-lic\": 2\n"
+        "    }\n"
+        "  }\n"
+        "}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
 
@@ -192,10 +201,16 @@ TEST test_openapi_metadata_parse_info_branches(void) {
 
   /* Test license with identifier instead of url */
   {
-    JSON_Value *jv_lic =
-        json_parse_string("{\"info\": {\"title\": \"T\", \"license\": "
-                          "{\"name\": \"MIT\", \"identifier\": \"MIT\"}}}");
-    JSON_Object *jo_lic = json_value_get_object(jv_lic);
+    JSON_Value *jv_lic = NULL;
+    JSON_Object *jo_lic = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{\"info\": {\"title\": \"T\", \"license\": "
+                            "{\"name\": \"MIT\", \"identifier\": \"MIT\"}}}",
+                            &_cdd_jv_1);
+      jv_lic = _cdd_jv_1;
+    }
+    jo_lic = json_value_get_object(jv_lic);
     memset(&spec, 0, sizeof(spec));
     rc = parse_info(jo_lic, &spec);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -206,16 +221,27 @@ TEST test_openapi_metadata_parse_info_branches(void) {
 
   /* Test license validation errors: missing name, and both url + identifier */
   {
-    JSON_Value *jv_err = json_parse_string("{\"info\": {\"license\": {}}}");
-    JSON_Object *jo_err = json_value_get_object(jv_err);
+    JSON_Value *jv_err = NULL;
+    JSON_Object *jo_err = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{\"info\": {\"license\": {}}}", &_cdd_jv_1);
+      jv_err = _cdd_jv_1;
+    }
+    jo_err = json_value_get_object(jv_err);
     memset(&spec, 0, sizeof(spec));
     rc = parse_info(jo_err, &spec);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
     json_value_free(jv_err);
 
-    jv_err = json_parse_string(
-        "{\"info\": {\"license\": {\"name\": \"MIT\", \"identifier\": \"MIT\", "
-        "\"url\": \"http://example.com\"}}}");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{\"info\": {\"license\": {\"name\": \"MIT\", "
+                            "\"identifier\": \"MIT\", "
+                            "\"url\": \"http://example.com\"}}}",
+                            &_cdd_jv_1);
+      jv_err = _cdd_jv_1;
+    }
     jo_err = json_value_get_object(jv_err);
     memset(&spec, 0, sizeof(spec));
     rc = parse_info(jo_err, &spec);
@@ -284,14 +310,22 @@ TEST test_openapi_metadata_parse_external_docs_branches(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Missing / empty url */
-  jv = json_parse_string("{\"description\": \"desc only\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"description\": \"desc only\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&docs, 0, sizeof(docs));
   rc = parse_external_docs(jo, &docs);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   json_value_free(jv);
 
-  jv = json_parse_string("{\"url\": \"\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"url\": \"\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&docs, 0, sizeof(docs));
   rc = parse_external_docs(jo, &docs);
@@ -299,8 +333,13 @@ TEST test_openapi_metadata_parse_external_docs_branches(void) {
   json_value_free(jv);
 
   /* Valid externalDocs with description, url, and extensions */
-  jv = json_parse_string("{\"description\": \"docs\", \"url\": "
-                         "\"http://example.com\", \"x-ext\": 1}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"description\": \"docs\", \"url\": "
+                          "\"http://example.com\", \"x-ext\": 1}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&docs, 0, sizeof(docs));
   rc = parse_external_docs(jo, &docs);
@@ -355,16 +394,22 @@ TEST test_openapi_metadata_parse_discriminator_branches(void) {
 
   /* Valid with propertyName, defaultMapping, mapping with x- extension to skip
    */
-  jv = json_parse_string("{\n"
-                         "  \"propertyName\": \"petType\",\n"
-                         "  \"defaultMapping\": \"#/components/schemas/Pet\",\n"
-                         "  \"mapping\": {\n"
-                         "    \"x-ignore\": \"ignored\",\n"
-                         "    \"dog\": \"#/components/schemas/Dog\",\n"
-                         "    \"cat\": \"#/components/schemas/Cat\"\n"
-                         "  },\n"
-                         "  \"x-ext\": 1\n"
-                         "}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\n"
+        "  \"propertyName\": \"petType\",\n"
+        "  \"defaultMapping\": \"#/components/schemas/Pet\",\n"
+        "  \"mapping\": {\n"
+        "    \"x-ignore\": \"ignored\",\n"
+        "    \"dog\": \"#/components/schemas/Dog\",\n"
+        "    \"cat\": \"#/components/schemas/Cat\"\n"
+        "  },\n"
+        "  \"x-ext\": 1\n"
+        "}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
 
@@ -399,8 +444,14 @@ TEST test_openapi_metadata_parse_discriminator_branches(void) {
 
   /* Test mapping with non-string value */
   {
-    JSON_Value *jv_nonstr = json_parse_string("{\"mapping\": {\"dog\": 123}}");
-    JSON_Object *jo_nonstr = json_value_get_object(jv_nonstr);
+    JSON_Value *jv_nonstr = NULL;
+    JSON_Object *jo_nonstr = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{\"mapping\": {\"dog\": 123}}", &_cdd_jv_1);
+      jv_nonstr = _cdd_jv_1;
+    }
+    jo_nonstr = json_value_get_object(jv_nonstr);
     memset(&disc, 0, sizeof(disc));
     rc = parse_discriminator_object(jo_nonstr, &disc);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -431,15 +482,20 @@ TEST test_openapi_metadata_parse_xml_branches(void) {
 
   /* Valid XML object with attribute, wrapped, namespace, prefix, name, nodeType
    */
-  jv = json_parse_string("{\n"
-                         "  \"name\": \"item\",\n"
-                         "  \"namespace\": \"http://example.com/schema\",\n"
-                         "  \"prefix\": \"ex\",\n"
-                         "  \"attribute\": true,\n"
-                         "  \"wrapped\": false,\n"
-                         "  \"nodeType\": \"element\",\n"
-                         "  \"x-xml-ext\": true\n"
-                         "}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\n"
+                          "  \"name\": \"item\",\n"
+                          "  \"namespace\": \"http://example.com/schema\",\n"
+                          "  \"prefix\": \"ex\",\n"
+                          "  \"attribute\": true,\n"
+                          "  \"wrapped\": false,\n"
+                          "  \"nodeType\": \"element\",\n"
+                          "  \"x-xml-ext\": true\n"
+                          "}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
 
@@ -508,29 +564,45 @@ TEST test_openapi_metadata_parse_tags_branches(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* tags missing */
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   rc = parse_tags(jo, &spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   json_value_free(jv);
 
   /* tags empty */
-  jv = json_parse_string("{\"tags\": []}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"tags\": []}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   rc = parse_tags(jo, &spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   json_value_free(jv);
 
   /* tags with invalid name (empty string) */
-  jv = json_parse_string("{\"tags\": [{\"name\": \"\"}]}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"tags\": [{\"name\": \"\"}]}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   rc = parse_tags(jo, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   json_value_free(jv);
 
   /* tags with duplicate name */
-  jv = json_parse_string(
-      "{\"tags\": [{\"name\": \"tag1\"}, {\"name\": \"tag1\"}]}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"tags\": [{\"name\": \"tag1\"}, {\"name\": \"tag1\"}]}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&spec, 0, sizeof(spec));
   rc = parse_tags(jo, &spec);
@@ -539,23 +611,28 @@ TEST test_openapi_metadata_parse_tags_branches(void) {
   json_value_free(jv);
 
   /* Valid tags with all fields and externalDocs */
-  jv = json_parse_string(
-      "{\n"
-      "  \"tags\": [\n"
-      "    {\n"
-      "      \"name\": \"parentTag\",\n"
-      "      \"summary\": \"Parent summary\",\n"
-      "      \"description\": \"Parent desc\",\n"
-      "      \"kind\": \"group\"\n"
-      "    },\n"
-      "    {\n"
-      "      \"name\": \"childTag\",\n"
-      "      \"parent\": \"parentTag\",\n"
-      "      \"externalDocs\": {\"url\": \"http://example.com\"},\n"
-      "      \"x-tag-ext\": 1\n"
-      "    }\n"
-      "  ]\n"
-      "}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\n"
+        "  \"tags\": [\n"
+        "    {\n"
+        "      \"name\": \"parentTag\",\n"
+        "      \"summary\": \"Parent summary\",\n"
+        "      \"description\": \"Parent desc\",\n"
+        "      \"kind\": \"group\"\n"
+        "    },\n"
+        "    {\n"
+        "      \"name\": \"childTag\",\n"
+        "      \"parent\": \"parentTag\",\n"
+        "      \"externalDocs\": {\"url\": \"http://example.com\"},\n"
+        "      \"x-tag-ext\": 1\n"
+        "    }\n"
+        "  ]\n"
+        "}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
 
@@ -573,14 +650,20 @@ TEST test_openapi_metadata_parse_tags_branches(void) {
 
   /* Test tag cycle */
   {
-    JSON_Value *jv_cycle =
-        json_parse_string("{\n"
-                          "  \"tags\": [\n"
-                          "    {\"name\": \"A\", \"parent\": \"B\"},\n"
-                          "    {\"name\": \"B\", \"parent\": \"A\"}\n"
-                          "  ]\n"
-                          "}");
-    JSON_Object *jo_cycle = json_value_get_object(jv_cycle);
+    JSON_Value *jv_cycle = NULL;
+    JSON_Object *jo_cycle = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{\n"
+                            "  \"tags\": [\n"
+                            "    {\"name\": \"A\", \"parent\": \"B\"},\n"
+                            "    {\"name\": \"B\", \"parent\": \"A\"}\n"
+                            "  ]\n"
+                            "}",
+                            &_cdd_jv_1);
+      jv_cycle = _cdd_jv_1;
+    }
+    jo_cycle = json_value_get_object(jv_cycle);
     memset(&spec, 0, sizeof(spec));
     rc = parse_tags(jo_cycle, &spec);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -594,16 +677,23 @@ TEST test_openapi_metadata_parse_tags_branches(void) {
    * state == 2 */
   {
     int state[2] = {0, 0};
-    rc = detect_tag_cycle(NULL, 0, state);
+    int has_cyc = 0;
+    rc = detect_tag_cycle(NULL, 0, state, NULL);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    rc = detect_tag_cycle(NULL, 0, state, &has_cyc);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    rc = detect_tag_cycle(&spec, 0, NULL);
+    ASSERT_EQ(0, has_cyc);
+    rc = detect_tag_cycle(&spec, 0, NULL, &has_cyc);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    rc = detect_tag_cycle(&spec, 100, state);
+    ASSERT_EQ(0, has_cyc);
+    rc = detect_tag_cycle(&spec, 100, state, &has_cyc);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, has_cyc);
     state[0] = 2;
     spec.n_tags = 1;
-    rc = detect_tag_cycle(&spec, 0, state);
+    rc = detect_tag_cycle(&spec, 0, state, &has_cyc);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, has_cyc);
     spec.n_tags = 0;
   }
 
@@ -622,9 +712,16 @@ TEST test_openapi_metadata_parse_tags_branches(void) {
 
   /* Fail externalDocs inside parse_tags */
   {
-    JSON_Value *jv_bad_ext = json_parse_string(
-        "{\"tags\": [{\"name\": \"T\", \"externalDocs\": {\"url\": \"\"}}]}");
-    JSON_Object *jo_bad_ext = json_value_get_object(jv_bad_ext);
+    JSON_Value *jv_bad_ext = NULL;
+    JSON_Object *jo_bad_ext = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\"tags\": [{\"name\": \"T\", \"externalDocs\": {\"url\": \"\"}}]}",
+          &_cdd_jv_1);
+      jv_bad_ext = _cdd_jv_1;
+    }
+    jo_bad_ext = json_value_get_object(jv_bad_ext);
     memset(&spec, 0, sizeof(spec));
     rc = parse_tags(jo_bad_ext, &spec);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -671,7 +768,11 @@ TEST test_openapi_metadata_server_branches(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Missing / empty servers array */
-  jv = json_parse_string("{\"servers\": []}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"servers\": []}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   rc = parse_servers_array(jo, "servers", &srvs, &srv_count);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -680,14 +781,22 @@ TEST test_openapi_metadata_server_branches(void) {
   json_value_free(jv);
 
   /* Server object missing url or empty url */
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&srv, 0, sizeof(srv));
   rc = parse_server_object(jo, &srv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   json_value_free(jv);
 
-  jv = json_parse_string("{\"url\": \"\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"url\": \"\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&srv, 0, sizeof(srv));
   rc = parse_server_object(jo, &srv);
@@ -695,7 +804,12 @@ TEST test_openapi_metadata_server_branches(void) {
   json_value_free(jv);
 
   /* Server url with query or fragment */
-  jv = json_parse_string("{\"url\": \"https://example.com/api?foo=bar\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"url\": \"https://example.com/api?foo=bar\"}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&srv, 0, sizeof(srv));
   rc = parse_server_object(jo, &srv);
@@ -703,23 +817,29 @@ TEST test_openapi_metadata_server_branches(void) {
   json_value_free(jv);
 
   /* Valid server object with variables, description, name, enum */
-  jv = json_parse_string("{\n"
-                         "  \"url\": \"https://{env}.example.com:{port}/v1\",\n"
-                         "  \"name\": \"prod-server\",\n"
-                         "  \"description\": \"Production\",\n"
-                         "  \"variables\": {\n"
-                         "    \"env\": {\n"
-                         "      \"default\": \"api\",\n"
-                         "      \"description\": \"Environment\",\n"
-                         "      \"enum\": [\"api\", \"dev\"],\n"
-                         "      \"x-var-ext\": 1\n"
-                         "    },\n"
-                         "    \"port\": {\n"
-                         "      \"default\": \"8443\"\n"
-                         "    }\n"
-                         "  },\n"
-                         "  \"x-srv-ext\": true\n"
-                         "}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\n"
+        "  \"url\": \"https://{env}.example.com:{port}/v1\",\n"
+        "  \"name\": \"prod-server\",\n"
+        "  \"description\": \"Production\",\n"
+        "  \"variables\": {\n"
+        "    \"env\": {\n"
+        "      \"default\": \"api\",\n"
+        "      \"description\": \"Environment\",\n"
+        "      \"enum\": [\"api\", \"dev\"],\n"
+        "      \"x-var-ext\": 1\n"
+        "    },\n"
+        "    \"port\": {\n"
+        "      \"default\": \"8443\"\n"
+        "    }\n"
+        "  },\n"
+        "  \"x-srv-ext\": true\n"
+        "}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
 
@@ -734,12 +854,19 @@ TEST test_openapi_metadata_server_branches(void) {
 
   /* Duplicate server variable in url */
   {
-    JSON_Value *jv_dup =
-        json_parse_string("{\n"
-                          "  \"url\": \"https://{env}.example.com/{env}\",\n"
-                          "  \"variables\": {\"env\": {\"default\": \"api\"}}\n"
-                          "}");
-    JSON_Object *jo_dup = json_value_get_object(jv_dup);
+    JSON_Value *jv_dup = NULL;
+    JSON_Object *jo_dup = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\n"
+          "  \"url\": \"https://{env}.example.com/{env}\",\n"
+          "  \"variables\": {\"env\": {\"default\": \"api\"}}\n"
+          "}",
+          &_cdd_jv_1);
+      jv_dup = _cdd_jv_1;
+    }
+    jo_dup = json_value_get_object(jv_dup);
     memset(&srv, 0, sizeof(srv));
     rc = parse_server_object(jo_dup, &srv);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -778,17 +905,15 @@ TEST test_openapi_metadata_server_branches(void) {
 
   /* Variable missing default, empty default, empty enum, default not in enum */
   {
-    JSON_Value *jv_bad = json_parse_string(
-        "{\"url\": \"https://{v}.com\", \"variables\": {\"v\": {}}}");
-    JSON_Object *jo_bad = json_value_get_object(jv_bad);
-    memset(&srv, 0, sizeof(srv));
-    rc = parse_server_object(jo_bad, &srv);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    test_meta_free_server(&srv);
-    json_value_free(jv_bad);
-
-    jv_bad = json_parse_string("{\"url\": \"https://{v}.com\", \"variables\": "
-                               "{\"v\": {\"default\": \"\"}}}");
+    JSON_Value *jv_bad = NULL;
+    JSON_Object *jo_bad = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\"url\": \"https://{v}.com\", \"variables\": {\"v\": {}}}",
+          &_cdd_jv_1);
+      jv_bad = _cdd_jv_1;
+    }
     jo_bad = json_value_get_object(jv_bad);
     memset(&srv, 0, sizeof(srv));
     rc = parse_server_object(jo_bad, &srv);
@@ -796,8 +921,13 @@ TEST test_openapi_metadata_server_branches(void) {
     test_meta_free_server(&srv);
     json_value_free(jv_bad);
 
-    jv_bad = json_parse_string("{\"url\": \"https://{v}.com\", \"variables\": "
-                               "{\"v\": {\"default\": \"a\", \"enum\": []}}}");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{\"url\": \"https://{v}.com\", \"variables\": "
+                            "{\"v\": {\"default\": \"\"}}}",
+                            &_cdd_jv_1);
+      jv_bad = _cdd_jv_1;
+    }
     jo_bad = json_value_get_object(jv_bad);
     memset(&srv, 0, sizeof(srv));
     rc = parse_server_object(jo_bad, &srv);
@@ -805,9 +935,28 @@ TEST test_openapi_metadata_server_branches(void) {
     test_meta_free_server(&srv);
     json_value_free(jv_bad);
 
-    jv_bad = json_parse_string(
-        "{\"url\": \"https://{v}.com\", \"variables\": {\"v\": {\"default\": "
-        "\"a\", \"enum\": [\"b\", \"c\"]}}}");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{\"url\": \"https://{v}.com\", \"variables\": "
+                            "{\"v\": {\"default\": \"a\", \"enum\": []}}}",
+                            &_cdd_jv_1);
+      jv_bad = _cdd_jv_1;
+    }
+    jo_bad = json_value_get_object(jv_bad);
+    memset(&srv, 0, sizeof(srv));
+    rc = parse_server_object(jo_bad, &srv);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    test_meta_free_server(&srv);
+    json_value_free(jv_bad);
+
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\"url\": \"https://{v}.com\", \"variables\": {\"v\": {\"default\": "
+          "\"a\", \"enum\": [\"b\", \"c\"]}}}",
+          &_cdd_jv_1);
+      jv_bad = _cdd_jv_1;
+    }
     jo_bad = json_value_get_object(jv_bad);
     memset(&srv, 0, sizeof(srv));
     rc = parse_server_object(jo_bad, &srv);
@@ -818,14 +967,21 @@ TEST test_openapi_metadata_server_branches(void) {
 
   /* Test parse_servers_array duplicate server names */
   {
-    JSON_Value *jv_arr = json_parse_string(
-        "{\n"
-        "  \"servers\": [\n"
-        "    {\"url\": \"https://a.com\", \"name\": \"serv1\"},\n"
-        "    {\"url\": \"https://b.com\", \"name\": \"serv1\"}\n"
-        "  ]\n"
-        "}");
-    JSON_Object *jo_arr = json_value_get_object(jv_arr);
+    JSON_Value *jv_arr = NULL;
+    JSON_Object *jo_arr = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\n"
+          "  \"servers\": [\n"
+          "    {\"url\": \"https://a.com\", \"name\": \"serv1\"},\n"
+          "    {\"url\": \"https://b.com\", \"name\": \"serv1\"}\n"
+          "  ]\n"
+          "}",
+          &_cdd_jv_1);
+      jv_arr = _cdd_jv_1;
+    }
+    jo_arr = json_value_get_object(jv_arr);
     srvs = NULL;
     srv_count = 0;
     rc = parse_servers_array(jo_arr, "servers", &srvs, &srv_count);
@@ -839,14 +995,21 @@ TEST test_openapi_metadata_server_branches(void) {
 
   /* Test parse_servers_array with nameless servers */
   {
-    JSON_Value *jv_arr = json_parse_string(
-        "{\n"
-        "  \"servers\": [\n"
-        "    {\"url\": \"https://a.com\"},\n"
-        "    {\"url\": \"https://b.com\", \"name\": \"serv2\"}\n"
-        "  ]\n"
-        "}");
-    JSON_Object *jo_arr = json_value_get_object(jv_arr);
+    JSON_Value *jv_arr = NULL;
+    JSON_Object *jo_arr = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\n"
+          "  \"servers\": [\n"
+          "    {\"url\": \"https://a.com\"},\n"
+          "    {\"url\": \"https://b.com\", \"name\": \"serv2\"}\n"
+          "  ]\n"
+          "}",
+          &_cdd_jv_1);
+      jv_arr = _cdd_jv_1;
+    }
+    jo_arr = json_value_get_object(jv_arr);
     srvs = NULL;
     srv_count = 0;
     rc = parse_servers_array(jo_arr, "servers", &srvs, &srv_count);
@@ -921,28 +1084,43 @@ TEST test_openapi_metadata_extra_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
 
   /* 2. server_variable_defined and server_variable_seen branches */
-  memset(&srv, 0, sizeof(srv));
-  rc = server_variable_defined(NULL, "var");
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = server_variable_defined(&srv, NULL);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = server_variable_defined(&srv, "var");
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-
-  rc = server_variable_seen(NULL, 0, "var");
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = server_variable_seen(NULL, 0, NULL);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
   {
-    char *seen[2];
-    char s1[] = "seen1";
-    char s2[] = "seen2";
-    seen[0] = s1;
-    seen[1] = s2;
-    rc = server_variable_seen(seen, 2, "not_seen");
+    int is_def = 0;
+    int is_seen = 0;
+    memset(&srv, 0, sizeof(srv));
+    rc = server_variable_defined(NULL, "var", NULL);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    rc = server_variable_defined(NULL, "var", &is_def);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    rc = server_variable_seen(seen, 2, "seen1");
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+    ASSERT_EQ(0, is_def);
+    rc = server_variable_defined(&srv, NULL, &is_def);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, is_def);
+    rc = server_variable_defined(&srv, "var", &is_def);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, is_def);
+
+    rc = server_variable_seen(NULL, 0, "var", NULL);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    rc = server_variable_seen(NULL, 0, "var", &is_seen);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, is_seen);
+    rc = server_variable_seen(NULL, 0, NULL, &is_seen);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, is_seen);
+    {
+      char *seen[2];
+      char s1[] = "seen1";
+      char s2[] = "seen2";
+      seen[0] = s1;
+      seen[1] = s2;
+      rc = server_variable_seen(seen, 2, "not_seen", &is_seen);
+      ASSERT_EQ(CDD_C_SUCCESS, rc);
+      ASSERT_EQ(0, is_seen);
+      rc = server_variable_seen(seen, 2, "seen1", &is_seen);
+      ASSERT_EQ(CDD_C_SUCCESS, rc);
+      ASSERT_EQ(1, is_seen);
+    }
   }
 
   /* 3. validate_tag_parents branches */
@@ -979,8 +1157,12 @@ TEST test_openapi_metadata_extra_branches(void) {
   }
 
   /* 4. parse_info without optional val branches and identifier OOM */
-  jv =
-      json_parse_string("{\"info\": {\"title\": \"T\", \"version\": \"1.0\"}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"info\": {\"title\": \"T\", \"version\": \"1.0\"}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&spec, 0, sizeof(spec));
   rc = parse_info(jo, &spec);
@@ -989,9 +1171,14 @@ TEST test_openapi_metadata_extra_branches(void) {
   json_value_free(jv);
 
   /* Identifier OOM */
-  jv = json_parse_string(
-      "{\"info\": {\"title\": \"T\", \"version\": \"1.0\", \"license\": "
-      "{\"name\": \"MIT\", \"identifier\": \"MIT\"} }}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"info\": {\"title\": \"T\", \"version\": \"1.0\", \"license\": "
+        "{\"name\": \"MIT\", \"identifier\": \"MIT\"} }}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   g_cdd_strdup_fail = 4;
   memset(&spec, 0, sizeof(spec));
@@ -1002,7 +1189,11 @@ TEST test_openapi_metadata_extra_branches(void) {
   json_value_free(jv);
 
   /* 5. parse_discriminator mapping calloc OOM */
-  jv = json_parse_string("{\"mapping\": {\"k1\": \"#/v1\"}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"mapping\": {\"k1\": \"#/v1\"}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   g_cdd_alloc_fail = 1;
   memset(&disc, 0, sizeof(disc));
@@ -1013,7 +1204,11 @@ TEST test_openapi_metadata_extra_branches(void) {
   json_value_free(jv);
 
   /* Discriminator mapping without mapping_obj */
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&disc, 0, sizeof(disc));
   rc = parse_discriminator_object(jo, &disc);
@@ -1022,7 +1217,11 @@ TEST test_openapi_metadata_extra_branches(void) {
   json_value_free(jv);
 
   /* 6. parse_xml_object with NULL fields */
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&xml, 0, sizeof(xml));
   rc = parse_xml_object(jo, &xml);
@@ -1031,7 +1230,11 @@ TEST test_openapi_metadata_extra_branches(void) {
   json_value_free(jv);
 
   /* 7. parse_tags calloc OOM */
-  jv = json_parse_string("{\"tags\": [{\"name\": \"tag1\"}]}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"tags\": [{\"name\": \"tag1\"}]}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   g_cdd_alloc_fail = 1;
   memset(&spec, 0, sizeof(spec));
@@ -1092,7 +1295,11 @@ TEST test_openapi_metadata_extra_branches(void) {
   /* 9. parse_servers_array combinations */
   {
     /* parent has no key */
-    jv = json_parse_string("{}");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{}", &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     jo = json_value_get_object(jv);
     srvs = NULL;
     srv_count = 0;
@@ -1101,12 +1308,18 @@ TEST test_openapi_metadata_extra_branches(void) {
     json_value_free(jv);
 
     /* server in array has empty name and another has valid name */
-    jv = json_parse_string("{\"servers\": ["
-                           "  {\"url\": \"https://a.com\", \"name\": \"\"},"
-                           "  {\"url\": \"https://b.com\", \"name\": \"srvB\"},"
-                           "  {\"url\": \"https://c.com\", \"name\": \"\"},"
-                           "  {\"url\": \"https://d.com\", \"name\": \"srvD\"}"
-                           "]}");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\"servers\": ["
+          "  {\"url\": \"https://a.com\", \"name\": \"\"},"
+          "  {\"url\": \"https://b.com\", \"name\": \"srvB\"},"
+          "  {\"url\": \"https://c.com\", \"name\": \"\"},"
+          "  {\"url\": \"https://d.com\", \"name\": \"srvD\"}"
+          "]}",
+          &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     jo = json_value_get_object(jv);
     srvs = NULL;
     srv_count = 0;
@@ -1120,7 +1333,11 @@ TEST test_openapi_metadata_extra_branches(void) {
     json_value_free(jv);
 
     /* server with null / non-object item in array */
-    jv = json_parse_string("{\"servers\": [null, 123]}");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{\"servers\": [null, 123]}", &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     jo = json_value_get_object(jv);
     srvs = NULL;
     srv_count = 0;
@@ -1152,8 +1369,13 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
   cdd_c_error_t rc = 0;
 
   /* Line 81: contact without url */
-  jv = json_parse_string("{\"info\": {\"title\": \"T\", \"version\": \"1.0\", "
-                         "\"contact\": {\"name\": \"Alice\"} }}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"info\": {\"title\": \"T\", \"version\": \"1.0\", "
+                          "\"contact\": {\"name\": \"Alice\"} }}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&spec, 0, sizeof(spec));
   rc = parse_info(jo, &spec);
@@ -1162,8 +1384,13 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
   json_value_free(jv);
 
   /* Line 116: license with empty name string */
-  jv = json_parse_string("{\"info\": {\"title\": \"T\", \"version\": \"1.0\", "
-                         "\"license\": {\"name\": \"\"} }}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"info\": {\"title\": \"T\", \"version\": \"1.0\", "
+                          "\"license\": {\"name\": \"\"} }}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&spec, 0, sizeof(spec));
   rc = parse_info(jo, &spec);
@@ -1172,7 +1399,11 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
   json_value_free(jv);
 
   /* Line 159, 197, 278, 342, 605: NULL out with non-NULL obj */
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   rc = parse_external_docs(jo, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -1188,7 +1419,12 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
 
   /* Line 222, 226, 236: discriminator mapping with only x- properties (used ==
    * 0) */
-  jv = json_parse_string("{\"mapping\": {\"x-only\": \"#/schemas/Ignored\"}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"mapping\": {\"x-only\": \"#/schemas/Ignored\"}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&disc, 0, sizeof(disc));
   rc = parse_discriminator_object(jo, &disc);
@@ -1198,8 +1434,12 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
   json_value_free(jv);
 
   /* Line 373: parse_tags with multiple tags with different names */
-  jv = json_parse_string(
-      "{\"tags\": [{\"name\": \"tagA\"}, {\"name\": \"tagB\"}]}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"tags\": [{\"name\": \"tagA\"}, {\"name\": \"tagB\"}]}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&spec, 0, sizeof(spec));
   rc = parse_tags(jo, &spec);
@@ -1260,23 +1500,27 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
     struct OpenAPI_ServerVariable two_vars[2];
     char v1[] = "v1";
     char v2[] = "v2";
+    int is_def = 0;
     memset(&test_srv, 0, sizeof(test_srv));
     memset(two_vars, 0, sizeof(two_vars));
     two_vars[0].name = v1;
     two_vars[1].name = v2;
     test_srv.variables = two_vars;
     test_srv.n_variables = 2;
-    rc = server_variable_defined(&test_srv, "v2");
-    ASSERT_NEQ(CDD_C_SUCCESS, rc);
+    rc = server_variable_defined(&test_srv, "v2", &is_def);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, is_def);
   }
 
   /* Line 505: seen != NULL but name == NULL */
   {
     char *seen[1];
     char s[] = "s";
+    int is_seen = 0;
     seen[0] = s;
-    rc = server_variable_seen(seen, 1, NULL);
+    rc = server_variable_seen(seen, 1, NULL, &is_seen);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, is_seen);
   }
 
   /* Line 508: server_variable_seen matching on 2nd element */
@@ -1284,14 +1528,21 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
     char *seen[2];
     char s1[] = "s1";
     char s2[] = "s2";
+    int is_seen = 0;
     seen[0] = s1;
     seen[1] = s2;
-    rc = server_variable_seen(seen, 2, "s2");
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+    rc = server_variable_seen(seen, 2, "s2", &is_seen);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, is_seen);
   }
 
   /* Line 616: url without query or fragment */
-  jv = json_parse_string("{\"url\": \"https://example.com/clean/path\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"url\": \"https://example.com/clean/path\"}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&srv, 0, sizeof(srv));
   rc = parse_server_object(jo, &srv);
@@ -1300,8 +1551,12 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
   json_value_free(jv);
 
   /* Line 644: server with empty variables object */
-  jv = json_parse_string(
-      "{\"url\": \"https://example.com\", \"variables\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"url\": \"https://example.com\", \"variables\": {}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&srv, 0, sizeof(srv));
   rc = parse_server_object(jo, &srv);
@@ -1311,7 +1566,11 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
   json_value_free(jv);
 
   /* Line 733: parse_servers_array combinations of NULL arguments */
-  jv = json_parse_string("{\"servers\": []}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"servers\": []}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   rc = parse_servers_array(jo, NULL, &srvs, &srv_count);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -1322,12 +1581,17 @@ TEST test_openapi_metadata_all_remaining_branches(void) {
   json_value_free(jv);
 
   /* Line 772: servers array where second server has no name property */
-  jv = json_parse_string("{\"servers\": ["
-                         "  {\"url\": \"https://a.com\", \"name\": \"srvA\"},"
-                         "  {\"url\": \"https://b.com\"},"
-                         "  {\"url\": \"https://c.com\", \"name\": \"\"},"
-                         "  {\"url\": \"https://d.com\", \"name\": \"srvD\"}"
-                         "]}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"servers\": ["
+                          "  {\"url\": \"https://a.com\", \"name\": \"srvA\"},"
+                          "  {\"url\": \"https://b.com\"},"
+                          "  {\"url\": \"https://c.com\", \"name\": \"\"},"
+                          "  {\"url\": \"https://d.com\", \"name\": \"srvD\"}"
+                          "]}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   srvs = NULL;
   srv_count = 0;
@@ -1355,8 +1619,13 @@ TEST test_openapi_metadata_final_branches(void) {
   cdd_c_error_t rc = 0;
 
   /* Line 81: contact with url but without name */
-  jv = json_parse_string("{\"info\": {\"title\": \"T\", \"version\": \"1.0\", "
-                         "\"contact\": {\"url\": \"http://example.com\"} }}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"info\": {\"title\": \"T\", \"version\": \"1.0\", "
+                          "\"contact\": {\"url\": \"http://example.com\"} }}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&spec, 0, sizeof(spec));
   rc = parse_info(jo, &spec);
@@ -1367,8 +1636,13 @@ TEST test_openapi_metadata_final_branches(void) {
   json_value_free(jv);
 
   /* Line 660: variable that is NOT an object (e.g. an integer) */
-  jv = json_parse_string(
-      "{\"url\": \"https://example.com\", \"variables\": {\"var1\": 123}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"url\": \"https://example.com\", \"variables\": {\"var1\": 123}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&srv, 0, sizeof(srv));
   rc = parse_server_object(jo, &srv);
@@ -1377,8 +1651,13 @@ TEST test_openapi_metadata_final_branches(void) {
   json_value_free(jv);
 
   /* Line 666: variable without default */
-  jv = json_parse_string("{\"url\": \"https://example.com\", \"variables\": "
-                         "{\"var1\": {\"description\": \"no default\"} }}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"url\": \"https://example.com\", \"variables\": "
+                          "{\"var1\": {\"description\": \"no default\"} }}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&srv, 0, sizeof(srv));
   rc = parse_server_object(jo, &srv);
@@ -1387,8 +1666,13 @@ TEST test_openapi_metadata_final_branches(void) {
   json_value_free(jv);
 
   /* Line 684: variable without enum */
-  jv = json_parse_string("{\"url\": \"https://example.com\", \"variables\": "
-                         "{\"var1\": {\"default\": \"v1\"} }}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"url\": \"https://example.com\", \"variables\": "
+                          "{\"var1\": {\"default\": \"v1\"} }}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&srv, 0, sizeof(srv));
   rc = parse_server_object(jo, &srv);
@@ -1397,9 +1681,14 @@ TEST test_openapi_metadata_final_branches(void) {
   json_value_free(jv);
 
   /* Line 691: enum array containing non-string value */
-  jv = json_parse_string(
-      "{\"url\": \"https://example.com\", \"variables\": {\"var1\": "
-      "{\"default\": \"v1\", \"enum\": [123, \"v1\"]} }}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"url\": \"https://example.com\", \"variables\": {\"var1\": "
+        "{\"default\": \"v1\", \"enum\": [123, \"v1\"]} }}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   memset(&srv, 0, sizeof(srv));
   rc = parse_server_object(jo, &srv);
@@ -1416,10 +1705,21 @@ TEST test_openapi_metadata_final_branches(void) {
  * @return GREATEST_TEST_RES
  */
 TEST test_openapi_metadata_cleanups(void) {
+  struct OpenAPI_Contact contact;
+  JSON_Value *jv = NULL;
   test_meta_free_external_docs(NULL);
   test_meta_free_discriminator(NULL);
   test_meta_free_xml(NULL);
   test_meta_free_server(NULL);
+
+  memset(&contact, 0, sizeof(contact));
+  c_cdd_strdup("prev_name", &contact.name);
+  cdd_json_parse_string("{\"name\":\"new_name\"}", &jv);
+  ASSERT_EQ(CDD_C_SUCCESS, OpenAPI_Contact_from_jsonObject(
+                               json_value_get_object(jv), &contact));
+  ASSERT_STR_EQ("new_name", contact.name);
+  C_CDD_FREE(contact.name);
+  json_value_free(jv);
   PASS();
 }
 

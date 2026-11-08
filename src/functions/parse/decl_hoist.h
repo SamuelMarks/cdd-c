@@ -62,8 +62,10 @@ hoist_site_list_init(struct HoistSiteList *list);
  * @brief Free resources associated with a hoist site list.
  *
  * @param[in,out] list The hoist site list to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void hoist_site_list_free(struct HoistSiteList *list);
+extern C_CDD_EXPORT cdd_c_error_t
+hoist_site_list_free(struct HoistSiteList *list);
 
 /**
  * @brief Scan a token stream to detect declarations mixed with code.

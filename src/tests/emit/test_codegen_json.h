@@ -31,6 +31,7 @@ extern "C" {
 #include "classes/parse/cdd_serde.h"
 #include "classes/parse/code2schema.h"
 #include "classes/parse/inspector.h"
+#include "c_cdd/memory.h"
 #include "functions/emit/codegen.h"
 #include "functions/parse/fs.h"
 /* clang-format on */
@@ -83,8 +84,9 @@ TEST test_json_to_plain(void) {
     ASSERT(
         strstr(content,
                "c89stringutils_jasprintf(json, \"\\\"id\\\": %d\", obj->id)"));
+    ASSERT(strstr(content, "_cdd_json_escape_str(obj->data, &_esc)"));
     ASSERT(strstr(content, "c89stringutils_jasprintf(json, \"\\\"data\\\": "
-                           "\\\"%s\\\"\", obj->data)"));
+                           "\\\"%s\\\"\", _esc)"));
     ASSERT(strstr(content, "c89stringutils_jasprintf(json, \"}\");"));
 
     free(content);
@@ -128,10 +130,11 @@ TEST test_json_from_plain(void) {
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
-    /* Check parson usage */
+    /* Check cdd_json usage */
+    ASSERT(strstr(content, "cdd_json_object_get_number(jsonObject, \"id\", "
+                           "&_num); ret->id = (int)_num;"));
     ASSERT(strstr(content,
-                  "ret->id = (int)json_object_get_number(jsonObject, \"id\")"));
-    ASSERT(strstr(content, "json_object_get_string(jsonObject, \"data\")"));
+                  "cdd_json_object_get_string(jsonObject, \"data\", &s)"));
     ASSERT(strstr(content, "strdup(s)"));
 
     free(content);
@@ -219,8 +222,9 @@ TEST test_json_array_logic(void) {
     }
 
     /* Check array loop extraction */
-    ASSERT(strstr(content, "json_object_get_array(jsonObject, \"tags\")"));
-    ASSERT(strstr(content, "json_array_get_count(arr)"));
+    ASSERT(strstr(content,
+                  "cdd_json_object_get_array(jsonObject, \"tags\", &arr)"));
+    ASSERT(strstr(content, "cdd_json_array_get_count(arr, &ret->n_tags)"));
     ASSERT(strstr(content, "calloc(ret->n_tags, sizeof(char *))"));
 
     free(content);
@@ -414,11 +418,10 @@ TEST test_struct_array_from_json(void) {
     ASSERT(strstr(content,
                   "cdd_c_error_t Data_array_from_json(const char *json_str, "
                   "struct Data ***out, size_t *out_len)"));
-    ASSERT(strstr(content, "json_parse_string(json_str)"));
-    ASSERT(strstr(content, "json_value_get_array(val)"));
-    ASSERT(
-        strstr(content,
-               "Data_from_jsonObject(json_array_get_object(arr, i), &tmp[i])"));
+    ASSERT(strstr(content, "cdd_json_parse_string(json_str, &val)"));
+    ASSERT(strstr(content, "cdd_json_value_get_array(val, &arr)"));
+    ASSERT(strstr(content, "cdd_json_array_get_object(arr, i, &_elem_obj)"));
+    ASSERT(strstr(content, "Data_from_jsonObject(_elem_obj, &tmp[i])"));
 
     free(content);
     if (tmp)
@@ -637,6 +640,7 @@ TEST test_standalone_json_func(void) {
            sf.fields[0].exclusive_max);
 
     ASSERT_EQ(0, write_struct_from_json_standalone_func(tmp, "Data", &sf));
+    ASSERT_EQ(0, write_struct_to_json_standalone_func(tmp, "Data", &sf));
 
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
@@ -645,7 +649,8 @@ TEST test_standalone_json_func(void) {
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
-    ASSERT(strstr(content, "Data_parse_json(char *json"));
+    ASSERT(strstr(content, "Data_parse_json(const char *json"));
+    ASSERT(strstr(content, "Data_to_json_standalone(const struct Data *obj"));
     ASSERT(strstr(content, "(strcmp(key, \"id\") == 0)"));
 
     free(content);
@@ -854,13 +859,15 @@ TEST test_serde_comment_parsing_and_codegen(void) {
   }
 
   /* Verify to_json output */
-  ASSERT(strstr(content, "\"\\\"userName\\\": \\\"%s\\\"\", obj->user_name"));
+  ASSERT(strstr(content, "_cdd_json_escape_str(obj->user_name, &_esc)"));
+  ASSERT(strstr(content, "\"\\\"userName\\\": \\\"%s\\\"\", _esc"));
   ASSERT(strstr(content, "if (obj->auth_token != NULL)"));
-  ASSERT(
-      strstr(content, "\"\\\"AUTH-TOKEN\\\": \\\"%s\\\"\", obj->auth_token"));
+  ASSERT(strstr(content, "_cdd_json_escape_str(obj->auth_token, &_esc)"));
+  ASSERT(strstr(content, "\"\\\"AUTH-TOKEN\\\": \\\"%s\\\"\", _esc"));
   ASSERT(strstr(content, "obj->internal_ptr") == NULL);
   ASSERT(strstr(content, "obj->secret_pin") == NULL);
-  ASSERT(strstr(content, "\"\\\"tag-val\\\": \\\"%s\\\"\", obj->computed_tag"));
+  ASSERT(strstr(content, "_cdd_json_escape_str(obj->computed_tag, &_esc)"));
+  ASSERT(strstr(content, "\"\\\"tag-val\\\": \\\"%s\\\"\", _esc"));
   /* Flattened MetaInfo in to_json */
   ASSERT(strstr(content, "rc = MetaInfo_to_json(obj->meta, &s);"));
   ASSERT(strstr(content, "c89stringutils_jasprintf(json, \"%s\", s + 1);"));
@@ -868,12 +875,12 @@ TEST test_serde_comment_parsing_and_codegen(void) {
   ASSERT(strstr(content, "rc = ts_codec_to_json(obj->custom_ts, &s);"));
 
   /* Verify from_jsonObject output */
-  ASSERT(strstr(content, "json_object_get_count(jsonObject)"));
+  ASSERT(strstr(content, "cdd_json_object_get_count(jsonObject, &_cnt)"));
   ASSERT(strstr(content, "strcmp(_jn, \"userName\") != 0"));
   ASSERT(strstr(content, "strcmp(_jn, \"username\") != 0"));
-  ASSERT(
-      strstr(content,
-             "if (!s) s = json_object_get_string(jsonObject, \"username\");"));
+  ASSERT(strstr(
+      content,
+      "if (!s) cdd_json_object_get_string(jsonObject, \"username\", &s);"));
   ASSERT(strstr(content, "ret->computed_tag = strdup(\"auto\");"));
   /* Flattened MetaInfo in from_jsonObject passes parent jsonObject directly! */
   ASSERT(strstr(content,
@@ -978,17 +985,41 @@ TEST test_serde_inspector_and_schema_roundtrip(void) {
   c2s_argv[1] = schema_file;
   ASSERT_EQ(CDD_C_SUCCESS, code2schema_main(2, c2s_argv));
 
-  root_val = json_parse_file(schema_file);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_file(schema_file, &_cdd_jv_1);
+    root_val = _cdd_jv_1;
+  }
   ASSERT(root_val != NULL);
   root_obj = json_value_get_object(root_val);
-  comps_obj = json_object_get_object(root_obj, "components");
-  schemas_obj = json_object_get_object(comps_obj, "schemas");
-  payload_schema = json_object_get_object(schemas_obj, "Payload");
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(root_obj, "components", &_cdd_jo_1);
+    comps_obj = _cdd_jo_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(comps_obj, "schemas", &_cdd_jo_1);
+    schemas_obj = _cdd_jo_1;
+  }
+  {
+    JSON_Object *_cdd_jo_1 = NULL;
+    cdd_json_object_get_object(schemas_obj, "Payload", &_cdd_jo_1);
+    payload_schema = _cdd_jo_1;
+  }
   ASSERT(payload_schema != NULL);
-  ASSERT_STR_EQ("kebab-case",
-                json_object_get_string(payload_schema, "x-cdd-rename-all"));
-  ASSERT_EQ(
-      1, json_object_get_boolean(payload_schema, "x-cdd-deny-unknown-fields"));
+  {
+    const char *_cdd_js_1 = NULL;
+    cdd_json_object_get_string(payload_schema, "x-cdd-rename-all", &_cdd_js_1);
+    ASSERT_STR_EQ("kebab-case", _cdd_js_1);
+  }
+  {
+    int _cdd_jb_1 = -1;
+    if (cdd_json_object_get_boolean(payload_schema, "x-cdd-deny-unknown-fields",
+                                    &_cdd_jb_1) != CDD_C_SUCCESS)
+      _cdd_jb_1 = -1;
+    ASSERT_EQ(1, _cdd_jb_1);
+  }
 
   /* 3. Convert JSON Schema back to StructFields via code2schema_mapper */
   ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&roundtrip_sf));
@@ -1049,7 +1080,7 @@ TEST test_serde_sum_types_enum_other_and_deepcopy(void) {
             cdd_escape_comment_str(NULL, esc_out, sizeof(esc_out)));
   ASSERT_EQ(CDD_C_SUCCESS, cdd_escape_json_c_str("a\"b\\c\n\r\t\b\f\x01",
                                                  esc_out, sizeof(esc_out)));
-  ASSERT_STR_EQ("a\\\"b\\\\c\\n\\r\\t\\b\\f\\x01", esc_out);
+  ASSERT_STR_EQ("a\\\"b\\\\c\\n\\r\\t\\b\\f\\u0001", esc_out);
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_escape_comment_str("a*/b\"c", esc_out, sizeof(esc_out)));
   ASSERT_STR_EQ("a*\\/b\\\"c", esc_out);
@@ -1470,6 +1501,13 @@ TEST test_cdd_serde_exhaustive(void) {
   ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_container_comment("", &sf));
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_serde_parse_container_comment(
+                "/*!< @brief \v\n"
+                " * @version "
+                "12345678901234567890123456789012345678901234567890123456789012"
+                "34567890\n */",
+                &sf));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_serde_parse_container_comment(
                 "/*!< @summary Sum text \t \n"
                 " * @description Desc text \n"
                 " * @version 1.2.3 \n"
@@ -1847,8 +1885,8 @@ TEST test_cdd_serde_exhaustive(void) {
   /* Escape helpers edge cases */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_escape_json_c_str("a", NULL, 10));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_escape_json_c_str("a", buf, 0));
-  /* Control char when pos + 4 >= out_sz, and normal truncation */
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_escape_json_c_str("\x01", buf, 4));
+  /* Control char when pos + 6 >= out_sz, and normal truncation */
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_escape_json_c_str("\x01", buf, 6));
   ASSERT_EQ(CDD_C_SUCCESS, cdd_escape_json_c_str("abcdef", buf, 3));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_escape_comment_str("a", NULL, 10));
@@ -1917,6 +1955,227 @@ TEST test_cdd_serde_exhaustive(void) {
 }
 
 /**
+ * @brief Verifies that write_struct_to_json_func and cdd_json_escape_str
+ * properly escape quotes, backslashes, and control characters in string fields
+ * and string arrays, including OOM branches.
+ * @return greatest_test_res
+ */
+TEST test_json_string_escaping_and_oom(void) {
+  struct StructFields sf;
+  FILE *tmp = NULL;
+  char *content = NULL;
+  long sz = 0;
+  char *esc = NULL;
+
+  /* 1. Direct cdd_json_escape_str unit tests */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_json_escape_str(NULL, &esc));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_json_escape_str("abc", NULL));
+
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_escape_str(
+                               "hello \"world\" \\ \b\f\n\r\t\x01\x1f!", &esc));
+  ASSERT(esc != NULL);
+  ASSERT_STR_EQ("hello \\\"world\\\" \\\\ \\b\\f\\n\\r\\t\\u0001\\u001f!", esc);
+  C_CDD_FREE(esc);
+  esc = NULL;
+
+#ifdef CDD_BUILD_TESTS
+  g_cdd_alloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_json_escape_str("hello \"world\"", &esc));
+  g_cdd_alloc_fail = 0;
+#endif
+
+  /* 2. Verify write_struct_to_json_func emits escaping for string fields
+   * (pointer and fixed array) and string array elements */
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "msg", "string", NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "fixed_msg", "string", NULL, NULL, NULL));
+  sf.fields[1].fixed_array_len = 16;
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "lines", "array", "string", NULL, NULL));
+
+  tmp = cdd_test_tmpfile_global();
+  ASSERT(tmp != NULL);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            write_struct_to_json_func(tmp, "EscModel", &sf, NULL));
+
+  fseek(tmp, 0, SEEK_END);
+  sz = ftell(tmp);
+  rewind(tmp);
+  content = (char *)calloc(1, (size_t)sz + 1);
+  ASSERT(content != NULL);
+  if (fread(content, 1, (size_t)sz, tmp)) {
+  }
+
+  ASSERT(strstr(content, "_cdd_json_escape_str(const char *s, char **out)"));
+  ASSERT(strstr(content, "_cdd_json_escape_str(obj->msg, &_esc)"));
+  ASSERT(strstr(content, "_cdd_json_escape_str(obj->fixed_msg, &_esc)"));
+  ASSERT(strstr(content, "_cdd_json_escape_str(obj->lines[i], &_esc)"));
+  ASSERT(strstr(content, "else if (c < 0x20)"));
+
+  free(content);
+  fclose(tmp);
+  struct_fields_free(&sf);
+  PASS();
+}
+
+/**
+ * @brief Verifies 64-bit and 128-bit integer field codegen in
+ * write_struct_to_json_func and write_struct_from_jsonObject_func.
+ * @return greatest_test_res
+ */
+TEST test_json_int64_and_int128_codegen(void) {
+  struct StructFields sf;
+  FILE *tmp = NULL;
+  char *content = NULL;
+  long sz = 0;
+  int k;
+
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "id64", "int64_t", NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "id64_alt", "int64", NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "id64_fmt", "integer", NULL, NULL, NULL));
+  CDD_STRCPY(sf.fields[sf.size - 1].format,
+             sizeof(sf.fields[sf.size - 1].format), "int64");
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "u64", "uint64_t", NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "u64_alt", "uint64", NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "u64_fmt", "integer", NULL, NULL, NULL));
+  CDD_STRCPY(sf.fields[sf.size - 1].format,
+             sizeof(sf.fields[sf.size - 1].format), "uint64");
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "i128", "cdd_int128_t", NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "i128_alt", "int128", NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "u128", "cdd_uint128_t", NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "u128_alt", "uint128", NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "fix_empty", "string", NULL, NULL, NULL));
+  sf.fields[sf.size - 1].fixed_array_len = 8;
+  sf.fields[sf.size - 1].serde_skip_if_kind = CDD_SERDE_SKIP_IF_EMPTY;
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "ro_bf_def", "integer", NULL, NULL, "4"));
+  sf.fields[sf.size - 1].read_only = 1;
+  CDD_STRCPY(sf.fields[sf.size - 1].serde_default_fn,
+             sizeof(sf.fields[sf.size - 1].serde_default_fn), "def_bf_fn");
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "ro_fix_str", "string", NULL, "abc", NULL));
+  sf.fields[sf.size - 1].read_only = 1;
+  sf.fields[sf.size - 1].fixed_array_len = 8;
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "bf_de_with", "integer", NULL, NULL, "4"));
+  CDD_STRCPY(sf.fields[sf.size - 1].serde_deserialize_with,
+             sizeof(sf.fields[sf.size - 1].serde_deserialize_with),
+             "custom_bf_de");
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "bf_int_def", "integer", NULL, NULL, "4"));
+  CDD_STRCPY(sf.fields[sf.size - 1].serde_default_fn,
+             sizeof(sf.fields[sf.size - 1].serde_default_fn), "def_bf_int");
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "bf_bool", "boolean", NULL, NULL, "1"));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "bf_bool_def", "boolean", NULL, NULL, "1"));
+  CDD_STRCPY(sf.fields[sf.size - 1].serde_default_fn,
+             sizeof(sf.fields[sf.size - 1].serde_default_fn), "def_bf_bool");
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "str_def_fn", "string", NULL, NULL, NULL));
+  CDD_STRCPY(sf.fields[sf.size - 1].serde_default_fn,
+             sizeof(sf.fields[sf.size - 1].serde_default_fn), "def_str_fn");
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf, "bf_enum", "enum",
+                                             "#/definitions/E", NULL, "2"));
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf, "arr_bool_fix", "array",
+                                             "boolean", NULL, NULL));
+  sf.fields[sf.size - 1].fixed_array_len = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf, "arr_num_fix", "array",
+                                             "number", NULL, NULL));
+  sf.fields[sf.size - 1].fixed_array_len = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf, "arr_str_fix", "array",
+                                             "string", NULL, NULL));
+  sf.fields[sf.size - 1].fixed_array_len = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf, "arr_sub_fix", "array",
+                                             "#/definitions/Sub", NULL, NULL));
+  sf.fields[sf.size - 1].fixed_array_len = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf, "arr_bool_dyn", "array",
+                                             "boolean", NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf, "arr_num_dyn", "array",
+                                             "number", NULL, NULL));
+
+  tmp = cdd_test_tmpfile_global();
+  ASSERT(tmp != NULL);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            write_struct_to_json_func(tmp, "BigNums", &sf, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            write_struct_from_jsonObject_func(tmp, "BigNums", &sf, NULL));
+
+  for (k = 0; k < 120; ++k) {
+    cdd_c_error_t rc_io;
+    g_fail_io_after = k;
+    g_io_calls = 0;
+    rc_io = write_struct_to_json_func(tmp, "BigNums", &sf, NULL);
+    g_fail_io_after = -1;
+    if (rc_io == CDD_C_SUCCESS)
+      break;
+  }
+  for (k = 0; k < 120; ++k) {
+    cdd_c_error_t rc_io;
+    g_fail_io_after = k;
+    g_io_calls = 0;
+    rc_io = write_struct_from_jsonObject_func(tmp, "BigNums", &sf, NULL);
+    g_fail_io_after = -1;
+    if (rc_io == CDD_C_SUCCESS)
+      break;
+  }
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_str_after_last;
+    g_cdd_fail_str_after_last = 2;
+    ASSERT_NEQ(CDD_C_SUCCESS,
+               write_struct_from_jsonObject_func(tmp, "BigNums", &sf, NULL));
+    g_cdd_fail_str_after_last = 0;
+  }
+#endif
+
+  rewind(tmp);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            write_struct_to_json_func(tmp, "BigNums", &sf, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            write_struct_from_jsonObject_func(tmp, "BigNums", &sf, NULL));
+
+  fseek(tmp, 0, SEEK_END);
+  sz = ftell(tmp);
+  rewind(tmp);
+  content = (char *)calloc(1, (size_t)sz + 1);
+  ASSERT(content != NULL);
+  if (fread(content, 1, (size_t)sz, tmp)) {
+  }
+
+  ASSERT(strstr(content, "cdd_json_value_init_int128(obj->i128, &_v128)"));
+  ASSERT(strstr(content, "cdd_json_value_init_uint128(obj->u128, &_v128)"));
+  ASSERT(strstr(content,
+                "cdd_json_object_get_int64(jsonObject, \"id64\", &ret->id64)"));
+  ASSERT(strstr(content,
+                "cdd_json_object_get_uint64(jsonObject, \"u64\", &ret->u64)"));
+  ASSERT(strstr(
+      content, "cdd_json_object_get_int128(jsonObject, \"i128\", &ret->i128)"));
+  ASSERT(
+      strstr(content,
+             "cdd_json_object_get_uint128(jsonObject, \"u128\", &ret->u128)"));
+
+  free(content);
+  fclose(tmp);
+  struct_fields_free(&sf);
+  PASS();
+}
+
+/**
  * @brief codegen_json_suite
  */
 
@@ -1934,6 +2193,8 @@ SUITE(codegen_json_suite) {
   RUN_TEST(test_serde_inspector_and_schema_roundtrip);
   RUN_TEST(test_serde_sum_types_enum_other_and_deepcopy);
   RUN_TEST(test_cdd_serde_exhaustive);
+  RUN_TEST(test_json_string_escaping_and_oom);
+  RUN_TEST(test_json_int64_and_int128_codegen);
 }
 
 #ifdef __cplusplus

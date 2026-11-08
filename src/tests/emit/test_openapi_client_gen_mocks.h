@@ -658,7 +658,6 @@ TEST test_client_gen_mock_errors(void) {
       g_io_calls = 0;
       g_fail_io_after = io_idx;
       rc = openapi_client_generate(&spec, &config);
-      (void)0;
     }
     g_fail_io_after = -1;
     g_schema_codegen_force_fail = 1;

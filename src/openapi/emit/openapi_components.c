@@ -11,20 +11,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <parson.h>
-
+#include "c_cdd/json_dom.h"
 #include "c_cdd/log.h"
 #include "classes/parse/code2schema.h"
 #include "functions/parse/str.h"
 #include "openapi/emit/openapi.h"
 /* clang-format on */
-
-/** @brief Safely sets a JSON object property and frees the value on failure */
-#define json_object_set_value(obj, name, val)                                  \
-  cdd_json_object_set_value_safe((obj), (name), (val))
-/** @brief Safely appends a JSON array element and frees the value on failure */
-#define json_array_append_value(arr, val)                                      \
-  cdd_json_array_append_value_safe((arr), (val))
 
 /**
  * @brief Writes security schemes to components JSON object.
@@ -35,119 +27,115 @@
  */
 C_CDD_EXPORT cdd_c_error_t write_security_schemes(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
-  JSON_Value *sec_val;
-  JSON_Object *sec_obj;
+  JSON_Value *sec_val = NULL;
+  JSON_Object *sec_obj = NULL;
   size_t i;
 
   if (spec->n_security_schemes == 0)
     return CDD_C_SUCCESS;
 
-  sec_val = json_value_init_object();
+  cdd_json_value_init_object(&sec_val);
   if (!sec_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
-  sec_obj = json_value_get_object(sec_val);
+  cdd_json_value_get_object(sec_val, &sec_obj);
 
   for (i = 0; i < spec->n_security_schemes; ++i) {
     const struct OpenAPI_SecurityScheme *s = &spec->security_schemes[i];
-    JSON_Value *s_val = json_value_init_object();
-    JSON_Object *s_obj = json_value_get_object(s_val);
+    JSON_Value *s_val = NULL;
+    JSON_Object *s_obj = NULL;
+    cdd_json_value_init_object(&s_val);
+    cdd_json_value_get_object(s_val, &s_obj);
 
     if (s->description)
-      json_object_set_string(s_obj, "description", s->description);
+      cdd_json_object_set_string(s_obj, "description", s->description);
     if (s->deprecated_set)
-      json_object_set_boolean(s_obj, "deprecated", s->deprecated ? 1 : 0);
+      cdd_json_object_set_boolean(s_obj, "deprecated", s->deprecated ? 1 : 0);
 
     switch (s->type) {
     case OA_SEC_APIKEY:
-      json_object_set_string(s_obj, "type", "apiKey");
+      cdd_json_object_set_string(s_obj, "type", "apiKey");
       if (s->in == OA_SEC_IN_HEADER)
-        json_object_set_string(s_obj, "in", "header");
+        cdd_json_object_set_string(s_obj, "in", "header");
       else if (s->in == OA_SEC_IN_QUERY)
-        json_object_set_string(s_obj, "in", "query");
+        cdd_json_object_set_string(s_obj, "in", "query");
       else if (s->in == OA_SEC_IN_COOKIE)
-        json_object_set_string(s_obj, "in", "cookie");
+        cdd_json_object_set_string(s_obj, "in", "cookie");
 
       if (s->key_name)
-        json_object_set_string(s_obj, "name", s->key_name);
+        cdd_json_object_set_string(s_obj, "name", s->key_name);
       break;
 
     case OA_SEC_HTTP:
-      json_object_set_string(s_obj, "type", "http");
+      cdd_json_object_set_string(s_obj, "type", "http");
       if (s->scheme)
-        json_object_set_string(s_obj, "scheme", s->scheme);
+        cdd_json_object_set_string(s_obj, "scheme", s->scheme);
       if (s->scheme && strcmp(s->scheme, "bearer") == 0) {
         if (s->bearer_format) {
-          json_object_set_string(s_obj, "bearerFormat", s->bearer_format);
+          cdd_json_object_set_string(s_obj, "bearerFormat", s->bearer_format);
         } else {
-          json_object_set_string(s_obj, "bearerFormat", "JWT"); /* Common */
+          cdd_json_object_set_string(s_obj, "bearerFormat", "JWT"); /* Common */
         }
       }
       break;
 
     case OA_SEC_MUTUALTLS:
-      json_object_set_string(s_obj, "type", "mutualTLS");
+      cdd_json_object_set_string(s_obj, "type", "mutualTLS");
       break;
 
     case OA_SEC_OAUTH2:
-      json_object_set_string(s_obj, "type", "oauth2");
+      cdd_json_object_set_string(s_obj, "type", "oauth2");
       if (s->oauth2_metadata_url) {
-        json_object_set_string(s_obj, "oauth2MetadataUrl",
-                               s->oauth2_metadata_url);
+        cdd_json_object_set_string(s_obj, "oauth2MetadataUrl",
+                                   s->oauth2_metadata_url);
       }
       if (s->flows && s->n_flows > 0) {
-        JSON_Value *flows_val = json_value_init_object();
-        JSON_Object *flows_obj = json_value_get_object(flows_val);
+        JSON_Value *flows_val = NULL;
+        JSON_Object *flows_obj = NULL;
         size_t f;
+        cdd_json_value_init_object(&flows_val);
+        cdd_json_value_get_object(flows_val, &flows_obj);
         for (f = 0; f < s->n_flows; ++f) {
           const struct OpenAPI_OAuthFlow *flow = &s->flows[f];
           char *flow_key = NULL;
-          JSON_Value *flow_val;
-          JSON_Object *flow_obj;
-          JSON_Value *scopes_val;
-          JSON_Object *scopes_obj;
+          JSON_Value *flow_val = NULL;
+          JSON_Object *flow_obj = NULL;
+          JSON_Value *scopes_val = NULL;
+          JSON_Object *scopes_obj = NULL;
           size_t sc;
           oauth_flow_type_to_str_openapi(flow->type, &flow_key);
           if (!flow_key)
             continue;
-          flow_val = json_value_init_object();
-          flow_obj = json_value_get_object(flow_val);
-          if (flow->authorization_url)
-            json_object_set_string(flow_obj, "authorizationUrl",
-                                   flow->authorization_url);
-          if (flow->token_url)
-            json_object_set_string(flow_obj, "tokenUrl", flow->token_url);
-          if (flow->refresh_url)
-            json_object_set_string(flow_obj, "refreshUrl", flow->refresh_url);
-          if (flow->device_authorization_url)
-            json_object_set_string(flow_obj, "deviceAuthorizationUrl",
-                                   flow->device_authorization_url);
-          scopes_val = json_value_init_object();
-          scopes_obj = json_value_get_object(scopes_val);
+          cdd_json_value_init_object(&flow_val);
+          cdd_json_value_get_object(flow_val, &flow_obj);
+          openapi_emit_reflected_strings(flow_obj, &OpenAPI_OAuthFlow_type_info,
+                                         flow);
+          cdd_json_value_init_object(&scopes_val);
+          cdd_json_value_get_object(scopes_val, &scopes_obj);
           if (flow->scopes) {
             for (sc = 0; sc < flow->n_scopes; ++sc) {
               const char *scope_name = flow->scopes[sc].name;
               const char *scope_desc = flow->scopes[sc].description;
               if (scope_name)
-                json_object_set_string(scopes_obj, scope_name,
-                                       scope_desc ? scope_desc : "");
+                cdd_json_object_set_string(scopes_obj, scope_name,
+                                           scope_desc ? scope_desc : "");
             }
           }
-          json_object_set_value(flow_obj, "scopes", scopes_val);
+          cdd_json_object_set_value_safe(flow_obj, "scopes", scopes_val);
           if (flow->extensions_json)
             merge_schema_extras_object_openapi(flow_obj, flow->extensions_json);
-          json_object_set_value(flows_obj, flow_key, flow_val);
+          cdd_json_object_set_value_safe(flows_obj, flow_key, flow_val);
         }
-        json_object_set_value(s_obj, "flows", flows_val);
+        cdd_json_object_set_value_safe(s_obj, "flows", flows_val);
       }
       break;
 
     case OA_SEC_OPENID:
-      json_object_set_string(s_obj, "type", "openIdConnect");
+      cdd_json_object_set_string(s_obj, "type", "openIdConnect");
       if (s->open_id_connect_url) {
-        json_object_set_string(s_obj, "openIdConnectUrl",
-                               s->open_id_connect_url);
+        cdd_json_object_set_string(s_obj, "openIdConnectUrl",
+                                   s->open_id_connect_url);
       }
       break;
 
@@ -158,10 +146,11 @@ C_CDD_EXPORT cdd_c_error_t write_security_schemes(
     if (s->extensions_json)
       merge_schema_extras_object_openapi(s_obj, s->extensions_json);
 
-    json_object_set_value(sec_obj, s->name ? s->name : "unknown", s_val);
+    cdd_json_object_set_value_safe(sec_obj, s->name ? s->name : "unknown",
+                                   s_val);
   }
 
-  json_object_set_value(components, "securitySchemes", sec_val);
+  cdd_json_object_set_value_safe(components, "securitySchemes", sec_val);
   return CDD_C_SUCCESS;
 }
 
@@ -174,34 +163,36 @@ C_CDD_EXPORT cdd_c_error_t write_security_schemes(
  */
 C_CDD_EXPORT cdd_c_error_t write_component_parameters(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
-  JSON_Value *params_val;
-  JSON_Object *params_obj;
+  JSON_Value *params_val = NULL;
+  JSON_Object *params_obj = NULL;
   size_t i;
 
   if (!spec || spec->n_component_parameters == 0)
     return CDD_C_SUCCESS;
 
-  params_val = json_value_init_object();
+  cdd_json_value_init_object(&params_val);
   if (!params_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
-  params_obj = json_value_get_object(params_val);
+  cdd_json_value_get_object(params_val, &params_obj);
 
   for (i = 0; i < spec->n_component_parameters; ++i) {
     const char *name = spec->component_parameter_names[i];
     const struct OpenAPI_Parameter *param = &spec->component_parameters[i];
-    JSON_Value *p_val = json_value_init_object();
-    JSON_Object *p_obj = json_value_get_object(p_val);
+    JSON_Value *p_val = NULL;
+    JSON_Object *p_obj = NULL;
+    cdd_json_value_init_object(&p_val);
+    cdd_json_value_get_object(p_val, &p_obj);
     if (!name) {
-      json_value_free(p_val);
+      cdd_json_value_free(p_val);
       continue;
     }
     write_parameter_object(p_obj, param);
-    json_object_set_value(params_obj, name, p_val);
+    cdd_json_object_set_value_safe(params_obj, name, p_val);
   }
 
-  json_object_set_value(components, "parameters", params_val);
+  cdd_json_object_set_value_safe(components, "parameters", params_val);
   return CDD_C_SUCCESS;
 }
 
@@ -214,34 +205,36 @@ C_CDD_EXPORT cdd_c_error_t write_component_parameters(
  */
 C_CDD_EXPORT cdd_c_error_t write_component_responses(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
-  JSON_Value *resp_val;
-  JSON_Object *resp_obj;
+  JSON_Value *resp_val = NULL;
+  JSON_Object *resp_obj = NULL;
   size_t i;
 
   if (!spec || spec->n_component_responses == 0)
     return CDD_C_SUCCESS;
 
-  resp_val = json_value_init_object();
+  cdd_json_value_init_object(&resp_val);
   if (!resp_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
-  resp_obj = json_value_get_object(resp_val);
+  cdd_json_value_get_object(resp_val, &resp_obj);
 
   for (i = 0; i < spec->n_component_responses; ++i) {
     const char *name = spec->component_response_names[i];
     const struct OpenAPI_Response *resp = &spec->component_responses[i];
-    JSON_Value *r_val = json_value_init_object();
-    JSON_Object *r_obj = json_value_get_object(r_val);
+    JSON_Value *r_val = NULL;
+    JSON_Object *r_obj = NULL;
+    cdd_json_value_init_object(&r_val);
+    cdd_json_value_get_object(r_val, &r_obj);
     if (!name) {
-      json_value_free(r_val);
+      cdd_json_value_free(r_val);
       continue;
     }
     write_response_object(r_obj, resp);
-    json_object_set_value(resp_obj, name, r_val);
+    cdd_json_object_set_value_safe(resp_obj, name, r_val);
   }
 
-  json_object_set_value(components, "responses", resp_val);
+  cdd_json_object_set_value_safe(components, "responses", resp_val);
   return CDD_C_SUCCESS;
 }
 
@@ -254,34 +247,36 @@ C_CDD_EXPORT cdd_c_error_t write_component_responses(
  */
 C_CDD_EXPORT cdd_c_error_t write_component_headers(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
-  JSON_Value *hdrs_val;
-  JSON_Object *hdrs_obj;
+  JSON_Value *hdrs_val = NULL;
+  JSON_Object *hdrs_obj = NULL;
   size_t i;
 
   if (!spec || spec->n_component_headers == 0)
     return CDD_C_SUCCESS;
 
-  hdrs_val = json_value_init_object();
+  cdd_json_value_init_object(&hdrs_val);
   if (!hdrs_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
-  hdrs_obj = json_value_get_object(hdrs_val);
+  cdd_json_value_get_object(hdrs_val, &hdrs_obj);
 
   for (i = 0; i < spec->n_component_headers; ++i) {
     const char *name = spec->component_header_names[i];
     const struct OpenAPI_Header *hdr = &spec->component_headers[i];
-    JSON_Value *h_val = json_value_init_object();
-    JSON_Object *h_obj = json_value_get_object(h_val);
+    JSON_Value *h_val = NULL;
+    JSON_Object *h_obj = NULL;
+    cdd_json_value_init_object(&h_val);
+    cdd_json_value_get_object(h_val, &h_obj);
     if (!name) {
-      json_value_free(h_val);
+      cdd_json_value_free(h_val);
       continue;
     }
     write_header_object(h_obj, hdr);
-    json_object_set_value(hdrs_obj, name, h_val);
+    cdd_json_object_set_value_safe(hdrs_obj, name, h_val);
   }
 
-  json_object_set_value(components, "headers", hdrs_val);
+  cdd_json_object_set_value_safe(components, "headers", hdrs_val);
   return CDD_C_SUCCESS;
 }
 
@@ -294,40 +289,42 @@ C_CDD_EXPORT cdd_c_error_t write_component_headers(
  */
 C_CDD_EXPORT cdd_c_error_t write_component_media_types(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
-  JSON_Value *media_val;
-  JSON_Object *media_obj;
+  JSON_Value *media_val = NULL;
+  JSON_Object *media_obj = NULL;
   size_t i;
 
   if (!spec || spec->n_component_media_types == 0)
     return CDD_C_SUCCESS;
 
-  media_val = json_value_init_object();
+  cdd_json_value_init_object(&media_val);
   if (!media_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
-  media_obj = json_value_get_object(media_val);
+  cdd_json_value_get_object(media_val, &media_obj);
 
   for (i = 0; i < spec->n_component_media_types; ++i) {
     const char *name = spec->component_media_type_names[i];
     const struct OpenAPI_MediaType *mt = &spec->component_media_types[i];
-    JSON_Value *mt_val = json_value_init_object();
-    JSON_Object *mt_obj = json_value_get_object(mt_val);
+    JSON_Value *mt_val = NULL;
+    JSON_Object *mt_obj = NULL;
+    cdd_json_value_init_object(&mt_val);
+    cdd_json_value_get_object(mt_val, &mt_obj);
 
     if (!name) {
-      json_value_free(mt_val);
+      cdd_json_value_free(mt_val);
       continue;
     }
     if (write_media_type_object(mt_obj, mt) != 0) {
-      json_value_free(mt_val);
-      json_value_free(media_val);
+      cdd_json_value_free(mt_val);
+      cdd_json_value_free(media_val);
       return CDD_C_ERROR_MEMORY;
     }
 
-    json_object_set_value(media_obj, name, mt_val);
+    cdd_json_object_set_value_safe(media_obj, name, mt_val);
   }
 
-  json_object_set_value(components, "mediaTypes", media_val);
+  cdd_json_object_set_value_safe(components, "mediaTypes", media_val);
   return CDD_C_SUCCESS;
 }
 
@@ -340,34 +337,34 @@ C_CDD_EXPORT cdd_c_error_t write_component_media_types(
  */
 C_CDD_EXPORT cdd_c_error_t write_component_examples(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
-  JSON_Value *examples_val;
-  JSON_Object *examples_obj;
+  JSON_Value *examples_val = NULL;
+  JSON_Object *examples_obj = NULL;
   size_t i;
 
   if (!spec || spec->n_component_examples == 0 || !spec->component_examples)
     return CDD_C_SUCCESS;
 
-  examples_val = json_value_init_object();
+  cdd_json_value_init_object(&examples_val);
   if (!examples_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
-  examples_obj = json_value_get_object(examples_val);
+  cdd_json_value_get_object(examples_val, &examples_obj);
 
   for (i = 0; i < spec->n_component_examples; ++i) {
     const char *name = spec->component_example_names[i];
     const struct OpenAPI_Example *ex = &spec->component_examples[i];
-    JSON_Value *ex_val;
-    JSON_Object *ex_obj;
+    JSON_Value *ex_val = NULL;
+    JSON_Object *ex_obj = NULL;
     if (!name)
       continue;
-    ex_val = json_value_init_object();
-    ex_obj = json_value_get_object(ex_val);
+    cdd_json_value_init_object(&ex_val);
+    cdd_json_value_get_object(ex_val, &ex_obj);
     write_example_object(ex_obj, ex);
-    json_object_set_value(examples_obj, name, ex_val);
+    cdd_json_object_set_value_safe(examples_obj, name, ex_val);
   }
 
-  json_object_set_value(components, "examples", examples_val);
+  cdd_json_object_set_value_safe(components, "examples", examples_val);
   return CDD_C_SUCCESS;
 }
 
@@ -380,31 +377,33 @@ C_CDD_EXPORT cdd_c_error_t write_component_examples(
  */
 C_CDD_EXPORT cdd_c_error_t write_component_links(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
-  JSON_Value *links_val;
-  JSON_Object *links_obj;
+  JSON_Value *links_val = NULL;
+  JSON_Object *links_obj = NULL;
   size_t i;
 
   if (!spec || spec->n_component_links == 0 || !spec->component_links)
     return CDD_C_SUCCESS;
 
-  links_val = json_value_init_object();
+  cdd_json_value_init_object(&links_val);
   if (!links_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
-  links_obj = json_value_get_object(links_val);
+  cdd_json_value_get_object(links_val, &links_obj);
 
   for (i = 0; i < spec->n_component_links; ++i) {
     const struct OpenAPI_Link *link = &spec->component_links[i];
     const char *name = link->name ? link->name : "link";
-    JSON_Value *l_val = json_value_init_object();
-    JSON_Object *l_obj = json_value_get_object(l_val);
+    JSON_Value *l_val = NULL;
+    JSON_Object *l_obj = NULL;
+    cdd_json_value_init_object(&l_val);
+    cdd_json_value_get_object(l_val, &l_obj);
 
     write_link_object(l_obj, link);
-    json_object_set_value(links_obj, name, l_val);
+    cdd_json_object_set_value_safe(links_obj, name, l_val);
   }
 
-  json_object_set_value(components, "links", links_val);
+  cdd_json_object_set_value_safe(components, "links", links_val);
   return CDD_C_SUCCESS;
 }
 
@@ -417,31 +416,33 @@ C_CDD_EXPORT cdd_c_error_t write_component_links(
  */
 C_CDD_EXPORT cdd_c_error_t write_component_callbacks(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
-  JSON_Value *cbs_val;
-  JSON_Object *cbs_obj;
+  JSON_Value *cbs_val = NULL;
+  JSON_Object *cbs_obj = NULL;
   size_t i;
 
   if (!spec || spec->n_component_callbacks == 0 || !spec->component_callbacks)
     return CDD_C_SUCCESS;
 
-  cbs_val = json_value_init_object();
+  cdd_json_value_init_object(&cbs_val);
   if (!cbs_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
-  cbs_obj = json_value_get_object(cbs_val);
+  cdd_json_value_get_object(cbs_val, &cbs_obj);
 
   for (i = 0; i < spec->n_component_callbacks; ++i) {
     const struct OpenAPI_Callback *cb = &spec->component_callbacks[i];
     const char *name = cb->name ? cb->name : "callback";
-    JSON_Value *cb_val = json_value_init_object();
-    JSON_Object *cb_obj = json_value_get_object(cb_val);
+    JSON_Value *cb_val = NULL;
+    JSON_Object *cb_obj = NULL;
+    cdd_json_value_init_object(&cb_val);
+    cdd_json_value_get_object(cb_val, &cb_obj);
 
     write_callback_object(cb_obj, cb);
-    json_object_set_value(cbs_obj, name, cb_val);
+    cdd_json_object_set_value_safe(cbs_obj, name, cb_val);
   }
 
-  json_object_set_value(components, "callbacks", cbs_val);
+  cdd_json_object_set_value_safe(components, "callbacks", cbs_val);
   return CDD_C_SUCCESS;
 }
 
@@ -454,45 +455,47 @@ C_CDD_EXPORT cdd_c_error_t write_component_callbacks(
  */
 C_CDD_EXPORT cdd_c_error_t write_component_path_items(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
-  JSON_Value *paths_val;
-  JSON_Object *paths_obj;
+  JSON_Value *paths_val = NULL;
+  JSON_Object *paths_obj = NULL;
   size_t i;
   cdd_c_error_t rc;
 
   if (!spec || spec->n_component_path_items == 0)
     return CDD_C_SUCCESS;
 
-  paths_val = json_value_init_object();
+  cdd_json_value_init_object(&paths_val);
   if (!paths_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
-  paths_obj = json_value_get_object(paths_val);
+  cdd_json_value_get_object(paths_val, &paths_obj);
 
   for (i = 0; i < spec->n_component_path_items; ++i) {
     const struct OpenAPI_Path *p = &spec->component_path_items[i];
     const char *name = spec->component_path_item_names
                            ? spec->component_path_item_names[i]
                            : p->route;
-    JSON_Value *item_val = json_value_init_object();
-    JSON_Object *item_obj = json_value_get_object(item_val);
+    JSON_Value *item_val = NULL;
+    JSON_Object *item_obj = NULL;
+    cdd_json_value_init_object(&item_val);
+    cdd_json_value_get_object(item_val, &item_obj);
 
     if (!name) {
-      json_value_free(item_val);
+      cdd_json_value_free(item_val);
       continue;
     }
 
     rc = write_path_item_object(item_obj, p);
     if (rc != CDD_C_SUCCESS) {
-      json_value_free(item_val);
-      json_value_free(paths_val);
+      cdd_json_value_free(item_val);
+      cdd_json_value_free(paths_val);
       return rc;
     }
 
-    json_object_set_value(paths_obj, name, item_val);
+    cdd_json_object_set_value_safe(paths_obj, name, item_val);
   }
 
-  json_object_set_value(components, "pathItems", paths_val);
+  cdd_json_object_set_value_safe(components, "pathItems", paths_val);
   return CDD_C_SUCCESS;
 }
 
@@ -505,42 +508,44 @@ C_CDD_EXPORT cdd_c_error_t write_component_path_items(
  */
 C_CDD_EXPORT cdd_c_error_t write_component_request_bodies(
     JSON_Object *components, const struct OpenAPI_Spec *spec) {
-  JSON_Value *rbs_val;
-  JSON_Object *rbs_obj;
+  JSON_Value *rbs_val = NULL;
+  JSON_Object *rbs_obj = NULL;
   size_t i;
 
   if (spec->n_component_request_bodies == 0)
     return CDD_C_SUCCESS;
 
-  rbs_val = json_value_init_object();
+  cdd_json_value_init_object(&rbs_val);
   if (!rbs_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
-  rbs_obj = json_value_get_object(rbs_val);
+  cdd_json_value_get_object(rbs_val, &rbs_obj);
 
   for (i = 0; i < spec->n_component_request_bodies; ++i) {
     const char *name = spec->component_request_body_names[i];
     const struct OpenAPI_RequestBody *rb = &spec->component_request_bodies[i];
-    JSON_Value *rb_val = json_value_init_object();
-    JSON_Object *rb_obj = json_value_get_object(rb_val);
+    JSON_Value *rb_val = NULL;
+    JSON_Object *rb_obj = NULL;
+    cdd_json_value_init_object(&rb_val);
+    cdd_json_value_get_object(rb_val, &rb_obj);
     if (!name) {
-      json_value_free(rb_val);
+      cdd_json_value_free(rb_val);
       continue;
     }
     if (rb->ref) {
-      json_object_set_string(rb_obj, "$ref", rb->ref);
+      cdd_json_object_set_string(rb_obj, "$ref", rb->ref);
     } else {
       if (write_request_body_object(rb_obj, rb) != 0) {
-        json_value_free(rb_val);
-        json_value_free(rbs_val);
+        cdd_json_value_free(rb_val);
+        cdd_json_value_free(rbs_val);
         return CDD_C_ERROR_MEMORY;
       }
     }
-    json_object_set_value(rbs_obj, name, rb_val);
+    cdd_json_object_set_value_safe(rbs_obj, name, rb_val);
   }
 
-  json_object_set_value(components, "requestBodies", rbs_val);
+  cdd_json_object_set_value_safe(components, "requestBodies", rbs_val);
   return CDD_C_SUCCESS;
 }
 
@@ -553,8 +558,8 @@ C_CDD_EXPORT cdd_c_error_t write_component_request_bodies(
  */
 C_CDD_EXPORT cdd_c_error_t write_components(JSON_Object *root_obj,
                                             const struct OpenAPI_Spec *spec) {
-  JSON_Value *comps_val;
-  JSON_Object *comps_obj;
+  JSON_Value *comps_val = NULL;
+  JSON_Object *comps_obj = NULL;
   cdd_c_error_t rc;
 
   /* Only create components block if there is something to write */
@@ -568,12 +573,12 @@ C_CDD_EXPORT cdd_c_error_t write_components(JSON_Object *root_obj,
     return CDD_C_SUCCESS;
   }
 
-  comps_val = json_value_init_object();
+  cdd_json_value_init_object(&comps_val);
   if (!comps_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
-  comps_obj = json_value_get_object(comps_val);
+  cdd_json_value_get_object(comps_val, &comps_obj);
 
   if (spec->components_extensions_json)
     merge_schema_extras_object_openapi(comps_obj,
@@ -581,9 +586,11 @@ C_CDD_EXPORT cdd_c_error_t write_components(JSON_Object *root_obj,
 
   /* Schemas */
   if (spec->n_defined_schemas > 0 || spec->n_raw_schemas > 0) {
-    JSON_Value *schemas_val = json_value_init_object();
-    JSON_Object *schemas_obj = json_value_get_object(schemas_val);
+    JSON_Value *schemas_val = NULL;
+    JSON_Object *schemas_obj = NULL;
     size_t i;
+    cdd_json_value_init_object(&schemas_val);
+    cdd_json_value_get_object(schemas_val, &schemas_obj);
 
     for (i = 0; i < spec->n_defined_schemas; ++i) {
       if (spec->defined_schema_names[i]) {
@@ -591,34 +598,35 @@ C_CDD_EXPORT cdd_c_error_t write_components(JSON_Object *root_obj,
                                          spec->defined_schema_names[i],
                                          &spec->defined_schemas[i]);
         if (rc != CDD_C_SUCCESS) {
-          json_value_free(comps_val);
-          json_value_free(schemas_val);
+          cdd_json_value_free(comps_val);
+          cdd_json_value_free(schemas_val);
           return rc;
         }
       }
     }
 
     for (i = 0; i < spec->n_raw_schemas; ++i) {
-      JSON_Value *raw_val;
+      JSON_Value *raw_val = NULL;
       if (!spec->raw_schema_names[i] || !spec->raw_schema_json[i])
         continue;
-      raw_val = json_parse_string(spec->raw_schema_json[i]);
+      cdd_json_parse_string(spec->raw_schema_json[i], &raw_val);
       if (!raw_val) {
         printf("FAILED parsing %s\n", spec->raw_schema_json[i]);
-        json_value_free(comps_val);
-        json_value_free(schemas_val);
+        cdd_json_value_free(comps_val);
+        cdd_json_value_free(schemas_val);
         return CDD_C_ERROR_INVALID_ARGUMENT;
       }
-      json_object_set_value(schemas_obj, spec->raw_schema_names[i], raw_val);
+      cdd_json_object_set_value_safe(schemas_obj, spec->raw_schema_names[i],
+                                     raw_val);
     }
-    json_object_set_value(comps_obj, "schemas", schemas_val);
+    cdd_json_object_set_value_safe(comps_obj, "schemas", schemas_val);
   }
 
   /* Security Schemes */
   if (spec->n_security_schemes > 0) {
     rc = write_security_schemes(comps_obj, spec);
     if (rc != CDD_C_SUCCESS) {
-      json_value_free(comps_val);
+      cdd_json_value_free(comps_val);
       return rc;
     }
   }
@@ -626,66 +634,66 @@ C_CDD_EXPORT cdd_c_error_t write_components(JSON_Object *root_obj,
   /* Parameters */
   rc = write_component_parameters(comps_obj, spec);
   if (rc != CDD_C_SUCCESS) {
-    json_value_free(comps_val);
+    cdd_json_value_free(comps_val);
     return rc;
   }
 
   /* Responses */
   rc = write_component_responses(comps_obj, spec);
   if (rc != CDD_C_SUCCESS) {
-    json_value_free(comps_val);
+    cdd_json_value_free(comps_val);
     return rc;
   }
 
   /* Headers */
   rc = write_component_headers(comps_obj, spec);
   if (rc != CDD_C_SUCCESS) {
-    json_value_free(comps_val);
+    cdd_json_value_free(comps_val);
     return rc;
   }
 
   /* Request Bodies */
   rc = write_component_request_bodies(comps_obj, spec);
   if (rc != CDD_C_SUCCESS) {
-    json_value_free(comps_val);
+    cdd_json_value_free(comps_val);
     return rc;
   }
 
   /* Media Types */
   rc = write_component_media_types(comps_obj, spec);
   if (rc != CDD_C_SUCCESS) {
-    json_value_free(comps_val);
+    cdd_json_value_free(comps_val);
     return rc;
   }
 
   /* Examples */
   rc = write_component_examples(comps_obj, spec);
   if (rc != CDD_C_SUCCESS) {
-    json_value_free(comps_val);
+    cdd_json_value_free(comps_val);
     return rc;
   }
 
   /* Links */
   rc = write_component_links(comps_obj, spec);
   if (rc != CDD_C_SUCCESS) {
-    json_value_free(comps_val);
+    cdd_json_value_free(comps_val);
     return rc;
   }
 
   /* Callbacks */
   rc = write_component_callbacks(comps_obj, spec);
   if (rc != CDD_C_SUCCESS) {
-    json_value_free(comps_val);
+    cdd_json_value_free(comps_val);
     return rc;
   }
 
   /* Path Items */
   rc = write_component_path_items(comps_obj, spec);
   if (rc != CDD_C_SUCCESS) {
-    json_value_free(comps_val);
+    cdd_json_value_free(comps_val);
     return rc;
   }
 
-  json_object_set_value(root_obj, "components", comps_val);
+  cdd_json_object_set_value_safe(root_obj, "components", comps_val);
   return CDD_C_SUCCESS;
 }

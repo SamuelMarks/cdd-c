@@ -90,8 +90,9 @@ extern C_CDD_EXPORT cdd_c_error_t decl_info_init(struct DeclInfo *info);
 /**
  * @brief Free resources in a DeclInfo structure.
  * @param[in] info The structure to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void decl_info_free(struct DeclInfo *info);
+extern C_CDD_EXPORT cdd_c_error_t decl_info_free(struct DeclInfo *info);
 
 /**
  * @brief Parse a declaration token range.
@@ -190,8 +191,9 @@ cdd_test_find_pivot(const struct TokenList *tokens, size_t start, size_t end,
 /**
  * @brief Frees a DeclType node for unit testing.
  * @param[in] t Node to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void cdd_test_free_decl_type(struct DeclType *t);
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_free_decl_type(struct DeclType *t);
 #endif
 
 #ifdef __cplusplus

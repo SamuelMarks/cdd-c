@@ -117,8 +117,9 @@ C_CDD_EXPORT cdd_c_error_t arena_alloc(size_t len, void **out_ptr);
 
 /**
  * @brief Frees all memory allocated in the safe CRT arena.
+ * @return CDD_C_SUCCESS.
  */
-C_CDD_EXPORT void arena_free_all(void);
+C_CDD_EXPORT cdd_c_error_t arena_free_all(void);
 
 /**
  * @brief Parses an expression AST from CST statement node tokens.

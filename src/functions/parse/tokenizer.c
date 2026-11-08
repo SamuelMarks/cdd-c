@@ -227,12 +227,13 @@ cdd_c_error_t token_find_next(const struct TokenList *list, size_t start_idx,
  * @brief Frees the memory associated with token list.
  *
  * @param[in,out] tl Pointer to the TokenList structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void free_token_list(struct TokenList *tl) {
+cdd_c_error_t free_token_list(struct TokenList *tl) {
 
   if (!tl)
 
-    return;
+    return CDD_C_SUCCESS;
 
   if (tl->tokens) {
 
@@ -242,6 +243,7 @@ void free_token_list(struct TokenList *tl) {
   }
 
   C_CDD_FREE(tl);
+  return CDD_C_SUCCESS;
 }
 
 /*

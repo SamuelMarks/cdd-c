@@ -23,6 +23,8 @@ extern "C" {
 #include "c_cdd/suppress_gui.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
+#include "c_cdd/json_dom.h"
+#include "routes/parse/cli.h"
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -581,6 +583,14 @@ static __inline int test_crt_jasprintf(char **unto, const char *fmt, ...) {
 }
 
 #ifndef CDD_CRT_BRIDGE_NO_MACROS
+#define json_set_allocation_functions(m, f)                                    \
+  (json_set_allocation_functions)(                                             \
+      ((void (*)(void))(m) == (void (*)(void))test_crt_malloc) ? NULL : (m),   \
+      ((void (*)(void))(f) == (void (*)(void))c_cdd_crt_free) ? NULL : (f))
+#define c2openapi_set_json_allocators(m, f)                                    \
+  (c2openapi_set_json_allocators)(                                             \
+      ((void (*)(void))(m) == (void (*)(void))test_crt_malloc) ? NULL : (m),   \
+      ((void (*)(void))(f) == (void (*)(void))c_cdd_crt_free) ? NULL : (f))
 #undef malloc
 #define malloc test_crt_malloc
 #undef calloc

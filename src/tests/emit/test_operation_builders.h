@@ -602,7 +602,11 @@ TEST test_operation_all_null_and_boundary_checks(void) {
   ASSERT_EQ(CDD_C_SUCCESS, parse_example_any(NULL, NULL));
 
   /* any_from_json_value */
-  jv = json_parse_string("123");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("123", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_EQ(CDD_C_SUCCESS, any_from_json_value(NULL, &any_val));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, any_from_json_value(jv, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, any_from_json_value(NULL, NULL));

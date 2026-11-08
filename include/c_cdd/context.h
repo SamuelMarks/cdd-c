@@ -71,8 +71,9 @@ struct cdd_allocator_vtable_t {
    * @brief Releases a previously allocated memory block.
    *
    * @param[in] ptr Pointer to free (may be `NULL`).
+   * @return `CDD_C_SUCCESS` on success.
    */
-  void (*free_fn)(void *ptr);
+  cdd_c_error_t (*free_fn)(void *ptr);
 };
 
 /**

@@ -63,8 +63,10 @@ extern C_CDD_EXPORT cdd_c_error_t schema_constraints_add_required(
 /**
  * @brief Cleans up schema constraints.
  * @param[in,out] sc Pointer to constraints struct.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void schema_constraints_free(struct SchemaConstraints *sc);
+extern C_CDD_EXPORT cdd_c_error_t
+schema_constraints_free(struct SchemaConstraints *sc);
 
 #ifdef __cplusplus
 }

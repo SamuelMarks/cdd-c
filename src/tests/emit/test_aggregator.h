@@ -225,10 +225,13 @@ TEST test_aggregator_bad_args(void) {
 
 /* OOM tracking */
 #ifdef CDD_BUILD_TESTS
+/**
+ * @brief Unit test test_aggregator_oom.
+ * @return Greatest test result.
+ */
 TEST test_aggregator_oom(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
-  int i;
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   dummy_op(&op, "op1");
@@ -242,7 +245,6 @@ TEST test_aggregator_oom(void) {
    * global) */
 
   g_cdd_aggregator_fail_path_realloc = 1;
-  (void)i;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             openapi_aggregator_add_operation(&spec, "/users", &op));
   g_cdd_aggregator_fail_path_realloc = 0;

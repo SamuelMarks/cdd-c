@@ -268,8 +268,9 @@ extern C_CDD_EXPORT cdd_c_error_t struct_fields_init(struct StructFields *sf);
  * @brief Free memory within a StructFields container.
  *
  * @param[in] sf Pointer to container.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void struct_fields_free(struct StructFields *sf);
+extern C_CDD_EXPORT cdd_c_error_t struct_fields_free(struct StructFields *sf);
 
 /**
  * @brief Add a field to the container.

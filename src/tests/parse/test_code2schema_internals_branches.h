@@ -43,45 +43,101 @@ TEST test_code2schema_json_object_to_struct_fields_full(void) {
   struct StructFields sf;
   cdd_c_error_t rc = 0;
 
-  root_val = json_parse_string(
-      "{\"StatusEnum\":{\"type\":\"string\",\"enum\":[\"OK\",\"FAIL\"]},"
-      "\"SubObj\":{\"type\":\"object\",\"properties\":{\"tag\":{\"type\":"
-      "\"string\"}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"StatusEnum\":{\"type\":\"string\",\"enum\":[\"OK\",\"FAIL\"]},"
+        "\"SubObj\":{\"type\":\"object\",\"properties\":{\"tag\":{\"type\":"
+        "\"string\"}}}}",
+        &_cdd_jv_1);
+    root_val = _cdd_jv_1;
+  }
   root = json_value_get_object(root_val);
 
-  schema_val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    schema_val = _cdd_jv_1;
+  }
   schema_obj = json_value_get_object(schema_val);
   json_object_set_string(schema_obj, "type", "object");
   {
-    JSON_Value *req_v = json_parse_string("[\"field_req\"]");
+    JSON_Value *req_v = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("[\"field_req\"]", &_cdd_jv_1);
+      req_v = _cdd_jv_1;
+    }
     json_object_set_value(schema_obj, "required", req_v);
   }
   {
-    JSON_Value *p1 = json_parse_string(
-        "{\"field_req\":{\"type\":\"string\"},"
-        "\"field_int\":{\"type\":\"integer\",\"default\":42,\"minimum\":0,"
-        "\"exclusiveMinimum\":false,\"maximum\":100,\"exclusiveMaximum\":true},"
-        "\"field_float\":{\"type\":\"number\",\"default\":3.14,\"minimum\":0.5,"
-        "\"maximum\":99.9},"
-        "\"field_bool\":{\"type\":\"boolean\",\"default\":true}}");
-    JSON_Value *p2 = json_parse_string(
-        "{\"field_str\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":50,"
-        "\"pattern\":\"^[a-z]+$\",\"format\":\"email\",\"deprecated\":true,"
-        "\"readOnly\":true,\"writeOnly\":false},"
-        "\"field_enum_ref\":{\"$ref\":\"#/components/schemas/StatusEnum\"},"
-        "\"field_obj_ref\":{\"$ref\":\"#/components/schemas/SubObj\"}}");
-    JSON_Value *p3 = json_parse_string(
-        "{\"field_arr_enum\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/"
-        "components/schemas/StatusEnum\"}},"
-        "\"field_arr_union\":{\"type\":\"array\",\"items\":{\"type\":["
-        "\"string\",\"null\"]}},"
-        "\"field_arr_obj\":{\"type\":\"array\",\"items\":{\"type\":\"object\"},"
-        "\"minItems\":1,\"maxItems\":5,\"uniqueItems\":true}}");
+    JSON_Value *p1 = NULL;
+    JSON_Value *p2 = NULL;
+    JSON_Value *p3 = NULL;
     JSON_Object *props_obj;
-    JSON_Value *props_val = json_value_init_object();
-    char *s1 = json_serialize_to_string(p1);
-    char *s2 = json_serialize_to_string(p2);
-    char *s3 = json_serialize_to_string(p3);
+    JSON_Value *props_val = NULL;
+    char *s1 = NULL;
+    char *s2 = NULL;
+    char *s3 = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\"field_req\":{\"type\":\"string\"},"
+          "\"field_int\":{\"type\":\"integer\",\"default\":42,\"minimum\":0,"
+          "\"exclusiveMinimum\":false,\"maximum\":100,\"exclusiveMaximum\":"
+          "true},"
+          "\"field_float\":{\"type\":\"number\",\"default\":3.14,\"minimum\":0."
+          "5,"
+          "\"maximum\":99.9},"
+          "\"field_bool\":{\"type\":\"boolean\",\"default\":true}}",
+          &_cdd_jv_1);
+      p1 = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\"field_str\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":"
+          "50,"
+          "\"pattern\":\"^[a-z]+$\",\"format\":\"email\",\"deprecated\":true,"
+          "\"readOnly\":true,\"writeOnly\":false},"
+          "\"field_enum_ref\":{\"$ref\":\"#/components/schemas/StatusEnum\"},"
+          "\"field_obj_ref\":{\"$ref\":\"#/components/schemas/SubObj\"}}",
+          &_cdd_jv_1);
+      p2 = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\"field_arr_enum\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/"
+          "components/schemas/StatusEnum\"}},"
+          "\"field_arr_union\":{\"type\":\"array\",\"items\":{\"type\":["
+          "\"string\",\"null\"]}},"
+          "\"field_arr_obj\":{\"type\":\"array\",\"items\":{\"type\":"
+          "\"object\"},"
+          "\"minItems\":1,\"maxItems\":5,\"uniqueItems\":true}}",
+          &_cdd_jv_1);
+      p3 = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      props_val = _cdd_jv_1;
+    }
+    {
+      char *_cdd_jser_1 = NULL;
+      cdd_json_serialize_to_string(p1, &_cdd_jser_1);
+      s1 = _cdd_jser_1;
+    }
+    {
+      char *_cdd_jser_1 = NULL;
+      cdd_json_serialize_to_string(p2, &_cdd_jser_1);
+      s2 = _cdd_jser_1;
+    }
+    {
+      char *_cdd_jser_1 = NULL;
+      cdd_json_serialize_to_string(p3, &_cdd_jser_1);
+      s3 = _cdd_jser_1;
+    }
     props_obj = json_value_get_object(props_val);
     c2s_merge_schema_extras_object(props_obj, s1);
     c2s_merge_schema_extras_object(props_obj, s2);
@@ -125,21 +181,34 @@ TEST test_code2schema_apply_union_ex_full(void) {
   struct StructFields sf;
   cdd_c_error_t rc = 0;
 
-  root_val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    root_val = _cdd_jv_1;
+  }
   root = json_value_get_object(root_val);
 
-  schema_val =
-      json_parse_string("{\"discriminator\":{\"propertyName\":\"kind\","
-                        "\"mapping\":{\"cat\":\"CatModel\"}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"discriminator\":{\"propertyName\":\"kind\","
+                          "\"mapping\":{\"cat\":\"CatModel\"}}}",
+                          &_cdd_jv_1);
+    schema_val = _cdd_jv_1;
+  }
   schema_obj = json_value_get_object(schema_val);
 
-  union_val = json_parse_string(
-      "["
-      "  "
-      "{\"title\":\"CatModel\",\"type\":\"object\",\"properties\":{\"meow\":{"
-      "\"type\":\"boolean\"}},\"required\":[\"meow\"]},"
-      "  {\"type\":\"array\",\"items\":{\"type\":\"string\"}}"
-      "]");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "["
+        "  "
+        "{\"title\":\"CatModel\",\"type\":\"object\",\"properties\":{\"meow\":{"
+        "\"type\":\"boolean\"}},\"required\":[\"meow\"]},"
+        "  {\"type\":\"array\",\"items\":{\"type\":\"string\"}}"
+        "]",
+        &_cdd_jv_1);
+    union_val = _cdd_jv_1;
+  }
   union_arr = json_value_get_array(union_val);
 
   rc = struct_fields_init(&sf);
@@ -241,13 +310,23 @@ TEST test_code2schema_c2s_union_array_items_branches(void) {
   int supported = 0;
   cdd_c_error_t rc = 0;
 
-  root_val = json_parse_string(
-      "{\"StatusEnum\":{\"type\":\"string\",\"enum\":[\"A\",\"B\"]}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"StatusEnum\":{\"type\":\"string\",\"enum\":[\"A\",\"B\"]}}",
+        &_cdd_jv_1);
+    root_val = _cdd_jv_1;
+  }
   root = json_value_get_object(root_val);
 
   /* Items with $ref to enum */
-  val = json_parse_string(
-      "{\"items\":{\"$ref\":\"#/components/schemas/StatusEnum\"}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"items\":{\"$ref\":\"#/components/schemas/StatusEnum\"}}",
+        &_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   obj = json_value_get_object(val);
   rc = c2s_union_array_items_supported(obj, root, 1, &supported);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -255,7 +334,12 @@ TEST test_code2schema_c2s_union_array_items_branches(void) {
   json_value_free(val);
 
   /* Items with type union array */
-  val = json_parse_string("{\"items\":{\"type\":[\"string\",\"null\"]}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"items\":{\"type\":[\"string\",\"null\"]}}",
+                          &_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   obj = json_value_get_object(val);
   rc = c2s_union_array_items_supported(obj, root, 1, &supported);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -263,8 +347,13 @@ TEST test_code2schema_c2s_union_array_items_branches(void) {
   json_value_free(val);
 
   /* Items with anonymous properties */
-  val = json_parse_string(
-      "{\"items\":{\"properties\":{\"name\":{\"type\":\"string\"}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"items\":{\"properties\":{\"name\":{\"type\":\"string\"}}}}",
+        &_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   obj = json_value_get_object(val);
   rc = c2s_union_array_items_supported(obj, root, 1, &supported);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -272,7 +361,11 @@ TEST test_code2schema_c2s_union_array_items_branches(void) {
   json_value_free(val);
 
   /* Items with empty object (no type, ref, or properties) */
-  val = json_parse_string("{\"items\":{}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"items\":{}}", &_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   obj = json_value_get_object(val);
   rc = c2s_union_array_items_supported(obj, root, 1, &supported);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -394,28 +487,37 @@ TEST test_code2schema_apply_union_variants_all_types(void) {
   struct StructFields sf;
   cdd_c_error_t rc = 0;
 
-  root_val =
-      json_parse_string("{\"MyEnum\":{\"type\":\"string\",\"enum\":[\"X\"]}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"MyEnum\":{\"type\":\"string\",\"enum\":[\"X\"]}}",
+                          &_cdd_jv_1);
+    root_val = _cdd_jv_1;
+  }
   root = json_value_get_object(root_val);
 
   /* Variants covering: number, boolean, null, object with title, array with
    * enum items */
-  union_val = json_parse_string(
-      "["
-      "  {\"type\":\"number\"},"
-      "  {\"type\":\"boolean\"},"
-      "  {\"type\":\"null\"},"
-      "  "
-      "{\"title\":\"MyObj\",\"type\":\"object\",\"properties\":{\"p\":{"
-      "\"type\":\"integer\"}}},"
-      "  "
-      "{\"type\":\"array\",\"items\":{\"$ref\":\"#/components/schemas/"
-      "MyEnum\"}},"
-      "  {\"type\":\"array\",\"items\":{\"type\":[\"string\",\"null\"]}},"
-      "  "
-      "{\"type\":\"array\",\"items\":{\"properties\":{\"sub\":{\"type\":"
-      "\"string\"}}}}"
-      "]");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "["
+        "  {\"type\":\"number\"},"
+        "  {\"type\":\"boolean\"},"
+        "  {\"type\":\"null\"},"
+        "  "
+        "{\"title\":\"MyObj\",\"type\":\"object\",\"properties\":{\"p\":{"
+        "\"type\":\"integer\"}}},"
+        "  "
+        "{\"type\":\"array\",\"items\":{\"$ref\":\"#/components/schemas/"
+        "MyEnum\"}},"
+        "  {\"type\":\"array\",\"items\":{\"type\":[\"string\",\"null\"]}},"
+        "  "
+        "{\"type\":\"array\",\"items\":{\"properties\":{\"sub\":{\"type\":"
+        "\"string\"}}}}"
+        "]",
+        &_cdd_jv_1);
+    union_val = _cdd_jv_1;
+  }
   union_arr = json_value_get_array(union_val);
 
   rc = struct_fields_init(&sf);
@@ -436,7 +538,11 @@ TEST test_code2schema_apply_union_variants_all_types(void) {
   json_value_free(union_val);
 
   /* Empty union array -> returns success early */
-  union_val = json_parse_string("[]");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("[]", &_cdd_jv_1);
+    union_val = _cdd_jv_1;
+  }
   union_arr = json_value_get_array(union_val);
   rc = struct_fields_init(&sf);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -447,8 +553,12 @@ TEST test_code2schema_apply_union_variants_all_types(void) {
   json_value_free(union_val);
 
   /* Array variant when allow_inline is 0 */
-  union_val = json_parse_string(
-      "[{\"type\":\"array\",\"items\":{\"type\":\"string\"}}]");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "[{\"type\":\"array\",\"items\":{\"type\":\"string\"}}]", &_cdd_jv_1);
+    union_val = _cdd_jv_1;
+  }
   union_arr = json_value_get_array(union_val);
   rc = struct_fields_init(&sf);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -468,10 +578,16 @@ TEST test_code2schema_apply_union_variants_all_types(void) {
  * @return TEST_PASSED on success.
  */
 TEST test_code2schema_json_array_to_enum_members_nonstrings(void) {
-  JSON_Value *val = json_parse_string("[123, \"VALID\", true, null]");
-  JSON_Array *arr = json_value_get_array(val);
+  JSON_Value *val = NULL;
+  JSON_Array *arr = NULL;
   struct EnumMembers em;
   cdd_c_error_t rc = 0;
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("[123, \"VALID\", true, null]", &_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
+  arr = json_value_get_array(val);
 
   rc = enum_members_init(&em);
   ASSERT_EQ(0, rc);
@@ -519,7 +635,11 @@ TEST test_code2schema_alloc_failures(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
 
   /* parse_type_union_array_code2schema OOM */
-  val = json_parse_string("[\"string\",\"integer\"]");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("[\"string\",\"integer\"]", &_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   arr = json_value_get_array(val);
 
   g_cdd_alloc_fail = 1;
@@ -535,7 +655,11 @@ TEST test_code2schema_alloc_failures(void) {
   json_value_free(val);
 
   /* c2s_collect_string_array OOM */
-  val = json_parse_string("[\"one\",\"two\"]");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("[\"one\",\"two\"]", &_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   arr = json_value_get_array(val);
 
   g_cdd_alloc_fail = 1;
@@ -551,7 +675,11 @@ TEST test_code2schema_alloc_failures(void) {
   json_value_free(val);
 
   /* c2s_collect_property_names OOM */
-  val = json_parse_string("{\"properties\":{\"a\":{},\"b\":{}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"properties\":{\"a\":{},\"b\":{}}}", &_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   obj = json_value_get_object(val);
 
   g_cdd_alloc_fail = 1;
@@ -600,7 +728,11 @@ TEST test_code2schema_alloc_failures(void) {
   struct_fields_free(&sf2);
 
   /* apply_union_to_struct_fields_ex OOM */
-  val = json_parse_string("[{\"type\":\"string\"}]");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("[{\"type\":\"string\"}]", &_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   arr = json_value_get_array(val);
   struct_fields_init(&sf1);
 
@@ -622,16 +754,28 @@ TEST test_code2schema_alloc_failures(void) {
  * @return TEST_PASSED on success.
  */
 TEST test_code2schema_empty_refs_and_defaults(void) {
-  JSON_Value *root_val = json_value_init_object();
-  JSON_Object *root = json_value_get_object(root_val);
-  JSON_Value *val = json_value_init_object();
-  JSON_Object *obj = json_value_get_object(val);
+  JSON_Value *root_val = NULL;
+  JSON_Object *root = NULL;
+  JSON_Value *val = NULL;
+  JSON_Object *obj = NULL;
   const JSON_Object *res = NULL;
   struct StructField f;
   char *name = NULL;
   int is_enum = 0;
   int b = 0;
   cdd_c_error_t rc = 0;
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    root_val = _cdd_jv_1;
+  }
+  root = json_value_get_object(root_val);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
+  obj = json_value_get_object(val);
 
   /* Empty and slash refs */
   rc = ref_points_to_string_enum(root, "", &is_enum);
@@ -716,7 +860,9 @@ TEST test_code2schema_json_object_fields_more_branches(void) {
 
   /* Schema with boolean exclusiveMinimum and field without type/ref (empty
    * property) */
-  val = json_parse_string("{\"type\":\"object\","
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"type\":\"object\","
                           "\"properties\":{"
                           "  \"empty_p\":{},"
                           "  "
@@ -725,7 +871,10 @@ TEST test_code2schema_json_object_fields_more_branches(void) {
                           "  "
                           "\"arr_union_type\":{\"type\":[\"array\",\"null\"],"
                           "\"items\":{\"type\":\"string\"}}"
-                          "}}");
+                          "}}",
+                          &_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   obj = json_value_get_object(val);
 
   rc = struct_fields_init(&sf);

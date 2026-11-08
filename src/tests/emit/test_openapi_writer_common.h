@@ -48,24 +48,6 @@ static void *mock_parson_oom_malloc(size_t sz) {
 static void mock_parson_oom_free(void *ptr) { free(ptr); }
 
 /**
- * @brief Helper function set_both_parson_allocators.
- * @param[in,out] malloc_fun Parameter malloc_fun.
- * @param[in,out] free_fun Parameter free_fun.
- */
-static void set_both_parson_allocators(void *(*malloc_fun)(size_t),
-                                       void (*free_fun)(void *)) {
-  (json_set_allocation_functions)(malloc_fun, free_fun);
-  c2openapi_set_json_allocators(malloc_fun, free_fun);
-}
-#ifdef json_set_allocation_functions
-#undef json_set_allocation_functions
-#endif
-/**
- * @brief Macro json_set_allocation_functions.
- */
-#define json_set_allocation_functions set_both_parson_allocators
-
-/**
  * @brief Macro ASSERT_WRITER_RC.
  * @param[in] expr Macro argument expr.
  */
@@ -89,7 +71,11 @@ static cdd_c_error_t load_spec_str2(const char *json_str,
                                     struct OpenAPI_Spec *spec) {
   JSON_Value *dyn;
   cdd_c_error_t rc = 0;
-  dyn = json_parse_string(json_str);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(json_str, &_cdd_jv_1);
+    dyn = _cdd_jv_1;
+  }
   if (!dyn)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = openapi_spec_init(spec);

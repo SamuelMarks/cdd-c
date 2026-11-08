@@ -101,6 +101,17 @@ extern C_CDD_EXPORT cdd_c_error_t write_struct_from_json_standalone_func(
     FILE *fp, const char *struct_name, const struct StructFields *sf);
 
 /**
+ * @brief Emits a standalone zero-dependency JSON emitter function for a struct.
+ *
+ * @param[in] fp Output stream.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Fields descriptor.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t write_struct_to_json_standalone_func(
+    FILE *fp, const char *struct_name, const struct StructFields *sf);
+
+/**
  * @brief Emits C source code for struct array from json func.
  * @param[in,out] fp The file pointer to write to.
  * @param[in] struct_name The name of the struct.
@@ -109,6 +120,17 @@ extern C_CDD_EXPORT cdd_c_error_t write_struct_from_json_standalone_func(
  */
 extern C_CDD_EXPORT cdd_c_error_t write_struct_array_from_json_func(
     FILE *fp, const char *struct_name, const struct CodegenJsonConfig *config);
+
+/**
+ * @brief Allocates a JSON-escaped copy of a C string (escaping quotes,
+ * backslashes, and control characters `\b`, `\f`, `\n`, `\r`, `\t`, `\u00XX`).
+ *
+ * @param[in] s Input NUL-terminated string.
+ * @param[out] out Output pointer receiving the newly allocated escaped string.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_json_escape_str(const char *s,
+                                                      char **out);
 
 #ifdef __cplusplus
 }

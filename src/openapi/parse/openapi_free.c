@@ -13,12 +13,13 @@
  * allocations.
  * @param[in] servers Array of server structures to free.
  * @param[in] n_servers Number of elements in the servers array.
+ * @return CDD_C_SUCCESS.
  */
-void openapi_free_servers_array(struct OpenAPI_Server *servers,
-                                size_t n_servers) {
+cdd_c_error_t openapi_free_servers_array(struct OpenAPI_Server *servers,
+                                         size_t n_servers) {
   size_t i;
   if (!servers)
-    return;
+    return CDD_C_SUCCESS;
   for (i = 0; i < n_servers; ++i) {
     if (servers[i].url)
       C_CDD_FREE(servers[i].url);
@@ -53,17 +54,19 @@ void openapi_free_servers_array(struct OpenAPI_Server *servers,
     }
   }
   C_CDD_FREE(servers);
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees the memory associated with path item.
  *
  * @param[in,out] p The OpenAPI_Path structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void free_path_item(struct OpenAPI_Path *p) {
+cdd_c_error_t free_path_item(struct OpenAPI_Path *p) {
   size_t i;
   if (!p)
-    return;
+    return CDD_C_SUCCESS;
   if (p->route)
     C_CDD_FREE(p->route);
   if (p->ref)
@@ -98,17 +101,19 @@ void free_path_item(struct OpenAPI_Path *p) {
     C_CDD_FREE(p->additional_operations);
   }
   memset(p, 0, sizeof(*p));
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees the memory associated with callback.
  *
  * @param[in,out] cb The OpenAPI_Callback structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void free_callback(struct OpenAPI_Callback *cb) {
+cdd_c_error_t free_callback(struct OpenAPI_Callback *cb) {
   size_t i;
   if (!cb)
-    return;
+    return CDD_C_SUCCESS;
   if (cb->name)
     C_CDD_FREE(cb->name);
   if (cb->ref)
@@ -126,17 +131,19 @@ void free_callback(struct OpenAPI_Callback *cb) {
     C_CDD_FREE(cb->paths);
   }
   memset(cb, 0, sizeof(*cb));
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees the memory associated with operation.
  *
  * @param[in,out] op The OpenAPI_Operation structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void free_operation(struct OpenAPI_Operation *op) {
+cdd_c_error_t free_operation(struct OpenAPI_Operation *op) {
   size_t i;
   if (!op)
-    return;
+    return CDD_C_SUCCESS;
   if (op->method)
     C_CDD_FREE(op->method);
   if (op->operation_id)
@@ -219,16 +226,18 @@ void free_operation(struct OpenAPI_Operation *op) {
     op->security_set = 0;
   }
   memset(op, 0, sizeof(*op));
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Free a Spec structure and all nested allocations.
  * @param[in] spec Pointer to spec structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void openapi_spec_free(struct OpenAPI_Spec *spec) {
+cdd_c_error_t openapi_spec_free(struct OpenAPI_Spec *spec) {
   size_t i;
   if (!spec)
-    return;
+    return CDD_C_SUCCESS;
 
   if (spec->openapi_version) {
     C_CDD_FREE(spec->openapi_version);
@@ -610,6 +619,7 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
   spec->n_security = 0;
   spec->security_set = 0;
   memset(spec, 0, sizeof(*spec));
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -617,16 +627,18 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
  *
  * @param[in] arr Array of string pointers.
  * @param[in] n Number of elements in the array.
+ * @return CDD_C_SUCCESS.
  */
-void free_string_array(char **arr, size_t n) {
+cdd_c_error_t free_string_array(char **arr, size_t n) {
   size_t i;
   if (!arr)
-    return;
+    return CDD_C_SUCCESS;
   for (i = 0; i < n; ++i) {
     if (arr[i])
       C_CDD_FREE(arr[i]);
   }
   C_CDD_FREE(arr);
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -634,12 +646,14 @@ void free_string_array(char **arr, size_t n) {
  *
  * @param[in] names Array of allocated name strings.
  * @param[in] count Number of elements.
+ * @return CDD_C_SUCCESS.
  */
-void free_name_list(char **names, size_t count) {
+cdd_c_error_t free_name_list(char **names, size_t count) {
   size_t i;
   if (!names)
-    return;
+    return CDD_C_SUCCESS;
   for (i = 0; i < count; ++i)
     C_CDD_FREE(names[i]);
   C_CDD_FREE(names);
+  return CDD_C_SUCCESS;
 }

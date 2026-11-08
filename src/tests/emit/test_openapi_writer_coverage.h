@@ -27,7 +27,11 @@ TEST test_openapi_writer_any_and_examples_coverage(void) {
   struct OpenAPI_Example ex;
   struct OpenAPI_Example examples[2];
 
-  parent_val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    parent_val = _cdd_jv_1;
+  }
   parent = json_value_get_object(parent_val);
 
   /* any_to_json_value */
@@ -75,7 +79,11 @@ TEST test_openapi_writer_any_and_examples_coverage(void) {
   ASSERT(val == NULL);
 
   /* write_example_object */
-  val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   obj = json_value_get_object(val);
 
   memset(&ex, 0, sizeof(ex));
@@ -150,9 +158,17 @@ TEST test_openapi_writer_objects_and_maps_coverage(void) {
   struct OpenAPI_Path cb_paths[2];
   struct OpenAPI_MediaType mt;
 
-  parent_val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    parent_val = _cdd_jv_1;
+  }
   parent = json_value_get_object(parent_val);
-  val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   obj = json_value_get_object(val);
 
   /* write_external_docs */

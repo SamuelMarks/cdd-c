@@ -460,8 +460,6 @@ TEST test_cdd_cst_type_eval_branches(void) {
       cdd_cst_node_t dummy_node = {0};
       cdd_token_t dummy_tok = {0};
       cdd_cst_child_t children[1];
-      char *name_out = NULL;
-      int is_ptr = 0;
       size_t sz = 0, al = 0;
       dummy_tok.kind = CDD_TOKEN_IDENTIFIER;
       dummy_tok.start = (const uint8_t *)"int";
@@ -475,8 +473,6 @@ TEST test_cdd_cst_type_eval_branches(void) {
       /* Also test the malloc failure inside eval_alignof since it calls
        * extract_type_name too */
       g_cdd_alloc_fail = 1;
-      (void)is_ptr;
-      (void)name_out;
       ASSERT_EQ(CDD_C_ERROR_MEMORY,
                 cdd_cst_eval_alignof(env, &dummy_node, abi, &al));
       g_cdd_alloc_fail = 2;

@@ -58,9 +58,10 @@ extern C_CDD_EXPORT cdd_c_error_t tokenize(az_span source,
  * Frees the internal token array and the struct itself.
  *
  * @param[in] tl The token list to free. Safe to pass NULL.
+ * @return CDD_C_SUCCESS.
  */
 
-extern C_CDD_EXPORT void free_token_list(struct TokenList *tl);
+extern C_CDD_EXPORT cdd_c_error_t free_token_list(struct TokenList *tl);
 
 /**
  * @param[out] _out_val Pointer to store the result

@@ -181,8 +181,9 @@ static cdd_c_error_t match_keyword(const char *text, size_t length,
  * @brief Frees all tokens and text copies within a CDD DSL token list.
  *
  * @param[in,out] list Pointer to the DSL token list to free.
+ * @return CDD_C_SUCCESS.
  */
-C_CDD_EXPORT void cdd_dsl_token_list_free(cdd_dsl_token_list_t *list) {
+C_CDD_EXPORT cdd_c_error_t cdd_dsl_token_list_free(cdd_dsl_token_list_t *list) {
   if (list) {
     size_t i;
     for (i = 0; i < list->count; i++) {
@@ -196,6 +197,7 @@ C_CDD_EXPORT void cdd_dsl_token_list_free(cdd_dsl_token_list_t *list) {
     list->count = 0;
     list->capacity = 0;
   }
+  return CDD_C_SUCCESS;
 }
 
 /*

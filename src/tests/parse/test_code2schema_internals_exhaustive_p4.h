@@ -41,11 +41,23 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
     /* 1. sub == NULL in loop 2 (42 in array) */
     {
       struct StructFields dest;
-      JSON_Value *val = json_parse_string("[{\"type\":\"string\"}, 42]");
-      JSON_Array *arr = json_value_get_array(val);
-      JSON_Value *root_val = json_value_init_object();
-      JSON_Object *root = json_value_get_object(root_val);
+      JSON_Value *val = NULL;
+      JSON_Array *arr = NULL;
+      JSON_Value *root_val = NULL;
+      JSON_Object *root = NULL;
       cdd_c_error_t rc = 0;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("[{\"type\":\"string\"}, 42]", &_cdd_jv_1);
+        val = _cdd_jv_1;
+      }
+      arr = json_value_get_array(val);
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_value_init_object(&_cdd_jv_1);
+        root_val = _cdd_jv_1;
+      }
+      root = json_value_get_object(root_val);
 
       struct_fields_init(&dest);
       rc = apply_union_to_struct_fields_ex(arr, &dest, root, "TestSubNull", 0,
@@ -61,12 +73,24 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
     /* 2. name_hint fallback (object with properties but no type/title) */
     {
       struct StructFields dest;
-      JSON_Value *val =
-          json_parse_string("[{\"properties\":{\"x\":{\"type\":\"string\"}}}]");
-      JSON_Array *arr = json_value_get_array(val);
-      JSON_Value *root_val = json_value_init_object();
-      JSON_Object *root = json_value_get_object(root_val);
+      JSON_Value *val = NULL;
+      JSON_Array *arr = NULL;
+      JSON_Value *root_val = NULL;
+      JSON_Object *root = NULL;
       cdd_c_error_t rc = 0;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string(
+            "[{\"properties\":{\"x\":{\"type\":\"string\"}}}]", &_cdd_jv_1);
+        val = _cdd_jv_1;
+      }
+      arr = json_value_get_array(val);
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_value_init_object(&_cdd_jv_1);
+        root_val = _cdd_jv_1;
+      }
+      root = json_value_get_object(root_val);
 
       struct_fields_init(&dest);
       rc = apply_union_to_struct_fields_ex(arr, &dest, root, "FallbackHint", 0,
@@ -82,12 +106,24 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
     /* 3. default branch in switch(jtype) (boolean variant) */
     {
       struct StructFields dest;
-      JSON_Value *val =
-          json_parse_string("[{\"type\":\"boolean\"}, {\"type\":\"string\"}]");
-      JSON_Array *arr = json_value_get_array(val);
-      JSON_Value *root_val = json_value_init_object();
-      JSON_Object *root = json_value_get_object(root_val);
+      JSON_Value *val = NULL;
+      JSON_Array *arr = NULL;
+      JSON_Value *root_val = NULL;
+      JSON_Object *root = NULL;
       cdd_c_error_t rc = 0;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("[{\"type\":\"boolean\"}, {\"type\":\"string\"}]",
+                              &_cdd_jv_1);
+        val = _cdd_jv_1;
+      }
+      arr = json_value_get_array(val);
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_value_init_object(&_cdd_jv_1);
+        root_val = _cdd_jv_1;
+      }
+      root = json_value_get_object(root_val);
 
       struct_fields_init(&dest);
       rc = apply_union_to_struct_fields_ex(arr, &dest, root,
@@ -103,12 +139,25 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
     /* 4. unsupported array items (!supported in loop 1) */
     {
       struct StructFields dest;
-      JSON_Value *val = json_parse_string(
-          "[{\"type\":\"array\",\"items\":{\"type\":\"array\"}}]");
-      JSON_Array *arr = json_value_get_array(val);
-      JSON_Value *root_val = json_value_init_object();
-      JSON_Object *root = json_value_get_object(root_val);
+      JSON_Value *val = NULL;
+      JSON_Array *arr = NULL;
+      JSON_Value *root_val = NULL;
+      JSON_Object *root = NULL;
       cdd_c_error_t rc = 0;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string(
+            "[{\"type\":\"array\",\"items\":{\"type\":\"array\"}}]",
+            &_cdd_jv_1);
+        val = _cdd_jv_1;
+      }
+      arr = json_value_get_array(val);
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_value_init_object(&_cdd_jv_1);
+        root_val = _cdd_jv_1;
+      }
+      root = json_value_get_object(root_val);
 
       struct_fields_init(&dest);
       rc = apply_union_to_struct_fields_ex(arr, &dest, root, "TestUnsupported",
@@ -131,8 +180,14 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
 
     /* discriminator line 4228: str_after_last failure when ref is present */
     {
-      JSON_Value *d_val = json_parse_string("{\"mapping\":{}}");
-      JSON_Object *d_obj = json_value_get_object(d_val);
+      JSON_Value *d_val = NULL;
+      JSON_Object *d_obj = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("{\"mapping\":{}}", &_cdd_jv_1);
+        d_val = _cdd_jv_1;
+      }
+      d_obj = json_value_get_object(d_val);
       g_cdd_fail_str_after_last = 1;
       rc = discriminator_value_for_variant(d_obj, "MySchema",
                                            "#/components/schemas/A", &out_val);
@@ -160,12 +215,19 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
     /* c2s_json_object_to_struct_fields_internal: items extras error (line 2185)
      */
     {
-      JSON_Value *v = json_parse_string("{\"type\":\"object\",\"properties\":{"
-                                        "  "
-                                        "\"arr\":{\"type\":\"array\",\"items\":"
-                                        "{\"type\":\"string\",\"x-item\":1}}"
-                                        "}}");
-      JSON_Object *o = json_value_get_object(v);
+      JSON_Value *v = NULL;
+      JSON_Object *o = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("{\"type\":\"object\",\"properties\":{"
+                              "  "
+                              "\"arr\":{\"type\":\"array\",\"items\":"
+                              "{\"type\":\"string\",\"x-item\":1}}"
+                              "}}",
+                              &_cdd_jv_1);
+        v = _cdd_jv_1;
+      }
+      o = json_value_get_object(v);
 
       struct_fields_init(&sf);
       g_cdd_fail_json_serialize = 1;
@@ -180,11 +242,17 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
     /* c2s_json_object_to_struct_fields_internal: prop extras error (line 2358)
      */
     {
-      JSON_Value *v =
-          json_parse_string("{\"type\":\"object\",\"properties\":{"
-                            "  \"p\":{\"type\":\"string\",\"x-prop\":2}"
-                            "}}");
-      JSON_Object *o = json_value_get_object(v);
+      JSON_Value *v = NULL;
+      JSON_Object *o = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("{\"type\":\"object\",\"properties\":{"
+                              "  \"p\":{\"type\":\"string\",\"x-prop\":2}"
+                              "}}",
+                              &_cdd_jv_1);
+        v = _cdd_jv_1;
+      }
+      o = json_value_get_object(v);
 
       struct_fields_init(&sf);
       g_cdd_fail_json_serialize = 1;
@@ -203,8 +271,13 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
 
     /* 1. c2s_clone_json_value g_cdd_fail_json_serialize */
     {
-      JSON_Value *v = json_parse_string("{\"a\":1}");
+      JSON_Value *v = NULL;
       JSON_Value *c = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("{\"a\":1}", &_cdd_jv_1);
+        v = _cdd_jv_1;
+      }
       g_cdd_fail_json_serialize = 1;
       rc = c2s_clone_json_value(v, &c);
       g_cdd_fail_json_serialize = 0;
@@ -238,11 +311,17 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
 
     /* 4. parse_type_union_array_code2schema OOM */
     {
-      JSON_Value *v = json_parse_string("[\"string\"]");
-      JSON_Array *arr = json_value_get_array(v);
+      JSON_Value *v = NULL;
+      JSON_Array *arr = NULL;
       char **out_arr = NULL;
       size_t out_cnt = 0;
       const char *primary = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("[\"string\"]", &_cdd_jv_1);
+        v = _cdd_jv_1;
+      }
+      arr = json_value_get_array(v);
       g_cdd_alloc_fail = 1;
       rc = parse_type_union_array_code2schema(arr, &out_arr, &out_cnt, &primary,
                                               NULL);
@@ -253,8 +332,14 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
 
     /* 5. required_name_in_list invalid arg */
     {
-      JSON_Value *av = json_parse_string("[\"fld\"]");
-      JSON_Array *arr = json_value_get_array(av);
+      JSON_Value *av = NULL;
+      JSON_Array *arr = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("[\"fld\"]", &_cdd_jv_1);
+        av = _cdd_jv_1;
+      }
+      arr = json_value_get_array(av);
       rc = required_name_in_list(arr, "fld", NULL);
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
       json_value_free(av);
@@ -284,10 +369,16 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
     {
       struct StructFields sf;
       int j;
-      JSON_Value *allof_val =
-          json_parse_string("[{\"type\":\"object\",\"properties\":{\"f1\":{"
-                            "\"type\":\"string\"}}}]");
-      JSON_Array *allof_arr = json_value_get_array(allof_val);
+      JSON_Value *allof_val = NULL;
+      JSON_Array *allof_arr = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("[{\"type\":\"object\",\"properties\":{\"f1\":{"
+                              "\"type\":\"string\"}}}]",
+                              &_cdd_jv_1);
+        allof_val = _cdd_jv_1;
+      }
+      allof_arr = json_value_get_array(allof_val);
       struct_fields_init(&sf);
       for (j = 0; j < 8; ++j)
         struct_fields_add(&sf, "pad", "string", NULL, NULL, NULL);
@@ -302,23 +393,42 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
     /* 9. apply_union_to_struct_fields_ex variant error paths */
     {
       struct StructFields dest;
-      JSON_Value *val = json_parse_string(
-          "{\"discriminator\":{\"propertyName\":\"type\"},"
-          "\"oneOf\":["
-          "  {\"$ref\":\"#/components/schemas/RefA\"},"
-          "  "
-          "{\"type\":\"array\",\"items\":{\"$ref\":\"#/components/schemas/"
-          "EnumItem\"}},"
-          "  {\"type\":\"array\",\"items\":{\"type\":[\"string\",\"null\"]}}"
-          "]}");
-      JSON_Object *obj = json_value_get_object(val);
-      JSON_Array *oneof_arr = json_object_get_array(obj, "oneOf");
-      JSON_Value *root_val = json_parse_string(
-          "{\"RefA\":{\"type\":\"object\",\"properties\":{\"a\":{\"type\":"
-          "\"string\"}}},"
-          "\"EnumItem\":{\"type\":\"string\",\"enum\":[\"E1\"]}}");
-      JSON_Object *root = json_value_get_object(root_val);
+      JSON_Value *val = NULL;
+      JSON_Object *obj = NULL;
+      JSON_Array *oneof_arr = NULL;
+      JSON_Value *root_val = NULL;
+      JSON_Object *root = NULL;
       int k;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string(
+            "{\"discriminator\":{\"propertyName\":\"type\"},"
+            "\"oneOf\":["
+            "  {\"$ref\":\"#/components/schemas/RefA\"},"
+            "  "
+            "{\"type\":\"array\",\"items\":{\"$ref\":\"#/components/schemas/"
+            "EnumItem\"}},"
+            "  {\"type\":\"array\",\"items\":{\"type\":[\"string\",\"null\"]}}"
+            "]}",
+            &_cdd_jv_1);
+        val = _cdd_jv_1;
+      }
+      obj = json_value_get_object(val);
+      {
+        JSON_Array *_cdd_ja_1 = NULL;
+        cdd_json_object_get_array(obj, "oneOf", &_cdd_ja_1);
+        oneof_arr = _cdd_ja_1;
+      }
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string(
+            "{\"RefA\":{\"type\":\"object\",\"properties\":{\"a\":{\"type\":"
+            "\"string\"}}},"
+            "\"EnumItem\":{\"type\":\"string\",\"enum\":[\"E1\"]}}",
+            &_cdd_jv_1);
+        root_val = _cdd_jv_1;
+      }
+      root = json_value_get_object(root_val);
 
       for (k = 1; k <= 10; ++k) {
         struct_fields_init(&dest);
@@ -361,9 +471,15 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
 
     /* parse_type_union_array_code2schema branch permutations */
     {
-      JSON_Value *v = json_parse_string("[\"null\"]");
-      JSON_Array *arr = json_value_get_array(v);
+      JSON_Value *v = NULL;
+      JSON_Array *arr = NULL;
       int is_null = 0;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("[\"null\"]", &_cdd_jv_1);
+        v = _cdd_jv_1;
+      }
+      arr = json_value_get_array(v);
       rc = parse_type_union_array_code2schema(arr, &out_arr, &out_cnt, NULL,
                                               &is_null);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -402,8 +518,14 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
     /* c2s_collect_schema_extras NULL checks */
     {
       char *out_j = NULL;
-      JSON_Value *v = json_parse_string("{\"a\":1}");
-      JSON_Object *o = json_value_get_object(v);
+      JSON_Value *v = NULL;
+      JSON_Object *o = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("{\"a\":1}", &_cdd_jv_1);
+        v = _cdd_jv_1;
+      }
+      o = json_value_get_object(v);
       rc = c2s_collect_schema_extras(NULL, NULL, 0, &out_j);
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
       rc = c2s_collect_schema_extras(o, NULL, 0, NULL);
@@ -416,8 +538,14 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
     rc = c2s_json_object_to_struct_fields_internal(NULL, &sf, NULL, "A", 0);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
     {
-      JSON_Value *v = json_parse_string("{\"type\":\"object\"}");
-      JSON_Object *o = json_value_get_object(v);
+      JSON_Value *v = NULL;
+      JSON_Object *o = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("{\"type\":\"object\"}", &_cdd_jv_1);
+        v = _cdd_jv_1;
+      }
+      o = json_value_get_object(v);
       rc = c2s_json_object_to_struct_fields_internal(o, NULL, NULL, "A", 0);
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
       json_value_free(v);
@@ -435,8 +563,14 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
 
     /* parse_type_union_array_code2schema with NULL out pointers */
     {
-      JSON_Value *v = json_parse_string("[\"string\", \"null\"]");
-      JSON_Array *arr = json_value_get_array(v);
+      JSON_Value *v = NULL;
+      JSON_Array *arr = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("[\"string\", \"null\"]", &_cdd_jv_1);
+        v = _cdd_jv_1;
+      }
+      arr = json_value_get_array(v);
       rc = parse_type_union_array_code2schema(arr, NULL, NULL, NULL, NULL);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
       json_value_free(v);
@@ -444,8 +578,14 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
 
     /* c2s_merge_schema_extras_object with existing key collision */
     {
-      JSON_Value *val = json_parse_string("{\"x-existing\":1}");
-      JSON_Object *target = json_value_get_object(val);
+      JSON_Value *val = NULL;
+      JSON_Object *target = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("{\"x-existing\":1}", &_cdd_jv_1);
+        val = _cdd_jv_1;
+      }
+      target = json_value_get_object(val);
       rc = c2s_merge_schema_extras_object(target,
                                           "{\"x-existing\":2,\"x-new\":3}");
       ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -502,18 +642,27 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part4(void) {
     /* c2s_json_object_to_struct_fields_internal root == NULL variations */
     {
       struct StructFields sf;
-      JSON_Value *v = json_parse_string(
-          "{\"type\":\"object\",\"properties\":{"
-          "  "
-          "\"arr_ref\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/components/"
-          "schemas/Item\"}},"
-          "  "
-          "\"arr_anon\":{\"type\":\"array\",\"items\":{\"properties\":{\"sub\":"
-          "{\"type\":\"string\"}}}},"
-          "  \"dir_ref\":{\"$ref\":\"#/components/schemas/Item\"},"
-          "  \"int_prop\":{\"type\":\"integer\",\"minimum\":1}"
-          "}}");
-      JSON_Object *o = json_value_get_object(v);
+      JSON_Value *v = NULL;
+      JSON_Object *o = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string(
+            "{\"type\":\"object\",\"properties\":{"
+            "  "
+            "\"arr_ref\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/"
+            "components/"
+            "schemas/Item\"}},"
+            "  "
+            "\"arr_anon\":{\"type\":\"array\",\"items\":{\"properties\":{"
+            "\"sub\":"
+            "{\"type\":\"string\"}}}},"
+            "  \"dir_ref\":{\"$ref\":\"#/components/schemas/Item\"},"
+            "  \"int_prop\":{\"type\":\"integer\",\"minimum\":1}"
+            "}}",
+            &_cdd_jv_1);
+        v = _cdd_jv_1;
+      }
+      o = json_value_get_object(v);
 
       struct_fields_init(&sf);
       rc = c2s_json_object_to_struct_fields_internal(o, &sf, NULL,
@@ -710,14 +859,18 @@ TEST test_code2schema_merge_struct_field_exhaustive(void) {
      * apply_union_to_struct_fields_fallback */
     {
       extern C_CDD_EXPORT int g_cdd_fail_str_after_last;
-      JSON_Value *jv = json_parse_string(
+      JSON_Value *jv = NULL;
+      const JSON_Object *jo = NULL;
+      JSON_Array *one_of = NULL;
+      struct StructFields sfs;
+      cdd_json_parse_string(
           "{\"allOf\":[{\"$ref\":\"#/definitions/Sub\"}],"
           "\"oneOf\":[{\"$ref\":\"#/definitions/Sub\"}],"
           "\"Sub\":{\"type\":\"object\",\"properties\":{\"x\":{\"type\":"
-          "\"integer\"}}}}");
-      const JSON_Object *jo = json_value_get_object(jv);
-      const JSON_Array *one_of = json_object_get_array(jo, "oneOf");
-      struct StructFields sfs;
+          "\"integer\"}}}}",
+          &jv);
+      jo = json_value_get_object(jv);
+      cdd_json_object_get_array(jo, "oneOf", &one_of);
       struct_fields_init(&sfs);
       g_cdd_fail_str_after_last = 1;
       ASSERT_NEQ(CDD_C_SUCCESS, json_object_to_struct_fields(jo, &sfs, jo));

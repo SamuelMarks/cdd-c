@@ -96,6 +96,58 @@ extern C_CDD_EXPORT cdd_c_error_t write_union_cleanup_func(
     FILE *fp, const char *union_name, const struct StructFields *sf,
     const struct CodegenTypesConfig *config);
 
+/**
+ * @brief Generate `_default` for a Tagged Union.
+ *
+ * @param[in] fp Output stream.
+ * @param[in] union_name Name of the union wrapper struct.
+ * @param[in] sf Fields representing the options.
+ * @param[in] config Optional config.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t write_union_default_func(
+    FILE *fp, const char *union_name, const struct StructFields *sf,
+    const struct CodegenTypesConfig *config);
+
+/**
+ * @brief Generate `_deepcopy` for a Tagged Union.
+ *
+ * @param[in] fp Output stream.
+ * @param[in] union_name Name of the union wrapper struct.
+ * @param[in] sf Fields representing the options.
+ * @param[in] config Optional config.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t write_union_deepcopy_func(
+    FILE *fp, const char *union_name, const struct StructFields *sf,
+    const struct CodegenTypesConfig *config);
+
+/**
+ * @brief Generate `_eq` for a Tagged Union.
+ *
+ * @param[in] fp Output stream.
+ * @param[in] union_name Name of the union wrapper struct.
+ * @param[in] sf Fields representing the options.
+ * @param[in] config Optional config.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t write_union_eq_func(
+    FILE *fp, const char *union_name, const struct StructFields *sf,
+    const struct CodegenTypesConfig *config);
+
+/**
+ * @brief Generate `_debug` for a Tagged Union.
+ *
+ * @param[in] fp Output stream.
+ * @param[in] union_name Name of the union wrapper struct.
+ * @param[in] sf Fields representing the options.
+ * @param[in] config Optional config.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t write_union_debug_func(
+    FILE *fp, const char *union_name, const struct StructFields *sf,
+    const struct CodegenTypesConfig *config);
+
 /* --- Root Array Functions --- */
 
 /**

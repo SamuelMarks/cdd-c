@@ -69,9 +69,7 @@ static int test_setenv(const char *var, const char *val) {
  * @return Result status or value.
  */
 static cdd_c_error_t mock_walk_err_cb(const char *path, void *user_data) {
-  (void)path;
-  (void)user_data;
-  return CDD_C_ERROR_IO;
+  return (path || user_data) ? CDD_C_ERROR_IO : CDD_C_ERROR_IO;
 }
 
 /**
@@ -82,8 +80,8 @@ static cdd_c_error_t mock_walk_err_cb(const char *path, void *user_data) {
  */
 static cdd_c_error_t mock_walk_count_cb(const char *path, void *user_data) {
   int *cnt = (int *)user_data;
-  (void)path;
-  (*cnt)++;
+  if (path)
+    (*cnt)++;
   return CDD_C_SUCCESS;
 }
 

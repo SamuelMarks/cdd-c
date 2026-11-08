@@ -89,7 +89,7 @@ static int mock_asprintf(char **strp, const char *fmt, ...) {
 #include <stdlib.h>
 #include <string.h>
 
-#include <parson.h>
+#include "c_cdd/json_dom.h"
 
 #include "functions/parse/fs.h"
 
@@ -197,9 +197,10 @@ static void to_c_ident(char *out, const size_t outsz, const char *const in) {
 static cdd_c_error_t write_test_enum(FILE *f, const char *const enum_name,
                                      const JSON_Array *enum_vals) {
   size_t i;
-  const size_t n = json_array_get_count(enum_vals);
-
+  size_t n = 0;
   char c_enum_name[128];
+
+  cdd_json_array_get_count(enum_vals, &n);
   to_c_ident(c_enum_name, sizeof(c_enum_name), enum_name);
 
   if (FPRINTF(f, "/* Test enum %s to_str/from_str */\n", enum_name) < 0)
@@ -214,8 +215,9 @@ static cdd_c_error_t write_test_enum(FILE *f, const char *const enum_name,
 
   /* Test to_str for each enum value */
   for (i = 0; i < n; i++) {
-    const char *const val = json_array_get_string(enum_vals, i);
+    const char *val = NULL;
     char c_val[128];
+    cdd_json_array_get_string(enum_vals, i, &val);
     if (!val)
       continue;
     to_c_ident(c_val, sizeof(c_val), val);
@@ -231,8 +233,9 @@ static cdd_c_error_t write_test_enum(FILE *f, const char *const enum_name,
 
   /* Test from_str for each enum value */
   for (i = 0; i < n; i++) {
-    const char *const val = json_array_get_string(enum_vals, i);
+    const char *val = NULL;
     char c_val[128];
+    cdd_json_array_get_string(enum_vals, i, &val);
     if (!val)
       continue;
     to_c_ident(c_val, sizeof(c_val), val);
@@ -270,7 +273,8 @@ static cdd_c_error_t write_test_enum(FILE *f, const char *const enum_name,
 static cdd_c_error_t write_test_struct(FILE *f, const char *const struct_name,
                                        const JSON_Object *schema_obj) {
   char c_struct_name[128];
-  (void)schema_obj;
+  if (!f || !struct_name || (schema_obj == (const JSON_Object *)1))
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   to_c_ident(c_struct_name, sizeof(c_struct_name), struct_name);
 
   if (FPRINTF(f,
@@ -347,37 +351,37 @@ C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
     const char *const output_file = argv[2];
 
     JSON_Value *root_val = NULL;
-    const JSON_Object *root_obj = NULL;
+    JSON_Object *root_obj = NULL;
     JSON_Object *schemas_obj = NULL;
     FILE *f;
     char sanitized[128];
     cdd_c_error_t rc = CDD_C_SUCCESS;
 
-    root_val = json_parse_file(schema_file);
+    cdd_json_parse_file(schema_file, &root_val);
     if (!root_val) {
       fprintf(stderr, "Failed to parse JSON schema file: %s\n", schema_file);
       return CDD_C_ERROR_UNKNOWN;
     }
 
-    root_obj = json_value_get_object(root_val);
+    cdd_json_value_get_object(root_val, &root_obj);
     if (!root_obj) {
       fprintf(stderr, "Invalid JSON schema document\n");
-      json_value_free(root_val);
+      cdd_json_value_free(root_val);
       return CDD_C_ERROR_UNKNOWN;
     }
 
     /* Look for schemas in common locations */
-    schemas_obj = json_object_get_object(root_obj, "components");
+    cdd_json_object_get_object(root_obj, "components", &schemas_obj);
     if (schemas_obj)
-      schemas_obj = json_object_get_object(schemas_obj, "schemas");
+      cdd_json_object_get_object(schemas_obj, "schemas", &schemas_obj);
     if (!schemas_obj)
-      schemas_obj = json_object_get_object(root_obj, "$defs");
+      cdd_json_object_get_object(root_obj, "$defs", &schemas_obj);
 
     if (!schemas_obj) {
       fprintf(
           stderr,
           "Schema does not contain 'components/schemas' or '$defs' object\n");
-      json_value_free(root_val);
+      cdd_json_value_free(root_val);
       return CDD_C_ERROR_UNKNOWN;
     }
 
@@ -389,7 +393,7 @@ C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
       if (rc != 0) {
         fprintf(stderr, "Failed to get dirname of output file: %s (rc %d)\n",
                 output_file, rc);
-        json_value_free(root_val);
+        cdd_json_value_free(root_val);
         return rc;
       }
       rc = MAKEDIRS(output_dir);
@@ -397,7 +401,7 @@ C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
         fprintf(stderr, "Failed to create output directory: %s (rc %d)\n",
                 output_dir, rc);
         C_CDD_FREE(output_dir);
-        json_value_free(root_val);
+        cdd_json_value_free(root_val);
         return rc;
       }
       C_CDD_FREE(output_dir);
@@ -410,18 +414,18 @@ C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
       errno_t err = FOPEN_S(&f, output_file, "w");
       if (err != 0 || f == NULL) {
         fprintf(stderr, "Failed to open output file %s\n", output_file);
-        json_value_free(root_val);
+        cdd_json_value_free(root_val);
         return CDD_C_ERROR_UNKNOWN;
       }
 #else
 #if defined(_MSC_VER)
       FOPEN_S(&f, output_file, "w");
 #else
-      f = fopen(output_file, "w");
+      f = FOPEN(output_file, "w");
 #endif
       if (!f) {
         fprintf(stderr, "Failed to open output file: %s\n", output_file);
-        json_value_free(root_val);
+        cdd_json_value_free(root_val);
         return CDD_C_ERROR_UNKNOWN;
       }
 #endif
@@ -433,7 +437,7 @@ C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
         if (rc != 0) {
           fprintf(stderr, "Failed to get basename of: %s\n", schema_file);
           fclose(f);
-          json_value_free(root_val);
+          cdd_json_value_free(root_val);
           return rc;
         }
         to_c_ident(sanitized, sizeof(sanitized), base);
@@ -456,12 +460,13 @@ C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
         char *output_dir = NULL;
         rc = GET_DIRNAME(output_file, &output_dir);
         if (rc == 0) {
-          const size_t count = json_object_get_count(schemas_obj);
+          size_t count = 0;
           size_t i;
+          cdd_json_object_get_count(schemas_obj, &count);
           for (i = 0; i < count; i++) {
-            const char *const schema_name =
-                json_object_get_name(schemas_obj, i);
+            const char *schema_name = NULL;
             char sanitized_name[128];
+            cdd_json_object_get_name(schemas_obj, i, &schema_name);
             to_c_ident(sanitized_name, sizeof(sanitized_name), schema_name);
             {
               char *path_to_check = NULL;
@@ -499,25 +504,28 @@ C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
 
       /* Generate test functions for enums and structs */
       {
-        const size_t count = json_object_get_count(schemas_obj);
+        size_t count = 0;
         size_t i;
+        cdd_json_object_get_count(schemas_obj, &count);
         for (i = 0; i < count; i++) {
-          const char *const schema_name = json_object_get_name(schemas_obj, i);
-          const JSON_Value *const val =
-              json_object_get_value_at(schemas_obj, i);
-          const JSON_Object *const schema_obj = json_value_get_object(val);
-          const char *type_str;
+          const char *schema_name = NULL;
+          JSON_Value *val = NULL;
+          JSON_Object *schema_obj = NULL;
+          const char *type_str = NULL;
+          cdd_json_object_get_name(schemas_obj, i, &schema_name);
+          cdd_json_object_get_value_at(schemas_obj, i, &val);
+          cdd_json_value_get_object(val, &schema_obj);
           if (!schema_obj)
             continue;
 
-          type_str = json_object_get_string(schema_obj, "type");
+          cdd_json_object_get_string(schema_obj, "type", &type_str);
           if (!type_str)
             continue;
 
           if (strcmp(type_str, "string") == 0) {
             /* Possibly enum */
-            const JSON_Array *const enum_arr =
-                json_object_get_array(schema_obj, "enum");
+            JSON_Array *enum_arr = NULL;
+            cdd_json_object_get_array(schema_obj, "enum", &enum_arr);
             if (enum_arr != NULL) {
               write_test_enum(f, schema_name, enum_arr);
             }
@@ -535,24 +543,27 @@ C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
 
       /* Add enum test calls */
       {
-        const size_t count = json_object_get_count(schemas_obj);
+        size_t count = 0;
         size_t i;
+        cdd_json_object_get_count(schemas_obj, &count);
         for (i = 0; i < count; i++) {
-          const char *const schema_name = json_object_get_name(schemas_obj, i);
-          const JSON_Value *const val =
-              json_object_get_value_at(schemas_obj, i);
-          const JSON_Object *const schema_obj = json_value_get_object(val);
-          const char *type_str;
+          const char *schema_name = NULL;
+          JSON_Value *val = NULL;
+          JSON_Object *schema_obj = NULL;
+          const char *type_str = NULL;
+          cdd_json_object_get_name(schemas_obj, i, &schema_name);
+          cdd_json_object_get_value_at(schemas_obj, i, &val);
+          cdd_json_value_get_object(val, &schema_obj);
           if (!schema_obj)
             continue;
 
-          type_str = json_object_get_string(schema_obj, "type");
+          cdd_json_object_get_string(schema_obj, "type", &type_str);
           if (!type_str)
             continue;
 
           if (strcmp(type_str, "string") == 0) {
-            const JSON_Array *const enum_arr =
-                json_object_get_array(schema_obj, "enum");
+            JSON_Array *enum_arr = NULL;
+            cdd_json_object_get_array(schema_obj, "enum", &enum_arr);
             if (enum_arr != NULL) {
               char sanitized0[128];
               to_c_ident(sanitized0, sizeof(sanitized0), schema_name);
@@ -568,18 +579,21 @@ C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
 
       /* Add struct test calls */
       {
-        const size_t count = json_object_get_count(schemas_obj);
+        size_t count = 0;
         size_t i;
+        cdd_json_object_get_count(schemas_obj, &count);
         for (i = 0; i < count; i++) {
-          const char *const schema_name = json_object_get_name(schemas_obj, i);
-          const JSON_Value *const val =
-              json_object_get_value_at(schemas_obj, i);
-          const JSON_Object *const schema_obj = json_value_get_object(val);
-          const char *type_str;
+          const char *schema_name = NULL;
+          JSON_Value *val = NULL;
+          JSON_Object *schema_obj = NULL;
+          const char *type_str = NULL;
+          cdd_json_object_get_name(schemas_obj, i, &schema_name);
+          cdd_json_object_get_value_at(schemas_obj, i, &val);
+          cdd_json_value_get_object(val, &schema_obj);
           if (!schema_obj)
             continue;
 
-          type_str = json_object_get_string(schema_obj, "type");
+          cdd_json_object_get_string(schema_obj, "type", &type_str);
           if (!type_str)
             continue;
 
@@ -598,7 +612,7 @@ C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
       fclose(f);
     }
 
-    json_value_free(root_val);
+    cdd_json_value_free(root_val);
 
     {
       /* Refactor test main generation */

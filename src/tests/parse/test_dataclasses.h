@@ -635,11 +635,25 @@ TEST test_to_json_with_null_fields(void) {
   rc = HazE_to_json(&haz, &json_out);
   ASSERT_EQ(0, rc);
   {
-    JSON_Value *val = json_parse_string(json_out);
-    JSON_Object *obj = json_value_get_object(val);
+    JSON_Value *val = NULL;
+    JSON_Object *obj = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(json_out, &_cdd_jv_1);
+      val = _cdd_jv_1;
+    }
+    obj = json_value_get_object(val);
     ASSERT(obj != NULL);
-    ASSERT_EQ(JSONNull, json_value_get_type(json_object_get_value(obj, "bzr")));
-    ASSERT_STR_EQ("BIG", json_object_get_string(obj, "tank"));
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_object_get_value(obj, "bzr", &_cdd_jv_1);
+      ASSERT_EQ(JSONNull, json_value_get_type(_cdd_jv_1));
+    }
+    {
+      const char *_cdd_js_1 = NULL;
+      cdd_json_object_get_string(obj, "tank", &_cdd_js_1);
+      ASSERT_STR_EQ("BIG", _cdd_js_1);
+    }
     json_value_free(val);
   }
   free(json_out);
@@ -648,17 +662,43 @@ TEST test_to_json_with_null_fields(void) {
   rc = FooE_to_json(&foo, &json_out);
   ASSERT_EQ(0, rc);
   {
-    JSON_Value *val = json_parse_string(json_out);
-    JSON_Object *obj = json_value_get_object(val);
-    ASSERT(obj != NULL);
-    ASSERT_EQ(JSONNull, json_value_get_type(json_object_get_value(obj, "bar")));
-    ASSERT_EQ(12, (int)json_object_get_number(obj, "can"));
+    JSON_Value *val = NULL;
+    JSON_Object *obj = NULL;
     {
-      JSON_Object *haz_obj = json_object_get_object(obj, "haz");
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(json_out, &_cdd_jv_1);
+      val = _cdd_jv_1;
+    }
+    obj = json_value_get_object(val);
+    ASSERT(obj != NULL);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_object_get_value(obj, "bar", &_cdd_jv_1);
+      ASSERT_EQ(JSONNull, json_value_get_type(_cdd_jv_1));
+    }
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(obj, "can", &_cdd_jn_1);
+      ASSERT_EQ(12, (int)_cdd_jn_1);
+    }
+    {
+      JSON_Object *haz_obj = NULL;
+      {
+        JSON_Object *_cdd_jo_1 = NULL;
+        cdd_json_object_get_object(obj, "haz", &_cdd_jo_1);
+        haz_obj = _cdd_jo_1;
+      }
       ASSERT(haz_obj != NULL);
-      ASSERT_EQ(JSONNull,
-                json_value_get_type(json_object_get_value(haz_obj, "bzr")));
-      ASSERT_STR_EQ("BIG", json_object_get_string(haz_obj, "tank"));
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_object_get_value(haz_obj, "bzr", &_cdd_jv_1);
+        ASSERT_EQ(JSONNull, json_value_get_type(_cdd_jv_1));
+      }
+      {
+        const char *_cdd_js_1 = NULL;
+        cdd_json_object_get_string(haz_obj, "tank", &_cdd_js_1);
+        ASSERT_STR_EQ("BIG", _cdd_js_1);
+      }
     }
     json_value_free(val);
   }

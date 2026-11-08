@@ -30,9 +30,9 @@ static cdd_c_error_t cli_emit_runtime_helpers(FILE *fp) {
   CHECK_IO(FPRINTF_HOOK(
       fp, "#ifndef CDD_CLI_RUNTIME_HELPERS_DEFINED\n"
           "#define CDD_CLI_RUNTIME_HELPERS_DEFINED\n"
-          "static int _cdd_cli_str_ieq(const char *a, const char *b) {\n"
+          "static int _cdd_cli_str_icmp(const char *a, const char *b) {\n"
           "  if (!a || !b)\n"
-          "    return 0;\n"
+          "    return 1;\n"
           "  while (*a && *b) {\n"
           "    unsigned char ca = (unsigned char)*a;\n"
           "    unsigned char cb = (unsigned char)*b;\n"));
@@ -41,96 +41,104 @@ static cdd_c_error_t cli_emit_runtime_helpers(FILE *fp) {
                             "    if (cb >= 'A' && cb <= 'Z')\n"
                             "      cb = (unsigned char)(cb + ('a' - 'A'));\n"
                             "    if (ca != cb)\n"
-                            "      return 0;\n"
+                            "      return (int)ca - (int)cb;\n"
                             "    a++;\n"
                             "    b++;\n"
                             "  }\n"
-                            "  return (*a == '\\0' && *b == '\\0') ? 1 : 0;\n"
+                            "  return (*a == '\\0' && *b == '\\0') ? 0 : 1;\n"
                             "}\n\n"));
 
   CHECK_IO(FPRINTF_HOOK(
       fp,
-      "static int _cdd_cli_parse_int(const char *raw, int *out_val) {\n"
+      "static cdd_c_error_t _cdd_cli_parse_int(const char *raw, int *out_val) "
+      "{\n"
       "  char *endptr = NULL;\n"
       "  long val;\n"
       "  if (!raw || raw[0] == '\\0' || !out_val)\n"
-      "    return 0;\n"
+      "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
       "  errno = 0;\n"
       "  val = strtol(raw, &endptr, 10);\n"
       "  if (errno == ERANGE || !endptr || *endptr != '\\0' || endptr == raw)\n"
-      "    return 0;\n"
+      "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
       "  if (val < (long)INT_MIN || val > (long)INT_MAX)\n"
-      "    return 0;\n"
+      "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
       "  *out_val = (int)val;\n"
-      "  return 1;\n"
+      "  return CDD_C_SUCCESS;\n"
       "}\n\n"));
 
   CHECK_IO(FPRINTF_HOOK(
       fp,
-      "static int _cdd_cli_parse_double(const char *raw, double *out_val) {\n"
+      "static cdd_c_error_t _cdd_cli_parse_double(const char *raw, double "
+      "*out_val) {\n"
       "  char *endptr = NULL;\n"
       "  double val;\n"
       "  if (!raw || raw[0] == '\\0' || !out_val)\n"
-      "    return 0;\n"
+      "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
       "  errno = 0;\n"
       "  val = strtod(raw, &endptr);\n"
       "  if (errno == ERANGE || !endptr || *endptr != '\\0' || endptr == raw)\n"
-      "    return 0;\n"
+      "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
       "  *out_val = val;\n"
-      "  return 1;\n"
+      "  return CDD_C_SUCCESS;\n"
       "}\n\n"));
 
   CHECK_IO(FPRINTF_HOOK(
-      fp, "static int _cdd_cli_parse_bool(const char *raw, int *out_val) {\n"
-          "  if (!raw || !out_val)\n"
-          "    return 0;\n"
-          "  if (_cdd_cli_str_ieq(raw, \"1\") || _cdd_cli_str_ieq(raw, "
-          "\"true\") ||\n"
-          "      _cdd_cli_str_ieq(raw, \"yes\") || _cdd_cli_str_ieq(raw, "
-          "\"on\")) {\n"
-          "    *out_val = 1;\n"
-          "    return 1;\n"
-          "  }\n"
-          "  if (_cdd_cli_str_ieq(raw, \"0\") || _cdd_cli_str_ieq(raw, "
-          "\"false\") ||\n"
-          "      _cdd_cli_str_ieq(raw, \"no\") || _cdd_cli_str_ieq(raw, "
-          "\"off\")) {\n"
-          "    *out_val = 0;\n"
-          "    return 1;\n"
-          "  }\n"
-          "  return 0;\n"
-          "}\n\n"));
+      fp, "%s%s",
+      "static cdd_c_error_t _cdd_cli_parse_bool(const char *raw, int *out_val) "
+      "{\n"
+      "  if (!raw || !out_val)\n"
+      "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+      "  if (0 == _cdd_cli_str_icmp(raw, \"1\") || 0 == _cdd_cli_str_icmp(raw, "
+      "\"true\") ||\n"
+      "      0 == _cdd_cli_str_icmp(raw, \"yes\") || 0 == "
+      "_cdd_cli_str_icmp(raw, \"on\")) {\n"
+      "    *out_val = 1;\n"
+      "    return CDD_C_SUCCESS;\n"
+      "  }\n",
+      "  if (0 == _cdd_cli_str_icmp(raw, \"0\") || 0 == _cdd_cli_str_icmp(raw, "
+      "\"false\") ||\n"
+      "      0 == _cdd_cli_str_icmp(raw, \"no\") || 0 == "
+      "_cdd_cli_str_icmp(raw, \"off\")) {\n"
+      "    *out_val = 0;\n"
+      "    return CDD_C_SUCCESS;\n"
+      "  }\n"
+      "  return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+      "}\n\n"));
 
   CHECK_IO(FPRINTF_HOOK(
-      fp, "static int _cdd_cli_env_get(const char *name, char **out_dup) {\n"
+      fp, "static cdd_c_error_t _cdd_cli_env_get(const char *name, char "
+          "**out_dup) {\n"
           "#if defined(_MSC_VER)\n"
           "  char *buf = NULL;\n"
           "  size_t sz = 0;\n"
           "  *out_dup = NULL;\n"
           "  if (_dupenv_s(&buf, &sz, name) != 0)\n"
-          "    return -1;\n"
+          "    return CDD_C_ERROR_MEMORY;\n"
           "  *out_dup = buf;\n"
-          "  return 0;\n"
+          "  return CDD_C_SUCCESS;\n"
           "#else\n"
           "  const char *v = getenv(name);\n"
           "  *out_dup = NULL;\n"
           "  if (!v)\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  *out_dup = strdup(v);\n"
-          "  return (*out_dup) ? 0 : -1;\n"
+          "  return (*out_dup) ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;\n"
           "#endif\n"
           "}\n\n"));
 
   CHECK_IO(FPRINTF_HOOK(
-      fp, "static const char *_cdd_cli_suggest(const char *unknown, const char "
-          "*const *cands, size_t n_cands) {\n"
+      fp, "static cdd_c_error_t _cdd_cli_suggest(const char *unknown, const "
+          "char *const *cands, size_t n_cands, const char **out_best) {\n"
           "  size_t k, i, j;\n"
           "  size_t best_dist = 999;\n"
           "  const char *best = NULL;\n"
           "  char qbuf[64];\n"
           "  const char *q = unknown;\n"
+          "  if (!out_best)\n"
+          "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+          "  *out_best = NULL;\n"
           "  if (!unknown || n_cands == 0)\n"
-          "    return NULL;\n"));
+          "    return CDD_C_SUCCESS;\n"));
   CHECK_IO(FPRINTF_HOOK(fp, "  {\n"
                             "    const char *eq = strchr(unknown, '=');\n"
                             "    if (eq) {\n"
@@ -173,7 +181,8 @@ static cdd_c_error_t cli_emit_runtime_helpers(FILE *fp) {
                         "      best = cands[k];\n"
                         "    }\n"
                         "  }\n"
-                        "  return best;\n"
+                        "  *out_best = best;\n"
+                        "  return CDD_C_SUCCESS;\n"
                         "}\n"
                         "#endif /* CDD_CLI_RUNTIME_HELPERS_DEFINED */\n\n"));
   return CDD_C_SUCCESS;
@@ -246,49 +255,52 @@ static cdd_c_error_t cli_emit_field_value_assign(FILE *fp,
     }
   } else if (strcmp(t, "integer") == 0) {
     if (f->bit_width[0] != '\0') {
-      CHECK_IO(
-          FPRINTF_HOOK(fp,
-                       "        {\n"
-                       "          int _bf_tmp = 0;\n"
-                       "          if (!_cdd_cli_parse_int(%s, &_bf_tmp)) {\n"
-                       "            %s\n"
-                       "          }\n"
-                       "          ret->%s = _bf_tmp;\n"
-                       "        }\n",
-                       raw_expr, err_stmt, n));
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "        {\n"
+          "          int _bf_tmp = 0;\n"
+          "          if (_cdd_cli_parse_int(%s, &_bf_tmp) != CDD_C_SUCCESS) "
+          "{\n"
+          "            %s\n"
+          "          }\n"
+          "          ret->%s = _bf_tmp;\n"
+          "        }\n",
+          raw_expr, err_stmt, n));
     } else {
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "        if (!_cdd_cli_parse_int(%s, &ret->%s)) {\n"
-                            "          %s\n"
-                            "        }\n",
-                            raw_expr, n, err_stmt));
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "        if (_cdd_cli_parse_int(%s, &ret->%s) != CDD_C_SUCCESS) {\n"
+          "          %s\n"
+          "        }\n",
+          raw_expr, n, err_stmt));
     }
   } else if (strcmp(t, "number") == 0) {
-    CHECK_IO(
-        FPRINTF_HOOK(fp,
-                     "        if (!_cdd_cli_parse_double(%s, &ret->%s)) {\n"
-                     "          %s\n"
-                     "        }\n",
-                     raw_expr, n, err_stmt));
+    CHECK_IO(FPRINTF_HOOK(
+        fp,
+        "        if (_cdd_cli_parse_double(%s, &ret->%s) != CDD_C_SUCCESS) {\n"
+        "          %s\n"
+        "        }\n",
+        raw_expr, n, err_stmt));
   } else if (strcmp(t, "boolean") == 0) {
     if (f->bit_width[0] != '\0') {
-      CHECK_IO(
-          FPRINTF_HOOK(fp,
-                       "        {\n"
-                       "          int _bf_tmp = 0;\n"
-                       "          if (!_cdd_cli_parse_bool(%s, &_bf_tmp)) {\n"
-                       "            %s\n"
-                       "          }\n"
-                       "          ret->%s = _bf_tmp;\n"
-                       "        }\n",
-                       raw_expr, err_stmt, n));
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "        {\n"
+          "          int _bf_tmp = 0;\n"
+          "          if (_cdd_cli_parse_bool(%s, &_bf_tmp) != CDD_C_SUCCESS) "
+          "{\n"
+          "            %s\n"
+          "          }\n"
+          "          ret->%s = _bf_tmp;\n"
+          "        }\n",
+          raw_expr, err_stmt, n));
     } else {
-      CHECK_IO(
-          FPRINTF_HOOK(fp,
-                       "        if (!_cdd_cli_parse_bool(%s, &ret->%s)) {\n"
-                       "          %s\n"
-                       "        }\n",
-                       raw_expr, n, err_stmt));
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "        if (_cdd_cli_parse_bool(%s, &ret->%s) != CDD_C_SUCCESS) {\n"
+          "          %s\n"
+          "        }\n",
+          raw_expr, n, err_stmt));
     }
   } else if (strcmp(t, "enum") == 0) {
     cdd_c_error_t rc_ref = get_type_from_ref(r, &ref_t);
@@ -355,24 +367,26 @@ static cdd_c_error_t cli_emit_field_value_assign(FILE *fp,
                               "            }\n",
                               flen, oom_stmt, n, n, n));
       } else if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0) {
-        CHECK_IO(FPRINTF_HOOK(fp,
-                              "            if (_fix_idx < %lu) {\n"
-                              "              int _iv = 0;\n"
-                              "              if (!%s(_tok, &_iv)) {\n"
-                              "                %s\n"
-                              "              }\n"
-                              "              ret->%s[_fix_idx++] = _iv;\n"
-                              "            }\n",
-                              flen,
-                              strcmp(r, "boolean") == 0 ? "_cdd_cli_parse_bool"
-                                                        : "_cdd_cli_parse_int",
-                              err_stmt, n));
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "            if (_fix_idx < %lu) {\n"
+            "              int _iv = 0;\n"
+            "              if (%s(_tok, &_iv) != CDD_C_SUCCESS) {\n"
+            "                %s\n"
+            "              }\n"
+            "              ret->%s[_fix_idx++] = _iv;\n"
+            "            }\n",
+            flen,
+            strcmp(r, "boolean") == 0 ? "_cdd_cli_parse_bool"
+                                      : "_cdd_cli_parse_int",
+            err_stmt, n));
       } else if (strcmp(r, "number") == 0) {
         CHECK_IO(FPRINTF_HOOK(
             fp,
             "            if (_fix_idx < %lu) {\n"
             "              double _dv = 0.0;\n"
-            "              if (!_cdd_cli_parse_double(_tok, &_dv)) {\n"
+            "              if (_cdd_cli_parse_double(_tok, &_dv) != "
+            "CDD_C_SUCCESS) {\n"
             "                %s\n"
             "              }\n"
             "              ret->%s[_fix_idx++] = _dv;\n"
@@ -403,7 +417,7 @@ static cdd_c_error_t cli_emit_field_value_assign(FILE *fp,
           "            {\n"
           "              int _iv = 0;\n"
           "              int *_narr;\n"
-          "              if (!%s(_tok, &_iv)) {\n"
+          "              if (%s(_tok, &_iv) != CDD_C_SUCCESS) {\n"
           "                %s\n"
           "              }\n"
           "              _narr = (int *)realloc(ret->%s, (ret->n_%s + 1) * "
@@ -423,7 +437,8 @@ static cdd_c_error_t cli_emit_field_value_assign(FILE *fp,
           "            {\n"
           "              double _dv = 0.0;\n"
           "              double *_narr;\n"
-          "              if (!_cdd_cli_parse_double(_tok, &_dv)) {\n"
+          "              if (_cdd_cli_parse_double(_tok, &_dv) != "
+          "CDD_C_SUCCESS) {\n"
           "                %s\n"
           "              }\n"
           "              _narr = (double *)realloc(ret->%s, (ret->n_%s + 1) * "
@@ -568,11 +583,12 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
     if (env_name[0] == '\0')
       continue;
     rc = cdd_escape_json_c_str(env_name, esc_env, sizeof(esc_env));
-    CHECK_IO(FPRINTF_HOOK(fp,
-                          "  if (_cdd_cli_env_get(\"%s\", &_env_val) != 0)\n"
-                          "    return CDD_C_ERROR_MEMORY;\n"
-                          "  if (_env_val && _env_val[0] != '\\0') {\n",
-                          esc_env));
+    CHECK_IO(FPRINTF_HOOK(
+        fp,
+        "  if (_cdd_cli_env_get(\"%s\", &_env_val) != CDD_C_SUCCESS)\n"
+        "    return CDD_C_ERROR_MEMORY;\n"
+        "  if (_env_val && _env_val[0] != '\\0') {\n",
+        esc_env));
     rc = cli_emit_field_value_assign(
         fp, f, "_env_val",
         "free(_env_val); return CDD_C_ERROR_INVALID_ARGUMENT;",
@@ -609,7 +625,7 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
         "    if (!_end_of_opts && _arg[0] == '/' && _arg[1] != '\\0' &&\n"
         "        strchr(_arg + 1, '/') == NULL && strchr(_arg + 1, '\\\\') == "
         "NULL) {\n"
-        "      if (strcmp(_arg, \"/?\") == 0 || _cdd_cli_str_ieq(_arg, "
+        "      if (strcmp(_arg, \"/?\") == 0 || 0 == _cdd_cli_str_icmp(_arg, "
         "\"/help\")) {\n"
         "        return %s_print_help(argv[0], stdout);\n"
         "      }\n",
@@ -717,8 +733,9 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
     char lname[64];
     char esc_l[128];
     enum CddCliAction act = CDD_CLI_ACTION_SET;
-    const char *cmp_fn =
-        sf->cli_case_insensitive_flags ? "_cdd_cli_str_ieq" : "0 == strcmp";
+    const char *cmp_fn = sf->cli_case_insensitive_flags
+                             ? "0 == _cdd_cli_str_icmp"
+                             : "0 == strcmp";
 
     rc = cdd_cli_effective_action(f, &act);
     if (f->serde_skip || f->cli_skip || f->cli_skip_from_cli ||
@@ -784,7 +801,8 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
       CHECK_IO(FPRINTF_HOOK(
           fp,
           "        if (_inline_val) {\n"
-          "          if (!_cdd_cli_parse_bool(_inline_val, &ret->%s))\n"
+          "          if (_cdd_cli_parse_bool(_inline_val, &ret->%s) != "
+          "CDD_C_SUCCESS)\n"
           "            return CDD_C_ERROR_INVALID_ARGUMENT;\n"
           "        } else {\n"
           "          ret->%s = 1;\n"
@@ -798,7 +816,8 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
       CHECK_IO(FPRINTF_HOOK(
           fp,
           "        if (_inline_val) {\n"
-          "          if (!_cdd_cli_parse_bool(_inline_val, &ret->%s))\n"
+          "          if (_cdd_cli_parse_bool(_inline_val, &ret->%s) != "
+          "CDD_C_SUCCESS)\n"
           "            return CDD_C_ERROR_INVALID_ARGUMENT;\n"
           "        } else {\n"
           "          ret->%s = 0;\n"
@@ -881,8 +900,9 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
   CHECK_IO(FPRINTF_HOOK(
       fp,
       "      {\n"
-      "        const char *_best = _cdd_cli_suggest(_arg, _cdd_cands, "
-      "_n_cdd_cands);\n"
+      "        const char *_best = NULL;\n"
+      "        _rc = _cdd_cli_suggest(_arg, _cdd_cands, _n_cdd_cands, "
+      "&_best);\n"
       "        fprintf(stderr, \"error: unexpected argument '%%s' found\\n\", "
       "_arg);\n"
       "        if (_best)\n"

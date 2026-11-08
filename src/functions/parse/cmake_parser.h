@@ -69,8 +69,10 @@ cmake_modifier_add_link_lib(struct CMakeModifier *mod, const char *lib);
  * @brief Free resources associated with a CMake modifier.
  *
  * @param[in,out] mod The CMake modifier context to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void cmake_modifier_free(struct CMakeModifier *mod);
+extern C_CDD_EXPORT cdd_c_error_t
+cmake_modifier_free(struct CMakeModifier *mod);
 
 /**
  * @brief Apply the modifications to the target CMakeLists.txt file.

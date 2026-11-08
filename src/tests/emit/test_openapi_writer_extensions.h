@@ -50,20 +50,54 @@ TEST test_writer_paths_webhooks_components_extensions(void) {
     JSON_Object *hooks_obj;
     JSON_Object *comps_obj;
     JSON_Object *path_item;
-    root = json_parse_string(json);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(json, &_cdd_jv_1);
+      root = _cdd_jv_1;
+    }
     root_obj = json_value_get_object(root);
-    paths_obj = json_object_get_object(root_obj, "paths");
-    hooks_obj = json_object_get_object(root_obj, "webhooks");
-    comps_obj = json_object_get_object(root_obj, "components");
-    path_item = json_object_get_object(paths_obj, "/test/route");
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(root_obj, "paths", &_cdd_jo_1);
+      paths_obj = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(root_obj, "webhooks", &_cdd_jo_1);
+      hooks_obj = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(root_obj, "components", &_cdd_jo_1);
+      comps_obj = _cdd_jo_1;
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      cdd_json_object_get_object(paths_obj, "/test/route", &_cdd_jo_1);
+      path_item = _cdd_jo_1;
+    }
 
-    ASSERT_EQ(1, json_object_get_boolean(paths_obj, "x-paths"));
+    {
+      int _cdd_jb_1 = -1;
+      if (cdd_json_object_get_boolean(paths_obj, "x-paths", &_cdd_jb_1) !=
+          CDD_C_SUCCESS)
+        _cdd_jb_1 = -1;
+      ASSERT_EQ(1, _cdd_jb_1);
+    }
     ASSERT(path_item != NULL);
 
-    ASSERT_EQ(1, (int)json_object_get_number(hooks_obj, "x-hooks"));
-    ASSERT_STR_EQ("yes",
-                  json_object_get_string(
-                      json_object_get_object(comps_obj, "x-comps"), "meta"));
+    {
+      double _cdd_jn_1 = 0.0;
+      cdd_json_object_get_number(hooks_obj, "x-hooks", &_cdd_jn_1);
+      ASSERT_EQ(1, (int)_cdd_jn_1);
+    }
+    {
+      JSON_Object *_cdd_jo_1 = NULL;
+      const char *_cdd_js_2 = NULL;
+      cdd_json_object_get_object(comps_obj, "x-comps", &_cdd_jo_1);
+      cdd_json_object_get_string(_cdd_jo_1, "meta", &_cdd_js_2);
+      ASSERT_STR_EQ("yes", _cdd_js_2);
+    }
 
     json_value_free(root);
   }

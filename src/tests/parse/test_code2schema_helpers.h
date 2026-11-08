@@ -169,10 +169,14 @@ TEST test_code2schema_discriminator_value(void) {
   ASSERT_EQ(0, discriminator_value_for_variant(NULL, NULL, NULL, &val));
   ASSERT(val == NULL);
 
-  jv = json_parse_string(
-
-      "{\"mapping\": {\"test\": \"#/components/schemas/MyRef\", \"test2\": "
-      "\"MyRef2\"}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"mapping\": {\"test\": \"#/components/schemas/MyRef\", \"test2\": "
+        "\"MyRef2\"}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
 
   jo = json_value_get_object(jv);
 
@@ -196,7 +200,11 @@ TEST test_code2schema_discriminator_value(void) {
 
   /* What about when mapping doesn't exist but disc_obj does */
 
-  jv2 = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv2 = _cdd_jv_1;
+  }
   jo2 = json_value_get_object(jv2);
   ASSERT_EQ(0, discriminator_value_for_variant(jo2, "MyRef2", NULL, &val));
   ASSERT_STR_EQ("MyRef2", val);
@@ -329,10 +337,21 @@ TEST test_code2schema_register_inline_schema_c2s(void) {
 
   /* NULLs */
 
-  JSON_Value *jv = json_parse_string("{}");
-  JSON_Object *jo = json_value_get_object(jv);
-  JSON_Value *schema_val = json_parse_string("{\"type\": \"string\"}");
+  JSON_Value *jv = NULL;
+  JSON_Object *jo = NULL;
+  JSON_Value *schema_val = NULL;
   char *val2 = NULL;
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
+  jo = json_value_get_object(jv);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"type\": \"string\"}", &_cdd_jv_1);
+    schema_val = _cdd_jv_1;
+  }
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
 
@@ -402,7 +421,11 @@ TEST test_code2schema_utils(void) {
 
   free_string_array_code2schema(s_src, 2);
 
-  val = json_value_init_array();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_array(&_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   arr = json_value_get_array(val);
   ASSERT_EQ(0, parse_type_union_array_code2schema(arr, &union_types, &count,
                                                   &primary, &nullable));

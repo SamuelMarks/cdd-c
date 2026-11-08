@@ -48,8 +48,14 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
 
     /* c2s_collect_property_names on object without properties */
     {
-      JSON_Value *v = json_parse_string("{\"type\":\"string\"}");
-      JSON_Object *o = json_value_get_object(v);
+      JSON_Value *v = NULL;
+      JSON_Object *o = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("{\"type\":\"string\"}", &_cdd_jv_1);
+        v = _cdd_jv_1;
+      }
+      o = json_value_get_object(v);
       rc = c2s_collect_property_names(o, &out_arr, &out_cnt);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
       ASSERT_EQ(NULL, out_arr);
@@ -65,11 +71,24 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
      * boolean */
     {
       struct StructFields dest;
-      JSON_Value *val = json_parse_string(
-          "[{\"type\":\"string\"}, 42, {}, {\"type\":\"boolean\"}]");
-      JSON_Array *arr = json_value_get_array(val);
-      JSON_Value *root_val = json_value_init_object();
-      JSON_Object *root = json_value_get_object(root_val);
+      JSON_Value *val = NULL;
+      JSON_Array *arr = NULL;
+      JSON_Value *root_val = NULL;
+      JSON_Object *root = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string(
+            "[{\"type\":\"string\"}, 42, {}, {\"type\":\"boolean\"}]",
+            &_cdd_jv_1);
+        val = _cdd_jv_1;
+      }
+      arr = json_value_get_array(val);
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_value_init_object(&_cdd_jv_1);
+        root_val = _cdd_jv_1;
+      }
+      root = json_value_get_object(root_val);
 
       rc = struct_fields_init(&dest);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -87,11 +106,24 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
      */
     {
       struct StructFields dest;
-      JSON_Value *val = json_parse_string(
-          "[{\"type\":\"array\",\"items\":{\"type\":\"string\"}}]");
-      JSON_Array *arr = json_value_get_array(val);
-      JSON_Value *root_val = json_value_init_object();
-      JSON_Object *root = json_value_get_object(root_val);
+      JSON_Value *val = NULL;
+      JSON_Array *arr = NULL;
+      JSON_Value *root_val = NULL;
+      JSON_Object *root = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string(
+            "[{\"type\":\"array\",\"items\":{\"type\":\"string\"}}]",
+            &_cdd_jv_1);
+        val = _cdd_jv_1;
+      }
+      arr = json_value_get_array(val);
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_value_init_object(&_cdd_jv_1);
+        root_val = _cdd_jv_1;
+      }
+      root = json_value_get_object(root_val);
 
       rc = struct_fields_init(&dest);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -109,20 +141,34 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
   /* 14. c2s_json_object_to_struct_fields_internal property error paths */
   {
     struct StructFields sf;
-    JSON_Value *val_root =
-        json_parse_string("{\"components\":{\"schemas\":{\"MyEnum\":{\"type\":"
-                          "\"string\",\"enum\":[\"A\"]}}}}");
-    JSON_Object *root = json_value_get_object(val_root);
-    JSON_Value *val_schema = json_parse_string(
-        "{\"type\":\"object\",\"properties\":{"
-        "  "
-        "\"arr_ref\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/components/"
-        "schemas/MyEnum\"}},"
-        "  \"direct_ref\":{\"$ref\":\"#/components/schemas/MyEnum\"},"
-        "  \"plain_str\":{\"type\":\"string\",\"x-extra\":1}"
-        "}}");
-    JSON_Object *schema = json_value_get_object(val_schema);
+    JSON_Value *val_root = NULL;
+    JSON_Object *root = NULL;
+    JSON_Value *val_schema = NULL;
+    JSON_Object *schema = NULL;
     cdd_c_error_t rc = 0;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\"components\":{\"schemas\":{\"MyEnum\":{\"type\":"
+          "\"string\",\"enum\":[\"A\"]}}}}",
+          &_cdd_jv_1);
+      val_root = _cdd_jv_1;
+    }
+    root = json_value_get_object(val_root);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\"type\":\"object\",\"properties\":{"
+          "  "
+          "\"arr_ref\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/components/"
+          "schemas/MyEnum\"}},"
+          "  \"direct_ref\":{\"$ref\":\"#/components/schemas/MyEnum\"},"
+          "  \"plain_str\":{\"type\":\"string\",\"x-extra\":1}"
+          "}}",
+          &_cdd_jv_1);
+      val_schema = _cdd_jv_1;
+    }
+    schema = json_value_get_object(val_schema);
 
     /* ref_points_to_string_enum on array items failure */
     struct_fields_init(&sf);
@@ -206,7 +252,11 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
     struct_fields_free(&sf);
 
     enum_members_init(&em);
-    arr_val = json_parse_string("[\"A\", \"B\"]");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("[\"A\", \"B\"]", &_cdd_jv_1);
+      arr_val = _cdd_jv_1;
+    }
     arr = json_value_get_array(arr_val);
     g_cdd_strdup_fail = 1;
     rc = json_array_to_enum_members(arr, &em);
@@ -220,22 +270,46 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
    * percolation */
   {
     struct StructFields sf;
-    JSON_Value *val_enum =
-        json_parse_string("{\"type\":\"string\",\"enum\":[\"A\",\"B\"]}");
-    JSON_Object *obj_enum = json_value_get_object(val_enum);
-    JSON_Value *val_allof =
-        json_parse_string("{\"allOf\":[{\"type\":\"object\",\"properties\":{"
-                          "\"x\":{\"type\":\"int\"}}}]}");
-    JSON_Object *obj_allof = json_value_get_object(val_allof);
-    JSON_Value *val_anyof =
-        json_parse_string("{\"anyOf\":[{\"type\":\"object\",\"properties\":{"
-                          "\"y\":{\"type\":\"string\"}}}]}");
-    JSON_Object *obj_anyof = json_value_get_object(val_anyof);
-    JSON_Value *val_oneof =
-        json_parse_string("{\"oneOf\":[{\"type\":\"object\",\"properties\":{"
-                          "\"z\":{\"type\":\"boolean\"}}}]}");
-    JSON_Object *obj_oneof = json_value_get_object(val_oneof);
+    JSON_Value *val_enum = NULL;
+    JSON_Object *obj_enum = NULL;
+    JSON_Value *val_allof = NULL;
+    JSON_Object *obj_allof = NULL;
+    JSON_Value *val_anyof = NULL;
+    JSON_Object *obj_anyof = NULL;
+    JSON_Value *val_oneof = NULL;
+    JSON_Object *obj_oneof = NULL;
     cdd_c_error_t rc = 0;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{\"type\":\"string\",\"enum\":[\"A\",\"B\"]}",
+                            &_cdd_jv_1);
+      val_enum = _cdd_jv_1;
+    }
+    obj_enum = json_value_get_object(val_enum);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{\"allOf\":[{\"type\":\"object\",\"properties\":{"
+                            "\"x\":{\"type\":\"int\"}}}]}",
+                            &_cdd_jv_1);
+      val_allof = _cdd_jv_1;
+    }
+    obj_allof = json_value_get_object(val_allof);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{\"anyOf\":[{\"type\":\"object\",\"properties\":{"
+                            "\"y\":{\"type\":\"string\"}}}]}",
+                            &_cdd_jv_1);
+      val_anyof = _cdd_jv_1;
+    }
+    obj_anyof = json_value_get_object(val_anyof);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{\"oneOf\":[{\"type\":\"object\",\"properties\":{"
+                            "\"z\":{\"type\":\"boolean\"}}}]}",
+                            &_cdd_jv_1);
+      val_oneof = _cdd_jv_1;
+    }
+    obj_oneof = json_value_get_object(val_oneof);
 
     /* enum_members_init fail */
     struct_fields_init(&sf);
@@ -306,9 +380,20 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
 
     /* register_inline_schema_c2s clone error */
     {
-      JSON_Value *root_val = json_value_init_object();
-      JSON_Object *root = json_value_get_object(root_val);
-      JSON_Value *sch_val = json_parse_string("{\"type\":\"string\"}");
+      JSON_Value *root_val = NULL;
+      JSON_Object *root = NULL;
+      JSON_Value *sch_val = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_value_init_object(&_cdd_jv_1);
+        root_val = _cdd_jv_1;
+      }
+      root = json_value_get_object(root_val);
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("{\"type\":\"string\"}", &_cdd_jv_1);
+        sch_val = _cdd_jv_1;
+      }
       g_cdd_fail_json_serialize = 1;
       rc = register_inline_schema_c2s(root, "Schema", "Variant", "Suffix",
                                       sch_val, &out_name);
@@ -320,8 +405,14 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
 
     /* discriminator_value_for_variant strdup error on ref_name */
     {
-      JSON_Value *d_val = json_parse_string("{\"mapping\":{}}");
-      JSON_Object *d_obj = json_value_get_object(d_val);
+      JSON_Value *d_val = NULL;
+      JSON_Object *d_obj = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("{\"mapping\":{}}", &_cdd_jv_1);
+        d_val = _cdd_jv_1;
+      }
+      d_obj = json_value_get_object(d_val);
       g_cdd_strdup_fail = 1;
       rc = discriminator_value_for_variant(
           d_obj, NULL, "#/components/schemas/MyRef", &out_val);
@@ -337,9 +428,15 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
     {
       char **out_arr = NULL;
       size_t out_cnt = 0;
-      JSON_Value *v = json_parse_string("[\"item1\"]");
-      JSON_Array *a = json_value_get_array(v);
+      JSON_Value *v = NULL;
+      JSON_Array *a = NULL;
       cdd_c_error_t rc = 0;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("[\"item1\"]", &_cdd_jv_1);
+        v = _cdd_jv_1;
+      }
+      a = json_value_get_array(v);
       g_cdd_strdup_fail = 1;
       rc = c2s_collect_string_array(a, &out_arr, &out_cnt);
       g_cdd_strdup_fail = 0;
@@ -351,10 +448,16 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
     {
       char **out_arr = NULL;
       size_t out_cnt = 0;
-      JSON_Value *v = json_parse_string(
-          "{\"properties\":{\"prop1\":{\"type\":\"string\"} } }");
-      JSON_Object *o = json_value_get_object(v);
+      JSON_Value *v = NULL;
+      JSON_Object *o = NULL;
       cdd_c_error_t rc = 0;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string(
+            "{\"properties\":{\"prop1\":{\"type\":\"string\"} } }", &_cdd_jv_1);
+        v = _cdd_jv_1;
+      }
+      o = json_value_get_object(v);
       g_cdd_strdup_fail = 1;
       rc = c2s_collect_property_names(o, &out_arr, &out_cnt);
       g_cdd_strdup_fail = 0;
@@ -393,11 +496,23 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
     /* apply_union_to_struct_fields_ex variant struct_fields_add error */
     {
       struct StructFields dest;
-      JSON_Value *val = json_parse_string("[{\"type\":\"string\"}]");
-      JSON_Array *arr = json_value_get_array(val);
-      JSON_Value *root_val = json_value_init_object();
-      JSON_Object *root = json_value_get_object(root_val);
+      JSON_Value *val = NULL;
+      JSON_Array *arr = NULL;
+      JSON_Value *root_val = NULL;
+      JSON_Object *root = NULL;
       cdd_c_error_t rc = 0;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("[{\"type\":\"string\"}]", &_cdd_jv_1);
+        val = _cdd_jv_1;
+      }
+      arr = json_value_get_array(val);
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_value_init_object(&_cdd_jv_1);
+        root_val = _cdd_jv_1;
+      }
+      root = json_value_get_object(root_val);
 
       struct_fields_init(&dest);
       dest.capacity = 0;
@@ -439,9 +554,15 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part2(void) {
      * json_array_to_enum_members OOM/NULL member branches */
     {
       int needs_san = 0;
-      JSON_Value *ev = json_parse_string("[\"foo-bar\", \"DUP\", \"DUP\"]");
-      JSON_Array *ea = json_value_get_array(ev);
+      JSON_Value *ev = NULL;
+      JSON_Array *ea = NULL;
       struct EnumMembers em;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("[\"foo-bar\", \"DUP\", \"DUP\"]", &_cdd_jv_1);
+        ev = _cdd_jv_1;
+      }
+      ea = json_value_get_array(ev);
 
       ASSERT_EQ(CDD_C_SUCCESS,
                 c2s_needs_identifier_sanitization("__dunder", &needs_san));

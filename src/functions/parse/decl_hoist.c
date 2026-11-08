@@ -41,14 +41,15 @@ cdd_c_error_t hoist_site_list_init(struct HoistSiteList *list) {
  * @brief Frees a hoist site list.
  *
  * @param[in,out] list Pointer to the HoistSiteList structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void hoist_site_list_free(struct HoistSiteList *list) {
+cdd_c_error_t hoist_site_list_free(struct HoistSiteList *list) {
   if (!list)
-    return;
+    return CDD_C_SUCCESS;
   if (list->sites) {
     C_CDD_FREE(list->sites);
   }
-  hoist_site_list_init(list);
+  return hoist_site_list_init(list);
 }
 
 /**

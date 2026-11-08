@@ -11,6 +11,7 @@ extern "C" {
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
+#include "c_cdd/reflect.h"
 #include <stddef.h>
 /* clang-format on */
 
@@ -247,6 +248,25 @@ cdd_generate_from_arazzo(const cdd_from_arazzo_config_t *config);
  */
 C_CDD_EXPORT cdd_c_error_t
 cdd_generate_to_arazzo(const cdd_to_arazzo_config_t *config);
+
+/** @brief Runtime reflection descriptor for `cdd_from_openapi_config_t`. */
+extern C_CDD_EXPORT const struct cdd_type_info
+    cdd_from_openapi_config_type_info;
+/** @brief Runtime reflection descriptor for `cdd_to_openapi_config_t`. */
+extern C_CDD_EXPORT const struct cdd_type_info cdd_to_openapi_config_type_info;
+/** @brief Runtime reflection descriptor for `cdd_docs_json_config_t`. */
+extern C_CDD_EXPORT const struct cdd_type_info cdd_docs_json_config_type_info;
+/** @brief Runtime reflection descriptor for `cdd_serve_json_rpc_config_t`. */
+extern C_CDD_EXPORT const struct cdd_type_info
+    cdd_serve_json_rpc_config_type_info;
+/** @brief Runtime reflection descriptor for `cdd_generate_bindings_config_t`.
+ */
+extern C_CDD_EXPORT const struct cdd_type_info
+    cdd_generate_bindings_config_type_info;
+/** @brief Runtime reflection descriptor for `cdd_from_arazzo_config_t`. */
+extern C_CDD_EXPORT const struct cdd_type_info cdd_from_arazzo_config_type_info;
+/** @brief Runtime reflection descriptor for `cdd_to_arazzo_config_t`. */
+extern C_CDD_EXPORT const struct cdd_type_info cdd_to_arazzo_config_type_info;
 
 #ifdef __cplusplus
 }

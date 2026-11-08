@@ -155,13 +155,21 @@ TEST test_openapi_loader_100_percent_final(void) {
   ASSERT(example_fields_valid(&ex_tmp) != CDD_C_SUCCESS);
 
   ASSERT_EQ(CDD_C_SUCCESS, object_has_example_and_examples(NULL));
-  val_tmp = json_parse_string("{\"example\":\"a\",\"examples\":{}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"example\":\"a\",\"examples\":{}}", &_cdd_jv_1);
+    val_tmp = _cdd_jv_1;
+  }
   if (val_tmp) {
     obj_tmp = json_value_get_object(val_tmp);
     ASSERT(object_has_example_and_examples(obj_tmp) != CDD_C_SUCCESS);
     json_value_free(val_tmp);
   }
-  val_tmp = json_parse_string("{\"example\":\"a\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"example\":\"a\"}", &_cdd_jv_1);
+    val_tmp = _cdd_jv_1;
+  }
   if (val_tmp) {
     obj_tmp = json_value_get_object(val_tmp);
     ASSERT_EQ(CDD_C_SUCCESS, object_has_example_and_examples(obj_tmp));
@@ -177,29 +185,49 @@ TEST test_openapi_loader_100_percent_final(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, root_is_schema_document(NULL, NULL));
   ASSERT_EQ(CDD_C_SUCCESS, root_has_openapi_fields(NULL));
-  val_tmp = json_value_init_boolean(1);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_boolean(1, &_cdd_jv_1);
+    val_tmp = _cdd_jv_1;
+  }
   ASSERT(root_is_schema_document(val_tmp, NULL) != CDD_C_SUCCESS);
   json_value_free(val_tmp);
 
-  val_tmp = json_parse_string("{\"type\":\"string\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"type\":\"string\"}", &_cdd_jv_1);
+    val_tmp = _cdd_jv_1;
+  }
   if (val_tmp) {
     obj_tmp = json_value_get_object(val_tmp);
     ASSERT(root_is_schema_document(val_tmp, obj_tmp) != CDD_C_SUCCESS);
     json_value_free(val_tmp);
   }
-  val_tmp = json_parse_string("{\"openapi\":\"3.0.0\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"openapi\":\"3.0.0\"}", &_cdd_jv_1);
+    val_tmp = _cdd_jv_1;
+  }
   if (val_tmp) {
     obj_tmp = json_value_get_object(val_tmp);
     ASSERT_EQ(CDD_C_SUCCESS, root_is_schema_document(val_tmp, obj_tmp));
     json_value_free(val_tmp);
   }
-  val_tmp = json_parse_string("{\"swagger\":\"2.0\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"swagger\":\"2.0\"}", &_cdd_jv_1);
+    val_tmp = _cdd_jv_1;
+  }
   if (val_tmp) {
     obj_tmp = json_value_get_object(val_tmp);
     ASSERT_EQ(CDD_C_SUCCESS, root_is_schema_document(val_tmp, obj_tmp));
     json_value_free(val_tmp);
   }
-  val_tmp = json_parse_string("{\"info\":{}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"info\":{}}", &_cdd_jv_1);
+    val_tmp = _cdd_jv_1;
+  }
   if (val_tmp) {
     obj_tmp = json_value_get_object(val_tmp);
     ASSERT_EQ(CDD_C_SUCCESS, root_is_schema_document(val_tmp, obj_tmp));
@@ -249,25 +277,41 @@ TEST test_openapi_loader_100_percent_final(void) {
   ASSERT_EQ(CDD_C_SUCCESS, param_key_equals(&p_arr[0], &p_arr[1]));
 
   ASSERT_EQ(CDD_C_SUCCESS, schema_has_composition(NULL));
-  val_tmp = json_parse_string("{\"allOf\":[]}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"allOf\":[]}", &_cdd_jv_1);
+    val_tmp = _cdd_jv_1;
+  }
   if (val_tmp) {
     obj_tmp = json_value_get_object(val_tmp);
     ASSERT(schema_has_composition(obj_tmp) != CDD_C_SUCCESS);
     json_value_free(val_tmp);
   }
-  val_tmp = json_parse_string("{\"anyOf\":[]}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"anyOf\":[]}", &_cdd_jv_1);
+    val_tmp = _cdd_jv_1;
+  }
   if (val_tmp) {
     obj_tmp = json_value_get_object(val_tmp);
     ASSERT(schema_has_composition(obj_tmp) != CDD_C_SUCCESS);
     json_value_free(val_tmp);
   }
-  val_tmp = json_parse_string("{\"oneOf\":[]}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"oneOf\":[]}", &_cdd_jv_1);
+    val_tmp = _cdd_jv_1;
+  }
   if (val_tmp) {
     obj_tmp = json_value_get_object(val_tmp);
     ASSERT(schema_has_composition(obj_tmp) != CDD_C_SUCCESS);
     json_value_free(val_tmp);
   }
-  val_tmp = json_parse_string("{\"type\":\"string\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"type\":\"string\"}", &_cdd_jv_1);
+    val_tmp = _cdd_jv_1;
+  }
   if (val_tmp) {
     obj_tmp = json_value_get_object(val_tmp);
     ASSERT_EQ(CDD_C_SUCCESS, schema_has_composition(obj_tmp));
@@ -307,13 +351,21 @@ TEST test_openapi_loader_100_percent_final(void) {
             validate_querystring_usage(path_arr, 1));
 
   ASSERT_EQ(CDD_C_SUCCESS, validate_media_type_key_map(NULL));
-  val_tmp = json_parse_string("{\"application/json\":{}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"application/json\":{}}", &_cdd_jv_1);
+    val_tmp = _cdd_jv_1;
+  }
   if (val_tmp) {
     obj_tmp = json_value_get_object(val_tmp);
     ASSERT_EQ(CDD_C_SUCCESS, validate_media_type_key_map(obj_tmp));
     json_value_free(val_tmp);
   }
-  val_tmp = json_parse_string("{\"bad@key\":{}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"bad@key\":{}}", &_cdd_jv_1);
+    val_tmp = _cdd_jv_1;
+  }
   if (val_tmp) {
     obj_tmp = json_value_get_object(val_tmp);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -364,9 +416,14 @@ TEST test_openapi_loader_100_percent_final(void) {
               tag_index_by_name(&spec_test, "missing", &tag_idx));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               tag_index_by_name(NULL, "tagA", &tag_idx));
-    tag_states[0] = 0;
-    tag_states[1] = 0;
-    ASSERT(detect_tag_cycle(&spec_test, 0, tag_states) != CDD_C_SUCCESS);
+    {
+      int has_cyc = 0;
+      tag_states[0] = 0;
+      tag_states[1] = 0;
+      ASSERT_EQ(CDD_C_SUCCESS,
+                detect_tag_cycle(&spec_test, 0, tag_states, &has_cyc));
+      ASSERT_EQ(1, has_cyc);
+    }
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, validate_tag_parents(&spec_test));
     CDD_STRCPY(s_parent, sizeof(s_parent), "nonexistent");
     tags_arr[0].parent = s_parent;
@@ -379,20 +436,32 @@ TEST test_openapi_loader_100_percent_final(void) {
     struct OpenAPI_Server srv_meta;
     struct OpenAPI_ServerVariable svar;
     char *tag_names[2];
+    int is_def = 0;
+    int is_seen = 0;
     memset(&srv_meta, 0, sizeof(srv_meta));
     memset(&svar, 0, sizeof(svar));
     CDD_STRCPY(s_name, sizeof(s_name), "port");
     svar.name = s_name;
     srv_meta.variables = &svar;
     srv_meta.n_variables = 1;
-    ASSERT(server_variable_defined(&srv_meta, "port") != CDD_C_SUCCESS);
-    ASSERT_EQ(CDD_C_SUCCESS, server_variable_defined(&srv_meta, "missing"));
-    ASSERT_EQ(CDD_C_SUCCESS, server_variable_defined(NULL, "port"));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              server_variable_defined(&srv_meta, "port", &is_def));
+    ASSERT_EQ(1, is_def);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              server_variable_defined(&srv_meta, "missing", &is_def));
+    ASSERT_EQ(0, is_def);
+    ASSERT_EQ(CDD_C_SUCCESS, server_variable_defined(NULL, "port", &is_def));
+    ASSERT_EQ(0, is_def);
     tag_names[0] = s_name;
     tag_names[1] = s_parent;
-    ASSERT(server_variable_seen(tag_names, 2, "port") != CDD_C_SUCCESS);
-    ASSERT_EQ(CDD_C_SUCCESS, server_variable_seen(tag_names, 2, "host"));
-    ASSERT_EQ(CDD_C_SUCCESS, server_variable_seen(NULL, 0, "env"));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              server_variable_seen(tag_names, 2, "port", &is_seen));
+    ASSERT_EQ(1, is_seen);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              server_variable_seen(tag_names, 2, "host", &is_seen));
+    ASSERT_EQ(0, is_seen);
+    ASSERT_EQ(CDD_C_SUCCESS, server_variable_seen(NULL, 0, "env", &is_seen));
+    ASSERT_EQ(0, is_seen);
   }
 
   /* 4. Schema name in use */
@@ -431,7 +500,12 @@ TEST test_openapi_loader_100_percent_final(void) {
 
   /* 6. parse_schema_type with null */
   {
-    JSON_Value *jv_stype = json_parse_string("{\"type\":[\"null\"]}");
+    JSON_Value *jv_stype = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{\"type\":[\"null\"]}", &_cdd_jv_1);
+      jv_stype = _cdd_jv_1;
+    }
     if (jv_stype) {
       const char *stype_str = NULL;
       int s_null = 0;
@@ -556,8 +630,12 @@ TEST test_openapi_loader_100_percent_final(void) {
   /* 11. parse_operation with invalid verb */
   {
     struct OpenAPI_Operation op_dst;
-    val_tmp =
-        json_parse_string("{\"responses\":{\"200\":{\"description\":\"ok\"}}}");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\"responses\":{\"200\":{\"description\":\"ok\"}}}", &_cdd_jv_1);
+      val_tmp = _cdd_jv_1;
+    }
     if (val_tmp) {
       obj_tmp = json_value_get_object(val_tmp);
       memset(&op_dst, 0, sizeof(op_dst));
@@ -661,7 +739,12 @@ TEST test_openapi_loader_100_percent_final(void) {
   /* 14. collect_schema_extras and collect_extensions */
   {
     char *ext_json = NULL;
-    val_tmp = json_parse_string("{\"x-custom\":\"val\",\"custom_extra\":123}");
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{\"x-custom\":\"val\",\"custom_extra\":123}",
+                            &_cdd_jv_1);
+      val_tmp = _cdd_jv_1;
+    }
     if (val_tmp) {
       obj_tmp = json_value_get_object(val_tmp);
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -748,13 +831,20 @@ TEST test_openapi_loader_100_percent_final(void) {
 
   /* 16. parse_info OOM loops */
   {
-    JSON_Value *jv_info = json_parse_string(
-        "{\"title\":\"T\",\"version\":\"1\",\"summary\":\"S\",\"description\":"
-        "\"D\","
-        "\"termsOfService\":\"http://"
-        "tos\",\"contact\":{\"name\":\"cn\",\"url\":\"http://"
-        "cu\",\"email\":\"ce\"},"
-        "\"license\":{\"name\":\"ln\",\"url\":\"http://lu\"}}");
+    JSON_Value *jv_info = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\"title\":\"T\",\"version\":\"1\",\"summary\":\"S\","
+          "\"description\":"
+          "\"D\","
+          "\"termsOfService\":\"http://"
+          "tos\",\"contact\":{\"name\":\"cn\",\"url\":\"http://"
+          "cu\",\"email\":\"ce\"},"
+          "\"license\":{\"name\":\"ln\",\"url\":\"http://lu\"}}",
+          &_cdd_jv_1);
+      jv_info = _cdd_jv_1;
+    }
     if (jv_info) {
       JSON_Object *jio = json_value_get_object(jv_info);
       struct OpenAPI_Spec info_spec;

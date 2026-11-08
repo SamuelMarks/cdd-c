@@ -12,10 +12,11 @@
  * @brief Frees the memory associated with schema ref content.
  *
  * @param[in,out] ref The OpenAPI_SchemaRef structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void free_schema_ref_content(struct OpenAPI_SchemaRef *ref) {
+cdd_c_error_t free_schema_ref_content(struct OpenAPI_SchemaRef *ref) {
   if (!ref)
-    return;
+    return CDD_C_SUCCESS;
 
   if (ref->all_of) {
     size_t i;
@@ -178,17 +179,19 @@ void free_schema_ref_content(struct OpenAPI_SchemaRef *ref) {
     C_CDD_FREE(ref->multipart_fields);
   }
   memset(ref, 0, sizeof(*ref));
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees the memory associated with encoding.
  *
  * @param[in,out] enc The OpenAPI_Encoding structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void free_encoding(struct OpenAPI_Encoding *enc) {
+cdd_c_error_t free_encoding(struct OpenAPI_Encoding *enc) {
   size_t i;
   if (!enc)
-    return;
+    return CDD_C_SUCCESS;
   if (enc->name)
     C_CDD_FREE(enc->name);
   if (enc->content_type)
@@ -226,17 +229,19 @@ void free_encoding(struct OpenAPI_Encoding *enc) {
     enc->item_encoding_set = 0;
   }
   memset(enc, 0, sizeof(*enc));
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees the memory associated with media type.
  *
  * @param[in,out] mt The OpenAPI_MediaType structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void free_media_type(struct OpenAPI_MediaType *mt) {
+cdd_c_error_t free_media_type(struct OpenAPI_MediaType *mt) {
   size_t e;
   if (!mt)
-    return;
+    return CDD_C_SUCCESS;
   if (mt->name)
     C_CDD_FREE(mt->name);
   if (mt->ref)
@@ -277,16 +282,18 @@ void free_media_type(struct OpenAPI_MediaType *mt) {
     mt->item_encoding_set = 0;
   }
   memset(mt, 0, sizeof(*mt));
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees the memory associated with parameter.
  *
  * @param[in,out] param The OpenAPI_Parameter structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void free_parameter(struct OpenAPI_Parameter *param) {
+cdd_c_error_t free_parameter(struct OpenAPI_Parameter *param) {
   if (!param)
-    return;
+    return CDD_C_SUCCESS;
   if (param->name)
     C_CDD_FREE(param->name);
   if (param->type)
@@ -327,16 +334,18 @@ void free_parameter(struct OpenAPI_Parameter *param) {
     param->n_examples = 0;
   }
   memset(param, 0, sizeof(*param));
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees the memory associated with header.
  *
  * @param[in,out] hdr The OpenAPI_Header structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void free_header(struct OpenAPI_Header *hdr) {
+cdd_c_error_t free_header(struct OpenAPI_Header *hdr) {
   if (!hdr)
-    return;
+    return CDD_C_SUCCESS;
   if (hdr->name)
     C_CDD_FREE(hdr->name);
   if (hdr->ref)
@@ -377,17 +386,19 @@ void free_header(struct OpenAPI_Header *hdr) {
     hdr->n_examples = 0;
   }
   memset(hdr, 0, sizeof(*hdr));
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees the memory associated with response.
  *
  * @param[in,out] resp The OpenAPI_Response structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void free_response(struct OpenAPI_Response *resp) {
+cdd_c_error_t free_response(struct OpenAPI_Response *resp) {
   size_t i;
   if (!resp)
-    return;
+    return CDD_C_SUCCESS;
   if (resp->code)
     C_CDD_FREE(resp->code);
   if (resp->summary)
@@ -438,16 +449,18 @@ void free_response(struct OpenAPI_Response *resp) {
   }
   free_schema_ref_content(&resp->schema);
   memset(resp, 0, sizeof(*resp));
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees the memory associated with request body.
  *
  * @param[in,out] rb The OpenAPI_RequestBody structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void free_request_body(struct OpenAPI_RequestBody *rb) {
+cdd_c_error_t free_request_body(struct OpenAPI_RequestBody *rb) {
   if (!rb)
-    return;
+    return CDD_C_SUCCESS;
   if (rb->ref)
     C_CDD_FREE(rb->ref);
   if (rb->description)
@@ -478,16 +491,18 @@ void free_request_body(struct OpenAPI_RequestBody *rb) {
   }
   free_schema_ref_content(&rb->schema);
   memset(rb, 0, sizeof(*rb));
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees the memory associated with any value.
  *
  * @param[in,out] val The OpenAPI_Any value to free.
+ * @return CDD_C_SUCCESS.
  */
-void free_any_value(struct OpenAPI_Any *val) {
+cdd_c_error_t free_any_value(struct OpenAPI_Any *val) {
   if (!val)
-    return;
+    return CDD_C_SUCCESS;
   if (val->type == OA_ANY_STRING && val->string) {
     C_CDD_FREE(val->string);
   } else if (val->type == OA_ANY_JSON && val->json) {
@@ -496,17 +511,19 @@ void free_any_value(struct OpenAPI_Any *val) {
   val->type = OA_ANY_UNSET;
   val->string = NULL;
   val->json = NULL;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees the memory associated with link.
  *
  * @param[in,out] link The OpenAPI_Link structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void free_link(struct OpenAPI_Link *link) {
+cdd_c_error_t free_link(struct OpenAPI_Link *link) {
   size_t i;
   if (!link)
-    return;
+    return CDD_C_SUCCESS;
   if (link->name)
     C_CDD_FREE(link->name);
   if (link->ref)
@@ -537,17 +554,20 @@ void free_link(struct OpenAPI_Link *link) {
     link->server_set = 0;
   }
   memset(link, 0, sizeof(*link));
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees the memory associated with security requirement.
  *
  * @param[in,out] req The OpenAPI_SecurityRequirement structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void free_security_requirement(struct OpenAPI_SecurityRequirement *req) {
+cdd_c_error_t
+free_security_requirement(struct OpenAPI_SecurityRequirement *req) {
   size_t i;
   if (!req)
-    return;
+    return CDD_C_SUCCESS;
   if (req->scheme)
     C_CDD_FREE(req->scheme);
   if (req->scopes) {
@@ -558,17 +578,20 @@ void free_security_requirement(struct OpenAPI_SecurityRequirement *req) {
     C_CDD_FREE(req->scopes);
   }
   memset(req, 0, sizeof(*req));
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees the memory associated with security requirement set.
  *
  * @param[in,out] set The OpenAPI_SecurityRequirementSet structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void free_security_requirement_set(struct OpenAPI_SecurityRequirementSet *set) {
+cdd_c_error_t
+free_security_requirement_set(struct OpenAPI_SecurityRequirementSet *set) {
   size_t i;
   if (!set)
-    return;
+    return CDD_C_SUCCESS;
   if (set->requirements) {
     for (i = 0; i < set->n_requirements; ++i) {
       free_security_requirement(&set->requirements[i]);
@@ -578,16 +601,18 @@ void free_security_requirement_set(struct OpenAPI_SecurityRequirementSet *set) {
   if (set->extensions_json)
     C_CDD_FREE(set->extensions_json);
   memset(set, 0, sizeof(*set));
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Frees the memory associated with example.
  *
  * @param[in,out] ex The OpenAPI_Example structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void free_example(struct OpenAPI_Example *ex) {
+cdd_c_error_t free_example(struct OpenAPI_Example *ex) {
   if (!ex)
-    return;
+    return CDD_C_SUCCESS;
   if (ex->name)
     C_CDD_FREE(ex->name);
   if (ex->ref)
@@ -607,4 +632,5 @@ void free_example(struct OpenAPI_Example *ex) {
   if (ex->value_set)
     free_any_value(&ex->value);
   memset(ex, 0, sizeof(*ex));
+  return CDD_C_SUCCESS;
 }

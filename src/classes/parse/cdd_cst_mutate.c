@@ -93,13 +93,15 @@ static cdd_c_error_t find_last_token_mutate(cdd_cst_node_t *node,
  * @brief Frees a linked list of trivia nodes.
  *
  * @param[in] t Head of the trivia list to free.
+ * @return CDD_C_SUCCESS.
  */
-static void free_trivia_list_mutate(cdd_trivia_t *t) {
+static cdd_c_error_t free_trivia_list_mutate(cdd_trivia_t *t) {
   while (t) {
     cdd_trivia_t *next = t->next;
     C_CDD_FREE(t);
     t = next;
   }
+  return CDD_C_SUCCESS;
 }
 
 /*

@@ -116,8 +116,9 @@ extern C_CDD_EXPORT cdd_c_error_t type_def_list_init(struct TypeDefList *list);
  * @brief Free resources in a TypeDefList.
  * Frees all names and nested detail structures (EnumMembers/StructFields).
  * @param[in] list The list to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void type_def_list_free(struct TypeDefList *list);
+extern C_CDD_EXPORT cdd_c_error_t type_def_list_free(struct TypeDefList *list);
 
 /**
  * @brief Scan a file (by path) and extract all struct/enum definitions.
@@ -145,8 +146,9 @@ extern C_CDD_EXPORT cdd_c_error_t func_sig_list_init(struct FuncSigList *list);
  * @brief Free FuncSigList.
  * Frees name and signature strings.
  * @param[in] list The list to free.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void func_sig_list_free(struct FuncSigList *list);
+extern C_CDD_EXPORT cdd_c_error_t func_sig_list_free(struct FuncSigList *list);
 
 /**
  * @brief Extract all function signatures from a source string.

@@ -114,12 +114,13 @@ cdd_c_error_t pp_file_exists(const char *path, int *out_exists) {
  * @brief Releases memory owned by a preprocessor macro definition.
  *
  * @param[in,out] def Pointer to the MacroDef structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void pp_free_macro_def(struct MacroDef *def) {
+cdd_c_error_t pp_free_macro_def(struct MacroDef *def) {
   size_t i;
 
   if (!def)
-    return;
+    return CDD_C_SUCCESS;
 
   if (def->name)
     C_CDD_FREE(def->name);
@@ -134,6 +135,7 @@ void pp_free_macro_def(struct MacroDef *def) {
     }
     C_CDD_FREE(def->args);
   }
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -323,12 +325,13 @@ cdd_c_error_t pp_context_init(struct PreprocessorContext *ctx) {
  * context.
  *
  * @param[in,out] ctx Pointer to the PreprocessorContext structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void pp_context_free(struct PreprocessorContext *ctx) {
+cdd_c_error_t pp_context_free(struct PreprocessorContext *ctx) {
   size_t i;
 
   if (!ctx)
-    return;
+    return CDD_C_SUCCESS;
 
   if (ctx->search_paths) {
     for (i = 0; i < ctx->size; ++i) {
@@ -345,6 +348,7 @@ void pp_context_free(struct PreprocessorContext *ctx) {
   }
 
   memset(ctx, 0, sizeof(*ctx));
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -614,10 +618,11 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
  * @brief Frees dynamically allocated parameter strings in `params`.
  *
  * @param[in,out] params Pointer to the EmbedParams structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void pp_embed_params_free(struct EmbedParams *params) {
+cdd_c_error_t pp_embed_params_free(struct EmbedParams *params) {
   if (!params)
-    return;
+    return CDD_C_SUCCESS;
 
   if (params->prefix)
     C_CDD_FREE(params->prefix);
@@ -631,6 +636,7 @@ void pp_embed_params_free(struct EmbedParams *params) {
   params->prefix = NULL;
   params->suffix = NULL;
   params->if_empty = NULL;
+  return CDD_C_SUCCESS;
 }
 
 /*

@@ -222,8 +222,7 @@ TEST test_ffi_ir_toposort_complex(void) {
 
   /* C should be before B, B before A, A before myA */
   {
-    size_t idxA = 0, idxB = 0, idxC = 0, idxD = 0, idxM = 0, i = 0;
-    (void)idxD;
+    size_t idxA = 0, idxB = 0, idxC = 0, idxM = 0, i = 0;
 
     for (i = 0; i < ir.nodes_count; i++) {
       if (!ir.nodes[i].name)
@@ -234,8 +233,6 @@ TEST test_ffi_ir_toposort_complex(void) {
         idxB = i;
       else if (strcmp(ir.nodes[i].name, "C") == 0)
         idxC = i;
-      else if (strcmp(ir.nodes[i].name, "D") == 0)
-        idxD = i;
       else if (strcmp(ir.nodes[i].name, "myA") == 0)
         idxM = i;
     }

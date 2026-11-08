@@ -32,7 +32,6 @@ TEST test_cdd_cst_builder_oom(void) {
   cdd_cst_builder_t b;
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
-  (void)root;
 
   tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
@@ -247,7 +246,6 @@ TEST test_cdd_cst_builder_punct_all(void) {
   cdd_cst_builder_t b;
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
-  (void)root;
 
   tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);

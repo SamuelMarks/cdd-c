@@ -57,9 +57,17 @@ TEST test_openapi_writer_close_100_percent(void) {
   char *json = NULL;
   int k;
 
-  parent_val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    parent_val = _cdd_jv_1;
+  }
   parent = json_value_get_object(parent_val);
-  val = json_value_init_object();
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    val = _cdd_jv_1;
+  }
   obj = json_value_get_object(val);
 
   /* 1. L367: duplicate key in merge_schema_extras_object_openapi */
@@ -257,8 +265,14 @@ TEST test_openapi_writer_close_100_percent(void) {
   sr.one_of = sub_sr;
   sr.n_one_of = 1;
   for (k = 0; k < 25; ++k) {
-    JSON_Value *oom_val = json_value_init_object();
-    JSON_Object *oom_obj = json_value_get_object(oom_val);
+    JSON_Value *oom_val = NULL;
+    JSON_Object *oom_obj = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      oom_val = _cdd_jv_1;
+    }
+    oom_obj = json_value_get_object(oom_val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
     write_schema_ref(oom_obj, "sch_composed", &sr);
@@ -270,8 +284,14 @@ TEST test_openapi_writer_close_100_percent(void) {
   sr.any_of = sub_sr;
   sr.n_any_of = 1;
   for (k = 0; k < 25; ++k) {
-    JSON_Value *oom_val = json_value_init_object();
-    JSON_Object *oom_obj = json_value_get_object(oom_val);
+    JSON_Value *oom_val = NULL;
+    JSON_Object *oom_obj = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      oom_val = _cdd_jv_1;
+    }
+    oom_obj = json_value_get_object(oom_val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
     write_schema_ref(oom_obj, "sch_any", &sr);
@@ -283,8 +303,14 @@ TEST test_openapi_writer_close_100_percent(void) {
   sr.one_of = sub_sr;
   sr.n_one_of = 1;
   for (k = 0; k < 25; ++k) {
-    JSON_Value *oom_val = json_value_init_object();
-    JSON_Object *oom_obj = json_value_get_object(oom_val);
+    JSON_Value *oom_val = NULL;
+    JSON_Object *oom_obj = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      oom_val = _cdd_jv_1;
+    }
+    oom_obj = json_value_get_object(oom_val);
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = k;
     write_schema_ref(oom_obj, "sch_one", &sr);

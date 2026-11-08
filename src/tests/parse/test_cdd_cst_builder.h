@@ -33,12 +33,10 @@ TEST test_cdd_cst_builder_basic(void) {
   int rc = 0;
   int out_has = -1;
   cdd_cst_builder_t b;
-  (void)root;
   {
     char *out = NULL;
 
     tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
-    (void)out_has;
     ASSERT(tree != NULL);
 
     rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
@@ -73,9 +71,7 @@ TEST test_cdd_cst_builder_basic(void) {
     }
 
     {
-      int err = 0;
       rc = cdd_cst_builder_init(NULL, tree, root);
-      (void)err;
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
       rc = cdd_cst_builder_init(&b, NULL, root);
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -208,14 +204,11 @@ TEST test_cdd_cst_builder_macros(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
   int rc = 0;
-  int out_has = -1;
   cdd_cst_builder_t b;
-  (void)root;
   {
     char *out = NULL;
 
     tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
-    (void)out_has;
     ASSERT(tree != NULL);
 
     rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
@@ -302,15 +295,12 @@ TEST test_cdd_cst_builder_quote(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
   int rc = 0;
-  int out_has = -1;
   cdd_cst_builder_t b;
-  (void)root;
   {
     char *out = NULL;
     cdd_cst_node_t *injected_node = NULL;
 
     tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
-    (void)out_has;
     ASSERT(tree != NULL);
 
     rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
@@ -351,14 +341,11 @@ TEST test_cdd_cst_builder_snippet(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
   int rc = 0;
-  int out_has = -1;
   cdd_cst_builder_t b;
-  (void)root;
   {
     char *out = NULL;
 
     tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
-    (void)out_has;
     ASSERT(tree != NULL);
 
     rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
@@ -395,14 +382,11 @@ TEST test_cdd_cst_builder_comments(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
   int rc = 0;
-  int out_has = -1;
   cdd_cst_builder_t b;
-  (void)root;
   {
     char *out = NULL;
 
     tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
-    (void)out_has;
     ASSERT(tree != NULL);
 
     rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
@@ -490,18 +474,15 @@ TEST test_cdd_cst_builder_trivia_and_splice(void) {
   cdd_cst_node_t *replacement_node = NULL;
   cdd_cst_node_t *spliced_node = NULL;
   int rc = 0;
-  int out_has = -1;
-  (void)root;
   {
     cdd_trivia_t *lead;
 
     cdd_cst_tree_t *replacement_node_tree = NULL;
-    (void)out_has;
     cdd_cst_parse(az_span_create_from_str("/* L1 */ /* L2 */ int x; /* T1 */"),
                   &tree);
     root = tree->root;
-    target_node = tree->root->children[0].val.node;
-    cdd_cst_builder_init(&b, tree, tree->root);
+    target_node = root->children[0].val.node;
+    cdd_cst_builder_init(&b, tree, root);
 
     cdd_cst_parse(
         az_span_create_from_str("/* NL1 */ float y; /* NT1 */ /* NT2 */"),
@@ -603,7 +584,6 @@ TEST test_cdd_cst_builder_extra(void) {
   int rc = 0;
   int out_has = -1;
   cdd_cst_builder_t b;
-  (void)root;
 
   tree = (cdd_cst_tree_t *)calloc(1, sizeof(*tree));
   rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
@@ -676,7 +656,6 @@ TEST test_cdd_cst_builder_quote_errors(void) {
   cdd_cst_node_t *root = NULL;
   char buf[3000];
   cdd_cst_builder_t b;
-  (void)root;
 
   tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
@@ -708,7 +687,6 @@ TEST test_cdd_cst_builder_errors_extra(void) {
   cdd_cst_builder_t b;
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
-  (void)root;
 
   cdd_cst_parse(az_span_create_from_str(""), &tree);
   if (tree->root)

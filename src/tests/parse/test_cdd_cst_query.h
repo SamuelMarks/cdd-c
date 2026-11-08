@@ -32,8 +32,8 @@ extern C_CDD_EXPORT int g_cdd_query_err_fail;
  */
 static cdd_c_error_t dummy_visitor(cdd_cst_node_t *node, void *user_data) {
   int *count = (int *)user_data;
-  (*count)++;
-  (void)node;
+  if (node)
+    (*count)++;
   return 0;
 }
 
@@ -396,8 +396,7 @@ TEST test_cdd_cst_query_extra(void) {
  * @return Result status or value.
  */
 static cdd_c_error_t fail_visitor_post(cdd_cst_node_t *node, void *user_data) {
-  (void)user_data;
-  if (node->kind == CDD_CST_EXPRESSION)
+  if (!user_data && node->kind == CDD_CST_EXPRESSION)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   return 0;
 }

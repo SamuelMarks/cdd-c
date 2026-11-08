@@ -13,8 +13,8 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include <parson.h>
 #include <stddef.h>
+#include "c_cdd/json_dom.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include "classes/emit/struct.h"
@@ -62,8 +62,9 @@ extern C_CDD_EXPORT cdd_c_error_t parse_string_enum_array(const JSON_Array *arr,
  *
  * @param[in] arr Array of string pointers.
  * @param[in] n Number of elements in the array.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void free_string_array(char **arr, size_t n);
+extern C_CDD_EXPORT cdd_c_error_t free_string_array(char **arr, size_t n);
 
 /**
  * @brief Deep-copies an array of strings.

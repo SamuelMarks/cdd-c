@@ -172,11 +172,12 @@ cdd_c_error_t set_str_if_missing(char **dst, const char *src) {
  * @brief Frees the memory associated with openapi server variables.
  *
  * @param[in,out] srv OpenAPI server whose variables are freed.
+ * @return CDD_C_SUCCESS.
  */
-void free_openapi_server_variables(struct OpenAPI_Server *srv) {
+cdd_c_error_t free_openapi_server_variables(struct OpenAPI_Server *srv) {
   size_t i;
   if (!srv || !srv->variables)
-    return;
+    return CDD_C_SUCCESS;
   for (i = 0; i < srv->n_variables; ++i) {
     size_t e;
     struct OpenAPI_ServerVariable *var = &srv->variables[i];
@@ -196,6 +197,7 @@ void free_openapi_server_variables(struct OpenAPI_Server *srv) {
   C_CDD_FREE(srv->variables);
   srv->variables = NULL;
   srv->n_variables = 0;
+  return CDD_C_SUCCESS;
 }
 
 /**

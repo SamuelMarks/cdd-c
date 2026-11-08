@@ -391,6 +391,13 @@ TEST test_struct_invalid_args(void) {
               struct_fields_add(&sf, "arr_obj", "array", "object", NULL, NULL));
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf, "arr_unknown", "array",
                                                "unknown", NULL, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf, "fix_str_arr", "array",
+                                               "string", NULL, NULL));
+    sf.fields[sf.size - 1].fixed_array_len = 3;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              struct_fields_add(&sf, "fix_obj_arr", "array",
+                                "#/definitions/SubObj", NULL, NULL));
+    sf.fields[sf.size - 1].fixed_array_len = 2;
     ASSERT_EQ(0, write_struct_deepcopy_func(tmp, "S", &sf, NULL));
     if (tmp)
       fclose(tmp);

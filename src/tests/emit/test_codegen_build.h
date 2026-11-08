@@ -77,11 +77,6 @@ TEST test_cbuild_basic_output(void) {
 
   sources[0] = cdd_test_mut_str("client.c");
   sources[1] = cdd_test_mut_str("models.c");
-  (void)config;
-  (void)sources;
-
-  (void)sz;
-  (void)content_str;
 
   ASSERT(tmp);
   memset(&config, 0, sizeof(config));
@@ -145,15 +140,9 @@ TEST test_cbuild_unsupported(void) {
   FILE *tmp;
   struct CodegenBuildConfig config;
   const char *sources[2];
-  long sz;
-  char *content_str = NULL;
 
   sources[0] = cdd_test_mut_str("client.c");
   sources[1] = cdd_test_mut_str("models.c");
-  (void)config;
-  (void)sources;
-  (void)sz;
-  (void)content_str;
 
   memset(&config, 0, sizeof(config));
   config.project_name = cdd_test_mut_str("PetStore");
@@ -264,17 +253,11 @@ TEST test_cbuild_io_failure(void) {
   FILE *tmp;
   struct CodegenBuildConfig config;
   const char *sources[2];
-  long sz;
-  char *content_str = NULL;
   int i;
   int rc = 0;
 
   sources[0] = cdd_test_mut_str("client.c");
   sources[1] = cdd_test_mut_str("models.c");
-  (void)config;
-  (void)sources;
-  (void)sz;
-  (void)content_str;
   /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
 
   memset(&config, 0, sizeof(config));

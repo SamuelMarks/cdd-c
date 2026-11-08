@@ -378,7 +378,11 @@ TEST test_openapi_registry_object_like(void) {
   rc = schema_type_array_includes(NULL, "object");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-  jv = json_parse_string("[\"string\", 123, \"object\", null]");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("[\"string\", 123, \"object\", null]", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ja = json_value_get_array(jv);
   rc = schema_type_array_includes(ja, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -393,47 +397,75 @@ TEST test_openapi_registry_object_like(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* 3. type == "object" */
-  jv = json_parse_string("{\"type\": \"object\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"type\": \"object\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   rc = schema_object_is_object_like(jo);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   json_value_free(jv);
 
   /* 4. type array containing "object" */
-  jv = json_parse_string("{\"type\": [\"null\", \"object\"]}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"type\": [\"null\", \"object\"]}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   rc = schema_object_is_object_like(jo);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   json_value_free(jv);
 
   /* 5. properties */
-  jv = json_parse_string("{\"properties\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"properties\": {}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   rc = schema_object_is_object_like(jo);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   json_value_free(jv);
 
   /* 6. allOf / anyOf / oneOf */
-  jv = json_parse_string("{\"allOf\": []}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"allOf\": []}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   rc = schema_object_is_object_like(jo);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   json_value_free(jv);
 
-  jv = json_parse_string("{\"anyOf\": []}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"anyOf\": []}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   rc = schema_object_is_object_like(jo);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   json_value_free(jv);
 
-  jv = json_parse_string("{\"oneOf\": []}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"oneOf\": []}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   rc = schema_object_is_object_like(jo);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   json_value_free(jv);
 
   /* 7. Scalar type (not object-like) */
-  jv = json_parse_string("{\"type\": \"string\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"type\": \"string\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   rc = schema_object_is_object_like(jo);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -470,7 +502,11 @@ TEST test_openapi_registry_raw_and_defined_schemas(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* 2. append_raw_schema NULL checks */
-  jv = json_parse_string("{\"title\": \"RawSchema\"}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"title\": \"RawSchema\"}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   rc = append_raw_schema(NULL, NULL, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   rc = append_raw_schema(&spec, NULL, jv);
@@ -605,7 +641,12 @@ TEST test_openapi_registry_raw_and_defined_schemas(void) {
   /* 12. append_raw_schema with spec.raw_schema_names == NULL during realloc */
   {
     struct OpenAPI_Spec spec_raw;
-    JSON_Value *jv_raw = json_parse_string("{\"type\": \"object\"}");
+    JSON_Value *jv_raw = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string("{\"type\": \"object\"}", &_cdd_jv_1);
+      jv_raw = _cdd_jv_1;
+    }
     memset(&spec_raw, 0, sizeof(spec_raw));
     spec_raw.n_raw_schemas = 1;
     spec_raw.raw_schema_names = NULL;
@@ -675,9 +716,14 @@ TEST test_openapi_registry_register_inline(void) {
   sr.ref_name = NULL;
 
   /* 5. register_inline_schema NULL checks */
-  jv = json_parse_string(
-      "{\"type\": \"object\", \"properties\": {\"id\": {\"type\": "
-      "\"integer\"}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"type\": \"object\", \"properties\": {\"id\": {\"type\": "
+        "\"integer\"}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
 
   rc = register_inline_schema(NULL, "Base", jo, jv, &out_name);
@@ -702,7 +748,11 @@ TEST test_openapi_registry_register_inline(void) {
 
   /* 8. register inline schema with composition */
   json_value_free(jv);
-  jv = json_parse_string("{\"allOf\": [{\"type\": \"object\"}]}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"allOf\": [{\"type\": \"object\"}]}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   out_name = NULL;
   rc = register_inline_schema(&spec, "CompositeSchema", jo, jv, &out_name);
@@ -741,8 +791,14 @@ TEST test_openapi_registry_register_inline(void) {
     g_json_object_to_struct_fields_fail = 2;
     out_name = NULL;
     {
-      JSON_Value *s_jv = json_parse_string("{\"type\": \"string\"}");
-      JSON_Object *s_jo = json_value_get_object(s_jv);
+      JSON_Value *s_jv = NULL;
+      JSON_Object *s_jo = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string("{\"type\": \"string\"}", &_cdd_jv_1);
+        s_jv = _cdd_jv_1;
+      }
+      s_jo = json_value_get_object(s_jv);
       rc = register_inline_schema(&spec, "BadSchema2", s_jo, s_jv, &out_name);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
       json_value_free(s_jv);

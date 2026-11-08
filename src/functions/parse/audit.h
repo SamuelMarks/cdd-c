@@ -61,8 +61,9 @@ extern C_CDD_EXPORT cdd_c_error_t audit_stats_init(struct AuditStats *stats);
  * @brief Cleanup audit statistics structure.
  * Frees detailed violation list.
  * @param[in] stats Pointer to structure.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void audit_stats_free(struct AuditStats *stats);
+extern C_CDD_EXPORT cdd_c_error_t audit_stats_free(struct AuditStats *stats);
 
 /**
  * @brief Recursively audit a C project directory for allocation safety.

@@ -12,8 +12,8 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include <parson.h>
 #include <stddef.h>
+#include "c_cdd/json_dom.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include "openapi/parse/openapi_types.h"

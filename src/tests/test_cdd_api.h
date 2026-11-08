@@ -92,20 +92,20 @@ TEST test_cdd_generate_to_openapi(void) {
 
   config.input = cdd_test_mut_str("nonexistent.c");
   config.output = cdd_test_mut_str("build/out.json");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_generate_to_openapi(&config));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, cdd_generate_to_openapi(&config));
 
   config.output = NULL;
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_generate_to_openapi(&config));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, cdd_generate_to_openapi(&config));
   remove("openapi.json");
 
   config.output = cdd_test_mut_str("build/out.json");
   config.base_file = cdd_test_mut_str("nonexistent_base.json");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_generate_to_openapi(&config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_generate_to_openapi(&config));
   config.base_file = NULL;
 
 #ifdef CDD_BUILD_TESTS
   g_cdd_alloc_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_generate_to_openapi(&config));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, cdd_generate_to_openapi(&config));
   g_cdd_alloc_fail = 0;
 #endif
 
@@ -197,6 +197,7 @@ TEST test_bin_cdd(void) {
   candidates[n_cands++] = "./build/bin/cdd-c";
   candidates[n_cands++] = "./build/cdd-c";
   candidates[n_cands++] = "./build_cov/bin/cdd-c";
+  candidates[n_cands++] = "./build_cov/cdd-c";
   candidates[n_cands++] = "../bin/cdd-c";
 #endif
   /* Exercise non-zero return code branch */
@@ -482,7 +483,12 @@ TEST test_code_writer_and_ffi_common(void) {
           "example.com\",\"description\":\"d\"}],"
           "\"responses\":{\"200\":{\"description\":\"ok\"}}}}}},"
           "\"paths\":{\"/p\":{\"$ref\":\"#/components/pathItems/P\"}}}";
-      JSON_Value *jv = json_parse_string(pi_json);
+      JSON_Value *jv = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_parse_string(pi_json, &_cdd_jv_1);
+        jv = _cdd_jv_1;
+      }
       for (k = 1; k < 40; ++k) {
         struct OpenAPI_Spec sp = {0};
         g_cdd_strdup_fail = k;

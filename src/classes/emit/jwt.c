@@ -36,8 +36,8 @@ cdd_c_error_t write_struct_from_jwt_func(FILE *fp, const char *struct_name,
           fp, "/**\n * @brief Constant-time Base64URL decode utility.\n */\n") <
       0)
     return CDD_C_ERROR_IO;
-  fprintf(fp, "static int cdd_c_base64url_decode(const char *in, size_t "
-              "in_len, unsigned char **out, size_t *out_len) {\n");
+  fprintf(fp, "static cdd_c_error_t cdd_c_base64url_decode(const char *in, "
+              "size_t in_len, unsigned char **out, size_t *out_len) {\n");
   fprintf(fp, "  static const unsigned char b64url_dec[256] = {\n");
   fprintf(
       fp,
@@ -124,23 +124,26 @@ cdd_c_error_t write_struct_from_jwt_func(FILE *fp, const char *struct_name,
   /* The actual parser */
   fprintf(fp, "/**\n * @brief Extract JWT Payload and parse into %s.\n */\n",
           struct_name);
-  fprintf(fp, "int %s_from_jwt(const char *jwt, struct %s **const out) {\n",
-          struct_name, struct_name);
+  fprintf(
+      fp,
+      "cdd_c_error_t %s_from_jwt(const char *jwt, struct %s **const out) {\n",
+      struct_name, struct_name);
   fprintf(fp, "  const char *dot1;\n");
   fprintf(fp, "  const char *dot2;\n");
   fprintf(fp, "  size_t payload_len;\n");
   fprintf(fp, "  unsigned char *payload_json = NULL;\n");
   fprintf(fp, "  size_t payload_json_len = 0;\n");
-  fprintf(fp, "  int rc;\n\n");
+  fprintf(fp, "  cdd_c_error_t rc;\n\n");
   fprintf(fp, "  if (!jwt || !out) return CDD_C_ERROR_UNKNOWN;\n");
   fprintf(fp, "  dot1 = strchr(jwt, '.');\n");
   fprintf(fp, "  if (!dot1) return CDD_C_ERROR_UNKNOWN;\n");
   fprintf(fp, "  dot2 = strchr(dot1 + 1, '.');\n");
   fprintf(fp, "  if (!dot2) return CDD_C_ERROR_UNKNOWN;\n");
   fprintf(fp, "  payload_len = (size_t)(dot2 - (dot1 + 1));\n");
-  fprintf(fp, "  if (cdd_c_base64url_decode(dot1 + 1, payload_len, "
-              "&payload_json, &payload_json_len) != 0) {\n");
-  fprintf(fp, "    return CDD_C_ERROR_UNKNOWN;\n");
+  fprintf(fp, "  rc = cdd_c_base64url_decode(dot1 + 1, payload_len, "
+              "&payload_json, &payload_json_len);\n");
+  fprintf(fp, "  if (rc != CDD_C_SUCCESS) {\n");
+  fprintf(fp, "    return rc;\n");
   fprintf(fp, "  }\n");
   fprintf(fp, "  rc = %s_from_json((const char *)payload_json, out);\n",
           struct_name);

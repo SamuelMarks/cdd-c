@@ -4,7 +4,8 @@
 
 [![License](https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![CI/CD](https://github.com/SamuelMarks/cdd-c/actions/workflows/ci.yml/badge.svg)](https://github.com/SamuelMarks/cdd-c/actions)
-[![Coverage](https://codecov.io/gh/SamuelMarks/cdd-c/branch/master/graph/badge.svg)](https://codecov.io/gh/SamuelMarks/cdd-c)
+[![Test Coverage](https://img.shields.io/badge/Test%20Coverage-100.0%25-brightgreen.svg)](#)
+[![Doc Coverage](https://img.shields.io/badge/Doc%20Coverage-100.0%25-brightgreen.svg)](#)
 
 <!-- BADGES_END -->
 

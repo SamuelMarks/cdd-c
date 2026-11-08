@@ -652,6 +652,31 @@ TEST test_types_io_fail(void) {
   ASSERT_EQ(CDD_C_ERROR_IO,
             write_root_array_cleanup_func(tmp, "A", "string", NULL, NULL));
 
+#ifdef CDD_BUILD_TESTS
+  g_fail_io_after = -1;
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_str_after_last;
+    int step;
+    g_cdd_fail_str_after_last = 1;
+    ASSERT_NEQ(CDD_C_SUCCESS,
+               write_root_array_cleanup_func(tmp, "A", "object",
+                                             "#/components/schemas/O", NULL));
+    for (step = 1; step <= 2; ++step) {
+      g_cdd_fail_str_after_last = step;
+      ASSERT_NEQ(CDD_C_SUCCESS,
+                 write_root_array_to_json_func(tmp, "A", "object",
+                                               "#/components/schemas/O", NULL));
+    }
+    for (step = 1; step <= 3; ++step) {
+      g_cdd_fail_str_after_last = step;
+      ASSERT_NEQ(CDD_C_SUCCESS,
+                 write_root_array_from_json_func(
+                     tmp, "A", "object", "#/components/schemas/O", NULL));
+    }
+    g_cdd_fail_str_after_last = 0;
+  }
+#endif
+
   struct_fields_free(&sf);
   if (tmp)
     fclose(tmp);
@@ -733,6 +758,209 @@ TEST test_types_edge_cases_no_io(void) {
 }
 
 /**
+ * @brief Tests union lifecycle parity functions (`_default`, `_deepcopy`,
+ * `_eq`, `_debug`).
+ * @return Greatest test result.
+ */
+TEST test_union_lifecycle_parity(void) {
+  struct StructFields sf;
+  struct CodegenTypesConfig cfg = {0};
+  FILE *tmp;
+  char *content = NULL;
+  long sz;
+  int k;
+
+#if defined(_MSC_VER)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
+    tmp = NULL;
+#else
+  tmp = cdd_test_tmpfile_global();
+#endif
+  ASSERT(tmp != NULL);
+
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "v_int", "integer", NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "v_num", "number", NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "v_bool", "boolean", NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "v_str", "string", NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "v_obj", "object", "#/definitions/Child",
+                              NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf, "v_arr_int", "array",
+                                             "integer", NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf, "v_arr_bool", "array",
+                                             "boolean", NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "v_arr_enum", "array", "enum", NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "v_arr_num", "array", "number", NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "v_arr_str", "array", "string", NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf, "v_arr_obj", "array",
+                                             "#/definitions/Item", NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf, "v_enum", "enum",
+                                             "#/definitions/E", NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "v_null", "null", NULL, NULL, NULL));
+
+  cfg.utils_guard = "UNION_UTILS_GUARD";
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_default_func(NULL, "U", &sf, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_default_func(tmp, NULL, &sf, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_default_func(tmp, "U", NULL, &cfg));
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_deepcopy_func(NULL, "U", &sf, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_deepcopy_func(tmp, NULL, &sf, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_deepcopy_func(tmp, "U", NULL, &cfg));
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_eq_func(NULL, "U", &sf, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_eq_func(tmp, NULL, &sf, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_eq_func(tmp, "U", NULL, &cfg));
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_debug_func(NULL, "U", &sf, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_debug_func(tmp, NULL, &sf, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_debug_func(tmp, "U", NULL, &cfg));
+
+  ASSERT_EQ(CDD_C_SUCCESS, write_union_cleanup_func(tmp, "MyU", &sf, &cfg));
+  ASSERT_EQ(CDD_C_SUCCESS, write_union_default_func(tmp, "MyU", &sf, &cfg));
+  ASSERT_EQ(CDD_C_SUCCESS, write_union_deepcopy_func(tmp, "MyU", &sf, &cfg));
+  ASSERT_EQ(CDD_C_SUCCESS, write_union_eq_func(tmp, "MyU", &sf, &cfg));
+  ASSERT_EQ(CDD_C_SUCCESS, write_union_debug_func(tmp, "MyU", &sf, &cfg));
+
+  {
+    struct CodegenTypesConfig empty_cfg = {0};
+    ASSERT_EQ(CDD_C_SUCCESS,
+              write_union_cleanup_func(tmp, "MyU", &sf, &empty_cfg));
+    ASSERT_EQ(CDD_C_SUCCESS, write_union_default_func(tmp, "MyU", &sf, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              write_union_default_func(tmp, "MyU", &sf, &empty_cfg));
+    ASSERT_EQ(CDD_C_SUCCESS, write_union_deepcopy_func(tmp, "MyU", &sf, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              write_union_deepcopy_func(tmp, "MyU", &sf, &empty_cfg));
+    ASSERT_EQ(CDD_C_SUCCESS, write_union_eq_func(tmp, "MyU", &sf, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, write_union_eq_func(tmp, "MyU", &sf, &empty_cfg));
+    ASSERT_EQ(CDD_C_SUCCESS, write_union_debug_func(tmp, "MyU", &sf, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              write_union_debug_func(tmp, "MyU", &sf, &empty_cfg));
+  }
+
+  fseek(tmp, 0, SEEK_END);
+  sz = ftell(tmp);
+  rewind(tmp);
+  content = (char *)calloc(1, (size_t)sz + 1);
+  if (fread(content, 1, (size_t)sz, tmp)) {
+  }
+
+  ASSERT(strstr(content, "MyU_default(struct MyU **out)"));
+  ASSERT(strstr(content, "MyU_deepcopy(const struct MyU *src"));
+  ASSERT(strstr(content, "Child_deepcopy(src->data.v_obj"));
+  ASSERT(strstr(content, "Item_deepcopy(src->data.v_arr_obj.v_arr_obj[_i]"));
+  ASSERT(strstr(content, "MyU_eq(const struct MyU *a, const struct MyU *b"));
+  ASSERT(strstr(content, "Child_eq(a->data.v_obj, b->data.v_obj"));
+  ASSERT(strstr(content, "MyU_debug(const struct MyU *obj, FILE *fp)"));
+  ASSERT(strstr(content, "Child_debug(obj->data.v_obj, fp)"));
+  free(content);
+
+  for (k = 0; k < 40; ++k) {
+    cdd_c_error_t rc_io;
+    g_fail_io_after = k;
+    g_io_calls = 0;
+    rc_io = write_union_default_func(tmp, "MyU", &sf, &cfg);
+    g_fail_io_after = -1;
+    if (rc_io == CDD_C_SUCCESS)
+      break;
+  }
+  for (k = 0; k < 60; ++k) {
+    cdd_c_error_t rc_io;
+    g_fail_io_after = k;
+    g_io_calls = 0;
+    rc_io = write_union_deepcopy_func(tmp, "MyU", &sf, &cfg);
+    g_fail_io_after = -1;
+    if (rc_io == CDD_C_SUCCESS)
+      break;
+  }
+  for (k = 0; k < 60; ++k) {
+    cdd_c_error_t rc_io;
+    g_fail_io_after = k;
+    g_io_calls = 0;
+    rc_io = write_union_eq_func(tmp, "MyU", &sf, &cfg);
+    g_fail_io_after = -1;
+    if (rc_io == CDD_C_SUCCESS)
+      break;
+  }
+  for (k = 0; k < 60; ++k) {
+    cdd_c_error_t rc_io;
+    g_fail_io_after = k;
+    g_io_calls = 0;
+    rc_io = write_union_debug_func(tmp, "MyU", &sf, &cfg);
+    g_fail_io_after = -1;
+    if (rc_io == CDD_C_SUCCESS)
+      break;
+  }
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_str_after_last;
+    int f_idx;
+    for (f_idx = 1; f_idx <= 4; ++f_idx) {
+      g_cdd_fail_str_after_last = f_idx;
+      ASSERT_NEQ(CDD_C_SUCCESS,
+                 write_union_to_json_func(tmp, "MyU", &sf, NULL));
+    }
+    for (f_idx = 1; f_idx <= 2; ++f_idx) {
+      g_cdd_fail_str_after_last = f_idx;
+      ASSERT_NEQ(CDD_C_SUCCESS,
+                 write_union_cleanup_func(tmp, "MyU", &sf, NULL));
+      g_cdd_fail_str_after_last = f_idx;
+      ASSERT_NEQ(CDD_C_SUCCESS,
+                 write_union_deepcopy_func(tmp, "MyU", &sf, NULL));
+      g_cdd_fail_str_after_last = f_idx;
+      ASSERT_NEQ(CDD_C_SUCCESS, write_union_eq_func(tmp, "MyU", &sf, NULL));
+    }
+    g_cdd_fail_str_after_last = 1;
+    ASSERT_NEQ(CDD_C_SUCCESS, write_union_debug_func(tmp, "MyU", &sf, NULL));
+
+    g_cdd_fail_str_after_last = 1;
+    ASSERT_NEQ(CDD_C_SUCCESS,
+               write_union_from_jsonObject_func(tmp, "MyU", &sf, NULL));
+    CDD_STRCPY(sf.serde_tag, sizeof(sf.serde_tag), "t");
+    g_cdd_fail_str_after_last = 1;
+    ASSERT_NEQ(CDD_C_SUCCESS,
+               write_union_from_jsonObject_func(tmp, "MyU", &sf, NULL));
+    CDD_STRCPY(sf.serde_content, sizeof(sf.serde_content), "c");
+    g_cdd_fail_str_after_last = 1;
+    ASSERT_NEQ(CDD_C_SUCCESS,
+               write_union_from_jsonObject_func(tmp, "MyU", &sf, NULL));
+    sf.serde_untagged = 1;
+    g_cdd_fail_str_after_last = 1;
+    ASSERT_NEQ(CDD_C_SUCCESS,
+               write_union_from_jsonObject_func(tmp, "MyU", &sf, NULL));
+    g_cdd_fail_str_after_last = 0;
+  }
+#endif
+
+  struct_fields_free(&sf);
+  fclose(tmp);
+  PASS();
+}
+
+/**
  * @brief Executes the codegen_types_suite test suite.
  */
 SUITE(codegen_types_suite) {
@@ -750,6 +978,7 @@ SUITE(codegen_types_suite) {
   RUN_TEST(test_types_null_args);
   RUN_TEST(test_types_io_fail);
   RUN_TEST(test_types_edge_cases_no_io);
+  RUN_TEST(test_union_lifecycle_parity);
 }
 
 #ifdef __cplusplus

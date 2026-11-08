@@ -346,8 +346,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_from_json(const char *json_str,
 /**
  * @brief Frees all memory associated with the FFI IR.
  * @param[in,out] ir The IR to free.
+ * @return CDD_C_SUCCESS.
  */
-C_CDD_EXPORT void cdd_ffi_ir_free(cdd_ffi_ir_t *ir);
+C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_free(cdd_ffi_ir_t *ir);
 
 #ifdef __cplusplus
 }

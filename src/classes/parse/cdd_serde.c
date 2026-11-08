@@ -762,10 +762,12 @@ cdd_c_error_t cdd_escape_json_c_str(const char *raw, char *out, size_t out_sz) {
       out[pos++] = '\\';
       out[pos++] = 't';
     } else if (uc < 0x20) {
-      if (pos + 4 < out_sz) {
+      if (pos + 6 < out_sz) {
         static const char hex[] = "0123456789abcdef";
         out[pos++] = '\\';
-        out[pos++] = 'x';
+        out[pos++] = 'u';
+        out[pos++] = '0';
+        out[pos++] = '0';
         out[pos++] = hex[(uc >> 4) & 0x0F];
         out[pos++] = hex[uc & 0x0F];
       }

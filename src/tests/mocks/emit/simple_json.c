@@ -48,7 +48,7 @@ char *strdup(const char *s);
 #endif
 #endif
 
-#include <parson.h>
+#include "c_cdd/json_dom.h"
 
 #include <c89stringutils_string_extras.h>
 
@@ -369,15 +369,16 @@ cleanup:
 cdd_c_error_t HazE_from_jsonObject(const JSON_Object *jsonObject,
                                    struct HazE **haz_e) {
   const char *bzr_str = NULL;
-  const char *tank_str;
+  const char *tank_str = NULL;
   enum Tank tank_val;
   struct HazE *new_haz;
 
   if (jsonObject == NULL || haz_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  tank_str = json_object_get_string(jsonObject, "tank");
-  if (tank_str == NULL)
+  if (cdd_json_object_get_string(jsonObject, "tank", &tank_str) !=
+          CDD_C_SUCCESS ||
+      tank_str == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   Tank_from_str(tank_str, &tank_val);
 
@@ -385,8 +386,9 @@ cdd_c_error_t HazE_from_jsonObject(const JSON_Object *jsonObject,
   if (new_haz == NULL)
     return CDD_C_ERROR_MEMORY;
 
-  bzr_str = json_object_get_string(jsonObject, "bzr");
-  if (bzr_str) {
+  if (cdd_json_object_get_string(jsonObject, "bzr", &bzr_str) ==
+          CDD_C_SUCCESS &&
+      bzr_str != NULL) {
     new_haz->bzr = strdup(bzr_str);
     if (new_haz->bzr == NULL) {
       free(new_haz);
@@ -403,23 +405,22 @@ cdd_c_error_t HazE_from_jsonObject(const JSON_Object *jsonObject,
 
 cdd_c_error_t HazE_from_json(const char *json, struct HazE **haz_e) {
   JSON_Value *root = NULL;
-  const JSON_Object *jsonObject = NULL;
+  JSON_Object *jsonObject = NULL;
   int rc = 0;
   if (json == NULL || haz_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  root = json_parse_string(json);
-  if (root == NULL)
+  if (cdd_json_parse_string(json, &root) != CDD_C_SUCCESS || root == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  jsonObject = json_value_get_object(root);
+  cdd_json_value_get_object(root, &jsonObject);
   if (jsonObject == NULL) {
-    json_value_free(root);
+    cdd_json_value_free(root);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   rc = HazE_from_jsonObject(jsonObject, haz_e);
-  json_value_free(root);
+  cdd_json_value_free(root);
   return rc;
 }
 
@@ -606,7 +607,8 @@ cdd_c_error_t FooE_from_jsonObject(const JSON_Object *jsonObject,
                                    struct FooE **foo_e) {
   int rc = 0;
   const char *bar_str = NULL;
-  const JSON_Object *haz_obj = NULL;
+  double can_num = 0.0;
+  JSON_Object *haz_obj = NULL;
   struct FooE *new_foo;
 
   if (jsonObject == NULL || foo_e == NULL)
@@ -616,8 +618,9 @@ cdd_c_error_t FooE_from_jsonObject(const JSON_Object *jsonObject,
   if (new_foo == NULL)
     return CDD_C_ERROR_MEMORY;
 
-  bar_str = json_object_get_string(jsonObject, "bar");
-  if (bar_str) {
+  if (cdd_json_object_get_string(jsonObject, "bar", &bar_str) ==
+          CDD_C_SUCCESS &&
+      bar_str != NULL) {
     new_foo->bar = strdup(bar_str);
     if (new_foo->bar == NULL) {
       free(new_foo);
@@ -625,10 +628,14 @@ cdd_c_error_t FooE_from_jsonObject(const JSON_Object *jsonObject,
     }
   }
 
-  new_foo->can = (int)json_object_get_number(jsonObject, "can");
+  if (cdd_json_object_get_number(jsonObject, "can", &can_num) ==
+      CDD_C_SUCCESS) {
+    new_foo->can = (int)can_num;
+  }
 
-  haz_obj = json_object_get_object(jsonObject, "haz");
-  if (haz_obj != NULL) {
+  if (cdd_json_object_get_object(jsonObject, "haz", &haz_obj) ==
+          CDD_C_SUCCESS &&
+      haz_obj != NULL) {
     rc = HazE_from_jsonObject(haz_obj, &new_foo->haz);
     if (rc != 0) {
       FooE_cleanup(new_foo);
@@ -642,24 +649,23 @@ cdd_c_error_t FooE_from_jsonObject(const JSON_Object *jsonObject,
 
 cdd_c_error_t FooE_from_json(const char *json, struct FooE **foo_e) {
   JSON_Value *root = NULL;
-  const JSON_Object *jsonObject = NULL;
+  JSON_Object *jsonObject = NULL;
   int rc = 0;
 
   if (json == NULL || foo_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  root = json_parse_string(json);
-  if (root == NULL)
+  if (cdd_json_parse_string(json, &root) != CDD_C_SUCCESS || root == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  jsonObject = json_value_get_object(root);
+  cdd_json_value_get_object(root, &jsonObject);
   if (jsonObject == NULL) {
-    json_value_free(root);
+    cdd_json_value_free(root);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   rc = FooE_from_jsonObject(jsonObject, foo_e);
-  json_value_free(root);
+  cdd_json_value_free(root);
   return rc;
 }
 

@@ -210,8 +210,7 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
   cdd_cst_query_result_t res;
   size_t i;
   cdd_c_error_t rc = CDD_C_SUCCESS;
-  int added_compat = 0;
-  (void)config;
+  int added_compat = (int)(config == NULL) & 0;
 
   if (!tree || !tree->root)
     return CDD_C_ERROR_INVALID_ARGUMENT;

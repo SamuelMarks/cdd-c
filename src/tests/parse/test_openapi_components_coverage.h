@@ -55,7 +55,11 @@ TEST test_openapi_component_parameters_branches(void) {
   /* 1. NULL components or NULL spec */
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_parameters(NULL, &spec));
 
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_parameters(jo, NULL));
@@ -65,7 +69,11 @@ TEST test_openapi_component_parameters_branches(void) {
   json_value_free(jv);
 
   /* 3. Invalid component key map */
-  jv = json_parse_string("{\"parameters\": {\"bad key!\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"parameters\": {\"bad key!\": {}}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -73,14 +81,22 @@ TEST test_openapi_component_parameters_branches(void) {
   json_value_free(jv);
 
   /* 4. Empty parameters */
-  jv = json_parse_string("{\"parameters\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"parameters\": {}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_parameters(jo, &spec));
   json_value_free(jv);
 
   /* 5. Non-object value in parameters (p_obj == NULL) */
-  jv = json_parse_string("{\"parameters\": {\"p1\": 123}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"parameters\": {\"p1\": 123}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_parameters(jo, &spec));
@@ -88,7 +104,12 @@ TEST test_openapi_component_parameters_branches(void) {
   json_value_free(jv);
 
   /* 6. Invalid parameter object (parse_parameter_object error) */
-  jv = json_parse_string("{\"parameters\": {\"p1\": {\"name\": \"foo\"}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"parameters\": {\"p1\": {\"name\": \"foo\"}}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_component_parameters(jo, &spec));
@@ -96,9 +117,14 @@ TEST test_openapi_component_parameters_branches(void) {
   json_value_free(jv);
 
   /* 7. Valid parameter object */
-  jv = json_parse_string(
-      "{\"parameters\": {\"p1\": {\"name\": \"foo\", \"in\": \"query\", "
-      "\"schema\": {\"type\": \"string\"}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"parameters\": {\"p1\": {\"name\": \"foo\", \"in\": \"query\", "
+        "\"schema\": {\"type\": \"string\"}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_parameters(jo, &spec));
@@ -145,7 +171,11 @@ TEST test_openapi_component_responses_branches(void) {
   /* 1. NULL components or NULL spec */
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_responses(NULL, &spec));
 
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_responses(jo, NULL));
@@ -155,21 +185,33 @@ TEST test_openapi_component_responses_branches(void) {
   json_value_free(jv);
 
   /* 3. Invalid component key map */
-  jv = json_parse_string("{\"responses\": {\"bad key!\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"responses\": {\"bad key!\": {}}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_component_responses(jo, &spec));
   json_value_free(jv);
 
   /* 4. Empty responses */
-  jv = json_parse_string("{\"responses\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"responses\": {}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_responses(jo, &spec));
   json_value_free(jv);
 
   /* 5. Non-object value in responses (r_obj == NULL) */
-  jv = json_parse_string("{\"responses\": {\"r1\": 123}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"responses\": {\"r1\": 123}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_responses(jo, &spec));
@@ -177,9 +219,14 @@ TEST test_openapi_component_responses_branches(void) {
   json_value_free(jv);
 
   /* 6. Invalid response object (parse_response_object error) */
-  jv = json_parse_string(
-      "{\"responses\": {\"r1\": {\"headers\": {\"X-Header\": {\"style\": "
-      "\"form\"}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"responses\": {\"r1\": {\"headers\": {\"X-Header\": {\"style\": "
+        "\"form\"}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_component_responses(jo, &spec));
@@ -187,8 +234,13 @@ TEST test_openapi_component_responses_branches(void) {
   json_value_free(jv);
 
   /* 7. Valid response object */
-  jv = json_parse_string(
-      "{\"responses\": {\"r1\": {\"description\": \"Success response\"}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"responses\": {\"r1\": {\"description\": \"Success response\"}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_responses(jo, &spec));
@@ -235,7 +287,11 @@ TEST test_openapi_component_headers_branches(void) {
   /* 1. NULL components or NULL spec */
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_headers(NULL, &spec));
 
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_headers(jo, NULL));
@@ -245,21 +301,33 @@ TEST test_openapi_component_headers_branches(void) {
   json_value_free(jv);
 
   /* 3. Invalid component key map */
-  jv = json_parse_string("{\"headers\": {\"bad key!\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"headers\": {\"bad key!\": {}}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_component_headers(jo, &spec));
   json_value_free(jv);
 
   /* 4. Empty headers */
-  jv = json_parse_string("{\"headers\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"headers\": {}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_headers(jo, &spec));
   json_value_free(jv);
 
   /* 5. Non-object value in headers (h_obj == NULL) */
-  jv = json_parse_string("{\"headers\": {\"h1\": 123}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"headers\": {\"h1\": 123}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_headers(jo, &spec));
@@ -267,7 +335,12 @@ TEST test_openapi_component_headers_branches(void) {
   json_value_free(jv);
 
   /* 6. Invalid header object (parse_header_object error: style form invalid) */
-  jv = json_parse_string("{\"headers\": {\"h1\": {\"style\": \"form\"}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"headers\": {\"h1\": {\"style\": \"form\"}}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_component_headers(jo, &spec));
@@ -275,9 +348,14 @@ TEST test_openapi_component_headers_branches(void) {
   json_value_free(jv);
 
   /* 7. Valid header object */
-  jv = json_parse_string(
-      "{\"headers\": {\"X-Rate-Limit\": {\"description\": "
-      "\"calls left\", \"schema\": {\"type\": \"integer\"}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"headers\": {\"X-Rate-Limit\": {\"description\": "
+        "\"calls left\", \"schema\": {\"type\": \"integer\"}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_headers(jo, &spec));
@@ -324,7 +402,11 @@ TEST test_openapi_component_request_bodies_branches(void) {
   /* 1. NULL components or NULL spec */
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_request_bodies(NULL, &spec));
 
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_request_bodies(jo, NULL));
@@ -334,7 +416,12 @@ TEST test_openapi_component_request_bodies_branches(void) {
   json_value_free(jv);
 
   /* 3. Invalid component key map */
-  jv = json_parse_string("{\"requestBodies\": {\"bad key!\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"requestBodies\": {\"bad key!\": {}}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -342,14 +429,22 @@ TEST test_openapi_component_request_bodies_branches(void) {
   json_value_free(jv);
 
   /* 4. Empty requestBodies */
-  jv = json_parse_string("{\"requestBodies\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"requestBodies\": {}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_request_bodies(jo, &spec));
   json_value_free(jv);
 
   /* 5. Non-object value in requestBodies (rb_obj == NULL) */
-  jv = json_parse_string("{\"requestBodies\": {\"rb1\": 123}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"requestBodies\": {\"rb1\": 123}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_request_bodies(jo, &spec));
@@ -358,8 +453,13 @@ TEST test_openapi_component_request_bodies_branches(void) {
 
   /* 6. Invalid request body object (parse_request_body_object error: no
    * content) */
-  jv = json_parse_string(
-      "{\"requestBodies\": {\"rb1\": {\"description\": \"no content\"}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"requestBodies\": {\"rb1\": {\"description\": \"no content\"}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_component_request_bodies(jo, &spec));
@@ -367,10 +467,15 @@ TEST test_openapi_component_request_bodies_branches(void) {
   json_value_free(jv);
 
   /* 7. Valid requestBody object */
-  jv = json_parse_string(
-      "{\"requestBodies\": {\"UserBody\": {\"description\": "
-      "\"user body\", \"required\": true, \"content\": "
-      "{\"application/json\": {\"schema\": {\"type\": \"string\"}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"requestBodies\": {\"UserBody\": {\"description\": "
+        "\"user body\", \"required\": true, \"content\": "
+        "{\"application/json\": {\"schema\": {\"type\": \"string\"}}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_request_bodies(jo, &spec));
@@ -417,7 +522,11 @@ TEST test_openapi_component_media_types_branches(void) {
   /* 1. NULL components or NULL spec */
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_media_types(NULL, &spec));
 
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_media_types(jo, NULL));
@@ -427,8 +536,12 @@ TEST test_openapi_component_media_types_branches(void) {
   json_value_free(jv);
 
   /* 3. Invalid media type key map (with space) */
-  jv = json_parse_string(
-      "{\"mediaTypes\": {\"bad media type with spaces\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"mediaTypes\": {\"bad media type with spaces\": {}}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -436,14 +549,23 @@ TEST test_openapi_component_media_types_branches(void) {
   json_value_free(jv);
 
   /* 4. Empty mediaTypes */
-  jv = json_parse_string("{\"mediaTypes\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"mediaTypes\": {}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_media_types(jo, &spec));
   json_value_free(jv);
 
   /* 5. Non-object value in mediaTypes (mt_obj == NULL) */
-  jv = json_parse_string("{\"mediaTypes\": {\"application/json\": 123}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"mediaTypes\": {\"application/json\": 123}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_media_types(jo, &spec));
@@ -451,9 +573,14 @@ TEST test_openapi_component_media_types_branches(void) {
   json_value_free(jv);
 
   /* 6. Invalid media type object (conflicting encoding and prefixEncoding) */
-  jv = json_parse_string(
-      "{\"mediaTypes\": {\"application/json\": {\"encoding\": {}, "
-      "\"prefixEncoding\": []}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"mediaTypes\": {\"application/json\": {\"encoding\": {}, "
+        "\"prefixEncoding\": []}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_component_media_types(jo, &spec));
@@ -461,8 +588,14 @@ TEST test_openapi_component_media_types_branches(void) {
   json_value_free(jv);
 
   /* 7. Valid media type object */
-  jv = json_parse_string("{\"mediaTypes\": {\"application/json\": {\"schema\": "
-                         "{\"type\": \"string\"}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"mediaTypes\": {\"application/json\": {\"schema\": "
+        "{\"type\": \"string\"}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_media_types(jo, &spec));
@@ -516,7 +649,11 @@ TEST test_openapi_component_examples_branches(void) {
   /* 1. NULL components or NULL spec */
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_examples(NULL, &spec));
 
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_examples(jo, NULL));
@@ -526,21 +663,33 @@ TEST test_openapi_component_examples_branches(void) {
   json_value_free(jv);
 
   /* 3. Invalid component key map */
-  jv = json_parse_string("{\"examples\": {\"bad key!\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"examples\": {\"bad key!\": {}}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_component_examples(jo, &spec));
   json_value_free(jv);
 
   /* 4. Empty examples */
-  jv = json_parse_string("{\"examples\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"examples\": {}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_examples(jo, &spec));
   json_value_free(jv);
 
   /* 5. Non-object value in examples (ex_obj == NULL) */
-  jv = json_parse_string("{\"examples\": {\"ex1\": 123}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"examples\": {\"ex1\": 123}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_examples(jo, &spec));
@@ -549,8 +698,13 @@ TEST test_openapi_component_examples_branches(void) {
 
   /* 6. Invalid example object (parse_example_object error: both dataValue and
    * value) */
-  jv = json_parse_string("{\"examples\": {\"ex1\": {\"dataValue\": \"foo\", "
-                         "\"value\": \"bar\"}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"examples\": {\"ex1\": {\"dataValue\": \"foo\", "
+                          "\"value\": \"bar\"}}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_component_examples(jo, &spec));
@@ -558,8 +712,13 @@ TEST test_openapi_component_examples_branches(void) {
   json_value_free(jv);
 
   /* 7. Valid example object */
-  jv = json_parse_string(
-      "{\"examples\": {\"ex1\": {\"summary\": \"sample\", \"value\": 42}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"examples\": {\"ex1\": {\"summary\": \"sample\", \"value\": 42}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_examples(jo, &spec));
@@ -606,7 +765,11 @@ TEST test_openapi_component_links_branches(void) {
   /* 1. NULL components or NULL spec */
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_links(NULL, &spec));
 
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_links(jo, NULL));
@@ -616,21 +779,33 @@ TEST test_openapi_component_links_branches(void) {
   json_value_free(jv);
 
   /* 3. Invalid component key map */
-  jv = json_parse_string("{\"links\": {\"bad key!\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"links\": {\"bad key!\": {}}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_component_links(jo, &spec));
   json_value_free(jv);
 
   /* 4. Empty links */
-  jv = json_parse_string("{\"links\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"links\": {}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_links(jo, &spec));
   json_value_free(jv);
 
   /* 5. Non-object value in links (link_obj == NULL) */
-  jv = json_parse_string("{\"links\": {\"l1\": 123}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"links\": {\"l1\": 123}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_links(jo, &spec));
@@ -638,9 +813,14 @@ TEST test_openapi_component_links_branches(void) {
   json_value_free(jv);
 
   /* 6. Invalid link object (both operationId and operationRef) */
-  jv = json_parse_string(
-      "{\"links\": {\"l1\": {\"operationId\": \"op\", \"operationRef\": "
-      "\"ref\"}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"links\": {\"l1\": {\"operationId\": \"op\", \"operationRef\": "
+        "\"ref\"}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_component_links(jo, &spec));
@@ -648,8 +828,13 @@ TEST test_openapi_component_links_branches(void) {
   json_value_free(jv);
 
   /* 7. Valid link object */
-  jv = json_parse_string(
-      "{\"links\": {\"GetUser\": {\"operationId\": \"getUser\"}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"links\": {\"GetUser\": {\"operationId\": \"getUser\"}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_links(jo, &spec));
@@ -689,7 +874,11 @@ TEST test_openapi_component_callbacks_branches(void) {
   /* 1. NULL components or NULL spec */
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_callbacks(NULL, &spec));
 
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_callbacks(jo, NULL));
@@ -699,21 +888,33 @@ TEST test_openapi_component_callbacks_branches(void) {
   json_value_free(jv);
 
   /* 3. Invalid component key map */
-  jv = json_parse_string("{\"callbacks\": {\"bad key!\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"callbacks\": {\"bad key!\": {}}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_component_callbacks(jo, &spec));
   json_value_free(jv);
 
   /* 4. Empty callbacks */
-  jv = json_parse_string("{\"callbacks\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"callbacks\": {}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_callbacks(jo, &spec));
   json_value_free(jv);
 
   /* 5. Non-object value in callbacks (cb_obj == NULL) */
-  jv = json_parse_string("{\"callbacks\": {\"cb1\": 123}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"callbacks\": {\"cb1\": 123}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_callbacks(jo, &spec));
@@ -722,9 +923,14 @@ TEST test_openapi_component_callbacks_branches(void) {
 
   /* 6. Invalid callback object (parse_callback_object error: empty responses in
    * post) */
-  jv = json_parse_string(
-      "{\"callbacks\": {\"cb1\": {\"{$request.query.url}\": {\"post\": "
-      "{\"responses\": {}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"callbacks\": {\"cb1\": {\"{$request.query.url}\": {\"post\": "
+        "{\"responses\": {}}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_component_callbacks(jo, &spec));
@@ -732,9 +938,14 @@ TEST test_openapi_component_callbacks_branches(void) {
   json_value_free(jv);
 
   /* 7. Valid callback object */
-  jv = json_parse_string(
-      "{\"callbacks\": {\"cb1\": {\"{$request.query.url}\": {\"post\": "
-      "{\"responses\": {\"200\": {\"description\": \"ok\"}}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"callbacks\": {\"cb1\": {\"{$request.query.url}\": {\"post\": "
+        "{\"responses\": {\"200\": {\"description\": \"ok\"}}}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_callbacks(jo, &spec));
@@ -774,7 +985,11 @@ TEST test_openapi_component_path_items_branches(void) {
   /* 1. NULL components or NULL spec */
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_path_items(NULL, &spec));
 
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_path_items(jo, NULL));
@@ -785,7 +1000,12 @@ TEST test_openapi_component_path_items_branches(void) {
 
   /* 3. Invalid component key map (starts with slash, invalid for component key)
    */
-  jv = json_parse_string("{\"pathItems\": {\"/invalid_slash_key\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"pathItems\": {\"/invalid_slash_key\": {}}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -793,7 +1013,12 @@ TEST test_openapi_component_path_items_branches(void) {
   json_value_free(jv);
 
   /* 4. parse_paths_object error */
-  jv = json_parse_string("{\"pathItems\": {\"item\": {\"get\": 123}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"pathItems\": {\"item\": {\"get\": 123}}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_component_path_items(jo, &spec));
@@ -801,15 +1026,25 @@ TEST test_openapi_component_path_items_branches(void) {
   json_value_free(jv);
 
   /* 5. Empty pathItems */
-  jv = json_parse_string("{\"pathItems\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"pathItems\": {}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_path_items(jo, &spec));
   json_value_free(jv);
 
   /* 6. Valid pathItems object */
-  jv = json_parse_string("{\"pathItems\": {\"item\": {\"get\": {\"responses\": "
-                         "{\"200\": {\"description\": \"ok\"}}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"pathItems\": {\"item\": {\"get\": {\"responses\": "
+        "{\"200\": {\"description\": \"ok\"}}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_component_path_items(jo, &spec));
@@ -850,7 +1085,11 @@ TEST test_openapi_components_full_coverage(void) {
   /* 1. NULL components or spec */
   ASSERT_EQ(CDD_C_SUCCESS, parse_components(NULL, &spec));
 
-  jv = json_parse_string("{}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_components(jo, NULL));
@@ -859,82 +1098,138 @@ TEST test_openapi_components_full_coverage(void) {
 
   /* 2. Error percolation for each sub-parser in parse_components */
   /* 2a. parse_security_schemes error */
-  jv = json_parse_string("{\"securitySchemes\": {\"bad key!\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"securitySchemes\": {\"bad key!\": {}}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_components(jo, &spec));
   json_value_free(jv);
 
   /* 2b. parse_component_parameters error */
-  jv = json_parse_string("{\"parameters\": {\"bad key!\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"parameters\": {\"bad key!\": {}}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_components(jo, &spec));
   json_value_free(jv);
 
   /* 2c. parse_component_responses error */
-  jv = json_parse_string("{\"responses\": {\"bad key!\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"responses\": {\"bad key!\": {}}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_components(jo, &spec));
   json_value_free(jv);
 
   /* 2d. parse_component_headers error */
-  jv = json_parse_string("{\"headers\": {\"bad key!\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"headers\": {\"bad key!\": {}}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_components(jo, &spec));
   json_value_free(jv);
 
   /* 2e. parse_component_request_bodies error */
-  jv = json_parse_string("{\"requestBodies\": {\"bad key!\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"requestBodies\": {\"bad key!\": {}}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_components(jo, &spec));
   json_value_free(jv);
 
   /* 2f. parse_component_media_types error */
-  jv = json_parse_string("{\"mediaTypes\": {\"bad key with spaces\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"mediaTypes\": {\"bad key with spaces\": {}}}",
+                          &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_components(jo, &spec));
   json_value_free(jv);
 
   /* 2g. parse_component_examples error */
-  jv = json_parse_string("{\"examples\": {\"bad key!\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"examples\": {\"bad key!\": {}}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_components(jo, &spec));
   json_value_free(jv);
 
   /* 2h. parse_component_links error */
-  jv = json_parse_string("{\"links\": {\"bad key!\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"links\": {\"bad key!\": {}}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_components(jo, &spec));
   json_value_free(jv);
 
   /* 2i. parse_component_callbacks error */
-  jv = json_parse_string("{\"callbacks\": {\"bad key!\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"callbacks\": {\"bad key!\": {}}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_components(jo, &spec));
   json_value_free(jv);
 
   /* 2j. parse_component_path_items error */
-  jv = json_parse_string("{\"pathItems\": {\"bad key!\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"pathItems\": {\"bad key!\": {}}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_NEQ(CDD_C_SUCCESS, parse_components(jo, &spec));
   json_value_free(jv);
 
   /* 3. schemas key validation error */
-  jv = json_parse_string("{\"schemas\": {\"bad key!\": {}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"schemas\": {\"bad key!\": {}}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_components(jo, &spec));
   json_value_free(jv);
 
   /* 4. schemas empty */
-  jv = json_parse_string("{\"schemas\": {}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string("{\"schemas\": {}}", &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_components(jo, &spec));
   json_value_free(jv);
 
   /* 5. swagger definitions */
   spec.swagger_version = cdd_test_mut_str("2.0");
-  jv = json_parse_string(
-      "{\"definitions\": {\"User\": {\"type\": \"object\", \"properties\": "
-      "{\"id\": {\"type\": \"integer\"}}}}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"definitions\": {\"User\": {\"type\": \"object\", \"properties\": "
+        "{\"id\": {\"type\": \"integer\"}}}}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_components(jo, &spec));
   spec.swagger_version = NULL;
@@ -944,16 +1239,21 @@ TEST test_openapi_components_full_coverage(void) {
   /* 6. schemas with struct_compatible + raw (composition) + primitive (raw
    * only) */
   /* and $id, $anchor, $dynamicAnchor */
-  jv = json_parse_string(
-      "{\"schemas\": {"
-      "\"StructOnly\": {\"type\": \"object\", \"$id\": \"http://id\", "
-      "\"$anchor\": "
-      "\"anc\", \"$dynamicAnchor\": \"danc\", \"properties\": {\"a\": "
-      "{\"type\": "
-      "\"string\"}}},"
-      "\"RawOnly\": {\"type\": \"string\"},"
-      "\"Both\": {\"type\": \"object\", \"allOf\": [{\"type\": \"object\"}]}"
-      "}}");
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_parse_string(
+        "{\"schemas\": {"
+        "\"StructOnly\": {\"type\": \"object\", \"$id\": \"http://id\", "
+        "\"$anchor\": "
+        "\"anc\", \"$dynamicAnchor\": \"danc\", \"properties\": {\"a\": "
+        "{\"type\": "
+        "\"string\"}}},"
+        "\"RawOnly\": {\"type\": \"string\"},"
+        "\"Both\": {\"type\": \"object\", \"allOf\": [{\"type\": \"object\"}]}"
+        "}}",
+        &_cdd_jv_1);
+    jv = _cdd_jv_1;
+  }
   ASSERT_NEQ(NULL, jv);
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_components(jo, &spec));
@@ -981,9 +1281,15 @@ TEST test_openapi_components_full_coverage(void) {
 
   /* 9. raw_json serialize failure */
   {
-    JSON_Value *jv_raw = json_parse_string(
-        "{\"schemas\": {\"RawOnly\": {\"type\": \"string\"}}}");
-    const JSON_Object *jo_raw = json_value_get_object(jv_raw);
+    JSON_Value *jv_raw = NULL;
+    const JSON_Object *jo_raw = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(
+          "{\"schemas\": {\"RawOnly\": {\"type\": \"string\"}}}", &_cdd_jv_1);
+      jv_raw = _cdd_jv_1;
+    }
+    jo_raw = json_value_get_object(jv_raw);
     json_set_allocation_functions(mock_components_parson_malloc,
                                   mock_components_parson_free);
     c2openapi_set_json_allocators(mock_components_parson_malloc,

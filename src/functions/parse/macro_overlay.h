@@ -57,8 +57,10 @@ macro_overlay_list_init(struct MacroOverlayList *list);
  * @brief Free resources associated with a macro overlay list.
  *
  * @param[in,out] list The macro overlay list to free.
+ * @return CDD_C_SUCCESS.
  */
-C_CDD_EXPORT void macro_overlay_list_free(struct MacroOverlayList *list);
+C_CDD_EXPORT cdd_c_error_t
+macro_overlay_list_free(struct MacroOverlayList *list);
 
 /**
  * @brief Scan a CST for macro invocations and build the overlay mappings.

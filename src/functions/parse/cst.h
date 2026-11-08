@@ -112,8 +112,9 @@ extern C_CDD_EXPORT cdd_c_error_t cst_list_add(struct CstNodeList *list,
  * Does not free the `struct CstNodeList` pointer itself.
  *
  * @param[in] list The list to clean.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void free_cst_node_list(struct CstNodeList *list);
+extern C_CDD_EXPORT cdd_c_error_t free_cst_node_list(struct CstNodeList *list);
 
 /**
  * @brief Find the first node of a specific kind in the list.

@@ -26,8 +26,8 @@ extern "C" {
  * @param[out] out_bw Output evaluated bit-width (`0` if empty or `"0"`).
  * @return CDD_C_SUCCESS on success.
  */
-extern cdd_c_error_t cdd_struct_eval_bitwidth_str(const char *bw_str,
-                                                  unsigned int *out_bw);
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_struct_eval_bitwidth_str(const char *bw_str, unsigned int *out_bw);
 
 /**
  * @brief Determines the integer/float pointee byte width and signedness of a
@@ -38,9 +38,8 @@ extern cdd_c_error_t cdd_struct_eval_bitwidth_str(const char *bw_str,
  * @param[out] out_unsigned Non-zero if the type is unsigned.
  * @return CDD_C_SUCCESS on success.
  */
-extern cdd_c_error_t
-cdd_reflect_resolve_field_scalar_width(const struct cdd_field_info *field,
-                                       size_t *out_width, int *out_unsigned);
+extern C_CDD_EXPORT cdd_c_error_t cdd_reflect_resolve_field_scalar_width(
+    const struct cdd_field_info *field, size_t *out_width, int *out_unsigned);
 
 /**
  * @brief Cleans up truncated elements `[new_len .. old_len - 1]` of a dynamic
@@ -52,10 +51,9 @@ cdd_reflect_resolve_field_scalar_width(const struct cdd_field_info *field,
  * @param[in] old_len Previous element count.
  * @return CDD_C_SUCCESS on success.
  */
-extern cdd_c_error_t
-cdd_reflect_cleanup_shrunk_array_elements(void *buf,
-                                          const struct cdd_field_info *field,
-                                          size_t new_len, size_t old_len);
+extern C_CDD_EXPORT cdd_c_error_t cdd_reflect_cleanup_shrunk_array_elements(
+    void *buf, const struct cdd_field_info *field, size_t new_len,
+    size_t old_len);
 
 /**
  * @brief Cleans up a single field on `obj` (used by
@@ -65,7 +63,7 @@ cdd_reflect_cleanup_shrunk_array_elements(void *buf,
  * @param[in] f Field descriptor to clean up.
  * @return CDD_C_SUCCESS on success.
  */
-extern cdd_c_error_t
+extern C_CDD_EXPORT cdd_c_error_t
 cdd_reflect_cleanup_single_field(void *obj, const struct cdd_field_info *f);
 
 /**
@@ -77,9 +75,8 @@ cdd_reflect_cleanup_single_field(void *obj, const struct cdd_field_info *f);
  * @param[out] out_eq Set to `1` if equal, `0` otherwise.
  * @return CDD_C_SUCCESS on success, or error code on failure.
  */
-extern cdd_c_error_t cdd_reflect_eq_single_field(const void *a, const void *b,
-                                                 const struct cdd_field_info *f,
-                                                 int *out_eq);
+extern C_CDD_EXPORT cdd_c_error_t cdd_reflect_eq_single_field(
+    const void *a, const void *b, const struct cdd_field_info *f, int *out_eq);
 
 #ifdef __cplusplus
 }

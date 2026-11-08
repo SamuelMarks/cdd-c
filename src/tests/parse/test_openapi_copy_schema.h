@@ -318,7 +318,12 @@ TEST test_openapi_copy_schema_comprehensive(void) {
         "\"OK\",\"content\":{\"application/json\":{\"schema\":{\"type\":"
         "\"integer\",\"minimum\":5,\"exclusiveMinimum\":true,\"maximum\":100,"
         "\"exclusiveMaximum\":true}}}}}}}}}";
-    JSON_Value *jv = json_parse_string(excl_json);
+    JSON_Value *jv = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_parse_string(excl_json, &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
     if (jv) {
       memset(&spec, 0, sizeof(spec));
       rc = openapi_load_from_json(jv, &spec);

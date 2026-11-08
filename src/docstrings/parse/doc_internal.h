@@ -409,8 +409,10 @@ extern C_CDD_EXPORT cdd_c_error_t doc_parse_security_scheme_line(
  * @brief Frees all Arazzo-specific fields within a `DocMetadata` structure.
  *
  * @param[in,out] meta Metadata structure whose Arazzo fields should be freed.
+ * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT void doc_free_arazzo_metadata(struct DocMetadata *meta);
+extern C_CDD_EXPORT cdd_c_error_t
+doc_free_arazzo_metadata(struct DocMetadata *meta);
 
 /**
  * @brief Dispatches and parses Arazzo 1.1.0 docstring directives (`@arazzo`,

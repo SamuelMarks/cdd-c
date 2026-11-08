@@ -647,7 +647,7 @@ TEST test_struct_reflection_and_codegen(void) {
           uti.n_fields = 2;
           uti.tag_offset = offsetof(struct DummyUnion, tag);
 
-          du.tag = 0;
+          du.tag = 1;
           du.data.branch_a = 10;
           ASSERT_EQ(CDD_C_SUCCESS,
                     cdd_reflect_visit_fields(&du, &uti, test_reflect_visitor_cb,
@@ -661,8 +661,8 @@ TEST test_struct_reflection_and_codegen(void) {
           ASSERT_EQ(1, u_cnt);
           ASSERT_EQ(20, du.data.branch_a);
 
-          /* Out-of-bounds tag visits 0 fields */
-          du.tag = -1;
+          /* Out-of-bounds or inactive tag (0, -1, 3) visits 0 fields */
+          du.tag = 0;
           u_cnt = 0;
           ASSERT_EQ(CDD_C_SUCCESS,
                     cdd_reflect_visit_fields(&du, &uti, test_reflect_visitor_cb,
@@ -673,8 +673,8 @@ TEST test_struct_reflection_and_codegen(void) {
                         &du, &uti, test_reflect_mut_visitor_cb, &u_cnt));
           ASSERT_EQ(0, u_cnt);
 
-          /* Skipped active union branch */
-          du.tag = 1;
+          /* Skipped active union branch (tag == 2 -> fields[1]) */
+          du.tag = 2;
           ufields[1].skip = 1;
           ASSERT_EQ(CDD_C_SUCCESS,
                     cdd_reflect_visit_fields(&du, &uti, test_reflect_visitor_cb,
@@ -1548,8 +1548,18 @@ TEST test_struct_reflection_and_codegen(void) {
         fsig.summary = NULL;
         CDD_STRCPY(fsig.return_type, sizeof(fsig.return_type), "void");
         ASSERT_EQ(CDD_C_SUCCESS, write_func_reflect_func(tmp, &fsig, &cfg));
+        fsig.n_params = 0;
+        ASSERT_EQ(CDD_C_SUCCESS, write_func_reflect_func(tmp, &fsig, &cfg));
+        fsig.is_variadic = 1;
+        ASSERT_EQ(CDD_C_SUCCESS, write_func_reflect_func(tmp, &fsig, &cfg));
+        fsig.is_variadic = 0;
+        fsig.n_params = 8;
+        CDD_STRCPY(fps[0].type, sizeof(fps[0].type), "");
+        ASSERT_EQ(CDD_C_SUCCESS, write_func_reflect_func(tmp, &fsig, &cfg));
+        CDD_STRCPY(fps[0].type, sizeof(fps[0].type), "int");
+        CDD_STRCPY(fsig.return_type, sizeof(fsig.return_type), "cdd_c_error_t");
         cfg.guard_macro = "TEST_REFL_GUARD";
-        for (fail_step = 0; fail_step < 20; ++fail_step) {
+        for (fail_step = 0; fail_step < 50; ++fail_step) {
           g_fail_io_after = fail_step;
           g_io_calls = 0;
           rc_step = write_func_reflect_func(tmp, &fsig, &cfg);

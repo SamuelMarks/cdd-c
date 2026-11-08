@@ -324,15 +324,93 @@ TEST test_struct_fields_init_oom(void) {
 
       {
         struct StructFields sf_dc;
+        int fail_step;
         ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf_dc));
-        ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf_dc, "obj_empty",
-                                                   "object", NULL, NULL, NULL));
         ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf_dc, "arr_empty", "array",
                                                    NULL, NULL, NULL));
-        ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf_dc, "arr_slash", "array",
-                                                   "#/", NULL, NULL));
+        sf_dc.fields[sf_dc.size - 1].fixed_array_len = 2;
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  struct_fields_add(&sf_dc, "arr_bool_fix", "array", "boolean",
+                                    NULL, NULL));
+        sf_dc.fields[sf_dc.size - 1].fixed_array_len = 2;
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  struct_fields_add(&sf_dc, "arr_num_fix", "array", "number",
+                                    NULL, NULL));
+        sf_dc.fields[sf_dc.size - 1].fixed_array_len = 2;
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  struct_fields_add(&sf_dc, "arr_enum_fix", "array", "enum",
+                                    NULL, NULL));
+        sf_dc.fields[sf_dc.size - 1].fixed_array_len = 2;
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  struct_fields_add(&sf_dc, "arr_obj_fix", "array", "object",
+                                    NULL, NULL));
+        sf_dc.fields[sf_dc.size - 1].fixed_array_len = 2;
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  struct_fields_add(&sf_dc, "arr_unk_fix", "array", "unknown",
+                                    NULL, NULL));
+        sf_dc.fields[sf_dc.size - 1].fixed_array_len = 2;
+        ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf_dc, "flex_str", "string",
+                                                   NULL, "nullptr", NULL));
+        sf_dc.fields[sf_dc.size - 1].is_flexible_array = 1;
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  struct_fields_add(&sf_dc, "fix_str_null", "string", NULL,
+                                    "nullptr", NULL));
+        sf_dc.fields[sf_dc.size - 1].fixed_array_len = 4;
+        ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf_dc, "flex_arr", "array",
+                                                   "integer", NULL, NULL));
+        sf_dc.fields[sf_dc.size - 1].is_flexible_array = 1;
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  struct_fields_add(&sf_dc, "arr_str_fix", "array", "string",
+                                    NULL, NULL));
+        sf_dc.fields[sf_dc.size - 1].fixed_array_len = 2;
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  struct_fields_add(&sf_dc, "arr_sub_fix", "array",
+                                    "#/definitions/Sub", NULL, NULL));
+        sf_dc.fields[sf_dc.size - 1].fixed_array_len = 2;
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  struct_fields_add(&sf_dc, "arr_obj_dyn", "array", "object",
+                                    NULL, NULL));
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  struct_fields_add(&sf_dc, "arr_unk_dyn", "array", "unknown",
+                                    NULL, NULL));
+        ASSERT_EQ(CDD_C_SUCCESS, struct_fields_add(&sf_dc, "arr_empty_dyn",
+                                                   "array", NULL, NULL, NULL));
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  write_struct_cleanup_func(tmp, "TestDcEdge", &sf_dc, NULL));
         ASSERT_EQ(CDD_C_SUCCESS,
                   write_struct_deepcopy_func(tmp, "TestDcEdge", &sf_dc, NULL));
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  write_struct_default_func(tmp, "TestDcEdge", &sf_dc, NULL));
+        for (fail_step = 0; fail_step < 25; ++fail_step) {
+          cdd_c_error_t rc_step;
+          g_fail_io_after = fail_step;
+          g_io_calls = 0;
+          rc_step = write_struct_deepcopy_func(tmp, "TestDcEdge", &sf_dc, NULL);
+          g_fail_io_after = -1;
+          if (rc_step == CDD_C_SUCCESS)
+            break;
+        }
+#ifdef CDD_BUILD_TESTS
+        {
+          extern C_CDD_EXPORT int g_cdd_fail_str_after_last;
+          g_cdd_fail_str_after_last = 1;
+          ASSERT_NEQ(CDD_C_SUCCESS, write_struct_cleanup_func(tmp, "TestDcEdge",
+                                                              &sf_dc, NULL));
+          g_cdd_fail_str_after_last = 1;
+          ASSERT_NEQ(CDD_C_SUCCESS, write_struct_cleanup_func(
+                                        tmp, "TestObjFail", &sf_obj, NULL));
+          g_cdd_fail_str_after_last = 1;
+          ASSERT_NEQ(CDD_C_SUCCESS, write_struct_deepcopy_func(
+                                        tmp, "TestObjFail", &sf_obj, NULL));
+          g_cdd_fail_str_after_last = 1;
+          ASSERT_NEQ(CDD_C_SUCCESS, write_struct_deepcopy_func(
+                                        tmp, "TestDcEdge", &sf_dc, NULL));
+          g_cdd_fail_str_after_last = 1;
+          ASSERT_NEQ(CDD_C_SUCCESS, write_struct_deepcopy_func(
+                                        tmp, "TestArrFail", &sf_arr, NULL));
+          g_cdd_fail_str_after_last = 0;
+        }
+#endif
         struct_fields_free(&sf_dc);
       }
 

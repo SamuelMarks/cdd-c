@@ -78,11 +78,12 @@ cdd_c_error_t vla_site_list_init(struct VLASiteList *list) {
  * @brief Frees a VLA site list.
  *
  * @param[in,out] list Pointer to the VLASiteList structure to free.
+ * @return CDD_C_SUCCESS.
  */
-void vla_site_list_free(struct VLASiteList *list) {
+cdd_c_error_t vla_site_list_free(struct VLASiteList *list) {
   size_t i;
   if (!list)
-    return;
+    return CDD_C_SUCCESS;
   if (list->sites) {
     for (i = 0; i < list->count; i++) {
       if (list->sites[i].type_str)
@@ -94,7 +95,7 @@ void vla_site_list_free(struct VLASiteList *list) {
     }
     C_CDD_FREE(list->sites);
   }
-  vla_site_list_init(list);
+  return vla_site_list_init(list);
 }
 
 /**

@@ -8,6 +8,1872 @@
 #include "openapi/parse/openapi_internal.h"
 /* clang-format on */
 
+/** @brief Reflected fields for `OpenAPI_Contact`. */
+static const struct cdd_field_info g_openapi_contact_fields[] = {
+    {"name",
+     "name",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Contact, name),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"url",
+     "url",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Contact, url),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"email",
+     "email",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Contact, email),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info OpenAPI_Contact_type_info = {
+    "OpenAPI_Contact",
+    sizeof(struct OpenAPI_Contact),
+    0,
+    g_openapi_contact_fields,
+    sizeof(g_openapi_contact_fields) / sizeof(g_openapi_contact_fields[0]),
+    0};
+
+/** @brief Reflected fields for `OpenAPI_License`. */
+static const struct cdd_field_info g_openapi_license_fields[] = {
+    {"name",
+     "name",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_License, name),
+     sizeof(char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"identifier",
+     "identifier",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_License, identifier),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"url",
+     "url",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_License, url),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info OpenAPI_License_type_info = {
+    "OpenAPI_License",
+    sizeof(struct OpenAPI_License),
+    0,
+    g_openapi_license_fields,
+    sizeof(g_openapi_license_fields) / sizeof(g_openapi_license_fields[0]),
+    0};
+
+/** @brief Reflected fields for `OpenAPI_Info`. */
+static const struct cdd_field_info g_openapi_info_fields[] = {
+    {"title",
+     "title",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Info, title),
+     sizeof(char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"summary",
+     "summary",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Info, summary),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"description",
+     "description",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Info, description),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"terms_of_service",
+     "termsOfService",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Info, terms_of_service),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"version",
+     "version",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Info, version),
+     sizeof(char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info OpenAPI_Info_type_info = {
+    "OpenAPI_Info",
+    sizeof(struct OpenAPI_Info),
+    0,
+    g_openapi_info_fields,
+    sizeof(g_openapi_info_fields) / sizeof(g_openapi_info_fields[0]),
+    0};
+
+/** @brief Reflected fields for `OpenAPI_ExternalDocs`. */
+static const struct cdd_field_info g_openapi_external_docs_fields[] = {
+    {"description",
+     "description",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_ExternalDocs, description),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"url",
+     "url",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_ExternalDocs, url),
+     sizeof(char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info OpenAPI_ExternalDocs_type_info = {
+    "OpenAPI_ExternalDocs",
+    sizeof(struct OpenAPI_ExternalDocs),
+    0,
+    g_openapi_external_docs_fields,
+    sizeof(g_openapi_external_docs_fields) /
+        sizeof(g_openapi_external_docs_fields[0]),
+    0};
+
+/** @brief Reflected fields for `OpenAPI_Tag`. */
+static const struct cdd_field_info g_openapi_tag_fields[] = {
+    {"summary",
+     "summary",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Tag, summary),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"description",
+     "description",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Tag, description),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"parent",
+     "parent",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Tag, parent),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"kind",
+     "kind",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Tag, kind),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info OpenAPI_Tag_type_info = {
+    "OpenAPI_Tag",
+    sizeof(struct OpenAPI_Tag),
+    0,
+    g_openapi_tag_fields,
+    sizeof(g_openapi_tag_fields) / sizeof(g_openapi_tag_fields[0]),
+    0};
+
+/** @brief Reflected fields for `OpenAPI_ServerVariable`. */
+static const struct cdd_field_info g_openapi_server_variable_fields[] = {
+    {"default_value",
+     "default",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_ServerVariable, default_value),
+     sizeof(char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"description",
+     "description",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_ServerVariable, description),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info OpenAPI_ServerVariable_type_info = {
+    "OpenAPI_ServerVariable",
+    sizeof(struct OpenAPI_ServerVariable),
+    0,
+    g_openapi_server_variable_fields,
+    sizeof(g_openapi_server_variable_fields) /
+        sizeof(g_openapi_server_variable_fields[0]),
+    0};
+
+/** @brief Reflected fields for `OpenAPI_Server`. */
+static const struct cdd_field_info g_openapi_server_fields[] = {
+    {"description",
+     "description",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Server, description),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"name",
+     "name",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Server, name),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info OpenAPI_Server_type_info = {
+    "OpenAPI_Server",
+    sizeof(struct OpenAPI_Server),
+    0,
+    g_openapi_server_fields,
+    sizeof(g_openapi_server_fields) / sizeof(g_openapi_server_fields[0]),
+    0};
+
+/** @brief Reflected fields for `OpenAPI_Xml`. */
+static const struct cdd_field_info g_openapi_xml_fields[] = {
+    {"name",
+     "name",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Xml, name),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"namespace_uri",
+     "namespace",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Xml, namespace_uri),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"prefix",
+     "prefix",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Xml, prefix),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info OpenAPI_Xml_type_info = {
+    "OpenAPI_Xml",
+    sizeof(struct OpenAPI_Xml),
+    0,
+    g_openapi_xml_fields,
+    sizeof(g_openapi_xml_fields) / sizeof(g_openapi_xml_fields[0]),
+    0};
+
+/** @brief Reflected fields for `OpenAPI_Discriminator`. */
+static const struct cdd_field_info g_openapi_discriminator_fields[] = {
+    {"property_name",
+     "propertyName",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Discriminator, property_name),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"default_mapping",
+     "defaultMapping",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Discriminator, default_mapping),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info OpenAPI_Discriminator_type_info = {
+    "OpenAPI_Discriminator",
+    sizeof(struct OpenAPI_Discriminator),
+    0,
+    g_openapi_discriminator_fields,
+    sizeof(g_openapi_discriminator_fields) /
+        sizeof(g_openapi_discriminator_fields[0]),
+    0};
+
+/** @brief Reflected fields for `OpenAPI_OAuthFlow`. */
+static const struct cdd_field_info g_openapi_oauth_flow_fields[] = {
+    {"authorization_url",
+     "authorizationUrl",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_OAuthFlow, authorization_url),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"token_url",
+     "tokenUrl",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_OAuthFlow, token_url),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"refresh_url",
+     "refreshUrl",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_OAuthFlow, refresh_url),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"device_authorization_url",
+     "deviceAuthorizationUrl",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_OAuthFlow, device_authorization_url),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info OpenAPI_OAuthFlow_type_info = {
+    "OpenAPI_OAuthFlow",
+    sizeof(struct OpenAPI_OAuthFlow),
+    0,
+    g_openapi_oauth_flow_fields,
+    sizeof(g_openapi_oauth_flow_fields) /
+        sizeof(g_openapi_oauth_flow_fields[0]),
+    0};
+
+/** @brief Reflected fields for `OpenAPI_Example`. */
+static const struct cdd_field_info g_openapi_example_fields[] = {
+    {"summary",
+     "summary",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Example, summary),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"description",
+     "description",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Example, description),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"serialized_value",
+     "serializedValue",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Example, serialized_value),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"external_value",
+     "externalValue",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Example, external_value),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info OpenAPI_Example_type_info = {
+    "OpenAPI_Example",
+    sizeof(struct OpenAPI_Example),
+    0,
+    g_openapi_example_fields,
+    sizeof(g_openapi_example_fields) / sizeof(g_openapi_example_fields[0]),
+    0};
+
+/** @brief Reflected fields for `OpenAPI_Link`. */
+static const struct cdd_field_info g_openapi_link_fields[] = {
+    {"operation_ref",
+     "operationRef",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Link, operation_ref),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"operation_id",
+     "operationId",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Link, operation_id),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"description",
+     "description",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Link, description),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"summary",
+     "summary",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_Link, summary),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info OpenAPI_Link_type_info = {
+    "OpenAPI_Link",
+    sizeof(struct OpenAPI_Link),
+    0,
+    g_openapi_link_fields,
+    sizeof(g_openapi_link_fields) / sizeof(g_openapi_link_fields[0]),
+    0};
+
+/**
+ * @brief Table-driven helper to populate reflected `char *` string fields from
+ * a `JSON_Object`.
+ *
+ * @param[in] obj Source JSON object.
+ * @param[in] ti Runtime reflection descriptor.
+ * @param[in,out] target Target C struct pointer.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on allocation
+ * failure.
+ */
+cdd_c_error_t openapi_parse_reflected_strings(const JSON_Object *obj,
+                                              const struct cdd_type_info *ti,
+                                              void *target) {
+  size_t i;
+  for (i = 0; i < ti->n_fields; ++i) {
+    const struct cdd_field_info *f = &ti->fields[i];
+    const char *val = NULL;
+    cdd_c_error_t rc = cdd_json_object_get_string(obj, f->wire_name, &val);
+    if (val) {
+      char *s_out = NULL;
+      char *prev = NULL;
+      memcpy(&prev, (unsigned char *)target + f->offset, sizeof(prev));
+      if (prev)
+        C_CDD_FREE(prev);
+      rc = c_cdd_strdup(val, &s_out);
+      if (rc != CDD_C_SUCCESS)
+        return CDD_C_ERROR_MEMORY;
+      memcpy((unsigned char *)target + f->offset, &s_out, sizeof(s_out));
+    }
+  }
+  return CDD_C_SUCCESS;
+}
+
+cdd_c_error_t
+OpenAPI_Contact_from_jsonObject(const JSON_Object *contact_obj,
+                                struct OpenAPI_Contact *out_contact) {
+  cdd_c_error_t rc = openapi_parse_reflected_strings(
+      contact_obj, &OpenAPI_Contact_type_info, out_contact);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  return collect_extensions(contact_obj, &out_contact->extensions_json);
+}
+
+cdd_c_error_t
+OpenAPI_License_from_jsonObject(const JSON_Object *license_obj,
+                                struct OpenAPI_License *out_license) {
+  const char *lic_name = NULL;
+  const char *lic_identifier = NULL;
+  const char *lic_url = NULL;
+  cdd_c_error_t rc;
+  rc = cdd_json_object_get_string(license_obj, "name", &lic_name);
+  rc = cdd_json_object_get_string(license_obj, "identifier", &lic_identifier);
+  rc = cdd_json_object_get_string(license_obj, "url", &lic_url);
+
+  if (!lic_name || !*lic_name)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (lic_identifier && lic_url)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  rc = openapi_parse_reflected_strings(license_obj, &OpenAPI_License_type_info,
+                                       out_license);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  return collect_extensions(license_obj, &out_license->extensions_json);
+}
+
+cdd_c_error_t OpenAPI_Info_from_jsonObject(const JSON_Object *info_obj,
+                                           struct OpenAPI_Info *out_info) {
+  JSON_Object *contact_obj = NULL;
+  JSON_Object *license_obj = NULL;
+  cdd_c_error_t rc;
+  rc = openapi_parse_reflected_strings(info_obj, &OpenAPI_Info_type_info,
+                                       out_info);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = collect_extensions(info_obj, &out_info->extensions_json);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_json_object_get_object(info_obj, "contact", &contact_obj);
+  if (contact_obj) {
+    rc = OpenAPI_Contact_from_jsonObject(contact_obj, &out_info->contact);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
+
+  rc = cdd_json_object_get_object(info_obj, "license", &license_obj);
+  if (license_obj) {
+    rc = OpenAPI_License_from_jsonObject(license_obj, &out_info->license);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
+
+  return CDD_C_SUCCESS;
+}
+
 /**
  * @brief Internal helper to parse the OpenAPI Info object.
  *
@@ -17,110 +1883,16 @@
  */
 static cdd_c_error_t parse_info_inner(const JSON_Object *root_obj,
                                       struct OpenAPI_Spec *out) {
-  const JSON_Object *info_obj;
-  const JSON_Object *contact_obj;
-  const JSON_Object *license_obj;
-  const char *val;
-  cdd_c_error_t rc;
+  JSON_Object *info_obj = NULL;
 
   if (!root_obj || !out)
     return CDD_C_SUCCESS;
 
-  info_obj = json_object_get_object(root_obj, "info");
+  cdd_json_object_get_object(root_obj, "info", &info_obj);
   if (!info_obj)
     return CDD_C_SUCCESS;
 
-  val = json_object_get_string(info_obj, "title");
-  if (val) {
-    c_cdd_strdup(val, &out->info.title);
-    if (!out->info.title)
-      return CDD_C_ERROR_MEMORY;
-  }
-  val = json_object_get_string(info_obj, "summary");
-  if (val) {
-    c_cdd_strdup(val, &out->info.summary);
-    if (!out->info.summary)
-      return CDD_C_ERROR_MEMORY;
-  }
-  val = json_object_get_string(info_obj, "description");
-  if (val) {
-    c_cdd_strdup(val, &out->info.description);
-    if (!out->info.description)
-      return CDD_C_ERROR_MEMORY;
-  }
-  val = json_object_get_string(info_obj, "termsOfService");
-  if (val) {
-    c_cdd_strdup(val, &out->info.terms_of_service);
-    if (!out->info.terms_of_service)
-      return CDD_C_ERROR_MEMORY;
-  }
-  val = json_object_get_string(info_obj, "version");
-  if (val) {
-    c_cdd_strdup(val, &out->info.version);
-    if (!out->info.version)
-      return CDD_C_ERROR_MEMORY;
-  }
-  rc = collect_extensions(info_obj, &out->info.extensions_json);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-
-  contact_obj = json_object_get_object(info_obj, "contact");
-  if (contact_obj) {
-    val = json_object_get_string(contact_obj, "name");
-    if (val) {
-      c_cdd_strdup(val, &out->info.contact.name);
-      if (!out->info.contact.name)
-        return CDD_C_ERROR_MEMORY;
-    }
-    val = json_object_get_string(contact_obj, "url");
-    if (val) {
-      c_cdd_strdup(val, &out->info.contact.url);
-      if (!out->info.contact.url)
-        return CDD_C_ERROR_MEMORY;
-    }
-    val = json_object_get_string(contact_obj, "email");
-    if (val) {
-      c_cdd_strdup(val, &out->info.contact.email);
-      if (!out->info.contact.email)
-        return CDD_C_ERROR_MEMORY;
-    }
-    rc = collect_extensions(contact_obj, &out->info.contact.extensions_json);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-  }
-
-  license_obj = json_object_get_object(info_obj, "license");
-  if (license_obj) {
-    const char *lic_name = json_object_get_string(license_obj, "name");
-    const char *lic_identifier =
-        json_object_get_string(license_obj, "identifier");
-    const char *lic_url = json_object_get_string(license_obj, "url");
-
-    if (!lic_name || !*lic_name)
-      return CDD_C_ERROR_INVALID_ARGUMENT;
-
-    if (lic_identifier && lic_url)
-      return CDD_C_ERROR_INVALID_ARGUMENT;
-
-    c_cdd_strdup(lic_name, &out->info.license.name);
-    if (!out->info.license.name)
-      return CDD_C_ERROR_MEMORY;
-    if (lic_identifier) {
-      c_cdd_strdup(lic_identifier, &out->info.license.identifier);
-      if (!out->info.license.identifier)
-        return CDD_C_ERROR_MEMORY;
-    }
-    if (lic_url) {
-      c_cdd_strdup(lic_url, &out->info.license.url);
-      if (!out->info.license.url)
-        return CDD_C_ERROR_MEMORY;
-    }
-    rc = collect_extensions(license_obj, &out->info.license.extensions_json);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-  }
-
-  return CDD_C_SUCCESS;
+  return OpenAPI_Info_from_jsonObject(info_obj, &out->info);
 }
 
 /**
@@ -148,25 +1920,19 @@ cdd_c_error_t parse_info(const JSON_Object *root_obj,
 static cdd_c_error_t
 parse_external_docs_inner(const JSON_Object *obj,
                           struct OpenAPI_ExternalDocs *out) {
-  const char *desc;
-  const char *url;
+  const char *url = NULL;
   cdd_c_error_t rc;
 
   if (!obj || !out)
     return CDD_C_SUCCESS;
 
-  desc = json_object_get_string(obj, "description");
-  if (desc) {
-    c_cdd_strdup(desc, &out->description);
-    if (!out->description)
-      return CDD_C_ERROR_MEMORY;
-  }
-  url = json_object_get_string(obj, "url");
+  rc = cdd_json_object_get_string(obj, "url", &url);
   if (!url || !*url)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  c_cdd_strdup(url, &out->url);
-  if (!out->url)
-    return CDD_C_ERROR_MEMORY;
+  rc = openapi_parse_reflected_strings(obj, &OpenAPI_ExternalDocs_type_info,
+                                       out);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   rc = collect_extensions(obj, &out->extensions_json);
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -203,35 +1969,26 @@ cdd_c_error_t parse_external_docs(const JSON_Object *obj,
 static cdd_c_error_t
 parse_discriminator_object_inner(const JSON_Object *obj,
                                  struct OpenAPI_Discriminator *out) {
-  const char *prop;
-  const char *default_mapping;
-  const JSON_Object *mapping_obj;
+  JSON_Object *mapping_obj = NULL;
   size_t i, count, used;
   cdd_c_error_t rc;
 
   if (!obj || !out)
     return CDD_C_SUCCESS;
 
-  prop = json_object_get_string(obj, "propertyName");
-  if (prop) {
-    c_cdd_strdup(prop, &out->property_name);
-    if (!out->property_name)
-      return CDD_C_ERROR_MEMORY;
-  }
+  rc = openapi_parse_reflected_strings(obj, &OpenAPI_Discriminator_type_info,
+                                       out);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
-  default_mapping = json_object_get_string(obj, "defaultMapping");
-  if (default_mapping) {
-    c_cdd_strdup(default_mapping, &out->default_mapping);
-    if (!out->default_mapping)
-      return CDD_C_ERROR_MEMORY;
-  }
-
-  mapping_obj = json_object_get_object(obj, "mapping");
+  rc = cdd_json_object_get_object(obj, "mapping", &mapping_obj);
   if (mapping_obj) {
-    count = json_object_get_count(mapping_obj);
+    count = 0;
+    cdd_json_object_get_count(mapping_obj, &count);
     used = 0;
     for (i = 0; i < count; ++i) {
-      const char *name = json_object_get_name(mapping_obj, i);
+      const char *name = NULL;
+      cdd_json_object_get_name(mapping_obj, i, &name);
       if (strncmp(name, "x-", 2) == 0)
         continue;
       used++;
@@ -244,18 +2001,19 @@ parse_discriminator_object_inner(const JSON_Object *obj,
       out->n_mapping = used;
       used = 0;
       for (i = 0; i < count; ++i) {
-        const char *name = json_object_get_name(mapping_obj, i);
-        const char *val;
+        const char *name = NULL;
+        const char *val = NULL;
+        cdd_json_object_get_name(mapping_obj, i, &name);
         if (strncmp(name, "x-", 2) == 0)
           continue;
-        val = json_object_get_string(mapping_obj, name);
+        rc = cdd_json_object_get_string(mapping_obj, name, &val);
         if (!val)
           continue;
-        c_cdd_strdup(name, &out->mapping[used].value);
-        if (!out->mapping[used].value)
+        rc = c_cdd_strdup(name, &out->mapping[used].value);
+        if (rc != CDD_C_SUCCESS)
           return CDD_C_ERROR_MEMORY;
-        c_cdd_strdup(val, &out->mapping[used].schema);
-        if (!out->mapping[used].schema)
+        rc = c_cdd_strdup(val, &out->mapping[used].schema);
+        if (rc != CDD_C_SUCCESS)
           return CDD_C_ERROR_MEMORY;
         used++;
       }
@@ -306,50 +2064,36 @@ cdd_c_error_t parse_discriminator_object(const JSON_Object *obj,
  */
 static cdd_c_error_t parse_xml_object_inner(const JSON_Object *obj,
                                             struct OpenAPI_Xml *out) {
-  const char *node_type;
-  const char *name;
-  const char *ns;
-  const char *prefix;
+  const char *node_type = NULL;
+  int has_attr = 0, has_wrap = 0;
+  int attr_val = -1, wrap_val = -1;
   cdd_c_error_t rc;
 
   if (!obj || !out)
     return CDD_C_SUCCESS;
 
-  node_type = json_object_get_string(obj, "nodeType");
+  rc = cdd_json_object_get_string(obj, "nodeType", &node_type);
   if (node_type) {
-    parse_xml_node_type(node_type, &out->node_type);
+    rc = parse_xml_node_type(node_type, &out->node_type);
     out->node_type_set = 1;
   }
 
-  name = json_object_get_string(obj, "name");
-  if (name) {
-    c_cdd_strdup(name, &out->name);
-    if (!out->name)
-      return CDD_C_ERROR_MEMORY;
-  }
+  rc = openapi_parse_reflected_strings(obj, &OpenAPI_Xml_type_info, out);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
-  ns = json_object_get_string(obj, "namespace");
-  if (ns) {
-    c_cdd_strdup(ns, &out->namespace_uri);
-    if (!out->namespace_uri)
-      return CDD_C_ERROR_MEMORY;
-  }
-
-  prefix = json_object_get_string(obj, "prefix");
-  if (prefix) {
-    c_cdd_strdup(prefix, &out->prefix);
-    if (!out->prefix)
-      return CDD_C_ERROR_MEMORY;
-  }
-
-  if (json_object_has_value(obj, "attribute")) {
+  cdd_json_object_has_value(obj, "attribute", &has_attr);
+  if (has_attr) {
     out->attribute_set = 1;
-    out->attribute = json_object_get_boolean(obj, "attribute") == 1;
+    cdd_json_object_get_boolean(obj, "attribute", &attr_val);
+    out->attribute = (attr_val == 1);
   }
 
-  if (json_object_has_value(obj, "wrapped")) {
+  cdd_json_object_has_value(obj, "wrapped", &has_wrap);
+  if (has_wrap) {
     out->wrapped_set = 1;
-    out->wrapped = json_object_get_boolean(obj, "wrapped") == 1;
+    cdd_json_object_get_boolean(obj, "wrapped", &wrap_val);
+    out->wrapped = (wrap_val == 1);
   }
 
   rc = collect_extensions(obj, &out->extensions_json);
@@ -388,17 +2132,17 @@ cdd_c_error_t parse_xml_object(const JSON_Object *obj,
  */
 static cdd_c_error_t parse_tags_inner(const JSON_Object *root_obj,
                                       struct OpenAPI_Spec *out) {
-  const JSON_Array *tags_arr;
-  size_t count, i;
+  JSON_Array *tags_arr = NULL;
+  size_t count = 0, i;
 
   if (!root_obj || !out)
     return CDD_C_SUCCESS;
 
-  tags_arr = json_object_get_array(root_obj, "tags");
+  cdd_json_object_get_array(root_obj, "tags", &tags_arr);
   if (!tags_arr)
     return CDD_C_SUCCESS;
 
-  count = json_array_get_count(tags_arr);
+  cdd_json_array_get_count(tags_arr, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -409,14 +2153,14 @@ static cdd_c_error_t parse_tags_inner(const JSON_Object *root_obj,
   out->n_tags = count;
 
   for (i = 0; i < count; ++i) {
-    const JSON_Object *tag_obj = json_array_get_object(tags_arr, i);
-    const char *name = json_object_get_string(tag_obj, "name");
-    const char *summary = json_object_get_string(tag_obj, "summary");
-    const char *description = json_object_get_string(tag_obj, "description");
-    const char *parent = json_object_get_string(tag_obj, "parent");
-    const char *kind = json_object_get_string(tag_obj, "kind");
-    const JSON_Object *ext = json_object_get_object(tag_obj, "externalDocs");
+    JSON_Object *tag_obj = NULL;
+    const char *name = NULL;
+    JSON_Object *ext = NULL;
     cdd_c_error_t rc;
+
+    cdd_json_array_get_object(tags_arr, i, &tag_obj);
+    cdd_json_object_get_string(tag_obj, "name", &name);
+    cdd_json_object_get_object(tag_obj, "externalDocs", &ext);
 
     if (!name || !*name)
       return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -428,29 +2172,13 @@ static cdd_c_error_t parse_tags_inner(const JSON_Object *root_obj,
           return CDD_C_ERROR_INVALID_ARGUMENT;
       }
     }
-    c_cdd_strdup(name, &out->tags[i].name);
-    if (!out->tags[i].name)
+    rc = c_cdd_strdup(name, &out->tags[i].name);
+    if (rc != CDD_C_SUCCESS)
       return CDD_C_ERROR_MEMORY;
-    if (summary) {
-      c_cdd_strdup(summary, &out->tags[i].summary);
-      if (!out->tags[i].summary)
-        return CDD_C_ERROR_MEMORY;
-    }
-    if (description) {
-      c_cdd_strdup(description, &out->tags[i].description);
-      if (!out->tags[i].description)
-        return CDD_C_ERROR_MEMORY;
-    }
-    if (parent) {
-      c_cdd_strdup(parent, &out->tags[i].parent);
-      if (!out->tags[i].parent)
-        return CDD_C_ERROR_MEMORY;
-    }
-    if (kind) {
-      c_cdd_strdup(kind, &out->tags[i].kind);
-      if (!out->tags[i].kind)
-        return CDD_C_ERROR_MEMORY;
-    }
+    rc = openapi_parse_reflected_strings(tag_obj, &OpenAPI_Tag_type_info,
+                                         &out->tags[i]);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (ext) {
       rc = parse_external_docs(ext, &out->tags[i].external_docs);
       if (rc != CDD_C_SUCCESS)
@@ -508,25 +2236,35 @@ cdd_c_error_t tag_index_by_name(const struct OpenAPI_Spec *spec,
  * @param[in] idx Starting tag index.
  * @param[in,out] state Visited state array (`0` unvisited, `1` visiting, `2`
  * done).
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if cycle detected, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_has_cycle Output 1 if cycle detected, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
+ * out_has_cycle is NULL.
  */
 cdd_c_error_t detect_tag_cycle(const struct OpenAPI_Spec *spec, size_t idx,
-                               int *state) {
+                               int *state, int *out_has_cycle) {
   size_t parent_idx = 0;
   const char *parent;
+  if (!out_has_cycle)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_has_cycle = 0;
   if (!spec || !state || idx >= spec->n_tags)
     return CDD_C_SUCCESS;
-  if (state[idx] == 1)
-    return CDD_C_ERROR_UNKNOWN;
+  if (state[idx] == 1) {
+    *out_has_cycle = 1;
+    return CDD_C_SUCCESS;
+  }
   if (state[idx] == 2)
     return CDD_C_SUCCESS;
   state[idx] = 1;
   parent = spec->tags[idx].parent;
   if (parent && *parent) {
     if (tag_index_by_name(spec, parent, &parent_idx) == CDD_C_SUCCESS) {
-      if (detect_tag_cycle(spec, parent_idx, state))
-        return CDD_C_ERROR_UNKNOWN;
+      int sub_cycle = 0;
+      detect_tag_cycle(spec, parent_idx, state, &sub_cycle);
+      if (sub_cycle) {
+        *out_has_cycle = 1;
+        return CDD_C_SUCCESS;
+      }
     }
   }
   state[idx] = 2;
@@ -549,7 +2287,9 @@ cdd_c_error_t validate_tag_parents(const struct OpenAPI_Spec *spec) {
   if (!state)
     return CDD_C_ERROR_MEMORY;
   for (i = 0; i < spec->n_tags; ++i) {
-    if (detect_tag_cycle(spec, i, state)) {
+    int has_cycle = 0;
+    detect_tag_cycle(spec, i, state, &has_cycle);
+    if (has_cycle) {
       C_CDD_FREE(state);
       return CDD_C_ERROR_INVALID_ARGUMENT;
     }
@@ -563,17 +2303,23 @@ cdd_c_error_t validate_tag_parents(const struct OpenAPI_Spec *spec) {
  *
  * @param[in] srv Server structure.
  * @param[in] name Variable name to check.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if defined, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_defined Output 1 if defined, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
+ * out_defined is NULL.
  */
 cdd_c_error_t server_variable_defined(const struct OpenAPI_Server *srv,
-                                      const char *name) {
+                                      const char *name, int *out_defined) {
   size_t i;
+  if (!out_defined)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_defined = 0;
   if (!srv || !name || !srv->variables)
     return CDD_C_SUCCESS;
   for (i = 0; i < srv->n_variables; ++i) {
-    if (strcmp(srv->variables[i].name, name) == 0)
-      return CDD_C_ERROR_UNKNOWN;
+    if (strcmp(srv->variables[i].name, name) == 0) {
+      *out_defined = 1;
+      return CDD_C_SUCCESS;
+    }
   }
   return CDD_C_SUCCESS;
 }
@@ -584,16 +2330,23 @@ cdd_c_error_t server_variable_defined(const struct OpenAPI_Server *srv,
  * @param[in] seen Array of seen variable names.
  * @param[in] seen_count Number of elements in `seen`.
  * @param[in] name Variable name to check.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if seen, CDD_C_SUCCESS (0) otherwise.
+ * @param[out] out_seen Output 1 if seen, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if
+ * out_seen is NULL.
  */
 cdd_c_error_t server_variable_seen(char **seen, size_t seen_count,
-                                   const char *name) {
+                                   const char *name, int *out_seen) {
   size_t i;
+  if (!out_seen)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_seen = 0;
   if (!seen || !name)
     return CDD_C_SUCCESS;
   for (i = 0; i < seen_count; ++i) {
-    if (strcmp(seen[i], name) == 0)
-      return CDD_C_ERROR_UNKNOWN;
+    if (strcmp(seen[i], name) == 0) {
+      *out_seen = 1;
+      return CDD_C_SUCCESS;
+    }
   }
   return CDD_C_SUCCESS;
 }
@@ -622,6 +2375,8 @@ cdd_c_error_t validate_server_url_variables(const struct OpenAPI_Server *srv) {
       size_t len;
       char *name;
       char **tmp;
+      int is_def = 0;
+      int is_seen = 0;
       if (!end)
         goto invalid;
       len = (size_t)(end - (url + i + 1));
@@ -632,11 +2387,13 @@ cdd_c_error_t validate_server_url_variables(const struct OpenAPI_Server *srv) {
         goto oom;
       memcpy(name, url + i + 1, len);
       name[len] = '\0';
-      if (!server_variable_defined(srv, name)) {
+      server_variable_defined(srv, name, &is_def);
+      if (!is_def) {
         C_CDD_FREE(name);
         goto invalid;
       }
-      if (server_variable_seen(seen, seen_count, name)) {
+      server_variable_seen(seen, seen_count, name, &is_seen);
+      if (is_seen) {
         C_CDD_FREE(name);
         goto invalid;
       }
@@ -685,19 +2442,15 @@ oom:
  */
 static cdd_c_error_t parse_server_object_inner(const JSON_Object *srv_obj,
                                                struct OpenAPI_Server *out_srv) {
-  const char *url;
-  const char *desc;
-  const char *name;
-  const JSON_Object *vars;
+  const char *url = NULL;
+  JSON_Object *vars = NULL;
   cdd_c_error_t rc;
 
   if (!srv_obj || !out_srv)
     return CDD_C_SUCCESS;
 
-  url = json_object_get_string(srv_obj, "url");
-  desc = json_object_get_string(srv_obj, "description");
-  name = json_object_get_string(srv_obj, "name");
-  vars = json_object_get_object(srv_obj, "variables");
+  rc = cdd_json_object_get_string(srv_obj, "url", &url);
+  rc = cdd_json_object_get_object(srv_obj, "variables", &vars);
 
   if (!url || !*url)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -705,28 +2458,22 @@ static cdd_c_error_t parse_server_object_inner(const JSON_Object *srv_obj,
   if (url_has_query_or_fragment(url))
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  c_cdd_strdup(url, &out_srv->url);
-  if (!out_srv->url)
+  rc = c_cdd_strdup(url, &out_srv->url);
+  if (rc != CDD_C_SUCCESS)
     return CDD_C_ERROR_MEMORY;
 
-  if (desc) {
-    c_cdd_strdup(desc, &out_srv->description);
-    if (!out_srv->description)
-      return CDD_C_ERROR_MEMORY;
-  }
-
-  if (name) {
-    c_cdd_strdup(name, &out_srv->name);
-    if (!out_srv->name)
-      return CDD_C_ERROR_MEMORY;
-  }
+  rc = openapi_parse_reflected_strings(srv_obj, &OpenAPI_Server_type_info,
+                                       out_srv);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   rc = collect_extensions(srv_obj, &out_srv->extensions_json);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
   if (vars) {
-    size_t vcount = json_object_get_count(vars);
+    size_t vcount = 0;
     size_t v;
+    cdd_json_object_get_count(vars, &vcount);
     if (vcount > 0) {
       out_srv->variables = (struct OpenAPI_ServerVariable *)C_CDD_CALLOC(
           vcount, sizeof(struct OpenAPI_ServerVariable));
@@ -734,31 +2481,32 @@ static cdd_c_error_t parse_server_object_inner(const JSON_Object *srv_obj,
         return CDD_C_ERROR_MEMORY;
       out_srv->n_variables = vcount;
       for (v = 0; v < vcount; ++v) {
-        const char *vname = json_object_get_name(vars, v);
-        const JSON_Object *v_obj =
-            json_value_get_object(json_object_get_value_at(vars, v));
+        const char *vname = NULL;
+        JSON_Value *v_val = NULL;
+        JSON_Object *v_obj = NULL;
         struct OpenAPI_ServerVariable *curr = &out_srv->variables[v];
-        c_cdd_strdup(vname, &curr->name);
-        if (!curr->name)
+        cdd_json_object_get_name(vars, v, &vname);
+        cdd_json_object_get_value_at(vars, v, &v_val);
+        cdd_json_value_get_object(v_val, &v_obj);
+        rc = c_cdd_strdup(vname, &curr->name);
+        if (rc != CDD_C_SUCCESS)
           return CDD_C_ERROR_MEMORY;
         if (v_obj) {
-          const char *def_val = json_object_get_string(v_obj, "default");
-          const char *v_desc = json_object_get_string(v_obj, "description");
-          const JSON_Array *enum_arr = json_object_get_array(v_obj, "enum");
+          const char *def_val = NULL;
+          JSON_Array *enum_arr = NULL;
+          cdd_json_object_get_string(v_obj, "default", &def_val);
+          cdd_json_object_get_array(v_obj, "enum", &enum_arr);
           if (!def_val || !*def_val)
             return CDD_C_ERROR_INVALID_ARGUMENT;
-          c_cdd_strdup(def_val, &curr->default_value);
-          if (!curr->default_value)
-            return CDD_C_ERROR_MEMORY;
-          if (v_desc) {
-            c_cdd_strdup(v_desc, &curr->description);
-            if (!curr->description)
-              return CDD_C_ERROR_MEMORY;
-          }
+          rc = openapi_parse_reflected_strings(
+              v_obj, &OpenAPI_ServerVariable_type_info, curr);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (enum_arr) {
-            size_t ecount = json_array_get_count(enum_arr);
+            size_t ecount = 0;
             size_t e;
             int found_default = 0;
+            cdd_json_array_get_count(enum_arr, &ecount);
             if (ecount == 0)
               return CDD_C_ERROR_INVALID_ARGUMENT;
             {
@@ -767,10 +2515,11 @@ static cdd_c_error_t parse_server_object_inner(const JSON_Object *srv_obj,
                 return CDD_C_ERROR_MEMORY;
               curr->n_enum_values = ecount;
               for (e = 0; e < ecount; ++e) {
-                const char *e_val = json_array_get_string(enum_arr, e);
+                const char *e_val = NULL;
+                cdd_json_array_get_string(enum_arr, e, &e_val);
                 if (e_val) {
-                  c_cdd_strdup(e_val, &curr->enum_values[e]);
-                  if (!curr->enum_values[e])
+                  rc = c_cdd_strdup(e_val, &curr->enum_values[e]);
+                  if (rc != CDD_C_SUCCESS)
                     return CDD_C_ERROR_MEMORY;
                   if (strcmp(e_val, def_val) == 0)
                     found_default = 1;
@@ -844,8 +2593,8 @@ static cdd_c_error_t
 parse_servers_array_inner(const JSON_Object *parent, const char *key,
                           struct OpenAPI_Server **out_servers,
                           size_t *out_count) {
-  const JSON_Array *servers;
-  size_t count, i;
+  JSON_Array *servers = NULL;
+  size_t count = 0, i;
 
   if (!parent || !key || !out_servers || !out_count)
     return CDD_C_SUCCESS;
@@ -853,11 +2602,11 @@ parse_servers_array_inner(const JSON_Object *parent, const char *key,
   *out_servers = NULL;
   *out_count = 0;
 
-  servers = json_object_get_array(parent, key);
+  cdd_json_object_get_array(parent, key, &servers);
   if (!servers)
     return CDD_C_SUCCESS;
 
-  count = json_array_get_count(servers);
+  cdd_json_array_get_count(servers, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -868,7 +2617,8 @@ parse_servers_array_inner(const JSON_Object *parent, const char *key,
   *out_count = count;
 
   for (i = 0; i < count; ++i) {
-    const JSON_Object *srv_obj = json_array_get_object(servers, i);
+    JSON_Object *srv_obj = NULL;
+    cdd_json_array_get_object(servers, i, &srv_obj);
     if (srv_obj) {
       cdd_c_error_t rc = parse_server_object(srv_obj, &(*out_servers)[i]);
       if (rc != CDD_C_SUCCESS)

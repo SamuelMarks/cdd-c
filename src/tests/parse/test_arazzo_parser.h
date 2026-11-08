@@ -62,28 +62,110 @@ static void mock_arazzo_parson_free(void *ptr) { free(ptr); }
  * @return `CDD_C_SUCCESS` on success.
  */
 static cdd_c_error_t build_full_arazzo_json(JSON_Value **out_root) {
-  JSON_Value *root_val = json_value_init_object();
-  JSON_Object *root = json_value_get_object(root_val);
-  JSON_Value *sd_arr_val = json_value_init_array();
-  JSON_Array *sd_arr = json_value_get_array(sd_arr_val);
-  JSON_Value *sd0 = json_value_init_object();
-  JSON_Value *sd1 = json_value_init_object();
-  JSON_Value *sd2 = json_value_init_object();
-  JSON_Value *wf_arr_val = json_value_init_array();
-  JSON_Array *wf_arr = json_value_get_array(wf_arr_val);
-  JSON_Value *wf0 = json_value_init_object();
-  JSON_Value *wf1 = json_value_init_object();
-  JSON_Object *wf0_obj = json_value_get_object(wf0);
-  JSON_Object *wf1_obj = json_value_get_object(wf1);
-  JSON_Value *steps0_val = json_value_init_array();
-  JSON_Array *steps0 = json_value_get_array(steps0_val);
-  JSON_Value *st0 = json_value_init_object();
-  JSON_Value *st1 = json_value_init_object();
-  JSON_Value *st2 = json_value_init_object();
-  JSON_Value *st3 = json_value_init_object();
-  JSON_Value *steps1_val = json_value_init_array();
-  JSON_Array *steps1 = json_value_get_array(steps1_val);
-  JSON_Value *st_w1 = json_value_init_object();
+  JSON_Value *root_val = NULL;
+  JSON_Object *root = NULL;
+  JSON_Value *sd_arr_val = NULL;
+  JSON_Array *sd_arr = NULL;
+  JSON_Value *sd0 = NULL;
+  JSON_Value *sd1 = NULL;
+  JSON_Value *sd2 = NULL;
+  JSON_Value *wf_arr_val = NULL;
+  JSON_Array *wf_arr = NULL;
+  JSON_Value *wf0 = NULL;
+  JSON_Value *wf1 = NULL;
+  JSON_Object *wf0_obj = NULL;
+  JSON_Object *wf1_obj = NULL;
+  JSON_Value *steps0_val = NULL;
+  JSON_Array *steps0 = NULL;
+  JSON_Value *st0 = NULL;
+  JSON_Value *st1 = NULL;
+  JSON_Value *st2 = NULL;
+  JSON_Value *st3 = NULL;
+  JSON_Value *steps1_val = NULL;
+  JSON_Array *steps1 = NULL;
+  JSON_Value *st_w1 = NULL;
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    root_val = _cdd_jv_1;
+  }
+  root = json_value_get_object(root_val);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_array(&_cdd_jv_1);
+    sd_arr_val = _cdd_jv_1;
+  }
+  sd_arr = json_value_get_array(sd_arr_val);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    sd0 = _cdd_jv_1;
+  }
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    sd1 = _cdd_jv_1;
+  }
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    sd2 = _cdd_jv_1;
+  }
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_array(&_cdd_jv_1);
+    wf_arr_val = _cdd_jv_1;
+  }
+  wf_arr = json_value_get_array(wf_arr_val);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    wf0 = _cdd_jv_1;
+  }
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    wf1 = _cdd_jv_1;
+  }
+  wf0_obj = json_value_get_object(wf0);
+  wf1_obj = json_value_get_object(wf1);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_array(&_cdd_jv_1);
+    steps0_val = _cdd_jv_1;
+  }
+  steps0 = json_value_get_array(steps0_val);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    st0 = _cdd_jv_1;
+  }
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    st1 = _cdd_jv_1;
+  }
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    st2 = _cdd_jv_1;
+  }
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    st3 = _cdd_jv_1;
+  }
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_array(&_cdd_jv_1);
+    steps1_val = _cdd_jv_1;
+  }
+  steps1 = json_value_get_array(steps1_val);
+  {
+    JSON_Value *_cdd_jv_1 = NULL;
+    cdd_json_value_init_object(&_cdd_jv_1);
+    st_w1 = _cdd_jv_1;
+  }
 
   json_object_set_string(root, "arazzo", "1.1.0");
   json_object_set_string(root, "$self", "https://example.com/arazzo.json");
@@ -149,7 +231,12 @@ static cdd_c_error_t build_full_arazzo_json(JSON_Value **out_root) {
   json_object_set_string(wf1_obj, "description", "Main desc");
   json_object_dotset_string(wf1_obj, "inputs.type", "object");
   {
-    JSON_Value *dep_val = json_value_init_array();
+    JSON_Value *dep_val = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_array(&_cdd_jv_1);
+      dep_val = _cdd_jv_1;
+    }
     json_array_append_string(json_value_get_array(dep_val), "prereqWf");
     json_object_set_value(wf1_obj, "dependsOn", dep_val);
   }
@@ -158,29 +245,124 @@ static cdd_c_error_t build_full_arazzo_json(JSON_Value **out_root) {
    * outputs */
   {
     JSON_Object *s0 = json_value_get_object(st0);
-    JSON_Value *p_arr_val = json_value_init_array();
-    JSON_Array *p_arr = json_value_get_array(p_arr_val);
-    JSON_Value *p0 = json_value_init_object();
-    JSON_Value *p1 = json_value_init_object();
-    JSON_Value *p2 = json_value_init_object();
-    JSON_Value *rep_arr_val = json_value_init_array();
-    JSON_Array *rep_arr = json_value_get_array(rep_arr_val);
-    JSON_Value *rep0 = json_value_init_object();
-    JSON_Value *crit_arr_val = json_value_init_array();
-    JSON_Array *crit_arr = json_value_get_array(crit_arr_val);
-    JSON_Value *c0 = json_value_init_object();
-    JSON_Value *c1 = json_value_init_object();
-    JSON_Value *c2 = json_value_init_object();
-    JSON_Value *c3 = json_value_init_object();
-    JSON_Value *c4 = json_value_init_object();
-    JSON_Value *ons_arr_val = json_value_init_array();
-    JSON_Array *ons_arr = json_value_get_array(ons_arr_val);
-    JSON_Value *sa0 = json_value_init_object();
-    JSON_Value *sa1 = json_value_init_object();
-    JSON_Value *onf_arr_val = json_value_init_array();
-    JSON_Array *onf_arr = json_value_get_array(onf_arr_val);
-    JSON_Value *fa0 = json_value_init_object();
-    JSON_Value *fa1 = json_value_init_object();
+    JSON_Value *p_arr_val = NULL;
+    JSON_Array *p_arr = NULL;
+    JSON_Value *p0 = NULL;
+    JSON_Value *p1 = NULL;
+    JSON_Value *p2 = NULL;
+    JSON_Value *rep_arr_val = NULL;
+    JSON_Array *rep_arr = NULL;
+    JSON_Value *rep0 = NULL;
+    JSON_Value *crit_arr_val = NULL;
+    JSON_Array *crit_arr = NULL;
+    JSON_Value *c0 = NULL;
+    JSON_Value *c1 = NULL;
+    JSON_Value *c2 = NULL;
+    JSON_Value *c3 = NULL;
+    JSON_Value *c4 = NULL;
+    JSON_Value *ons_arr_val = NULL;
+    JSON_Array *ons_arr = NULL;
+    JSON_Value *sa0 = NULL;
+    JSON_Value *sa1 = NULL;
+    JSON_Value *onf_arr_val = NULL;
+    JSON_Array *onf_arr = NULL;
+    JSON_Value *fa0 = NULL;
+    JSON_Value *fa1 = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_array(&_cdd_jv_1);
+      p_arr_val = _cdd_jv_1;
+    }
+    p_arr = json_value_get_array(p_arr_val);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      p0 = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      p1 = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      p2 = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_array(&_cdd_jv_1);
+      rep_arr_val = _cdd_jv_1;
+    }
+    rep_arr = json_value_get_array(rep_arr_val);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      rep0 = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_array(&_cdd_jv_1);
+      crit_arr_val = _cdd_jv_1;
+    }
+    crit_arr = json_value_get_array(crit_arr_val);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      c0 = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      c1 = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      c2 = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      c3 = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      c4 = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_array(&_cdd_jv_1);
+      ons_arr_val = _cdd_jv_1;
+    }
+    ons_arr = json_value_get_array(ons_arr_val);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      sa0 = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      sa1 = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_array(&_cdd_jv_1);
+      onf_arr_val = _cdd_jv_1;
+    }
+    onf_arr = json_value_get_array(onf_arr_val);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      fa0 = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      fa1 = _cdd_jv_1;
+    }
 
     json_object_set_string(s0, "stepId", "step1");
     json_object_set_string(s0, "description", "First step");
@@ -212,8 +394,18 @@ static cdd_c_error_t build_full_arazzo_json(JSON_Value **out_root) {
     json_array_append_value(p_arr, p1);
     json_array_append_value(p_arr, p2);
     {
-      JSON_Value *p3 = json_value_init_object();
-      JSON_Value *p4 = json_value_init_object();
+      JSON_Value *p3 = NULL;
+      JSON_Value *p4 = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_value_init_object(&_cdd_jv_1);
+        p3 = _cdd_jv_1;
+      }
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_value_init_object(&_cdd_jv_1);
+        p4 = _cdd_jv_1;
+      }
       json_object_set_string(json_value_get_object(p3), "name", "numParam");
       json_object_set_number(json_value_get_object(p3), "value", 42);
       json_object_set_string(json_value_get_object(p4), "reference",
@@ -276,10 +468,30 @@ static cdd_c_error_t build_full_arazzo_json(JSON_Value **out_root) {
     json_object_set_string(json_value_get_object(sa1), "workflowId",
                            "prereqWf");
     {
-      JSON_Value *sap_arr = json_value_init_array();
-      JSON_Value *sap0 = json_value_init_object();
-      JSON_Value *sac_arr = json_value_init_array();
-      JSON_Value *sac0 = json_value_init_object();
+      JSON_Value *sap_arr = NULL;
+      JSON_Value *sap0 = NULL;
+      JSON_Value *sac_arr = NULL;
+      JSON_Value *sac0 = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_value_init_array(&_cdd_jv_1);
+        sap_arr = _cdd_jv_1;
+      }
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_value_init_object(&_cdd_jv_1);
+        sap0 = _cdd_jv_1;
+      }
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_value_init_array(&_cdd_jv_1);
+        sac_arr = _cdd_jv_1;
+      }
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_value_init_object(&_cdd_jv_1);
+        sac0 = _cdd_jv_1;
+      }
       json_object_set_string(json_value_get_object(sap0), "name", "actP");
       json_object_set_string(json_value_get_object(sap0), "value", "1");
       json_array_append_value(json_value_get_array(sap_arr), sap0);
@@ -303,10 +515,30 @@ static cdd_c_error_t build_full_arazzo_json(JSON_Value **out_root) {
     json_object_set_number(json_value_get_object(fa1), "retryAfter", 2.0);
     json_object_set_number(json_value_get_object(fa1), "retryLimit", 1);
     {
-      JSON_Value *fap_arr = json_value_init_array();
-      JSON_Value *fap0 = json_value_init_object();
-      JSON_Value *fac_arr = json_value_init_array();
-      JSON_Value *fac0 = json_value_init_object();
+      JSON_Value *fap_arr = NULL;
+      JSON_Value *fap0 = NULL;
+      JSON_Value *fac_arr = NULL;
+      JSON_Value *fac0 = NULL;
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_value_init_array(&_cdd_jv_1);
+        fap_arr = _cdd_jv_1;
+      }
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_value_init_object(&_cdd_jv_1);
+        fap0 = _cdd_jv_1;
+      }
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_value_init_array(&_cdd_jv_1);
+        fac_arr = _cdd_jv_1;
+      }
+      {
+        JSON_Value *_cdd_jv_1 = NULL;
+        cdd_json_value_init_object(&_cdd_jv_1);
+        fac0 = _cdd_jv_1;
+      }
       json_object_set_string(json_value_get_object(fap0), "name", "fActP");
       json_object_set_string(json_value_get_object(fap0), "value", "2");
       json_array_append_value(json_value_get_array(fap_arr), fap0);
@@ -333,7 +565,12 @@ static cdd_c_error_t build_full_arazzo_json(JSON_Value **out_root) {
   json_object_set_string(json_value_get_object(st1), "operationPath",
                          "$sourceDescriptions.petstore.url#/paths/~1pets/get");
   {
-    JSON_Value *sdep = json_value_init_array();
+    JSON_Value *sdep = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_array(&_cdd_jv_1);
+      sdep = _cdd_jv_1;
+    }
     json_array_append_string(json_value_get_array(sdep), "step1");
     json_object_set_value(json_value_get_object(st1), "dependsOn", sdep);
   }
@@ -356,12 +593,42 @@ static cdd_c_error_t build_full_arazzo_json(JSON_Value **out_root) {
 
   /* workflow-level successActions, failureActions, outputs, parameters */
   {
-    JSON_Value *wsa_arr = json_value_init_array();
-    JSON_Value *wsa0 = json_value_init_object();
-    JSON_Value *wfa_arr = json_value_init_array();
-    JSON_Value *wfa0 = json_value_init_object();
-    JSON_Value *wp_arr = json_value_init_array();
-    JSON_Value *wp0 = json_value_init_object();
+    JSON_Value *wsa_arr = NULL;
+    JSON_Value *wsa0 = NULL;
+    JSON_Value *wfa_arr = NULL;
+    JSON_Value *wfa0 = NULL;
+    JSON_Value *wp_arr = NULL;
+    JSON_Value *wp0 = NULL;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_array(&_cdd_jv_1);
+      wsa_arr = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      wsa0 = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_array(&_cdd_jv_1);
+      wfa_arr = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      wfa0 = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_array(&_cdd_jv_1);
+      wp_arr = _cdd_jv_1;
+    }
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      cdd_json_value_init_object(&_cdd_jv_1);
+      wp0 = _cdd_jv_1;
+    }
 
     json_object_set_string(json_value_get_object(wsa0), "name", "wfEnd");
     json_object_set_string(json_value_get_object(wsa0), "type", "end");
@@ -610,8 +877,8 @@ TEST test_arazzo_parse_and_validate_errors(void) {
 
     c2openapi_set_json_allocators(mock_arazzo_parson_malloc,
                                   mock_arazzo_parson_free);
-    (json_set_allocation_functions)(mock_arazzo_parson_malloc,
-                                    mock_arazzo_parson_free);
+    json_set_allocation_functions(mock_arazzo_parson_malloc,
+                                  mock_arazzo_parson_free);
     for (f = 0; f <= 260; ++f) {
       g_arazzo_parson_oom_at = f;
       if (arazzo_write_spec_to_json(&spec, &json_out) == CDD_C_SUCCESS) {
@@ -621,7 +888,7 @@ TEST test_arazzo_parse_and_validate_errors(void) {
       g_arazzo_parson_oom_at = -1;
     }
     c2openapi_set_json_allocators(malloc, free);
-    (json_set_allocation_functions)(malloc, free);
+    json_set_allocation_functions(malloc, free);
 
     /* Emit with empty components sub-objects */
     {
@@ -961,6 +1228,38 @@ TEST test_arazzo_parse_and_validate_errors(void) {
                   &spec) == CDD_C_ERROR_INVALID_ARGUMENT
                   ? CDD_C_SUCCESS
                   : CDD_C_ERROR_INVALID_ARGUMENT);
+
+    {
+      JSON_Object *root_obj = json_value_get_object(root_val);
+      struct Arazzo_Criterion dummy_crit;
+      struct Arazzo_Info dummy_info;
+      struct Arazzo_SourceDescription dummy_sd;
+      memset(&dummy_crit, 0, sizeof(dummy_crit));
+      memset(&dummy_info, 0, sizeof(dummy_info));
+      memset(&dummy_sd, 0, sizeof(dummy_sd));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                Arazzo_Criterion_to_jsonObject(NULL, root_obj));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                Arazzo_Criterion_to_jsonObject(&dummy_crit, NULL));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                Arazzo_Info_to_jsonObject(NULL, root_obj));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                Arazzo_Info_to_jsonObject(&dummy_info, NULL));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                Arazzo_SourceDescription_to_jsonObject(NULL, root_obj));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                Arazzo_SourceDescription_to_jsonObject(&dummy_sd, NULL));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                Arazzo_Criterion_from_jsonObject(root_obj, NULL));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                Arazzo_SourceDescription_from_jsonObject(NULL, &dummy_sd));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                Arazzo_SourceDescription_from_jsonObject(root_obj, NULL));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                Arazzo_Info_from_jsonObject(NULL, &dummy_info));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                Arazzo_Info_from_jsonObject(root_obj, NULL));
+    }
   }
 
   json_value_free(root_val);

@@ -20,28 +20,31 @@
 static cdd_c_error_t parse_media_type_object_inner(
     const JSON_Object *media_obj, struct OpenAPI_MediaType *out,
     const struct OpenAPI_Spec *spec, int resolve_refs) {
-  const JSON_Value *schema_val;
-  const JSON_Object *schema_obj;
-  const JSON_Value *item_schema_val;
-  const JSON_Object *item_schema_obj;
-  const JSON_Object *encoding_obj;
-  const JSON_Array *prefix_encoding_arr;
-  const JSON_Object *item_encoding_obj;
-  const char *ref;
+  JSON_Value *schema_val = NULL;
+  JSON_Object *schema_obj = NULL;
+  JSON_Value *item_schema_val = NULL;
+  JSON_Object *item_schema_obj = NULL;
+  JSON_Object *encoding_obj = NULL;
+  JSON_Array *prefix_encoding_arr = NULL;
+  JSON_Object *item_encoding_obj = NULL;
+  const char *ref = NULL;
   cdd_c_error_t rc;
 
   if (!media_obj || !out)
     return CDD_C_SUCCESS;
 
   {
-    const int has_encoding = json_object_has_value(media_obj, "encoding");
-    const int has_prefix = json_object_has_value(media_obj, "prefixEncoding");
-    const int has_item = json_object_has_value(media_obj, "itemEncoding");
+    int has_encoding = 0;
+    int has_prefix = 0;
+    int has_item = 0;
+    cdd_json_object_has_value(media_obj, "encoding", &has_encoding);
+    cdd_json_object_has_value(media_obj, "prefixEncoding", &has_prefix);
+    cdd_json_object_has_value(media_obj, "itemEncoding", &has_item);
     if (has_encoding && (has_prefix || has_item))
       return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  ref = json_object_get_string(media_obj, "$ref");
+  cdd_json_object_get_string(media_obj, "$ref", &ref);
   if (ref) {
     c_cdd_strdup(ref, &out->ref);
     if (!out->ref)
@@ -58,12 +61,14 @@ static cdd_c_error_t parse_media_type_object_inner(
     return CDD_C_SUCCESS;
   }
 
-  schema_val = json_object_get_value(media_obj, "schema");
-  schema_obj = schema_val ? json_value_get_object(schema_val) : NULL;
+  cdd_json_object_get_value(media_obj, "schema", &schema_val);
   if (schema_val) {
-    if (json_value_get_type(schema_val) == JSONBoolean) {
+    JSON_Value_Type vtype = JSONError;
+    cdd_json_value_get_object(schema_val, &schema_obj);
+    cdd_json_value_get_type(schema_val, &vtype);
+    if (vtype == JSONBoolean) {
       out->schema.schema_is_boolean = 1;
-      out->schema.schema_boolean_value = json_value_get_boolean(schema_val);
+      cdd_json_value_get_boolean(schema_val, &out->schema.schema_boolean_value);
       out->schema_set = 1;
     } else if (schema_obj) {
       rc = parse_schema_ref(schema_obj, &out->schema, spec);
@@ -73,14 +78,15 @@ static cdd_c_error_t parse_media_type_object_inner(
     }
   }
 
-  item_schema_val = json_object_get_value(media_obj, "itemSchema");
-  item_schema_obj =
-      item_schema_val ? json_value_get_object(item_schema_val) : NULL;
+  cdd_json_object_get_value(media_obj, "itemSchema", &item_schema_val);
   if (item_schema_val) {
-    if (json_value_get_type(item_schema_val) == JSONBoolean) {
+    JSON_Value_Type vtype = JSONError;
+    cdd_json_value_get_object(item_schema_val, &item_schema_obj);
+    cdd_json_value_get_type(item_schema_val, &vtype);
+    if (vtype == JSONBoolean) {
       out->item_schema.schema_is_boolean = 1;
-      out->item_schema.schema_boolean_value =
-          json_value_get_boolean(item_schema_val);
+      cdd_json_value_get_boolean(item_schema_val,
+                                 &out->item_schema.schema_boolean_value);
       out->item_schema_set = 1;
     } else if (item_schema_obj) {
       rc = parse_schema_ref(item_schema_obj, &out->item_schema, spec);
@@ -90,7 +96,7 @@ static cdd_c_error_t parse_media_type_object_inner(
     }
   }
 
-  encoding_obj = json_object_get_object(media_obj, "encoding");
+  cdd_json_object_get_object(media_obj, "encoding", &encoding_obj);
   if (encoding_obj) {
     rc = parse_encoding_map(encoding_obj, &out->encoding, &out->n_encoding,
                             spec, resolve_refs);
@@ -98,7 +104,7 @@ static cdd_c_error_t parse_media_type_object_inner(
       return rc;
   }
 
-  prefix_encoding_arr = json_object_get_array(media_obj, "prefixEncoding");
+  cdd_json_object_get_array(media_obj, "prefixEncoding", &prefix_encoding_arr);
   if (prefix_encoding_arr) {
     rc = parse_encoding_array(prefix_encoding_arr, &out->prefix_encoding,
                               &out->n_prefix_encoding, spec, resolve_refs);
@@ -106,7 +112,7 @@ static cdd_c_error_t parse_media_type_object_inner(
       return rc;
   }
 
-  item_encoding_obj = json_object_get_object(media_obj, "itemEncoding");
+  cdd_json_object_get_object(media_obj, "itemEncoding", &item_encoding_obj);
   if (item_encoding_obj) {
     out->item_encoding = (struct OpenAPI_Encoding *)C_CDD_CALLOC(
         1, sizeof(struct OpenAPI_Encoding));
@@ -342,23 +348,27 @@ select_primary_media_type_index(const struct OpenAPI_MediaType *mts, size_t n,
 cdd_c_error_t find_media_object_by_name(const JSON_Object *content,
                                         const char *media_name,
                                         const JSON_Object **_out_val) {
-  size_t i, count;
+  size_t i, count = 0;
   if (!content || !media_name) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
   {
-    const JSON_Object *exact = json_object_get_object(content, media_name);
+    JSON_Object *exact = NULL;
+    cdd_json_object_get_object(content, media_name, &exact);
     if (exact) {
       *_out_val = exact;
       return CDD_C_SUCCESS;
     }
   }
-  count = json_object_get_count(content);
+  cdd_json_object_get_count(content, &count);
   for (i = 0; i < count; ++i) {
-    const char *name = json_object_get_name(content, i);
+    const char *name = NULL;
+    cdd_json_object_get_name(content, i, &name);
     if (media_type_base_equal(name, media_name)) {
-      *_out_val = json_object_get_object(content, name);
+      JSON_Object *found_obj = NULL;
+      cdd_json_object_get_object(content, name, &found_obj);
+      *_out_val = found_obj;
       return CDD_C_SUCCESS;
     }
   }
@@ -382,14 +392,14 @@ cdd_c_error_t parse_content_object(const JSON_Object *content,
                                    size_t *out_count,
                                    const struct OpenAPI_Spec *spec,
                                    int resolve_refs) {
-  size_t i, count, valid = 0;
+  size_t i, count = 0, valid = 0;
   if (!out || !out_count)
     return CDD_C_SUCCESS;
   *out = NULL;
   *out_count = 0;
   if (!content)
     return CDD_C_SUCCESS;
-  count = json_object_get_count(content);
+  cdd_json_object_get_count(content, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -400,11 +410,14 @@ cdd_c_error_t parse_content_object(const JSON_Object *content,
     return CDD_C_ERROR_MEMORY;
 
   for (i = 0; i < count; ++i) {
-    const char *name = json_object_get_name(content, i);
-    const JSON_Object *media_obj =
-        json_value_get_object(json_object_get_value_at(content, i));
+    const char *name = NULL;
+    JSON_Value *val_at = NULL;
+    JSON_Object *media_obj = NULL;
     struct OpenAPI_MediaType *curr = &(*out)[valid];
     cdd_c_error_t rc;
+    cdd_json_object_get_name(content, i, &name);
+    cdd_json_object_get_value_at(content, i, &val_at);
+    cdd_json_value_get_object(val_at, &media_obj);
     if (!media_obj)
       continue;
     c_cdd_strdup(name, &curr->name);

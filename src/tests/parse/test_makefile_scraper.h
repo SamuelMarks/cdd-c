@@ -150,7 +150,6 @@ TEST test_scrape_configure_ac_basic(void) {
 TEST test_scrape_makefile_oom(void) {
 #ifdef CDD_BUILD_TESTS
   struct ExtractedBuildInfo info;
-  char *cmake_str = NULL;
   const char *makefile = "CC=gcc\n"
                          "CFLAGS=-I./include -DDEBUG=1\n"
                          "SRCS=main.c util.c";
@@ -165,7 +164,6 @@ TEST test_scrape_makefile_oom(void) {
         build_info_free(&info);
         break;
       }
-      (void)cmake_str;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       build_info_free(&info);
     }
